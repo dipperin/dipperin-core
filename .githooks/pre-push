@@ -1,56 +1,56 @@
 #!/bin/sh
-
-branch=`git symbolic-ref --short -q HEAD`
-echo "$branch"
-if [ "$branch" != "dev" ]; then
-    echo "Not running tests on non-DEV branches"
-    exit 0
-fi
-echo "push hook"
-
-# determine whether we need to pull first
-# but we could not control if sb successfully pushed during our test running
-# how ever we could do an extra check to ensure they pull the latest code before running tests
-git remote update
-LOCAL=$(git rev-parse @)
-REMOTE=$(git rev-parse "origin/dev")
-BASE=$(git merge-base @ "origin/dev")
-
-if [ $LOCAL = $REMOTE ]; then
-    echo "Up-to-date, nothing to push"
-    exit 0
-elif [ $LOCAL = $BASE ]; then
-    echo "Need to pull, please pull your branch first"
-    exit 1
-elif [ $REMOTE = $BASE ]; then
-    echo "Safe to push"
-else
-    echo "Diverged, please pull your branch first"
-    exit 1
-fi
-
-git reset HEAD .
-count=`git diff|wc -l`
-
-if [ ${count} != 0 ];then
-    echo "Stashing local changes"
-    git stash
-    echo "Running tests"
-fi
-
-./cs.sh
-
-# $? stores exit value of the last command
-FAIL=$?
-
-if [ ${count} != 0 ];then
-    echo "Recovering local changes"
-    git stash pop
-fi
-
-if [ $FAIL != 0 ]; then
-    echo "Tests must pass before push!"
-    exit 1
-fi
-
-echo "diff count: ${count}"
+# deprecated
+#branch=`git symbolic-ref --short -q HEAD`
+#echo "$branch"
+#if [ "$branch" != "dev" ]; then
+#    echo "Not running tests on non-DEV branches"
+#    exit 0
+#fi
+#echo "push hook"
+#
+## determine whether we need to pull first
+## but we could not control if sb successfully pushed during our test running
+## how ever we could do an extra check to ensure they pull the latest code before running tests
+#git remote update
+#LOCAL=$(git rev-parse @)
+#REMOTE=$(git rev-parse "origin/dev")
+#BASE=$(git merge-base @ "origin/dev")
+#
+#if [ $LOCAL = $REMOTE ]; then
+#    echo "Up-to-date, nothing to push"
+#    exit 0
+#elif [ $LOCAL = $BASE ]; then
+#    echo "Need to pull, please pull your branch first"
+#    exit 1
+#elif [ $REMOTE = $BASE ]; then
+#    echo "Safe to push"
+#else
+#    echo "Diverged, please pull your branch first"
+#    exit 1
+#fi
+#
+#git reset HEAD .
+#count=`git diff|wc -l`
+#
+#if [ ${count} != 0 ];then
+#    echo "Stashing local changes"
+#    git stash
+#    echo "Running tests"
+#fi
+#
+#./cs.sh
+#
+## $? stores exit value of the last command
+#FAIL=$?
+#
+#if [ ${count} != 0 ];then
+#    echo "Recovering local changes"
+#    git stash pop
+#fi
+#
+#if [ $FAIL != 0 ]; then
+#    echo "Tests must pass before push!"
+#    exit 1
+#fi
+#
+#echo "diff count: ${count}"
