@@ -27,9 +27,15 @@ Download and install wallet.
 
 After you created your account, jump to the contract page.
 
+![](./contract1.jpg)
+
 Click create contract and turn to a create contract page.
 
+![](./contract2.jpg)
+
 Fill in the informations and click create. Done.
+
+![](./contract3.jpg)
 
 ## Deploy token through JavaScript API
 
