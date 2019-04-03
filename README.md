@@ -19,7 +19,7 @@ Dipperin is a open source blockchain project, designed for business. Dipperin al
 4. Follow the [Tutorial](https://dipperin.readthedocs.io/en/latest/Tutorials.html)
 
 ## Useful links
-- [Project Website](http://dipperin.com)
+- [Project Website](http://www.dipperin.com)
 - [Documentation](https://dipperin.readthedocs.io/en/latest/index.html)
 - [Slack Channel](https://join.slack.com/t/dipperin/shared_invite/enQtNTk5NTEzMDUyNTk4LTNmNjEzZjQyZWZiODFmNjAzZWUyNDNhYzhkYzI3ZWRlZTZmNmRiNDdjODMzYThkOGZkNTZlMGQ4MGE2OWU1MzA)
 - [Twitter](https://twitter.com/Dipperin2018)
