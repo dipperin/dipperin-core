@@ -1,0 +1,149 @@
+// Copyright 2019, Keychain Foundation Ltd.
+// This file is part of the dipperin-core library.
+//
+// The dipperin-core library is free software: you can redistribute
+// it and/or modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation, either version 3 of the
+// License, or (at your option) any later version.
+//
+// The dipperin-core library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
+package model
+
+import (
+	"crypto/ecdsa"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/bloom"
+	"math/big"
+)
+
+type AbstractHeader interface {
+	GetNumber() uint64
+	Hash() common.Hash
+	GetPreHash() common.Hash
+	EncodeRlpToBytes() ([]byte, error)
+	GetStateRoot() common.Hash
+	CoinBaseAddress() common.Address
+	DuplicateHeader() AbstractHeader
+	IsEqual(header AbstractHeader) bool
+	SetVerificationRoot(newRoot common.Hash)
+	GetSeed() common.Hash
+	GetProof() []byte
+	GetMinerPubKey() (*ecdsa.PublicKey)
+	GetInterLinkRoot() common.Hash
+	GetDifficulty() common.Difficulty
+	GetRegisterRoot() common.Hash
+	SetRegisterRoot(root common.Hash)
+	//IsEqual(header *Header) bool
+}
+
+type AbstractBody interface {
+	GetTxsSize() int
+	GetTxByIndex(i int) AbstractTransaction
+	EncodeRlpToBytes() ([]byte, error)
+	GetInterLinks() InterLink
+}
+
+//go:generate mockgen -destination=./../economy-model/block_mock_test.go -package=economy_model github.com/caiqingfeng/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=./../../cmd/utils/ver-halt-check/block_mock_test.go -package=ver_halt_check github.com/caiqingfeng/dipperin-core/core/model AbstractBlock
+type AbstractBlock interface {
+	Version() uint64
+	Number() uint64
+	IsSpecial() bool
+	Difficulty() common.Difficulty
+	PreHash() common.Hash
+	Seed() common.Hash
+	RefreshHashCache() common.Hash
+	Hash() common.Hash
+	EncodeRlpToBytes() ([]byte, error)
+	TxIterator(cb func(int, AbstractTransaction) (error)) (error)
+	TxRoot() common.Hash
+	Timestamp() *big.Int
+	Nonce() common.BlockNonce
+	StateRoot() common.Hash
+	SetStateRoot(root common.Hash)
+	GetRegisterRoot() common.Hash
+	SetRegisterRoot(root common.Hash)
+	FormatForRpc() interface{}
+	SetNonce(nonce common.BlockNonce)
+	CoinBaseAddress() common.Address
+	GetTransactionFees() *big.Int
+	CoinBase() *big.Int
+	GetTransactions() []*Transaction
+	GetInterlinks() InterLink
+	SetInterLinkRoot(root common.Hash)
+	GetInterLinkRoot() (root common.Hash)
+	SetInterLinks(inter InterLink)
+	GetAbsTransactions() []AbstractTransaction
+	GetBloom() iblt.Bloom
+	Header() AbstractHeader
+	Body() AbstractBody
+	TxCount() int
+	GetEiBloomBlockData(reqEstimator *iblt.HybridEstimator) *BloomBlockData
+	GetBlockTxsBloom() *iblt.Bloom
+	VerificationRoot() common.Hash
+	SetVerifications(vs []AbstractVerification)
+	VersIterator(func(int, AbstractVerification, AbstractBlock) error) (error)
+	GetVerifications() ([]AbstractVerification)
+}
+
+type PriofityCalculator interface {
+	GetElectPriority(common.Hash, uint64, *big.Int, uint64) (uint64, error)
+	GetReputation(uint64, *big.Int, uint64) (uint64, error)
+}
+
+type AbstractTransaction interface {
+	Size() common.StorageSize
+	Amount() *big.Int
+	CalTxId() common.Hash
+	Fee() *big.Int
+	Nonce() uint64
+	To() *common.Address
+	Sender(singer Signer) (common.Address, error)
+	SenderPublicKey(signer Signer) (*ecdsa.PublicKey, error)
+	EncodeRlpToBytes() ([]byte, error)
+	GetSigner() Signer
+	GetType() common.TxType
+	ExtraData() []byte
+	Cost() *big.Int
+	EstimateFee() *big.Int
+}
+
+//go:generate mockgen -destination=./../economy-model/verification_mock_test.go -package=economy_model github.com/caiqingfeng/dipperin-core/core/model AbstractVerification
+//go:generate mockgen -destination=./../../cmd/utils/ver-halt-check/verification_mock_test.go -package=ver_halt_check github.com/caiqingfeng/dipperin-core/core/model AbstractVerification
+type AbstractVerification interface {
+	GetHeight() uint64
+	GetRound() uint64
+	GetViewID() uint64
+	GetType() VoteMsgType
+	GetBlockId() common.Hash
+	GetAddress() common.Address
+	GetBlockHash() string
+	Valid() error
+	HaltedVoteValid(verifiers []common.Address) error
+}
+
+// TxDifference returns a new set which is the difference between a and b.
+func TxDifference(a, b []AbstractTransaction) []AbstractTransaction {
+	keep := make([]AbstractTransaction, 0, len(a))
+
+	remove := make(map[common.Hash]struct{})
+	for _, tx := range b {
+		remove[tx.CalTxId()] = struct{}{}
+	}
+
+	for _, tx := range a {
+		if _, ok := remove[tx.CalTxId()]; !ok {
+			keep = append(keep, tx)
+		}
+	}
+
+	return keep
+}
