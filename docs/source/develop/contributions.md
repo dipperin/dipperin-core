@@ -14,7 +14,7 @@ Excerpted from the [Go conduct document](https://golang.org/conduct).
 
 ## Ways to contribute
 ### Getting help
-If you are looking for something to work on, or need some expert assistance in debugging a problem or working out a fix to an issue, our community is always eager to help. We hang out on [mail](). Questions are in fact a great way to help improve the project as they highlight where our documentation could be clearer.
+If you are looking for something to work on, or need some expert assistance in debugging a problem or working out a fix to an issue, our community is always eager to help. We hang out on mail `report@dipperin.com`. Questions are in fact a great way to help improve the project as they highlight where our documentation could be clearer.
 
 ### Reporting Bugs 
 When you encounter a bug, please open an issue on the corresponding repository. Start the issue title with the repository/sub-repository name, like ```repository_name: issue name```. We have provided a issue templates for bug report:Bug report template. If you can abide by this template, this will help us fix the bug more efficiently.
@@ -23,7 +23,7 @@ When you encounter a bug, please open an issue on the corresponding repository. 
 If the scope of the enhancement is small, open an issue. If it is large, such as suggesting a new repository, sub-repository, or interface refactoring, then please @Dipperin-Project on an issue,we will pay more attention on you suggestion. 
 
 ### Your First Code Contribution
-If you are a new contributor, thank you! Before your first merge, you will need to be added to the [CONTRIBUTORS](https://github.com/caiqingfeng/dipperin-core/blob/dev/CONTRIBUTORS) files. Open a pull request adding yourself to these files. All Dipperin code follows the LGPL license in the license document. We prefer that code contributions do not come with additional licensing. For exceptions, added code must also follow a LGPL license.
+If you are a new contributor, thank you! Before your first merge, you will need to be added to the [CONTRIBUTORS](https://github.com/dipperin/dipperin-core/blob/dev/CONTRIBUTORS) files. Open a pull request adding yourself to these files. All Dipperin code follows the LGPL license in the license document. We prefer that code contributions do not come with additional licensing. For exceptions, added code must also follow a LGPL license.
 
 ### Code Contribution
 If it is possible to split a large pull request into two or more smaller pull requests, please try to do so. 
@@ -55,7 +55,7 @@ Fixes Dipperin/Dipperin-core/core#40.
 ```
 Please always format your code with [goimports](https://godoc.org/golang.org/x/tools/cmd/goimports). Best is to have it invoked as a hook when you save your .go files.
 
-Files in the Dipperin repository don't list author names, both to avoid clutter and to avoid having to keep the lists up to date. Instead, your name will appear in the change log and in the [CONTRIBUTORS](https://github.com/caiqingfeng/dipperin-core/blob/dev/CONTRIBUTORS) files.
+Files in the Dipperin repository don't list author names, both to avoid clutter and to avoid having to keep the lists up to date. Instead, your name will appear in the change log and in the [CONTRIBUTORS](https://github.com/dipperin/dipperin-core/blob/dev/CONTRIBUTORS) files.
 
 New files that you contribute should use the standard copyright header:
 
