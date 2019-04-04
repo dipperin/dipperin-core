@@ -23,7 +23,7 @@ When you encounter a bug, please open an issue on the corresponding repository. 
 If the scope of the enhancement is small, open an issue. If it is large, such as suggesting a new repository, sub-repository, or interface refactoring, then please @Dipperin-Project on an issue,we will pay more attention on you suggestion. 
 
 ### Your First Code Contribution
-If you are a new contributor, thank you! Before your first merge, you will need to be added to the [CONTRIBUTORS](https://github.com/dipperin/dipperin-core/blob/hotfix/CONTRIBUTORS) files. Open a pull request adding yourself to these files. All Dipperin code follows the LGPL license in the license document. We prefer that code contributions do not come with additional licensing. For exceptions, added code must also follow a LGPL license.
+If you are a new contributor, thank you! Before your first merge, you will need to be added to the [CONTRIBUTORS](https://github.com/dipperin/dipperin-core/blob/master/CONTRIBUTORS) files. Open a pull request adding yourself to these files. All Dipperin code follows the LGPL license in the license document. We prefer that code contributions do not come with additional licensing. For exceptions, added code must also follow a LGPL license.
 
 ### Code Contribution
 If it is possible to split a large pull request into two or more smaller pull requests, please try to do so. 
@@ -55,7 +55,7 @@ Fixes Dipperin/Dipperin-core/core#40.
 ```
 Please always format your code with [goimports](https://godoc.org/golang.org/x/tools/cmd/goimports). Best is to have it invoked as a hook when you save your .go files.
 
-Files in the Dipperin repository don't list author names, both to avoid clutter and to avoid having to keep the lists up to date. Instead, your name will appear in the change log and in the [CONTRIBUTORS](https://github.com/dipperin/dipperin-core/blob/hotfix/CONTRIBUTORS) files.
+Files in the Dipperin repository don't list author names, both to avoid clutter and to avoid having to keep the lists up to date. Instead, your name will appear in the change log and in the [CONTRIBUTORS](https://github.com/dipperin/dipperin-core/blob/master/CONTRIBUTORS) files.
 
 New files that you contribute should use the standard copyright header:
 
