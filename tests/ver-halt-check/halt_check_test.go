@@ -337,6 +337,8 @@ func TestSystemBug(t *testing.T){
 	assert.NotEqual(t,nil,errBlock)
 	log.Info("the errBlock is:","errBlock",errBlock)
 	log.Info("the errBlock number is:","errBlockNumber",errBlock.Number())
+
+
 }
 
 
