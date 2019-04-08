@@ -94,6 +94,9 @@ func TestWalletSigner_ValidSign(t *testing.T) {
 	testSigner, err := wallet.GetTestWalletSigner()
 	assert.NoError(t, err)
 
+	//test travis
+	//assert.Error(t,err)
+
 	signature,err:=testSigner.SignHash(wallet.TestHashData[:])
 	assert.NoError(t,err)
 
