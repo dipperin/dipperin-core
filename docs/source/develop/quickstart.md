@@ -63,7 +63,7 @@ Use git shell run commands below, and copy source code to your go path
 
 You can't run the tests if you don't put source code in your home folder.
 
-(`$HOME` means home folder, example `C:\User\qydev`)
+(`$HOME` means home folder, example `C:\Users\qydev`)
 
 ```
 $ mkdir -p $HOME\go\src\github.com\dipperin
@@ -134,7 +134,7 @@ and `:wq` for save and quit the file.
 
 - Windows
 
-(`$HOME` means home folder, example `C:\User\qydev`)
+(`$HOME` means home folder, example `C:\Users\qydev`)
 
 ```
 $ set PATH=%PATH%;$HOME\go\bin
