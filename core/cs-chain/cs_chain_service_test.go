@@ -19,6 +19,7 @@ package cs_chain
 import (
 	"errors"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain/chaindb"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/tests"
@@ -26,6 +27,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"math/big"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/dipperin/dipperin-core/cmd/utils"
@@ -59,7 +61,8 @@ func CsChainServiceBuilder() *CsChainService {
 	conf.SlotSize = 3
 	conf.VerifierNumber = 3
 
-	dataDir := "/tmp/cs_chain_service_test"
+	homeDir := util.HomeDir()
+	dataDir := filepath.FromSlash(homeDir+"/tmp/cs_chain_service_test")
 	csConfig := &chain_state.ChainStateConfig{
 		DataDir:       dataDir,
 		WriterFactory: f,
@@ -81,9 +84,10 @@ func TestNewCsChainService(t *testing.T) {
 	conf.SlotSize = 3
 	conf.VerifierNumber = 3
 
-	dataDir := "/tmp/cs_chain_service_test"
+	homeDir := util.HomeDir()
+	dataDir := filepath.FromSlash(homeDir+"/tmp/cs_chain_service_test")
 	csConfig := &chain_state.ChainStateConfig{
-		DataDir:       dataDir,
+		DataDir:       "",
 		WriterFactory: f,
 		ChainConfig:   conf,
 	}
@@ -99,7 +103,7 @@ func TestNewCsChainService(t *testing.T) {
 	})
 
 	utils.SetupGenesis(dataDir, conf)
-
+	csConfig.DataDir = dataDir
 	assert.NotNil(t, NewCsChainService(&CsChainServiceConfig{
 		CacheDB: &fakeCacheDB{},
 		TxPool:  &fakeTxPool{},
