@@ -1,4 +1,25 @@
 language: go
-
 go:
   - 1.x
+
+git:
+  submodules: false # 不运行 git submodules 命令
+
+before_install: # 安装 makefile 需要的一些包，其实也可以放在 install 阶段，看个人喜好
+#- sudo apt-get update -qq
+#- sudo apt-get install -qq -y make
+
+install: true # 跳过 install 阶段，因为我已经定义了 before_install。其实 go 项目是需要安装依赖的，只是我放到了下面的 make mycli 命令中做
+
+script: make test && make build # 先运行测试，然后编译
+
+deploy:
+  provider: releases
+  api_key:
+    secure: BemuS+gNT/+zQQhdaYkEJf7ukFalUBV5/RqJ4TUJTTitsldiw8OeJz5SkTTfpMn2avPaA2LnqCUQ4pUkmRP6k633oxulkkwoLIJCxkR+8vkTyifiYQM7CHoSSP+CgPUyI60Xvhthz2AK4BIv8iK9tE2m8wVKClA4z1Rb8e3G7aBfJrNeYKexMJBtRo3rLWXKWtOPamwZFnZkOx9BIUw5Ka38gI8aXZe78o2hecMf0w4cntrL+WeYOy7iU8Q3Zb+V7nfM9LbUuxWonXqETBSiWTBbJazqMCPpta1tHZgzzU7os3PIcR3Lt4TDpJYkZwVBa6cvFEi/kyVFUVwzdISTPZH9sVekoBQhPoeBhCmDop/PgNVhiPUqRMThTQ3JXLvRywqlndhKpgC42CRj8mO4Y4Q5zsC05ACKfZq/Wkm9Fh/8W1TIyfqrTSlSyAywZ2dpzVDB6b5a+mCEaSAbFvtdh2eLHU3qAPppxxNQzFD9ceaXfsb269pCbh0cGnkXgd9KgTrd69L2U+yxnkRLPxpMDxWC9/OMer8VHvQV5ZsayAuAyHhu2ucmUAc2586P0qfepTSkvYnjcPeqqxnq1D54BLtwAEyi5Lbkc+51upqtxFAfq3vf2NppmK/kySlWYFn5zaeRjiuxiMZJHtbVEC+/ILOtCI9EV56fF8xq7ZR9OXI=
+  file: dipperin
+  skip_cleanup: true # 因为要上传可执行文件到 release，所以不能自动把这个文件清除
+  on:
+    repo: dipperin/dipperin-core
+    branch: master
+    tags: true   #git tag 时发布
