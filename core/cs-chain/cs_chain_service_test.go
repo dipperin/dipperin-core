@@ -28,6 +28,7 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/dipperin/dipperin-core/cmd/utils"
@@ -111,11 +112,17 @@ func TestNewCsChainService(t *testing.T) {
 }
 
 func TestCsChainService_Stop(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		return
+	}
 	ccs := CsChainServiceBuilder()
 	ccs.Stop()
 }
 
 func TestCsChainService_CurrentBalance(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		return
+	}
 	assert.NoError(t, os.Setenv("boots_env", "test"))
 	ccs := CsChainServiceBuilder()
 	assert.Equal(t, ccs.CurrentBalance(common.HexToAddress("0x1234")), (*big.Int)(nil))
