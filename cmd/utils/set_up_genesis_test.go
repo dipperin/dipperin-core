@@ -27,11 +27,6 @@ import (
 
 func TestSetupGenesis(t *testing.T) {
 	defer os.RemoveAll("/tmp/test_genesis")
-
-	assert.Panics(t, func() {
-		SetupGenesis("/dev/test_genesis", chain_config.GetChainConfig())
-	})
-
 	SetupGenesis("/tmp/test_genesis", chain_config.GetChainConfig())
 }
 

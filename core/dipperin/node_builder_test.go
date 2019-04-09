@@ -17,12 +17,14 @@
 package dipperin
 
 import (
-	"testing"
-	"github.com/dipperin/dipperin-core/core/cs-chain"
-	"github.com/stretchr/testify/assert"
 	"github.com/dipperin/dipperin-core/common/util"
-	"os"
+	"github.com/dipperin/dipperin-core/core/cs-chain"
 	"github.com/dipperin/dipperin-core/tests/factory"
+	"github.com/stretchr/testify/assert"
+	"os"
+	"path/filepath"
+	"runtime"
+	"testing"
 
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
@@ -37,7 +39,7 @@ func createNodeConfig() *NodeConfig {
 		Name:                 "test",
 		P2PListener:          ":30000",
 		IPCPath:              "path",
-		DataDir:              util.HomeDir() + "/dir",
+		DataDir:              filepath.FromSlash(util.HomeDir() + "/dir"),
 		HTTPHost:             "http_host",
 		HTTPPort:             3335,
 		WSHost:               "ws_host",
@@ -56,6 +58,10 @@ func createNodeConfig() *NodeConfig {
 }
 
 func TestNewBftNode(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		return
+	}
+
 	cs_chain.GenesisSetUp = true
 	nodeConfig := createNodeConfig()
 	node := NewBftNode(*nodeConfig)
@@ -75,6 +81,10 @@ func TestNewBftNode(t *testing.T) {
 }
 
 func TestMsgSender(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		return
+	}
+
 	cs_chain.GenesisSetUp = true
 	os.Setenv("boots_env", "test")
 
