@@ -202,7 +202,7 @@ func RpcCall(c *cli.Context) {
 // get rpc method from name
 func getDipperinRpcMethodByName(mName string) string {
 	lm := strings.ToLower(string(mName[0])) + mName[1:]
-	return "Dipperin_" + lm
+	return "dipperin_" + lm
 }
 
 

@@ -20,6 +20,8 @@ package dipperin_prompts
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"path/filepath"
+	"github.com/dipperin/dipperin-core/common/util"
 )
 
 func TestNodeName(t *testing.T) {
@@ -80,8 +82,11 @@ func Test_portValidate(t *testing.T) {
 func Test_filepathValidate(t *testing.T) {
 	err := filepathValidate("sdfx.sdf/wef")
 	assert.Error(t, err)
-	err = filepathValidate("/tmp/ok")
+
+	homeDir := util.HomeDir()
+	err = filepathValidate(filepath.FromSlash(homeDir+"/tmp/ok"))
 	assert.NoError(t, err)
+
 	err = filepathValidate("")
 	assert.NoError(t, err)
 }
