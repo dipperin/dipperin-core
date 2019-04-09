@@ -36,4 +36,4 @@ cover:
 
 ## cross compiling
 compile:
-    @./cs.sh compile
+	@./cs.sh compile
