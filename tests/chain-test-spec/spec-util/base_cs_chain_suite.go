@@ -41,15 +41,12 @@ type BaseChainServiceSuite struct {
 }
 
 func (suite *BaseChainServiceSuite) SetupTest() {
-
-	config := &cs_chain.CsChainServiceConfig{
-		ChainStateConfig: &chain_state.ChainStateConfig{
-			DataDir:     "",
-			ChainConfig: chain_config.GetChainConfig(),
-		}}
-
-	config.ChainStateConfig.WriterFactory = chain_writer.NewChainWriterFactory()
-	chainState := chain_state.NewChainState(config.ChainStateConfig)
+	f := chain_writer.NewChainWriterFactory()
+	chainState := chain_state.NewChainState(&chain_state.ChainStateConfig{
+		DataDir:       "",
+		WriterFactory: f,
+		ChainConfig:   chain_config.GetChainConfig(),
+	})
 
 	futureBlocks, _ := lru.New(100)
 
@@ -59,9 +56,8 @@ func (suite *BaseChainServiceSuite) SetupTest() {
 		panic(err)
 	}
 
-	config.ChainStateConfig.WriterFactory.SetChain(ccs)
 	service := &cs_chain.CsChainService{
-		CsChainServiceConfig: config,
+		CsChainServiceConfig: &cs_chain.CsChainServiceConfig{},
 		CacheChainState:      ccs,
 		FutureBlocks:         futureBlocks,
 		Quit:                 make(chan struct{}),
