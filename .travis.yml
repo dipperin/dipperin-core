@@ -17,6 +17,7 @@ install: true # 跳过 install 阶段，因为我已经定义了 before_install�
 
 script: make test && make compile # 先运行测试，然后交叉编译
 
+
 deploy:
   provider: releases
   api_key:
