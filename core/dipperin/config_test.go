@@ -18,8 +18,9 @@
 package dipperin
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"runtime"
+	"testing"
 )
 
 func TestNodeConfig_FullChainDBDir(t *testing.T) {
@@ -101,14 +102,23 @@ func TestNodeConfig_IpcEndpoint(t *testing.T) {
 		IPCPath:"path",
 	}
 	result = nodeConfig.IpcEndpoint()
-	//assert.Equal(t, "/tmp/path", result)
+	if runtime.GOOS == "windows" {
+		assert.Equal(t, `\\.\pipe\` + nodeConfig.IPCPath, result)
+	} else {
+		assert.Equal(t, "tmp/path", result)
+	}
 
 	nodeConfig = NodeConfig{
 		IPCPath:"path",
 		DataDir:"dir",
 	}
 	result = nodeConfig.IpcEndpoint()
-	assert.Equal(t, "dir/path", result)
+	if runtime.GOOS == "windows" {
+		assert.Equal(t, `\\.\pipe\` + nodeConfig.IPCPath, result)
+	} else {
+		assert.Equal(t, "dir/path", result)
+	}
+
 }
 
 func TestNodeConfig_LightChainDBDir(t *testing.T) {

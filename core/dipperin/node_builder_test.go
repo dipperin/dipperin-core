@@ -58,7 +58,7 @@ func createNodeConfig() *NodeConfig {
 }
 
 func TestNewBftNode(t *testing.T) {
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS != "linux" {
 		return
 	}
 
@@ -81,6 +81,10 @@ func TestNewBftNode(t *testing.T) {
 }
 
 func TestMsgSender(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		return
+	}
+
 	cs_chain.GenesisSetUp = true
 	os.Setenv("boots_env", "test")
 
