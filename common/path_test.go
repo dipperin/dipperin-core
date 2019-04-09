@@ -16,7 +16,11 @@
 
 package common
 
-import "testing"
+import (
+	"github.com/dipperin/dipperin-core/common/util"
+	"path/filepath"
+	"testing"
+)
 
 func TestMakeName(t *testing.T) {
 	t.Skip()
@@ -32,7 +36,7 @@ func TestMakeName(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				name: "test",
+				name:    "test",
 				version: "1.0",
 			},
 			want: "test/v1.0/linux/go1.11.1",
@@ -85,6 +89,7 @@ func TestAbsolutePath(t *testing.T) {
 		Datadir  string
 		filename string
 	}
+	homeDir := util.HomeDir()
 	tests := []struct {
 		name string
 		args args
@@ -93,18 +98,18 @@ func TestAbsolutePath(t *testing.T) {
 		{
 			name: "Is absolute path",
 			args: args{
-				Datadir: "/test1",
-				filename: "/test/",
+				Datadir:  "",
+				filename: filepath.FromSlash(homeDir + "test"),
 			},
-			want: "/test/",
+			want: filepath.FromSlash(homeDir + "test"),
 		},
 		{
 			name: "Not a absolute path",
 			args: args{
-				Datadir: "/test1",
-				filename: "test",
+				Datadir:  filepath.FromSlash(homeDir),
+				filename: filepath.FromSlash("test"),
 			},
-			want: "/test1/test",
+			want: filepath.FromSlash(homeDir + "/test"),
 		},
 	}
 	for _, tt := range tests {

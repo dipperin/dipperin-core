@@ -40,25 +40,15 @@ func TestWriteDebugStack(t *testing.T) {
 	defer tfClean()
 
 	err := WriteDebugStack(tf)
-
 	assert.NoError(t, err)
 
 	err = WriteDebugStack("./test/test.log")
-
 	assert.NoError(t, err)
-
 	assert.FileExists(t, "./test/test.log")
 
 	err = os.Remove("./test/test.log")
-
 	assert.NoError(t, err)
 
 	err = os.Remove("./test")
-
 	assert.NoError(t, err)
-
-	err = WriteDebugStack("/test/test.log")
-
-	assert.Error(t, err)
-
 }
