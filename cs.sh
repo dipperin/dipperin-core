@@ -140,6 +140,11 @@ build_install() {
     return $?
 }
 
+cross_compile() {
+    echo 'cross compile dipperin'
+    xgo -go 1.11.1 --targets=linux/amd64,windows/amd64,darwin/amd64 .
+}
+
 update_vendor () {
 
 
@@ -201,6 +206,11 @@ main () {
         cover )
             {
                 cover $2
+        };;
+
+        compile )
+            {
+                cross_compile
         };;
 
     esac
