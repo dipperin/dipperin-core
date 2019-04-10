@@ -28,6 +28,6 @@ deploy:
   file: dipperin-core-*
   skip_cleanup: true # 因为要上传可执行文件到 release，所以不能自动把这个文件清除
   on:
-    repo: dipperin/dipperin-core
+    repo: yangchuang123456/dipperin-core
     branch: master
     tags: true   #git tag 时发布
