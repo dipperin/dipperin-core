@@ -4,9 +4,14 @@ go:
 cache: false #不使用cache
 #cache: ccache
 
+notifications:
+  email: false
+
 sudo: required # 使用容器进行编译，速度更快
+
 services:
   - docker
+
 git:
   submodules: false # 不运行 git submodules 命令
 
