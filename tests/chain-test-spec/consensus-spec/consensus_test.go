@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package consensus_spec
 
 import (
@@ -62,20 +61,16 @@ func (suite *consensusTestSuite) Test_ValidateBlockNumber() {
 
 	// create middleware context
 	context := middleware.NewBftBlockContext(block, seenCommit, suite.ChainState)
-
 	context.Use(middleware.ValidateBlockNumber(&context.BlockContext))
-
 	suite.NoError(context.Process())
-
 	suite.NoError(suite.ChainState.SaveBftBlock(block, seenCommit))
 	suite.NoError(chainHelper.ChainState.SaveBftBlock(block, seenCommit))
-
 	suite.Equal(block.Number(), suite.ChainState.CurrentBlock().Number())
 
 	// create middleware context
 	context2 := middleware.NewBftBlockContext(block, seenCommit, suite.ChainState)
 	context2.Use(middleware.ValidateBlockNumber(&context2.BlockContext))
-	suite.EqualError(context2.Process(), g_error.ErrBlockHeightTooLow.Error())
+	suite.EqualError(context2.Process(), g_error.ErrBlockHeightIsCurrentAndIsNotSpecial.Error())
 
 	//test special block
 	blockSpec := suite.BlockBuilder.BuildSpecialBlock()
@@ -120,7 +115,6 @@ func (suite *consensusTestSuite) Test_ValidateBlockHash() {
 	context := middleware.NewBftBlockContext(block, seenCommit, suite.ChainState)
 	context.Use(middleware.ValidateBlockHash(&context.BlockContext))
 	suite.NoError(context.Process())
-
 	suite.NoError(chainHelper.ChainState.SaveBftBlock(block, seenCommit))
 
 	blockA := suite.BlockBuilder.Build()
@@ -171,7 +165,6 @@ func (suite *consensusTestSuite) Test_ValidateBlockCoinBase() {
 	suite.EqualError(context1.Process(), g_error.ErrSpecialInvalidCoinBase.Error())
 }
 
-
 func (suite *consensusTestSuite) Test_ValidateBlockDifficulty() {
 	block := suite.BlockBuilder.Build()
 	// seen commit
@@ -179,7 +172,7 @@ func (suite *consensusTestSuite) Test_ValidateBlockDifficulty() {
 	suite.NoError(suite.ChainState.SaveBftBlock(block, seenCommit))
 	context := middleware.NewBftBlockContext(block, seenCommit, suite.ChainState)
 	context.Use(middleware.ValidateBlockDifficulty(&context.BlockContext))
-	suite.EqualError(context.Process(), g_error.ErrInvalidDiff.Error())
+	suite.NoError(context.Process())
 }
 
 func (suite *consensusTestSuite) Test_ValidateSeed() {
