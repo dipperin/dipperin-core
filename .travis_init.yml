@@ -1,0 +1,12 @@
+language: go
+go:
+- '1.0'
+- '1.3'
+deploy:
+  provider: releases
+  api_key:
+    secure: PRmHwkOfqQCmZERu8OCF7Pzmrk3OFAtSVuq4m+3sHsYm1Vm9NAy1ibsOtmyv9OPdPjk3SvIOmXLyPTFEg3xqmuYa02DHaIeTBOSmT4dKVYVk5KhjJWZR43DoF7/cIynqsigmPxYGgQ3Mco0GISI4/ZjZsbNBO4Xt1A+2BowZfsf4NmD7ylBF31YvsdANZS7lwb/HYl5rB04etgeQsBK4y6lDo9P/JIciqLfr4V+2FYbIkNEBnwXRJiGu0mTJ5n3hlSuG2Dnv+N/bVVMNNoszmZYdGl2+ES/vLiXzoq5w7t2iSQlbSGJHS+wMm4UiRtIgz0d2hatOP+dZ/KVgpllTmEk57kGCQvJT+9fgAW+xGceLu80GBOkmhRgJr49RCY1bloG8bHM4SXeLFhE/bIuPRuQeQ4pAJQ6X3Xo+bRjQYy3IigHkT85A94QwH1DswfRceerXKbYEgu0uF4ix8bJkiKMyTTYrlUk2Vpht0Wp9nt/O5F/SZo0jjh0x3EV0UvpYgB4h6/ADSu1FBNNDvzJdney1Qy1nO0e/JxXDuJWRwdUvUBcZM+RVYHL/qoaKBgdONJXqvuMDdhAT0PxSoRKy9JeOVdi+kB9jT56Zn6/RRXWyso+cOIURyZzRjo1QqE+OoIZqVlE9gqLm//MMD7pSRbO8Z2JI3vrKTXO0QiJ9JNk=
+  file: dipperin
+  on:
+    repo: dipperin/dipperin-core
+    branch: dev
