@@ -1,7 +1,7 @@
 language: go
 go:
   - 1.x
-cache: false #不使用cache
+#cache: false #不使用cache
 sudo: required # 使用容器进行编译，速度更快
 services:
   - docker
