@@ -36,8 +36,8 @@ cover:
 
 ## travis-test
 travis-test:
-	@go test ./...
-
+	##@go test ./...
+	@./cs.sh travisTest
 ## cross compiling
 compile:
 	@./cs.sh compile
