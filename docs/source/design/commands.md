@@ -25,12 +25,12 @@ Assuming that the local cluster is currently started, the command line tool need
 HttpPort: `50007`.
 
 ```
-dipperincli -- http_host 127.0.0.1 -- http_port 50007
+dipperincli -- http_host 127.0.0.1 --http_port 50007
 ```
 
 Connect to the test environment:
 ```
-boots_env = test ~/go/bin/dipperincli
+boots_env=test ~/go/bin/dipperincli
 ```
 
 Or set temporary environment variables first:
@@ -67,7 +67,7 @@ dipperincli -- node_type 2 -- soft_wallet_pwd 123
 
 Connect to the test environment:
 ```
-boots_env = test ~/go/bin/dipperincli -- soft_wallet_pwd 123
+boots_env=test ~/go/bin/dipperincli -- soft_wallet_pwd 123
 ```
 
 ### Error
