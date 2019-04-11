@@ -1,6 +1,9 @@
 language: go
 go:
   - 1.x
+
+dist: xenial
+
 cache: false #不使用cache
 #cache: ccache
 
@@ -20,17 +23,17 @@ before_install:
 
 install: true # 跳过 install 阶段，因为我已经定义了 before_install。其实 go 项目是需要安装依赖的，只是我放到了下面的 make mycli 命令中做
 
-#script: make travis-test && make compile # 先运行测试，然后交叉编译
-script: make compile
+script: make travis-test && make compile # 先运行测试，然后交叉编译
+#script: make compile
 
 deploy:
   provider: releases
   api_key:
-    secure: JjhrO/vD2rih2xF/jWylWMYBRHFxua3pFlrmzZ6wMlQmWbvlnrPT+amZvxBlEiOyQYlKHZikPeTYF2i5SFi06nMB2x7gwYRpXFRvgmIXBzDao0FvWL1w2M+PD90EJqsJJAEx8HCAzDXHAWYNk9mwOInMtqt1UuQ0nLicZq1Mf9XFdKnQDuj8672ct1qLZjNcn/B0GsB3Q4J0ObgBEbCd7QG764RnJjCtbFcb0KGeqwVTOJxktQcIEoxwXoVYU3dX6LbOTuhILSf/qENMK7UJh0daJNMfUxUri1Bkwz/XsNaCjAby6cSTtXWTTUlW8zWyDf1I75C4grvm70LWBzSnyO0h2jRSTM475XpeTrv3ttf0266rGIH9KgmyfVSJoEdZBDA+4QDRkFoCeGMPnW0+J3kG86fuMRsfnqswGzS9Bp9SDjuRQLLolIk3Wjcq0AcDlCET7ZGr+Lgqe3rSrEyNV//rR769NpdZF3YbIe5F3jUpYQ+a/5CKgC2oacVmJ8gVNjwXTeQiKpi9YLGNIsjbEvksqyky7hseCKwnbbh2gJ00aB1DVdj91mCgTAvPnFJV5jRqVbCpNgUCPhb/5/+GhwtIYJomYHWxekicr3rxXkjxoYCcG7NimNtRIAiWcfldZ9YikK+4pHY4UdLKg8k8f36bxQxe5qKOEN66LBQVrA4=
-  file:
-    - "dipperin-core-darwin-10.6-amd64"
-    - "dipperin-core-linux-amd64"
-    - "dipperin-core-windows-4.0-amd64.exe"
+    secure: Zvn4olNj67sPj0+Ys/9O/ttfhYFXA2TDQ2g1Xbwxq/7AViIxVbizLM/5MHfFLYhEC5h/CqXNAUWUCQ5igRqqEaMfQFGGG+gZh/V/h4fJbmQVSH06Kobd3H8f5cMSyEfna/Vl2cBokwPrU+XZ/UM3Uw1XddMvFw3hLLPCE711b3X41WD5vlr5dPVsKv1Guk84K4o5FoWxPrvcP7MJoCLjtrXlb7+R51ceK+d2QKlxDBPtR+9y8flayn8tNVYsd9qCdmcwoCv2LU32t/dC1SI3Fl0lPnIkrvZqdZTXJjZTYGlcwD9DkNrj0eLjYXeLuwUKaaHLmPpRPjOTjq3JTgkkFk2EeHi3b23Ikyl98iWZgFG6qfxoq1RzNtbPdeV/1SiDq2EFeqzIE374yDCqZ4mytIhoUwFPGX77YXMOjFxgImZ/8ucfKOw+B7bNp/evviSrnt9LbDW0emv0IEKQdDcZSPi4tPhzq31QScVDsdeZKRqeM9+U/yPA390DWsnRPnfE67ubfbVcwcGxODRwtatQrwIgTAhHTMZcXapV4mYiIb3CAfjB8Wn4xMkGaI4drIYwJChU5fTmy3BFl5F9PVW53g/xVL1g3cMOw/FiAyO+jh+16jJVHrazRNXEu2Cb2gs62GhhMb7S8NSTEF2KavcnOorDhy2t+PX+ztm8w+U+RWo=
+  file: dipperin
+    #- "dipperin-core-darwin-10.6-amd64"
+    #- "dipperin-core-linux-amd64"
+    #- "dipperin-core-windows-4.0-amd64.exe"
   skip_cleanup: true # 因为要上传可执行文件到 release，所以不能自动把这个文件清除
   on:
     repo: yangchuang123456/dipperin-core
