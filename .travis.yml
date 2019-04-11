@@ -1,12 +1,20 @@
 language: go
 go:
   - 1.x
-#cache: false #不使用cache
-cache: ccache
+
+dist: xenial
+
+cache: false #不使用cache
+#cache: ccache
+
+notifications:
+  email: false
 
 sudo: required # 使用容器进行编译，速度更快
+
 services:
   - docker
+
 git:
   submodules: false # 不运行 git submodules 命令
 
@@ -23,11 +31,14 @@ script: make travis-test && make compile # 先运行测试，然后交叉编译
 deploy:
   provider: releases
   api_key:
-    secure: BemuS+gNT/+zQQhdaYkEJf7ukFalUBV5/RqJ4TUJTTitsldiw8OeJz5SkTTfpMn2avPaA2LnqCUQ4pUkmRP6k633oxulkkwoLIJCxkR+8vkTyifiYQM7CHoSSP+CgPUyI60Xvhthz2AK4BIv8iK9tE2m8wVKClA4z1Rb8e3G7aBfJrNeYKexMJBtRo3rLWXKWtOPamwZFnZkOx9BIUw5Ka38gI8aXZe78o2hecMf0w4cntrL+WeYOy7iU8Q3Zb+V7nfM9LbUuxWonXqETBSiWTBbJazqMCPpta1tHZgzzU7os3PIcR3Lt4TDpJYkZwVBa6cvFEi/kyVFUVwzdISTPZH9sVekoBQhPoeBhCmDop/PgNVhiPUqRMThTQ3JXLvRywqlndhKpgC42CRj8mO4Y4Q5zsC05ACKfZq/Wkm9Fh/8W1TIyfqrTSlSyAywZ2dpzVDB6b5a+mCEaSAbFvtdh2eLHU3qAPppxxNQzFD9ceaXfsb269pCbh0cGnkXgd9KgTrd69L2U+yxnkRLPxpMDxWC9/OMer8VHvQV5ZsayAuAyHhu2ucmUAc2586P0qfepTSkvYnjcPeqqxnq1D54BLtwAEyi5Lbkc+51upqtxFAfq3vf2NppmK/kySlWYFn5zaeRjiuxiMZJHtbVEC+/ILOtCI9EV56fF8xq7ZR9OXI=
-
-  file: dipperin-core-*
+    secure: T6E/9a2nPxG4d4DKRGYh+GkeMZLLjdXwQ77DsLvaOYc0x6OgfNequcK6+CVGuO4N9UFOmRH54VJGwGq/ZVBtTpyLudQaaEJemG5bPFCkGtYJkmBDYGypPNYP1zKvGZtys7Fhqu2gWi4NVWvhK/laxwSk4K3K4sHCDONZ6y+7hcqEAA/hu023Eo+fYB+y2V7ERwAEYOlj7zZCab/uE1r0e6QMsk642Japd8mtT+iNXD9uR/VhpKRP+b1PjjRQ8aDhmxiUmMqZBN7OLWc3F3v7LAudO5WTqmdurN5FQ8wdFDF2NgzUWafxd/1zPHqj+/r8BujT3LDuDcEPmYZ5mjHnSqaak3LIrQWHtZsMv0Zo4ZajVYiIinrFjVuo542rn2L7S2+aefX+9LmM+u/uqAHWRZXNLRaEHqC8/AjseyKLhF44xTd9RpF29zTP7/snOkOcgc1afpBqcgUwUpu46P+nhs+oCO2xtMQC5PHchUwVgLopd+GjnxYhNRy3gQn6ir8S2DbJtpH432O0sHV8bAmce6AWxmoM3feXlvKUirI0o+nJM7ejetdR40qdA3FKZa8MYDEW5oHIo0Yjbl0VawnhVY7GeAZZTcdWpLPLWW7XV5BjKOx/eVAIXQcNruW4wTRjd8lLy261NBZ0Zr5/jWyFlyZ3Y540rDApJrq8mf5onNc=
+  file: dipperin
+  #  - "dipperin-core-darwin-10.6-amd64"
+  #  - "dipperin-core-linux-amd64"
+  #  - "dipperin-core-windows-4.0-amd64.exe"
   skip_cleanup: true # 因为要上传可执行文件到 release，所以不能自动把这个文件清除
   on:
     repo: dipperin/dipperin-core
-    branch: master
+    branch: dev
     tags: true   #git tag 时发布
+
