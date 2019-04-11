@@ -25,7 +25,7 @@ Assuming that the local cluster is currently started, the command line tool need
 HttpPort: `50007`.
 
 ```
-dipperincli -- http_host 127.0.0.1 -- http_port 50007
+dipperincli -- http_host 127.0.0.1 --http_port 50007
 ```
 
 Connect to the test environment:
