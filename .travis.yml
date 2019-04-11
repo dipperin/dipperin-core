@@ -4,6 +4,9 @@ go:
 cache: false #不使用cache
 #cache: ccache
 
+notifications:
+  email: false
+
 sudo: required # 使用容器进行编译，速度更快
 services:
   - docker
@@ -23,9 +26,11 @@ script: make compile
 deploy:
   provider: releases
   api_key:
-    secure: BemuS+gNT/+zQQhdaYkEJf7ukFalUBV5/RqJ4TUJTTitsldiw8OeJz5SkTTfpMn2avPaA2LnqCUQ4pUkmRP6k633oxulkkwoLIJCxkR+8vkTyifiYQM7CHoSSP+CgPUyI60Xvhthz2AK4BIv8iK9tE2m8wVKClA4z1Rb8e3G7aBfJrNeYKexMJBtRo3rLWXKWtOPamwZFnZkOx9BIUw5Ka38gI8aXZe78o2hecMf0w4cntrL+WeYOy7iU8Q3Zb+V7nfM9LbUuxWonXqETBSiWTBbJazqMCPpta1tHZgzzU7os3PIcR3Lt4TDpJYkZwVBa6cvFEi/kyVFUVwzdISTPZH9sVekoBQhPoeBhCmDop/PgNVhiPUqRMThTQ3JXLvRywqlndhKpgC42CRj8mO4Y4Q5zsC05ACKfZq/Wkm9Fh/8W1TIyfqrTSlSyAywZ2dpzVDB6b5a+mCEaSAbFvtdh2eLHU3qAPppxxNQzFD9ceaXfsb269pCbh0cGnkXgd9KgTrd69L2U+yxnkRLPxpMDxWC9/OMer8VHvQV5ZsayAuAyHhu2ucmUAc2586P0qfepTSkvYnjcPeqqxnq1D54BLtwAEyi5Lbkc+51upqtxFAfq3vf2NppmK/kySlWYFn5zaeRjiuxiMZJHtbVEC+/ILOtCI9EV56fF8xq7ZR9OXI=
-
-  file: dipperin-core-*
+    secure: JjhrO/vD2rih2xF/jWylWMYBRHFxua3pFlrmzZ6wMlQmWbvlnrPT+amZvxBlEiOyQYlKHZikPeTYF2i5SFi06nMB2x7gwYRpXFRvgmIXBzDao0FvWL1w2M+PD90EJqsJJAEx8HCAzDXHAWYNk9mwOInMtqt1UuQ0nLicZq1Mf9XFdKnQDuj8672ct1qLZjNcn/B0GsB3Q4J0ObgBEbCd7QG764RnJjCtbFcb0KGeqwVTOJxktQcIEoxwXoVYU3dX6LbOTuhILSf/qENMK7UJh0daJNMfUxUri1Bkwz/XsNaCjAby6cSTtXWTTUlW8zWyDf1I75C4grvm70LWBzSnyO0h2jRSTM475XpeTrv3ttf0266rGIH9KgmyfVSJoEdZBDA+4QDRkFoCeGMPnW0+J3kG86fuMRsfnqswGzS9Bp9SDjuRQLLolIk3Wjcq0AcDlCET7ZGr+Lgqe3rSrEyNV//rR769NpdZF3YbIe5F3jUpYQ+a/5CKgC2oacVmJ8gVNjwXTeQiKpi9YLGNIsjbEvksqyky7hseCKwnbbh2gJ00aB1DVdj91mCgTAvPnFJV5jRqVbCpNgUCPhb/5/+GhwtIYJomYHWxekicr3rxXkjxoYCcG7NimNtRIAiWcfldZ9YikK+4pHY4UdLKg8k8f36bxQxe5qKOEN66LBQVrA4=
+  file:
+    - "dipperin-core-darwin-10.6-amd64"
+    - "dipperin-core-linux-amd64"
+    - "dipperin-core-windows-4.0-amd64.exe"
   skip_cleanup: true # 因为要上传可执行文件到 release，所以不能自动把这个文件清除
   on:
     repo: yangchuang123456/dipperin-core
