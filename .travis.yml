@@ -12,12 +12,11 @@ notifications:
 
 sudo: required # 使用容器进行编译，速度更快
 
-
 addons:
   sonarcloud:
-    organization: dipperin
+    organization: "$SONAR_ORG"
     token:
-      secure:   37177ef30616e0c1e045f7b337a248c8c832cf91
+      secure: "$SONAR_TOKEN"
 
 services:
   - docker
