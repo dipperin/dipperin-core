@@ -33,3 +33,11 @@ tidy:
 ## cover: get test coverage
 cover:
 	@./cs.sh cover $(show)
+
+## travis-test
+travis-test:
+	##@go test ./...
+	@./cs.sh travisTest
+## cross compiling
+compile:
+	@./cs.sh compile

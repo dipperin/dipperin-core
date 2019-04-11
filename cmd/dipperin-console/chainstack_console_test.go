@@ -26,6 +26,7 @@ import (
 
 	"github.com/dipperin/dipperin-core/cmd/dipperincli/config"
 	"github.com/stretchr/testify/assert"
+	"runtime"
 )
 
 func TestGetConfigDir(t *testing.T) {
@@ -58,10 +59,12 @@ func TestNewConsole(t *testing.T) {
 }
 
 func TestNewConsole1(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		return
+	}
+
 	historyFilePath = "/tmp/aaa/cs_command_history.txt"
 	os.RemoveAll(filepath.Dir(historyFilePath))
-	//_ = os.MkdirAll(filepath.Dir(historyFilePath), 0644)
-
 	assert.Panics(t, func() {
 		NewConsole(func(command string) {}, config.DipperinCliCompleter)
 	})
