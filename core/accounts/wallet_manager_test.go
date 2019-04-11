@@ -22,6 +22,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/tests/wallet"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
@@ -29,7 +30,7 @@ import (
 
 //test new wallet manager
 func Test_NewWalletManager(t *testing.T) {
-
+	log.Info("Test_NewWalletManager start")
 	testWallet, walletManager, err := wallet.GetTestWalletManager()
 	assert.NoError(t, err)
 
@@ -40,9 +41,11 @@ func Test_NewWalletManager(t *testing.T) {
 	walletManager.Stop()
 
 	os.Remove(testWallet.Identifier.Path)
+	log.Info("Test_NewWalletManager end")
 }
 
 func Test_ListWalletIdentifier(t *testing.T) {
+	log.Info("Test_ListWalletIdentifier start")
 	testWallet, walletManager, err := wallet.GetTestWalletManager()
 	assert.NoError(t, err)
 
@@ -55,9 +58,11 @@ func Test_ListWalletIdentifier(t *testing.T) {
 	assert.NoError(t, err)
 
 	os.Remove(testWallet.Identifier.Path)
+	log.Info("Test_ListWalletIdentifier end")
 }
 
 func Test_FindWalletFromName(t *testing.T) {
+	log.Info("Test_FindWalletFromName start")
 	testWallet, walletManager, err := wallet.GetTestWalletManager()
 	assert.NoError(t, err)
 
@@ -73,9 +78,11 @@ func Test_FindWalletFromName(t *testing.T) {
 	assert.Equal(t, accounts.ErrWalletNotOpen, err)
 
 	os.Remove(testWallet.Identifier.Path)
+	log.Info("Test_FindWalletFromName end")
 }
 
 func TestWalletManager_FindWalletFromAddress(t *testing.T) {
+	log.Info("TestWalletManager_FindWalletFromAddress start")
 	testWallet, walletManager, err := wallet.GetTestWalletManager()
 	assert.NoError(t, err)
 
@@ -93,9 +100,11 @@ func TestWalletManager_FindWalletFromAddress(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = walletManager.FindWalletFromAddress(testAccounts[0].Address)
 	assert.Equal(t, accounts.ErrWalletNotOpen, err)
+	log.Info("TestWalletManager_FindWalletFromAddress end")
 }
 
 func Test_WalletManagerBackend(t *testing.T) {
+	log.Info("Test_WalletManagerBackend start")
 	testWallet, walletManager, err := wallet.GetTestWalletManager()
 	assert.NoError(t, err)
 
@@ -138,4 +147,6 @@ func Test_WalletManagerBackend(t *testing.T) {
 	assert.NoError(t, err)
 	os.Remove(testWallet.Identifier.Path)
 	os.Remove(testWallet2.Identifier.Path)
+
+	log.Info("Test_WalletManagerBackend end")
 }

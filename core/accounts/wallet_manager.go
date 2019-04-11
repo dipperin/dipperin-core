@@ -31,7 +31,8 @@ type WalletEventType int
 
 const (
 	//establish wallet
-	WalletArrived WalletEventType = iota
+	//default wallet event channel is 0, so there will be an problem if it is 0
+	WalletArrived WalletEventType = 1+iota
 
 	//open wallet
 	WalletOpened
