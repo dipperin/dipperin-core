@@ -140,6 +140,26 @@ build_install() {
     return $?
 }
 
+cross_compile() {
+    echo 'cross compile dipperin'
+    xgo -go 1.11.1 --targets=linux/amd64,windows/amd64,darwin/amd64 .
+}
+
+travis_test() {
+    echo 'travis test dipperin'
+    cache=$(go env | grep "GOCACHE")
+    removePath=${cache#*=}
+    finalPath=${removePath:1:-1}
+
+    if [ "$removePath" != "" ];then
+        echo "remove the GOCACHE"
+        echo $finalPath
+        rm -rf $finalPath
+    fi
+
+    go test ./...
+}
+
 update_vendor () {
 
 
@@ -201,6 +221,16 @@ main () {
         cover )
             {
                 cover $2
+        };;
+
+        compile )
+            {
+                cross_compile
+        };;
+
+        travisTest )
+            {
+                travis_test
         };;
 
     esac
