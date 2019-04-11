@@ -5,17 +5,17 @@
 [![Build Status](https://img.shields.io/travis/legacy-icons/license-icons.svg)](https://travis-ci.org/legacy-icons/license-icons)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
-Dipperin is a open source blockchain project, designed for business. Dipperin allows you build your blockchain network and create a programmable financial ecosystem.
+Dipperin is an open source blockchain project, designed for business. Dipperin allows you build your blockchain network and create a programmable financial ecosystem.
 
 ## Features
-1. Original consensus mechanism
-2. Layered smart contract architecture
-3. Native multi-chain system
+1. High secure VRF based consensus mechanism
+2. High scalable WAVM smart contract virtual machine
+3. High available multi-chain system
 
 ## Getting started
 1. Read the [Getting Started](https://dipperin.readthedocs.io/en/latest/index.html) documentation
 2. Run the [Example Dapp](https://dipperin.readthedocs.io/en/latest/Dapps.html)
-3. Read about [Key Concepts](https://dipperin.readthedocs.io/en/latest/Keyconsepts.html)
+3. Read about [Key Consepts](https://dipperin.readthedocs.io/en/latest/Keyconsepts.html)
 4. Follow the [Tutorial](https://dipperin.readthedocs.io/en/latest/Tutorials.html)
 
 ## Useful links
