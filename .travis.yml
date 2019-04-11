@@ -1,40 +1,12 @@
 language: go
 go:
-  - 1.x
-cache: false #不使用cache
-#cache: ccache
-
-notifications:
-  email: false
-
-sudo: required # 使用容器进行编译，速度更快
-
-services:
-  - docker
-
-git:
-  submodules: false # 不运行 git submodules 命令
-
-before_install:
-  - docker pull karalabe/xgo-latest
-  - docker ps -a
-  - go get github.com/karalabe/xgo
-
-install: true # 跳过 install 阶段，因为我已经定义了 before_install。其实 go 项目是需要安装依赖的，只是我放到了下面的 make mycli 命令中做
-
-#script: make travis-test && make compile # 先运行测试，然后交叉编译
-script: make compile
-
+- '1.0'
+- '1.3'
 deploy:
   provider: releases
   api_key:
-    secure: PRmHwkOfqQCmZERu8OCF7Pzmrk3OFAtSVuq4m+3sHsYm1Vm9NAy1ibsOtmyv9OPdPjk3SvIOmXLyPTFEg3xqmuYa02DHaIeTBOSmT4dKVYVk5KhjJWZR43DoF7/cIynqsigmPxYGgQ3Mco0GISI4/ZjZsbNBO4Xt1A+2BowZfsf4NmD7ylBF31YvsdANZS7lwb/HYl5rB04etgeQsBK4y6lDo9P/JIciqLfr4V+2FYbIkNEBnwXRJiGu0mTJ5n3hlSuG2Dnv+N/bVVMNNoszmZYdGl2+ES/vLiXzoq5w7t2iSQlbSGJHS+wMm4UiRtIgz0d2hatOP+dZ/KVgpllTmEk57kGCQvJT+9fgAW+xGceLu80GBOkmhRgJr49RCY1bloG8bHM4SXeLFhE/bIuPRuQeQ4pAJQ6X3Xo+bRjQYy3IigHkT85A94QwH1DswfRceerXKbYEgu0uF4ix8bJkiKMyTTYrlUk2Vpht0Wp9nt/O5F/SZo0jjh0x3EV0UvpYgB4h6/ADSu1FBNNDvzJdney1Qy1nO0e/JxXDuJWRwdUvUBcZM+RVYHL/qoaKBgdONJXqvuMDdhAT0PxSoRKy9JeOVdi+kB9jT56Zn6/RRXWyso+cOIURyZzRjo1QqE+OoIZqVlE9gqLm//MMD7pSRbO8Z2JI3vrKTXO0QiJ9JNk=
-  file:
-    - "dipperin-core-darwin-10.6-amd64"
-    - "dipperin-core-linux-amd64"
-    - "dipperin-core-windows-4.0-amd64.exe"
-  skip_cleanup: true # 因为要上传可执行文件到 release，所以不能自动把这个文件清除
+    secure: T6E/9a2nPxG4d4DKRGYh+GkeMZLLjdXwQ77DsLvaOYc0x6OgfNequcK6+CVGuO4N9UFOmRH54VJGwGq/ZVBtTpyLudQaaEJemG5bPFCkGtYJkmBDYGypPNYP1zKvGZtys7Fhqu2gWi4NVWvhK/laxwSk4K3K4sHCDONZ6y+7hcqEAA/hu023Eo+fYB+y2V7ERwAEYOlj7zZCab/uE1r0e6QMsk642Japd8mtT+iNXD9uR/VhpKRP+b1PjjRQ8aDhmxiUmMqZBN7OLWc3F3v7LAudO5WTqmdurN5FQ8wdFDF2NgzUWafxd/1zPHqj+/r8BujT3LDuDcEPmYZ5mjHnSqaak3LIrQWHtZsMv0Zo4ZajVYiIinrFjVuo542rn2L7S2+aefX+9LmM+u/uqAHWRZXNLRaEHqC8/AjseyKLhF44xTd9RpF29zTP7/snOkOcgc1afpBqcgUwUpu46P+nhs+oCO2xtMQC5PHchUwVgLopd+GjnxYhNRy3gQn6ir8S2DbJtpH432O0sHV8bAmce6AWxmoM3feXlvKUirI0o+nJM7ejetdR40qdA3FKZa8MYDEW5oHIo0Yjbl0VawnhVY7GeAZZTcdWpLPLWW7XV5BjKOx/eVAIXQcNruW4wTRjd8lLy261NBZ0Zr5/jWyFlyZ3Y540rDApJrq8mf5onNc=
+  file: dipperin
   on:
-    repo: yangchuang123456/dipperin-core
-    branch: master
-    tags: true   #git tag 时发布
+    repo: dipperin/dipperin-core
+    branch: dev
