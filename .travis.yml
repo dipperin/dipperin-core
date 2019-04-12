@@ -27,14 +27,14 @@ git:
 before_install:
   - docker pull karalabe/xgo-latest
   - docker ps -a
-  - go get github.com/karalabe/xgo
+ # - go get github.com/karalabe/xgo #耗时,放到编译时的makefile中go get
 
 install: true # 跳过 install 阶段，因为我已经定义了 before_install。其实 go 项目是需要安装依赖的，只是我放到了下面的 make mycli 命令中做
 
 
 script:
   - make travis-test && make compile # 先运行测试，然后交叉编译
-  - sonar-scanner
+#  - sonar-scanner
 #script: make compile
 
 deploy:
