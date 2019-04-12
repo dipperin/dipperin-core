@@ -1,4 +1,4 @@
-module github.com/caiqingfeng/dipperin-core
+module github.com/dipperin/dipperin-core
 
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect

@@ -97,15 +97,15 @@ type ChainHelper interface {
 	GetChainDB() chaindb.Database
 }
 
-//go:generate mockgen -destination=./cachedb_mock_test.go -package=cs_chain github.com/caiqingfeng/dipperin-core/core/cs-chain CacheDB
+//go:generate mockgen -destination=./cachedb_mock_test.go -package=cs_chain github.com/dipperin/dipperin-core/core/cs-chain CacheDB
 type CacheDB interface {
 	GetSeenCommits(blockHeight uint64, blockHash common.Hash) (result []model.AbstractVerification, err error)
 	SaveSeenCommits(blockHeight uint64, blockHash common.Hash, commits []model.AbstractVerification) error
 }
 
-//go:generate mockgen -destination=./txpool_mock_test.go -package=cs_chain github.com/caiqingfeng/dipperin-core/core/cs-chain TxPool
+//go:generate mockgen -destination=./txpool_mock_test.go -package=cs_chain github.com/dipperin/dipperin-core/core/cs-chain TxPool
 type TxPool interface {
 	Reset(oldHead, newHead *model.Header)
 }
 
-//go:generate mockgen -destination=./state_storage_mock_test.go -package=cs_chain github.com/caiqingfeng/dipperin-core/core/chain/state-processor StateStorage
+//go:generate mockgen -destination=./state_storage_mock_test.go -package=cs_chain github.com/dipperin/dipperin-core/core/chain/state-processor StateStorage

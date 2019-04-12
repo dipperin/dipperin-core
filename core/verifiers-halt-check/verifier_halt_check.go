@@ -56,9 +56,9 @@ var (
 
 type broadcastEmptyBlock func(block model.AbstractBlock)
 
-//go:generate mockgen -destination=./peer_mock_test.go -package=verifiers_halt_check github.com/caiqingfeng/dipperin-core/core/chain-communication PmAbstractPeer
+//go:generate mockgen -destination=./peer_mock_test.go -package=verifiers_halt_check github.com/dipperin/dipperin-core/core/chain-communication PmAbstractPeer
 
-//go:generate mockgen -destination=./cs_protocol_mock_test.go -package=verifiers_halt_check github.com/caiqingfeng/dipperin-core/core/verifiers-halt-check CsProtocolFunction
+//go:generate mockgen -destination=./cs_protocol_mock_test.go -package=verifiers_halt_check github.com/dipperin/dipperin-core/core/verifiers-halt-check CsProtocolFunction
 type CsProtocolFunction interface {
 	GetVerifierBootNode() map[string]chain_communication.PmAbstractPeer
 	GetNextVerifierPeers() map[string]chain_communication.PmAbstractPeer

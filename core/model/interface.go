@@ -51,8 +51,8 @@ type AbstractBody interface {
 	GetInterLinks() InterLink
 }
 
-//go:generate mockgen -destination=./../economy-model/block_mock_test.go -package=economy_model github.com/caiqingfeng/dipperin-core/core/model AbstractBlock
-//go:generate mockgen -destination=./../../cmd/utils/ver-halt-check/block_mock_test.go -package=ver_halt_check github.com/caiqingfeng/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=./../economy-model/block_mock_test.go -package=economy_model github.com/dipperin/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=./../../cmd/utils/ver-halt-check/block_mock_test.go -package=ver_halt_check github.com/dipperin/dipperin-core/core/model AbstractBlock
 type AbstractBlock interface {
 	Version() uint64
 	Number() uint64
@@ -116,8 +116,8 @@ type AbstractTransaction interface {
 	EstimateFee() *big.Int
 }
 
-//go:generate mockgen -destination=./../economy-model/verification_mock_test.go -package=economy_model github.com/caiqingfeng/dipperin-core/core/model AbstractVerification
-//go:generate mockgen -destination=./../../cmd/utils/ver-halt-check/verification_mock_test.go -package=ver_halt_check github.com/caiqingfeng/dipperin-core/core/model AbstractVerification
+//go:generate mockgen -destination=./../economy-model/verification_mock_test.go -package=economy_model github.com/dipperin/dipperin-core/core/model AbstractVerification
+//go:generate mockgen -destination=./../../cmd/utils/ver-halt-check/verification_mock_test.go -package=ver_halt_check github.com/dipperin/dipperin-core/core/model AbstractVerification
 type AbstractVerification interface {
 	GetHeight() uint64
 	GetRound() uint64
