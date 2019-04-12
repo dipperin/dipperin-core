@@ -19,7 +19,7 @@ package rpc_interface
 
 import "github.com/dipperin/dipperin-core/third-party/p2p"
 
-//go:generate mockgen -destination=./p2p_api_mock_test.go -package=rpc_interface github.com/caiqingfeng/dipperin-core/core/rpc-interface P2PAPI
+//go:generate mockgen -destination=./p2p_api_mock_test.go -package=rpc_interface github.com/dipperin/dipperin-core/core/rpc-interface P2PAPI
 type P2PAPI interface {
 	AddPeer(url string) error
 	RemovePeer(url string) error

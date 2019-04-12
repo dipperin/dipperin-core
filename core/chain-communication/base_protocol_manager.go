@@ -30,7 +30,7 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 )
 
-//go:generate mockgen -destination=./node_conf_mock_test.go -package=chain_communication github.com/caiqingfeng/dipperin-core/core/chain-communication NodeConf
+//go:generate mockgen -destination=./node_conf_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication NodeConf
 type NodeConf interface {
 	GetNodeType() int
 	GetNodeName() string

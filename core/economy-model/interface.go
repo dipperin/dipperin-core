@@ -31,7 +31,7 @@ const (
 	NotCommitVerifier
 )
 
-//go:generate mockgen -destination=./../verifiers-halt-check/economy_model_mock_test.go -package=verifiers_halt_check github.com/caiqingfeng/dipperin-core/core/economy-model EconomyModel
+//go:generate mockgen -destination=./../verifiers-halt-check/economy_model_mock_test.go -package=verifiers_halt_check github.com/dipperin/dipperin-core/core/economy-model EconomyModel
 type EconomyModel interface {
 	GetMineMasterDIPReward(block model.AbstractBlock) (*big.Int, error)
 	GetVerifierDIPReward(block model.AbstractBlock) (map[VerifierType]*big.Int, error)

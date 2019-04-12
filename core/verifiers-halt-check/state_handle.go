@@ -31,7 +31,7 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log/ver_halt_check_log"
 )
 
-//go:generate mockgen -destination=./chain_reader_mock_test.go -package=verifiers_halt_check github.com/caiqingfeng/dipperin-core/core/verifiers-halt-check NeedChainReaderFunction
+//go:generate mockgen -destination=./chain_reader_mock_test.go -package=verifiers_halt_check github.com/dipperin/dipperin-core/core/verifiers-halt-check NeedChainReaderFunction
 type NeedChainReaderFunction interface {
 	CurrentBlock() model.AbstractBlock
 	GetSeenCommit(height uint64) []model.AbstractVerification
@@ -52,7 +52,7 @@ type NeedChainReaderFunction interface {
 	BuildRegisterProcessor(preRoot common.Hash) (*registerdb.RegisterDB, error)
 }
 
-//go:generate mockgen -destination=./wallet_signer_mock_test.go -package=verifiers_halt_check github.com/caiqingfeng/dipperin-core/core/verifiers-halt-check NeedWalletSigner
+//go:generate mockgen -destination=./wallet_signer_mock_test.go -package=verifiers_halt_check github.com/dipperin/dipperin-core/core/verifiers-halt-check NeedWalletSigner
 type NeedWalletSigner interface {
 	GetAddress() common.Address
 	SignHash(hash []byte) ([]byte, error)
