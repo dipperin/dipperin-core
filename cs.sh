@@ -162,7 +162,7 @@ travis_test() {
         #rm -rf $finalPath
     fi
 
-    go test ./...
+    go test -p 1 ./...
 }
 
 update_vendor () {
