@@ -141,8 +141,13 @@ build_install() {
 }
 
 cross_compile() {
-    echo 'cross compile dipperin'
+    echo 'cross compile dipperin start'
+    docker pull karalabe/xgo-latest
+    go get github.com/karalabe/xgo
+    cd ./cmd/dipperin/
     xgo -go 1.11.1 --targets=linux/amd64,windows/amd64,darwin/amd64 .
+    echo 'cross compile dipperin end'
+    ls
 }
 
 travis_test() {
@@ -154,7 +159,7 @@ travis_test() {
     if [ "$removePath" != "" ];then
         echo "remove the GOCACHE"
         echo $finalPath
-        rm -rf $finalPath
+        #rm -rf $finalPath
     fi
 
     go test ./...
