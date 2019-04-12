@@ -59,7 +59,7 @@ const (
 	VerifiedStatusUnstaked     = "Unstaked"
 )
 
-//go:generate mockgen -destination=./rpc_client_mock_test.go -package=commands github.com/caiqingfeng/dipperin-core/cmd/dipperincli/commands RpcClient
+//go:generate mockgen -destination=./rpc_client_mock_test.go -package=commands github.com/dipperin/dipperin-core/cmd/dipperincli/commands RpcClient
 type RpcClient interface {
 	Call(result interface{}, method string, args ...interface{}) error
 	Subscribe(ctx context.Context, namespace string, channel interface{}, args ...interface{}) (*rpc.ClientSubscription, error)

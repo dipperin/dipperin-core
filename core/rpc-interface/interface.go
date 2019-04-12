@@ -16,14 +16,14 @@
 
 package rpc_interface
 
-//go:generate mockgen -destination=./peer_manager_mock_test.go -package=rpc_interface github.com/caiqingfeng/dipperin-core/core/chain-communication PeerManager
+//go:generate mockgen -destination=./peer_manager_mock_test.go -package=rpc_interface github.com/dipperin/dipperin-core/core/chain-communication PeerManager
 
-//go:generate mockgen -destination=./chain_interface_mock_test.go -package=rpc_interface github.com/caiqingfeng/dipperin-core/core/cs-chain/chain-writer/middleware ChainInterface
+//go:generate mockgen -destination=./chain_interface_mock_test.go -package=rpc_interface github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware ChainInterface
 
-//go:generate mockgen -destination=./block_mock_test.go -package=rpc_interface github.com/caiqingfeng/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=./block_mock_test.go -package=rpc_interface github.com/dipperin/dipperin-core/core/model AbstractBlock
 
-//go:generate mockgen -destination=./node_conf_mock_test.go -package=rpc_interface github.com/caiqingfeng/dipperin-core/core/dipperin/service NodeConf
+//go:generate mockgen -destination=./node_conf_mock_test.go -package=rpc_interface github.com/dipperin/dipperin-core/core/dipperin/service NodeConf
 
-//go:generate mockgen -destination=./peer_mock_test.go -package=rpc_interface github.com/caiqingfeng/dipperin-core/core/chain-communication PmAbstractPeer
+//go:generate mockgen -destination=./peer_mock_test.go -package=rpc_interface github.com/dipperin/dipperin-core/core/chain-communication PmAbstractPeer
 
-//go:generate mockgen -destination=./protocol_manager_mock_test.go -package=rpc_interface github.com/caiqingfeng/dipperin-core/core/chain-communication AbstractPbftProtocolManager
+//go:generate mockgen -destination=./protocol_manager_mock_test.go -package=rpc_interface github.com/dipperin/dipperin-core/core/chain-communication AbstractPbftProtocolManager

@@ -40,7 +40,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 )
 
-//go:generate mockgen -destination=./block_chain_mock_test.go -package=tx_pool github.com/caiqingfeng/dipperin-core/core/tx-pool BlockChain
+//go:generate mockgen -destination=./block_chain_mock_test.go -package=tx_pool github.com/dipperin/dipperin-core/core/tx-pool BlockChain
 type BlockChain interface {
 	CurrentBlock() model.AbstractBlock
 	GetBlockByNumber(number uint64) model.AbstractBlock

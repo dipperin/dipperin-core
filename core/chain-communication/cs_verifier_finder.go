@@ -34,7 +34,7 @@ var (
 	fetchConnTimeout = 15 * time.Second
 )
 
-//go:generate mockgen -destination=./abs_peer_manager_mock_test.go -package=chain_communication github.com/caiqingfeng/dipperin-core/core/chain-communication AbsPeerManager
+//go:generate mockgen -destination=./abs_peer_manager_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication AbsPeerManager
 type AbsPeerManager interface {
 	BestPeer() PmAbstractPeer
 	SelfIsCurrentVerifier() bool
