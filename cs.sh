@@ -145,8 +145,6 @@ cross_compile() {
     docker pull karalabe/xgo-latest
     go get github.com/karalabe/xgo
     cd ./cmd/dipperin/
-    pwd
-    ls
     xgo -go 1.11.1 --targets=linux/amd64,windows/amd64,darwin/amd64 .
     echo 'cross compile dipperin end'
     ls
