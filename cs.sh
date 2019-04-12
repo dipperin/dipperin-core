@@ -161,7 +161,7 @@ travis_test() {
     if [ "$removePath" != "" ];then
         echo "remove the GOCACHE"
         echo $finalPath
-        rm -rf $finalPath
+        #rm -rf $finalPath
     fi
 
     go test ./...
