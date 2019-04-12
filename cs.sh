@@ -142,6 +142,8 @@ build_install() {
 
 cross_compile() {
     echo 'cross compile dipperin'
+    go get github.com/karalabe/xgo
+    cd ./cmd/dipperin/
     xgo -go 1.11.1 --targets=linux/amd64,windows/amd64,darwin/amd64 .
 }
 
