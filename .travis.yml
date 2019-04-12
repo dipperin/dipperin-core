@@ -44,9 +44,9 @@ deploy:
     secure: T6E/9a2nPxG4d4DKRGYh+GkeMZLLjdXwQ77DsLvaOYc0x6OgfNequcK6+CVGuO4N9UFOmRH54VJGwGq/ZVBtTpyLudQaaEJemG5bPFCkGtYJkmBDYGypPNYP1zKvGZtys7Fhqu2gWi4NVWvhK/laxwSk4K3K4sHCDONZ6y+7hcqEAA/hu023Eo+fYB+y2V7ERwAEYOlj7zZCab/uE1r0e6QMsk642Japd8mtT+iNXD9uR/VhpKRP+b1PjjRQ8aDhmxiUmMqZBN7OLWc3F3v7LAudO5WTqmdurN5FQ8wdFDF2NgzUWafxd/1zPHqj+/r8BujT3LDuDcEPmYZ5mjHnSqaak3LIrQWHtZsMv0Zo4ZajVYiIinrFjVuo542rn2L7S2+aefX+9LmM+u/uqAHWRZXNLRaEHqC8/AjseyKLhF44xTd9RpF29zTP7/snOkOcgc1afpBqcgUwUpu46P+nhs+oCO2xtMQC5PHchUwVgLopd+GjnxYhNRy3gQn6ir8S2DbJtpH432O0sHV8bAmce6AWxmoM3feXlvKUirI0o+nJM7ejetdR40qdA3FKZa8MYDEW5oHIo0Yjbl0VawnhVY7GeAZZTcdWpLPLWW7XV5BjKOx/eVAIXQcNruW4wTRjd8lLy261NBZ0Zr5/jWyFlyZ3Y540rDApJrq8mf5onNc=
 
   file:
-    - "dipperin-core-darwin-10.6-amd64"
-    - "dipperin-core-linux-amd64"
-    - "dipperin-core-windows-4.0-amd64.exe"
+    - "dipperin-linux-amd64"
+    - "dipperin-windows-4.0-amd64.exe"
+    - "dipperin-darwin-10.6-amd64"
 
   skip_cleanup: true # 因为要上传可执行文件到 release，所以不能自动把这个文件清除
   on:
