@@ -28,7 +28,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/accounts"
 )
 
-//go:generate mockgen -destination=./peer_mock_test.go -package=chain_communication github.com/caiqingfeng/dipperin-core/core/chain-communication PmAbstractPeer
+//go:generate mockgen -destination=./peer_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication PmAbstractPeer
 // is responsible for sending and receiving messages
 type PmAbstractPeer interface {
 	// add node name
@@ -65,7 +65,7 @@ type PmAbstractPeer interface {
 	GetCsPeerInfo() *p2p.CsPeerInfo
 }
 
-//go:generate mockgen -destination=./peer_set_mock_test.go -package=chain_communication github.com/caiqingfeng/dipperin-core/core/chain-communication AbstractPeerSet
+//go:generate mockgen -destination=./peer_set_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication AbstractPeerSet
 type AbstractPeerSet interface {
 	BestPeer() PmAbstractPeer
 
@@ -99,7 +99,7 @@ type CommunicationExecutable interface {
 	Stop()
 }
 
-//go:generate mockgen -destination=./tx_pool_mock_test.go -package=chain_communication github.com/caiqingfeng/dipperin-core/core/chain-communication TxPool
+//go:generate mockgen -destination=./tx_pool_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication TxPool
 type TxPool interface {
 	AddLocal(tx model.AbstractTransaction) error
 	AddRemote(tx model.AbstractTransaction) error
@@ -112,7 +112,7 @@ type TxPool interface {
 	Queueing() (map[common.Address][]model.AbstractTransaction, error)
 }
 
-//go:generate mockgen -destination=./pbft_node_mock_test.go -package=chain_communication github.com/caiqingfeng/dipperin-core/core/chain-communication PbftNode
+//go:generate mockgen -destination=./pbft_node_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication PbftNode
 type PbftNode interface {
 	OnNewWaitVerifyBlock(block model.AbstractBlock, id string)
 	OnNewMsg(msg interface{}) error
@@ -124,21 +124,21 @@ type PbftNode interface {
 	OnEnterNewHeight(h uint64)
 }
 
-//go:generate mockgen -destination=./pbft_decoder_mock_test.go -package=chain_communication github.com/caiqingfeng/dipperin-core/core/chain-communication P2PMsgDecoder
+//go:generate mockgen -destination=./pbft_decoder_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication P2PMsgDecoder
 type P2PMsgDecoder interface {
 	DecodeTxMsg(msg p2p.Msg) (model.AbstractTransaction, error)
 	DecoderBlockMsg(msg p2p.Msg) (model.AbstractBlock, error)
 	DecodeTxsMsg(msg p2p.Msg) (result []model.AbstractTransaction, err error)
 }
 
-//go:generate mockgen -destination=./p2p_server_mock_test.go -package=chain_communication github.com/caiqingfeng/dipperin-core/core/chain-communication P2PServer
+//go:generate mockgen -destination=./p2p_server_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication P2PServer
 type P2PServer interface {
 	AddPeer(node *enode.Node)
 	RemovePeer(node *enode.Node)
 	Self() *enode.Node
 }
 
-//go:generate mockgen -destination=./chain_mock_test.go -package=chain_communication github.com/caiqingfeng/dipperin-core/core/chain-communication Chain
+//go:generate mockgen -destination=./chain_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication Chain
 type Chain interface {
 	CurrentBlock() model.AbstractBlock
 	GetSlot(block model.AbstractBlock) *uint64
@@ -149,7 +149,7 @@ type Chain interface {
 	SaveBlock(block model.AbstractBlock, seenCommits []model.AbstractVerification) error
 }
 
-//go:generate mockgen -destination=./pbft_signer_mock_test.go -package=chain_communication github.com/caiqingfeng/dipperin-core/core/chain-communication PbftSigner
+//go:generate mockgen -destination=./pbft_signer_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication PbftSigner
 type PbftSigner interface {
 	GetAddress() common.Address
 	SetBaseAddress(address common.Address)
@@ -159,14 +159,14 @@ type PbftSigner interface {
 	Evaluate(account accounts.Account, seed []byte) (index [32]byte, proof []byte, err error)
 }
 
-//go:generate mockgen -destination=./verifiers_reader_mock_test.go -package=chain_communication github.com/caiqingfeng/dipperin-core/core/chain-communication VerifiersReader
+//go:generate mockgen -destination=./verifiers_reader_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication VerifiersReader
 type VerifiersReader interface {
 	CurrentVerifiers() []common.Address
 	NextVerifiers() []common.Address
 	ShouldChangeVerifier() bool
 }
 
-//go:generate mockgen -destination=./peer_manager_mock_test.go -package=chain_communication github.com/caiqingfeng/dipperin-core/core/chain-communication PeerManager
+//go:generate mockgen -destination=./peer_manager_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication PeerManager
 type PeerManager interface {
 	GetPeers() map[string]PmAbstractPeer
 	BestPeer() PmAbstractPeer
@@ -192,8 +192,8 @@ type ChainDownloader interface {
 	//SetEiFetcher(f *EiBlockFetcher)
 }
 
-//go:generate mockgen -destination=./transaction_mock_test.go -package=chain_communication github.com/caiqingfeng/dipperin-core/core/model AbstractTransaction
+//go:generate mockgen -destination=./transaction_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/model AbstractTransaction
 
-//go:generate mockgen -destination=./msgReadWriter_mock_test.go -package=chain_communication github.com/caiqingfeng/dipperin-core/third-party/p2p MsgReadWriter
+//go:generate mockgen -destination=./msgReadWriter_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/third-party/p2p MsgReadWriter
 
-//go:generate mockgen -destination=./p2pPeer_mock_test.go -package=chain_communication github.com/caiqingfeng/dipperin-core/core/chain-communication P2PPeer
+//go:generate mockgen -destination=./p2pPeer_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication P2PPeer

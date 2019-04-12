@@ -49,7 +49,7 @@ type Chain interface {
 	GetEconomyModel() economy_model.EconomyModel
 }
 
-//go:generate mockgen -destination=./tx_pool_test.go -package=builder github.com/caiqingfeng/dipperin-core/core/model/builder TxPool
+//go:generate mockgen -destination=./tx_pool_test.go -package=builder github.com/dipperin/dipperin-core/core/model/builder TxPool
 type TxPool interface {
 	RemoveTxs(newBlock model.AbstractBlock)
 	Pending() (map[common.Address][]model.AbstractTransaction, error)
@@ -66,6 +66,6 @@ type ModelConfig struct {
 	ChainConfig        chain_config.ChainConfig
 }
 
-//go:generate mockgen -destination=./signer_mock_test.go -package=builder github.com/caiqingfeng/dipperin-core/core/model Signer
+//go:generate mockgen -destination=./signer_mock_test.go -package=builder github.com/dipperin/dipperin-core/core/model Signer
 
-//go:generate mockgen -destination=./pbft_signer_mock_test.go -package=builder github.com/caiqingfeng/dipperin-core/core/chain-communication PbftSigner
+//go:generate mockgen -destination=./pbft_signer_mock_test.go -package=builder github.com/dipperin/dipperin-core/core/chain-communication PbftSigner
