@@ -35,8 +35,8 @@ install: true # 跳过 install 阶段，因为我已经定义了 before_install�
 
 script:
   - make travis-test # 运行测试
-#   - go test -cover ./... -coverprofile=cover.out 
-#   - sonar-scanner
+  - go test -cover ./... -coverprofile=coverage.out 
+  - sonar-scanner
 #script: make compile
 
 deploy:
