@@ -20,6 +20,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"runtime"
 	"testing"
+	"path/filepath"
+	"os"
 )
 
 func TestNodeConfig_FullChainDBDir(t *testing.T) {
@@ -104,7 +106,7 @@ func TestNodeConfig_IpcEndpoint(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		assert.Equal(t, `\\.\pipe\`+nodeConfig.IPCPath, result)
 	} else {
-		assert.Equal(t, "/tmp/path", result)
+		assert.Equal(t, filepath.Join(os.TempDir(), nodeConfig.IPCPath), result)
 	}
 
 	nodeConfig = NodeConfig{
