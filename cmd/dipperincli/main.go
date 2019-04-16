@@ -25,6 +25,7 @@ import (
 	config2 "github.com/dipperin/dipperin-core/cmd/dipperincli/config"
 	"github.com/dipperin/dipperin-core/cmd/dipperincli/service"
 	"github.com/dipperin/dipperin-core/cmd/utils/debug"
+	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/dipperin"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"errors"
@@ -42,10 +43,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"syscall"
 	"os/signal"
-)
-
-const (
-	Version = "0.0.1"
 )
 
 var (
@@ -66,7 +63,7 @@ func main(){
 func newApp() (nApp *cli.App) {
 	nApp = cli.NewApp()
 	nApp.Name = "DipperinCli"
-	nApp.Version = Version
+	nApp.Version = chain_config.Version
 	nApp.Author = "dipperin"
 	nApp.Copyright = "(c) 2016-2018 dipperin."
 	nApp.Usage = "Dipperin commandline tool for " + runtime.GOOS + "/" + runtime.GOARCH
