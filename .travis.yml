@@ -16,7 +16,7 @@ addons:
   sonarcloud:
     organization: "$SONAR_ORG"
     token:
-      secure: "$SONAR_TOKEN"
+      secure: "$SONAR_TOKEN_dev"
 
 services:
   - docker
