@@ -102,6 +102,7 @@ func TestNodeConfig_IpcEndpoint(t *testing.T) {
 	nodeConfig = NodeConfig{
 		IPCPath: "path",
 	}
+
 	result = nodeConfig.IpcEndpoint()
 	if runtime.GOOS == "windows" {
 		assert.Equal(t, `\\.\pipe\`+nodeConfig.IPCPath, result)
