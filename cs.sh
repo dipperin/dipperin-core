@@ -10,6 +10,8 @@
 #                                                                                   #
 #####################################################################################
 
+export GOPROXY=https://goproxy.io
+
 root=`pwd`
 
 GoPath=$HOME/go/src/
@@ -59,12 +61,10 @@ fi
 }
 
 run_test () {
-
 #    is_jenkins="yes" go test -p 1 -cover ./... -coverprofile=size_coverage.out
     is_jenkins="yes" go test -p 1 -cover ./core/... ./common/... ./cmd/...
 
     return $?
-
 }
 
 jks_test () {
