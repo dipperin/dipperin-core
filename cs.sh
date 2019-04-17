@@ -152,21 +152,6 @@ cross_compile() {
     ls
 }
 
-travis_test() {
-    echo 'travis test dipperin'
-    cache=$(go env | grep "GOCACHE")
-    removePath=${cache#*=}
-    finalPath=${removePath:1:-1}
-
-    if [ "$removePath" != "" ];then
-        echo "remove the GOCACHE"
-        echo $finalPath
-        #rm -rf $finalPath
-    fi
-
-    go test -p 1 ./...
-}
-
 update_vendor () {
 
 
