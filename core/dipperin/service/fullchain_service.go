@@ -1291,6 +1291,15 @@ func (service *MercuryFullChainService) GetDeveloperInfo() map[common.Address]*b
 	return service.ChainReader.GetEconomyModel().GetDeveloperInitBalance()
 }
 
+func (service *MercuryFullChainService)GetAddressLockMoney(address common.Address) (*big.Int,error){
+	currentBlock := service.CurrentBlock()
+	if currentBlock == nil{
+		return big.NewInt(0),g_error.BlockIsNilError
+	}
+
+	return service.ChainReader.GetEconomyModel().GetAddressLockMoney(address,currentBlock.Number())
+}
+
 func (service *MercuryFullChainService) GetInvestorLockDIP(address common.Address, blockNumber uint64) (*big.Int, error) {
 	return service.ChainReader.GetEconomyModel().GetInvestorLockDIP(address, blockNumber)
 }
