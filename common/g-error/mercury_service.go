@@ -21,4 +21,5 @@ import "errors"
 
 var (
 	BlockNumberError = errors.New("the block number is smaller than 2")
+	BlockIsNilError  = errors.New("the block is nil")
 )
