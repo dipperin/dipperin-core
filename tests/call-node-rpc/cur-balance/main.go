@@ -28,7 +28,7 @@ import (
 
 func main() {
 	//c, err := rpc.Dial(fmt.Sprintf("ws://%v:%v", "localhost", 8005))
-	//c, err := rpc.Dial(fmt.Sprintf("http://%v:%v", "10.200.0.139", 3035))
+	//c, err := rpc.Dial(fmt.Sprintf("http://%v:%v", "${TestServer}", 3035))
 	c, err := rpc.Dial(fmt.Sprintf("http://%v:%v", "szly", 3035))
 	if err != nil {
 		panic(err)
