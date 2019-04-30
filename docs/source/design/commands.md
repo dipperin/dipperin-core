@@ -9,9 +9,9 @@
 
 Dipperin command line tools are located in the $GOBIN directory: `~/go/bin/Dipperincli`.
 
-Monitor for test environment: `http://10.200.0.139:8887`.
+Monitor for test environment: `http://${TestServer}:8887`.
 
-PBFT whole process demonstration: `http://10.200.0.139:8888`.
+PBFT whole process demonstration: `http://${TestServer}:8888`.
 
 If the startup command line needs to manipulate other startup nodes,
 it can be done by specifying parameters in the startup command.
@@ -94,7 +94,7 @@ cs_ci_ex
 ### Connect to test node
 
 ```
-rpc default-c 10.200.0.139:10004
+rpc default-c ${TestServer}:10004
 ```
 
 ### Perform related operations
@@ -117,10 +117,10 @@ If the IP of the test server is unchanged,you can log in to test the deployment 
 Connect again
 
 Test Deployment Interface Links：
-`http://10.200.0.139:8889/nodes`.
+`http://${TestServer}:8889/nodes`.
 
 ```
-rpc default -c 10.200.0.139:[actual port number]
+rpc default -c ${TestServer}:[actual port number]
 ```
 
 ## Related Functional Operations
