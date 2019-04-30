@@ -49,7 +49,7 @@ func TestSubscribe(t *testing.T){
 	return
 	client, err := rpc.Dial("ws://localhost:10002")
 	defer client.Close()
-	//client, err := rpc.Dial("ws://10.200.0.139:10002")
+	//client, err := rpc.Dial("ws://${TestServer}:10002")
 	log.Info("the err is:","err",err)
 	if err != nil {
 		panic(err)
