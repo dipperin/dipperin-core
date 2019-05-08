@@ -96,7 +96,7 @@ func main() {
 			}
 		}
 	case "test":
-		restrictList, _ = netutil.ParseNetlist("127.0.0.0/16,10.0.0.0/8")
+		restrictList, _ = netutil.ParseNetlist(chain_config.TestIPWhiteList)
 	}
 
 	addr, err := net.ResolveUDPAddr("udp", *listenAddr)
