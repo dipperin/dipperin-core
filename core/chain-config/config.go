@@ -46,6 +46,7 @@ const (
 
 	TestServer               = "172.16.5.201"
 	TestVerifierBootNodePort = "10000"
+	TestIPWhiteList = "127.0.0.0/16,172.0.0.0/8,192.0.0.0/8,10.0.0.0/8"
 
 	// 20M
 	MaxBlockSize = 20 * 1024 * 1024

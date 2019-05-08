@@ -388,7 +388,7 @@ func (b *BaseComponent) initP2PService() {
 	}
 
 	if os.Getenv("boots_env") == "test" {
-		restrictList, err := netutil.ParseNetlist("127.0.0.0/16,10.0.0.0/8")
+		restrictList, err := netutil.ParseNetlist(chain_config.TestIPWhiteList)
 		if err != nil {
 			panic(err)
 		}
