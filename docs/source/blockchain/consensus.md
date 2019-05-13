@@ -2,7 +2,7 @@
 ## Deterministic Proof of Work
 We implemented a new consensus protocol called Deterministic Proof of Work(DPoW) that guarantees the deterministic finality of transactions.
 
-![](./consensus_mech.jpg)
+![](./pics/consensus_mech.png)
 
  DPoW is a hybrid consensus protocol, it introduces a Map-reduce PoW mining mechanism to work alongside Byzantine Fault Tolerance(BFT) verification. It combines the advantages of both PoW and BFT, allows transactions to be confirmed immediately while keep highly decentralized. It assure strong consistency and security against a multitude of attacks largely because the protocol does not allow forking.
 
