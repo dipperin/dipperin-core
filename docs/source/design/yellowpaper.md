@@ -421,12 +421,8 @@ Since our purpose is to let the nodes find the transactions they don't own but o
 **Subtraction of IBLT**
 
 To solve these two problems, we introduce subtraction between filters. This subtraction allows to subtract elements from IBLT that are not added to the IBLT. Upon reception of IBLT sent by other nodes, each node can substract it by the IBLT of its own to peel the element one by one fom the bucket that start from <code>count=1</code>.
- 
-![](pic/IBLT_B1.png)
 
-![](pic/IBLT_B2.png)
-
-![](pic/IBLT_B1_B2.png)
+![](pic/IBLT.png)
  
 But we find that after making the difference between two IBLTs, it might not be feasible to strip the element from a bucket with count value of 1. Because if A bucket does the calculation of A plus B minus C, count is still going to be 1, but its key is going to be <code>key(A)+key(B)-key(C)</code> who is not the key of a single element. So the question is how do we tell if this value is the key of a single element? In this case, the fourth element in the bucket we mentioned earlier, <code>keyHashSum</code>, comes in handy.  
  
@@ -510,7 +506,7 @@ This formula is indeed quite obvious. <code>L<sub>1</sub>+L<sub>2</sub></code> i
 
  
 
-![](pic/minhashset.jpg)
+![](pic/minhashset.png)
 
  
 
@@ -635,7 +631,7 @@ The following figure is an example of an MPT tree:
 
  
 
-![](pic/MPT.jpeg)
+![](pic/mpt.png)
 
 
 The figure shows an MPT state tree that stores four key-value pairs. These four key-value pairs are <code>['3f', 9.4]</code>, <code>['3fd7', 15]</code>, <code>['3f9c85', 6.3]</code>, <code>['3f9c77', 2.3]</code>. In the figure, nodes A and D are branch nodes, root nodes and node B are extension nodes, and nodes C, E, and F are leaf nodes. Through this figure we can see how these types of nodes are organized in the tree. When we need to find a value corresponding to a key, such as <code>'3f9c85'</code>, then we only need to find <code>'3f'->'9'->'c'->'8'->'5'</code> from the root node. The last leaf node can find the corresponding value of 6.3. For the case where the key is <code>'3f'</code>, since the branch appears in <code>'3f'</code>, its value will appear in the value of the next branch node, which is 9.4.
@@ -1014,7 +1010,7 @@ There are 110 blocks to verify for each session of verifiers, which takes approx
 Before talking about specific punitive measures, we need to make clear that the verifier's rewards and punishments exist not only in the measurable rewards and punishments set by us. The reputation value can be reduced by malicious behaviors and this will negatively influence the chance of being selected in the subsequent rounds. Mainly two kinds of malicious behavious are subject to punishment: slack as a verifier or double vote. Slack causes the decrease of reputation while double vote will assume severe punishment such as the confiscation of all the deposits upon confirmation of report, and the deposits will enter the account of the whistleblower. Concrete process is as follows:
  
 
-![](pic/penalty_en.jpeg)
+![](pic/penalty_en.png)
 
 ## 8 Conclusion
 
