@@ -10,6 +10,8 @@
 #                                                                                   #
 #####################################################################################
 
+export GOPROXY=https://goproxy.io
+
 root=`pwd`
 
 GoPath=$HOME/go/src/
@@ -59,12 +61,10 @@ fi
 }
 
 run_test () {
-
 #    is_jenkins="yes" go test -p 1 -cover ./... -coverprofile=size_coverage.out
     is_jenkins="yes" go test -p 1 -cover ./core/... ./common/... ./cmd/...
 
     return $?
-
 }
 
 jks_test () {
@@ -148,21 +148,6 @@ cross_compile() {
     xgo -go 1.11.1 --targets=linux/amd64,windows/amd64,darwin/amd64 .
     echo 'cross compile dipperin end'
     ls
-}
-
-travis_test() {
-    echo 'travis test dipperin'
-    cache=$(go env | grep "GOCACHE")
-    removePath=${cache#*=}
-    finalPath=${removePath:1:-1}
-
-    if [ "$removePath" != "" ];then
-        echo "remove the GOCACHE"
-        echo $finalPath
-        #rm -rf $finalPath
-    fi
-
-    go test ./...
 }
 
 update_vendor () {
