@@ -1,0 +1,12 @@
+/life
+
+.idea/
+.vscode/
+
+vendor/
+coverage.txt
+
+*.exe
+*.test
+
+go.sum
