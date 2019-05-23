@@ -10,8 +10,20 @@ import (
 
 var contractAddr = common.HexToAddress("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
 
+type fakeContractRef struct {
+	addr common.Address
+}
+
+func (ref fakeContractRef) Address() common.Address {
+	return ref.addr
+}
+
 type fakeStateDB struct {
 
+}
+
+func (state fakeStateDB) AddLog(address common.Address, topics []common.Hash, data []byte, bn uint64) {
+	panic("implement me")
 }
 
 func (state fakeStateDB) CreateAccount(common.Address) {

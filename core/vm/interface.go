@@ -37,6 +37,7 @@ type StateDB interface {
 	GetState(common.Address, []byte) []byte
 	SetState(common.Address, []byte, []byte)
 
+	AddLog(address common.Address, topics []common.Hash, data []byte, bn uint64)
 
 	Suicide(common.Address) bool
 	HasSuicided(common.Address) bool

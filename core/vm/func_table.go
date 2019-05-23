@@ -42,10 +42,11 @@ func newSystemFuncSet(r *Resolver) map[string]map[string]exec.FunctionImport {
 			"blockNum":  r.envBlockNum,
 			"difficult": r.envDifficulty,
 
-			"abort": r.envAbort,
+			"abort":     r.envAbort,
+			"emitEvent": r.emitEvent,
 
 			"memcpy":  r.envMemcpy,
-			"memmove":  r.envMemmove,
+			"memmove": r.envMemmove,
 		},
 	}
 }

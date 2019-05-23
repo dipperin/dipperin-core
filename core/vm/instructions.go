@@ -1,9 +1,11 @@
 package vm
 
 import (
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"fmt"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/life/exec"
 )
 
 // Sstore
@@ -49,6 +51,31 @@ func (r *Resolver) envGetStateSize(vm *exec.VirtualMachine) int64 {
 	val := r.state.GetState(r.contract.self.Address(), vm.Memory.Memory[key: key+keyLen])
 	log.Info("Get valueLen", "valueLen", len(val))
 	return int64(len(val))
+}
+
+//void emitEvent(const char *topic, size_t topicLen, const uint8_t *data, size_t dataLen);
+//topic = funcName
+//data = param...
+func (r *Resolver) emitEvent(vm *exec.VirtualMachine) int64 {
+	log.Info("emitEvent Called")
+
+	topic := int(int32(vm.GetCurrentFrame().Locals[0]))
+	topicLen := int(int32(vm.GetCurrentFrame().Locals[1]))
+	dataSrc := int(int32(vm.GetCurrentFrame().Locals[2]))
+	dataLen := int(int32(vm.GetCurrentFrame().Locals[3]))
+
+	t := make([]byte, topicLen)
+	d := make([]byte, dataLen)
+	copy(t, vm.Memory.Memory[topic:topic+topicLen])
+	copy(d, vm.Memory.Memory[dataSrc:dataSrc+dataLen])
+
+	address := r.contract.self.Address()
+	topics := []common.Hash{common.BytesToHash(crypto.Keccak256(t))}
+	bn := r.context.BlockNumber.Uint64()
+
+	fmt.Println(string(t), d, string(d), dataSrc, dataLen)
+	r.state.AddLog(address, topics, d, bn)
+	return 0
 }
 
 func (r *Resolver) envMalloc(vm *exec.VirtualMachine) int64 {
@@ -114,7 +141,7 @@ func (r *Resolver) envPrints(vm *exec.VirtualMachine) int64 {
 		}
 	}
 	//fmt.Println(start)
-	fmt.Println(string(vm.Memory.Memory[start:end]))
+	fmt.Println(string(vm.Memory.Memory[start:end]), start)
 	return 0
 }
 

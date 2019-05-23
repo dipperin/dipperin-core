@@ -81,7 +81,6 @@ func (in *WASMInterpreter) Run(contract *Contract, input []byte) ([]byte, error)
 	if input == nil {
 		funcName = "init" // init function.
 	} else {
-		fmt.Println(contract)
 		// 通过ABI解析input
 		txType, funcName, params, returnType, err = parseInputFromAbi(vm, input, contract.ABI)
 		if err != nil {

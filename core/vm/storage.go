@@ -92,9 +92,7 @@ func (s *storage) GetCommittedState(common.Address, []byte) []byte {
 }
 
 func (s *storage) GetState(addr common.Address, key []byte) []byte {
-/*	if key[len(key)-1] == byte(0) {
-		key = key[:len(key)-1]
-	}*/
+	log.Info("GetState Called", "contractAddr", addr.Bytes())
 
 	key, err := rlp.EncodeToBytes(append(addr.Bytes(), key...))
 	if err != nil {
@@ -105,33 +103,43 @@ func (s *storage) GetState(addr common.Address, key []byte) []byte {
 	if err != nil {
 		panic(err)
 	}
+
 	log.Info("Get State", "key", string(key), "value", value)
-	/*	if value[len(value)-1] == byte(0) {
-			value = value[:len(value)-1]
-		}*/
 	return value
 }
 
 func (s *storage) SetState(addr common.Address, key []byte, value []byte) {
 	log.Info("SetState Called", "contractAddr", addr.Bytes())
 
-	/*	if key[len(key)-1] == byte(0) {
-			key = key[:len(key)-1]
-		}*/
 	key, err := rlp.EncodeToBytes(append(addr.Bytes(), key...))
 	if err != nil {
 		panic(err)
 	}
-
-	/*	if value[len(value)-1] == byte(0) {
-			value = value[:len(value)-1]
-		}*/
 
 	err = s.blockStateTrie.TryUpdate(key, value)
 	if err != nil {
 		panic(err)
 	}
 	log.Info("State Saved", "key", string(key), "value", value)
+}
+
+func (s *storage) AddLog(address common.Address, topics []common.Hash, data []byte, bn uint64) {
+	log.Info("AddLog", "contractAddr", address, "blockNum", bn)
+
+	/*	key, err := rlp.EncodeToBytes(append(address.Bytes(), utils.Uint64ToBytes(bn)..., topics[0].Bytes()...))
+		if err != nil {
+			panic(err)
+		}
+
+			if value[len(value)-1] == byte(0) {
+				value = value[:len(value)-1]
+			}
+
+		err = s.blockStateTrie.TryUpdate(key, value)
+		if err != nil {
+			panic(err)
+		}
+		log.Info("State Saved", "key", string(key), "value", value)*/
 }
 
 func (s *storage) Suicide(common.Address) bool {
