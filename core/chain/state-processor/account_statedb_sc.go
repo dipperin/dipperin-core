@@ -35,7 +35,7 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 		}
 	}else{
 		data := tx.ExtraData()
-		_, _,_,err = vm.Call(&vm.Caller{context.Origin},tx.To(),data)
+		_, _,err = vm.Call(&vm.Caller{context.Origin},tx.To(),data)
 		if err != nil {
 			return err
 		}
