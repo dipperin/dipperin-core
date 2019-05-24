@@ -24,11 +24,11 @@ func TestWASMInterpreter_Run_small(t *testing.T) {
 
 	param := [][]byte{[]byte("hello")}
 	fmt.Println(param)
-	result, err := interpreter.Run(contract, genInput(t, "hello", param))
+	result, err := interpreter.Run(contract, genInput(t, "hello", param),false)
 	assert.Equal(t, make([]byte, 32), result)
 	assert.NoError(t, err)
 
-	result, err = interpreter.Run(contract, nil)
+	result, err = interpreter.Run(contract, nil,false)
 	assert.Equal(t, fileCode, result)
 	assert.NoError(t, err)
 }
@@ -60,12 +60,12 @@ func TestWASMInterpreter_Run_testcontract(t *testing.T) {
 	interpreter := NewWASMInterpreter(fakeStateDB{}, Context{}, DEFAULT_VM_CONFIG)
 
 	param := [][]byte{utils.Int32ToBytes(123), utils.Int32ToBytes(456)}
-	result, err := interpreter.Run(contract, genInput(t, "saveKeyValue", param))
+	result, err := interpreter.Run(contract, genInput(t, "saveKeyValue", param),false)
 	assert.Equal(t, make([]byte, 32), result)
 	assert.NoError(t, err)
 
 	param = [][]byte{utils.Int32ToBytes(123)}
-	result, err = interpreter.Run(contract, genInput(t, "getKeyValue", param))
+	result, err = interpreter.Run(contract, genInput(t, "getKeyValue", param),false)
 	assert.Equal(t, make([]byte, 32), result)
 	assert.NoError(t, err)
 }
@@ -81,12 +81,12 @@ func TestWASMInterpreter_Run_example3(t *testing.T) {
 	param := [][]byte{utils.Int32ToBytes(6666)}
 
 	inputs := genInput(t, "setBalance", param)
-	result, err := interpreter.Run(contract, inputs)
+	result, err := interpreter.Run(contract, inputs,false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
 
 	expect = append(expect[:28], utils.Int32ToBytes(6666)...)
-	result, err = interpreter.Run(contract, genInput(t, "getBalance", [][]byte{}))
+	result, err = interpreter.Run(contract, genInput(t, "getBalance", [][]byte{}),false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
 }
@@ -104,7 +104,7 @@ func TestWASMInterpreter_Run_map_int(t *testing.T) {
 	param := [][]byte{key, value}
 
 	inputs := genInput(t, "setBalance", param)
-	result, err := interpreter.Run(contract, inputs)
+	result, err := interpreter.Run(contract, inputs,false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
 
@@ -123,7 +123,7 @@ func TestWASMInterpreter_Run_map_int(t *testing.T) {
 	fmt.Println(state)
 
 	fmt.Println("-----------------------------------------")
-	result, err = interpreter.Run(contract, genInput(t, "getBalance", [][]byte{key}))
+	result, err = interpreter.Run(contract, genInput(t, "getBalance", [][]byte{key}),false)
 	expect = append(expect[:24], value...)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
@@ -142,7 +142,7 @@ func TestWASMInterpreter_Run_map_string(t *testing.T) {
 	param := [][]byte{key, value}
 
 	inputs := genInput(t, "setBalance", param)
-	result, err := interpreter.Run(contract, inputs)
+	result, err := interpreter.Run(contract, inputs,false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
 
@@ -153,12 +153,12 @@ func TestWASMInterpreter_Run_map_string(t *testing.T) {
 	param1 := [][]byte{key1, value1}
 
 	inputs = genInput(t, "setBalance", param1)
-	result, err = interpreter.Run(contract, inputs)
+	result, err = interpreter.Run(contract, inputs,false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
 
 	fmt.Println("-----------------------------------------")
-	result, err = interpreter.Run(contract, genInput(t, "getBalance", [][]byte{key}))
+	result, err = interpreter.Run(contract, genInput(t, "getBalance", [][]byte{key}),false)
 	expect = append(expect[:28], value...)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)

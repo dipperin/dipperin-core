@@ -3,18 +3,17 @@ package vm
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"math/big"
-	"reflect"
 )
 
 type StateDB interface {
-	CreateAccount(common.Address)
+	/*CreateAccount(common.Address)
 
 	SubBalance(common.Address, *big.Int)
-	AddBalance(common.Address, *big.Int)
+	AddBalance(common.Address, *big.Int)*/
 	GetBalance(common.Address) *big.Int
 
 	GetNonce(common.Address) uint64
-	SetNonce(common.Address, uint64)
+	// SetNonce(common.Address, uint64)
 
 	GetCodeHash(common.Address) common.Hash
 	GetCode(common.Address) []byte
@@ -59,7 +58,7 @@ type StateDB interface {
 	TxIdx() uint32
 }
 
-type AccountDB interface {
+/*type AccountDB interface {
 	GetBalance(addr common.Address) (*big.Int, error)
 	AddBalance(addr common.Address, amount *big.Int) error
 	SubBalance(addr common.Address, amount *big.Int) error
@@ -70,7 +69,7 @@ type ContractDB interface {
 	GetContract(addr common.Address, vType reflect.Type) (v reflect.Value, err error)
 	FinalizeContract(addr common.Address, data reflect.Value) error
 }
-
+*/
 // Message represents a message sent to a contract.
 type Message interface {
 	From() common.Address

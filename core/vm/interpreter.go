@@ -29,7 +29,7 @@ const (
 type Interpreter interface {
 	// Run loops and evaluates the contract's code with the given input data and returns
 	// the return byte-slice and an error if one occurred.
-	Run(contract *Contract, input []byte) ([]byte, error)
+	Run(contract *Contract, input []byte, create bool) ([]byte, error)
 	// CanRun tells if the contract, passed as an argument, can be
 	CanRun([]byte) bool
 }
@@ -49,7 +49,7 @@ func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) 
 	}
 }
 
-func (in *WASMInterpreter) Run(contract *Contract, input []byte) ([]byte, error) {
+func (in *WASMInterpreter) Run(contract *Contract, input []byte, create bool) ([]byte, error) {
 	// Init vm, inject module
 	//  1. 合约定义的function, 2. vm提供的方法
 
@@ -78,8 +78,18 @@ func (in *WASMInterpreter) Run(contract *Contract, input []byte) ([]byte, error)
 		returnType string
 	)
 
-	if input == nil {
+	if create {
 		funcName = "init" // init function.
+		txType, funcName, params, returnType, err = parseInputFromAbi(vm, input, contract.ABI)
+		if err != nil {
+			if err == errReturnInsufficientParams && txType == 0 { // transfer to contract address.
+				return nil, nil
+			}
+			return nil, err
+		}
+		if txType == 0 {
+			return nil, nil
+		}
 	} else {
 		// 通过ABI解析input
 		txType, funcName, params, returnType, err = parseInputFromAbi(vm, input, contract.ABI)
