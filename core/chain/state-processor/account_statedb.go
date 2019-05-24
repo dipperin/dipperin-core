@@ -1265,6 +1265,8 @@ func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint
 		err = state.processEvidenceTx(tx)
 	case common.AddressTypeEarlyReward:
 		err = state.processEarlyTokenTx(tx, height)
+	case common.AddressTypeSmartContract:
+		err = state.ProcessSmartContract(tx, height)
 	default:
 		err = g_error.UnknownTxTypeErr
 	}
@@ -1355,3 +1357,4 @@ func (state *AccountStateDB) processEarlyTokenTx(tx model.AbstractTransaction, b
 	err = cProcessor.Process(tx)
 	return
 }
+

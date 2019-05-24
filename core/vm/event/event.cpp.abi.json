@@ -1,0 +1,37 @@
+[
+    {
+        "name": "init",
+        "inputs": [],
+        "outputs": [],
+        "constant": "false",
+        "type": "function"
+    },
+    {
+        "name": "hello",
+        "inputs": [
+            {
+                "name": "name",
+                "type": "string"
+            },
+            {
+                "name": "num",
+                "type": "int64"
+            }
+        ],
+        "outputs": [],
+        "constant": "false",
+        "type": "function"
+    },
+    {
+        "name": "logName",
+        "inputs": [
+            {
+                "type": "string"
+            },
+            {
+                "type": "int64"
+            }
+        ],
+        "type": "event"
+    }
+]

@@ -37,6 +37,7 @@ require (
 	github.com/tidwall/gjson v1.1.5
 	github.com/tidwall/match v1.0.1 // indirect
 	github.com/urfave/cli v1.20.0
+	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	golang.org/x/crypto v0.0.0-20190122013713-64072686203f
 	golang.org/x/net v0.0.0-20181201002055-351d144fa1fc
 	golang.org/x/sys v0.0.0-20190121090251-770c60269bf0

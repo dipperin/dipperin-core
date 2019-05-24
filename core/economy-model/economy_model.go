@@ -32,19 +32,19 @@ import (
 var NotMercuryDIPProportion = AddressDIPProportion{
 	BaseNumber: 100,
 	InvestorProportion: map[string]int{
-	"0x000091d97Fa2Fe5Fc2631DB2fEe7A0Bb5E2131abbDcE": 100,
+	"0x000017cD9dB648440102E85371AB17871f62809FD183": 100,
 	},
 	DeveloperProportion: map[string]int{
-	"0x0000582B0A461Dd57fAb51Fe106751A2842e1111772c": 100,
+	"0x00001305de8cfDa24E6aa2d5386D428E276A0785aF70": 100,
 	},
 	MaintenanceProportion: map[string]int{
-	"0x0000e79AE36836195aA34143ab2c21Fd56C1493833fE": 100,
+	"0x00007737f9432D99fA9c5a052Dcb2D0b7217aA24cc17": 100,
 	},
 	EarlyTokenProportion: map[string]int{
-	"0x000095Cfdd141b0aF2Bb92F0074d5Dbc9b5F554fF807": 100,
+	"0x0000D21AF412898F2F0A646d3686Adce8dAFBAfD045B": 100,
 	},
 	ReMainRewardProportion: map[string]int{
-	"0x00002f3bE982378399d87A1351D04A8C5631232cD4D3": 100,
+	"0x000016D54544B1eBCa3343847f6b0eE26509643F0Fd5": 100,
 	},
 }
 
@@ -69,7 +69,7 @@ var MercuryDIPProportion = AddressDIPProportion{
 	},
 }
 
-// predetermined system parameters
+// system parameters
 var (
 	TotalReWardDIPOneBlock = big.NewInt(20 * consts.DIP)
 

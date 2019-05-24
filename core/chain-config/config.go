@@ -44,8 +44,9 @@ const (
 	MineProtocolVersion = 1
 	CsProtocolVersion   = 1
 
-	TestServer               = "10.200.0.139"
+	TestServer               = "172.16.5.201"
 	TestVerifierBootNodePort = "10000"
+	TestIPWhiteList = "127.0.0.0/16,172.0.0.0/8,192.0.0.0/8,10.0.0.0/8"
 
 	// 20M
 	MaxBlockSize = 20 * 1024 * 1024

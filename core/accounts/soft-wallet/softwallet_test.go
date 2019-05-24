@@ -17,6 +17,7 @@
 package soft_wallet
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/util"
@@ -103,10 +104,10 @@ func TestSoftWallet_paddingWalletInfo(t *testing.T) {
 
 }
 
-func establishSoftWallet(path, walletName, password, passPhrase string) (*SoftWallet, error) {
+func establishSoftWallet(path, walletName, password, passPhrase string) (string,*SoftWallet, error) {
 	testWallet, err := NewSoftWallet()
 	if err != nil {
-		return nil, err
+		return "",nil, err
 	}
 
 	testWallet.Identifier.WalletName = walletName
@@ -116,28 +117,33 @@ func establishSoftWallet(path, walletName, password, passPhrase string) (*SoftWa
 
 	mnemonic, err := testWallet.Establish(path, walletName, password, passPhrase)
 	if err != nil {
-		return nil, err
+		return "",nil, err
 	}
 
 	//mnemonic = strings.Replace(mnemonic, " ", ",", -1)
 	log.Info("EstablishWallet mnemonic is:", "mnemonic", mnemonic)
-	return testWallet, nil
+	return mnemonic,testWallet, nil
 }
 
 func GetTestWallet() (*SoftWallet, error) {
-	return establishSoftWallet(path, walletName, password, passPhrase)
+	_,softWallet,err:= establishSoftWallet(path, walletName, password, passPhrase)
+	if err !=nil {
+		return nil,err
+	}
+
+	return softWallet,nil
 }
 
 func TestSoftWallet_Establish(t *testing.T) {
-	_, err := establishSoftWallet(TestErrWalletPath, walletName, password, passPhrase)
+	_,_, err := establishSoftWallet(TestErrWalletPath, walletName, password, passPhrase)
 	assert.Error(t, err)
 
 	err = os.RemoveAll(path)
 	//assert.NoError(t,err)
-	_, err = establishSoftWallet(path, walletName, password, passPhrase)
+	_,_, err = establishSoftWallet(path, walletName, password, passPhrase)
 	assert.NoError(t, err)
 
-	_, err = establishSoftWallet(path, walletName, "", passPhrase)
+	_,_, err = establishSoftWallet(path, walletName, "", passPhrase)
 	assert.Equal(t, accounts.ErrPasswordIsNil, err)
 	os.RemoveAll(path)
 }
@@ -497,13 +503,20 @@ func TestSoftWallet_Contains(t *testing.T) {
 	os.Remove(path)
 }
 
-const generateWallet = true
-const generateWalletNumber = 44
+const generateWallet = false
+const generateWalletNumber = 5
 const generateWalletPath = "testWallet"
+const walletPassword  = "123"
 
 type walletConf struct {
 	WalletCipher string
 	MainAddress  string
+}
+
+type walletInfo struct {
+	Mnemonic string `json:"mnemonic"`
+	Address string `json:"mainAddress"`
+	WalletPassword string `json:"wallet_password"`
 }
 
 //generate test wallet
@@ -528,15 +541,14 @@ func TestGenerateWallet(t *testing.T) {
 	assert.NoError(t, err)
 	err = os.Chmod(walletPath, 0777)
 	assert.NoError(t, err)
-	var confs []*walletConf
+	var conf []*walletConf
 
 	for i := 0; i < generateWalletNumber; i++ {
 		walletName := "testSoftWallet" + strconv.Itoa(i)
 		path := walletPath + "/" + walletName
-		password := "123"
 		passPhrase := ""
 
-		wallet, err := establishSoftWallet(path, walletName, password, passPhrase)
+		mnemonic,wallet, err := establishSoftWallet(path, walletName, walletPassword, passPhrase)
 		assert.NoError(t, err)
 
 		accounts, err := wallet.Accounts()
@@ -546,23 +558,25 @@ func TestGenerateWallet(t *testing.T) {
 		// Must be at the front, he will post the address information in this file, causing the wallet to be incorrect
 		wb, err := ioutil.ReadFile(path)
 		assert.NoError(t, err)
-		confs = append(confs, &walletConf{
+		conf = append(conf, &walletConf{
 			WalletCipher: string(wb),
 			MainAddress:  accounts[0].Address.Hex(),
 		})
 
-		f, err := os.OpenFile(path, os.O_WRONLY, 0644)
-		assert.NoError(t, err)
+		walletInfoFile := "walletInfo" + strconv.Itoa(i)
+		infoPath := walletPath + "/" + walletInfoFile
+		info  := walletInfo{
+			Mnemonic:mnemonic,
+			Address:accounts[0].Address.Hex(),
+			WalletPassword:walletPassword,
+		}
+		writeData,err := json.Marshal(&info)
+		assert.NoError(t,err)
+		err = ioutil.WriteFile(infoPath, writeData, 0666)
+		assert.NoError(t,err)
 
-		n, err := f.Seek(0, os.SEEK_END)
-		assert.NoError(t, err)
-
-		writeData := fmt.Sprintf("\r\nmainAddress:%v", accounts[0].Address.Hex())
-		_, err = f.WriteAt([]byte(writeData), n)
-		assert.NoError(t, err)
-		f.Close()
 	}
 
 	fmt.Println("===================")
-	fmt.Println(util.StringifyJson(confs))
+	fmt.Println(util.StringifyJson(conf))
 }

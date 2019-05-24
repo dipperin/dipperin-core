@@ -1111,6 +1111,10 @@ func (api *DipperinMercuryApi) GetDeveloperInfo() map[string]*hexutil.Big {
     return result
 }
 
+func (api *DipperinMercuryApi) GetAddressLockMoney(address common.Address) (*big.Int,error){
+    return api.service.GetAddressLockMoney(address)
+}
+
 func (api *DipperinMercuryApi) GetInvestorLockDIP(address common.Address, blockNumber uint64) (*hexutil.Big, error) {
     lockValue, err := api.service.GetInvestorLockDIP(address, blockNumber)
     if err != nil {

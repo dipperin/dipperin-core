@@ -137,7 +137,6 @@ func TestStateHandler_EnterNewHeight(t *testing.T) {
 
 
 func TestStateHandler_LockBlock(t *testing.T) {
-	t.Skip()
 	sh0 := NewFakeStateHandle(0)
 
 	assert.Equal(t, sh0.bs.Height, uint64(1))
@@ -161,6 +160,7 @@ func TestStateHandler_LockBlock(t *testing.T) {
 	sh0.PreVote(MakeNewProVote(1, 1, fakeBlock, 2))
 	sh0.PreVote(MakeNewProVote(1, 1, fakeBlock, 3))
 
+	time.Sleep(100 * time.Millisecond)
 	//Block is locked
 	assert.Equal(t, model2.RoundStepPreCommit, sh0.bs.Step)
 	assert.Equal(t, fakeBlock.Hash(),sh0.bs.LockedBlock.Hash())
@@ -198,10 +198,10 @@ func TestStateHandler_LockBlock(t *testing.T) {
 }
 
 func TestStateHandler_ReceiveProposeThenRoundConfirm(t *testing.T) {
-	t.Skip()
 	sh0 := NewFakeStateHandle(0)
-	sh0.ChainReader.SaveBlock(makeValidBlock(uint64(1),uint64(1)))
+	assert.NoError(t, sh0.ChainReader.SaveBlock(makeValidBlock(uint64(1),uint64(1))))
 	sh0.OnNewHeight(2)
+	time.Sleep(10 * time.Millisecond)
 
 	assert.Equal(t, model2.RoundStepNewHeight, sh0.bs.Step)
 	assert.Equal(t, uint64(2), sh0.bs.Height)
@@ -209,9 +209,13 @@ func TestStateHandler_ReceiveProposeThenRoundConfirm(t *testing.T) {
 
 	//Receive propose from node 2, before get 32 majority round confirmation
 	fakeblock2 := &FakeBlock{uint64(2), common.HexToHash("0x232"), nil}
-	sh0.blockPool.AddBlock(fakeblock2)
+	assert.NoError(t, sh0.blockPool.AddBlock(fakeblock2))
 	sh0.NewProposal(MakeNewProposal(2, 2, fakeblock2, 2))
 	time.Sleep(100 * time.Millisecond)
+
+	sh0Proposal := sh0.bs.Proposal.GetProposal(2)
+	sh0ProposalBlock := sh0.bs.ProposalBlock.Blocks[2]
+	assert.Equal(t, sh0Proposal.BlockID, sh0ProposalBlock.Hash())
 
 	assert.Equal(t, model2.RoundStepNewRound, sh0.bs.Step)
 	sh0.NewRound( MakeNewRound(2, 2, 1))
