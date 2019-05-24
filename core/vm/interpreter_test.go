@@ -182,7 +182,7 @@ func TestWASMInterpreter_Run_event(t *testing.T) {
 	param := [][]byte{name, num}
 
 	inputs := genInput(t, "hello", param)
-	result, err := interpreter.Run(contract, inputs)
+	result, err := interpreter.Run(contract, inputs,false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
 }
