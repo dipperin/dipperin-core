@@ -4,7 +4,6 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 )
 
@@ -22,20 +21,21 @@ type VM struct {
 }
 
 func NewVM(context Context, state StateDB, config exec.VMConfig) *VM {
-	interpreter := NewWASMInterpreter(state,context,config)
+	interpreter := NewWASMInterpreter(state, context, config)
 	vm := VM{context, interpreter, DEFAULT_VM_CONFIG, &Resolver{}, state}
 	return &vm
 }
 
-func (vm *VM) Call(caller ContractRef, addr common.Address, input []byte) (ret []byte, leftOverGas uint64, err error) {
-	code := vm.state.GetState(addr,[]byte("code"))
-	abi := vm.state.GetState(addr,[]byte("abi"))
+
+func (vm *VM) Call(caller ContractRef, addr common.Address, input []byte, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
+	code := vm.state.GetState(addr, []byte("code"))
+	abi := vm.state.GetState(addr, []byte("abi"))
 	contract := &Contract{
-		CallerAddress:caller.Address(),
-		caller:caller,
-		self:&Caller{addr:addr},
-		ABI:abi,
-		Code:code,
+		CallerAddress: caller.Address(),
+		caller:        caller,
+		self:          &Caller{addr: addr},
+		ABI:           abi,
+		Code:          code,
 	}
 
 	ret, err = run(vm, contract, input,false)
@@ -48,18 +48,16 @@ func (vm *VM) Create(caller ContractRef, code []byte, abi []byte, value []byte) 
 }
 
 func (vm *VM) create(caller ContractRef, code []byte,abi []byte, input []byte, address common.Address) ([]byte, common.Address, uint64, error) {
-
-
 	contract := &Contract{
-		CallerAddress:caller.Address(),
-		caller:caller,
-		self:&Caller{addr:address},
-		ABI:abi,
-		Code:code,
+		CallerAddress: caller.Address(),
+		caller:        caller,
+		self:          &Caller{addr: address},
+		ABI:           abi,
+		Code:          code,
 	}
 
-	vm.state.SetState(contract.self.Address(),[]byte("code"),code)
-	vm.state.SetState(contract.self.Address(),[]byte("abi"),abi)
+	vm.state.SetState(contract.self.Address(), []byte("code"), code)
+	vm.state.SetState(contract.self.Address(), []byte("abi"), abi)
 	// call run
 	run(vm, contract, input,true)
 
@@ -80,10 +78,10 @@ type Context struct {
 	// Block information
 	Coinbase common.Address // Provides information for COINBASE
 	//GasLimit    uint64         // Provides information for GASLIMIT
-	BlockNumber *big.Int // Provides information for NUMBER
-	Time        *big.Int // Provides information for TIME
-	Difficulty  *big.Int // Provides information for DIFFICULTY
-	Log         log.Logger
+	BlockNumber *big.Int    // Provides information for NUMBER
+	BlockHash   common.Hash // Provides information for Hash
+	Time        *big.Int    // Provides information for TIME
+	Difficulty  *big.Int    // Provides information for DIFFICULTY
 }
 
 func NewVMContext(tx model.AbstractTransaction) Context {

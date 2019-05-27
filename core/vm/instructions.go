@@ -6,6 +6,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 )
 
 // Sstore
@@ -69,12 +70,17 @@ func (r *Resolver) emitEvent(vm *exec.VirtualMachine) int64 {
 	copy(t, vm.Memory.Memory[topic:topic+topicLen])
 	copy(d, vm.Memory.Memory[dataSrc:dataSrc+dataLen])
 
-	address := r.contract.self.Address()
-	topics := []common.Hash{common.BytesToHash(crypto.Keccak256(t))}
-	bn := r.context.BlockNumber.Uint64()
+	addedLog := &model.Log{
+		ContractAddr:r.contract.self.Address(),
+		Topic:common.BytesToHash(crypto.Keccak256(t)),
+		Data:d,
+		BlockNumber:r.context.BlockNumber.Uint64(),
+		TxHash:r.state.TxHash(),
+		TxIndex:uint(r.state.TxIdx()),
+		BlockHash:r.context.BlockHash,
+	}
 
-	fmt.Println(string(t), d, string(d), dataSrc, dataLen)
-	r.state.AddLog(address, topics, d, bn)
+	r.state.AddLog(addedLog)
 	return 0
 }
 
