@@ -6,6 +6,14 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 )
 
+// Gas costs
+const (
+	GasQuickStep   uint64 = 2
+	GasFastestSetp uint64 = 3
+
+	// ...
+)
+
 type Resolver struct {
 	Service resolverNeedExternalService
 }
@@ -58,8 +66,14 @@ func (r *Resolver) ResolveGlobal(module, field string) int64 {
 	return 0
 }
 
-func newResolver(context *vm.Context, contract *vm.Contract, state StateDBService) exec.ImportResolver {
-	return &Resolver{context, contract, state}
+func NewResolver(vmValue *vm.VM, contract *vm.Contract, state StateDBService) exec.ImportResolver {
+	return &Resolver{
+		Service:resolverNeedExternalService{
+			ContractService:  contract,
+			VmContextService: vmValue,
+			StateDBService:   state,
+		},
+	}
 }
 
 func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
@@ -87,7 +101,7 @@ func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
 			"printn":     &exec.FunctionImport{Execute:envPrintn, GasCost: envPrintnGasCost},
 			"printhex":   &exec.FunctionImport{Execute:envPrinthex, GasCost: envPrinthexGasCost},
 
-			"abort": &exec.FunctionImport{Execute: r.envAbort, GasCost: envAbortGasCost},
+			"abort": &exec.FunctionImport{Execute: envAbort, GasCost: envAbortGasCost},
 
 			// compiler builtins
 			// arithmetic long double
@@ -137,33 +151,33 @@ func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
 			"__negtf2":   &exec.FunctionImport{Execute: env__negtf2, GasCost: env__negtf2GasCost},
 
 			// for blockchain function
-			"gasPrice":     &exec.FunctionImport{Execute: envGasPrice, GasCost: constGasFunc(compiler.GasQuickStep)},
-			"blockHash":    &exec.FunctionImport{Execute: envBlockHash, GasCost: constGasFunc(compiler.GasQuickStep)},
-			"number":       &exec.FunctionImport{Execute: envNumber, GasCost: constGasFunc(compiler.GasQuickStep)},
-			"gasLimit":     &exec.FunctionImport{Execute: envGasLimit, GasCost: constGasFunc(compiler.GasQuickStep)},
-			"timestamp":    &exec.FunctionImport{Execute: envTimestamp, GasCost: constGasFunc(compiler.GasQuickStep)},
-			"coinbase":     &exec.FunctionImport{Execute: envCoinbase, GasCost: constGasFunc(compiler.GasQuickStep)},
-			"balance":      &exec.FunctionImport{Execute: envBalance, GasCost: constGasFunc(compiler.GasQuickStep)},
-			"origin":       &exec.FunctionImport{Execute: envOrigin, GasCost: constGasFunc(compiler.GasQuickStep)},
-			"caller":       &exec.FunctionImport{Execute: envCaller, GasCost: constGasFunc(compiler.GasQuickStep)},
-			"callValue":    &exec.FunctionImport{Execute: envCallValue, GasCost: constGasFunc(compiler.GasQuickStep)},
-			"address":      &exec.FunctionImport{Execute: envAddress, GasCost: constGasFunc(compiler.GasQuickStep)},
+			"gasPrice":     &exec.FunctionImport{Execute: r.envGasPrice, GasCost: constGasFunc(GasQuickStep)},
+			"blockHash":    &exec.FunctionImport{Execute: r.envBlockHash, GasCost: constGasFunc(GasQuickStep)},
+			"number":       &exec.FunctionImport{Execute: r.envNumber, GasCost: constGasFunc(GasQuickStep)},
+			"gasLimit":     &exec.FunctionImport{Execute: r.envGasLimit, GasCost: constGasFunc(GasQuickStep)},
+			"timestamp":    &exec.FunctionImport{Execute: r.envTimestamp, GasCost: constGasFunc(GasQuickStep)},
+			"coinbase":     &exec.FunctionImport{Execute: r.envCoinbase, GasCost: constGasFunc(GasQuickStep)},
+			"balance":      &exec.FunctionImport{Execute: r.envBalance, GasCost: constGasFunc(GasQuickStep)},
+			"origin":       &exec.FunctionImport{Execute: r.envOrigin, GasCost: constGasFunc(GasQuickStep)},
+			"caller":       &exec.FunctionImport{Execute: r.envCaller, GasCost: constGasFunc(GasQuickStep)},
+			"callValue":    &exec.FunctionImport{Execute: r.envCallValue, GasCost: constGasFunc(GasQuickStep)},
+			"address":      &exec.FunctionImport{Execute: r.envAddress, GasCost: constGasFunc(GasQuickStep)},
 			"sha3":         &exec.FunctionImport{Execute: envSha3, GasCost: envSha3GasCost},
-			"emitEvent":    &exec.FunctionImport{Execute: envEmitEvent, GasCost: envEmitEventGasCost},
-			"setState":     &exec.FunctionImport{Execute: envSetState, GasCost: envSetStateGasCost},
-			"getState":     &exec.FunctionImport{Execute: envGetState, GasCost: envGetStateGasCost},
-			"getStateSize": &exec.FunctionImport{Execute: envGetStateSize, GasCost: envGetStateSizeGasCost},
+			"emitEvent":    &exec.FunctionImport{Execute: r.envEmitEvent, GasCost: envEmitEventGasCost},
+			"setState":     &exec.FunctionImport{Execute: r.envSetState, GasCost: envSetStateGasCost},
+			"getState":     &exec.FunctionImport{Execute: r.envGetState, GasCost: envGetStateGasCost},
+			"getStateSize": &exec.FunctionImport{Execute: r.envGetStateSize, GasCost: envGetStateSizeGasCost},
 
 			// supplement
-			"getCallerNonce": &exec.FunctionImport{Execute: envGetCallerNonce, GasCost: constGasFunc(compiler.GasQuickStep)},
-			"callTransfer":   &exec.FunctionImport{Execute: envCallTransfer, GasCost: constGasFunc(compiler.GasQuickStep)},
+			"getCallerNonce": &exec.FunctionImport{Execute: r.envGetCallerNonce, GasCost: constGasFunc(GasQuickStep)},
+			"callTransfer":   &exec.FunctionImport{Execute: r.envCallTransfer, GasCost: constGasFunc(GasQuickStep)},
 
-			"platonCall":               &exec.FunctionImport{Execute: envPlatonCall, GasCost: envPlatonCallGasCost},
-			"platonCallInt64":          &exec.FunctionImport{Execute: envPlatonCallInt64, GasCost: envPlatonCallInt64GasCost},
-			"platonCallString":         &exec.FunctionImport{Execute: envPlatonCallString, GasCost: envPlatonCallStringGasCost},
-			"platonDelegateCall":       &exec.FunctionImport{Execute: envPlatonDelegateCall, GasCost: envPlatonCallStringGasCost},
-			"platonDelegateCallInt64":  &exec.FunctionImport{Execute: envPlatonDelegateCallInt64, GasCost: envPlatonCallStringGasCost},
-			"platonDelegateCallString": &exec.FunctionImport{Execute: envPlatonDelegateCallString, GasCost: envPlatonCallStringGasCost},
+			"platonCall":               &exec.FunctionImport{Execute: r.envPlatonCall, GasCost: envPlatonCallGasCost},
+			"platonCallInt64":          &exec.FunctionImport{Execute: r.envPlatonCallInt64, GasCost: envPlatonCallInt64GasCost},
+			"platonCallString":         &exec.FunctionImport{Execute: r.envPlatonCallString, GasCost: envPlatonCallStringGasCost},
+			"platonDelegateCall":       &exec.FunctionImport{Execute: r.envPlatonDelegateCall, GasCost: envPlatonCallStringGasCost},
+			"platonDelegateCallInt64":  &exec.FunctionImport{Execute: r.envPlatonDelegateCallInt64, GasCost: envPlatonCallStringGasCost},
+			"platonDelegateCallString": &exec.FunctionImport{Execute: r.envPlatonDelegateCallString, GasCost: envPlatonCallStringGasCost},
 		},
 	}
 }
