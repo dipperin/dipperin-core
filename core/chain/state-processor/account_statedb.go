@@ -1265,8 +1265,10 @@ func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint
 		err = state.processEvidenceTx(tx)
 	case common.AddressTypeEarlyReward:
 		err = state.processEarlyTokenTx(tx, height)
-	case common.AddressTypeSmartContract:
-		err = state.ProcessSmartContract(tx, height)
+	case common.AddressTypeContract:
+		err = state.ProcessContract(tx, height,false)
+	case common.AddressTypeContractCreate:
+		err = state.ProcessContract(tx, height,true)
 	default:
 		err = g_error.UnknownTxTypeErr
 	}

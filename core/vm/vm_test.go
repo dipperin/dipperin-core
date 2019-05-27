@@ -18,7 +18,7 @@ func TestDeployContract(t *testing.T) {
 	abiJson,_:=ioutil.ReadFile("./map-string/StringMap.cpp.abi.json")
 
 	txCaller := &Caller{common.HexToAddress("0x999")}
-	_, addr, _, err := vm.Create(txCaller, code, abiJson, big.NewInt(0))
+	_, addr, _, err := vm.Create(txCaller, code, abiJson, []byte{})
 
 	assert.NoError(t, err)
 	result := vm.state.GetState(addr,[]byte("code"))
@@ -32,7 +32,7 @@ func TestCallContract(t *testing.T){
 	abiJson,_:=ioutil.ReadFile("./map-string/StringMap.cpp.abi.json")
 
 	txCaller := &Caller{common.HexToAddress("0x999")}
-	_, addr, _, err := vm.Create(txCaller, code, abiJson, big.NewInt(0))
+	_, addr, _, err := vm.Create(txCaller, code, abiJson, []byte{})
 	assert.NoError(t, err)
 
 	// Call contract

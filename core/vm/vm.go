@@ -37,17 +37,16 @@ func (vm *VM) Call(caller ContractRef, addr common.Address, input []byte, value 
 		Code:          code,
 	}
 
-	ret, err = run(vm, contract, input)
+	ret, err = run(vm, contract, input,false)
 	return
 }
 
-func (vm *VM) Create(caller ContractRef, code []byte, abi []byte, value *big.Int) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
+func (vm *VM) Create(caller ContractRef, code []byte, abi []byte, value []byte) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
 	contractAddr = common.HexToAddress("0x1223")
 	return vm.create(caller, code, abi, value, contractAddr)
 }
 
-func (vm *VM) create(caller ContractRef, code []byte, abi []byte, value *big.Int, address common.Address) ([]byte, common.Address, uint64, error) {
-
+func (vm *VM) create(caller ContractRef, code []byte,abi []byte, input []byte, address common.Address) ([]byte, common.Address, uint64, error) {
 	contract := &Contract{
 		CallerAddress: caller.Address(),
 		caller:        caller,
@@ -59,15 +58,15 @@ func (vm *VM) create(caller ContractRef, code []byte, abi []byte, value *big.Int
 	vm.state.SetState(contract.self.Address(), []byte("code"), code)
 	vm.state.SetState(contract.self.Address(), []byte("abi"), abi)
 	// call run
-	run(vm, contract, nil)
+	run(vm, contract, input,true)
 
 	return nil, address, uint64(0), nil
 }
 
-func run(vm *VM, contract *Contract, input []byte) ([]byte, error) {
+func run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error) {
 
 	// call interpreter.Run()
-	vm.interpreter.Run(contract, input)
+	vm.interpreter.Run(contract, input,create)
 	return nil, nil
 }
 
