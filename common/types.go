@@ -52,7 +52,7 @@ const (
 	AddressTypeERC20    = 0x0010
 	AddressTypeEarlyReward    = 0x0011
 	AddressTypeContractCreate    = 0x0012
-	AddressTypeContract = 0x0013
+	AddressTypeContract = 0x0014
 )
 
 func (txType TxType) String() string {

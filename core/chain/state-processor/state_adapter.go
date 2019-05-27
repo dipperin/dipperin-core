@@ -2,6 +2,8 @@ package state_processor
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/vm/model"
+	cs_crypto "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"math/big"
 )
 
@@ -38,12 +40,19 @@ func (f  *Fullstate) GetNonce(addr common.Address) uint64 {
 	return nonce
 }
 
-func (f  *Fullstate) SetNonce(common.Address, uint64) {
-	panic("implement me")
+func (f  *Fullstate) AddNonce(addr common.Address, add uint64) {
+	err := f.state.AddNonce(addr,add)
+	if err != nil{
+		panic("add nonce error")
+	}
 }
 
-func (f  *Fullstate) GetCodeHash(common.Address) common.Hash {
-	panic("implement me")
+func (f  *Fullstate) GetCodeHash(addr common.Address) common.Hash {
+	ct, err := f.state.getContractTrie(addr)
+	if err!=nil{
+		return common.Hash{}
+	}
+	return common.BytesToHash(ct.GetKey(GetContractFieldKey(addr,"codeHash")))
 }
 
 func (f  *Fullstate) GetCode(addr common.Address) (result []byte) {
@@ -61,6 +70,11 @@ func (f  *Fullstate) SetCode(addr common.Address, code []byte) {
 		return
 	}
 	err = ct.TryUpdate(GetContractFieldKey(addr,"code"),code)
+	if err!=nil{
+		return
+	}
+	codeHash := cs_crypto.Keccak256Hash(code)
+	err = ct.TryUpdate(GetContractFieldKey(addr,"codeHash"),codeHash.Bytes())
 	if err!=nil{
 		return
 	}
@@ -87,8 +101,15 @@ func (f  *Fullstate) GetAbi(addr common.Address) (abi []byte) {
 	return ct.GetKey(GetContractFieldKey(addr,"abi"))
 }
 
-func (f  *Fullstate) SetAbi(common.Address, []byte) {
-	panic("implement me")
+func (f  *Fullstate) SetAbi(addr common.Address, abi []byte) {
+	ct, err := f.state.getContractTrie(addr)
+	if err!=nil{
+		return
+	}
+	err = ct.TryUpdate(GetContractFieldKey(addr,"abi"),abi)
+	if err!=nil{
+		return
+	}
 }
 
 func (f  *Fullstate) AddRefund(uint64) {
@@ -126,10 +147,9 @@ func (f  *Fullstate) SetState(addr common.Address,key []byte, value []byte) {
 	}
 }
 
-func (f  *Fullstate) AddLog(address common.Address, topics []common.Hash, data []byte, bn uint64) {
+func (f  *Fullstate) AddLog(addedLog *model.Log){
 	panic("implement me")
 }
-
 func (f  *Fullstate) Suicide(common.Address) bool {
 	panic("implement me")
 }
