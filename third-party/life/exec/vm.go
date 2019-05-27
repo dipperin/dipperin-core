@@ -16,7 +16,16 @@ import (
 	"github.com/go-interpreter/wagon/wasm"
 )
 
-type FunctionImport func(vm *VirtualMachine) int64
+type (
+	Execute func(vm *VirtualMachine) int64
+	GasCost func(vm *VirtualMachine) (uint64, error)
+)
+
+// FunctionImport represents the function import type. If len(sig.ReturnTypes) == 0, the return value will be ignored.
+type FunctionImport struct {
+	Execute Execute
+	GasCost GasCost
+}
 
 const (
 	// DefaultCallStackSize is the default call stack size.
@@ -111,7 +120,7 @@ type Frame struct {
 // ImportResolver is an interface for allowing one to define imports to WebAssembly modules
 // ran under a single VirtualMachine instance.
 type ImportResolver interface {
-	ResolveFunc(module, field string) FunctionImport
+	ResolveFunc(module, field string) *FunctionImport
 	ResolveGlobal(module, field string) int64
 }
 

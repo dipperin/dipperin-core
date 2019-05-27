@@ -2,11 +2,14 @@ package state_processor
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 )
 
 type Fullstate struct{
 	state *AccountStateDB
+	contractLogs   map[common.Hash][]*model.Log
 }
 
 func (f  *Fullstate) CreateAccount(address common.Address) {
@@ -117,8 +120,20 @@ func (f  *Fullstate) SetState(addr common.Address,key []byte, value []byte) {
 	}
 }
 
-func (f  *Fullstate) AddLog(address common.Address, topics []common.Hash, data []byte, bn uint64) {
-	panic("implement me")
+
+func (f  *Fullstate) AddLog(addedLog *model.Log) {
+	log.Info("AddLog Called")
+
+	txHash := addedLog.TxHash
+	contractLogs := f.GetLogs(txHash)
+	addedLog.Index = uint(len(contractLogs) + 1)
+	f.contractLogs[txHash] = append(contractLogs, addedLog)
+
+	log.Info("Log Added", "txHash", txHash, "logs", f.contractLogs[txHash])
+}
+
+func (f  *Fullstate) GetLogs(txHash common.Hash) []*model.Log {
+	return f.contractLogs[txHash]
 }
 
 func (f  *Fullstate) Suicide(common.Address) bool {
