@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"github.com/dipperin/dipperin-core/common"
 	"fmt"
-	"math/big"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 )
@@ -169,14 +168,11 @@ func TestWASMInterpreter_Run_event(t *testing.T) {
 	var testPath = "./event"
 	contract := getContract(t, contractAddr, testPath + "/event.wasm", testPath + "/event.cpp.abi.json")
 
-	interpreter := NewWASMInterpreter(NewStorage(), Context{BlockNumber:big.NewInt(10)}, DEFAULT_VM_CONFIG)
+	s := NewStorage()
+	interpreter := NewWASMInterpreter(s, Context{}, DEFAULT_VM_CONFIG)
 
 	name := []byte("event")
-	num := utils.Int64ToBytes(77777)
-
-	/*	name := []byte("logName")
-		test, err := rlp.EncodeToBytes(append(name, []byte{133, 101, 118, 101, 110, 116, 127}...))
-		fmt.Println(test)*/
+	num := utils.Int64ToBytes(456)
 
 	expect := make([]byte, 32)
 	param := [][]byte{name, num}

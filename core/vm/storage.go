@@ -7,10 +7,12 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 )
 
 type storage struct {
 	blockStateTrie state_processor.StateTrie
+	contractLogs   map[common.Hash][]*model.Log
 }
 
 func NewStorage() *storage {
@@ -20,7 +22,11 @@ func NewStorage() *storage {
 	if err != nil {
 		panic(err)
 	}
-	return &storage{tr}
+	logMap := make(map[common.Hash][]*model.Log)
+	return &storage{
+		blockStateTrie: tr,
+		contractLogs:   logMap,
+	}
 }
 
 func (s *storage) CreateAccount(a common.Address) {
@@ -123,23 +129,19 @@ func (s *storage) SetState(addr common.Address, key []byte, value []byte) {
 	log.Info("State Saved", "key", string(key), "value", value)
 }
 
-func (s *storage) AddLog(address common.Address, topics []common.Hash, data []byte, bn uint64) {
-	log.Info("AddLog", "contractAddr", address, "blockNum", bn)
+func (s *storage) AddLog(addedLog *model.Log) {
+	log.Info("AddLog Called")
 
-	/*	key, err := rlp.EncodeToBytes(append(address.Bytes(), utils.Uint64ToBytes(bn)..., topics[0].Bytes()...))
-		if err != nil {
-			panic(err)
-		}
+	txHash := addedLog.TxHash
+	contractLogs := s.GetLogs(txHash)
+	addedLog.Index = uint(len(contractLogs) + 1)
+	s.contractLogs[txHash] = append(contractLogs, addedLog)
 
-			if value[len(value)-1] == byte(0) {
-				value = value[:len(value)-1]
-			}
+	log.Info("Log Added", "txHash", txHash, "logs", s.contractLogs[txHash])
+}
 
-		err = s.blockStateTrie.TryUpdate(key, value)
-		if err != nil {
-			panic(err)
-		}
-		log.Info("State Saved", "key", string(key), "value", value)*/
+func (s *storage) GetLogs(txHash common.Hash) []*model.Log {
+	return s.contractLogs[txHash]
 }
 
 func (s *storage) Suicide(common.Address) bool {

@@ -4,6 +4,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"math/big"
 	"reflect"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 )
 
 type StateDB interface {
@@ -37,7 +38,7 @@ type StateDB interface {
 	GetState(common.Address, []byte) []byte
 	SetState(common.Address, []byte, []byte)
 
-	AddLog(address common.Address, topics []common.Hash, data []byte, bn uint64)
+	AddLog(addedLog *model.Log)
 
 	Suicide(common.Address) bool
 	HasSuicided(common.Address) bool

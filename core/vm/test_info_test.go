@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"math/big"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 )
 
 var contractAddr = common.HexToAddress("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
@@ -22,7 +23,7 @@ type fakeStateDB struct {
 
 }
 
-func (state fakeStateDB) AddLog(address common.Address, topics []common.Hash, data []byte, bn uint64) {
+func (state fakeStateDB) AddLog(addedLog *model.Log) {
 	panic("implement me")
 }
 
