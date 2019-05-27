@@ -2,6 +2,7 @@ package state_processor
 
 import (
 	"encoding/json"
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
 	"math/big"
@@ -21,7 +22,7 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 
 	context := vm.NewVMContext(tx)
 	fullState := &Fullstate{
-		state,
+		state:state,
 	}
 	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
 	if create{

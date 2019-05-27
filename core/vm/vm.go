@@ -5,10 +5,12 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	cs_crypto "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/core/vm/resolver"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
-	"time"
 )
 
+var emptyCodeHash = cs_crypto.Keccak256Hash(nil)
 var DEFAULT_VM_CONFIG = exec.VMConfig{
 	EnableJIT:          false,
 	DefaultMemoryPages: exec.DefaultPageSize,
@@ -20,18 +22,60 @@ type VM struct {
 	vmconfig    exec.VMConfig
 	resolver    exec.ImportResolver
 	state       StateDB
+
+	// callGasTemp holds the gas available for the current call. This is needed because the
+	// available gas is calculated in gasCall* according to the 63/64 rule and later
+	// applied in opCall*.
+	callGasTemp uint64
 }
 
 func NewVM(context Context, state StateDB, config exec.VMConfig) *VM {
 	interpreter := NewWASMInterpreter(state, context, config)
-	vm := VM{context, interpreter, DEFAULT_VM_CONFIG, &Resolver{}, state}
+	vm := VM{
+		Context:context,
+		interpreter:interpreter,
+		vmconfig:DEFAULT_VM_CONFIG,
+		resolver:&resolver.Resolver{},
+		state:state,
+	}
 	return &vm
 }
 
+func (vm *VM)GetCallGasTemp() uint64{
+	return vm.callGasTemp
+}
 
-func (vm *VM) Call(caller ContractRef, addr common.Address, input []byte, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
-	code := vm.state.GetState(addr, []byte("code"))
-	abi := vm.state.GetState(addr, []byte("abi"))
+func (vm *VM) GasPrice() int64 {
+	return vm.Context.GasPrice.Int64()
+}
+
+func (vm *VM) BlockHash(num uint64) common.Hash {
+	return vm.Context.GetHash(num)
+}
+
+func (vm *VM) BlockNumber() *big.Int {
+	return vm.Context.BlockNumber
+}
+
+func (vm *VM) GasLimit() uint64 {
+	return vm.Context.GasLimit
+}
+
+func (vm *VM) Time() *big.Int {
+	return vm.Context.Time
+}
+
+func (vm *VM) CoinBase() common.Address {
+	return vm.Context.Coinbase
+}
+
+func (vm *VM) Origin() common.Address {
+	return vm.Context.Origin
+}
+
+func (vm *VM) Call(caller ContractRef, addr common.Address, input []byte,gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
+	code := vm.state.GetState(addr,[]byte("code"))
+	abi := vm.state.GetState(addr,[]byte("abi"))
 	contract := &Contract{
 		CallerAddress: caller.Address(),
 		caller:        caller,
@@ -44,50 +88,33 @@ func (vm *VM) Call(caller ContractRef, addr common.Address, input []byte, value 
 	return
 }
 
+func (vm *VM)DelegateCall(caller ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error){
+	return nil ,0,nil
+}
 func (vm *VM) Create(caller ContractRef, code []byte, abi []byte, value []byte) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
 	contractAddr = cs_crypto.CreateContractAddress(caller.Address(), vm.state.GetNonce(caller.Address()))
 	return vm.create(caller, code, abi, value, contractAddr)
 }
 
 func (vm *VM) create(caller ContractRef, code []byte,abi []byte, input []byte, address common.Address) ([]byte, common.Address, uint64, error) {
-	contract := &Contract{
-		CallerAddress: caller.Address(),
-		caller:        caller,
-		self:          &Caller{addr: address},
-		ABI:           abi,
-		Code:          code,
-	}
-
 	// Caller nonce ++
 	vm.state.AddNonce(caller.Address(), uint64(1))
 
 	// Ensure there's no existing contract already at the designated address
 	contractHash := vm.state.GetCodeHash(address)
-	if evm.StateDB.GetNonce(address) != 0 || (contractHash != (common.Hash{}) && contractHash != emptyCodeHash) {
+	if vm.state.GetNonce(address) != 0 || (contractHash != (common.Hash{}) && contractHash != emptyCodeHash) {
 		return nil, common.Address{}, 0, ErrContractAddressCollision
 	}
+
 	// Create a new account on the state
-	snapshot := evm.StateDB.Snapshot()
-	evm.StateDB.CreateAccount(address)
-	if evm.ChainConfig().IsEIP158(evm.BlockNumber) {
-		evm.StateDB.SetNonce(address, 1)
-	}
-	evm.Transfer(evm.StateDB, caller.Address(), address, value)
+	// snapshot := vm.state.Snapshot()
+
+	// vm.state.CreateAccount(address)
+	// vm.Transfer(evm.StateDB, caller.Address(), address, value)
 
 	// Initialise a new contract and set the code that is to be used by the EVM.
 	// The contract is a scoped environment for this execution context only.
-	contract := NewContract(caller, AccountRef(address), value, gas)
-	contract.SetCodeOptionalHash(&address, codeAndHash)
-
-	if evm.vmConfig.NoRecursion && evm.depth > 0 {
-		return nil, address, gas, nil
-	}
-
-	if evm.vmConfig.Debug && evm.depth == 0 {
-		evm.vmConfig.Tracer.CaptureStart(caller.Address(), address, true, codeAndHash.code, gas, value)
-	}
-	start := time.Now()
-
+	contract := NewContract(caller, AccountRef(address), code, abi)
 
 	vm.state.SetState(contract.self.Address(), []byte("code"), code)
 	vm.state.SetState(contract.self.Address(), []byte("abi"), abi)
@@ -104,17 +131,31 @@ func run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error) 
 	return nil, nil
 }
 
+type (
+	// CanTransferFunc is the signature of a transfer guard function
+	CanTransferFunc func(StateDB, common.Address, *big.Int) bool
+	// TransferFunc is the signature of a transfer function
+	TransferFunc func(StateDB, common.Address, common.Address, *big.Int)
+	// GetHashFunc returns the nth block hash in the blockchain
+	// and is used by the BLOCKHASH EVM op code.
+	GetHashFunc func(uint64) common.Hash
+)
+
 type Context struct {
 	// Message information
 	Origin common.Address // Provides information for ORIGIN
 
+	GetHash GetHashFunc
+
 	// Block information
 	Coinbase common.Address // Provides information for COINBASE
-	//GasLimit    uint64         // Provides information for GASLIMIT
-	BlockNumber *big.Int    // Provides information for NUMBER
-	BlockHash   common.Hash // Provides information for Hash
-	Time        *big.Int    // Provides information for TIME
-	Difficulty  *big.Int    // Provides information for DIFFICULTY
+
+	GasPrice *big.Int       // Provides information for GASPRICE
+	GasLimit    uint64         // Provides information for GASLIMIT
+	BlockNumber *big.Int // Provides information for NUMBER
+	Time        *big.Int // Provides information for TIME
+	Difficulty  *big.Int // Provides information for DIFFICULTY
+	Log         log.Logger
 }
 
 func NewVMContext(tx model.AbstractTransaction) Context {
@@ -135,3 +176,20 @@ type Caller struct {
 func (c *Caller) Address() common.Address {
 	return c.addr
 }
+
+func AccountRef(addr common.Address) ContractRef{
+	return &Caller{addr}
+}
+
+func NewContract(caller ContractRef, object ContractRef, code []byte, abi []byte) *Contract{
+	return &Contract{
+		CallerAddress: caller.Address(),
+		caller:        caller,
+		self:          object,
+		ABI:           abi,
+		Code:          code,
+	}
+}
+
+
+
