@@ -6,7 +6,6 @@ import (
 	cs_crypto "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 )
 
@@ -155,7 +154,6 @@ type Context struct {
 	BlockNumber *big.Int // Provides information for NUMBER
 	Time        *big.Int // Provides information for TIME
 	Difficulty  *big.Int // Provides information for DIFFICULTY
-	Log         log.Logger
 }
 
 func NewVMContext(tx model.AbstractTransaction) Context {
