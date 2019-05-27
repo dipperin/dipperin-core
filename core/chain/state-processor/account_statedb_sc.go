@@ -2,10 +2,8 @@ package state_processor
 
 import (
 	"encoding/json"
-	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
-	"math/big"
 )
 type CodeAbi struct {
 	Code   []byte `json:"code"`
@@ -19,7 +17,6 @@ type CallCode struct {
 }
 
 func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, blockHeight uint64, create bool) (err error) {
-
 	context := vm.NewVMContext(tx)
 	fullState := &Fullstate{
 		state:state,
@@ -32,13 +29,13 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 		if err!= nil{
 			return err
 		}
-		_, _,_,err = dvm.Create(&vm.Caller{context.Origin},ca.Code,ca.Abi,ca.Input)
+		_, _,_,err = dvm.Create(vm.AccountRef(context.Origin),ca.Code,ca.Abi,ca.Input)
 		if err != nil {
 			return err
 		}
 	}else{
 		data := tx.ExtraData()
-		_, _,err = dvm.Call(&vm.Caller{context.Origin},*tx.To(),data,big.NewInt(0))
+		_, _,err = dvm.Call(vm.AccountRef(context.Origin),*tx.To(),data,0,tx.Amount())
 		if err != nil {
 			return err
 		}
