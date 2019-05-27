@@ -642,7 +642,7 @@ func (service *MercuryFullChainService) SendTransaction(from, to common.Address,
 	return txHash, nil
 }
 
-//send a normal transaction or contract transaction new
+/*//send a normal transaction or contract transaction new
 func (service *MercuryFullChainService) SendTransactionContract(from, to common.Address, value, transactionFee, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
 	//start:=time.Now()
 	// automatic transfer need this
@@ -671,7 +671,7 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 	txHash := signTx.CalTxId()
 	log.Info("the SendTransaction txId is: ", "txId", txHash.Hex(), "txSize", signTx.Size())
 	return txHash, nil
-}
+}*/
 
 //send a register transaction
 func (service *MercuryFullChainService) SendRegisterTransaction(from common.Address, stake, fee *big.Int, nonce *uint64) (common.Hash, error) {

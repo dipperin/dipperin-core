@@ -268,7 +268,7 @@ func envAbortGasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 // define: int64_t gasPrice();
 func (r *Resolver)envGasPrice(vm *exec.VirtualMachine) int64 {
-	gasPrice := r.Service.GasPrice()
+	gasPrice := r.Service.GetGasPrice()
 	return gasPrice
 }
 
@@ -284,23 +284,23 @@ func (r *Resolver)envBlockHash(vm *exec.VirtualMachine) int64 {
 
 // define: int64_t number();
 func (r *Resolver)envNumber(vm *exec.VirtualMachine) int64 {
-	return int64(r.Service.BlockNumber().Uint64())
+	return int64(r.Service.GetBlockNumber().Uint64())
 }
 
 // define: int64_t gasLimit();
 func (r *Resolver)envGasLimit(vm *exec.VirtualMachine) int64 {
-	return int64(r.Service.GasLimit())
+	return int64(r.Service.GetGasLimit())
 }
 
 // define: int64_t timestamp();
 func (r *Resolver)envTimestamp(vm *exec.VirtualMachine) int64 {
-	return r.Service.Time().Int64()
+	return r.Service.GetTime().Int64()
 }
 
 // define: void coinbase(char addr[20]);
 func (r *Resolver)envCoinbase(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
-	coinBase := r.Service.CoinBase()
+	coinBase := r.Service.GetCoinBase()
 	//fmt.Println("CoinBase:", coinBase.Hex(), " -> ", coinBase[0], coinBase[1], coinBase[len(coinBase)-2], coinBase[len(coinBase)-1])
 	copy(vm.Memory.Memory[offset:], coinBase.Bytes())
 	return 0
@@ -327,7 +327,7 @@ func (r *Resolver)envBalance(vm *exec.VirtualMachine) int64 {
 // define: void origin(char addr[20]);
 func (r *Resolver)envOrigin(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
-	address := r.Service.Origin()
+	address := r.Service.GetOrigin()
 	//fmt.Println("Origin:", address.Hex(), " -> ", address[0], address[1], address[len(address)-2], address[len(address)-1])
 	copy(vm.Memory.Memory[offset:], address.Bytes())
 	return 0

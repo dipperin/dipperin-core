@@ -10,14 +10,14 @@ import (
 	"math/big"
 )
 
-type VmService interface {
-	GasPrice() int64
-	GasLimit() uint64
+type VmContextService interface {
+	GetGasPrice() int64
+	GetGasLimit() uint64
 	BlockHash(num uint64) common.Hash
-	BlockNumber() *big.Int
-	Time() *big.Int
-	CoinBase() common.Address
-	Origin() common.Address
+	GetBlockNumber() *big.Int
+	GetTime() *big.Int
+	GetCoinBase() common.Address
+	GetOrigin() common.Address
 	Call(caller vm.ContractRef, addr common.Address, input []byte,gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error)
 	GetCallGasTemp() uint64
 	DelegateCall(caller vm.ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error)
@@ -43,7 +43,7 @@ type StateDBService interface {
 
 type resolverNeedExternalService struct {
 	ContractService
-	VmService
+	VmContextService
 	StateDBService
 }
 
@@ -68,19 +68,19 @@ func (service *resolverNeedExternalService) Transfer(toAddr common.Address, valu
 	}
 	fmt.Println("Transfer to:", toAddr.String())
 	fmt.Println("Transfer caller:", service.Address().Hex())
-	ret, returnGas, err := service.VmService.Call(service.ContractService, toAddr, nil, gas, value)
+	ret, returnGas, err := service.VmContextService.Call(service.ContractService, toAddr, nil, gas, value)
 	return ret, returnGas, err
 }
 
 func (service *resolverNeedExternalService) ResolverCall(addr, param []byte) ([]byte, error) {
 
-	ret, _, err := service.VmService.Call(service.ContractService, common.HexToAddress(hex.EncodeToString(addr)), param, service.ContractService.GetGas(), service.ContractService.CallValue())
+	ret, _, err := service.VmContextService.Call(service.ContractService, common.HexToAddress(hex.EncodeToString(addr)), param, service.ContractService.GetGas(), service.ContractService.CallValue())
 	return ret, err
 }
 
 func (service *resolverNeedExternalService) ResolverDelegateCall(addr, param []byte) ([]byte, error) {
 
-	ret, _, err := service.VmService.DelegateCall(service.ContractService, common.HexToAddress(hex.EncodeToString(addr)), param,service.ContractService.GetGas())
+	ret, _, err := service.VmContextService.DelegateCall(service.ContractService, common.HexToAddress(hex.EncodeToString(addr)), param,service.ContractService.GetGas())
 	return ret, err
 }
 

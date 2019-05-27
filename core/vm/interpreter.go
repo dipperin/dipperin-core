@@ -3,6 +3,7 @@ package vm
 import (
 	"bytes"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	//resolver2 "github.com/dipperin/dipperin-core/core/vm/resolver"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"encoding/binary"
 	"fmt"
@@ -29,7 +30,7 @@ const (
 type Interpreter interface {
 	// Run loops and evaluates the contract's code with the given input data and returns
 	// the return byte-slice and an error if one occurred.
-	Run(contract *Contract, input []byte, create bool) ([]byte, error)
+	Run(vm *VM,contract *Contract, input []byte, create bool) ([]byte, error)
 	// CanRun tells if the contract, passed as an argument, can be
 	CanRun([]byte) bool
 }
@@ -49,7 +50,7 @@ func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) 
 	}
 }
 
-func (in *WASMInterpreter) Run(contract *Contract, input []byte, create bool) ([]byte, error) {
+func (in *WASMInterpreter) Run(vm *VM,contract *Contract, input []byte, create bool) ([]byte, error) {
 	// Init vm, inject module
 	//  1. 合约定义的function, 2. vm提供的方法
 
@@ -65,11 +66,13 @@ func (in *WASMInterpreter) Run(contract *Contract, input []byte, create bool) ([
 
 
 	//　life方法注入新建虚拟机
-	resolver := newResolver(in.context, contract, in.state)
-	vm, err := exec.NewVirtualMachine(contract.Code, in.config, resolver, nil)
+	//resolver := resolver2.NewResolver(vm, contract, in.state)
+	lifeVm, err := exec.NewVirtualMachine(contract.Code, in.config, nil, nil)
 	if err != nil {
 		return []byte{}, err
 	}
+
+
 
 	var (
 		funcName   string
@@ -80,7 +83,7 @@ func (in *WASMInterpreter) Run(contract *Contract, input []byte, create bool) ([
 
 	if create {
 		funcName = "init" // init function.
-		txType, funcName, params, returnType, err = parseInputFromAbi(vm, input, contract.ABI)
+		txType, funcName, params, returnType, err = parseInputFromAbi(lifeVm, input, contract.ABI)
 		if err != nil {
 			if err == errReturnInsufficientParams && txType == 0 { // transfer to contract address.
 				return nil, nil
@@ -92,7 +95,7 @@ func (in *WASMInterpreter) Run(contract *Contract, input []byte, create bool) ([
 		}
 	} else {
 		// 通过ABI解析input
-		txType, funcName, params, returnType, err = parseInputFromAbi(vm, input, contract.ABI)
+		txType, funcName, params, returnType, err = parseInputFromAbi(lifeVm, input, contract.ABI)
 		if err != nil {
 			if err == errReturnInsufficientParams && txType == 0 { // transfer to contract address.
 				return nil, nil
@@ -106,13 +109,13 @@ func (in *WASMInterpreter) Run(contract *Contract, input []byte, create bool) ([
 	log.Info("parseInput", "type", txType, "funcName", funcName, "params", params, "return", returnType, "err", err)
 
 	//　获取entryID
-	entryID, ok := vm.GetFunctionExport(funcName)
+	entryID, ok := lifeVm.GetFunctionExport(funcName)
 
 	if !ok {
 		return nil, fmt.Errorf("entryId not found.")
 	}
 
-	res, err := vm.Run(entryID, params...)
+	res, err := lifeVm.Run(entryID, params...)
 	if err != nil {
 		fmt.Println("throw exception:", err.Error())
 		return nil, err
@@ -139,7 +142,7 @@ func (in *WASMInterpreter) Run(contract *Contract, input []byte, create bool) ([
 		return finalRes, nil
 	case "string":
 		returnBytes := make([]byte, 0)
-		copyData := vm.Memory.Memory[res:]
+		copyData := lifeVm.Memory.Memory[res:]
 		for _, v := range copyData {
 			if v == 0 {
 				break
