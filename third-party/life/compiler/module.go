@@ -149,15 +149,15 @@ func (m *Module) CompileWithNGen(gp GasPolicy, numGlobals uint64) (out string, r
 			panic(err)
 		}
 		compiler := NewSSAFunctionCompiler(m.Base, d)
-		compiler.CallIndexOffset = numFuncImports
-		compiler.Compile(importTypeIDs)
+		CallIndexOffset = numFuncImports
+		Compile(importTypeIDs)
 		if m.DisableFloatingPoint {
-			compiler.FilterFloatingPoint()
+			FilterFloatingPoint()
 		}
 		if gp != nil {
-			compiler.InsertGasCounters(gp)
+			InsertGasCounters(gp)
 		}
-		//fmt.Println(compiler.Code)
+		//fmt.Println(Code)
 		//fmt.Printf("%+v\n", compiler.NewCFGraph())
 		//numRegs := compiler.RegAlloc()
 		//fmt.Println(compiler.Code)

@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -171,8 +172,14 @@ func TestWASMInterpreter_Run_event(t *testing.T) {
 	s := NewStorage()
 	interpreter := NewWASMInterpreter(s, Context{}, DEFAULT_VM_CONFIG)
 
-	name := []byte("event")
-	num := utils.Int64ToBytes(456)
+
+	name := []byte("0000")
+	num := utils.Int64ToBytes(2)
+	log.Info("the num is:","num",num)
+
+	/*	name := []byte("logName")
+		test, err := rlp.EncodeToBytes(append(name, []byte{133, 101, 118, 101, 110, 116, 127}...))
+		fmt.Println(test)*/
 
 	expect := make([]byte, 32)
 	param := [][]byte{name, num}

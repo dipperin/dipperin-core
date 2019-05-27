@@ -20,12 +20,9 @@ type CallCode struct {
 func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, blockHeight uint64, create bool) (err error) {
 	context := vm.NewVMContext(tx)
 	fullState := &Fullstate{
-		state,
-
+		state:state,
 	}
-
-	newVm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
-	var gas uint64
+	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
 	if create{
 		data := tx.ExtraData()
 		var ca *CodeAbi
@@ -33,13 +30,13 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 		if err!= nil{
 			return err
 		}
-		_, _,gas,err = newVm.Create(&vm.Caller{context.Origin},ca.Code,ca.Abi,ca.Input)
+		_, _,_,err = dvm.Create(vm.AccountRef(context.Origin),ca.Code,ca.Abi,ca.Input)
 		if err != nil {
 			return err
 		}
 	}else{
 		data := tx.ExtraData()
-		_, gas,err = newVm.Call(&vm.Caller{context.Origin},tx.To(),data)
+		_, _,err = dvm.Call(vm.AccountRef(context.Origin),*tx.To(),data,0,tx.Amount())
 		if err != nil {
 			return err
 		}

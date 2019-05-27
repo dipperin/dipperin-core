@@ -16,7 +16,16 @@ import (
 	"github.com/go-interpreter/wagon/wasm"
 )
 
-type FunctionImport func(vm *VirtualMachine) int64
+type (
+	Execute func(vm *VirtualMachine) int64
+	GasCost func(vm *VirtualMachine) (uint64, error)
+)
+
+// FunctionImport represents the function import type. If len(sig.ReturnTypes) == 0, the return value will be ignored.
+type FunctionImport struct {
+	Execute Execute
+	GasCost GasCost
+}
 
 const (
 	// DefaultCallStackSize is the default call stack size.
@@ -81,6 +90,10 @@ type VirtualMachine struct {
 	ImportResolver   ImportResolver
 	AOTService       AOTService
 	StackTrace       string
+
+	//add 已使用Gas 和 GasLimited
+	GasUsed  uint64
+	GasLimit uint64
 }
 
 // VMConfig denotes a set of options passed to a single VirtualMachine insta.ce
@@ -111,7 +124,7 @@ type Frame struct {
 // ImportResolver is an interface for allowing one to define imports to WebAssembly modules
 // ran under a single VirtualMachine instance.
 type ImportResolver interface {
-	ResolveFunc(module, field string) FunctionImport
+	ResolveFunc(module, field string) *FunctionImport
 	ResolveGlobal(module, field string) int64
 }
 
@@ -1743,7 +1756,7 @@ func (vm *VirtualMachine) Execute() {
 			}
 
 		case opcodes.InvokeImport:
-			importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
+/*			importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
 			frame.IP += 4
 			vm.Delegate = func() {
 				defer func() {
@@ -1757,6 +1770,12 @@ func (vm *VirtualMachine) Execute() {
 					imp.F = vm.ImportResolver.ResolveFunc(imp.ModuleName, imp.FieldName)
 				}
 				frame.Regs[valueID] = imp.F(vm)
+			}*/
+			//修改成和 platOn相同
+			importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
+			frame.IP += 4
+			vm.Delegate = func() {
+				frame.Regs[valueID] = vm.FunctionImports[importID].F.Execute(vm)
 			}
 			return
 
