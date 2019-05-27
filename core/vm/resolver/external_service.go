@@ -4,11 +4,14 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/vm"
 	"github.com/dipperin/dipperin-core/core/vm/common/params"
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"math/big"
 )
+
+type ContractRef interface {
+	Address() common.Address
+}
 
 type VmContextService interface {
 	GetGasPrice() int64
@@ -18,9 +21,9 @@ type VmContextService interface {
 	GetTime() *big.Int
 	GetCoinBase() common.Address
 	GetOrigin() common.Address
-	Call(caller vm.ContractRef, addr common.Address, input []byte,gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error)
+	Call(caller ContractRef, addr common.Address, input []byte,gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error)
 	GetCallGasTemp() uint64
-	DelegateCall(caller vm.ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error)
+	DelegateCall(caller ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error)
 }
 
 type ContractService interface {
