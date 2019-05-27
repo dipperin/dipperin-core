@@ -612,8 +612,39 @@ func (service *MercuryFullChainService) NewSendTransactions(txs []model.Transact
 	return len(txs), nil
 }
 
-//send a normal transaction
+//send a normal transaction or contract transaction
 func (service *MercuryFullChainService) SendTransaction(from, to common.Address, value, transactionFee *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
+	//start:=time.Now()
+	// automatic transfer need this
+	if from.IsEqual(common.Address{}) {
+		from = service.DefaultAccount
+		if from.IsEqual(common.Address{}) {
+			return common.Hash{}, errors.New("no default account in this node")
+		}
+	}
+
+	//log.Info("send Transaction the nonce is:", "nonce", nonce)
+
+	tmpWallet, usedNonce, err := service.getSendTxInfo(from, nonce)
+	if err != nil {
+		return common.Hash{}, err
+	}
+
+	tx := model.NewTransaction(usedNonce, to, value, transactionFee, data)
+	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
+	if err != nil {
+		pbft_log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
+		return common.Hash{}, err
+	}
+
+	pbft_log.Info("send transaction", "txId", signTx.CalTxId().Hex())
+	txHash := signTx.CalTxId()
+	log.Info("the SendTransaction txId is: ", "txId", txHash.Hex(),"txSize",signTx.Size())
+	return txHash, nil
+}
+
+//send a normal transaction or contract transaction new
+func (service *MercuryFullChainService) SendTransactionContract(from, to common.Address, value, transactionFee *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
 	//start:=time.Now()
 	// automatic transfer need this
 	if from.IsEqual(common.Address{}) {

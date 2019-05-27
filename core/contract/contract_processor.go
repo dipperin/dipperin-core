@@ -22,6 +22,7 @@ import (
 	"bytes"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"reflect"
@@ -242,4 +243,7 @@ func (p *Processor) GetContractReadOnlyInfo(eData *ExtraDataForContract) (interf
 		return nil, ContractMethodRetNilErr
 	}
 	return result[0].Interface(), nil
+}
+func (p *Processor) ProcessSmartContract(db *state_processor.AccountStateDB, transaction model.AbstractTransaction, u uint64) {
+	NewVMContext
 }

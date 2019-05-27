@@ -1,9 +1,9 @@
 package vm
 
 import (
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 )
@@ -22,20 +22,20 @@ type VM struct {
 }
 
 func NewVM(context Context, state StateDB, config exec.VMConfig) *VM {
-	interpreter := NewWASMInterpreter(state,context,config)
+	interpreter := NewWASMInterpreter(state, context, config)
 	vm := VM{context, interpreter, DEFAULT_VM_CONFIG, &Resolver{}, state}
 	return &vm
 }
 
 func (vm *VM) Call(caller ContractRef, addr common.Address, input []byte, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
-	code := vm.state.GetState(addr,[]byte("code"))
-	abi := vm.state.GetState(addr,[]byte("abi"))
+	code := vm.state.GetState(addr, []byte("code"))
+	abi := vm.state.GetState(addr, []byte("abi"))
 	contract := &Contract{
-		CallerAddress:caller.Address(),
-		caller:caller,
-		self:&Caller{addr:addr},
-		ABI:abi,
-		Code:code,
+		CallerAddress: caller.Address(),
+		caller:        caller,
+		self:          &Caller{addr: addr},
+		ABI:           abi,
+		Code:          code,
 	}
 
 	ret, err = run(vm, contract, input)
@@ -47,19 +47,18 @@ func (vm *VM) Create(caller ContractRef, code []byte, abi []byte, value *big.Int
 	return vm.create(caller, code, abi, value, contractAddr)
 }
 
-func (vm *VM) create(caller ContractRef, code []byte,abi []byte, value *big.Int, address common.Address) ([]byte, common.Address, uint64, error) {
-
+func (vm *VM) create(caller ContractRef, code []byte, abi []byte, value *big.Int, address common.Address) ([]byte, common.Address, uint64, error) {
 
 	contract := &Contract{
-		CallerAddress:caller.Address(),
-		caller:caller,
-		self:&Caller{addr:address},
-		ABI:abi,
-		Code:code,
+		CallerAddress: caller.Address(),
+		caller:        caller,
+		self:          &Caller{addr: address},
+		ABI:           abi,
+		Code:          code,
 	}
 
-	vm.state.SetState(contract.self.Address(),[]byte("code"),code)
-	vm.state.SetState(contract.self.Address(),[]byte("abi"),abi)
+	vm.state.SetState(contract.self.Address(), []byte("code"), code)
+	vm.state.SetState(contract.self.Address(), []byte("abi"), abi)
 	// call run
 	run(vm, contract, nil)
 

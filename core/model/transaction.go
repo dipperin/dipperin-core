@@ -17,6 +17,7 @@
 package model
 
 import (
+	"container/heap"
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
@@ -25,7 +26,6 @@ import (
 	"math/big"
 	"sort"
 	"sync/atomic"
-	"container/heap"
 
 	"github.com/dipperin/dipperin-core/third-party/log"
 )
@@ -177,11 +177,12 @@ func (tx Transaction) String() string {
 
 type txData struct {
 	AccountNonce uint64          `json:"nonce"    gencodec:"required"`
-	Recipient    *common.Address `json:"to"       rlp:"nil"` // nil means contract creation
+	Recipient    *common.Address `json:"to"       rlp:"nil"`
 	HashLock     *common.Hash    `json:"hashLock" rlp:"nil"`
 	TimeLock     *big.Int        `json:"timeLock" gencodec:"required"`
 	Amount       *big.Int        `json:"Value"    gencodec:"required"`
 	Fee          *big.Int        `json:"fee"      gencodec:"required"`
+	Price        *big.Int        `json:"gasPrice"`
 	ExtraData    []byte          `json:"input"    gencodec:"required"`
 }
 
@@ -417,7 +418,7 @@ func (s *TxByFee) Pop() interface{} {
 	old := *s
 	n := len(old)
 	x := old[n-1]
-	*s = old[0: n-1]
+	*s = old[0 : n-1]
 	return x
 }
 
