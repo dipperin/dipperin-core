@@ -14,10 +14,10 @@ import "C"
 
 import (
 	"encoding/binary"
+	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"math"
 	"unsafe"
 
-	"github.com/PlatONnetwork/PlatON-Go/life/exec"
 )
 
 type uint128 struct {

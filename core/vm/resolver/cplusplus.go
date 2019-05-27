@@ -12,37 +12,21 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common"
+	math2 "github.com/dipperin/dipperin-core/common/math"
+	"github.com/dipperin/dipperin-core/core/vm"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/third-party/log/vm_log"
 	"math"
 	"math/big"
 )
 
 
-
-//void * memcpy ( void * destination, const void * source, size_t num );
-func envMemcpy(vm *exec.VirtualMachine) int64 {
-	dest := int(uint32(vm.GetCurrentFrame().Locals[0]))
-	src := int(uint32(vm.GetCurrentFrame().Locals[1]))
-	len := int(uint32(vm.GetCurrentFrame().Locals[2]))
-
-	copy(vm.Memory.Memory[dest:dest+len], vm.Memory.Memory[src:src+len])
-	return int64(dest)
-}
-
 func envMemcpyGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	len := int(uint32(vm.GetCurrentFrame().Locals[2]))
 	return uint64(len), nil
-}
-
-//void * memmove ( void * destination, const void * source, size_t num );
-func envMemmove(vm *exec.VirtualMachine) int64 {
-	dest := int(uint32(vm.GetCurrentFrame().Locals[0]))
-	src := int(uint32(vm.GetCurrentFrame().Locals[1]))
-	len := int(uint32(vm.GetCurrentFrame().Locals[2]))
-
-	copy(vm.Memory.Memory[dest:dest+len], vm.Memory.Memory[src:src+len])
-	return int64(dest)
 }
 
 func envMemmoveGasCost(vm *exec.VirtualMachine) (uint64, error) {
@@ -92,7 +76,7 @@ func (r *Resolver)envPrints(vm *exec.VirtualMachine) int64 {
 			break
 		}
 	}
-	r.context.Log.Debug(string(vm.Memory.Memory[start:end]))
+	vm_log.Debug(string(vm.Memory.Memory[start:end]))
 
 	//fmt.Printf("%s", string(vm.Memory.Memory[start:end]))
 	return 0
@@ -110,11 +94,11 @@ func envPrintsGasCost(vm *exec.VirtualMachine) (uint64, error) {
 }
 
 //libc prints_l
-func (r *Resolver)envPrintsl(vm *exec.VirtualMachine) int64 {
+func envPrintsl(vm *exec.VirtualMachine) int64 {
 	ptr := int(uint32(vm.GetCurrentFrame().Locals[0]))
 	msgLen := int(uint32(vm.GetCurrentFrame().Locals[1]))
 	msg := vm.Memory.Memory[ptr : ptr+msgLen]
-	r.context.Log.Debug(string(msg))
+	vm_log.Debug(string(msg))
 	return 0
 }
 
@@ -124,8 +108,8 @@ func envPrintslGasCost(vm *exec.VirtualMachine) (uint64, error) {
 }
 
 //libc printi()
-func (r *Resolver)envPrinti(vm *exec.VirtualMachine) int64 {
-	r.context.Log.Debug(fmt.Sprintf("%d", vm.GetCurrentFrame().Locals[0]))
+func envPrinti(vm *exec.VirtualMachine) int64 {
+	vm_log.Debug(fmt.Sprintf("%d", vm.GetCurrentFrame().Locals[0]))
 	return 0
 }
 
@@ -133,8 +117,8 @@ func envPrintiGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func (r *Resolver)envPrintui(vm *exec.VirtualMachine) int64 {
-	r.context.Log.Debug(fmt.Sprintf("%d", vm.GetCurrentFrame().Locals[0]))
+func envPrintui(vm *exec.VirtualMachine) int64 {
+	vm_log.Debug(fmt.Sprintf("%d", vm.GetCurrentFrame().Locals[0]))
 	return 0
 }
 
@@ -142,13 +126,13 @@ func envPrintuiGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func (r *Resolver)envPrinti128(vm *exec.VirtualMachine) int64 {
+func envPrinti128(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
 	buf := vm.Memory.Memory[pos : pos+16]
 	lo := uint64(binary.LittleEndian.Uint64(buf[:8]))
 	ho := uint64(binary.LittleEndian.Uint64(buf[8:]))
 	ret := C.printi128(C.uint64_t(lo), C.uint64_t(ho))
-	r.context.Log.Debug(fmt.Sprintf("%s", C.GoString(ret)))
+	vm_log.Debug(fmt.Sprintf("%s", C.GoString(ret)))
 	return 0
 }
 
@@ -156,13 +140,13 @@ func envPrinti128GasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func (r *Resolver)envPrintui128(vm *exec.VirtualMachine) int64 {
+func envPrintui128(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
 	buf := vm.Memory.Memory[pos : pos+16]
 	lo := uint64(binary.LittleEndian.Uint64(buf[:8]))
 	ho := uint64(binary.LittleEndian.Uint64(buf[8:]))
 	ret := C.printui128(C.uint64_t(lo), C.uint64_t(ho))
-	r.context.Log.Debug(fmt.Sprintf("%s", C.GoString(ret)))
+	vm_log.Debug(fmt.Sprintf("%s", C.GoString(ret)))
 	return 0
 }
 
@@ -170,10 +154,10 @@ func envPrintui128GasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func (r *Resolver)envPrintsf(vm *exec.VirtualMachine) int64 {
+func envPrintsf(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
 	float := math.Float32frombits(uint32(pos))
-	r.context.Log.Debug(fmt.Sprintf("%g", float))
+	vm_log.Debug(fmt.Sprintf("%g", float))
 	return 0
 }
 
@@ -181,10 +165,10 @@ func envPrintsfGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func (r *Resolver)envPrintdf(vm *exec.VirtualMachine) int64 {
+func envPrintdf(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
 	double := math.Float64frombits(uint64(pos))
-	r.context.Log.Debug(fmt.Sprintf("%g", double))
+	vm_log.Debug(fmt.Sprintf("%g", double))
 	return 0
 }
 
@@ -192,7 +176,7 @@ func envPrintdfGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func (r *Resolver)envPrintqf(vm *exec.VirtualMachine) int64 {
+func envPrintqf(vm *exec.VirtualMachine) int64 {
 	frame := vm.GetCurrentFrame()
 	pos := frame.Locals[0]
 
@@ -200,7 +184,7 @@ func (r *Resolver)envPrintqf(vm *exec.VirtualMachine) int64 {
 	high := C.uint64_t(binary.LittleEndian.Uint64(vm.Memory.Memory[pos+8 : pos+16]))
 
 	buf := C.GoString(C.__printqf(low, high))
-	r.context.Log.Debug(fmt.Sprintf("%s", buf))
+	vm_log.Debug(fmt.Sprintf("%s", buf))
 	return 0
 }
 
@@ -208,8 +192,8 @@ func envPrintqfGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func (r *Resolver)envPrintn(vm *exec.VirtualMachine) int64 {
-	r.context.Log.Debug(fmt.Sprintf("%d", int(uint32(vm.GetCurrentFrame().Locals[0]))))
+func envPrintn(vm *exec.VirtualMachine) int64 {
+	vm_log.Debug(fmt.Sprintf("%d", int(uint32(vm.GetCurrentFrame().Locals[0]))))
 	return 0
 }
 
@@ -217,10 +201,10 @@ func envPrintnGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func (r *Resolver)envPrinthex(vm *exec.VirtualMachine) int64 {
+func envPrinthex(vm *exec.VirtualMachine) int64 {
 	data := int(uint32(vm.GetCurrentFrame().Locals[0]))
 	dataLen := int(uint32(vm.GetCurrentFrame().Locals[1]))
-	r.context.Log.Debug(fmt.Sprintf("%x", vm.Memory.Memory[data:data+dataLen]))
+	vm_log.Debug(fmt.Sprintf("%x", vm.Memory.Memory[data:data+dataLen]))
 	return 0
 }
 
@@ -228,34 +212,8 @@ func envPrinthexGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-//libc malloc()
-func envMalloc(vm *exec.VirtualMachine) int64 {
-	//mem := vm.Memory
-	size := int(uint32(vm.GetCurrentFrame().Locals[0]))
-
-	pos := vm.Memory.Malloc(size)
-	if pos == -1 {
-		panic("melloc error...")
-	}
-
-	return int64(pos)
-}
-
 func envMallocGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 0, nil
-}
-
-//libc free()
-func envFree(vm *exec.VirtualMachine) int64 {
-	mem := vm.Memory
-	offset := int(uint32(vm.GetCurrentFrame().Locals[0]))
-
-	err := mem.Free(offset)
-	if err != nil {
-		panic("free error...")
-	}
-
-	return 0
 }
 
 func envFreeGasCost(vm *exec.VirtualMachine) (uint64, error) {
@@ -310,7 +268,7 @@ func envAbortGasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 // define: int64_t gasPrice();
 func (r *Resolver)envGasPrice(vm *exec.VirtualMachine) int64 {
-	gasPrice := r.stateDb.GasPrice()
+	gasPrice := r.Service.GasPrice()
 	return gasPrice
 }
 
@@ -318,7 +276,7 @@ func (r *Resolver)envGasPrice(vm *exec.VirtualMachine) int64 {
 func (r *Resolver)envBlockHash(vm *exec.VirtualMachine) int64 {
 	num := int(int32(vm.GetCurrentFrame().Locals[0]))
 	offset := int(int32(vm.GetCurrentFrame().Locals[1]))
-	blockHash := r.stateDb.BlockHash(uint64(num))
+	blockHash := r.Service.BlockHash(uint64(num))
 	//fmt.Printf("Number:%v ,Num:%v ,0:%v, 1:%v, (-2):%v, (-1):%v. \n", num, blockHash.Hex(), " -> ", blockHash[0], blockHash[1], blockHash[len(blockHash)-2], blockHash[len(blockHash)-1])
 	copy(vm.Memory.Memory[offset:], blockHash.Bytes())
 	return 0
@@ -326,23 +284,23 @@ func (r *Resolver)envBlockHash(vm *exec.VirtualMachine) int64 {
 
 // define: int64_t number();
 func (r *Resolver)envNumber(vm *exec.VirtualMachine) int64 {
-	return int64(r.context.StateDB.BlockNumber().Uint64())
+	return int64(r.Service.BlockNumber().Uint64())
 }
 
 // define: int64_t gasLimit();
 func (r *Resolver)envGasLimit(vm *exec.VirtualMachine) int64 {
-	return int64(r.context.StateDB.GasLimimt())
+	return int64(r.Service.GasLimit())
 }
 
 // define: int64_t timestamp();
 func (r *Resolver)envTimestamp(vm *exec.VirtualMachine) int64 {
-	return r.context.StateDB.Time().Int64()
+	return r.Service.Time().Int64()
 }
 
 // define: void coinbase(char addr[20]);
 func (r *Resolver)envCoinbase(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
-	coinBase := r.context.StateDB.Coinbase()
+	coinBase := r.Service.CoinBase()
 	//fmt.Println("CoinBase:", coinBase.Hex(), " -> ", coinBase[0], coinBase[1], coinBase[len(coinBase)-2], coinBase[len(coinBase)-1])
 	copy(vm.Memory.Memory[offset:], coinBase.Bytes())
 	return 0
@@ -350,7 +308,7 @@ func (r *Resolver)envCoinbase(vm *exec.VirtualMachine) int64 {
 
 // define: u256 balance();
 func (r *Resolver)envBalance(vm *exec.VirtualMachine) int64 {
-	balance := r.context.StateDB.GetBalance(r.context.StateDB.Address())
+	balance := r.Service.GetBalance(r.Service.Address())
 	ptr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	// 256 bits
 	if len(balance.Bytes()) > 32 {
@@ -369,7 +327,7 @@ func (r *Resolver)envBalance(vm *exec.VirtualMachine) int64 {
 // define: void origin(char addr[20]);
 func (r *Resolver)envOrigin(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
-	address := r.context.StateDB.Origin()
+	address := r.Service.Origin()
 	//fmt.Println("Origin:", address.Hex(), " -> ", address[0], address[1], address[len(address)-2], address[len(address)-1])
 	copy(vm.Memory.Memory[offset:], address.Bytes())
 	return 0
@@ -378,7 +336,7 @@ func (r *Resolver)envOrigin(vm *exec.VirtualMachine) int64 {
 // define: void caller(char addr[20]);
 func (r *Resolver)envCaller(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
-	caller := r.context.StateDB.Caller()
+	caller := r.Service.Caller()
 	//fmt.Println("Caller:", caller.Hex(), " -> ", caller[0], caller[1], caller[len(caller)-2], caller[len(caller)-1])
 	copy(vm.Memory.Memory[offset:], caller.Bytes())
 	return 0
@@ -386,7 +344,7 @@ func (r *Resolver)envCaller(vm *exec.VirtualMachine) int64 {
 
 // define: int64_t callValue();
 func (r *Resolver)envCallValue(vm *exec.VirtualMachine) int64 {
-	value := r.context.StateDB.CallValue()
+	value := r.Service.CallValue()
 	ptr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	if len(value.Bytes()) > 32 {
 		panic(fmt.Sprintf("balance overflow(%d > 32)", len(value.Bytes())))
@@ -404,7 +362,7 @@ func (r *Resolver)envCallValue(vm *exec.VirtualMachine) int64 {
 // define: void address(char hash[20]);
 func (r *Resolver)envAddress(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
-	address := r.context.StateDB.Address()
+	address := r.Service.Address()
 	//fmt.Println("Address:", address.Hex(), " -> ", address[0], address[1], address[len(address)-2], address[len(address)-1])
 	copy(vm.Memory.Memory[offset:], address.Bytes())
 	return 0
@@ -437,73 +395,16 @@ func constGasFunc(gas uint64) exec.GasCost {
 	}
 }
 
-//void emitEvent(const char *topic, size_t topicLen, const uint8_t *data, size_t dataLen);
-func (r *Resolver)envEmitEvent(vm *exec.VirtualMachine) int64 {
-	topic := int(int32(vm.GetCurrentFrame().Locals[0]))
-	topicLen := int(int32(vm.GetCurrentFrame().Locals[1]))
-	dataSrc := int(int32(vm.GetCurrentFrame().Locals[2]))
-	dataLen := int(int32(vm.GetCurrentFrame().Locals[3]))
-
-	t := make([]byte, topicLen)
-	d := make([]byte, dataLen)
-	copy(t, vm.Memory.Memory[topic:topic+topicLen])
-	copy(d, vm.Memory.Memory[dataSrc:dataSrc+dataLen])
-	address := r.context.StateDB.Address()
-	topics := []common.Hash{common.BytesToHash(crypto.Keccak256(t))}
-	bn := r.context.StateDB.BlockNumber().Uint64()
-
-	r.context.StateDB.AddLog(address, topics, d, bn)
-	return 0
-}
-
 func envEmitEventGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
-}
-
-func (r *Resolver)envSetState(vm *exec.VirtualMachine) int64 {
-	key := int(int32(vm.GetCurrentFrame().Locals[0]))
-	keyLen := int(int32(vm.GetCurrentFrame().Locals[1]))
-	value := int(int32(vm.GetCurrentFrame().Locals[2]))
-	valueLen := int(int32(vm.GetCurrentFrame().Locals[3]))
-
-	copyKey := make([]byte, keyLen)
-	copyValue := make([]byte, valueLen)
-	copy(copyKey, vm.Memory.Memory[key:key+keyLen])
-	copy(copyValue, vm.Memory.Memory[value:value+valueLen])
-	r.context.StateDB.SetState(copyKey, copyValue)
-	return 0
 }
 
 func envSetStateGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func (r *Resolver)envGetState(vm *exec.VirtualMachine) int64 {
-	key := int(int32(vm.GetCurrentFrame().Locals[0]))
-	keyLen := int(int32(vm.GetCurrentFrame().Locals[1]))
-	value := int(int32(vm.GetCurrentFrame().Locals[2]))
-	valueLen := int(int32(vm.GetCurrentFrame().Locals[3]))
-
-	val := r.context.StateDB.GetState(vm.Memory.Memory[key : key+keyLen])
-
-	if len(val) > valueLen {
-		return 0
-	}
-
-	copy(vm.Memory.Memory[value:value+valueLen], val)
-	return 0
-}
-
 func envGetStateGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
-}
-
-func (r *Resolver)envGetStateSize(vm *exec.VirtualMachine) int64 {
-	key := int(int32(vm.GetCurrentFrame().Locals[0]))
-	keyLen := int(int32(vm.GetCurrentFrame().Locals[1]))
-	val := r.context.StateDB.GetState(vm.Memory.Memory[key : key+keyLen])
-
-	return int64(len(val))
 }
 
 func envGetStateSizeGasCost(vm *exec.VirtualMachine) (uint64, error) {
@@ -512,7 +413,7 @@ func envGetStateSizeGasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 // define: int64_t getNonce();
 func (r *Resolver)envGetCallerNonce(vm *exec.VirtualMachine) int64 {
-	return r.context.StateDB.GetCallerNonce()
+	return r.Service.GetCallerNonce()
 }
 
 func (r *Resolver)envCallTransfer(vm *exec.VirtualMachine) int64 {
@@ -522,12 +423,13 @@ func (r *Resolver)envCallTransfer(vm *exec.VirtualMachine) int64 {
 	bValue := new(big.Int)
 	// 256 bits
 	bValue.SetBytes(vm.Memory.Memory[value : value+32])
-	value256 := inner.U256(bValue)
+	value256 := math2.U256(bValue)
 	addr := common.BytesToAddress(vm.Memory.Memory[key : key+keyLen])
 
-	_, returnGas, err := r.context.StateDB.Transfer(addr, value256)
+	_, returnGas, err := r.Service.Transfer(addr, value256)
 
-	r.context.GasUsed -= returnGas
+	//先使用在life　vm中添加的字段，待后续看是否可以使用life自带gas机制
+	vm.GasUsed -= returnGas
 	if err != nil {
 		return 1
 	} else {
@@ -539,7 +441,7 @@ func (r *Resolver)envPlatonCall(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
-	_, err := r.context.StateDB.Call(vm.Memory.Memory[addr:addr+20], vm.Memory.Memory[params:params+paramsLen])
+	_, err := r.Service.ResolverCall(vm.Memory.Memory[addr:addr+20], vm.Memory.Memory[params:params+paramsLen])
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
@@ -551,7 +453,7 @@ func (r *Resolver)envPlatonDelegateCall(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	_, err := r.context.StateDB.DelegateCall(vm.Memory.Memory[addr:addr+20], vm.Memory.Memory[params:params+paramsLen])
+	_, err := r.Service.ResolverDelegateCall(vm.Memory.Memory[addr:addr+20], vm.Memory.Memory[params:params+paramsLen])
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
@@ -564,12 +466,14 @@ func (r *Resolver)envPlatonCallInt64(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	ret, err := r.context.StateDB.Call(vm.Memory.Memory[addr:addr+20], vm.Memory.Memory[params:params+paramsLen])
+	ret, err := r.Service.ResolverCall(vm.Memory.Memory[addr:addr+20], vm.Memory.Memory[params:params+paramsLen])
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
 	}
-	return common.BytesToInt64(ret)
+
+
+	return utils.BytesToInt64(ret)
 }
 
 func (r *Resolver)envPlatonDelegateCallInt64(vm *exec.VirtualMachine) int64 {
@@ -577,38 +481,38 @@ func (r *Resolver)envPlatonDelegateCallInt64(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	ret, err := r.context.StateDB.DelegateCall(vm.Memory.Memory[addr:addr+20], vm.Memory.Memory[params:params+paramsLen])
+	ret, err := r.Service.ResolverDelegateCall(vm.Memory.Memory[addr:addr+20], vm.Memory.Memory[params:params+paramsLen])
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
 	}
-	return common.BytesToInt64(ret)
+	return utils.BytesToInt64(ret)
 }
 
-func (r *Resolver)envPlatonCallString(vm *exec.VirtualMachine) int64 {
-	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
-	params := int(int32(vm.GetCurrentFrame().Locals[1]))
-	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
+func (r *Resolver)envPlatonCallString(vmValue *exec.VirtualMachine) int64 {
+	addr := int(int32(vmValue.GetCurrentFrame().Locals[0]))
+	params := int(int32(vmValue.GetCurrentFrame().Locals[1]))
+	paramsLen := int(int32(vmValue.GetCurrentFrame().Locals[2]))
 
-	ret, err := r.context.StateDB.Call(vm.Memory.Memory[addr:addr+20], vm.Memory.Memory[params:params+paramsLen])
+	ret, err := r.Service.ResolverCall(vmValue.Memory.Memory[addr:addr+20], vmValue.Memory.Memory[params:params+paramsLen])
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
 	}
-	return MallocString(vm, string(ret))
+	return vm.MallocString(vmValue, string(ret))
 }
 
-func (r *Resolver)envPlatonDelegateCallString(vm *exec.VirtualMachine) int64 {
-	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
-	params := int(int32(vm.GetCurrentFrame().Locals[1]))
-	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
+func (r *Resolver)envPlatonDelegateCallString(vmValue *exec.VirtualMachine) int64 {
+	addr := int(int32(vmValue.GetCurrentFrame().Locals[0]))
+	params := int(int32(vmValue.GetCurrentFrame().Locals[1]))
+	paramsLen := int(int32(vmValue.GetCurrentFrame().Locals[2]))
 
-	ret, err := r.context.StateDB.DelegateCall(vm.Memory.Memory[addr:addr+20], vm.Memory.Memory[params:params+paramsLen])
+	ret, err := r.Service.ResolverDelegateCall(vmValue.Memory.Memory[addr:addr+20], vmValue.Memory.Memory[params:params+paramsLen])
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
 	}
-	return MallocString(vm, string(ret))
+	return vm.MallocString(vmValue, string(ret))
 }
 
 func envPlatonCallGasCost(vm *exec.VirtualMachine) (uint64, error) {

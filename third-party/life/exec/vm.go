@@ -90,6 +90,10 @@ type VirtualMachine struct {
 	ImportResolver   ImportResolver
 	AOTService       AOTService
 	StackTrace       string
+
+	//add 已使用Gas 和 GasLimited
+	GasUsed  uint64
+	GasLimit uint64
 }
 
 // VMConfig denotes a set of options passed to a single VirtualMachine insta.ce
@@ -1752,7 +1756,7 @@ func (vm *VirtualMachine) Execute() {
 			}
 
 		case opcodes.InvokeImport:
-			importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
+/*			importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
 			frame.IP += 4
 			vm.Delegate = func() {
 				defer func() {
@@ -1766,6 +1770,12 @@ func (vm *VirtualMachine) Execute() {
 					imp.F = vm.ImportResolver.ResolveFunc(imp.ModuleName, imp.FieldName)
 				}
 				frame.Regs[valueID] = imp.F(vm)
+			}*/
+			//修改成和 platOn相同
+			importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
+			frame.IP += 4
+			vm.Delegate = func() {
+				frame.Regs[valueID] = vm.FunctionImports[importID].F.Execute(vm)
 			}
 			return
 
