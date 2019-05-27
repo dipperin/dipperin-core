@@ -3,9 +3,9 @@ package vm
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
-	cs_crypto "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"math/big"
 )
 
@@ -21,11 +21,6 @@ type VM struct {
 	vmconfig    exec.VMConfig
 	resolver    exec.ImportResolver
 	state       StateDB
-
-	// callGasTemp holds the gas available for the current call. This is needed because the
-	// available gas is calculated in gasCall* according to the 63/64 rule and later
-	// applied in opCall*.
-	callGasTemp uint64
 }
 
 func NewVM(context Context, state StateDB, config exec.VMConfig) *VM {
@@ -38,38 +33,6 @@ func NewVM(context Context, state StateDB, config exec.VMConfig) *VM {
 		state:state,
 	}
 	return &vm
-}
-
-func (vm *VM)GetCallGasTemp() uint64{
-	return vm.callGasTemp
-}
-
-func (vm *VM) GasPrice() int64 {
-	return vm.Context.GasPrice.Int64()
-}
-
-func (vm *VM) BlockHash(num uint64) common.Hash {
-	return vm.Context.GetHash(num)
-}
-
-func (vm *VM) BlockNumber() *big.Int {
-	return vm.Context.BlockNumber
-}
-
-func (vm *VM) GasLimit() uint64 {
-	return vm.Context.GasLimit
-}
-
-func (vm *VM) Time() *big.Int {
-	return vm.Context.Time
-}
-
-func (vm *VM) CoinBase() common.Address {
-	return vm.Context.Coinbase
-}
-
-func (vm *VM) Origin() common.Address {
-	return vm.Context.Origin
 }
 
 func (vm *VM) Call(caller ContractRef, addr common.Address, input []byte,gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
@@ -126,7 +89,7 @@ func (vm *VM) create(caller ContractRef, code []byte,abi []byte, input []byte, a
 func run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error) {
 
 	// call interpreter.Run()
-	vm.interpreter.Run(contract, input,create)
+	vm.interpreter.Run(vm,contract, input,create)
 	return nil, nil
 }
 
@@ -154,6 +117,43 @@ type Context struct {
 	BlockNumber *big.Int // Provides information for NUMBER
 	Time        *big.Int // Provides information for TIME
 	Difficulty  *big.Int // Provides information for DIFFICULTY
+
+	// callGasTemp holds the gas available for the current call. This is needed because the
+	// available gas is calculated in gasCall* according to the 63/64 rule and later
+	// applied in opCall*.
+	callGasTemp uint64
+}
+
+func (context *Context)GetCallGasTemp() uint64{
+	return context.callGasTemp
+}
+
+func (context *Context) GetGasPrice() int64 {
+	return context.GasPrice.Int64()
+}
+
+func (context *Context) BlockHash(num uint64) common.Hash {
+	return context.GetHash(num)
+}
+
+func (context *Context) GetBlockNumber() *big.Int {
+	return context.BlockNumber
+}
+
+func (context *Context) GetGasLimit() uint64 {
+	return context.GasLimit
+}
+
+func (context *Context) GetTime() *big.Int {
+	return context.Time
+}
+
+func (context *Context) GetCoinBase() common.Address {
+	return context.Coinbase
+}
+
+func (context *Context) GetOrigin() common.Address {
+	return context.Origin
 }
 
 func NewVMContext(tx model.AbstractTransaction) Context {

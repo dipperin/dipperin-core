@@ -73,7 +73,7 @@ func (r *Resolver) envEmitEvent(vm *exec.VirtualMachine) int64 {
 		ContractAddr:r.Service.Address(),
 		Topic:common.BytesToHash(crypto.Keccak256(t)),
 		Data:d,
-		BlockNumber:r.Service.BlockNumber().Uint64(),
+		BlockNumber:r.Service.GetBlockNumber().Uint64(),
 		TxHash:r.Service.TxHash(),
 		TxIndex:uint(r.Service.TxIdx()),
 	}

@@ -69,9 +69,9 @@ func (r *Resolver) ResolveGlobal(module, field string) int64 {
 func NewResolver(vmValue *vm.VM, contract *vm.Contract, state StateDBService) exec.ImportResolver {
 	return &Resolver{
 		Service:resolverNeedExternalService{
-			ContractService:contract,
-			VmService : vmValue,
-			StateDBService:state,
+			ContractService:  contract,
+			VmContextService: vmValue,
+			StateDBService:   state,
 		},
 	}
 }
