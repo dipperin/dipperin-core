@@ -21,6 +21,8 @@ import (
 	"github.com/dipperin/dipperin-core/common/util/json-kv"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/model"
+	vm "github.com/dipperin/dipperin-core/core/vm/model"
+	cs_crypto "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/mpt_log"
 	"github.com/dipperin/dipperin-core/third-party/trie"
@@ -215,6 +217,7 @@ type AccountStateDB struct {
 	validRevisions  []revision
 	nextRevisionId  int
 
+	logs         map[common.Hash][]*vm.Log
 	lock sync.Mutex
 }
 
@@ -929,6 +932,60 @@ func (state *AccountStateDB) setLastElect(addr common.Address, blockID uint64) e
 	return nil
 }
 
+func (state *AccountStateDB) setContractCode(addr common.Address, code []byte) error{
+	ct, err := state.getContractTrie(addr)
+	if err!=nil{
+		return err
+	}
+	err = ct.TryUpdate(GetContractFieldKey(addr,"code"),code)
+	if err!=nil{
+		return err
+	}
+	codeHash := cs_crypto.Keccak256Hash(code)
+	err = ct.TryUpdate(GetContractFieldKey(addr,"codeHash"),codeHash.Bytes())
+	if err!=nil{
+		return err
+	}
+
+	ch, err := ct.Commit(nil)
+	if err != nil {
+		return err
+	}
+	mpt_log.Info("finaliseContractData update contract root", "contract addr", addr.Hex(), "root", ch.Hex())
+	if err := state.blockStateTrie.TryUpdate(GetContractRootKey(addr), ch.Bytes()); err != nil {
+		// change blockStateTrie to origin pre hash？If you want, clear the finalised contract root. But it is best to discard the AccountStateDB directly after the error is reported.
+		//state.resetThisStateDB()
+		log.Error("Commit update contract root failed", "err", err)
+		return err
+	}
+	state.finalisedContractRoot[addr] = ch
+	return nil
+}
+
+func (state *AccountStateDB) SetAbi(addr common.Address, abi []byte) (err error){
+	ct, err := state.getContractTrie(addr)
+	if err!=nil{
+		return
+	}
+	err = ct.TryUpdate(GetContractFieldKey(addr,"abi"),abi)
+	if err!=nil{
+		return
+	}
+	ch, err := ct.Commit(nil)
+	if err != nil {
+		return err
+	}
+	mpt_log.Info("finaliseContractData update contract root", "contract addr", addr.Hex(), "root", ch.Hex())
+	if err := state.blockStateTrie.TryUpdate(GetContractRootKey(addr), ch.Bytes()); err != nil {
+		// change blockStateTrie to origin pre hash？If you want, clear the finalised contract root. But it is best to discard the AccountStateDB directly after the error is reported.
+		//state.resetThisStateDB()
+		log.Error("Commit update contract root failed", "err", err)
+		return err
+	}
+	state.finalisedContractRoot[addr] = ch
+	return nil
+}
+
 func (state *AccountStateDB) NewAccountState(addr common.Address) error {
 	_, err := state.newAccountState(addr)
 	if err != nil {
@@ -936,6 +993,32 @@ func (state *AccountStateDB) NewAccountState(addr common.Address) error {
 	}
 	state.stateChangeList.append(newAccountChange{Account: &addr, ChangeType: NewAccountChange})
 	return nil
+}
+
+func (state *AccountStateDB) newContractAccount(addr common.Address) (acc *account,err error){
+	tempAccount := account{Nonce: 0, Balance: big.NewInt(0), TimeLock: big.NewInt(0), Stake: big.NewInt(0), CommitNum: uint64(0), VerifyNum: uint64(0), Performance: performanceInitial, LastElect: uint64(0), HashLock: common.Hash{}, DataRoot: common.Hash{}}
+	err = state.blockStateTrie.TryUpdate(GetNonceKey(addr), tempAccount.NonceBytes())
+	if err != nil {
+		return nil, err
+	}
+	err = state.blockStateTrie.TryUpdate(GetBalanceKey(addr), tempAccount.BalanceBytes())
+	if err != nil {
+		return nil, err
+	}
+	err = state.blockStateTrie.TryUpdate(GetHashLockKey(addr), tempAccount.HashLockBytes())
+	if err != nil {
+		return nil, err
+	}
+	err = state.blockStateTrie.TryUpdate(GetTimeLockKey(addr), tempAccount.TimeLockBytes())
+	if err != nil {
+		return nil, err
+	}
+	err = state.blockStateTrie.TryUpdate(GetDataRootKey(addr), tempAccount.DataRootBytes())
+	if err != nil {
+		return nil, err
+	}
+	acc = &tempAccount
+	return
 }
 
 func (state *AccountStateDB) newAccountState(addr common.Address) (acc *account, err error) {
