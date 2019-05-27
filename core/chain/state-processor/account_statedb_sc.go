@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 )
 type CodeAbi struct {
 	Code   []byte `json:"code"`
@@ -20,8 +21,11 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 	context := vm.NewVMContext(tx)
 	fullState := &Fullstate{
 		state,
+
 	}
-	vm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
+
+	newVm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
+	var gas uint64
 	if create{
 		data := tx.ExtraData()
 		var ca *CodeAbi
@@ -29,18 +33,24 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 		if err!= nil{
 			return err
 		}
-		_, _,_,err = vm.Create(&vm.Caller{context.Origin},ca.Code,ca.Abi,ca.Input)
+		_, _,gas,err = newVm.Create(&vm.Caller{context.Origin},ca.Code,ca.Abi,ca.Input)
 		if err != nil {
 			return err
 		}
 	}else{
 		data := tx.ExtraData()
-		_, _,err = vm.Call(&vm.Caller{context.Origin},tx.To(),data)
+		_, gas,err = newVm.Call(&vm.Caller{context.Origin},tx.To(),data)
 		if err != nil {
 			return err
 		}
 	}
 
+	root, err := state.Finalise()
+	if err != nil {
+		return err
+	}
+
+	receipt := model2.NewReceipt(root.Bytes(), false, gas)
 
     return nil
 }
