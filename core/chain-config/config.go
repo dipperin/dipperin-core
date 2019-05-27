@@ -51,6 +51,9 @@ const (
 	// 20M
 	MaxBlockSize = 20 * 1024 * 1024
 	MaxTxSize    = 512 * 1024
+
+	//
+	CallCreateDepth  uint64 = 1024
 )
 
 const (

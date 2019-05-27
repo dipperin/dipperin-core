@@ -27,7 +27,7 @@ func NewVM(context Context, state StateDB, config exec.VMConfig) *VM {
 	return &vm
 }
 
-func (vm *VM) Call(caller ContractRef, addr common.Address, input []byte, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
+func (vm *VM) Call(caller ContractRef, addr common.Address, input []byte) (ret []byte, leftOverGas uint64, err error) {
 	code := vm.state.GetState(addr,[]byte("code"))
 	abi := vm.state.GetState(addr,[]byte("abi"))
 	contract := &Contract{

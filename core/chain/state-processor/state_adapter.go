@@ -66,16 +66,25 @@ func (f  *Fullstate) SetCode(addr common.Address, code []byte) {
 	}
 }
 
-func (f  *Fullstate) GetCodeSize(common.Address) int {
-	panic("implement me")
+func (f  *Fullstate) GetCodeSize(addr common.Address) (size int) {
+	ct, err := f.state.getContractTrie(addr)
+	if err!=nil{
+		return
+	}
+	code := ct.GetKey(GetContractFieldKey(addr,"code"))
+	return len(code)
 }
 
 func (f  *Fullstate) GetAbiHash(common.Address) common.Hash {
 	panic("implement me")
 }
 
-func (f  *Fullstate) GetAbi(common.Address) []byte {
-	panic("implement me")
+func (f  *Fullstate) GetAbi(addr common.Address) (abi []byte) {
+	ct, err := f.state.getContractTrie(addr)
+	if err!=nil{
+		return
+	}
+	return ct.GetKey(GetContractFieldKey(addr,"abi"))
 }
 
 func (f  *Fullstate) SetAbi(common.Address, []byte) {

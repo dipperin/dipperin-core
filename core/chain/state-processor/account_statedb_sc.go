@@ -17,6 +17,7 @@ type CallCode struct {
 }
 
 func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, blockHeight uint64, create bool) (err error) {
+
 	context := vm.NewVMContext(tx)
 	fullState := &Fullstate{
 		state,
@@ -35,12 +36,10 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 		}
 	}else{
 		data := tx.ExtraData()
-		_, _,err = vm.Call(&vm.Caller{context.Origin},tx.To(),data)
+		_, _,err = vm.Call(&vm.Caller{context.Origin},*tx.To(),data)
 		if err != nil {
 			return err
 		}
 	}
-
-
     return nil
 }
