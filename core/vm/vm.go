@@ -3,9 +3,8 @@ package vm
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
-	cs_crypto "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
-	"github.com/dipperin/dipperin-core/core/vm/resolver"
 	"math/big"
 )
 
@@ -34,7 +33,8 @@ func NewVM(context Context, state StateDB, config exec.VMConfig) *VM {
 		Context:context,
 		interpreter:interpreter,
 		vmconfig:DEFAULT_VM_CONFIG,
-		resolver:&resolver.Resolver{},
+		resolver:nil,
+		//resolver:&resolver.Resolver{},
 		state:state,
 	}
 	return &vm

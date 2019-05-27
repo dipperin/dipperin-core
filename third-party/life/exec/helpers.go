@@ -12,8 +12,8 @@ var _ ImportResolver = (*NopResolver)(nil)
 // NopResolver is a nil WebAssembly module import resolver.
 type NopResolver struct{}
 
-func (r *NopResolver) ResolveFunc(module, field string) FunctionImport {
-	panic("func import not allowed")
+func (r *NopResolver) ResolveFunc(module, field string) *FunctionImport {
+	panic("implement me")
 }
 
 func (r *NopResolver) ResolveGlobal(module, field string) int64 {

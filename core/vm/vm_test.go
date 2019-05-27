@@ -1,5 +1,5 @@
 package vm
-
+/*
 import (
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
@@ -54,3 +54,4 @@ func InitVM(){
 	}
 	vm = NewVM(Context{}, &state_processor.Fullstate{}, DEFAULT_VM_CONFIG)
 }
+*/

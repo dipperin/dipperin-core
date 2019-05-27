@@ -19,6 +19,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/g-event"
@@ -44,7 +45,6 @@ import (
 	"math/big"
 	"os"
 	"time"
-	"fmt"
 )
 
 type NodeConf interface {
@@ -108,7 +108,7 @@ type MsgSigner interface {
 func MakeFullChainService(config *DipperinConfig) *MercuryFullChainService {
 	return &MercuryFullChainService{
 		DipperinConfig: config,
-		TxValidator:      middleware.NewTxValidatorForRpcService(config.ChainReader),
+		TxValidator:    middleware.NewTxValidatorForRpcService(config.ChainReader),
 	}
 }
 
@@ -335,7 +335,7 @@ func (service *MercuryFullChainService) OpenWallet(walletIdentifier accounts.Wal
 	return nil
 }
 
-func (service *MercuryFullChainService) CloseWallet(walletIdentifier accounts.WalletIdentifier) (error) {
+func (service *MercuryFullChainService) CloseWallet(walletIdentifier accounts.WalletIdentifier) error {
 	err := service.checkWalletIdentifier(&walletIdentifier)
 	if err != nil {
 		return err
@@ -541,7 +541,6 @@ func (service *MercuryFullChainService) signTxAndSend(tmpWallet accounts.Wallet,
 
 	tsx := []model.AbstractTransaction{signedTx}
 
-
 	errs := service.TxPool.AddRemotes(tsx)
 
 	for i := range errs {
@@ -581,8 +580,8 @@ func (service *MercuryFullChainService) SendTransactions(from common.Address, rp
 			log.Info("send Transactions ValidTx:", "err", err)
 			return 0, err
 		}
-		log.Info("the SendTransaction txId is: ", "txId", tx.CalTxId().Hex(),"txSize",tx.Size())
-		log.Info("the SendTransaction txFee is: ", "txFee", tx.Fee(),"needFee",economy_model.GetMinimumTxFee(tx.Size()))
+		log.Info("the SendTransaction txId is: ", "txId", tx.CalTxId().Hex(), "txSize", tx.Size())
+		log.Info("the SendTransaction txFee is: ", "txFee", tx.Fee(), "needFee", economy_model.GetMinimumTxFee(tx.Size()))
 		txs = append(txs, tx)
 	}
 	errs := service.TxPool.AddLocals(txs)
@@ -613,7 +612,7 @@ func (service *MercuryFullChainService) NewSendTransactions(txs []model.Transact
 }
 
 //send a normal transaction or contract transaction
-func (service *MercuryFullChainService) SendTransaction(from, to common.Address, value, transactionFee *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
+func (service *MercuryFullChainService) SendTransaction(from, to common.Address, value, transactionFee, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
 	//start:=time.Now()
 	// automatic transfer need this
 	if from.IsEqual(common.Address{}) {
@@ -630,7 +629,7 @@ func (service *MercuryFullChainService) SendTransaction(from, to common.Address,
 		return common.Hash{}, err
 	}
 
-	tx := model.NewTransaction(usedNonce, to, value, transactionFee, data)
+	tx := model.NewTransactionSc(usedNonce, to, value, transactionFee, gasPrice, data)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
 		pbft_log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
@@ -639,12 +638,12 @@ func (service *MercuryFullChainService) SendTransaction(from, to common.Address,
 
 	pbft_log.Info("send transaction", "txId", signTx.CalTxId().Hex())
 	txHash := signTx.CalTxId()
-	log.Info("the SendTransaction txId is: ", "txId", txHash.Hex(),"txSize",signTx.Size())
+	log.Info("the SendTransaction txId is: ", "txId", txHash.Hex(), "txSize", signTx.Size())
 	return txHash, nil
 }
 
 //send a normal transaction or contract transaction new
-func (service *MercuryFullChainService) SendTransactionContract(from, to common.Address, value, transactionFee *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
+func (service *MercuryFullChainService) SendTransactionContract(from, to common.Address, value, transactionFee, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
 	//start:=time.Now()
 	// automatic transfer need this
 	if from.IsEqual(common.Address{}) {
@@ -661,7 +660,7 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 		return common.Hash{}, err
 	}
 
-	tx := model.NewTransaction(usedNonce, to, value, transactionFee, data)
+	tx := model.NewTransactionSc(usedNonce, to, value, transactionFee, gasPrice, data)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
 		pbft_log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
@@ -670,7 +669,7 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 
 	pbft_log.Info("send transaction", "txId", signTx.CalTxId().Hex())
 	txHash := signTx.CalTxId()
-	log.Info("the SendTransaction txId is: ", "txId", txHash.Hex(),"txSize",signTx.Size())
+	log.Info("the SendTransaction txId is: ", "txId", txHash.Hex(), "txSize", signTx.Size())
 	return txHash, nil
 }
 
@@ -912,11 +911,11 @@ func (service *MercuryFullChainService) GetSlot(block model.AbstractBlock) *uint
 	return service.ChainReader.GetSlot(block)
 }
 
-func (service *MercuryFullChainService) GetCurVerifiers() ([]common.Address) {
+func (service *MercuryFullChainService) GetCurVerifiers() []common.Address {
 	return service.ChainReader.GetCurrVerifiers()
 }
 
-func (service *MercuryFullChainService) GetNextVerifiers() ([]common.Address) {
+func (service *MercuryFullChainService) GetNextVerifiers() []common.Address {
 	return service.ChainReader.GetNextVerifiers()
 }
 
@@ -989,7 +988,7 @@ func (service *MercuryFullChainService) isCurrentVerifier(address common.Address
 	return false
 }
 
-func (service *MercuryFullChainService) GetCurrentConnectPeers() (map[string]common.Address) {
+func (service *MercuryFullChainService) GetCurrentConnectPeers() map[string]common.Address {
 	if service.PbftPm != nil {
 		return service.PbftPm.GetCurrentConnectPeers()
 	} else {
@@ -1322,13 +1321,13 @@ func (service *MercuryFullChainService) GetDeveloperInfo() map[common.Address]*b
 	return service.ChainReader.GetEconomyModel().GetDeveloperInitBalance()
 }
 
-func (service *MercuryFullChainService)GetAddressLockMoney(address common.Address) (*big.Int,error){
+func (service *MercuryFullChainService) GetAddressLockMoney(address common.Address) (*big.Int, error) {
 	currentBlock := service.CurrentBlock()
-	if currentBlock == nil{
-		return big.NewInt(0),g_error.BlockIsNilError
+	if currentBlock == nil {
+		return big.NewInt(0), g_error.BlockIsNilError
 	}
 
-	return service.ChainReader.GetEconomyModel().GetAddressLockMoney(address,currentBlock.Number())
+	return service.ChainReader.GetEconomyModel().GetAddressLockMoney(address, currentBlock.Number())
 }
 
 func (service *MercuryFullChainService) GetInvestorLockDIP(address common.Address, blockNumber uint64) (*big.Int, error) {
@@ -1427,9 +1426,9 @@ type SubBlockTxResp struct {
 	Recipient    *common.Address `json:"to"       rlp:"nil"` // nil means contract creation
 	//HashLock     *common.Hash    `json:"hashLock" rlp:"nil"`
 	//TimeLock     *big.Int        `json:"timeLock" gencodec:"required"`
-	Amount    *big.Int `json:"value"    gencodec:"required"`
-	Fee       *big.Int `json:"fee"      gencodec:"required"`
-	ExtraData []byte   `json:"input"    gencodec:"required"`
+	Amount       *big.Int `json:"value"    gencodec:"required"`
+	Fee          *big.Int `json:"fee"      gencodec:"required"`
+	ExtraData    []byte   `json:"input"    gencodec:"required"`
 	ExtraDataStr string   `json:"input_str"    gencodec:"required"`
 
 	// Signature values

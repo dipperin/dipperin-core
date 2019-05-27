@@ -166,7 +166,7 @@ func NewVirtualMachine(
 				funcImports = append(funcImports, FunctionImportInfo{
 					ModuleName: imp.ModuleName,
 					FieldName:  imp.FieldName,
-					F:          nil, // deferred
+					//F:          nil, // deferred
 				})
 			case wasm.ExternalGlobal:
 				globals = append(globals, impResolver.ResolveGlobal(imp.ModuleName, imp.FieldName))

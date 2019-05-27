@@ -20,14 +20,13 @@ package contract
 import (
 	"bufio"
 	"bytes"
+	"errors"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"reflect"
-	"errors"
-	"fmt"
 )
 
 var (
@@ -244,6 +243,4 @@ func (p *Processor) GetContractReadOnlyInfo(eData *ExtraDataForContract) (interf
 	}
 	return result[0].Interface(), nil
 }
-func (p *Processor) ProcessSmartContract(db *state_processor.AccountStateDB, transaction model.AbstractTransaction, u uint64) {
-	NewVMContext
-}
+

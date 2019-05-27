@@ -48,14 +48,19 @@ type RpcTransaction struct {
 }
 
 func NewTransaction(nonce uint64, to common.Address, amount *big.Int, fee *big.Int, data []byte) *Transaction {
-	return newTransaction(nonce, &to, amount, fee, data)
+	return newTransaction(nonce, &to, amount, fee, nil,data)
 }
+
+func NewTransactionSc(nonce uint64, to common.Address, amount *big.Int, fee , gasPrice *big.Int, data []byte) *Transaction {
+	return newTransaction(nonce, &to, amount, fee, gasPrice,data)
+}
+
 
 func NewContractCreation(nonce uint64, amount *big.Int, fee *big.Int, data []byte) *Transaction {
-	return newTransaction(nonce, nil, amount, fee, data)
+	return newTransaction(nonce, nil, amount, fee, nil,data)
 }
 
-func newTransaction(nonce uint64, to *common.Address, amount *big.Int, fee *big.Int, data []byte) *Transaction {
+func newTransaction(nonce uint64, to *common.Address, amount *big.Int, fee , gasPrice  *big.Int, data []byte) *Transaction {
 	if len(data) > 0 {
 		data = common.CopyBytes(data)
 	}
@@ -66,6 +71,7 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, fee *big.
 		TimeLock:     new(big.Int),
 		Amount:       new(big.Int),
 		Fee:          new(big.Int),
+		Price:        gasPrice,
 		ExtraData:    data,
 	}
 	wit := witness{
