@@ -10,6 +10,7 @@ import (
 )
 
 var emptyCodeHash = cs_crypto.Keccak256Hash(nil)
+
 var DEFAULT_VM_CONFIG = exec.VMConfig{
 	EnableJIT:          false,
 	DefaultMemoryPages: exec.DefaultPageSize,
@@ -76,7 +77,7 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte,abi []byte, input 
 	// Create a new account on the state
 	// snapshot := vm.state.Snapshot()
 
-	// vm.state.CreateAccount(address)
+	vm.state.CreateAccount(address)
 	// vm.Transfer(evm.StateDB, caller.Address(), address, value)
 
 	// Initialise a new contract and set the code that is to be used by the EVM.
@@ -86,6 +87,8 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte,abi []byte, input 
 	vm.state.SetState(contract.self.Address(), []byte("abi"), abi)
 	// call run
 	run(vm, contract, input,true)
+
+
 
 	return nil, address, uint64(0), nil
 }

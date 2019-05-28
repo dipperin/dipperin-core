@@ -91,8 +91,9 @@ type VirtualMachine struct {
 	AOTService       AOTService
 	StackTrace       string
 
-	//add 已使用Gas 和 GasLimited
+	//add 已使用Gas
 	GasUsed  uint64
+	//add GasLimited
 	GasLimit uint64
 }
 
