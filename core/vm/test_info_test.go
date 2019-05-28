@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 	"github.com/dipperin/dipperin-core/core/vm/model"
 )
@@ -24,7 +25,8 @@ type fakeStateDB struct {
 }
 
 func (state fakeStateDB) AddLog(addedLog *model.Log) {
-	panic("implement me")
+	log.Info("add log success")
+	return
 }
 
 func (state fakeStateDB) CreateAccount(common.Address) {
@@ -143,9 +145,9 @@ func (state fakeStateDB) ForEachStorage(common.Address, func(common.Hash, common
 }
 
 func (state fakeStateDB) TxHash() common.Hash {
-	panic("implement me")
+	return common.Hash{}
 }
 
 func (state fakeStateDB) TxIdx() uint32 {
-	panic("implement me")
+	return 0
 }
