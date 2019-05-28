@@ -6,31 +6,31 @@ import (
 	"math/big"
 )
 
-type Contract struct{
+type Contract struct {
 	CallerAddress common.Address
-	caller resolver.ContractRef
-	self resolver.ContractRef
+	caller        resolver.ContractRef
+	self          resolver.ContractRef
 
-	ABI []byte
+	ABI  []byte
 	Code []byte
 
 	value *big.Int
 	Gas   uint64
 }
 
-func (c *Contract)Caller() common.Address{
+func (c *Contract) Caller() common.Address {
 	return c.CallerAddress
 }
 
-func (c *Contract)Address() common.Address{
+func (c *Contract) Address() common.Address {
 	return c.self.Address()
 }
 
-func (c *Contract)CallValue() *big.Int{
+func (c *Contract) CallValue() *big.Int {
 	return c.value
 }
 
-func (c *Contract)GetGas() uint64{
+func (c *Contract) GetGas() uint64 {
 	return c.Gas
 }
 

@@ -59,6 +59,8 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 		self:          &Caller{addr: addr},
 		ABI:           abi,
 		Code:          code,
+		value:         value,
+		Gas:           gas,
 	}
 
 	ret, err = run(vm, contract, input, false)
@@ -68,12 +70,12 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error) {
 	return nil, 0, nil
 }
-func (vm *VM) Create(caller resolver.ContractRef, code []byte, abi []byte, value []byte) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
+func (vm *VM) Create(caller resolver.ContractRef, code []byte, abi []byte, value *big.Int, gas uint64) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
 	contractAddr = cs_crypto.CreateContractAddress(caller.Address(), vm.state.GetNonce(caller.Address()))
-	return vm.create(caller, code, abi, value, contractAddr)
+	return vm.create(caller, code, abi, value.Bytes(), contractAddr, gas)
 }
 
-func (vm *VM) create(caller resolver.ContractRef, code []byte, abi []byte, input []byte, address common.Address) ([]byte, common.Address, uint64, error) {
+func (vm *VM) create(caller resolver.ContractRef, code []byte, abi []byte, input []byte, address common.Address, gas uint64) ([]byte, common.Address, uint64, error) {
 	// Caller nonce ++
 	vm.state.AddNonce(caller.Address(), uint64(1))
 
@@ -91,13 +93,11 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, abi []byte, input
 
 	// Initialise a new contract and set the code that is to be used by the EVM.
 	// The contract is a scoped environment for this execution context only.
-	contract := NewContract(caller, AccountRef(address), code, abi)
+	contract := NewContract(caller, AccountRef(address), code, abi, gas)
 	vm.state.SetState(contract.self.Address(), []byte("code"), code)
 	vm.state.SetState(contract.self.Address(), []byte("abi"), abi)
 	// call run
 	run(vm, contract, input, true)
-
-
 
 	return nil, address, uint64(0), nil
 }
@@ -203,12 +203,13 @@ func AccountRef(addr common.Address) resolver.ContractRef {
 	return &Caller{addr}
 }
 
-func NewContract(caller resolver.ContractRef, object resolver.ContractRef, code []byte, abi []byte) *Contract {
+func NewContract(caller resolver.ContractRef, object resolver.ContractRef, code []byte, abi []byte, gas uint64) *Contract {
 	return &Contract{
 		CallerAddress: caller.Address(),
 		caller:        caller,
 		self:          object,
 		ABI:           abi,
 		Code:          code,
+		Gas:           gas,
 	}
 }

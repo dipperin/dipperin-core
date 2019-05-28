@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package state_processor
 
 import (
@@ -90,13 +89,10 @@ type AccountStateTx interface {
 // Message represents a message sent to a contract.
 type Message interface {
 	From() common.Address
-	//FromFrontier() (common.Address, error)
 	To() *common.Address
-
 	GasPrice() *big.Int
 	Gas() uint64
 	Value() *big.Int
-
 	Nonce() uint64
 	CheckNonce() bool
 	Data() []byte

@@ -70,6 +70,8 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 	//　life方法注入新建虚拟机
 	solver := resolver.NewResolver(vm, contract, in.state)
 	lifeVm, err := exec.NewVirtualMachine(contract.Code, in.config, solver, nil)
+	lifeVm.GasLimit = vm.GasLimit
+
 	if err != nil {
 		return []byte{}, err
 	}

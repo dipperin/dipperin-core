@@ -11,11 +11,11 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 )
 
-
-func getTestVm() *VM{
-	return NewVM(Context{}, fakeStateDB{},DEFAULT_VM_CONFIG)
+func getTestVm() *VM {
+	return NewVM(Context{GasLimit:model.TxGas}, fakeStateDB{}, DEFAULT_VM_CONFIG)
 }
 
 func TestWASMInterpreter_Run_small(t *testing.T) {
@@ -23,18 +23,18 @@ func TestWASMInterpreter_Run_small(t *testing.T) {
 	assert.NoError(t, err)
 
 	var testPath = "./small"
-	contract := getContract(t, contractAddr, testPath + "/small.wasm", testPath + "/small.cpp.abi.json")
+	contract := getContract(t, contractAddr, testPath+"/small.wasm", testPath+"/small.cpp.abi.json")
 
 	testVm := getTestVm()
-	interpreter :=testVm.Interpreter
+	interpreter := testVm.Interpreter
 
 	param := [][]byte{[]byte("hello")}
 	fmt.Println(param)
-	result, err := interpreter.Run(testVm,contract, genInput(t, "hello", param),false)
+	result, err := interpreter.Run(testVm, contract, genInput(t, "hello", param), false)
 	assert.Equal(t, make([]byte, 32), result)
 	assert.NoError(t, err)
 
-	result, err = interpreter.Run(testVm,contract, nil,false)
+	result, err = interpreter.Run(testVm, contract, nil, false)
 	assert.Equal(t, fileCode, result)
 	assert.NoError(t, err)
 }
@@ -61,18 +61,18 @@ func TestWASMInterpreter_parseInputFromAbi(t *testing.T) {
 func TestWASMInterpreter_Run_testcontract(t *testing.T) {
 	//var testPath = "/home/qydev/go/src/github.com/PlatONnetwork/PlatON-CDT/build/bin/testcontract"
 	var testPath = "./testcontract"
-	contract := getContract(t, contractAddr, testPath + "/testcontract.wasm", testPath + "/testcontract.cpp.abi.json")
+	contract := getContract(t, contractAddr, testPath+"/testcontract.wasm", testPath+"/testcontract.cpp.abi.json")
 
 	testVm := getTestVm()
-	interpreter :=testVm.Interpreter
+	interpreter := testVm.Interpreter
 
 	param := [][]byte{utils.Int32ToBytes(123), utils.Int32ToBytes(456)}
-	result, err := interpreter.Run(testVm,contract, genInput(t, "saveKeyValue", param),false)
+	result, err := interpreter.Run(testVm, contract, genInput(t, "saveKeyValue", param), false)
 	assert.Equal(t, make([]byte, 32), result)
 	assert.NoError(t, err)
 
 	param = [][]byte{utils.Int32ToBytes(123)}
-	result, err = interpreter.Run(testVm,contract, genInput(t, "getKeyValue", param),false)
+	result, err = interpreter.Run(testVm, contract, genInput(t, "getKeyValue", param), false)
 	assert.Equal(t, make([]byte, 32), result)
 	assert.NoError(t, err)
 }
@@ -80,21 +80,21 @@ func TestWASMInterpreter_Run_testcontract(t *testing.T) {
 func TestWASMInterpreter_Run_example3(t *testing.T) {
 	//var testPath = "/home/qydev/go/src/github.com/PlatONnetwork/PlatON-CDT/build/bin/example3"
 	var testPath = "./example3"
-	contract := getContract(t, contractAddr, testPath + "/example3.wasm", testPath + "/example3.cpp.abi.json")
+	contract := getContract(t, contractAddr, testPath+"/example3.wasm", testPath+"/example3.cpp.abi.json")
 
 	testVm := getTestVm()
-	interpreter :=testVm.Interpreter
+	interpreter := testVm.Interpreter
 
 	expect := make([]byte, 32)
 	param := [][]byte{utils.Int32ToBytes(6666)}
 
 	inputs := genInput(t, "setBalance", param)
-	result, err := interpreter.Run(testVm,contract, inputs,false)
+	result, err := interpreter.Run(testVm, contract, inputs, false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
 
 	expect = append(expect[:28], utils.Int32ToBytes(6666)...)
-	result, err = interpreter.Run(testVm,contract, genInput(t, "getBalance", [][]byte{}),false)
+	result, err = interpreter.Run(testVm, contract, genInput(t, "getBalance", [][]byte{}), false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
 }
@@ -102,10 +102,10 @@ func TestWASMInterpreter_Run_example3(t *testing.T) {
 func TestWASMInterpreter_Run_map_int(t *testing.T) {
 	//var testPath = "/home/qydev/go/src/github.com/PlatONnetwork/PlatON-CDT/build/bin/sMap"
 	var testPath = "./map-int"
-	contract := getContract(t, contractAddr, testPath + "/sMap.wasm", testPath + "/sMap.cpp.abi.json")
+	contract := getContract(t, contractAddr, testPath+"/sMap.wasm", testPath+"/sMap.cpp.abi.json")
 
 	testVm := getTestVm()
-	interpreter :=testVm.Interpreter
+	interpreter := testVm.Interpreter
 
 	key := utils.Int32ToBytes(2147483647)
 	value := utils.Int64ToBytes(9223372036854775807)
@@ -113,7 +113,7 @@ func TestWASMInterpreter_Run_map_int(t *testing.T) {
 	param := [][]byte{key, value}
 
 	inputs := genInput(t, "setBalance", param)
-	result, err := interpreter.Run(testVm,contract, inputs,false)
+	result, err := interpreter.Run(testVm, contract, inputs, false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
 
@@ -129,7 +129,7 @@ func TestWASMInterpreter_Run_map_int(t *testing.T) {
 		assert.NoError(t, err)*/
 
 	fmt.Println("-----------------------------------------")
-	result, err = interpreter.Run(testVm,contract, genInput(t, "getBalance", [][]byte{key}),false)
+	result, err = interpreter.Run(testVm, contract, genInput(t, "getBalance", [][]byte{key}), false)
 	expect = append(expect[:24], value...)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
@@ -137,10 +137,10 @@ func TestWASMInterpreter_Run_map_int(t *testing.T) {
 
 func TestWASMInterpreter_Run_map_string(t *testing.T) {
 	var testPath = "./map-string"
-	contract := getContract(t, contractAddr, testPath + "/map2.wasm", testPath + "/StringMap.cpp.abi.json")
+	contract := getContract(t, contractAddr, testPath+"/map2.wasm", testPath+"/StringMap.cpp.abi.json")
 
 	testVm := getTestVm()
-	interpreter :=testVm.Interpreter
+	interpreter := testVm.Interpreter
 
 	key := []byte("balance")
 	value := utils.Int32ToBytes(255)
@@ -149,7 +149,7 @@ func TestWASMInterpreter_Run_map_string(t *testing.T) {
 	param := [][]byte{key, value}
 
 	inputs := genInput(t, "setBalance", param)
-	result, err := interpreter.Run(testVm,contract, inputs,false)
+	result, err := interpreter.Run(testVm, contract, inputs, false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
 
@@ -160,12 +160,12 @@ func TestWASMInterpreter_Run_map_string(t *testing.T) {
 	param1 := [][]byte{key1, value1}
 
 	inputs = genInput(t, "setBalance", param1)
-	result, err = interpreter.Run(testVm,contract, inputs,false)
+	result, err = interpreter.Run(testVm, contract, inputs, false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
 
 	fmt.Println("-----------------------------------------")
-	result, err = interpreter.Run(testVm,contract, genInput(t, "getBalance", [][]byte{key}),false)
+	result, err = interpreter.Run(testVm, contract, genInput(t, "getBalance", [][]byte{key}), false)
 	expect = append(expect[:28], value...)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
@@ -174,15 +174,14 @@ func TestWASMInterpreter_Run_map_string(t *testing.T) {
 func TestWASMInterpreter_Run_event(t *testing.T) {
 	//var testPath = "/home/qydev/go/src/github.com/PlatONnetwork/PlatON-CDT/build/bin/event"
 	var testPath = "./event"
-	contract := getContract(t, contractAddr, testPath + "/event.wasm", testPath + "/event.cpp.abi.json")
+	contract := getContract(t, contractAddr, testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
 
 	testVm := getTestVm()
-	interpreter :=testVm.Interpreter
-
+	interpreter := testVm.Interpreter
 
 	name := []byte("0000")
 	num := utils.Int64ToBytes(2)
-	log.Info("the num is:","num",num)
+	log.Info("the num is:", "num", num)
 
 	/*	name := []byte("logName")
 		test, err := rlp.EncodeToBytes(append(name, []byte{133, 101, 118, 101, 110, 116, 127}...))
@@ -192,7 +191,7 @@ func TestWASMInterpreter_Run_event(t *testing.T) {
 	param := [][]byte{name, num}
 
 	inputs := genInput(t, "hello", param)
-	result, err := interpreter.Run(testVm,contract, inputs,false)
+	result, err := interpreter.Run(testVm, contract, inputs, false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
 }
