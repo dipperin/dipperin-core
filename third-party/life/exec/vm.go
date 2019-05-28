@@ -3,7 +3,6 @@ package exec
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"math"
 	"math/bits"
 	"runtime/debug"
@@ -1798,9 +1797,7 @@ func (vm *VirtualMachine) Execute() {
 			importID := int(LE.Uint32(frame.Code[frame.IP: frame.IP+4]))
 			frame.IP += 4
 			vm.Delegate = func() {
-				log.Info("the FunctionImports func is:","moduleName",vm.FunctionImports[importID].ModuleName,"fieldName",vm.FunctionImports[importID].FieldName)
-				log.Info("the execute is:","execute",vm.FunctionImports[importID].F.Execute)
-				log.Info("the FunctionImports is:","FunctionImports",vm.FunctionImports)
+				//log.Info("the FunctionImports is:","FunctionImports",vm.FunctionImports)
 				frame.Regs[valueID] = vm.FunctionImports[importID].F.Execute(vm)
 			}
 			return
