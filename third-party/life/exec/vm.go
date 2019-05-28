@@ -3,6 +3,7 @@ package exec
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"math"
 	"math/bits"
 	"runtime/debug"
@@ -181,7 +182,7 @@ func NewVirtualMachine(
 				funcImports = append(funcImports, FunctionImportInfo{
 					ModuleName: imp.ModuleName,
 					FieldName:  imp.FieldName,
-					//F:          nil, // deferred
+					F:          *impResolver.ResolveFunc(imp.ModuleName,imp.FieldName), // deferred
 				})
 			case wasm.ExternalGlobal:
 				globals = append(globals, impResolver.ResolveGlobal(imp.ModuleName, imp.FieldName))
@@ -574,11 +575,11 @@ func (vm *VirtualMachine) Execute() {
 		ins := opcodes.Opcode(frame.Code[frame.IP+4])
 		frame.IP += 5
 
-		cost, err := vm.JumpTable[ins].GasCost(vm, frame)
+/*		cost, err := vm.JumpTable[ins].GasCost(vm, frame)
 		if err != nil || (cost+vm.GasUsed) > vm.GasLimit {
 			panic(fmt.Sprintf("out of gas  cost:%d GasUsed:%d GasLimit:%d", cost, vm.GasUsed, vm.GasLimit))
 		}
-		vm.GasUsed += cost
+		vm.GasUsed += cost*/
 
 		//fmt.Printf("INS: [%d] %s\n", valueID, ins.String())
 		switch ins {
@@ -1797,6 +1798,9 @@ func (vm *VirtualMachine) Execute() {
 			importID := int(LE.Uint32(frame.Code[frame.IP: frame.IP+4]))
 			frame.IP += 4
 			vm.Delegate = func() {
+				log.Info("the FunctionImports func is:","moduleName",vm.FunctionImports[importID].ModuleName,"fieldName",vm.FunctionImports[importID].FieldName)
+				log.Info("the execute is:","execute",vm.FunctionImports[importID].F.Execute)
+				log.Info("the FunctionImports is:","FunctionImports",vm.FunctionImports)
 				frame.Regs[valueID] = vm.FunctionImports[importID].F.Execute(vm)
 			}
 			return

@@ -4,6 +4,7 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
+	"math/big"
 	"testing"
 	"io/ioutil"
 	"bytes"
@@ -13,9 +14,12 @@ import (
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 )
 
+func testGetHash(blockNumber uint64) common.Hash{
+	return common.Hash{}
+}
 
 func getTestVm() *VM{
-	return NewVM(Context{}, fakeStateDB{},DEFAULT_VM_CONFIG)
+	return NewVM(Context{BlockNumber:big.NewInt(1),GetHash:testGetHash}, fakeStateDB{},DEFAULT_VM_CONFIG)
 }
 
 func TestWASMInterpreter_Run_small(t *testing.T) {
