@@ -3,7 +3,6 @@ package exec
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"math"
 	"math/bits"
 	"runtime/debug"
