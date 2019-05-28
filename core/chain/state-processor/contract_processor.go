@@ -27,7 +27,7 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 		if err!= nil{
 			return err
 		}
-		_, _, _, err = dvm.Create(vm.AccountRef(context.Origin), ca.Code, ca.Abi, nil,0)
+		_, _, _, err = dvm.Create(vm.AccountRef(context.Origin), ca.Code, 0, nil)
 		if err != nil {
 			return err
 		}

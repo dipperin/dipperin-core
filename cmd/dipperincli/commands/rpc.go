@@ -34,7 +34,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
-	"github.com/ethereum/go-ethereum/rlp"
+	//"github.com/ethereum/go-ethereum/rlp"
 	"github.com/urfave/cli"
 	"io/ioutil"
 	"math/big"
@@ -650,7 +650,8 @@ func generateExtraData(c *cli.Context)(ExtraData []byte, err error) {
 	return
 }
 func geneteInputRlpBytes(input string) (result  []byte, err error)  {
-	return rlp.EncodeToBytes([]interface{}{common.AddressTypeContractCreate, "init", input })
+	return
+	//return rlp.EncodeToBytes([]interface{}{common.AddressTypeContractCreate, "init", input })
 }
 
 //send transaction

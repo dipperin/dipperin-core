@@ -7,7 +7,6 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"math/big"
-	"time"
 )
 
 var emptyCodeHash = cs_crypto.Keccak256Hash(nil)
@@ -74,10 +73,10 @@ func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, inp
 
 func (vm *VM) Create(caller resolver.ContractRef, code []byte, gas uint64, value *big.Int) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
 	contractAddr = cs_crypto.CreateContractAddress(caller.Address(), vm.state.GetNonce(caller.Address()))
-	return vm.create(caller, code, gas, value, contractAddr)
+	return
 }
 
-func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value *big.Int, address common.Address) ([]byte, common.Address, uint64, error) {
+/*func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value *big.Int, address common.Address) ([]byte, common.Address, uint64, error) {
 	// Caller nonce ++
 	vm.state.AddNonce(caller.Address(), uint64(1))
 
@@ -95,7 +94,7 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value
 
 	// Initialise a new contract and set the code that is to be used by the EVM.
 	// The contract is a scoped environment for this execution context only.
-	contract := NewContract(caller, AccountRef(address), code, abi, gas)
+	contract := NewContract(caller, AccountRef(address), code, nil, gas)
 	vm.state.SetState(contract.self.Address(), []byte("code"), code)
 	vm.state.SetState(contract.self.Address(), []byte("abi"), abi)
 	// call run
@@ -177,7 +176,7 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value
 	}
 	return ret, address, contract.Gas, err
 }
-
+*/
 func run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error) {
 	// call Interpreter.Run()
 	return vm.Interpreter.Run(vm, contract, input, create)

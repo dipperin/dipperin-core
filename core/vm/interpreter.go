@@ -294,7 +294,7 @@ func parseRlpData(rlpData []byte) (int64, []byte, []byte, error) {
 		abi    []byte
 	)
 	if v, ok := iRlpList[0].([]byte); ok {
-		txType = utils.BytesToInt64(v)
+		txType = vmcommon.BytesToInt64(v)
 	}
 	if v, ok := iRlpList[1].([]byte); ok {
 		code = v
