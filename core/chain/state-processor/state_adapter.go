@@ -2,28 +2,17 @@ package state_processor
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/vm/model"
-	cs_crypto "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 )
 
 type Fullstate struct{
 	state *AccountStateDB
-	contractLogs   map[common.Hash][]*model.Log
 }
 
 func (f  *Fullstate) CreateAccount(address common.Address) {
-	f.state.setBalance(address,big.NewInt(0))
-	f.state.setNonce(address,uint64(0))
-}
-
-func (f  *Fullstate) SubBalance(addr common.Address, amount *big.Int) {
-	panic("can not call sub Balance in vm")
-}
-
-func (f  *Fullstate) AddBalance(addr common.Address, amount *big.Int) {
-	panic("can not call sub Balance in vm")
+	f.state.newContractAccount(address)
 }
 
 func (f  *Fullstate) GetBalance(addr common.Address) *big.Int {
@@ -67,18 +56,9 @@ func (f  *Fullstate) GetCode(addr common.Address) (result []byte) {
 }
 
 func (f  *Fullstate) SetCode(addr common.Address, code []byte) {
-	ct, err := f.state.getContractTrie(addr)
+	err := f.state.setContractCode(addr,code)
 	if err!=nil{
-		return
-	}
-	err = ct.TryUpdate(GetContractFieldKey(addr,"code"),code)
-	if err!=nil{
-		return
-	}
-	codeHash := cs_crypto.Keccak256Hash(code)
-	err = ct.TryUpdate(GetContractFieldKey(addr,"codeHash"),codeHash.Bytes())
-	if err!=nil{
-		return
+		panic("set code error")
 	}
 }
 
@@ -104,14 +84,7 @@ func (f  *Fullstate) GetAbi(addr common.Address) (abi []byte) {
 }
 
 func (f  *Fullstate) SetAbi(addr common.Address, abi []byte) {
-	ct, err := f.state.getContractTrie(addr)
-	if err!=nil{
-		return
-	}
-	err = ct.TryUpdate(GetContractFieldKey(addr,"abi"),abi)
-	if err!=nil{
-		return
-	}
+	f.state.SetAbi(addr,abi)
 }
 
 func (f  *Fullstate) AddRefund(uint64) {
@@ -150,19 +123,19 @@ func (f  *Fullstate) SetState(addr common.Address,key []byte, value []byte) {
 }
 
 
-func (f  *Fullstate) AddLog(addedLog *model.Log) {
+func (f  *Fullstate) AddLog(addedLog *model2.Log) {
 	log.Info("AddLog Called")
 
 	txHash := addedLog.TxHash
 	contractLogs := f.GetLogs(txHash)
 	addedLog.Index = uint(len(contractLogs) + 1)
-	f.contractLogs[txHash] = append(contractLogs, addedLog)
+	f.state.logs[txHash] = append(contractLogs, addedLog)
 
-	log.Info("Log Added", "txHash", txHash, "logs", f.contractLogs[txHash])
+	log.Info("Log Added", "txHash", txHash, "logs", f.state.logs[txHash])
 }
 
-func (f  *Fullstate) GetLogs(txHash common.Hash) []*model.Log {
-	return f.contractLogs[txHash]
+func (f  *Fullstate) GetLogs(txHash common.Hash) []*model2.Log {
+	return f.state.logs[txHash]
 }
 func (f  *Fullstate) Suicide(common.Address) bool {
 	panic("implement me")

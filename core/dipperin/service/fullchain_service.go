@@ -612,7 +612,7 @@ func (service *MercuryFullChainService) NewSendTransactions(txs []model.Transact
 }
 
 //send a normal transaction or contract transaction
-func (service *MercuryFullChainService) SendTransaction(from, to common.Address, value, transactionFee, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
+func (service *MercuryFullChainService) SendTransaction(from, to common.Address, value, transactionFee *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
 	//start:=time.Now()
 	// automatic transfer need this
 	if from.IsEqual(common.Address{}) {
@@ -629,7 +629,7 @@ func (service *MercuryFullChainService) SendTransaction(from, to common.Address,
 		return common.Hash{}, err
 	}
 
-	tx := model.NewTransactionSc(usedNonce, to, value, transactionFee, gasPrice, data)
+	tx := model.NewTransactionSc(usedNonce, to, value, transactionFee, nil, data)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
 		pbft_log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)

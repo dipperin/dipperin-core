@@ -146,7 +146,6 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address) 
 
 	var tmpTxs []*model.Transaction
 	for _, tx := range txBuf {
-
 		//log.Info("the packaged tx is:", "txId", tx.CalTxId().Hex())
 		tmpTxs = append(tmpTxs, tx.(*model.Transaction))
 	}

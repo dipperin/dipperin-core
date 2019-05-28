@@ -789,8 +789,8 @@ func (api *DipperinMercuryApi) AddAccount(derivationPath string, walletIdentifie
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinMercuryApi) SendTransaction(from, to common.Address, value, transactionFee *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
-    return api.service.SendTransaction(from, to, value, transactionFee, data, nonce)
+func (api *DipperinMercuryApi) SendTransaction(from, to common.Address, value, transactionFee, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
+    return api.service.SendTransaction(from, to, value, transactionFee, gasPrice, data, nonce)
 }
 
 //send multiple-txs
