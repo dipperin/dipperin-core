@@ -39,12 +39,6 @@ func NewVM(context Context, state StateDB, config exec.VMConfig) *VM {
 	return &vm
 }
 
-func (vm *VM) PreCheck() error {
-
-
-	return nil
-}
-
 
 func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byte,gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
 	code := vm.state.GetState(addr,[]byte("code"))

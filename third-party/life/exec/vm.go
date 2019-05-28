@@ -521,7 +521,7 @@ func (vm *VirtualMachine) AddAndCheckGas(delta uint64) bool {
 	if newGas < vm.Gas {
 		panic("gas overflow")
 	}
-	if vm.Config.GasLimit != 0 && newGas > vm.Config.GasLimit {
+	if vm.GasLimit != 0 && newGas > vm.GasLimit {
 		if vm.Config.ReturnOnGasLimitExceeded {
 			return false
 		} else {

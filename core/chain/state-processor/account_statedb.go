@@ -1275,37 +1275,44 @@ func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint
 //todo these processes are removed afterwards。
 // todo Write a unit test for each transaction to cover all situations
 func (state *AccountStateDB) ProcessTxNew(tx model.AbstractTransaction, block model.AbstractBlock) (err error) {
-	// All transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
-	err = state.processBasicTx(tx)
-	if err != nil {
-		log.Debug("processBasicTx failed", "err", err)
-		return
+
+	if tx.GetType() == common.AddressTypeContract || tx.GetType() == common.AddressTypeContractCreate {
+		switch tx.GetType() {
+		case common.AddressTypeContract:
+			err = state.ProcessContract(tx, block,false)
+		case common.AddressTypeContractCreate:
+			err = state.ProcessContract(tx, block,true)
+		}
+	} else{
+		// All transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
+		err = state.processBasicTx(tx)
+		if err != nil {
+			log.Debug("processBasicTx failed", "err", err)
+			return
+		}
+		switch tx.GetType() {
+		case common.AddressTypeNormal:
+			err = state.processNormalTx(tx)
+		case common.AddressTypeCross:
+			err = state.processCrossTx(tx)
+		case common.AddressTypeERC20:
+			err = state.processERC20Tx(tx, block.Number())
+			// Verifier relate transaction processor
+		case common.AddressTypeStake:
+			err = state.processStakeTx(tx)
+		case common.AddressTypeCancel:
+			err = state.processCancelTx(tx, block.Number())
+		case common.AddressTypeUnStake:
+			err = state.processUnStakeTx(tx)
+		case common.AddressTypeEvidence:
+			err = state.processEvidenceTx(tx)
+		case common.AddressTypeEarlyReward:
+			err = state.processEarlyTokenTx(tx, block.Number())
+		default:
+			err = g_error.UnknownTxTypeErr
+		}
 	}
-	switch tx.GetType() {
-	case common.AddressTypeNormal:
-		err = state.processNormalTx(tx)
-	case common.AddressTypeCross:
-		err = state.processCrossTx(tx)
-	case common.AddressTypeERC20:
-		err = state.processERC20Tx(tx, block.Number())
-		// Verifier relate transaction processor
-	case common.AddressTypeStake:
-		err = state.processStakeTx(tx)
-	case common.AddressTypeCancel:
-		err = state.processCancelTx(tx, block.Number())
-	case common.AddressTypeUnStake:
-		err = state.processUnStakeTx(tx)
-	case common.AddressTypeEvidence:
-		err = state.processEvidenceTx(tx)
-	case common.AddressTypeEarlyReward:
-		err = state.processEarlyTokenTx(tx, block.Number())
-	case common.AddressTypeContract:
-		err = state.ProcessContract(tx, block,false)
-	case common.AddressTypeContractCreate:
-		err = state.ProcessContract(tx, block,true)
-	default:
-		err = g_error.UnknownTxTypeErr
-	}
+
 	return
 }
 

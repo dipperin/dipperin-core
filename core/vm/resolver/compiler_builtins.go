@@ -1,4 +1,9 @@
 package resolver
+import "C"
+import (
+	"encoding/binary"
+	"unsafe"
+)
 
 // #cgo CFLAGS: -I./softfloat/source/include -I./builtins
 // #define SOFTFLOAT_FAST_INT64
