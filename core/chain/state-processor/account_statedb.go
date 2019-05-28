@@ -21,7 +21,6 @@ import (
 	"github.com/dipperin/dipperin-core/common/util/json-kv"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/model"
-	vm "github.com/dipperin/dipperin-core/core/vm/model"
 	cs_crypto "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/mpt_log"
@@ -217,7 +216,7 @@ type AccountStateDB struct {
 	validRevisions  []revision
 	nextRevisionId  int
 
-	logs         map[common.Hash][]*vm.Log
+	logs         map[common.Hash][]*model.Log
 	lock sync.Mutex
 }
 
@@ -339,6 +338,7 @@ func NewAccountStateDB(preStateRoot common.Hash, db StateStorage) (*AccountState
 		contractData:          map[common.Address]reflect.Value{},
 		finalisedContractRoot: map[common.Address]common.Hash{},
 		stateChangeList:       newStateChangeList(),
+		logs:  map[common.Hash][]*model.Log{},
 	}
 	return stateDB, nil
 }
@@ -1412,7 +1412,7 @@ func (state *AccountStateDB) processNormalTx(tx model.AbstractTransaction) (err 
 
 func (state *AccountStateDB) processCrossTx(tx model.AbstractTransaction) (err error) {
 	// TODO:
-	return errors.New("not support now")
+	return errors.New("not support yet.")
 }
 
 func (state *AccountStateDB) processERC20Tx(tx model.AbstractTransaction, blockHeight uint64) (err error) {
