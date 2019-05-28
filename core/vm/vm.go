@@ -40,6 +40,9 @@ func NewVM(context Context, state StateDB, config exec.VMConfig) *VM {
 	return &vm
 }
 
+func (vm *VM) GetStateDB() StateDB {
+	return vm.state
+}
 
 func (vm *VM) PreCheck() error {
 
@@ -100,7 +103,6 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, abi []byte, input
 }
 
 func run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error) {
-
 	// call Interpreter.Run()
 	return vm.Interpreter.Run(vm, contract, input, create)
 }

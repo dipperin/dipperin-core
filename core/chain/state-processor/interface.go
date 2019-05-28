@@ -79,3 +79,25 @@ type AccountStateProcessor interface {
 	GetContract(addr common.Address, vType reflect.Type) (v reflect.Value, err error)
 	ContractExist(addr common.Address) bool
 }
+
+// state_transaction use
+type AccountStateTx interface {
+	AddBalance(addr common.Address, amount *big.Int) error
+	SubBalance(addr common.Address, amount *big.Int) error
+}
+
+// state_transaction use
+// Message represents a message sent to a contract.
+type Message interface {
+	From() common.Address
+	//FromFrontier() (common.Address, error)
+	To() *common.Address
+
+	GasPrice() *big.Int
+	Gas() uint64
+	Value() *big.Int
+
+	Nonce() uint64
+	CheckNonce() bool
+	Data() []byte
+}
