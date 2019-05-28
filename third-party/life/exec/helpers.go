@@ -50,7 +50,7 @@ func (vm *VirtualMachine) RunWithGasLimit(entryID, limit int, params ...int64) (
 // Panics on logical errors.
 func (vm *VirtualMachine) Run(entryID int, params ...int64) (retVal int64, retErr error) {
 	vm.Ignite(entryID, params...) // call Ignite() to perform necessary checks even if we are using the AOT mode.
-	// vm.AOTService is nil
+	// vmcommon.AOTService is nil
 	if vm.AOTService != nil {
 		recoveryFunc := func() {
 			if err := recover(); err != nil {
@@ -77,7 +77,7 @@ func (vm *VirtualMachine) Run(entryID int, params ...int64) (retVal int64, retEr
 		default:
 		}
 	}
-	//vm.Exited = false when vm initializes the call frame in vm.Ignite
+	//vmcommon.Exited = false when vmcommon initializes the call frame in vmcommon.Ignite
 	for !vm.Exited {
 		vm.Execute()
 		if vm.Delegate != nil {

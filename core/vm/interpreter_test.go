@@ -1,17 +1,17 @@
 package vm
 
 import (
+	"bytes"
+	"fmt"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/vmcommon"
+	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
 	"io/ioutil"
-	"bytes"
-	"github.com/dipperin/dipperin-core/common"
-	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/core/vm/model"
 )
 
@@ -74,13 +74,13 @@ func TestWASMInterpreter_Run_testcontract(t *testing.T) {
 	testVm := getTestVm()
 	interpreter := testVm.Interpreter
 
-	param := [][]byte{utils.Int32ToBytes(123), utils.Int32ToBytes(456)}
-	result, err := interpreter.Run(testVm, contract, genInput(t, "saveKeyValue", param), false)
+	param := [][]byte{vmcommon.Int32ToBytes(123), vmcommon.Int32ToBytes(456)}
+	result, err := interpreter.Run(testVm,contract, genInput(t, "saveKeyValue", param),false)
 	assert.Equal(t, make([]byte, 32), result)
 	assert.NoError(t, err)
 
-	param = [][]byte{utils.Int32ToBytes(123)}
-	result, err = interpreter.Run(testVm, contract, genInput(t, "getKeyValue", param), false)
+	param = [][]byte{vmcommon.Int32ToBytes(123)}
+	result, err = interpreter.Run(testVm,contract, genInput(t, "getKeyValue", param),false)
 	assert.Equal(t, make([]byte, 32), result)
 	assert.NoError(t, err)
 }
@@ -94,15 +94,15 @@ func TestWASMInterpreter_Run_example3(t *testing.T) {
 	interpreter := testVm.Interpreter
 
 	expect := make([]byte, 32)
-	param := [][]byte{utils.Int32ToBytes(6666)}
+	param := [][]byte{vmcommon.Int32ToBytes(6666)}
 
 	inputs := genInput(t, "setBalance", param)
 	result, err := interpreter.Run(testVm, contract, inputs, false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
 
-	expect = append(expect[:28], utils.Int32ToBytes(6666)...)
-	result, err = interpreter.Run(testVm, contract, genInput(t, "getBalance", [][]byte{}), false)
+	expect = append(expect[:28], vmcommon.Int32ToBytes(6666)...)
+	result, err = interpreter.Run(testVm,contract, genInput(t, "getBalance", [][]byte{}),false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
 }
@@ -115,8 +115,8 @@ func TestWASMInterpreter_Run_map_int(t *testing.T) {
 	testVm := getTestVm()
 	interpreter := testVm.Interpreter
 
-	key := utils.Int32ToBytes(2147483647)
-	value := utils.Int64ToBytes(9223372036854775807)
+	key := vmcommon.Int32ToBytes(2147483647)
+	value := vmcommon.Int64ToBytes(9223372036854775807)
 	expect := make([]byte, 32)
 	param := [][]byte{key, value}
 
@@ -151,7 +151,7 @@ func TestWASMInterpreter_Run_map_string(t *testing.T) {
 	interpreter := testVm.Interpreter
 
 	key := []byte("balance")
-	value := utils.Int32ToBytes(255)
+	value := vmcommon.Int32ToBytes(255)
 
 	expect := make([]byte, 32)
 	param := [][]byte{key, value}
@@ -164,7 +164,7 @@ func TestWASMInterpreter_Run_map_string(t *testing.T) {
 	fmt.Println("-----------------------------------------")
 
 	key1 := []byte("bbb")
-	value1 := utils.Int32ToBytes(222)
+	value1 := vmcommon.Int32ToBytes(222)
 	param1 := [][]byte{key1, value1}
 
 	inputs = genInput(t, "setBalance", param1)
@@ -187,9 +187,9 @@ func TestWASMInterpreter_Run_event(t *testing.T) {
 	testVm := getTestVm()
 	interpreter := testVm.Interpreter
 
-	name := []byte("asdf")
-	num := utils.Int64ToBytes(123)
-	log.Info("the num is:", "num", num)
+	name := []byte("0000")
+	num := vmcommon.Int64ToBytes(2)
+	log.Info("the num is:","num",num)
 
 	/*	name := []byte("logName")
 		test, err := rlp.EncodeToBytes(append(name, []byte{133, 101, 118, 101, 110, 116, 127}...))
@@ -208,7 +208,7 @@ func genInput(t *testing.T, funcName string, param [][]byte) []byte {
 	var input [][]byte
 	input = make([][]byte, 0)
 	// tx type
-	input = append(input, utils.Int64ToBytes(1))
+	input = append(input, vmcommon.Int64ToBytes(1))
 	// func name
 	input = append(input, []byte(funcName))
 	// func parameter

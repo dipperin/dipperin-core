@@ -1,4 +1,4 @@
-package utils
+package vmcommon
 
 import (
 	"bytes"
@@ -45,7 +45,7 @@ func BytesToInt32(b []byte) int32 {
 func Align32Bytes(b []byte) []byte {
 	tmp := make([]byte, ALIGN_LENGTH)
 	if len(b) > ALIGN_LENGTH {
-		b = b[len(b) - ALIGN_LENGTH:]
+		b = b[len(b)-ALIGN_LENGTH:]
 	}
 	copy(tmp[ALIGN_LENGTH-len(b):], b)
 	return tmp

@@ -88,10 +88,10 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value
 	}
 
 	// Create a new account on the state
-	// snapshot := vm.state.Snapshot()
+	// snapshot := vmcommon.state.Snapshot()
 
 	vm.state.CreateAccount(address)
-	// vm.Transfer(evm.StateDB, caller.Address(), address, value)
+	// vmcommon.Transfer(evm.StateDB, caller.Address(), address, value)
 
 	// Initialise a new contract and set the code that is to be used by the EVM.
 	// The contract is a scoped environment for this execution context only.

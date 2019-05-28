@@ -98,7 +98,7 @@ func envMalloc(vm *exec.VirtualMachine) int64 {
 }
 
 func envFree(vm *exec.VirtualMachine) int64 {
-	/*	if vm.Config.DisableFree {
+	/*	if vmcommon.Config.DisableFree {
 			return 0
 		}*/
 	log.Info("envFree Called")

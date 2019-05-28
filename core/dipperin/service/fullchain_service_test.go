@@ -1043,12 +1043,12 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	assert.NotNil(t, hash)
 
 	nonce = uint64(4)
-	hash, err = service.SendTransaction(address, aliceAddr, value, txFee,nil, []byte{}, &nonce)
+	hash, err = service.SendTransaction(address, aliceAddr, value, txFee,[]byte{}, &nonce)
 	assert.NoError(t, err)
 	assert.NotNil(t, hash)
 
 	nonce = uint64(5)
-	hash, err = service.SendTransaction(common.Address{}, aliceAddr, value, txFee,nil, []byte{}, &nonce)
+	hash, err = service.SendTransaction(common.Address{}, aliceAddr, value, txFee, []byte{}, &nonce)
 	assert.Equal(t, "no default account in this node",  err.Error())
 	assert.Equal(t, common.Hash{}, hash)
 
@@ -1111,7 +1111,7 @@ func TestMercuryFullChainService_SendTransaction_Error(t *testing.T) {
 	assert.Equal(t, testErr, err)
 	assert.Equal(t, common.Hash{}, hash)
 
-	hash, err = service.SendTransaction(address, aliceAddr, value, txFee,nil, []byte{}, &nonce)
+	hash, err = service.SendTransaction(address, aliceAddr, value, txFee, []byte{}, &nonce)
 	assert.Equal(t, testErr, err)
 	assert.Equal(t, common.Hash{}, hash)
 
@@ -1137,7 +1137,7 @@ func TestMercuryFullChainService_SendTransaction_Error(t *testing.T) {
 	assert.Equal(t, accounts.ErrNotFindWallet, err)
 	assert.Equal(t, common.Hash{}, hash)
 
-	hash, err = service.SendTransaction(fakeAddr, aliceAddr, value, txFee, nil,  []byte{}, &nonce)
+	hash, err = service.SendTransaction(fakeAddr, aliceAddr, value, txFee,   []byte{}, &nonce)
 	assert.Equal(t, accounts.ErrNotFindWallet, err)
 	assert.Equal(t, common.Hash{}, hash)
 

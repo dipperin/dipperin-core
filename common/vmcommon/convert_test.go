@@ -1,8 +1,9 @@
-package utils
+package vmcommon
 
 import (
-	"testing"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common/vmcommon"
+	"testing"
 )
 
 func TestInt64ToBytes(t *testing.T) {
@@ -14,8 +15,8 @@ func TestInt64ToBytes(t *testing.T) {
 	fmt.Println(c)*/
 
 	a := int64(2323)
-	b := Int64ToBytes(a)
+	b := vmcommon.Int64ToBytes(a)
 	fmt.Println(b)
-	c := BytesToInt64(b)
+	c := vmcommon.BytesToInt64(b)
 	fmt.Println(c)
 }
