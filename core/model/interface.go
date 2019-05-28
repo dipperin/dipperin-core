@@ -114,6 +114,7 @@ type AbstractTransaction interface {
 	ExtraData() []byte
 	Cost() *big.Int
 	EstimateFee() *big.Int
+	GetGasPrice() *big.Int
 }
 
 //go:generate mockgen -destination=./../economy-model/verification_mock_test.go -package=economy_model github.com/dipperin/dipperin-core/core/model AbstractVerification

@@ -2,13 +2,14 @@ package vm
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/vm/resolver"
 	"math/big"
 )
 
 type Contract struct{
 	CallerAddress common.Address
-	caller ContractRef
-	self ContractRef
+	caller resolver.ContractRef
+	self resolver.ContractRef
 
 	ABI []byte
 	Code []byte

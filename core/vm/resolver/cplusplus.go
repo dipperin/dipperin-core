@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	math2 "github.com/dipperin/dipperin-core/common/math"
-	"github.com/dipperin/dipperin-core/core/vm"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
@@ -437,7 +436,7 @@ func (r *Resolver)envCallTransfer(vm *exec.VirtualMachine) int64 {
 	}
 }
 
-func (r *Resolver)envPlatonCall(vm *exec.VirtualMachine) int64 {
+func (r *Resolver)envDipperCall(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
@@ -448,7 +447,7 @@ func (r *Resolver)envPlatonCall(vm *exec.VirtualMachine) int64 {
 	}
 	return 0
 }
-func (r *Resolver)envPlatonDelegateCall(vm *exec.VirtualMachine) int64 {
+func (r *Resolver)envDipperDelegateCall(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
@@ -461,7 +460,7 @@ func (r *Resolver)envPlatonDelegateCall(vm *exec.VirtualMachine) int64 {
 	return 0
 }
 
-func (r *Resolver)envPlatonCallInt64(vm *exec.VirtualMachine) int64 {
+func (r *Resolver)envDipperCallInt64(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
@@ -476,7 +475,7 @@ func (r *Resolver)envPlatonCallInt64(vm *exec.VirtualMachine) int64 {
 	return utils.BytesToInt64(ret)
 }
 
-func (r *Resolver)envPlatonDelegateCallInt64(vm *exec.VirtualMachine) int64 {
+func (r *Resolver)envDipperDelegateCallInt64(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
@@ -489,7 +488,7 @@ func (r *Resolver)envPlatonDelegateCallInt64(vm *exec.VirtualMachine) int64 {
 	return utils.BytesToInt64(ret)
 }
 
-func (r *Resolver)envPlatonCallString(vmValue *exec.VirtualMachine) int64 {
+func (r *Resolver)envDipperCallString(vmValue *exec.VirtualMachine) int64 {
 	addr := int(int32(vmValue.GetCurrentFrame().Locals[0]))
 	params := int(int32(vmValue.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vmValue.GetCurrentFrame().Locals[2]))
@@ -499,10 +498,10 @@ func (r *Resolver)envPlatonCallString(vmValue *exec.VirtualMachine) int64 {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
 	}
-	return vm.MallocString(vmValue, string(ret))
+	return MallocString(vmValue, string(ret))
 }
 
-func (r *Resolver)envPlatonDelegateCallString(vmValue *exec.VirtualMachine) int64 {
+func (r *Resolver)envDipperDelegateCallString(vmValue *exec.VirtualMachine) int64 {
 	addr := int(int32(vmValue.GetCurrentFrame().Locals[0]))
 	params := int(int32(vmValue.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vmValue.GetCurrentFrame().Locals[2]))
@@ -512,17 +511,17 @@ func (r *Resolver)envPlatonDelegateCallString(vmValue *exec.VirtualMachine) int6
 		fmt.Printf("call error,%s", err.Error())
 		return 0
 	}
-	return vm.MallocString(vmValue, string(ret))
+	return MallocString(vmValue, string(ret))
 }
 
-func envPlatonCallGasCost(vm *exec.VirtualMachine) (uint64, error) {
+func envDipperCallGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func envPlatonCallInt64GasCost(vm *exec.VirtualMachine) (uint64, error) {
+func envDipperCallInt64GasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func envPlatonCallStringGasCost(vm *exec.VirtualMachine) (uint64, error) {
+func envDipperCallStringGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }

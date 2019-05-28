@@ -51,6 +51,10 @@ func (state fakeStateDB) SetNonce(common.Address, uint64) {
 	panic("implement me")
 }
 
+func (state fakeStateDB)AddNonce(common.Address, uint64){
+	panic("implement me")
+}
+
 func (state fakeStateDB) GetCodeHash(common.Address) common.Hash {
 	panic("implement me")
 }

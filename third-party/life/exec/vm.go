@@ -105,9 +105,17 @@ type VMConfig struct {
 	MaxCallStackDepth        int
 	DefaultMemoryPages       int
 	DefaultTableSize         int
-	GasLimit                 uint64
 	DisableFloatingPoint     bool
 	ReturnOnGasLimitExceeded bool
+	// Debug enable debugging Interpreter options
+	Debug bool
+	// Type of the EWASM interpreter
+	WASMInterpreter string
+	// Tracer is the op code logger
+	//Tracer Tracer
+	// NoRecursion disabled interpreter call, callcode,
+	// delegate call and create
+	NoRecursion bool
 }
 
 // Frame represents a call frame.

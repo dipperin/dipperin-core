@@ -219,6 +219,9 @@ func (tx *Transaction) EncodeRlpToBytes() ([]byte, error) {
 		tx.wit,
 	})
 }
+func (tx *Transaction) GetGasPrice() *big.Int  {
+	return tx.data.Price
+}
 
 //DecodeRLP implements rlp.Decoder
 func (tx *Transaction) DecodeRLP(s *rlp.Stream) error {
