@@ -642,7 +642,7 @@ func (service *MercuryFullChainService) SendTransaction(from, to common.Address,
 	return txHash, nil
 }
 
-func (service *MercuryFullChainService) SendTransactionContract(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
+func (service *MercuryFullChainService) SendTransactionContractCreate(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
 	//start:=time.Now()
 	// automatic transfer need this
 	if from.IsEqual(common.Address{}) {
