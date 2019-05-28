@@ -5,14 +5,13 @@ import (
 	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
-
+	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"encoding/binary"
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/math"
 	//resolver2 "github.com/dipperin/dipperin-core/core/vmcommon/resolver"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
@@ -56,7 +55,6 @@ func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) 
 }
 
 func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error) {
-	// Init vmcommon, inject module
 	//  1. 合约定义的function, 2. vm提供的方法
 
 	if len(contract.Code) == 0 {
@@ -70,8 +68,9 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 		}*/
 
 	//　life方法注入新建虚拟机
-	//resolver := resolver2.NewResolver(vmcommon, contract, in.state)
-	lifeVm, err := exec.NewVirtualMachine(contract.Code, in.config, nil, nil)
+	solver := resolver.NewResolver(vm, contract, in.state)
+	lifeVm, err := exec.NewVirtualMachine(contract.Code, in.config, solver, nil)
+	lifeVm.GasLimit = vm.GasLimit
 	if err != nil {
 		return []byte{}, err
 	}
@@ -118,6 +117,8 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 	}
 
 	res, err := lifeVm.Run(entryID, params...)
+	log.Info("Run lifeVm", "Gas Used", lifeVm.GasUsed, "Gas", lifeVm.Gas, "Gas Limit", lifeVm.GasLimit)
+
 	if err != nil {
 		fmt.Println("throw exception:", err.Error())
 		return nil, err
@@ -245,7 +246,7 @@ func parseInputFromAbi(vm *exec.VirtualMachine, input []byte, abi []byte) (txTyp
 		bts := argsRlp[i].([]byte)
 		switch v.Type {
 		case "string":
-			pos := resolver2.MallocString(vm, string(bts))
+			pos := resolver.MallocString(vm, string(bts))
 			params = append(params, pos)
 		case "int8":
 			params = append(params, int64(bts[0]))

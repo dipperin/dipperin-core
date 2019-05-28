@@ -26,4 +26,6 @@ var (
 	UnknownTxTypeErr   = errors.New("unknown tx type")
 	InvalidVerifierAddressErr = errors.New("invalid verifier address")
 	InvalidCoinBaseAddressErr = errors.New("invalid coinBase address")
+	ErrNonceTooHigh = errors.New("nonce too high")
+	ErrNonceTooLow = errors.New("nonce too low")
 )

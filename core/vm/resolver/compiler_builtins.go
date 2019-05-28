@@ -18,11 +18,8 @@ import (
 import "C"
 
 import (
-	"encoding/binary"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"math"
-	"unsafe"
-
 )
 
 type uint128 struct {

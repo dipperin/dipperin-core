@@ -21,7 +21,7 @@ type VM struct {
 	Interpreter Interpreter
 	vmconfig    exec.VMConfig
 	// state gives access to the underlying state
-	state       StateDB
+	state StateDB
 	// Depth is the current call stack
 	depth int
 	// abort is used to abort the VM calling operations
@@ -40,31 +40,42 @@ func NewVM(context Context, state StateDB, config exec.VMConfig) *VM {
 	return &vm
 }
 
+func (vm *VM) GetStateDB() StateDB {
+	return vm.state
+}
 
-func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byte,gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
-	code := vm.state.GetState(addr,[]byte("code"))
-	abi := vm.state.GetState(addr,[]byte("abi"))
+func (vm *VM) PreCheck() error {
+
+	return nil
+}
+
+func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byte, gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
+	code := vm.state.GetState(addr, []byte("code"))
+	abi := vm.state.GetState(addr, []byte("abi"))
+
 	contract := &Contract{
 		CallerAddress: caller.Address(),
 		caller:        caller,
 		self:          &Caller{addr: addr},
 		ABI:           abi,
 		Code:          code,
+		value:         value,
+		Gas:           gas,
 	}
 
-	ret, err = run(vm, contract, input,false)
+	ret, err = run(vm, contract, input, false)
 	return
 }
 
-func (vm *VM)DelegateCall(caller resolver.ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error){
-	return nil ,0,nil
+func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error) {
+	return nil, 0, nil
 }
-func (vm *VM) Create(caller resolver.ContractRef, code []byte, abi []byte, value []byte) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
+func (vm *VM) Create(caller resolver.ContractRef, code []byte, abi []byte, value *big.Int, gas uint64) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
 	contractAddr = cs_crypto.CreateContractAddress(caller.Address(), vm.state.GetNonce(caller.Address()))
-	return vm.create(caller, code, abi, value, contractAddr)
+	return vm.create(caller, code, abi, value.Bytes(), contractAddr, gas)
 }
 
-func (vm *VM) create(caller resolver.ContractRef, code []byte,abi []byte, input []byte, address common.Address) ([]byte, common.Address, uint64, error) {
+func (vm *VM) create(caller resolver.ContractRef, code []byte, abi []byte, input []byte, address common.Address, gas uint64) ([]byte, common.Address, uint64, error) {
 	// Caller nonce ++
 	vm.state.AddNonce(caller.Address(), uint64(1))
 
@@ -82,22 +93,18 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte,abi []byte, input 
 
 	// Initialise a new contract and set the code that is to be used by the EVM.
 	// The contract is a scoped environment for this execution context only.
-	contract := NewContract(caller, AccountRef(address), code, abi)
+	contract := NewContract(caller, AccountRef(address), code, abi, gas)
 	vm.state.SetState(contract.self.Address(), []byte("code"), code)
 	vm.state.SetState(contract.self.Address(), []byte("abi"), abi)
 	// call run
-	run(vm, contract, input,true)
-
-
+	run(vm, contract, input, true)
 
 	return nil, address, uint64(0), nil
 }
 
 func run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error) {
-
 	// call Interpreter.Run()
-	vm.Interpreter.Run(vm,contract, input,create)
-	return nil, nil
+	return vm.Interpreter.Run(vm, contract, input, create)
 }
 
 type (
@@ -119,8 +126,8 @@ type Context struct {
 	// Block information
 	Coinbase common.Address // Provides information for COINBASE
 
-	GasPrice *big.Int       // Provides information for GASPRICE
-	GasLimit    uint64         // Provides information for GASLIMIT
+	GasPrice    *big.Int // Provides information for GASPRICE
+	GasLimit    uint64   // Provides information for GASLIMIT
 	BlockNumber *big.Int // Provides information for NUMBER
 	Time        *big.Int // Provides information for TIME
 	Difficulty  *big.Int // Provides information for DIFFICULTY
@@ -130,7 +137,6 @@ type Context struct {
 	// applied in opCall*.
 	callGasTemp uint64
 
-
 	// CanTransfer returns whether the account contains
 	// sufficient ether to transfer the value
 	CanTransfer CanTransferFunc
@@ -138,7 +144,7 @@ type Context struct {
 	Transfer TransferFunc
 }
 
-func (context *Context)GetCallGasTemp() uint64{
+func (context *Context) GetCallGasTemp() uint64 {
 	return context.callGasTemp
 }
 
@@ -174,14 +180,14 @@ func (context *Context) GetOrigin() common.Address {
 func NewVMContext(tx model.AbstractTransaction, block model.AbstractBlock) Context {
 	sender, _ := tx.Sender(tx.GetSigner())
 	return Context{
-		Origin: sender,
-		GasPrice:tx.GetGasPrice(),
-		GasLimit: tx.Fee().Uint64(),
-		BlockNumber:new(big.Int).SetUint64(block.Number()),
-		Time:block.Timestamp(),
-		Coinbase:block.CoinBaseAddress(),
-		Difficulty:block.Difficulty().Big(),
-		callGasTemp:tx.Fee().Uint64(),
+		Origin:      sender,
+		GasPrice:    tx.GetGasPrice(),
+		GasLimit:    tx.Fee().Uint64(),
+		BlockNumber: new(big.Int).SetUint64(block.Number()),
+		Time:        block.Timestamp(),
+		Coinbase:    block.CoinBaseAddress(),
+		Difficulty:  block.Difficulty().Big(),
+		callGasTemp: tx.Fee().Uint64(),
 	}
 }
 
@@ -193,19 +199,17 @@ func (c *Caller) Address() common.Address {
 	return c.addr
 }
 
-func AccountRef(addr common.Address) resolver.ContractRef{
+func AccountRef(addr common.Address) resolver.ContractRef {
 	return &Caller{addr}
 }
 
-func NewContract(caller resolver.ContractRef, object resolver.ContractRef, code []byte, abi []byte) *Contract{
+func NewContract(caller resolver.ContractRef, object resolver.ContractRef, code []byte, abi []byte, gas uint64) *Contract {
 	return &Contract{
 		CallerAddress: caller.Address(),
 		caller:        caller,
 		self:          object,
 		ABI:           abi,
 		Code:          code,
+		Gas:           gas,
 	}
 }
-
-
-
