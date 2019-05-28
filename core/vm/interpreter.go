@@ -62,15 +62,15 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 	}
 
 	// rlp解析合约
-	/*	_, abi, _, err := parseRlpData(contract.Code)
-		if err != nil {
-			return nil, err
-		}*/
+	_, abi, code, err := parseRlpData(contract.Code)
+	if err != nil {
+		return nil, err
+	}
 
 	//　life方法注入新建虚拟机
 	solver := resolver.NewResolver(vm, contract, in.state)
-	lifeVm, err := exec.NewVirtualMachine(contract.Code, in.config, solver, nil)
-	lifeVm.GasLimit = vm.GasLimit
+	lifeVm, err := exec.NewVirtualMachine(code, in.config, solver, nil)
+	lifeVm.GasLimit = contract.Gas
 
 	if err != nil {
 		return []byte{}, err
@@ -85,7 +85,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 
 	if create {
 		funcName = "init" // init function.
-		txType, funcName, params, returnType, err = parseInputFromAbi(lifeVm, input, contract.ABI)
+		txType, funcName, params, returnType, err = parseInputFromAbi(lifeVm, input, abi)
 		if err != nil {
 			if err == errReturnInsufficientParams && txType == 0 { // transfer to contract address.
 				return nil, nil
@@ -97,7 +97,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 		}
 	} else {
 		// 通过ABI解析input
-		txType, funcName, params, returnType, err = parseInputFromAbi(lifeVm, input, contract.ABI)
+		txType, funcName, params, returnType, err = parseInputFromAbi(lifeVm, input, abi)
 		if err != nil {
 			if err == errReturnInsufficientParams && txType == 0 { // transfer to contract address.
 				return nil, nil
@@ -271,7 +271,6 @@ func parseInputFromAbi(vm *exec.VirtualMachine, input []byte, abi []byte) (txTyp
 }
 
 // rlpData=RLP([txType][code][abi])
-/*
 func parseRlpData(rlpData []byte) (int64, []byte, []byte, error) {
 	ptr := new(interface{})
 	err := rlp.Decode(bytes.NewReader(rlpData), &ptr)
@@ -306,4 +305,4 @@ func parseRlpData(rlpData []byte) (int64, []byte, []byte, error) {
 		//fmt.Println("dstAbi:", common.Bytes2Hex(abi))
 	}
 	return txType, abi, code, nil
-}*/
+}

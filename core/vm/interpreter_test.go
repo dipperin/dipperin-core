@@ -222,6 +222,23 @@ func genInput(t *testing.T, funcName string, param [][]byte) []byte {
 	return buffer.Bytes()
 }
 
+func getCodeWithABI(t *testing.T, code, abi []byte) []byte {
+	var input [][]byte
+	input = make([][]byte, 0)
+	// tx type
+
+	input = append(input, utils.Int64ToBytes(1))
+	// code
+	input = append(input, code)
+	// abi
+	input = append(input, abi)
+
+	buffer := new(bytes.Buffer)
+	err := rlp.Encode(buffer, input)
+	assert.NoError(t, err)
+	return buffer.Bytes()
+}
+
 func getContract(t *testing.T, addr common.Address, code, abi string) *Contract {
 	fileCode, err := ioutil.ReadFile(code)
 	assert.NoError(t, err)
@@ -229,9 +246,11 @@ func getContract(t *testing.T, addr common.Address, code, abi string) *Contract 
 	fileABI, err := ioutil.ReadFile(abi)
 	assert.NoError(t, err)
 
+	ca := getCodeWithABI(t, fileCode, fileABI)
+
 	return &Contract{
 		self: fakeContractRef{addr: addr},
-		Code: fileCode,
-		ABI:  fileABI,
+		Code: ca,
+		Gas:model.TxGas,
 	}
 }
