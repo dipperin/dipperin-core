@@ -3,7 +3,9 @@ package vm
 import (
 	"bytes"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	resolver2 "github.com/dipperin/dipperin-core/core/vm/resolver"
+	"github.com/dipperin/dipperin-core/core/vm/resolver"
+
+	//resolver2 "github.com/dipperin/dipperin-core/core/vm/resolver"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"encoding/binary"
 	"fmt"
@@ -39,6 +41,7 @@ type WASMInterpreter struct {
 	state   StateDB
 	context *Context
 	config  exec.VMConfig
+	resolver    exec.ImportResolver
 }
 
 // NewWASMInterpreter returns a new instance of the Interpreter
@@ -47,6 +50,7 @@ func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) 
 		state,
 		&context,
 		vmConfig,
+		&resolver.Resolver{},
 	}
 }
 
@@ -66,8 +70,8 @@ func (in *WASMInterpreter) Run(vm *VM,contract *Contract, input []byte, create b
 
 
 	//　life方法注入新建虚拟机
-	resolver := resolver2.NewResolver(vm, contract, in.state)
-	lifeVm, err := exec.NewVirtualMachine(contract.Code, in.config, resolver, nil)
+	//resolver := resolver2.NewResolver(vm, contract, in.state)
+	lifeVm, err := exec.NewVirtualMachine(contract.Code, in.config, nil, nil)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -243,7 +247,7 @@ func parseInputFromAbi(vm *exec.VirtualMachine, input []byte, abi []byte) (txTyp
 		bts := argsRlp[i].([]byte)
 		switch v.Type {
 		case "string":
-			pos := MallocString(vm, string(bts))
+			pos := resolver2.MallocString(vm, string(bts))
 			params = append(params, pos)
 		case "int8":
 			params = append(params, int64(bts[0]))
@@ -264,15 +268,6 @@ func parseInputFromAbi(vm *exec.VirtualMachine, input []byte, abi []byte) (txTyp
 		}
 	}
 	return txType, funcName, params, returnType, nil
-}
-
-func MallocString(vm *exec.VirtualMachine, str string) int64 {
-	mem := vm.Memory
-	size := len([]byte(str)) + 1
-
-	pos := mem.Malloc(size)
-	copy(mem.Memory[pos:pos+size], []byte(str))
-	return int64(pos)
 }
 
 // rlpData=RLP([txType][code][abi])

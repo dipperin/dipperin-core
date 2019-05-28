@@ -221,6 +221,10 @@ func (tx fakeTransaction) Size() common.StorageSize {
 	panic("implement me")
 }
 
+func (tx fakeTransaction) GetGasPrice() *big.Int {
+	panic("implement me")
+}
+
 func (tx fakeTransaction) Amount() *big.Int {
 	return big.NewInt(10000)
 }

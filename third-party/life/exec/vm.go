@@ -91,8 +91,9 @@ type VirtualMachine struct {
 	AOTService       AOTService
 	StackTrace       string
 
-	//add 已使用Gas 和 GasLimited
+	//add 已使用Gas
 	GasUsed  uint64
+	//add GasLimited
 	GasLimit uint64
 }
 
@@ -105,9 +106,17 @@ type VMConfig struct {
 	MaxCallStackDepth        int
 	DefaultMemoryPages       int
 	DefaultTableSize         int
-	GasLimit                 uint64
 	DisableFloatingPoint     bool
 	ReturnOnGasLimitExceeded bool
+	// Debug enable debugging Interpreter options
+	Debug bool
+	// Type of the EWASM interpreter
+	WASMInterpreter string
+	// Tracer is the op code logger
+	//Tracer Tracer
+	// NoRecursion disabled interpreter call, callcode,
+	// delegate call and create
+	NoRecursion bool
 }
 
 // Frame represents a call frame.
@@ -166,7 +175,7 @@ func NewVirtualMachine(
 				funcImports = append(funcImports, FunctionImportInfo{
 					ModuleName: imp.ModuleName,
 					FieldName:  imp.FieldName,
-					F:          nil, // deferred
+					//F:          nil, // deferred
 				})
 			case wasm.ExternalGlobal:
 				globals = append(globals, impResolver.ResolveGlobal(imp.ModuleName, imp.FieldName))
@@ -513,7 +522,7 @@ func (vm *VirtualMachine) AddAndCheckGas(delta uint64) bool {
 	if newGas < vm.Gas {
 		panic("gas overflow")
 	}
-	if vm.Config.GasLimit != 0 && newGas > vm.Config.GasLimit {
+	if vm.GasLimit != 0 && newGas > vm.GasLimit {
 		if vm.Config.ReturnOnGasLimitExceeded {
 			return false
 		} else {

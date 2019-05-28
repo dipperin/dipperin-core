@@ -557,6 +557,9 @@ type fakeTx struct {
 func (ft *fakeTx) Size() common.StorageSize {
 	return ft.size
 }
+func (ft *fakeTx) GetGasPrice() *big.Int {
+	panic("implement me")
+}
 
 func (ft *fakeTx) Amount() *big.Int {
 	return ft.amount

@@ -17,6 +17,7 @@
 package model
 
 import (
+	"container/heap"
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
@@ -25,7 +26,6 @@ import (
 	"math/big"
 	"sort"
 	"sync/atomic"
-	"container/heap"
 
 	"github.com/dipperin/dipperin-core/third-party/log"
 )
@@ -48,14 +48,19 @@ type RpcTransaction struct {
 }
 
 func NewTransaction(nonce uint64, to common.Address, amount *big.Int, fee *big.Int, data []byte) *Transaction {
-	return newTransaction(nonce, &to, amount, fee, data)
+	return newTransaction(nonce, &to, amount, fee, nil,data)
 }
+
+func NewTransactionSc(nonce uint64, to common.Address, amount *big.Int, fee , gasPrice *big.Int, data []byte) *Transaction {
+	return newTransaction(nonce, &to, amount, fee, gasPrice,data)
+}
+
 
 func NewContractCreation(nonce uint64, amount *big.Int, fee *big.Int, data []byte) *Transaction {
-	return newTransaction(nonce, nil, amount, fee, data)
+	return newTransaction(nonce, nil, amount, fee, nil,data)
 }
 
-func newTransaction(nonce uint64, to *common.Address, amount *big.Int, fee *big.Int, data []byte) *Transaction {
+func newTransaction(nonce uint64, to *common.Address, amount *big.Int, fee , gasPrice  *big.Int, data []byte) *Transaction {
 	if len(data) > 0 {
 		data = common.CopyBytes(data)
 	}
@@ -66,6 +71,7 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, fee *big.
 		TimeLock:     new(big.Int),
 		Amount:       new(big.Int),
 		Fee:          new(big.Int),
+		Price:        gasPrice,
 		ExtraData:    data,
 	}
 	wit := witness{
@@ -177,11 +183,12 @@ func (tx Transaction) String() string {
 
 type txData struct {
 	AccountNonce uint64          `json:"nonce"    gencodec:"required"`
-	Recipient    *common.Address `json:"to"       rlp:"nil"` // nil means contract creation
+	Recipient    *common.Address `json:"to"       rlp:"nil"`
 	HashLock     *common.Hash    `json:"hashLock" rlp:"nil"`
 	TimeLock     *big.Int        `json:"timeLock" gencodec:"required"`
 	Amount       *big.Int        `json:"Value"    gencodec:"required"`
 	Fee          *big.Int        `json:"fee"      gencodec:"required"`
+	Price        *big.Int        `json:"gasPrice"`
 	ExtraData    []byte          `json:"input"    gencodec:"required"`
 }
 
@@ -211,6 +218,9 @@ func (tx *Transaction) EncodeRlpToBytes() ([]byte, error) {
 		tx.data,
 		tx.wit,
 	})
+}
+func (tx *Transaction) GetGasPrice() *big.Int  {
+	return tx.data.Price
 }
 
 //DecodeRLP implements rlp.Decoder
@@ -417,7 +427,7 @@ func (s *TxByFee) Pop() interface{} {
 	old := *s
 	n := len(old)
 	x := old[n-1]
-	*s = old[0: n-1]
+	*s = old[0 : n-1]
 	return x
 }
 

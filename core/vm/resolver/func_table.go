@@ -2,7 +2,6 @@ package resolver
 
 import (
 	"fmt"
-	"github.com/dipperin/dipperin-core/core/vm"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 )
 
@@ -14,14 +13,24 @@ const (
 	// ...
 )
 
-type Resolver struct {
-	Service resolverNeedExternalService
-}
-
 var (
 	cfc  = newCfcSet()
 	cgbl = newGlobalSet()
 )
+
+type Resolver struct {
+	Service resolverNeedExternalService
+}
+
+func NewResolver(vmValue VmContextService, contract ContractService, state StateDBService) exec.ImportResolver {
+	return &Resolver{
+		Service:resolverNeedExternalService{
+			ContractService:  contract,
+			VmContextService: vmValue,
+			StateDBService:   state,
+		},
+	}
+}
 
 func newCfcSet() map[string]map[string]*exec.FunctionImport {
 	return map[string]map[string]*exec.FunctionImport{
@@ -64,16 +73,6 @@ func (r *Resolver) ResolveFunc(module, field string) *exec.FunctionImport {
 
 func (r *Resolver) ResolveGlobal(module, field string) int64 {
 	return 0
-}
-
-func NewResolver(vmValue *vm.VM, contract *vm.Contract, state StateDBService) exec.ImportResolver {
-	return &Resolver{
-		Service:resolverNeedExternalService{
-			ContractService:  contract,
-			VmContextService: vmValue,
-			StateDBService:   state,
-		},
-	}
 }
 
 func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
@@ -172,12 +171,12 @@ func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
 			"getCallerNonce": &exec.FunctionImport{Execute: r.envGetCallerNonce, GasCost: constGasFunc(GasQuickStep)},
 			"callTransfer":   &exec.FunctionImport{Execute: r.envCallTransfer, GasCost: constGasFunc(GasQuickStep)},
 
-			"platonCall":               &exec.FunctionImport{Execute: r.envPlatonCall, GasCost: envPlatonCallGasCost},
-			"platonCallInt64":          &exec.FunctionImport{Execute: r.envPlatonCallInt64, GasCost: envPlatonCallInt64GasCost},
-			"platonCallString":         &exec.FunctionImport{Execute: r.envPlatonCallString, GasCost: envPlatonCallStringGasCost},
-			"platonDelegateCall":       &exec.FunctionImport{Execute: r.envPlatonDelegateCall, GasCost: envPlatonCallStringGasCost},
-			"platonDelegateCallInt64":  &exec.FunctionImport{Execute: r.envPlatonDelegateCallInt64, GasCost: envPlatonCallStringGasCost},
-			"platonDelegateCallString": &exec.FunctionImport{Execute: r.envPlatonDelegateCallString, GasCost: envPlatonCallStringGasCost},
+			"dipcCall":               &exec.FunctionImport{Execute: r.envDipperCall, GasCost: envDipperCallGasCost},
+			"dipcCallInt64":          &exec.FunctionImport{Execute: r.envDipperCallInt64, GasCost: envDipperCallInt64GasCost},
+			"dipcCallString":         &exec.FunctionImport{Execute: r.envDipperCallString, GasCost: envDipperCallStringGasCost},
+			"dipcDelegateCall":       &exec.FunctionImport{Execute: r.envDipperDelegateCall, GasCost: envDipperCallStringGasCost},
+			"dipcDelegateCallInt64":  &exec.FunctionImport{Execute: r.envDipperDelegateCallInt64, GasCost: envDipperCallStringGasCost},
+			"dipcDelegateCallString": &exec.FunctionImport{Execute: r.envDipperDelegateCallString, GasCost: envDipperCallStringGasCost},
 		},
 	}
 }
