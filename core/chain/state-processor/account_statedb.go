@@ -17,181 +17,28 @@
 package state_processor
 
 import (
+	"errors"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/common/util/json-kv"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	cs_crypto "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/mpt_log"
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
-	"errors"
-	"sync"
-	"sort"
-	"fmt"
-	"strings"
 	"reflect"
-	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"sort"
+	"strings"
+	"sync"
 )
 
-type account struct {
-	Nonce   uint64
-	Balance *big.Int
-	// Verifier stake, commit number, produce num, verifier num
-	Stake       *big.Int
-	CommitNum   uint64
-	VerifyNum   uint64
-	LastElect   uint64
-	Performance uint64
 
-	HashLock common.Hash `rlp:"nil"`
-	TimeLock *big.Int
-	// not need, merkle root of the contract storage trie
-	//ContractRoot common.Hash `rlp:"nil"`
-	// merkle root of the triple-layered smart contraction data storage trie
-	DataRoot common.Hash `rlp:"nil"`
-}
-
-var (
-	SenderOrReceiverIsEmptyErr = errors.New("sender or receiver is empty")
-)
-
-const (
-	nonceKeySuffix     = "_nonce"
-	balanceKeySuffix   = "_balance"
-	hashLockKeySuffix  = "_hashLock"
-	timeLockKeySuffix  = "_timeLock"
-	contractRootSuffix = "_contract_root"
-	dataRootSuffix     = "_data_root"
-	stakeKeySuffix     = "_stake"
-	commitNumKeySuffix = "_commit_num"
-	verifyNumKeySuffix = "_verify_num"
-	lastElectKeySuffix = "_last_elect"
-	performanceSuffix  = "_performance"
-)
-
-func GetContractFieldKey(address common.Address, key string) []byte {
-	return append(address[:], []byte(key)...)
-}
-
-// get the real key without hash and address
-func GetContractAddrAndKey(key []byte) (common.Address, []byte) {
-	//the key is larger than addr because there is one character at least
-	if len(key) > common.AddressLength {
-		return common.BytesToAddress(key[:common.AddressLength]), key[common.AddressLength:]
-	}
-	return common.Address{}, nil
-}
-
-func GetContractRootKey(address common.Address) []byte {
-	return append(address[:], []byte(contractRootSuffix)...)
-}
-
-func GetNonceKey(address common.Address) []byte {
-	return append(address[:], []byte(nonceKeySuffix)...)
-}
-
-func GetBalanceKey(address common.Address) []byte {
-	return append(address[:], []byte(balanceKeySuffix)...)
-}
-
-func GetHashLockKey(address common.Address) []byte {
-	return append(address[:], []byte(hashLockKeySuffix)...)
-}
-
-func GetTimeLockKey(address common.Address) []byte {
-	return append(address[:], []byte(timeLockKeySuffix)...)
-}
-
-func GetDataRootKey(address common.Address) []byte {
-	return append(address[:], []byte(dataRootSuffix)...)
-}
-
-func GetStakeKey(address common.Address) []byte {
-	return append(address[:], []byte(stakeKeySuffix)...)
-}
-
-func GetCommitNumKey(address common.Address) []byte {
-	return append(address[:], []byte(commitNumKeySuffix)...)
-}
-
-func GetVerifyNumKey(address common.Address) []byte {
-	return append(address[:], []byte(verifyNumKeySuffix)...)
-}
-
-func GetLastElectKey(address common.Address) []byte {
-	return append(address[:], []byte(lastElectKeySuffix)...)
-}
-
-func GetPerformanceKey(address common.Address) []byte {
-	return append(address[:], []byte(performanceSuffix)...)
-}
-
-func (a *account) getNonce() uint64 {
-	return a.Nonce
-}
-
-func (a *account) setNonce(n uint64) {
-	a.Nonce = n
-}
-
-//todo later use  rlp.EncodeToBytes(bytes.TrimLeft(value[:], "\x00")) method to save storage, decode method need use split
-func (a *account) NonceBytes() []byte {
-	v, _ := rlp.EncodeToBytes(a.Nonce)
-	return v
-}
-
-func (a *account) BalanceBytes() []byte {
-	v, _ := rlp.EncodeToBytes(a.Balance)
-	return v
-}
-
-func (a *account) CommitNumBytes() []byte {
-	v, _ := rlp.EncodeToBytes(a.CommitNum)
-	return v
-}
-
-func (a *account) VerifyNumBytes() []byte {
-	v, _ := rlp.EncodeToBytes(a.VerifyNum)
-	return v
-}
-
-func (a *account) PerformanceBytes() []byte {
-	v, _ := rlp.EncodeToBytes(a.Performance)
-	return v
-}
-
-func (a *account) StakeBytes() []byte {
-	v, _ := rlp.EncodeToBytes(a.Stake)
-	return v
-}
-
-func (a *account) LastElectBytes() []byte {
-	v, _ := rlp.EncodeToBytes(a.LastElect)
-	return v
-}
-
-func (a *account) HashLockBytes() []byte {
-	v, _ := rlp.EncodeToBytes(a.HashLock)
-	return v
-}
-
-func (a *account) TimeLockBytes() []byte {
-	v, _ := rlp.EncodeToBytes(a.TimeLock)
-	return v
-}
-
-/*func (a *account) ContractRootBytes() []byte {
-	v, _ := rlp.EncodeToBytes(a.ContractRoot)
-	return v
-}*/
-
-func (a *account) DataRootBytes() []byte {
-	v, _ := rlp.EncodeToBytes(a.DataRoot)
-	return v
-}
 
 type revision struct {
 	id          int
@@ -215,6 +62,7 @@ type AccountStateDB struct {
 	validRevisions  []revision
 	nextRevisionId  int
 
+	logs         map[common.Hash][]*model2.Log
 	lock sync.Mutex
 }
 
@@ -225,7 +73,7 @@ func (state *AccountStateDB) PreStateRoot() common.Hash {
 func (state *AccountStateDB) getContractTrie(addr common.Address) (StateTrie, error) {
 
 	//notice: can't get the trie if the contract root had been changed but not commit
-	cRoot, err := state.blockStateTrie.TryGet(GetContractRootKey(addr))
+	cRoot, err := state.blockStateTrie.TryGet(GetDataRootKey(addr))
 	mpt_log.Debug("get address contract root", "addr", addr.Hex(), "root", common.BytesToHash(cRoot).Hex())
 	if err != nil {
 		log.Info("no contract for addr", "addr", addr.Hex())
@@ -336,6 +184,7 @@ func NewAccountStateDB(preStateRoot common.Hash, db StateStorage) (*AccountState
 		contractData:          map[common.Address]reflect.Value{},
 		finalisedContractRoot: map[common.Address]common.Hash{},
 		stateChangeList:       newStateChangeList(),
+		logs:  map[common.Hash][]*model2.Log{},
 	}
 	return stateDB, nil
 }
@@ -929,6 +778,60 @@ func (state *AccountStateDB) setLastElect(addr common.Address, blockID uint64) e
 	return nil
 }
 
+func (state *AccountStateDB) setContractCode(addr common.Address, code []byte) error{
+	ct, err := state.getContractTrie(addr)
+	if err!=nil{
+		return err
+	}
+	err = ct.TryUpdate(GetContractFieldKey(addr,"code"),code)
+	if err!=nil{
+		return err
+	}
+	codeHash := cs_crypto.Keccak256Hash(code)
+	err = ct.TryUpdate(GetContractFieldKey(addr,"codeHash"),codeHash.Bytes())
+	if err!=nil{
+		return err
+	}
+
+	ch, err := ct.Commit(nil)
+	if err != nil {
+		return err
+	}
+	mpt_log.Info("finaliseContractData update contract root", "contract addr", addr.Hex(), "root", ch.Hex())
+	if err := state.blockStateTrie.TryUpdate(GetDataRootKey(addr), ch.Bytes()); err != nil {
+		// change blockStateTrie to origin pre hash？If you want, clear the finalised contract root. But it is best to discard the AccountStateDB directly after the error is reported.
+		//state.resetThisStateDB()
+		log.Error("Commit update contract root failed", "err", err)
+		return err
+	}
+	state.finalisedContractRoot[addr] = ch
+	return nil
+}
+
+func (state *AccountStateDB) SetAbi(addr common.Address, abi []byte) (err error){
+	ct, err := state.getContractTrie(addr)
+	if err!=nil{
+		return
+	}
+	err = ct.TryUpdate(GetContractFieldKey(addr,"abi"),abi)
+	if err!=nil{
+		return
+	}
+	ch, err := ct.Commit(nil)
+	if err != nil {
+		return err
+	}
+	mpt_log.Info("finaliseContractData update contract root", "contract addr", addr.Hex(), "root", ch.Hex())
+	if err := state.blockStateTrie.TryUpdate(GetDataRootKey(addr), ch.Bytes()); err != nil {
+		// change blockStateTrie to origin pre hash？If you want, clear the finalised contract root. But it is best to discard the AccountStateDB directly after the error is reported.
+		//state.resetThisStateDB()
+		log.Error("Commit update contract root failed", "err", err)
+		return err
+	}
+	state.finalisedContractRoot[addr] = ch
+	return nil
+}
+
 func (state *AccountStateDB) NewAccountState(addr common.Address) error {
 	_, err := state.newAccountState(addr)
 	if err != nil {
@@ -936,6 +839,32 @@ func (state *AccountStateDB) NewAccountState(addr common.Address) error {
 	}
 	state.stateChangeList.append(newAccountChange{Account: &addr, ChangeType: NewAccountChange})
 	return nil
+}
+
+func (state *AccountStateDB) newContractAccount(addr common.Address) (acc *account,err error){
+	tempAccount := account{Nonce: 0, Balance: big.NewInt(0), TimeLock: big.NewInt(0), Stake: big.NewInt(0), CommitNum: uint64(0), VerifyNum: uint64(0), Performance: performanceInitial, LastElect: uint64(0), HashLock: common.Hash{}, DataRoot: common.Hash{}}
+	err = state.blockStateTrie.TryUpdate(GetNonceKey(addr), tempAccount.NonceBytes())
+	if err != nil {
+		return nil, err
+	}
+	err = state.blockStateTrie.TryUpdate(GetBalanceKey(addr), tempAccount.BalanceBytes())
+	if err != nil {
+		return nil, err
+	}
+	err = state.blockStateTrie.TryUpdate(GetHashLockKey(addr), tempAccount.HashLockBytes())
+	if err != nil {
+		return nil, err
+	}
+	err = state.blockStateTrie.TryUpdate(GetTimeLockKey(addr), tempAccount.TimeLockBytes())
+	if err != nil {
+		return nil, err
+	}
+	err = state.blockStateTrie.TryUpdate(GetDataRootKey(addr), tempAccount.DataRootBytes())
+	if err != nil {
+		return nil, err
+	}
+	acc = &tempAccount
+	return
 }
 
 func (state *AccountStateDB) newAccountState(addr common.Address) (acc *account, err error) {
@@ -1016,10 +945,10 @@ func (state *AccountStateDB) deleteAccountState(addr common.Address) (err error)
 	if err != nil {
 		return err
 	}
-	err = state.blockStateTrie.TryDelete(GetContractRootKey(addr))
+	/*err = state.blockStateTrie.TryDelete(GetContractRootKey(addr))
 	if err != nil {
 		return err
-	}
+	}*/
 	err = state.blockStateTrie.TryDelete(GetDataRootKey(addr))
 	if err != nil {
 		return err
@@ -1200,7 +1129,7 @@ func (state *AccountStateDB) finaliseContractData() error {
 			return err
 		}
 		mpt_log.Info("finaliseContractData update contract root", "contract addr", addr.Hex(), "root", ch.Hex())
-		if err := state.blockStateTrie.TryUpdate(GetContractRootKey(addr), ch.Bytes()); err != nil {
+		if err := state.blockStateTrie.TryUpdate(GetDataRootKey(addr), ch.Bytes()); err != nil {
 			// change blockStateTrie to origin pre hash？If you want, clear the finalised contract root. But it is best to discard the AccountStateDB directly after the error is reported.
 			//state.resetThisStateDB()
 			log.Error("Commit update contract root failed", "err", err)
@@ -1275,37 +1204,44 @@ func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint
 //todo these processes are removed afterwards。
 // todo Write a unit test for each transaction to cover all situations
 func (state *AccountStateDB) ProcessTxNew(tx model.AbstractTransaction, block model.AbstractBlock) (err error) {
-	// All transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
-	err = state.processBasicTx(tx)
-	if err != nil {
-		log.Debug("processBasicTx failed", "err", err)
-		return
+
+	if tx.GetType() == common.AddressTypeContract || tx.GetType() == common.AddressTypeContractCreate {
+		switch tx.GetType() {
+		case common.AddressTypeContract:
+			err = state.ProcessContract(tx, block,false)
+		case common.AddressTypeContractCreate:
+			err = state.ProcessContract(tx, block,true)
+		}
+	} else{
+		// All transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
+		err = state.processBasicTx(tx)
+		if err != nil {
+			log.Debug("processBasicTx failed", "err", err)
+			return
+		}
+		switch tx.GetType() {
+		case common.AddressTypeNormal:
+			err = state.processNormalTx(tx)
+		case common.AddressTypeCross:
+			err = state.processCrossTx(tx)
+		case common.AddressTypeERC20:
+			err = state.processERC20Tx(tx, block.Number())
+			// Verifier relate transaction processor
+		case common.AddressTypeStake:
+			err = state.processStakeTx(tx)
+		case common.AddressTypeCancel:
+			err = state.processCancelTx(tx, block.Number())
+		case common.AddressTypeUnStake:
+			err = state.processUnStakeTx(tx)
+		case common.AddressTypeEvidence:
+			err = state.processEvidenceTx(tx)
+		case common.AddressTypeEarlyReward:
+			err = state.processEarlyTokenTx(tx, block.Number())
+		default:
+			err = g_error.UnknownTxTypeErr
+		}
 	}
-	switch tx.GetType() {
-	case common.AddressTypeNormal:
-		err = state.processNormalTx(tx)
-	case common.AddressTypeCross:
-		err = state.processCrossTx(tx)
-	case common.AddressTypeERC20:
-		err = state.processERC20Tx(tx, block.Number())
-		// Verifier relate transaction processor
-	case common.AddressTypeStake:
-		err = state.processStakeTx(tx)
-	case common.AddressTypeCancel:
-		err = state.processCancelTx(tx, block.Number())
-	case common.AddressTypeUnStake:
-		err = state.processUnStakeTx(tx)
-	case common.AddressTypeEvidence:
-		err = state.processEvidenceTx(tx)
-	case common.AddressTypeEarlyReward:
-		err = state.processEarlyTokenTx(tx, block.Number())
-	case common.AddressTypeContract:
-		err = state.ProcessContract(tx, block,false)
-	case common.AddressTypeContractCreate:
-		err = state.ProcessContract(tx, block,true)
-	default:
-		err = g_error.UnknownTxTypeErr
-	}
+
 	return
 }
 
@@ -1364,7 +1300,7 @@ func (state *AccountStateDB) processNormalTx(tx model.AbstractTransaction) (err 
 
 func (state *AccountStateDB) processCrossTx(tx model.AbstractTransaction) (err error) {
 	// TODO:
-	return errors.New("not support now")
+	return errors.New("not support yet.")
 }
 
 func (state *AccountStateDB) processERC20Tx(tx model.AbstractTransaction, blockHeight uint64) (err error) {

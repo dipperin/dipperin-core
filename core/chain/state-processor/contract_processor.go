@@ -23,7 +23,6 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 		state:state,
 	}
 	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
-	err = dvm.PreCheck()
 	if create{
 		data := tx.ExtraData()
 		var ca *CodeAbi

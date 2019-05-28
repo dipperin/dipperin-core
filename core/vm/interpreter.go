@@ -5,7 +5,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
 
-	//resolver2 "github.com/dipperin/dipperin-core/core/vm/resolver"
+	resolver2 "github.com/dipperin/dipperin-core/core/vm/resolver"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"encoding/binary"
 	"fmt"

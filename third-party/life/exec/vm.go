@@ -91,8 +91,9 @@ type VirtualMachine struct {
 	AOTService       AOTService
 	StackTrace       string
 
-	//add 已使用Gas 和 GasLimited
+	//add 已使用Gas
 	GasUsed  uint64
+	//add GasLimited
 	GasLimit uint64
 }
 
@@ -521,7 +522,7 @@ func (vm *VirtualMachine) AddAndCheckGas(delta uint64) bool {
 	if newGas < vm.Gas {
 		panic("gas overflow")
 	}
-	if vm.Config.GasLimit != 0 && newGas > vm.Config.GasLimit {
+	if vm.GasLimit != 0 && newGas > vm.GasLimit {
 		if vm.Config.ReturnOnGasLimitExceeded {
 			return false
 		} else {

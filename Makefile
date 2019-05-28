@@ -37,3 +37,8 @@ cover:
 ## cross compiling
 compile:
 	@./cs.sh compile
+
+
+## compile resolver softFloat
+softFloat:
+	 @./build_deps.sh
