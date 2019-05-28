@@ -1,7 +1,0 @@
-/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/builtins/build/CMakeFiles/rebuild_cache.dir
-/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/builtins/build/CMakeFiles/install.dir
-/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/builtins/build/CMakeFiles/list_install_components.dir
-/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/builtins/build/CMakeFiles/builtins.dir
-/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/builtins/build/CMakeFiles/install/local.dir
-/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/builtins/build/CMakeFiles/install/strip.dir
-/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/builtins/build/CMakeFiles/edit_cache.dir
