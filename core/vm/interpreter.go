@@ -2,21 +2,22 @@ package vm
 
 import (
 	"bytes"
+	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
 
-	//resolver2 "github.com/dipperin/dipperin-core/core/vm/resolver"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"encoding/binary"
-	"fmt"
-	"github.com/ethereum/go-ethereum/rlp"
-	"reflect"
-	"github.com/dipperin/dipperin-core/common"
 	"errors"
-	"math/big"
+	"fmt"
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/math"
-	"strings"
+	//resolver2 "github.com/dipperin/dipperin-core/core/vmcommon/resolver"
+	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/ethereum/go-ethereum/rlp"
+	"math/big"
+	"reflect"
+	"strings"
 )
 
 var (
@@ -32,16 +33,16 @@ const (
 type Interpreter interface {
 	// Run loops and evaluates the contract's code with the given input data and returns
 	// the return byte-slice and an error if one occurred.
-	Run(vm *VM,contract *Contract, input []byte, create bool) ([]byte, error)
+	Run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error)
 	// CanRun tells if the contract, passed as an argument, can be
 	CanRun([]byte) bool
 }
 
 type WASMInterpreter struct {
-	state   StateDB
-	context *Context
-	config  exec.VMConfig
-	resolver    exec.ImportResolver
+	state    StateDB
+	context  *Context
+	config   exec.VMConfig
+	resolver exec.ImportResolver
 }
 
 // NewWASMInterpreter returns a new instance of the Interpreter
@@ -54,8 +55,8 @@ func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) 
 	}
 }
 
-func (in *WASMInterpreter) Run(vm *VM,contract *Contract, input []byte, create bool) ([]byte, error) {
-	// Init vm, inject module
+func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error) {
+	// Init vmcommon, inject module
 	//  1. 合约定义的function, 2. vm提供的方法
 
 	if len(contract.Code) == 0 {
@@ -63,20 +64,17 @@ func (in *WASMInterpreter) Run(vm *VM,contract *Contract, input []byte, create b
 	}
 
 	// rlp解析合约
-/*	_, abi, _, err := parseRlpData(contract.Code)
-	if err != nil {
-		return nil, err
-	}*/
-
+	/*	_, abi, _, err := parseRlpData(contract.Code)
+		if err != nil {
+			return nil, err
+		}*/
 
 	//　life方法注入新建虚拟机
-	//resolver := resolver2.NewResolver(vm, contract, in.state)
+	//resolver := resolver2.NewResolver(vmcommon, contract, in.state)
 	lifeVm, err := exec.NewVirtualMachine(contract.Code, in.config, nil, nil)
 	if err != nil {
 		return []byte{}, err
 	}
-
-
 
 	var (
 		funcName   string
@@ -132,17 +130,17 @@ func (in *WASMInterpreter) Run(vm *VM,contract *Contract, input []byte, create b
 	switch returnType {
 	case "void", "int8", "int", "int32", "int64":
 		if txType == CALL_CONTRACT_FLAG {
-			return utils.Int64ToBytes(res), nil
+			return vmcommon.Int64ToBytes(res), nil
 		}
 		bigRes := new(big.Int)
 		bigRes.SetInt64(res)
-		finalRes := utils.Align32Bytes(math.U256(bigRes).Bytes())
+		finalRes := vmcommon.Align32Bytes(math.U256(bigRes).Bytes())
 		return finalRes, nil
 	case "uint8", "uint16", "uint32", "uint64":
 		if txType == CALL_CONTRACT_FLAG {
-			return utils.Uint64ToBytes(uint64(res)), nil
+			return vmcommon.Uint64ToBytes(uint64(res)), nil
 		}
-		finalRes := utils.Align32Bytes(utils.Uint64ToBytes((uint64(res))))
+		finalRes := vmcommon.Align32Bytes(vmcommon.Uint64ToBytes((uint64(res))))
 		return finalRes, nil
 	case "string":
 		returnBytes := make([]byte, 0)
@@ -156,8 +154,8 @@ func (in *WASMInterpreter) Run(vm *VM,contract *Contract, input []byte, create b
 		if txType == CALL_CONTRACT_FLAG {
 			return returnBytes, nil
 		}
-		strHash := common.BytesToHash(utils.Int32ToBytes(32))
-		sizeHash := common.BytesToHash(utils.Int64ToBytes(int64((len(returnBytes)))))
+		strHash := common.BytesToHash(vmcommon.Int32ToBytes(32))
+		sizeHash := common.BytesToHash(vmcommon.Int64ToBytes(int64((len(returnBytes)))))
 		var dataRealSize = len(returnBytes)
 		if (dataRealSize % 32) != 0 {
 			dataRealSize = dataRealSize + (32 - (dataRealSize % 32))
@@ -203,7 +201,7 @@ func parseInputFromAbi(vm *exec.VirtualMachine, input []byte, abi []byte) (txTyp
 	if len(iRlpList) < 2 {
 		if len(iRlpList) != 0 {
 			if v, ok := iRlpList[0].([]byte); ok {
-				txType = int(utils.BytesToInt64(v))
+				txType = int(vmcommon.BytesToInt64(v))
 			}
 		} else {
 			txType = -1
@@ -219,7 +217,7 @@ func parseInputFromAbi(vm *exec.VirtualMachine, input []byte, abi []byte) (txTyp
 
 	params = make([]int64, 0)
 	if v, ok := iRlpList[0].([]byte); ok {
-		txType = int(utils.BytesToInt64(v))
+		txType = int(vmcommon.BytesToInt64(v))
 	}
 	if v, ok := iRlpList[1].([]byte); ok {
 		funcName = string(v)

@@ -120,7 +120,7 @@ func (m *Module) CompileWithNGen(gp GasPolicy, numGlobals uint64) (out string, r
 			tyID := e.Type.(wasm.FuncImport).Type
 			ty := &m.Base.Types.Entries[int(tyID)]
 
-			bSprintf(importStubBuilder, "uint64_t %s%d(struct VirtualMachine *vm", NGEN_FUNCTION_PREFIX, i)
+			bSprintf(importStubBuilder, "uint64_t %s%d(struct VirtualMachine *vmcommon", NGEN_FUNCTION_PREFIX, i)
 			for j := 0; j < len(ty.ParamTypes); j++ {
 				bSprintf(importStubBuilder, ",uint64_t %s%d", NGEN_LOCAL_PREFIX, j)
 			}
@@ -133,7 +133,7 @@ func (m *Module) CompileWithNGen(gp GasPolicy, numGlobals uint64) (out string, r
 				}
 			}
 			importStubBuilder.WriteString("};\n")
-			bSprintf(importStubBuilder, "return %sinvoke_import(vm, %d, %d, params);\n", NGEN_ENV_API_PREFIX, numFuncImports, len(ty.ParamTypes))
+			bSprintf(importStubBuilder, "return %sinvoke_import(vmcommon, %d, %d, params);\n", NGEN_ENV_API_PREFIX, numFuncImports, len(ty.ParamTypes))
 			importStubBuilder.WriteString("}\n")
 			importTypeIDs = append(importTypeIDs, int(tyID))
 			numFuncImports++

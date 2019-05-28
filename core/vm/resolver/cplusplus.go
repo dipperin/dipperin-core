@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	math2 "github.com/dipperin/dipperin-core/common/math"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log/vm_log"
@@ -77,7 +77,7 @@ func (r *Resolver)envPrints(vm *exec.VirtualMachine) int64 {
 	}
 	vm_log.Debug(string(vm.Memory.Memory[start:end]))
 
-	//fmt.Printf("%s", string(vm.Memory.Memory[start:end]))
+	//fmt.Printf("%s", string(vmcommon.Memory.Memory[start:end]))
 	return 0
 }
 
@@ -240,7 +240,7 @@ func envCallocGasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 func envRealloc(vm *exec.VirtualMachine) int64 {
 	mem := vm.Memory
-	//ptr := int(int32(vm.GetCurrentFrame().Locals[0]))
+	//ptr := int(int32(vmcommon.GetCurrentFrame().Locals[0]))
 	size := int(int32(vm.GetCurrentFrame().Locals[1]))
 
 	if size == 0 {
@@ -472,7 +472,7 @@ func (r *Resolver)envDipperCallInt64(vm *exec.VirtualMachine) int64 {
 	}
 
 
-	return utils.BytesToInt64(ret)
+	return vmcommon.BytesToInt64(ret)
 }
 
 func (r *Resolver)envDipperDelegateCallInt64(vm *exec.VirtualMachine) int64 {
@@ -485,7 +485,7 @@ func (r *Resolver)envDipperDelegateCallInt64(vm *exec.VirtualMachine) int64 {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
 	}
-	return utils.BytesToInt64(ret)
+	return vmcommon.BytesToInt64(ret)
 }
 
 func (r *Resolver)envDipperCallString(vmValue *exec.VirtualMachine) int64 {

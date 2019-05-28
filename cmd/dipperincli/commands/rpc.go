@@ -18,12 +18,15 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/config"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/core/chain"
@@ -31,8 +34,10 @@ import (
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/urfave/cli"
 	"io/ioutil"
+	"math/big"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -230,6 +235,19 @@ func getRpcMethodAndParam(c *cli.Context) (mName string, cParams []string, err e
 	cParams = getRpcParamFromString(params)
 	return mName, cParams, nil
 }
+
+func getRpcParamValue(c *cli.Context, paramName string) (path string, err error)  {
+	path = c.String(paramName)
+	if path == "" {
+		return "", errors.New("the " + paramName + " path is nil")
+	}
+	return
+}
+
+func getRpcSpecialParam(c *cli.Context, paramName string)(value string)  {
+	return c.String(paramName)
+}
+
 
 func checkSync() bool {
 	if !SyncStatus.Load().(bool) {
@@ -533,6 +551,106 @@ func (caller *rpcCaller) SendTx(c *cli.Context) {
 	}
 	l.Info("SendTransaction result", "txId", resp.Hex())
 
+}
+
+func (caller *rpcCaller) SendTransactionContractCreate(c *cli.Context)  {
+	if checkSync(){
+		return
+	}
+	mName, cParams, err := getRpcMethodAndParam(c)
+	if err != nil {
+		l.Error("getRpcMethodAndParam error", "err", err)
+		return
+	}
+	if len(cParams) != 3 && len(cParams) != 4 {
+		l.Error("parameter includes：from value gasLimit gasPrice")
+		return
+	}
+
+	From, err := CheckAndChangeHexToAddress(cParams[0])
+	if err != nil {
+		l.Error("the from address is invalid", "err", err)
+		l.Error(err.Error())
+		return
+	}
+	to := common.HexToAddress(strconv.Itoa(common.AddressTypeContractCreate))
+
+	Value, err := MoneyValueToCSCoin(cParams[1])
+	if err != nil {
+		l.Error("the parameter value invalid")
+		return
+	}
+	gasLimit, err := MoneyValueToCSCoin(cParams[2])
+	if err != nil {
+		l.Error("the parameter value invalid")
+		return
+	}
+
+	var gasPrice  *big.Int
+	if len(cParams) == 3 {
+		gasPrice.SetInt64(config.DEFAULT_GAS_PRICE)
+	} else {
+		gasPrice, err = MoneyValueToCSCoin(cParams[2])
+		if err != nil {
+			l.Error("the parameter value invalid")
+			return
+		}
+	}
+
+	ExtraData, err := generateExtraData(c)
+	if err != nil {
+		l.Error("generate extraData err")
+		return
+	}
+
+	var resp common.Hash
+
+	l.Info("the From is: ", "From", From.Hex())
+	l.Info("the Value is:", "Value", cParams[1]+consts.CoinDIPName)
+	l.Info("the gasLimit is:", "gasLimit", cParams[2])
+	l.Info("the gasPrice is:", "gasPrice", gasPrice)
+	l.Info("the ExtraData is: ", "ExtraData", ExtraData)
+
+	if err := client.Call(&resp, getDipperinRpcMethodByName(mName), From, to, Value, gasLimit, gasPrice, ExtraData, nil); err != nil {
+
+		l.Error("call send transaction", "err", err)
+		return
+	}
+	l.Info("SendTransaction result", "txId", resp.Hex())
+}
+
+func generateExtraData(c *cli.Context)(ExtraData []byte, err error) {
+	abiPath, err := getRpcParamValue(c, "abi")
+	if err != nil {
+		l.Error("the abi path value invalid")
+		return
+	}
+	abiBytes, err := ioutil.ReadFile(abiPath)
+	if err != nil {
+		l.Error("the abi file read err")
+		return
+	}
+	wasmPath, err := getRpcParamValue(c, "wasm")
+	if err != nil {
+		l.Error("the wasm path value invalid")
+		return
+	}
+	wasmBytes, err := ioutil.ReadFile(wasmPath)
+	if err != nil {
+		l.Error("the abi file read err")
+		return
+	}
+	input := getRpcSpecialParam(c, "input")
+	inputRlp, err := geneteInputRlpBytes(input)
+	if err != nil {
+		l.Error("input to rlp error")
+		return
+	}
+	ExtraData, err = json.Marshal(vmcommon.CodeAbi{Abi: abiBytes, Code: wasmBytes, Input: inputRlp})
+	return
+}
+func geneteInputRlpBytes(input string) (result  []byte, err error)  {
+	return rlp.EncodeToBytes([]interface{}{common.AddressTypeContractCreate, "init", input })
 }
 
 //send transaction

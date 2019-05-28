@@ -2,14 +2,10 @@ package state_processor
 
 import (
 	"encoding/json"
+	vm2 "github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
 )
-type CodeAbi struct {
-	Code   []byte `json:"code"`
-	Abi []byte `json:"abi"`
-	Input []byte `json:"Input"`
-}
 
 type CallCode struct {
 	Func []byte
@@ -24,7 +20,7 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
 	if create{
 		data := tx.ExtraData()
-		var ca *CodeAbi
+		var ca *vm2.CodeAbi
 		err := json.Unmarshal(data,ca)
 		if err!= nil{
 			return err

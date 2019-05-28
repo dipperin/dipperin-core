@@ -2,7 +2,7 @@ package vm
 /*
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/core/vmcommon/common/utils"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"math/big"
@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var vm *VM
+var vmcommon *VM
 
 func TestDeployContract(t *testing.T) {
 	InitVM()
@@ -18,10 +18,10 @@ func TestDeployContract(t *testing.T) {
 	abiJson,_:=ioutil.ReadFile("./map-string/StringMap.cpp.abi.json")
 
 	txCaller := &Caller{common.HexToAddress("0x999")}
-	_, addr, _, err := vm.Create(txCaller, code, abiJson, []byte{})
+	_, addr, _, err := vmcommon.Create(txCaller, code, abiJson, []byte{})
 
 	assert.NoError(t, err)
-	result := vm.state.GetState(addr,[]byte("code"))
+	result := vmcommon.state.GetState(addr,[]byte("code"))
 	assert.Equal(t,code,result)
 }
 
@@ -32,25 +32,25 @@ func TestCallContract(t *testing.T){
 	abiJson,_:=ioutil.ReadFile("./map-string/StringMap.cpp.abi.json")
 
 	txCaller := &Caller{common.HexToAddress("0x999")}
-	_, addr, _, err := vm.Create(txCaller, code, abiJson, []byte{})
+	_, addr, _, err := vmcommon.Create(txCaller, code, abiJson, []byte{})
 	assert.NoError(t, err)
 
 	// Call contract
 	param := [][]byte{[]byte("alice"), utils.Int32ToBytes(100)} //key = "Alice" value = 100
 	inputs := genInput(t,"setBalance",param)
 
-	_, _, err = vm.Call(txCaller, addr, inputs,0,big.NewInt(0))
+	_, _, err = vmcommon.Call(txCaller, addr, inputs,0,big.NewInt(0))
 	assert.NoError(t, err)
 
 	//Verify result
 	time.Sleep(time.Microsecond*100)
-	vm.state.GetState(addr,append([]byte{7}, []byte("balance")...))
+	vmcommon.state.GetState(addr,append([]byte{7}, []byte("balance")...))
 }
 
 func InitVM(){
-	if vm != nil {
+	if vmcommon != nil {
 		return
 	}
-	vm = NewVM(Context{},&fakeStateDB{}, DEFAULT_VM_CONFIG)
+	vmcommon = NewVM(Context{},&fakeStateDB{}, DEFAULT_VM_CONFIG)
 }
 */

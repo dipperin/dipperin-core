@@ -1213,7 +1213,7 @@ func (state *AccountStateDB) ProcessTxNew(tx model.AbstractTransaction, block mo
 			err = state.ProcessContract(tx, block,true)
 		}
 	} else{
-		// All transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
+		// All normal transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
 		err = state.processBasicTx(tx)
 		if err != nil {
 			log.Debug("processBasicTx failed", "err", err)
