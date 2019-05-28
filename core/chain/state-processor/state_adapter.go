@@ -2,7 +2,7 @@ package state_processor
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 )
@@ -123,7 +123,7 @@ func (f  *Fullstate) SetState(addr common.Address,key []byte, value []byte) {
 }
 
 
-func (f  *Fullstate) AddLog(addedLog *model.Log) {
+func (f  *Fullstate) AddLog(addedLog *model2.Log) {
 	log.Info("AddLog Called")
 
 	txHash := addedLog.TxHash
@@ -134,7 +134,7 @@ func (f  *Fullstate) AddLog(addedLog *model.Log) {
 	log.Info("Log Added", "txHash", txHash, "logs", f.state.logs[txHash])
 }
 
-func (f  *Fullstate) GetLogs(txHash common.Hash) []*model.Log {
+func (f  *Fullstate) GetLogs(txHash common.Hash) []*model2.Log {
 	return f.state.logs[txHash]
 }
 func (f  *Fullstate) Suicide(common.Address) bool {
