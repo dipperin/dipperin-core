@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 )
 
 func testGetHash(blockNumber uint64) common.Hash {
@@ -19,7 +20,10 @@ func testGetHash(blockNumber uint64) common.Hash {
 }
 
 func getTestVm() *VM {
-	return NewVM(Context{BlockNumber: big.NewInt(1), GetHash: testGetHash}, fakeStateDB{}, DEFAULT_VM_CONFIG)
+	return NewVM(Context{
+			BlockNumber: big.NewInt(1), GetHash: testGetHash,
+			GasLimit:model.TxGas,
+		}, fakeStateDB{}, DEFAULT_VM_CONFIG)
 }
 
 func TestWASMInterpreter_Run_small(t *testing.T) {
@@ -183,8 +187,8 @@ func TestWASMInterpreter_Run_event(t *testing.T) {
 	testVm := getTestVm()
 	interpreter := testVm.Interpreter
 
-	name := []byte("0000")
-	num := utils.Int64ToBytes(2)
+	name := []byte("asdf")
+	num := utils.Int64ToBytes(123)
 	log.Info("the num is:", "num", num)
 
 	/*	name := []byte("logName")

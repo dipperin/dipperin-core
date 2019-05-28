@@ -574,13 +574,13 @@ func (vm *VirtualMachine) Execute() {
 		ins := opcodes.Opcode(frame.Code[frame.IP+4])
 		frame.IP += 5
 
-/*		cost, err := vm.JumpTable[ins].GasCost(vm, frame)
+		cost, err := vm.JumpTable[ins].GasCost(vm, frame)
 		if err != nil || (cost+vm.GasUsed) > vm.GasLimit {
 			panic(fmt.Sprintf("out of gas  cost:%d GasUsed:%d GasLimit:%d", cost, vm.GasUsed, vm.GasLimit))
 		}
-		vm.GasUsed += cost*/
+		vm.GasUsed += cost
 
-		//fmt.Printf("INS: [%d] %s\n", valueID, ins.String())
+		//fmt.Printf("INS: [%d] %s\n", valueID, ins.String(), )
 		switch ins {
 		case opcodes.Nop:
 		case opcodes.Unreachable:

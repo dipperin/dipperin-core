@@ -118,6 +118,8 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 	}
 
 	res, err := lifeVm.Run(entryID, params...)
+	log.Info("Run lifeVm", "Gas Used", lifeVm.GasUsed, "Gas", lifeVm.Gas, "Gas Limit", lifeVm.GasLimit)
+
 	if err != nil {
 		fmt.Println("throw exception:", err.Error())
 		return nil, err
