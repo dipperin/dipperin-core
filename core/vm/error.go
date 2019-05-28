@@ -11,5 +11,4 @@ var (
 	ErrContractAddressCollision = errors.New("contract address collision")
 	ErrNoCompatibleInterpreter  = errors.New("no compatible Interpreter")
 	ErrInsufficientBalanceForGas = errors.New("insufficient balance to pay for gas")
-
 )

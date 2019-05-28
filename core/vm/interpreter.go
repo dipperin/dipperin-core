@@ -5,7 +5,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
 
-	resolver2 "github.com/dipperin/dipperin-core/core/vm/resolver"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"encoding/binary"
 	"fmt"
@@ -32,16 +31,16 @@ const (
 type Interpreter interface {
 	// Run loops and evaluates the contract's code with the given input data and returns
 	// the return byte-slice and an error if one occurred.
-	Run(vm *VM,contract *Contract, input []byte, create bool) ([]byte, error)
+	Run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error)
 	// CanRun tells if the contract, passed as an argument, can be
 	CanRun([]byte) bool
 }
 
 type WASMInterpreter struct {
-	state   StateDB
-	context *Context
-	config  exec.VMConfig
-	resolver    exec.ImportResolver
+	state    StateDB
+	context  *Context
+	config   exec.VMConfig
+	resolver exec.ImportResolver
 }
 
 // NewWASMInterpreter returns a new instance of the Interpreter
@@ -54,7 +53,7 @@ func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) 
 	}
 }
 
-func (in *WASMInterpreter) Run(vm *VM,contract *Contract, input []byte, create bool) ([]byte, error) {
+func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error) {
 	// Init vm, inject module
 	//  1. 合约定义的function, 2. vm提供的方法
 
@@ -63,20 +62,17 @@ func (in *WASMInterpreter) Run(vm *VM,contract *Contract, input []byte, create b
 	}
 
 	// rlp解析合约
-/*	_, abi, _, err := parseRlpData(contract.Code)
-	if err != nil {
-		return nil, err
-	}*/
-
+	/*	_, abi, _, err := parseRlpData(contract.Code)
+		if err != nil {
+			return nil, err
+		}*/
 
 	//　life方法注入新建虚拟机
-	//resolver := resolver2.NewResolver(vm, contract, in.state)
-	lifeVm, err := exec.NewVirtualMachine(contract.Code, in.config, nil, nil)
+	solver := resolver.NewResolver(vm, contract, in.state)
+	lifeVm, err := exec.NewVirtualMachine(contract.Code, in.config, solver, nil)
 	if err != nil {
 		return []byte{}, err
 	}
-
-
 
 	var (
 		funcName   string
@@ -247,7 +243,7 @@ func parseInputFromAbi(vm *exec.VirtualMachine, input []byte, abi []byte) (txTyp
 		bts := argsRlp[i].([]byte)
 		switch v.Type {
 		case "string":
-			pos := resolver2.MallocString(vm, string(bts))
+			pos := resolver.MallocString(vm, string(bts))
 			params = append(params, pos)
 		case "int8":
 			params = append(params, int64(bts[0]))
