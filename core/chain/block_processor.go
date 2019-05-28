@@ -73,7 +73,7 @@ func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel eco
 	// special block doesn't process txs
 	if !block.IsSpecial() {
 		if err = block.TxIterator(func(i int, tx model.AbstractTransaction) (error) {
-			innerError := state.ProcessTx(tx, block.Number())
+			innerError := state.ProcessTxNew(tx, block)
 			/*// unrecognized tx means no processing of the tx
 			if innerError == g_error.UnknownTxTypeErr {
 				log.Warn("unknown tx type", "type", tx.GetType())

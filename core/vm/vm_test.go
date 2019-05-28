@@ -1,5 +1,5 @@
 package vm
-
+/*
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
@@ -53,3 +53,4 @@ func InitVM(){
 	}
 	vm = NewVM(Context{},&fakeStateDB{}, DEFAULT_VM_CONFIG)
 }
+*/

@@ -17,12 +17,13 @@ type CallCode struct {
 	Input []byte `json:"Input"`
 }
 
-func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, blockHeight uint64, create bool) (err error) {
-	context := vm.NewVMContext(tx)
+func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block model.AbstractBlock, create bool) (err error) {
+	context := vm.NewVMContext(tx, block)
 	fullState := &Fullstate{
 		state:state,
 	}
 	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
+	err = dvm.PreCheck()
 	if create{
 		data := tx.ExtraData()
 		var ca *CodeAbi

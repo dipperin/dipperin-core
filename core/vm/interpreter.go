@@ -3,7 +3,9 @@ package vm
 import (
 	"bytes"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	resolver2 "github.com/dipperin/dipperin-core/core/vm/resolver"
+	"github.com/dipperin/dipperin-core/core/vm/resolver"
+
+	//resolver2 "github.com/dipperin/dipperin-core/core/vm/resolver"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"encoding/binary"
 	"fmt"
@@ -39,6 +41,7 @@ type WASMInterpreter struct {
 	state   StateDB
 	context *Context
 	config  exec.VMConfig
+	resolver    exec.ImportResolver
 }
 
 // NewWASMInterpreter returns a new instance of the Interpreter
@@ -47,6 +50,7 @@ func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) 
 		state,
 		&context,
 		vmConfig,
+		&resolver.Resolver{},
 	}
 }
 
@@ -66,8 +70,8 @@ func (in *WASMInterpreter) Run(vm *VM,contract *Contract, input []byte, create b
 
 
 	//　life方法注入新建虚拟机
-	resolver := resolver2.NewResolver(vm, contract, in.state)
-	lifeVm, err := exec.NewVirtualMachine(contract.Code, in.config, resolver, nil)
+	//resolver := resolver2.NewResolver(vm, contract, in.state)
+	lifeVm, err := exec.NewVirtualMachine(contract.Code, in.config, nil, nil)
 	if err != nil {
 		return []byte{}, err
 	}
