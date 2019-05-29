@@ -91,6 +91,7 @@ type AbstractBlock interface {
 	SetVerifications(vs []AbstractVerification)
 	VersIterator(func(int, AbstractVerification, AbstractBlock) error) (error)
 	GetVerifications() ([]AbstractVerification)
+	//GasLimit() uint64
 }
 
 type PriofityCalculator interface {

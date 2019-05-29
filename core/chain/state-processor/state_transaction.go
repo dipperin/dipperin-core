@@ -1,5 +1,6 @@
 package state_processor
 
+
 import (
 	"math/big"
 	"github.com/dipperin/dipperin-core/common"
@@ -81,7 +82,7 @@ func ApplyMessage(vm *vm.VM, msg Message, gp uint64, state AccountStateTx) ([]by
 
 // to returns the recipient of the message.
 func (st *StateTransition) to() common.Address {
-	if st.msg == nil || st.msg.To() == nil /* contract creation */ {
+	if st.msg == nil || st.msg.To() == nil  {
 		return common.Address{}
 	}
 	return *st.msg.To()

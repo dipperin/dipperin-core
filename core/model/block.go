@@ -46,6 +46,7 @@ var (
 	DefaultBlockBloomConfig = iblt.NewBloomConfig(8, 4)
 	DefaultInvBloomConfig   = iblt.NewInvBloomConfig(1<<12, 4)
 	DefaultTxs              = 100
+	DefaultGasLimit         = uint64(20000000)
 )
 
 type Header struct {
@@ -259,6 +260,10 @@ type Block struct {
 	// caches
 	hash atomic.Value `json:"-"`
 	size atomic.Value `json:"-"`
+}
+
+func (b *Block) GasLimit() uint64  {
+	return  DefaultGasLimit
 }
 
 func (b *Block) IsSpecial() bool {
