@@ -20,7 +20,7 @@ func TestApplyMessage(t *testing.T) {
 	c := make(map[common.Address][]byte)
 	testVm := getTestVm(a, c)
 
-	result, usedGas, failed, err := ApplyMessage(testVm, msg, 5*gasLimit, fakeAccountStateTx{account: a})
+	result, usedGas, failed, err := ApplyMessage(testVm, msg, 5*gasLimit)
 	assert.NoError(t, err)
 	assert.False(t, failed)
 	assert.NotNil(t, usedGas)
@@ -37,7 +37,7 @@ func TestApplyMessage(t *testing.T) {
 	msg, err = tx.AsMessage()
 	assert.NoError(t, err)
 
-	result, usedGas, failed, err = ApplyMessage(testVm, msg, 5*gasLimit, fakeAccountStateTx{account: a})
+	result, usedGas, failed, err = ApplyMessage(testVm, msg, 5*gasLimit)
 	assert.NoError(t, err)
 	assert.False(t, failed)
 	assert.NotNil(t, usedGas)

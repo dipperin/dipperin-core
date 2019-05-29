@@ -374,22 +374,6 @@ func (tx fakeTransaction) EstimateFee() *big.Int {
 	panic("implement me")
 }
 
-type fakeAccountStateTx struct {
-	account map[common.Address]*big.Int
-}
-
-func (state fakeAccountStateTx) AddBalance(addr common.Address, amount *big.Int) error {
-	if state.account[addr] != nil {
-		state.account[addr] = new(big.Int).Add(state.account[addr], amount)
-	}
-	return nil
-}
-
-func (state fakeAccountStateTx) SubBalance(addr common.Address, amount *big.Int) error {
-	state.account[addr] = new(big.Int).Sub(state.account[addr], amount)
-	return nil
-}
-
 type fakeStateDB struct {
 	account map[common.Address]*big.Int
 	code    map[common.Address][]byte
@@ -408,12 +392,14 @@ func (state fakeStateDB) CreateAccount(addr common.Address) {
 	state.account[addr] = big.NewInt(1000)
 }
 
-func (state fakeStateDB) SubBalance(common.Address, *big.Int) {
-	panic("implement me")
+func (state fakeStateDB) AddBalance(addr common.Address, amount *big.Int) {
+	if state.account[addr] != nil {
+		state.account[addr] = new(big.Int).Add(state.account[addr], amount)
+	}
 }
 
-func (state fakeStateDB) AddBalance(common.Address, *big.Int) {
-	panic("implement me")
+func (state fakeStateDB) SubBalance(addr common.Address, amount *big.Int) {
+	state.account[addr] = new(big.Int).Sub(state.account[addr], amount)
 }
 
 func (state fakeStateDB) GetBalance(addr common.Address) *big.Int {

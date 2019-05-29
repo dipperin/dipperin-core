@@ -23,7 +23,7 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 		state: state,
 	}
 	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
-	ret, usedGas, failed, err := ApplyMessage(dvm, msg, gp, fullState.state)
+	ret, usedGas, failed, err := ApplyMessage(dvm, msg, gp)
 	/*if create {
 		data := tx.ExtraData()
 		var ca *vm2.CodeAbi
