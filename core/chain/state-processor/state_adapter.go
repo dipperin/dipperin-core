@@ -38,6 +38,18 @@ func (f *Fullstate) AddNonce(addr common.Address, add uint64) {
 	}
 }
 
+func (f *Fullstate) AddBalance(addr common.Address, amount *big.Int){
+	err := f.state.AddBalance(addr, amount)
+	if err != nil{
+		panic("Can not add balance")
+	}
+}
+func (f *Fullstate) SubBalance(addr common.Address, amount *big.Int){
+	err := f.state.SubBalance(addr,amount)
+	if err != nil{
+		panic("Can not sub balance")
+	}
+}
 
 func (f  *Fullstate) GetCodeHash(addr common.Address) common.Hash {
 	code, err := f.state.GetCode(addr)

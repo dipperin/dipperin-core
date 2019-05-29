@@ -2,8 +2,8 @@ package vm
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"math/big"
 	"github.com/dipperin/dipperin-core/core/vm/model"
+	"math/big"
 )
 
 type StateDB interface {
@@ -23,6 +23,9 @@ type StateDB interface {
 	GetAbiHash(common.Address) common.Hash
 	GetAbi(common.Address) []byte
 	SetAbi(common.Address, []byte)
+
+	AddBalance(addr common.Address, amount *big.Int)
+	SubBalance(addr common.Address, amount *big.Int)
 
 	/*AddRefund(uint64)
 	SubRefund(uint64)
@@ -53,11 +56,9 @@ type StateDB interface {
 	/*AddPreimage(common.Hash, []byte)
 	ForEachStorage(common.Address, func(common.Hash, common.Hash) bool)
 
-	//ppos add
+	//ppos add*/
 	TxHash() common.Hash
 	TxIdx() uint32
-	*/
-
 }
 
 /*type AccountDB interface {

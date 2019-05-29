@@ -366,6 +366,10 @@ type fakeStateDB struct {
 	account map[common.Address]*big.Int
 }
 
+func (state fakeStateDB) GetLogs(txHash common.Hash) []*model2.Log {
+	panic("implement me")
+}
+
 func (state fakeStateDB) AddLog(addedLog *model2.Log) {
 	log.Info("add log success")
 	return
