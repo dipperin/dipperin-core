@@ -37,6 +37,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 )
 
 var (
@@ -74,54 +75,22 @@ func createTestTx() (*model.Transaction, *model.Transaction) {
 	return testTx1, testTx2
 }
 
-func createContractTx(t *testing.T, to *common.Address, code, abi string) *model.Transaction {
+func createContractTx(t *testing.T, code, abi string) *model.Transaction {
 	key, _ := createKey()
 	fs := model.NewMercurySigner(big.NewInt(1))
-	data := getTxData(t, code, abi)
-	tx := model.NewTransactionSc(0, to, big.NewInt(200), gasPrice, gasLimit, data)
+	data := getContractCode(t, code, abi)
+	tx := model.NewTransactionSc(0, nil, big.NewInt(200), gasPrice, gasLimit, data)
 	tx.SignTx(key, fs)
 	return tx
 }
 
-func getTestVm(account map[common.Address]*big.Int) *vm.VM {
-	testGetHash := func(blockNumber uint64) common.Hash {
-		return common.Hash{}
-	}
-	testCanTransfer := func(vm.StateDB, common.Address, *big.Int) bool {
-		return true
-	}
-	testTransfer := func(vm.StateDB, common.Address, common.Address, *big.Int) {
-		return
-	}
-	return vm.NewVM(vm.Context{
-		BlockNumber: big.NewInt(1),
-		GetHash:     testGetHash,
-		CanTransfer: testCanTransfer,
-		Transfer:testTransfer,
-		GasLimit:    model2.TxGas,
-	}, fakeStateDB{account: account}, vm.DEFAULT_VM_CONFIG)
-}
-
-func getTxData(t *testing.T, code, abi string) []byte {
-	fileCode, err := ioutil.ReadFile(code)
-	assert.NoError(t, err)
-
-	fileABI, err := ioutil.ReadFile(abi)
-	assert.NoError(t, err)
-	var input [][]byte
-	input = make([][]byte, 0)
-	// tx type
-
-	input = append(input, vmcommon.Int64ToBytes(1))
-	// code
-	input = append(input, fileCode)
-	// abi
-	input = append(input, fileABI)
-
-	buffer := new(bytes.Buffer)
-	err = rlp.Encode(buffer, input)
-	assert.NoError(t, err)
-	return buffer.Bytes()
+func callContractTx(t *testing.T, to *common.Address, funcName string, param [][]byte) *model.Transaction {
+	key, _ := createKey()
+	fs := model.NewMercurySigner(big.NewInt(1))
+	data := genInput(t, funcName, param)
+	tx := model.NewTransactionSc(0, to, big.NewInt(200), gasPrice, gasLimit, data)
+	tx.SignTx(key, fs)
+	return tx
 }
 
 func createTestStateDB() (ethdb.Database, common.Hash) {
@@ -152,6 +121,65 @@ func createSignedVote(num uint64, blockId common.Hash, voteType model.VoteMsgTyp
 	voteA.Witness.Address = address
 	voteA.Witness.Sign = sign
 	return voteA
+}
+
+func getTestVm(account map[common.Address]*big.Int, code map[common.Address][]byte) *vm.VM {
+	testGetHash := func(blockNumber uint64) common.Hash {
+		return common.Hash{}
+	}
+	testCanTransfer := func(vm.StateDB, common.Address, *big.Int) bool {
+		return true
+	}
+	testTransfer := func(vm.StateDB, common.Address, common.Address, *big.Int) {
+		return
+	}
+	return vm.NewVM(vm.Context{
+		BlockNumber: big.NewInt(1),
+		GetHash:     testGetHash,
+		CanTransfer: testCanTransfer,
+		Transfer:    testTransfer,
+		GasLimit:    model2.TxGas,
+	}, fakeStateDB{account: account, code: code}, vm.DEFAULT_VM_CONFIG)
+}
+
+func getContractCode(t *testing.T, code, abi string) []byte {
+	fileCode, err := ioutil.ReadFile(code)
+	assert.NoError(t, err)
+
+	fileABI, err := ioutil.ReadFile(abi)
+	assert.NoError(t, err)
+	var input [][]byte
+	input = make([][]byte, 0)
+	// tx type
+
+	input = append(input, vmcommon.Int64ToBytes(1))
+	// code
+	input = append(input, fileCode)
+	// abi
+	input = append(input, fileABI)
+
+	buffer := new(bytes.Buffer)
+	err = rlp.Encode(buffer, input)
+	assert.NoError(t, err)
+	return buffer.Bytes()
+}
+
+func genInput(t *testing.T, funcName string, param [][]byte) []byte {
+	var input [][]byte
+	input = make([][]byte, 0)
+	// tx type
+	input = append(input, vmcommon.Int64ToBytes(1))
+	// func name
+	input = append(input, []byte(funcName))
+	// func parameter
+	for _, v := range (param) {
+		input = append(input, v)
+	}
+
+	buffer := new(bytes.Buffer)
+	err := rlp.Encode(buffer, input)
+	assert.NoError(t, err)
+	return buffer.Bytes()
 }
 
 //Get a test transaction
@@ -364,6 +392,7 @@ func (state fakeAccountStateTx) SubBalance(addr common.Address, amount *big.Int)
 
 type fakeStateDB struct {
 	account map[common.Address]*big.Int
+	code    map[common.Address][]byte
 }
 
 func (state fakeStateDB) AddLog(addedLog *model2.Log) {
@@ -402,16 +431,17 @@ func (state fakeStateDB) AddNonce(common.Address, uint64) {
 	return
 }
 
-func (state fakeStateDB) GetCodeHash(common.Address) common.Hash {
-	return common.Hash{}
+func (state fakeStateDB) GetCodeHash(addr common.Address) common.Hash {
+	code := state.code[addr]
+	return cs_crypto.Keccak256Hash(code)
 }
 
-func (state fakeStateDB) GetCode(common.Address) []byte {
-	panic("implement me")
+func (state fakeStateDB) GetCode(addr common.Address) []byte {
+	return state.code[addr]
 }
 
-func (state fakeStateDB) SetCode(common.Address, []byte) {
-	return
+func (state fakeStateDB) SetCode(addr common.Address, code []byte) {
+	state.code[addr] = code
 }
 
 func (state fakeStateDB) GetCodeSize(common.Address) int {
@@ -466,7 +496,7 @@ func (state fakeStateDB) HasSuicided(common.Address) bool {
 }
 
 func (state fakeStateDB) Exist(common.Address) bool {
-	panic("implement me")
+	return false
 }
 
 func (state fakeStateDB) Empty(common.Address) bool {

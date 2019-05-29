@@ -1,6 +1,5 @@
 package state_processor
 
-
 import (
 	"math/big"
 	"github.com/dipperin/dipperin-core/common"
@@ -82,7 +81,7 @@ func ApplyMessage(vm *vm.VM, msg Message, gp uint64, state AccountStateTx) ([]by
 
 // to returns the recipient of the message.
 func (st *StateTransition) to() common.Address {
-	if st.msg == nil || st.msg.To() == nil  {
+	if st.msg == nil || st.msg.To() == nil {
 		return common.Address{}
 	}
 	return *st.msg.To()
@@ -103,7 +102,7 @@ func (st *StateTransition) buyGas() error {
 		return vm.ErrInsufficientBalanceForGas
 	}
 
-	log.Info("Call buyGas","gasPool", st.gp, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()), "value", msgVal)
+	log.Info("Call buyGas", "gasPool", st.gp, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()), "value", msgVal)
 
 	if st.gp < st.msg.Gas() {
 		return g_error.ErrGasLimitReached
@@ -163,6 +162,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		vmerr error
 	)
 	if contractCreation {
+		// data = rlp
 		ret, _, st.gas, vmerr = lifeVm.Create(sender, st.data, st.gas, st.value)
 	} else {
 		// Increment the nonce for the next transaction

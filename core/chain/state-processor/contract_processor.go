@@ -12,7 +12,6 @@ type CallCode struct {
 	Input []byte `json:"Input"`
 }
 
-
 func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block model.AbstractBlock, create bool) (err error) {
 	msg, err := tx.AsMessage()
 	if err != nil {
@@ -24,7 +23,7 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 		state: state,
 	}
 	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
-	ret, usedGas, failed, err := ApplyMessage(dvm, msg,gp, fullState.state)
+	ret, usedGas, failed, err := ApplyMessage(dvm, msg, gp, fullState.state)
 	/*if create {
 		data := tx.ExtraData()
 		var ca *vm2.CodeAbi
