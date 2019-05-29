@@ -56,6 +56,9 @@ var optionHelp = []prompt.Suggest{
 var rpcFlags = []prompt.Suggest{
 	{Text: "-m", Description: "operation（this method must match rpc server's method）"},
 	{Text: "-p", Description: "parameters"},
+	{Text: "-abi", Description:"abi path"},
+	{Text: "-wasm", Description:"wasm path"},
+	{Text: "-input", Description:"contract parameters"},
 }
 
 func callMethod(args []string, long bool) []prompt.Suggest {
@@ -122,6 +125,7 @@ var methodFlags = []prompt.Suggest{
 	{Text: "SendRegisterTransaction", Description: ""},
 	{Text: "SendRegisterTx", Description: ""},
 	{Text: "SendTransaction", Description: ""},
+	{Text: "SendTransactionContractCreate", Description: ""},
 	{Text: "SendTx", Description: ""},
 	{Text: "SetExchangeRate", Description: ""},
 	{Text: "SetMineCoinBase", Description: ""},
