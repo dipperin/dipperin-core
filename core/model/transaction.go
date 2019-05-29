@@ -47,20 +47,19 @@ type RpcTransaction struct {
 	Nonce          uint64
 }
 
-func NewTransaction(nonce uint64, to common.Address, amount *big.Int, fee *big.Int, data []byte) *Transaction {
-	return newTransaction(nonce, &to, amount, fee, nil,data)
+func NewTransaction(nonce uint64, to common.Address, amount, fee *big.Int, data []byte) *Transaction {
+	return newTransaction(nonce, &to, amount, fee, nil, 0, data)
 }
 
-func NewTransactionSc(nonce uint64, to common.Address, amount *big.Int, fee , gasPrice *big.Int, data []byte) *Transaction {
-	return newTransaction(nonce, &to, amount, fee, gasPrice,data)
+func NewTransactionSc(nonce uint64, to common.Address, amount, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
+	return newTransaction(nonce, &to, amount, nil, gasPrice, gasLimit, data)
 }
 
-
-func NewContractCreation(nonce uint64, amount *big.Int, fee *big.Int, data []byte) *Transaction {
-	return newTransaction(nonce, nil, amount, fee, nil,data)
+func NewContractCreation(nonce uint64, amount *big.Int, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
+	return newTransaction(nonce, nil, amount, nil, gasPrice, gasLimit, data)
 }
 
-func newTransaction(nonce uint64, to *common.Address, amount *big.Int, fee , gasPrice  *big.Int, data []byte) *Transaction {
+func newTransaction(nonce uint64, to *common.Address, amount, fee, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
 	if len(data) > 0 {
 		data = common.CopyBytes(data)
 	}
@@ -72,6 +71,7 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, fee , gas
 		Amount:       new(big.Int),
 		Fee:          new(big.Int),
 		Price:        gasPrice,
+		GasLimit:     gasLimit,
 		ExtraData:    data,
 	}
 	wit := witness{
@@ -188,7 +188,8 @@ type txData struct {
 	TimeLock     *big.Int        `json:"timeLock" gencodec:"required"`
 	Amount       *big.Int        `json:"Value"    gencodec:"required"`
 	Fee          *big.Int        `json:"fee"      gencodec:"required"`
-	Price        *big.Int        `json:"gasPrice"`
+	Price        *big.Int        `json:"gasPrice" gencodec:"required"`
+	GasLimit     uint64          `json:"gas"      gencodec:"required"`
 	ExtraData    []byte          `json:"input"    gencodec:"required"`
 }
 
@@ -213,13 +214,15 @@ func (tx *Transaction) EncodeRLP(w io.Writer) error {
 		tx.wit,
 	})
 }
+
 func (tx *Transaction) EncodeRlpToBytes() ([]byte, error) {
 	return rlp.EncodeToBytes(TransactionRLP{
 		tx.data,
 		tx.wit,
 	})
 }
-func (tx *Transaction) GetGasPrice() *big.Int  {
+
+func (tx *Transaction) GetGasPrice() *big.Int {
 	return tx.data.Price
 }
 
@@ -246,9 +249,11 @@ func (tx *Transaction) Fee() *big.Int          { return new(big.Int).Set(tx.data
 func (tx *Transaction) RawSignatureValues() (*big.Int, *big.Int, *big.Int) {
 	return new(big.Int).Set(tx.wit.V), new(big.Int).Set(tx.wit.R), new(big.Int).Set(tx.wit.S)
 }
+
 func (tx *Transaction) HashKey() []byte {
 	return tx.wit.HashKey
 }
+
 func (tx *Transaction) To() *common.Address {
 	if tx.data.Recipient == nil {
 		return nil
@@ -359,6 +364,22 @@ func (tx *Transaction) EstimateFee() *big.Int {
 	return fee
 }
 
+func (tx *Transaction) AsMessage() (Message, error) {
+	msg := Message{
+		nonce:      tx.data.AccountNonce,
+		gasLimit:   tx.data.GasLimit,
+		gasPrice:   new(big.Int).Set(tx.data.Price),
+		to:         tx.data.Recipient,
+		amount:     tx.data.Amount,
+		data:       tx.data.ExtraData,
+		checkNonce: true,
+	}
+
+	var err error
+	msg.from, err = tx.Sender(tx.GetSigner())
+	return msg, err
+}
+
 // Transactions is a Transaction slice type for basic sorting.
 type Transactions []*Transaction
 
@@ -427,7 +448,7 @@ func (s *TxByFee) Pop() interface{} {
 	old := *s
 	n := len(old)
 	x := old[n-1]
-	*s = old[0 : n-1]
+	*s = old[0: n-1]
 	return x
 }
 
@@ -494,3 +515,36 @@ func (t *TransactionsByFeeAndNonce) Shift() {
 func (t *TransactionsByFeeAndNonce) Pop() {
 	heap.Pop(&t.heads)
 }
+
+type Message struct {
+	to         *common.Address
+	from       common.Address
+	nonce      uint64
+	amount     *big.Int
+	gasLimit   uint64
+	gasPrice   *big.Int
+	data       []byte
+	checkNonce bool
+}
+
+func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, checkNonce bool) Message {
+	return Message{
+		from:       from,
+		to:         to,
+		nonce:      nonce,
+		amount:     amount,
+		gasLimit:   gasLimit,
+		gasPrice:   gasPrice,
+		data:       data,
+		checkNonce: checkNonce,
+	}
+}
+
+func (m Message) From() common.Address { return m.from }
+func (m Message) To() *common.Address  { return m.to }
+func (m Message) GasPrice() *big.Int   { return m.gasPrice }
+func (m Message) Value() *big.Int      { return m.amount }
+func (m Message) Gas() uint64          { return m.gasLimit }
+func (m Message) Nonce() uint64        { return m.nonce }
+func (m Message) Data() []byte         { return m.data }
+func (m Message) CheckNonce() bool     { return m.checkNonce }
