@@ -63,7 +63,6 @@ func (f  *Fullstate) SetCode(addr common.Address, code []byte) {
 	}
 }
 
-<<<<<<< HEAD
 func (f  *Fullstate) GetCodeSize(addr common.Address) (size int) {
 	code, err := f.state.GetCode(addr)
 	if err!=nil{
