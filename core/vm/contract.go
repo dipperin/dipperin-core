@@ -50,6 +50,15 @@ func (c *Contract) GetGas() uint64 {
 	return c.Gas
 }
 
+// UseGas attempts the use gas and subtracts it and returns true on success
+func (c *Contract) UseGas(gas uint64) (ok bool) {
+	if c.Gas < gas {
+		return false
+	}
+	c.Gas -= gas
+	return true
+}
+
 func (c *Contract) SetCallCode(addr *common.Address, hash common.Hash, code []byte) {
 	c.Code = code
 	c.CodeHash = hash

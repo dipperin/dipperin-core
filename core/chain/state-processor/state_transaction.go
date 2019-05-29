@@ -158,7 +158,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		ret, _, st.gas, vmerr = lifeVm.Create(sender, st.data, st.gas, st.value)
 	} else {
 		// Increment the nonce for the next transaction
-		st.lifeVm.GetStateDB().AddNonce(msg.From(), 1)
+		st.lifeVm.GetStateDB().AddNonce(msg.From(), uint64(1))
 		//log.Debug("Nonce tracking: SetNonce", "from", msg.From(), "nonce", st.state.GetNonce(sender.Address()))
 		ret, st.gas, vmerr = lifeVm.Call(sender, st.to(), st.data, st.gas, st.value)
 	}

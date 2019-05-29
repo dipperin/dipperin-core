@@ -227,7 +227,7 @@ func getCodeWithABI(t *testing.T, code, abi []byte) []byte {
 	input = make([][]byte, 0)
 	// tx type
 
-	input = append(input, utils.Int64ToBytes(1))
+	input = append(input, vmcommon.Int64ToBytes(1))
 	// code
 	input = append(input, code)
 	// abi
