@@ -97,10 +97,12 @@ func (st *StateTransition) useGas(amount uint64) error {
 }
 
 func (st *StateTransition) buyGas() error {
-	mgval := new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Gas()), st.gasPrice)
-	if st.lifeVm.GetStateDB().GetBalance(st.msg.From()).Cmp(mgval) < 0 {
+	msgVal := new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Gas()), st.gasPrice)
+	if st.lifeVm.GetStateDB().GetBalance(st.msg.From()).Cmp(msgVal) < 0 {
 		return vm.ErrInsufficientBalanceForGas
 	}
+
+	log.Info("Call buyGas","gasPool", st.gp, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()), "value", msgVal)
 
 	if st.gp < st.msg.Gas() {
 		return g_error.ErrGasLimitReached
@@ -109,7 +111,10 @@ func (st *StateTransition) buyGas() error {
 	st.gas += st.msg.Gas()
 
 	st.initialGas = st.msg.Gas()
-	st.state.SubBalance(st.msg.From(), mgval)
+	st.state.SubBalance(st.msg.From(), msgVal)
+
+	log.Info("BuyGas successful", "gasPool", st.gp, "gas", st.gas, "initialGas", st.initialGas)
+	log.Info("BuyGas successful", "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()))
 	return nil
 }
 
@@ -143,10 +148,12 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 	if err != nil {
 		return nil, 0, false, err
 	}
+
 	if err = st.useGas(gas); err != nil {
 		return nil, 0, false, err
 	}
 
+	log.Info("IntrinsicGas Used", "used", gas, "left", st.gas)
 	var (
 		lifeVm = st.lifeVm
 		// lifeVm errors do not effect consensus and are therefor
@@ -173,7 +180,6 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 	}
 	st.refundGas()
 	st.state.AddBalance(st.lifeVm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
-
 	return ret, st.gasUsed(), vmerr != nil, err
 }
 
@@ -183,11 +189,12 @@ func (st *StateTransition) refundGas() {
 	if refund > st.lifeVm.GetStateDB().GetRefund() {
 		refund = st.lifeVm.GetStateDB().GetRefund()
 	}
+	log.Info("Call refundGas", "refund", refund)
 	st.gas += refund
-
 	// Return ETH for remaining gas, exchanged at the original rate.
 	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
 	st.state.AddBalance(st.msg.From(), remaining)
+	log.Info("Gas Refund", "gasLeft", st.gas, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()))
 
 	// Also return remaining gas to the block gas counter so it is
 	// available for the next transaction.
