@@ -38,53 +38,60 @@ func (f *Fullstate) AddNonce(addr common.Address, add uint64) {
 	}
 }
 
-func (f *Fullstate) GetCodeHash(addr common.Address) common.Hash {
-	ct, err := f.state.getContractTrie(addr)
-	if err != nil {
+
+func (f  *Fullstate) GetCodeHash(addr common.Address) common.Hash {
+	code, err := f.state.GetCode(addr)
+	if err!=nil{
 		return common.Hash{}
 	}
-	return common.BytesToHash(ct.GetKey(GetContractFieldKey(addr, "codeHash")))
+	return common.RlpHashKeccak256(code)
 }
 
 func (f *Fullstate) GetCode(addr common.Address) (result []byte) {
 	//f.state.contractTrieCache
-	ct, err := f.state.getContractTrie(addr)
-	if err != nil {
+	code, err := f.state.GetCode(addr)
+	if err!=nil{
 		return
 	}
-	return ct.GetKey(GetContractFieldKey(addr, "code"))
+	return code
 }
 
-func (f *Fullstate) SetCode(addr common.Address, code []byte) {
-	err := f.state.setContractCode(addr, code)
-	if err != nil {
+func (f  *Fullstate) SetCode(addr common.Address, code []byte) {
+	err := f.state.SetCode(addr,code)
+	if err!=nil{
 		panic("set code error")
 	}
 }
 
-func (f *Fullstate) GetCodeSize(addr common.Address) (size int) {
-	ct, err := f.state.getContractTrie(addr)
-	if err != nil {
+func (f  *Fullstate) GetCodeSize(addr common.Address) (size int) {
+	code, err := f.state.GetCode(addr)
+	if err!=nil{
 		return
 	}
-	code := ct.GetKey(GetContractFieldKey(addr, "code"))
 	return len(code)
 }
 
-func (f *Fullstate) GetAbiHash(common.Address) common.Hash {
-	panic("implement me")
+func (f  *Fullstate) GetAbiHash(addr common.Address) common.Hash {
+	abi,err := f.state.GetAbi(addr)
+	if err != nil{
+		return common.Hash{}
+	}
+	return common.RlpHashKeccak256(abi)
 }
 
-func (f *Fullstate) GetAbi(addr common.Address) (abi []byte) {
-	ct, err := f.state.getContractTrie(addr)
-	if err != nil {
+func (f  *Fullstate) GetAbi(addr common.Address) (abi []byte) {
+	abi,err := f.state.GetAbi(addr)
+	if err != nil{
 		return
 	}
-	return ct.GetKey(GetContractFieldKey(addr, "abi"))
+	return abi
 }
 
-func (f *Fullstate) SetAbi(addr common.Address, abi []byte) {
-	f.state.SetAbi(addr, abi)
+func (f  *Fullstate) SetAbi(addr common.Address, abi []byte) {
+	err := f.state.SetAbi(addr,abi)
+	if err != nil{
+		panic("set abi error")
+	}
 }
 
 func (f *Fullstate) AddRefund(uint64) {

@@ -12,6 +12,7 @@ type CallCode struct {
 	Input []byte `json:"Input"`
 }
 
+
 func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block model.AbstractBlock, create bool) (err error) {
 	msg, err := tx.AsMessage()
 	if err != nil {
@@ -48,7 +49,6 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 	if err != nil {
 		return err
 	}
-
 	model2.NewReceipt(root.Bytes(), false, 0)
 
 	return nil
