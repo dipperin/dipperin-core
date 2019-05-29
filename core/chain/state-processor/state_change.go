@@ -121,6 +121,14 @@ func (scl *StateChangeList) DecodeRLP(s *rlp.Stream) (err error) {
 			var change deleteAccountChange
 			rlp.DecodeBytes(state.StateChange, &change)
 			scl.append(change)
+		case AbiChange:
+			var change abiChange
+			rlp.DecodeBytes(state.StateChange, &change)
+			scl.append(change)
+		case CodeChange:
+			var change codeChange
+			rlp.DecodeBytes(state.StateChange,&change)
+			scl.append(change)
 		default:
 			panic("no type")
 		}
@@ -261,6 +269,8 @@ const (
 	VerifyNumChange
 	PerformanceChange
 	LastElectChange
+	AbiChange
+	CodeChange
 
 	DeleteAccountChange
 )
@@ -339,6 +349,18 @@ type (
 		Account    *common.Address
 		Prev       uint64
 		Current    uint64
+		ChangeType uint64
+	}
+	abiChange struct{
+		Account *common.Address
+		Prev []byte
+		Current []byte
+		ChangeType uint64
+	}
+	codeChange struct{
+		Account *common.Address
+		Prev []byte
+		Current []byte
 		ChangeType uint64
 	}
 )
@@ -644,6 +666,54 @@ func (sc nonceChange) digest(change StateChange) StateChange {
 	if change.getType() == NonceChange {
 		c := change.(nonceChange)
 		return nonceChange{Account: sc.Account, Prev: c.Prev, Current: sc.Current, ChangeType: NonceChange}
+	}
+	return nil
+}
+
+
+func (sc abiChange) revert(s *AccountStateDB) {
+	s.setAbi(*sc.Account, sc.Prev)
+}
+
+func (sc abiChange) recover(s *AccountStateDB) {
+	s.setAbi(*sc.Account, sc.Current)
+}
+
+func (sc abiChange) dirtied() *common.Address {
+	return sc.Account
+}
+
+func (sc abiChange) getType() int {
+	return int(sc.ChangeType)
+}
+func (sc abiChange) digest(change StateChange) StateChange {
+	if change.getType() == AbiChange {
+		c := change.(abiChange)
+		return abiChange{Account: sc.Account, Prev: c.Prev, Current: sc.Current, ChangeType: AbiChange}
+	}
+	return nil
+}
+
+
+func (sc codeChange) revert(s *AccountStateDB) {
+	s.setAbi(*sc.Account, sc.Prev)
+}
+
+func (sc codeChange) recover(s *AccountStateDB) {
+	s.setAbi(*sc.Account, sc.Current)
+}
+
+func (sc codeChange) dirtied() *common.Address {
+	return sc.Account
+}
+
+func (sc codeChange) getType() int {
+	return int(sc.ChangeType)
+}
+func (sc codeChange) digest(change StateChange) StateChange {
+	if change.getType() == CodeChange {
+		c := change.(codeChange)
+		return codeChange{Account: sc.Account, Prev: c.Prev, Current: sc.Current, ChangeType: CodeChange}
 	}
 	return nil
 }

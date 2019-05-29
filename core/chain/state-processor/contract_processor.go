@@ -18,6 +18,7 @@ type CallCode struct {
 	Input []byte `json:"Input"`
 }
 
+
 func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block model.AbstractBlock, create bool) (err error) {
 	context := vm.NewVMContext(tx, block)
 	fullState := &Fullstate{
@@ -49,7 +50,8 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 		return err
 	}
 
-	receipt := model2.NewReceipt(root.Bytes(), false, gas)
+	//receipt := model2.NewReceipt(root.Bytes(), false, gas)
+	model2.NewReceipt(root.Bytes(), false, 0)
 
 	return nil
 }

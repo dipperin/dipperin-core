@@ -26,7 +26,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
-	cs_crypto "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/mpt_log"
 	"github.com/dipperin/dipperin-core/third-party/trie"
@@ -57,6 +56,7 @@ type AccountStateDB struct {
 	contractData          map[common.Address]reflect.Value
 	finalisedContractRoot map[common.Address]common.Hash
 	alreadyFinalised      bool
+	smartContractData	map[common.Address]map[string][]byte
 
 	stateChangeList *StateChangeList
 	validRevisions  []revision
@@ -182,6 +182,7 @@ func NewAccountStateDB(preStateRoot common.Hash, db StateStorage) (*AccountState
 
 		contractTrieCache:     NewStateStorageWithCache(db.DiskDB()),
 		contractData:          map[common.Address]reflect.Value{},
+		smartContractData:     make(map[common.Address]map[string][]byte),
 		finalisedContractRoot: map[common.Address]common.Hash{},
 		stateChangeList:       newStateChangeList(),
 		logs:  map[common.Hash][]*model2.Log{},
@@ -426,6 +427,40 @@ func (state *AccountStateDB) GetStake(addr common.Address) (*big.Int, error) {
 	return res, nil
 }
 
+func (state *AccountStateDB) GetAbi(addr common.Address) ([]byte,error){
+	empty := state.IsEmptyAccount(addr)
+	if empty{
+		return []byte{}, g_error.AccountNotExist
+	}
+	res := []byte{}
+	enc, err1 := state.blockStateTrie.TryGet(GetAbiKey(addr))
+	if err1 != nil{
+		return res,err1
+	}
+	err2 := rlp.DecodeBytes(enc,&res)
+	if err2 != nil {
+		return res, err2
+	}
+	return res, nil
+}
+
+func (state *AccountStateDB) GetCode(addr common.Address) ([]byte,error){
+	empty := state.IsEmptyAccount(addr)
+	if empty{
+		return []byte{}, g_error.AccountNotExist
+	}
+	res := []byte{}
+	enc, err1 := state.blockStateTrie.TryGet(GetCodeKey(addr))
+	if err1 != nil{
+		return res,err1
+	}
+	err2 := rlp.DecodeBytes(enc,&res)
+	if err2 != nil {
+		return res, err2
+	}
+	return res, nil
+}
+
 func (state *AccountStateDB) SetBalance(addr common.Address, amount *big.Int) error {
 	old, _ := state.GetBalance(addr)
 	err := state.setBalance(addr, amount)
@@ -578,29 +613,54 @@ func (state *AccountStateDB) setHashLock(addr common.Address, hashLock common.Ha
 	return nil
 }
 
-//func (state *AccountStateDB) SetContractRoot(addr common.Address, contractRoot common.Hash) error {
-//    old, _ := state.GetContractRoot(addr)
-//    err := state.setContractRoot(addr, contractRoot)
-//    if err != nil {
-//        return err
-//    }
-//    state.stateChangeList.append(contractRootChange{Account: &addr, Prev: old, Current: contractRoot, ChangeType: ContractRootChange})
-//    return nil
-//}
+func (state *AccountStateDB) SetAbi(addr common.Address, abi []byte) error{
+	old,_:=state.GetAbi(addr)
+	err := state.setAbi(addr,abi)
+	if err != nil{
+		return err
+	}
+	state.stateChangeList.append(abiChange{Account: &addr, Prev: old, Current: abi, ChangeType: AbiChange})
+	return nil
+}
 
-//setContractRoot do not change the changelist, usually called by the revert operation.
-//func (state *AccountStateDB) setContractRoot(addr common.Address, contractRoot common.Hash) error {
-//    empty := state.IsEmptyAccount(addr)
-//    if empty {
-//        return g_error.AccountNotExist
-//    }
-//    newEnc, _ := rlp.EncodeToBytes(contractRoot)
-//    err := state.blockStateTrie.TryUpdate(GetContractRootKey(addr), newEnc)
-//    if err != nil {
-//        return err
-//    }
-//    return nil
-//}
+func (state *AccountStateDB) setAbi(addr common.Address, abi []byte) error{
+	empty := state.IsEmptyAccount(addr)
+	if empty {
+		return g_error.AccountNotExist
+	}
+
+	mpt_log.Debug("setAbi", "addr", addr.Hex())
+	newEnc, _ := rlp.EncodeToBytes(abi)
+	err := state.blockStateTrie.TryUpdate(GetAbiKey(addr), newEnc)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (state *AccountStateDB) SetCode(addr common.Address, code []byte) error{
+	old,_:=state.GetCode(addr)
+	err := state.setCode(addr,code)
+	if err != nil{
+		return err
+	}
+	state.stateChangeList.append(codeChange{Account: &addr, Prev: old, Current: code, ChangeType: CodeChange})
+	return nil
+}
+
+func (state *AccountStateDB) setCode(addr common.Address, code []byte) error{
+	empty := state.IsEmptyAccount(addr)
+	if empty {
+		return g_error.AccountNotExist
+	}
+	mpt_log.Debug("setCode", "addr", addr.Hex())
+	newEnc, _ := rlp.EncodeToBytes(code)
+	err := state.blockStateTrie.TryUpdate(GetCodeKey(addr), newEnc)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 func (state *AccountStateDB) SetDataRoot(addr common.Address, dataRoot common.Hash) error {
 	old, _ := state.GetDataRoot(addr)
@@ -775,60 +835,6 @@ func (state *AccountStateDB) setLastElect(addr common.Address, blockID uint64) e
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-func (state *AccountStateDB) setContractCode(addr common.Address, code []byte) error{
-	ct, err := state.getContractTrie(addr)
-	if err!=nil{
-		return err
-	}
-	err = ct.TryUpdate(GetContractFieldKey(addr,"code"),code)
-	if err!=nil{
-		return err
-	}
-	codeHash := cs_crypto.Keccak256Hash(code)
-	err = ct.TryUpdate(GetContractFieldKey(addr,"codeHash"),codeHash.Bytes())
-	if err!=nil{
-		return err
-	}
-
-	ch, err := ct.Commit(nil)
-	if err != nil {
-		return err
-	}
-	mpt_log.Info("finaliseContractData update contract root", "contract addr", addr.Hex(), "root", ch.Hex())
-	if err := state.blockStateTrie.TryUpdate(GetDataRootKey(addr), ch.Bytes()); err != nil {
-		// change blockStateTrie to origin pre hash？If you want, clear the finalised contract root. But it is best to discard the AccountStateDB directly after the error is reported.
-		//state.resetThisStateDB()
-		log.Error("Commit update contract root failed", "err", err)
-		return err
-	}
-	state.finalisedContractRoot[addr] = ch
-	return nil
-}
-
-func (state *AccountStateDB) SetAbi(addr common.Address, abi []byte) (err error){
-	ct, err := state.getContractTrie(addr)
-	if err!=nil{
-		return
-	}
-	err = ct.TryUpdate(GetContractFieldKey(addr,"abi"),abi)
-	if err!=nil{
-		return
-	}
-	ch, err := ct.Commit(nil)
-	if err != nil {
-		return err
-	}
-	mpt_log.Info("finaliseContractData update contract root", "contract addr", addr.Hex(), "root", ch.Hex())
-	if err := state.blockStateTrie.TryUpdate(GetDataRootKey(addr), ch.Bytes()); err != nil {
-		// change blockStateTrie to origin pre hash？If you want, clear the finalised contract root. But it is best to discard the AccountStateDB directly after the error is reported.
-		//state.resetThisStateDB()
-		log.Error("Commit update contract root failed", "err", err)
-		return err
-	}
-	state.finalisedContractRoot[addr] = ch
 	return nil
 }
 
@@ -1107,6 +1113,7 @@ func (state *AccountStateDB) Commit() (common.Hash, error) {
 	//    }
 	//have committed in the finalise
 	err = state.storage.TrieDB().Commit(fStateRoot, false)
+	state.clearChangeList()  //TODO not tested
 	return fStateRoot, err
 	//}
 }
@@ -1331,3 +1338,75 @@ func (state *AccountStateDB) processEarlyTokenTx(tx model.AbstractTransaction, b
 	return
 }
 
+func (state *AccountStateDB) clearChangeList(){
+	state.stateChangeList = newStateChangeList()
+	state.validRevisions = state.validRevisions[:0]
+	state.nextRevisionId = 0
+}
+
+//fixme
+func (state *AccountStateDB) SetData(addr common.Address,key string, value []byte) (err error){
+	if state.smartContractData[addr] == nil{
+		state.smartContractData[addr] = make(map[string][]byte)
+	}
+	state.smartContractData[addr][key] = value
+	return
+}
+
+//fixme can not roll back
+func (state *AccountStateDB) GetData(addr common.Address,key string) (data []byte) {
+	if state.smartContractData[addr] != nil{
+		if state.smartContractData[addr][key] != nil{
+			return state.smartContractData[addr][key]
+		}
+	}
+	tier,err := state.getContractTrie(addr)
+	if err != nil {return }
+	return tier.GetKey(GetContractFieldKey(addr,key))
+}
+
+func (state *AccountStateDB) finalSmartData() error{
+	for addr, data := range state.smartContractData {
+
+		ct, err := state.putSmartDataToTrie(addr, data)
+		if err != nil {
+			return err
+		}
+
+		// You must commit trie to memory, and only use commit trie db in the commit.
+		ch, err := ct.Commit(nil)
+		if err != nil {
+			return err
+		}
+		mpt_log.Info("finaliseContractData update contract root", "contract addr", addr.Hex(), "root", ch.Hex())
+
+		if err:=state.SetDataRoot(addr,ch); err != nil {
+			// change blockStateTrie to origin pre hash？If you want, clear the finalised contract root. But it is best to discard the AccountStateDB directly after the error is reported.
+			//state.resetThisStateDB()
+			log.Error("Commit update contract root failed", "err", err)
+			return err
+		}
+		state.finalisedContractRoot[addr] = ch
+	}
+	return nil
+}
+
+
+// put contract data to trie
+func (state *AccountStateDB) putSmartDataToTrie(addr common.Address, data map[string][]byte) (StateTrie, error) {
+	mpt_log.Info("put contract", "addr", addr)
+	ct, err := state.getContractTrie(addr)
+	//check err first and return err if not find trie, otherwise there isn't this trie if th ct is nil
+	if err != nil && !strings.Contains(err.Error(), "missing trie node") {
+		log.Warn("can't get contract trie from db", "err", err)
+		return nil, err
+	}
+	// todo ct is nil?
+	for k, v := range data {
+		mpt_log.Debug("putContractDataToTrie", "k", k, "v", v, "pre state", state.preStateRoot.Hex())
+		if err := ct.TryUpdate(GetContractFieldKey(addr, k), v); err != nil {
+			return nil, err
+		}
+	}
+	return ct, nil
+}
