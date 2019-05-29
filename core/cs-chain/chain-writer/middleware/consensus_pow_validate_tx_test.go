@@ -554,6 +554,10 @@ type fakeTx struct {
 	to *common.Address
 }
 
+func (ft *fakeTx) AsMessage() (model.Message, error) {
+	panic("implement me")
+}
+
 func (ft *fakeTx) Size() common.StorageSize {
 	return ft.size
 }

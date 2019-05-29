@@ -33,7 +33,7 @@ func TestNewTransaction(t *testing.T) {
 }
 
 func TestNewContractCreation(t *testing.T) {
-	result := NewContractCreation(1, big.NewInt(100), big.NewInt(10), []byte{123})
+	result := NewContractCreation(1, big.NewInt(100), big.NewInt(10), uint64(21000), []byte{123})
 	assert.NotNil(t, result)
 }
 
