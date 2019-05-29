@@ -26,6 +26,17 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"errors"
 	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/common/vmcommon"
+	"bytes"
+	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"testing"
+	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/dipperin/dipperin-core/core/vm"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"encoding/binary"
+	"fmt"
+	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 var (
@@ -38,6 +49,9 @@ var (
 
 	TrieError = errors.New("trie error")
 	TxError   = errors.New("tx error")
+
+	gasPrice = big.NewInt(2)
+	gasLimit = uint64(2100000)
 )
 
 func createKey() (*ecdsa.PrivateKey, *ecdsa.PrivateKey) {
@@ -53,11 +67,61 @@ func createTestTx() (*model.Transaction, *model.Transaction) {
 	key1, key2 := createKey()
 	fs1 := model.NewMercurySigner(big.NewInt(1))
 	fs2 := model.NewMercurySigner(big.NewInt(3))
-	testtx1 := model.NewTransaction(0, bobAddr, big.NewInt(200), big.NewInt(10), []byte{})
-	testtx1.SignTx(key1, fs1)
-	testtx2 := model.NewTransaction(0, aliceAddr, big.NewInt(10), big.NewInt(10), []byte{})
-	testtx2.SignTx(key2, fs2)
-	return testtx1, testtx2
+	testTx1 := model.NewTransaction(0, bobAddr, big.NewInt(200), big.NewInt(10), []byte{})
+	testTx1.SignTx(key1, fs1)
+	testTx2 := model.NewTransaction(0, aliceAddr, big.NewInt(10), big.NewInt(10), []byte{})
+	testTx2.SignTx(key2, fs2)
+	return testTx1, testTx2
+}
+
+func createContractTx(t *testing.T, to *common.Address, code, abi string) *model.Transaction {
+	key, _ := createKey()
+	fs := model.NewMercurySigner(big.NewInt(1))
+	data := getTxData(t, code, abi)
+	tx := model.NewTransactionSc(0, to, big.NewInt(200), gasPrice, gasLimit, data)
+	tx.SignTx(key, fs)
+	return tx
+}
+
+func getTestVm(account map[common.Address]*big.Int) *vm.VM {
+	testGetHash := func(blockNumber uint64) common.Hash {
+		return common.Hash{}
+	}
+	testCanTransfer := func(vm.StateDB, common.Address, *big.Int) bool {
+		return true
+	}
+	testTransfer := func(vm.StateDB, common.Address, common.Address, *big.Int) {
+		return
+	}
+	return vm.NewVM(vm.Context{
+		BlockNumber: big.NewInt(1),
+		GetHash:     testGetHash,
+		CanTransfer: testCanTransfer,
+		Transfer:testTransfer,
+		GasLimit:    model2.TxGas,
+	}, fakeStateDB{account: account}, vm.DEFAULT_VM_CONFIG)
+}
+
+func getTxData(t *testing.T, code, abi string) []byte {
+	fileCode, err := ioutil.ReadFile(code)
+	assert.NoError(t, err)
+
+	fileABI, err := ioutil.ReadFile(abi)
+	assert.NoError(t, err)
+	var input [][]byte
+	input = make([][]byte, 0)
+	// tx type
+
+	input = append(input, vmcommon.Int64ToBytes(1))
+	// code
+	input = append(input, fileCode)
+	// abi
+	input = append(input, fileABI)
+
+	buffer := new(bytes.Buffer)
+	err = rlp.Encode(buffer, input)
+	assert.NoError(t, err)
+	return buffer.Bytes()
 }
 
 func createTestStateDB() (ethdb.Database, common.Hash) {
@@ -280,4 +344,155 @@ func (tx fakeTransaction) Cost() *big.Int {
 
 func (tx fakeTransaction) EstimateFee() *big.Int {
 	panic("implement me")
+}
+
+type fakeAccountStateTx struct {
+	account map[common.Address]*big.Int
+}
+
+func (state fakeAccountStateTx) AddBalance(addr common.Address, amount *big.Int) error {
+	if state.account[addr] != nil {
+		state.account[addr] = new(big.Int).Add(state.account[addr], amount)
+	}
+	return nil
+}
+
+func (state fakeAccountStateTx) SubBalance(addr common.Address, amount *big.Int) error {
+	state.account[addr] = new(big.Int).Sub(state.account[addr], amount)
+	return nil
+}
+
+type fakeStateDB struct {
+	account map[common.Address]*big.Int
+}
+
+func (state fakeStateDB) AddLog(addedLog *model2.Log) {
+	log.Info("add log success")
+	return
+}
+
+func (state fakeStateDB) CreateAccount(addr common.Address) {
+	state.account[addr] = big.NewInt(1000)
+}
+
+func (state fakeStateDB) SubBalance(common.Address, *big.Int) {
+	panic("implement me")
+}
+
+func (state fakeStateDB) AddBalance(common.Address, *big.Int) {
+	panic("implement me")
+}
+
+func (state fakeStateDB) GetBalance(addr common.Address) *big.Int {
+	if state.account[addr] == nil {
+		state.account[addr] = big.NewInt(9000000)
+	}
+	return state.account[addr]
+}
+
+func (state fakeStateDB) GetNonce(common.Address) uint64 {
+	return 0
+}
+
+func (state fakeStateDB) SetNonce(common.Address, uint64) {
+	panic("implement me")
+}
+
+func (state fakeStateDB) AddNonce(common.Address, uint64) {
+	return
+}
+
+func (state fakeStateDB) GetCodeHash(common.Address) common.Hash {
+	return common.Hash{}
+}
+
+func (state fakeStateDB) GetCode(common.Address) []byte {
+	panic("implement me")
+}
+
+func (state fakeStateDB) SetCode(common.Address, []byte) {
+	return
+}
+
+func (state fakeStateDB) GetCodeSize(common.Address) int {
+	panic("implement me")
+}
+
+func (state fakeStateDB) GetAbiHash(common.Address) common.Hash {
+	panic("implement me")
+}
+
+func (state fakeStateDB) GetAbi(common.Address) []byte {
+	panic("implement me")
+}
+
+func (state fakeStateDB) SetAbi(common.Address, []byte) {
+	panic("implement me")
+}
+
+func (state fakeStateDB) AddRefund(uint64) {
+	panic("implement me")
+}
+
+func (state fakeStateDB) SubRefund(uint64) {
+	panic("implement me")
+}
+
+func (state fakeStateDB) GetRefund() uint64 {
+	return uint64(9000000)
+}
+
+func (state fakeStateDB) GetCommittedState(common.Address, []byte) []byte {
+	panic("implement me")
+}
+
+func (state fakeStateDB) GetState(common.Address, []byte) []byte {
+	fmt.Println("fake stateDB get state sucessful")
+	bytesBuffer := bytes.NewBuffer([]byte{})
+	binary.Write(bytesBuffer, binary.LittleEndian, int32(123))
+	return bytesBuffer.Bytes()
+}
+
+func (state fakeStateDB) SetState(common.Address, []byte, []byte) {
+	fmt.Println("fake stateDB set state sucessful")
+}
+
+func (state fakeStateDB) Suicide(common.Address) bool {
+	panic("implement me")
+}
+
+func (state fakeStateDB) HasSuicided(common.Address) bool {
+	panic("implement me")
+}
+
+func (state fakeStateDB) Exist(common.Address) bool {
+	panic("implement me")
+}
+
+func (state fakeStateDB) Empty(common.Address) bool {
+	panic("implement me")
+}
+
+func (state fakeStateDB) RevertToSnapshot(int) {
+	panic("implement me")
+}
+
+func (state fakeStateDB) Snapshot() int {
+	return 0
+}
+
+func (state fakeStateDB) AddPreimage(common.Hash, []byte) {
+	panic("implement me")
+}
+
+func (state fakeStateDB) ForEachStorage(common.Address, func(common.Hash, common.Hash) bool) {
+	panic("implement me")
+}
+
+func (state fakeStateDB) TxHash() common.Hash {
+	return common.Hash{}
+}
+
+func (state fakeStateDB) TxIdx() uint32 {
+	return 0
 }

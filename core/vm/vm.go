@@ -9,6 +9,7 @@ import (
 	"math/big"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 var emptyCodeHash = cs_crypto.Keccak256Hash(nil)
@@ -139,7 +140,7 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value
 
 	// Ensure there's no existing contract already at the designated address
 	contractHash := vm.state.GetCodeHash(address)
-	if vm.state.GetNonce(address) != 0 || (contractHash != (common.Hash{}) && contractHash != emptyCodeHash) {
+	if vm.state.GetNonce(address) != 0 || (contractHash != common.Hash{} && contractHash != emptyCodeHash) {
 		return nil, common.Address{}, 0, ErrContractAddressCollision
 	}
 
@@ -164,7 +165,7 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value
 	//start := time.Now()
 
 	ret, err := run(vm, contract, nil, true)
-
+	log.Info("lifeVm run successful", "gasLeft", contract.Gas)
 	// check whether the max code size has been exceeded
 	maxCodeSizeExceeded := len(ret) > model2.MaxCodeSize
 	// if the contract creation ran successfully and no errors were returned
@@ -175,6 +176,7 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value
 		createDataGas := uint64(len(ret)) * model2.CreateDataGas
 		if contract.UseGas(createDataGas) {
 			vm.state.SetCode(address, ret)
+			log.Info("createDataGas Use", "CodeLen", len(ret), "gasUsed", createDataGas,  "gasLeft", contract.Gas)
 		} else {
 			err = ErrCodeStoreOutOfGas
 		}

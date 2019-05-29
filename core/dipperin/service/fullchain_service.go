@@ -489,11 +489,13 @@ func (service *MercuryFullChainService) getSendTxInfo(from common.Address, nonce
 	//find wallet according to address
 	tmpWallet, err := service.WalletManager.FindWalletFromAddress(from)
 	if err != nil {
+		log.Error("MercuryFullChainService#getSendTxInfo FindWalletFromAddress", "err", err)
 		return nil, 0, err
 	}
 	//generate transaction
 	state, err := service.ChainReader.CurrentState()
 	if err != nil {
+		log.Error("MercuryFullChainService#getSendTxInfo  CurrentState", "err", err)
 		return nil, 0, err
 	}
 
@@ -535,7 +537,7 @@ func (service *MercuryFullChainService) signTxAndSend(tmpWallet accounts.Wallet,
 	}
 	pbft_log.Debug("Sign and send transaction", "txid", signedTx.CalTxId().Hex())
 	if err := service.TxValidator.Valid(signedTx); err != nil {
-		pbft_log.Warn("Transaction not valid", "error", err)
+		log.Warn("Transaction not valid", "error", err)
 		return nil, err
 	}
 
@@ -656,16 +658,19 @@ func (service *MercuryFullChainService) SendTransactionContractCreate(from, to c
 
 	tmpWallet, usedNonce, err := service.getSendTxInfo(from, nonce)
 	if err != nil {
+		log.Error("MercuryFullChainService#SendTransactionContractCreate", "err", err)
 		return common.Hash{}, err
 	}
 
-	tx := model.NewTransactionSc(usedNonce, to, value, gasPrice, gasLimit.Uint64(), data)
+	tx := model.NewTransactionSc(usedNonce, &to, value, gasPrice, gasLimit.Uint64(), data)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
 		pbft_log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
+		log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
 		return common.Hash{}, err
 	}
 
+	log.Info("send transaction", "txId", signTx.CalTxId().Hex())
 	pbft_log.Info("send transaction", "txId", signTx.CalTxId().Hex())
 	txHash := signTx.CalTxId()
 	log.Info("the SendTransaction txId is: ", "txId", txHash.Hex(), "txSize", signTx.Size())
