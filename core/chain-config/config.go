@@ -97,7 +97,8 @@ func defaultChainConfig() *ChainConfig {
 		BlockCountOfPeriod: uint64(4096),
 
 		//verifier boot node number
-		VerifierBootNodeNumber: 4,
+		//VerifierBootNodeNumber: 4,
+		VerifierBootNodeNumber: 1,
 
 		BlockTimeRestriction: 15*time.Second,
 	}
@@ -252,7 +253,8 @@ func initLocalBoots(dataDir string) {
 	// Two miners are 50030, one miner is 50027
 	if VerifierBootNodes = LoadVerifierBootNodesFromFile(dataDir); len(VerifierBootNodes) == 0 {
 		//n, _ := enode.ParseV4(fmt.Sprintf("enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@127.0.0.1:%v", TestVerifierBootNodePort))
-		n, _ := enode.ParseV4(fmt.Sprintf("enode://8907151bf3e091349bb01daeae9f9a0dcfdc3eabaafadd488794c00f6a880816a535d04c111d211f6580d56a836a4063fc3c5b4195ae2be4f7c2561d028fafd5@127.0.0.1:%v", TestVerifierBootNodePort))
+		n, _ := enode.ParseV4(fmt.Sprintf("" +
+			"enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@127.0.0.1:%v", TestVerifierBootNodePort))
 		VerifierBootNodes = append(VerifierBootNodes, n)
 	}
 
@@ -260,7 +262,7 @@ func initLocalBoots(dataDir string) {
 
 	// local boot node
 	if KBucketNodes = LoadBootNodesFromFile(dataDir); len(KBucketNodes) == 0 {
-		n, _ := enode.ParseV4("enode://9fb88505dca8bbed224e03e9c0c27f724bf12551003576c79aae38307d8a4b68a88ad6afa38ae87a0aadaeea4940da2b859ffb0ce6b4b94252de1acc035d2396@127.0.0.1:30301")
+		n, _ := enode.ParseV4("enode://f569bb9b4a7ac1ff1aa807f2c8edcc1dab877bfd6b9ea0692f12683ba06229971c1482d6748e7b09e07cd0278ada7137bcb0b84b571f977a385aec7887be75bc@127.0.0.1:30301")
 		KBucketNodes = append(KBucketNodes, n)
 	}
 }

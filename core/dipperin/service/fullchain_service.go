@@ -537,7 +537,7 @@ func (service *MercuryFullChainService) signTxAndSend(tmpWallet accounts.Wallet,
 	}
 	pbft_log.Debug("Sign and send transaction", "txid", signedTx.CalTxId().Hex())
 	if err := service.TxValidator.Valid(signedTx); err != nil {
-		pbft_log.Warn("Transaction not valid", "error", err)
+		log.Warn("Transaction not valid", "error", err)
 		return nil, err
 	}
 
