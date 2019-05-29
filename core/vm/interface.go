@@ -24,9 +24,9 @@ type StateDB interface {
 	GetAbi(common.Address) []byte
 	SetAbi(common.Address, []byte)
 
-	AddRefund(uint64)
+	/*AddRefund(uint64)
 	SubRefund(uint64)
-	GetRefund() uint64
+	GetRefund() uint64*/
 
 	// todo: hash -> bytes
 	GetCommittedState(common.Address, []byte) []byte
@@ -36,6 +36,7 @@ type StateDB interface {
 	SetState(common.Address, []byte, []byte)
 
 	AddLog(addedLog *model.Log)
+	GetLogs(txHash common.Hash) []*model.Log
 
 	Suicide(common.Address) bool
 	HasSuicided(common.Address) bool
@@ -49,12 +50,14 @@ type StateDB interface {
 
 	RevertToSnapshot(int)
 	Snapshot() int
-	AddPreimage(common.Hash, []byte)
+	/*AddPreimage(common.Hash, []byte)
 	ForEachStorage(common.Address, func(common.Hash, common.Hash) bool)
 
 	//ppos add
 	TxHash() common.Hash
 	TxIdx() uint32
+	*/
+
 }
 
 /*type AccountDB interface {

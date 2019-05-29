@@ -94,18 +94,6 @@ func (f  *Fullstate) SetAbi(addr common.Address, abi []byte) {
 	}
 }
 
-func (f *Fullstate) AddRefund(uint64) {
-	panic("implement me")
-}
-
-func (f *Fullstate) SubRefund(uint64) {
-	panic("implement me")
-}
-
-func (f *Fullstate) GetRefund() uint64 {
-	panic("implement me")
-}
-
 func (f *Fullstate) GetCommittedState(common.Address, []byte) []byte {
 	panic("implement me")
 }
@@ -164,14 +152,6 @@ func (f *Fullstate) RevertToSnapshot(int) {
 }
 
 func (f *Fullstate) Snapshot() int {
-	panic("implement me")
-}
-
-func (f *Fullstate) AddPreimage(common.Hash, []byte) {
-	panic("implement me")
-}
-
-func (f *Fullstate) ForEachStorage(common.Address, func(common.Hash, common.Hash) bool) {
 	panic("implement me")
 }
 
