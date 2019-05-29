@@ -28,4 +28,5 @@ var (
 	InvalidCoinBaseAddressErr = errors.New("invalid coinBase address")
 	ErrNonceTooHigh = errors.New("nonce too high")
 	ErrNonceTooLow = errors.New("nonce too low")
+	ErrGasLimitReached = errors.New("gas limit reached")
 )

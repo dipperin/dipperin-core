@@ -49,4 +49,7 @@ var CliCommands = []cli.Command{
 var rpcFlags = []cli.Flag{
 	cli.StringFlag{Name: "m", Usage: "operation"},
 	cli.StringFlag{Name: "p", Usage: "parameters"},
+	cli.StringFlag{Name: "abi", Usage:"abi path"},
+	cli.StringFlag{Name: "wasm", Usage:"wasm path"},
+	cli.StringFlag{Name: "input", Usage: "contract params"},
 }

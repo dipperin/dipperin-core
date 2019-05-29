@@ -181,7 +181,7 @@ func NewVirtualMachine(
 				funcImports = append(funcImports, FunctionImportInfo{
 					ModuleName: imp.ModuleName,
 					FieldName:  imp.FieldName,
-					//F:          nil, // deferred
+					F:          *impResolver.ResolveFunc(imp.ModuleName,imp.FieldName), // deferred
 				})
 			case wasm.ExternalGlobal:
 				globals = append(globals, impResolver.ResolveGlobal(imp.ModuleName, imp.FieldName))
@@ -360,10 +360,10 @@ func (vm *VirtualMachine) GenerateNEnv(config NCompileConfig) string {
 		}
 	}
 	bSprintf(builder, "};\n")
-	bSprintf(builder, "static void * __attribute__((always_inline)) %sresolve_indirect(struct VirtualMachine *vm, uint64_t entry_id, uint64_t num_params) {\n", compiler.NGEN_ENV_API_PREFIX)
-	bSprintf(builder, "if(entry_id >= num_table_entries) { vm->throw_s(vm, \"%s\"); }\n", "table entry out of bounds")
-	bSprintf(builder, "if(table[entry_id].func == 0) { vm->throw_s(vm, \"%s\"); }\n", "table entry is null")
-	bSprintf(builder, "if(table[entry_id].num_params != num_params) { vm->throw_s(vm, \"%s\"); }\n", "argument count mismatch")
+	bSprintf(builder, "static void * __attribute__((always_inline)) %sresolve_indirect(struct VirtualMachine *vmcommon, uint64_t entry_id, uint64_t num_params) {\n", compiler.NGEN_ENV_API_PREFIX)
+	bSprintf(builder, "if(entry_id >= num_table_entries) { vmcommon->throw_s(vmcommon, \"%s\"); }\n", "table entry out of bounds")
+	bSprintf(builder, "if(table[entry_id].func == 0) { vmcommon->throw_s(vmcommon, \"%s\"); }\n", "table entry is null")
+	bSprintf(builder, "if(table[entry_id].num_params != num_params) { vmcommon->throw_s(vmcommon, \"%s\"); }\n", "argument count mismatch")
 	bSprintf(builder, "return table[entry_id].func;\n")
 	bSprintf(builder, "}\n")
 
@@ -375,14 +375,14 @@ func (vm *VirtualMachine) GenerateNEnv(config NCompileConfig) string {
 	}
 	bSprintf(builder, "};\n")
 	bSprintf(builder,
-		"static uint64_t __attribute__((always_inline)) %sinvoke_import(struct VirtualMachine *vm, uint64_t import_id, uint64_t num_params, uint64_t *params) {\n",
+		"static uint64_t __attribute__((always_inline)) %sinvoke_import(struct VirtualMachine *vmcommon, uint64_t import_id, uint64_t num_params, uint64_t *params) {\n",
 		compiler.NGEN_ENV_API_PREFIX,
 	)
 
-	bSprintf(builder, "if(import_id >= num_import_entries) { vm->throw_s(vm, \"%s\"); }\n", "import entry out of bounds")
-	bSprintf(builder, "if(imports[import_id].f == 0) { imports[import_id].f = vm->resolve_import(vm, imports[import_id].module_name, imports[import_id].field_name); }\n")
-	bSprintf(builder, "if(imports[import_id].f == 0) { vm->throw_s(vm, \"%s\"); }\n", "cannot resolve import")
-	bSprintf(builder, "return imports[import_id].f(vm, import_id, num_params, params);\n")
+	bSprintf(builder, "if(import_id >= num_import_entries) { vmcommon->throw_s(vmcommon, \"%s\"); }\n", "import entry out of bounds")
+	bSprintf(builder, "if(imports[import_id].f == 0) { imports[import_id].f = vmcommon->resolve_import(vmcommon, imports[import_id].module_name, imports[import_id].field_name); }\n")
+	bSprintf(builder, "if(imports[import_id].f == 0) { vmcommon->throw_s(vmcommon, \"%s\"); }\n", "cannot resolve import")
+	bSprintf(builder, "return imports[import_id].f(vmcommon, import_id, num_params, params);\n")
 	bSprintf(builder, "}\n")
 
 	return builder.String()
@@ -436,7 +436,7 @@ func (f *Frame) Init(vm *VirtualMachine, functionID int, code compiler.Interpret
 	f.IP = 0
 	f.Continuation = 0
 
-	//fmt.Printf("Enter function %d (%s)\n", functionID, vm.Module.FunctionNames[functionID])
+	//fmt.Printf("Enter function %d (%s)\n", functionID, vmcommon.Module.FunctionNames[functionID])
 }
 
 // Destroy destroys a frame. Must be called on return.
@@ -444,7 +444,7 @@ func (f *Frame) Destroy(vm *VirtualMachine) {
 	numValueSlots := len(f.Regs) + len(f.Locals)
 	vm.NumValueSlots -= numValueSlots
 
-	//fmt.Printf("Leave function %d (%s)\n", f.FunctionID, vm.Module.FunctionNames[f.FunctionID])
+	//fmt.Printf("Leave function %d (%s)\n", f.FunctionID, vmcommon.Module.FunctionNames[f.FunctionID])
 }
 
 // GetCurrentFrame returns the current frame.
@@ -455,7 +455,7 @@ func (vm *VirtualMachine) GetCurrentFrame() *Frame {
 
 	if vm.CurrentFrame >= len(vm.CallStack) {
 		panic("call stack overflow")
-		//vm.CallStack = append(vm.CallStack, make([]Frame, DefaultCallStackSize / 2)...)
+		//vmcommon.CallStack = append(vmcommon.CallStack, make([]Frame, DefaultCallStackSize / 2)...)
 	}
 	return &vm.CallStack[vm.CurrentFrame]
 }
@@ -546,7 +546,7 @@ func (vm *VirtualMachine) AddAndCheckGas(delta uint64) bool {
 // detecting VM status in a loop.
 func (vm *VirtualMachine) Execute() {
 	if vm.Exited == true {
-		panic("attempting to execute an exited vm")
+		panic("attempting to execute an exited vmcommon")
 	}
 
 	if vm.Delegate != nil {
@@ -554,7 +554,7 @@ func (vm *VirtualMachine) Execute() {
 	}
 
 	if vm.InsideExecute {
-		panic("vm execution is not re-entrant")
+		panic("vmcommon execution is not re-entrant")
 	}
 	vm.InsideExecute = true
 	vm.GasLimitExceeded = false
@@ -580,7 +580,7 @@ func (vm *VirtualMachine) Execute() {
 		}
 		vm.GasUsed += cost
 
-		//fmt.Printf("INS: [%d] %s\n", valueID, ins.String())
+		//fmt.Printf("INS: [%d] %s\n", valueID, ins.String(), )
 		switch ins {
 		case opcodes.Nop:
 		case opcodes.Unreachable:
@@ -1778,25 +1778,26 @@ func (vm *VirtualMachine) Execute() {
 			}
 
 		case opcodes.InvokeImport:
-			/*			importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
-						frame.IP += 4
-						vm.Delegate = func() {
-							defer func() {
-								if err := recover(); err != nil {
-									vm.Exited = true
-									vm.ExitError = err
-								}
-							}()
-							imp := vm.FunctionImports[importID]
-							if imp.F == nil {
-								imp.F = vm.ImportResolver.ResolveFunc(imp.ModuleName, imp.FieldName)
-							}
-							frame.Regs[valueID] = imp.F(vm)
-						}*/
+/*			importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
+			frame.IP += 4
+			vmcommon.Delegate = func() {
+				defer func() {
+					if err := recover(); err != nil {
+						vmcommon.Exited = true
+						vmcommon.ExitError = err
+					}
+				}()
+				imp := vmcommon.FunctionImports[importID]
+				if imp.F == nil {
+					imp.F = vmcommon.ImportResolver.ResolveFunc(imp.ModuleName, imp.FieldName)
+				}
+				frame.Regs[valueID] = imp.F(vmcommon)
+			}*/
 			//修改成和 platOn相同
 			importID := int(LE.Uint32(frame.Code[frame.IP: frame.IP+4]))
 			frame.IP += 4
 			vm.Delegate = func() {
+				//log.Info("the FunctionImports is:","FunctionImports",vm.FunctionImports)
 				frame.Regs[valueID] = vm.FunctionImports[importID].F.Execute(vm)
 			}
 			return
@@ -1822,6 +1823,7 @@ func (vm *VirtualMachine) Execute() {
 		case opcodes.AddGas:
 			delta := LE.Uint64(frame.Code[frame.IP: frame.IP+8])
 			frame.IP += 8
+			fmt.Println("11111")
 			if !vm.AddAndCheckGas(delta) {
 				vm.GasLimitExceeded = true
 				return

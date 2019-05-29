@@ -7,6 +7,8 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"math/big"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 )
 
 var emptyCodeHash = cs_crypto.Keccak256Hash(nil)
@@ -19,7 +21,7 @@ var DEFAULT_VM_CONFIG = exec.VMConfig{
 type VM struct {
 	Context
 	Interpreter Interpreter
-	vmconfig    exec.VMConfig
+	vmConfig    exec.VMConfig
 	// state gives access to the underlying state
 	state StateDB
 	// Depth is the current call stack
@@ -34,7 +36,7 @@ func NewVM(context Context, state StateDB, config exec.VMConfig) *VM {
 	vm := VM{
 		Context:     context,
 		Interpreter: interpreter,
-		vmconfig:    config,
+		vmConfig:    config,
 		state:       state,
 	}
 	return &vm
@@ -50,31 +52,89 @@ func (vm *VM) PreCheck() error {
 }
 
 func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byte, gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
-	code := vm.state.GetState(addr, []byte("code"))
-	abi := vm.state.GetState(addr, []byte("abi"))
-
-	contract := &Contract{
-		CallerAddress: caller.Address(),
-		caller:        caller,
-		self:          &Caller{addr: addr},
-		ABI:           abi,
-		Code:          code,
+	if vm.vmConfig.NoRecursion && vm.depth > 0 {
+		return nil, gas, nil
 	}
 
+	// Fail if we're trying to execute above the call depth limit
+	if vm.depth > int(model2.CallCreateDepth) {
+		return nil, gas, ErrDepth
+	}
+	// Fail if we're trying to transfer more than the available balance
+	if !vm.Context.CanTransfer(vm.state, caller.Address(), value) {
+		return nil, gas, ErrInsufficientBalance
+	}
+
+	var (
+		to       = AccountRef(addr)
+		snapshot = vm.state.Snapshot() // - snapshot.
+	)
+
+	if !vm.state.Exist(addr) {
+		/*precompiles := PrecompiledContractsHomestead
+		if evm.ChainConfig().IsByzantium(evm.BlockNumber) {
+			precompiles = PrecompiledContractsByzantium
+		}
+		if precompiles[addr] == nil && PrecompiledContractsPpos[addr] == nil && evm.ChainConfig().IsEIP158(evm.BlockNumber) && value.Sign() == 0 {
+			// Calling a non existing account, don't do anything, but ping the tracer
+			if evm.vmConfig.Debug && evm.depth == 0 {
+				evm.vmConfig.Tracer.CaptureStart(caller.Address(), addr, false, input, gas, value)
+				evm.vmConfig.Tracer.CaptureEnd(ret, 0, 0, nil)
+			}
+			return nil, gas, nil
+		}*/
+		vm.state.CreateAccount(addr)
+	}
+	vm.Transfer(vm.state, caller.Address(), to.Address(), value)
+
+	// Initialise a new contract and set the code that is to be used by the EVM.
+	// The contract is a scoped environment for this execution context only.
+	contract := NewContract(caller, to, value, gas)
+	contract.SetCallCode(&addr, vm.state.GetCodeHash(addr), vm.state.GetCode(addr))
+
+	//start := time.Now()
+
+	// Capture the tracer start/end events in debug mode
+/*	if evm.vmConfig.Debug && evm.depth == 0 {
+		evm.vmConfig.Tracer.CaptureStart(caller.Address(), addr, false, input, gas, value)
+
+		defer func() { // Lazy evaluation of the parameters
+			evm.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
+		}()
+	}*/
 	ret, err = run(vm, contract, input, false)
-	return
+
+	// When an error was returned by the EVM or when setting the creation code
+	// above we revert to the snapshot and consume any gas remaining. Additionally
+	// when we're in homestead this also counts for code storage gas errors.
+	if err != nil {
+		vm.state.RevertToSnapshot(snapshot)
+		if err != ErrExecutionReverted {
+			contract.UseGas(contract.Gas)
+		}
+	}
+	return ret, contract.Gas, err
 }
 
 func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error) {
 	return nil, 0, nil
 }
-func (vm *VM) Create(caller resolver.ContractRef, code []byte, abi []byte, value []byte) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
+
+func (vm *VM) Create(caller resolver.ContractRef, code []byte, gas uint64, value *big.Int) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
 	contractAddr = cs_crypto.CreateContractAddress(caller.Address(), vm.state.GetNonce(caller.Address()))
-	return vm.create(caller, code, abi, value, contractAddr)
+	return vm.create(caller, code, gas, value, contractAddr)
 }
 
-func (vm *VM) create(caller resolver.ContractRef, code []byte, abi []byte, input []byte, address common.Address) ([]byte, common.Address, uint64, error) {
-	// Caller nonce ++
+func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value *big.Int, address common.Address) ([]byte, common.Address, uint64, error) {
+	// Depth check execution. Fail if we're trying to execute above the
+	// limit.
+	if vm.depth > int(model2.CallCreateDepth) {
+		return nil, common.Address{}, gas, ErrDepth
+	}
+
+	if !vm.CanTransfer(vm.state, caller.Address(), value) {
+		return nil, common.Address{}, gas, ErrInsufficientBalance
+	}
 	vm.state.AddNonce(caller.Address(), uint64(1))
 
 	// Ensure there's no existing contract already at the designated address
@@ -84,22 +144,60 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, abi []byte, input
 	}
 
 	// Create a new account on the state
-	// snapshot := vm.state.Snapshot()
-
+	snapshot := vm.state.Snapshot()
 	vm.state.CreateAccount(address)
-	// vm.Transfer(evm.StateDB, caller.Address(), address, value)
+	vm.Transfer(vm.state, caller.Address(), address, value)
 
-	// Initialise a new contract and set the code that is to be used by the EVM.
-	// The contract is a scoped environment for this execution context only.
-	contract := NewContract(caller, AccountRef(address), code, abi)
-	vm.state.SetState(contract.self.Address(), []byte("code"), code)
-	vm.state.SetState(contract.self.Address(), []byte("abi"), abi)
-	// call run
-	run(vm, contract, input, true)
+	// initialise a new contract and set the code that is to be used by the
+	// EVM. The contract is a scoped environment for this execution context
+	// only.
+	contract := NewContract(caller, AccountRef(address), value, gas)
+	contract.SetCallCode(&address, common.BytesToHash(crypto.Keccak256(code)), code)
 
+	if vm.vmConfig.NoRecursion && vm.depth > 0 {
+		return nil, address, gas, nil
+	}
 
+/*	if vm.vmConfig.Debug && vm.depth == 0 {
+		vm.vmConfig.Tracer.CaptureStart(caller.Address(), address, true, code, gas, value)
+	}*/
+	//start := time.Now()
 
-	return nil, address, uint64(0), nil
+	ret, err := run(vm, contract, nil, true)
+
+	// check whether the max code size has been exceeded
+	maxCodeSizeExceeded := len(ret) > model2.MaxCodeSize
+	// if the contract creation ran successfully and no errors were returned
+	// calculate the gas required to store the code. If the code could not
+	// be stored due to not enough gas set an error and let it be handled
+	// by the error checking condition below.
+	if err == nil && !maxCodeSizeExceeded {
+		createDataGas := uint64(len(ret)) * model2.CreateDataGas
+		if contract.UseGas(createDataGas) {
+			vm.state.SetCode(address, ret)
+		} else {
+			err = ErrCodeStoreOutOfGas
+		}
+	}
+
+	// When an error was returned by the EVM or when setting the creation code
+	// above we revert to the snapshot and consume any gas remaining. Additionally
+	// when we're in homestead this also counts for code storage gas errors.
+	if maxCodeSizeExceeded || (err != nil && err != ErrCodeStoreOutOfGas) {
+		vm.state.RevertToSnapshot(snapshot)
+		if err != ErrExecutionReverted {
+			contract.UseGas(contract.Gas)
+		}
+	}
+	// Assign err if contract code size exceeds the max while the err is still empty.
+	if maxCodeSizeExceeded && err == nil {
+		err = ErrMaxCodeSizeExceeded
+	}
+
+/*	if vm.vmConfig.Debug && vm.depth == 0 {
+		vm.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
+	}*/
+	return ret, address, contract.Gas, err
 }
 
 func run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error) {
@@ -201,14 +299,4 @@ func (c *Caller) Address() common.Address {
 
 func AccountRef(addr common.Address) resolver.ContractRef {
 	return &Caller{addr}
-}
-
-func NewContract(caller resolver.ContractRef, object resolver.ContractRef, code []byte, abi []byte) *Contract {
-	return &Contract{
-		CallerAddress: caller.Address(),
-		caller:        caller,
-		self:          object,
-		ABI:           abi,
-		Code:          code,
-	}
 }

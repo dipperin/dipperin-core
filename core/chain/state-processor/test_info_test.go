@@ -217,6 +217,10 @@ type fakeTransaction struct {
 	sender common.Address
 }
 
+func (tx fakeTransaction) AsMessage() (model.Message, error) {
+	panic("implement me")
+}
+
 func (tx fakeTransaction) Size() common.StorageSize {
 	panic("implement me")
 }

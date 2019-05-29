@@ -69,6 +69,7 @@ func (r *Resolver) envEmitEvent(vm *exec.VirtualMachine) int64 {
 	copy(t, vm.Memory.Memory[topic:topic+topicLen])
 	copy(d, vm.Memory.Memory[dataSrc:dataSrc+dataLen])
 
+	log.Info("the blockNumber is:","blockNumber",r.Service.GetBlockNumber())
 	addedLog := &model.Log{
 		ContractAddr:r.Service.Address(),
 		Topic:common.BytesToHash(crypto.Keccak256(t)),
@@ -97,7 +98,7 @@ func envMalloc(vm *exec.VirtualMachine) int64 {
 }
 
 func envFree(vm *exec.VirtualMachine) int64 {
-	/*	if vm.Config.DisableFree {
+	/*	if vmcommon.Config.DisableFree {
 			return 0
 		}*/
 	log.Info("envFree Called")

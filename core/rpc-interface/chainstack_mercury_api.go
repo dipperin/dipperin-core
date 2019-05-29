@@ -621,7 +621,7 @@ func (api *DipperinMercuryApi) ERC20Transfer(contractAddr, from, to common.Addre
     extraData := BuildContractExtraData("Transfer", contractAddr, params)
 
     //send transaction
-    return api.service.SendTransaction(from, contractAddr, big.NewInt(int64(0)), txFee,nil, extraData, nil)
+    return api.service.SendTransaction(from, contractAddr, big.NewInt(int64(0)), txFee, extraData, nil)
 }
 
 func (api *DipperinMercuryApi) ERC20TransferFrom(contractAdr, owner, from, to common.Address, amount, txFee *big.Int) (common.Hash, error) {
@@ -633,7 +633,7 @@ func (api *DipperinMercuryApi) ERC20TransferFrom(contractAdr, owner, from, to co
     extraData := BuildContractExtraData("TransferFrom", contractAdr, params)
 
     //send transaction
-    return api.service.SendTransaction(from, contractAdr, big.NewInt(int64(0)), txFee, nil,extraData, nil)
+    return api.service.SendTransaction(from, contractAdr, big.NewInt(int64(0)), txFee, extraData, nil)
 }
 
 func (api *DipperinMercuryApi) ERC20Approve(contractAdr, from, to common.Address, amount, txFee *big.Int) (common.Hash, error) {
@@ -644,7 +644,7 @@ func (api *DipperinMercuryApi) ERC20Approve(contractAdr, from, to common.Address
     extraData := BuildContractExtraData("Approve", contractAdr, params)
 
     //send transaction
-    return api.service.SendTransaction(from, contractAdr, big.NewInt(int64(0)), txFee,nil, extraData, nil)
+    return api.service.SendTransaction(from, contractAdr, big.NewInt(int64(0)), txFee, extraData, nil)
 }
 
 func (api *DipperinMercuryApi) CreateERC20(from common.Address, tokenName, tokenSymbol string, amount *big.Int, decimal int, fee *big.Int) (ERC20Resp, error) {
@@ -663,7 +663,7 @@ func (api *DipperinMercuryApi) CreateERC20(from common.Address, tokenName, token
     contractAdr, _ := address_util.GenERC20Address()
     extra.ContractAddress = contractAdr
 
-    txId, err := api.service.SendTransaction(from, contractAdr, big.NewInt(int64(0)), fee, nil,[]byte(util.StringifyJson(extra)), nil)
+    txId, err := api.service.SendTransaction(from, contractAdr, big.NewInt(int64(0)), fee, []byte(util.StringifyJson(extra)), nil)
     var resp ERC20Resp
     if err == nil {
         resp.TxId = txId
@@ -789,8 +789,8 @@ func (api *DipperinMercuryApi) AddAccount(derivationPath string, walletIdentifie
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinMercuryApi) SendTransaction(from, to common.Address, value, transactionFee, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
-    return api.service.SendTransaction(from, to, value, transactionFee, gasPrice, data, nonce)
+func (api *DipperinMercuryApi) SendTransaction(from, to common.Address, value, transactionFee *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
+    return api.service.SendTransaction(from, to, value, transactionFee, data, nonce)
 }
 
 //send multiple-txs

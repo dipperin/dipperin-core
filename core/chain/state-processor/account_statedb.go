@@ -37,8 +37,6 @@ import (
 	"sync"
 )
 
-
-
 type revision struct {
 	id          int
 	changeIndex int
@@ -62,7 +60,7 @@ type AccountStateDB struct {
 	validRevisions  []revision
 	nextRevisionId  int
 
-	logs         map[common.Hash][]*model2.Log
+	logs map[common.Hash][]*model2.Log
 	lock sync.Mutex
 }
 
@@ -185,7 +183,7 @@ func NewAccountStateDB(preStateRoot common.Hash, db StateStorage) (*AccountState
 		smartContractData:     make(map[common.Address]map[string][]byte),
 		finalisedContractRoot: map[common.Address]common.Hash{},
 		stateChangeList:       newStateChangeList(),
-		logs:  map[common.Hash][]*model2.Log{},
+		logs:                  map[common.Hash][]*model2.Log{},
 	}
 	return stateDB, nil
 }
@@ -847,7 +845,7 @@ func (state *AccountStateDB) NewAccountState(addr common.Address) error {
 	return nil
 }
 
-func (state *AccountStateDB) newContractAccount(addr common.Address) (acc *account,err error){
+func (state *AccountStateDB) newContractAccount(addr common.Address) (acc *account, err error) {
 	tempAccount := account{Nonce: 0, Balance: big.NewInt(0), TimeLock: big.NewInt(0), Stake: big.NewInt(0), CommitNum: uint64(0), VerifyNum: uint64(0), Performance: performanceInitial, LastElect: uint64(0), HashLock: common.Hash{}, DataRoot: common.Hash{}}
 	err = state.blockStateTrie.TryUpdate(GetNonceKey(addr), tempAccount.NonceBytes())
 	if err != nil {
@@ -1207,7 +1205,6 @@ func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint
 	return
 }
 
-
 //todo these processes are removed afterwards。
 // todo Write a unit test for each transaction to cover all situations
 func (state *AccountStateDB) ProcessTxNew(tx model.AbstractTransaction, block model.AbstractBlock) (err error) {
@@ -1215,12 +1212,12 @@ func (state *AccountStateDB) ProcessTxNew(tx model.AbstractTransaction, block mo
 	if tx.GetType() == common.AddressTypeContract || tx.GetType() == common.AddressTypeContractCreate {
 		switch tx.GetType() {
 		case common.AddressTypeContract:
-			err = state.ProcessContract(tx, block,false)
+			err = state.ProcessContract(tx, block, false)
 		case common.AddressTypeContractCreate:
-			err = state.ProcessContract(tx, block,true)
+			err = state.ProcessContract(tx, block, true)
 		}
-	} else{
-		// All transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
+	} else {
+		// All normal transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
 		err = state.processBasicTx(tx)
 		if err != nil {
 			log.Debug("processBasicTx failed", "err", err)
@@ -1251,7 +1248,6 @@ func (state *AccountStateDB) ProcessTxNew(tx model.AbstractTransaction, block mo
 
 	return
 }
-
 
 func (state *AccountStateDB) processBasicTx(tx model.AbstractTransaction) (err error) {
 	sender, err := tx.Sender(nil)
@@ -1338,6 +1334,7 @@ func (state *AccountStateDB) processEarlyTokenTx(tx model.AbstractTransaction, b
 	return
 }
 
+
 func (state *AccountStateDB) clearChangeList(){
 	state.stateChangeList = newStateChangeList()
 	state.validRevisions = state.validRevisions[:0]
@@ -1410,3 +1407,4 @@ func (state *AccountStateDB) putSmartDataToTrie(addr common.Address, data map[st
 	}
 	return ct, nil
 }
+

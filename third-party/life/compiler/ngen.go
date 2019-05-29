@@ -13,13 +13,13 @@ const NGEN_ENV_API_PREFIX = "wenv_"
 const NGEN_HEADER = `
 //static const uint64_t UINT32_MASK = 0xffffffffull;
 struct VirtualMachine;
-typedef uint64_t (*ExternalFunction)(struct VirtualMachine *vm, uint64_t import_id, uint64_t num_params, uint64_t *params);
+typedef uint64_t (*ExternalFunction)(struct VirtualMachine *vmcommon, uint64_t import_id, uint64_t num_params, uint64_t *params);
 struct VirtualMachine {
-	void (*throw_s)(struct VirtualMachine *vm, const char *s);
-	ExternalFunction (*resolve_import)(struct VirtualMachine *vm, const char *module_name, const char *field_name);
+	void (*throw_s)(struct VirtualMachine *vmcommon, const char *s);
+	ExternalFunction (*resolve_import)(struct VirtualMachine *vmcommon, const char *module_name, const char *field_name);
 	uint64_t mem_size;
 	uint8_t *mem;
-	void (*grow_memory)(struct VirtualMachine *vm, uint64_t inc_size);
+	void (*grow_memory)(struct VirtualMachine *vmcommon, uint64_t inc_size);
 	void *userdata;
 };
 
@@ -38,12 +38,12 @@ union Value {
 	float vf32;
 	double vf64;
 };
-static uint8_t * __attribute__((always_inline)) mem_translate(struct VirtualMachine *vm, union Value start, uint32_t offset, uint32_t size) {
+static uint8_t * __attribute__((always_inline)) mem_translate(struct VirtualMachine *vmcommon, union Value start, uint32_t offset, uint32_t size) {
 	start.vu32 += offset;
 	#ifndef POLYMERASE_NO_MEM_BOUND_CHECK
-	if(start.vu32 + size < start.vu32 || start.vu32 + size > vm->mem_size) vm->throw_s(vm, "memory access out of bounds");
+	if(start.vu32 + size < start.vu32 || start.vu32 + size > vmcommon->mem_size) vmcommon->throw_s(vmcommon, "memory access out of bounds");
 	#endif
-	return &vm->mem[start.vu32];
+	return &vmcommon->mem[start.vu32];
 }
 static uint64_t __attribute__((always_inline)) clz32(uint32_t x) {
 	return __builtin_clz(x);
@@ -126,7 +126,7 @@ func bSprintf(builder *strings.Builder, format string, args ...interface{}) {
 }
 
 func writeDivZeroRvCheck(b *strings.Builder, ins Instr) {
-	bSprintf(b, "if(%s%d.vu64 == 0) vm->throw_s(vm, \"divide by zero\"); ", NGEN_VALUE_PREFIX, ins.Values[1]) // TODO: fix
+	bSprintf(b, "if(%s%d.vu64 == 0) vmcommon->throw_s(vmcommon, \"divide by zero\"); ", NGEN_VALUE_PREFIX, ins.Values[1]) // TODO: fix
 }
 
 func writeUnOp_Eqz(b *strings.Builder, ins Instr, ty string) {
@@ -193,7 +193,7 @@ func writeBinOp(b *strings.Builder, ins Instr, op string, ty string) {
 
 func writeMemLoad(b *strings.Builder, ins Instr, ty string) {
 	bSprintf(b,
-		"%s%d.vi64 = * (%s *) mem_translate(vm, %s%d, %du, sizeof(%s));", // TODO: any missing conversions?
+		"%s%d.vi64 = * (%s *) mem_translate(vmcommon, %s%d, %du, sizeof(%s));", // TODO: any missing conversions?
 		NGEN_VALUE_PREFIX, ins.Target,
 		ty,
 		NGEN_VALUE_PREFIX, ins.Values[0],
@@ -204,7 +204,7 @@ func writeMemLoad(b *strings.Builder, ins Instr, ty string) {
 
 func writeMemStore(b *strings.Builder, ins Instr, ty string) {
 	bSprintf(b,
-		"* (%s *) mem_translate(vm, %s%d, %du, sizeof(%s)) = %s%d.vu64;",
+		"* (%s *) mem_translate(vmcommon, %s%d, %du, sizeof(%s)) = %s%d.vu64;",
 		ty,
 		NGEN_VALUE_PREFIX, ins.Values[0],
 		uint64(ins.Immediates[1]),
@@ -216,7 +216,7 @@ func writeMemStore(b *strings.Builder, ins Instr, ty string) {
 func (c *SSAFunctionCompiler) NGen(selfID uint64, numParams uint64, numLocals uint64, numGlobals uint64) string {
 	builder := &strings.Builder{}
 
-	bSprintf(builder, "uint64_t %s%d(struct VirtualMachine *vm", NGEN_FUNCTION_PREFIX, selfID)
+	bSprintf(builder, "uint64_t %s%d(struct VirtualMachine *vmcommon", NGEN_FUNCTION_PREFIX, selfID)
 
 	for i := uint64(0); i < numParams; i++ {
 		bSprintf(builder, ",uint64_t %s%d", NGEN_LOCAL_PREFIX, i)
@@ -236,7 +236,7 @@ func (c *SSAFunctionCompiler) NGen(selfID uint64, numParams uint64, numLocals ui
 		bSprintf(body, "%s%d: ", NGEN_INS_LABEL_PREFIX, i)
 		switch ins.Op {
 		case "unreachable":
-			bSprintf(body, "vm->throw_s(vm, \"unreachable executed\");")
+			bSprintf(body, "vmcommon->throw_s(vmcommon, \"unreachable executed\");")
 		case "return":
 			if len(ins.Values) == 0 {
 				body.WriteString("return 0;")
@@ -275,7 +275,7 @@ func (c *SSAFunctionCompiler) NGen(selfID uint64, numParams uint64, numLocals ui
 			)
 		case "call":
 			bSprintf(body,
-				"%s%d.vu64 = %s%d(vm",
+				"%s%d.vu64 = %s%d(vmcommon",
 				NGEN_VALUE_PREFIX, ins.Target,
 				NGEN_FUNCTION_PREFIX, ins.Immediates[0],
 			)
@@ -292,7 +292,7 @@ func (c *SSAFunctionCompiler) NGen(selfID uint64, numParams uint64, numLocals ui
 				bSprintf(body, ",uint64_t")
 			}
 			bSprintf(body,
-				")) %sresolve_indirect(vm, %s%d.vu32, %d)) (vm",
+				")) %sresolve_indirect(vmcommon, %s%d.vu32, %d)) (vmcommon",
 				NGEN_ENV_API_PREFIX,
 				NGEN_VALUE_PREFIX, ins.Values[len(ins.Values)-1],
 				len(ins.Values)-1,
@@ -649,13 +649,13 @@ func (c *SSAFunctionCompiler) NGen(selfID uint64, numParams uint64, numLocals ui
 
 		case "current_memory":
 			bSprintf(body,
-				"%s%d.vu64 = vm->mem_size / 65536;",
+				"%s%d.vu64 = vmcommon->mem_size / 65536;",
 				NGEN_VALUE_PREFIX, ins.Target,
 			)
 
 		case "grow_memory":
 			bSprintf(body,
-				"%s%d.vu64 = vm->mem_size / 65536; vm->grow_memory(vm, %s%d.vu32 * 65536);",
+				"%s%d.vu64 = vmcommon->mem_size / 65536; vmcommon->grow_memory(vmcommon, %s%d.vu32 * 65536);",
 				NGEN_VALUE_PREFIX, ins.Target,
 				NGEN_VALUE_PREFIX, ins.Values[0],
 			)
@@ -664,7 +664,7 @@ func (c *SSAFunctionCompiler) NGen(selfID uint64, numParams uint64, numLocals ui
 			// TODO: Implement
 
 		case "fp_disabled_error":
-			bSprintf(body, "vm->throw_s(vm, \"floating point disabled\");")
+			bSprintf(body, "vmcommon->throw_s(vmcommon, \"floating point disabled\");")
 
 		default:
 			panic(ins.Op)

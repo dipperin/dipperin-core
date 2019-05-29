@@ -611,7 +611,7 @@ func (service *MercuryFullChainService) NewSendTransactions(txs []model.Transact
 	return len(txs), nil
 }
 
-//send a normal transaction or contract transaction
+//send a normal transaction
 func (service *MercuryFullChainService) SendTransaction(from, to common.Address, value, transactionFee *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
 	//start:=time.Now()
 	// automatic transfer need this
@@ -629,7 +629,7 @@ func (service *MercuryFullChainService) SendTransaction(from, to common.Address,
 		return common.Hash{}, err
 	}
 
-	tx := model.NewTransactionSc(usedNonce, to, value, transactionFee, nil, data)
+	tx := model.NewTransaction(usedNonce, to, value, transactionFee, data)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
 		pbft_log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
@@ -642,8 +642,7 @@ func (service *MercuryFullChainService) SendTransaction(from, to common.Address,
 	return txHash, nil
 }
 
-/*//send a normal transaction or contract transaction new
-func (service *MercuryFullChainService) SendTransactionContract(from, to common.Address, value, transactionFee, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
+func (service *MercuryFullChainService) SendTransactionContractCreate(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
 	//start:=time.Now()
 	// automatic transfer need this
 	if from.IsEqual(common.Address{}) {
@@ -660,7 +659,7 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 		return common.Hash{}, err
 	}
 
-	tx := model.NewTransactionSc(usedNonce, to, value, transactionFee, gasPrice, data)
+	tx := model.NewTransactionSc(usedNonce, to, value, gasPrice, gasLimit.Uint64(), data)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
 		pbft_log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
@@ -671,7 +670,7 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 	txHash := signTx.CalTxId()
 	log.Info("the SendTransaction txId is: ", "txId", txHash.Hex(), "txSize", signTx.Size())
 	return txHash, nil
-}*/
+}
 
 //send a register transaction
 func (service *MercuryFullChainService) SendRegisterTransaction(from common.Address, stake, fee *big.Int, nonce *uint64) (common.Hash, error) {
