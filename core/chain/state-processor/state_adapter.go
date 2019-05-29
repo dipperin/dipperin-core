@@ -39,7 +39,20 @@ func (f *Fullstate) AddNonce(addr common.Address, add uint64) {
 	}
 }
 
-func (f *Fullstate) GetCodeHash(addr common.Address) common.Hash {
+func (f *Fullstate) AddBalance(addr common.Address, amount *big.Int){
+	err := f.state.AddBalance(addr, amount)
+	if err != nil{
+		panic("Can not add balance")
+	}
+}
+func (f *Fullstate) SubBalance(addr common.Address, amount *big.Int){
+	err := f.state.SubBalance(addr,amount)
+	if err != nil{
+		panic("Can not sub balance")
+	}
+}
+
+func (f  *Fullstate) GetCodeHash(addr common.Address) common.Hash {
 	code, err := f.state.GetCode(addr)
 	if err != nil {
 		return common.Hash{}
@@ -92,18 +105,6 @@ func (f *Fullstate) SetAbi(addr common.Address, abi []byte) {
 	if err != nil {
 		panic("set abi error")
 	}
-}
-
-func (f *Fullstate) AddRefund(uint64) {
-	panic("implement me")
-}
-
-func (f *Fullstate) SubRefund(uint64) {
-	panic("implement me")
-}
-
-func (f *Fullstate) GetRefund() uint64 {
-	panic("implement me")
 }
 
 func (f *Fullstate) GetCommittedState(common.Address, []byte) []byte {
@@ -164,14 +165,6 @@ func (f *Fullstate) RevertToSnapshot(int) {
 }
 
 func (f *Fullstate) Snapshot() int {
-	panic("implement me")
-}
-
-func (f *Fullstate) AddPreimage(common.Hash, []byte) {
-	panic("implement me")
-}
-
-func (f *Fullstate) ForEachStorage(common.Address, func(common.Hash, common.Hash) bool) {
 	panic("implement me")
 }
 

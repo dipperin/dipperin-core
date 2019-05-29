@@ -180,18 +180,18 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		}
 	}
 	st.refundGas()
+	//Todo reward to both miner and verifier?
 	st.state.AddBalance(st.lifeVm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
 	return ret, st.gasUsed(), vmerr != nil, err
 }
 
 func (st *StateTransition) refundGas() {
 	// Apply refund counter, capped to half of the used gas.
-	refund := st.gasUsed() / 2
+	/*refund := st.gasUsed() / 2
 	if refund > st.lifeVm.GetStateDB().GetRefund() {
 		refund = st.lifeVm.GetStateDB().GetRefund()
-	}
-	log.Info("Call refundGas", "refund", refund)
-	st.gas += refund
+	}*/
+	//log.Info("Call refundGas", "refund", refund)
 	// Return ETH for remaining gas, exchanged at the original rate.
 	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
 	st.state.AddBalance(st.msg.From(), remaining)
