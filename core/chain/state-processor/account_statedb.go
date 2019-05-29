@@ -26,7 +26,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
-	cs_crypto "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/mpt_log"
 	"github.com/dipperin/dipperin-core/third-party/trie"
@@ -37,8 +37,6 @@ import (
 	"strings"
 	"sync"
 )
-
-
 
 type revision struct {
 	id          int
@@ -62,7 +60,7 @@ type AccountStateDB struct {
 	validRevisions  []revision
 	nextRevisionId  int
 
-	logs         map[common.Hash][]*model2.Log
+	logs map[common.Hash][]*model2.Log
 	lock sync.Mutex
 }
 
@@ -184,7 +182,7 @@ func NewAccountStateDB(preStateRoot common.Hash, db StateStorage) (*AccountState
 		contractData:          map[common.Address]reflect.Value{},
 		finalisedContractRoot: map[common.Address]common.Hash{},
 		stateChangeList:       newStateChangeList(),
-		logs:  map[common.Hash][]*model2.Log{},
+		logs:                  map[common.Hash][]*model2.Log{},
 	}
 	return stateDB, nil
 }
@@ -778,18 +776,18 @@ func (state *AccountStateDB) setLastElect(addr common.Address, blockID uint64) e
 	return nil
 }
 
-func (state *AccountStateDB) setContractCode(addr common.Address, code []byte) error{
+func (state *AccountStateDB) setContractCode(addr common.Address, code []byte) error {
 	ct, err := state.getContractTrie(addr)
-	if err!=nil{
+	if err != nil {
 		return err
 	}
-	err = ct.TryUpdate(GetContractFieldKey(addr,"code"),code)
-	if err!=nil{
+	err = ct.TryUpdate(GetContractFieldKey(addr, "code"), code)
+	if err != nil {
 		return err
 	}
 	codeHash := cs_crypto.Keccak256Hash(code)
-	err = ct.TryUpdate(GetContractFieldKey(addr,"codeHash"),codeHash.Bytes())
-	if err!=nil{
+	err = ct.TryUpdate(GetContractFieldKey(addr, "codeHash"), codeHash.Bytes())
+	if err != nil {
 		return err
 	}
 
@@ -808,13 +806,13 @@ func (state *AccountStateDB) setContractCode(addr common.Address, code []byte) e
 	return nil
 }
 
-func (state *AccountStateDB) SetAbi(addr common.Address, abi []byte) (err error){
+func (state *AccountStateDB) SetAbi(addr common.Address, abi []byte) (err error) {
 	ct, err := state.getContractTrie(addr)
-	if err!=nil{
+	if err != nil {
 		return
 	}
-	err = ct.TryUpdate(GetContractFieldKey(addr,"abi"),abi)
-	if err!=nil{
+	err = ct.TryUpdate(GetContractFieldKey(addr, "abi"), abi)
+	if err != nil {
 		return
 	}
 	ch, err := ct.Commit(nil)
@@ -841,7 +839,7 @@ func (state *AccountStateDB) NewAccountState(addr common.Address) error {
 	return nil
 }
 
-func (state *AccountStateDB) newContractAccount(addr common.Address) (acc *account,err error){
+func (state *AccountStateDB) newContractAccount(addr common.Address) (acc *account, err error) {
 	tempAccount := account{Nonce: 0, Balance: big.NewInt(0), TimeLock: big.NewInt(0), Stake: big.NewInt(0), CommitNum: uint64(0), VerifyNum: uint64(0), Performance: performanceInitial, LastElect: uint64(0), HashLock: common.Hash{}, DataRoot: common.Hash{}}
 	err = state.blockStateTrie.TryUpdate(GetNonceKey(addr), tempAccount.NonceBytes())
 	if err != nil {
@@ -1200,7 +1198,6 @@ func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint
 	return
 }
 
-
 //todo these processes are removed afterwards。
 // todo Write a unit test for each transaction to cover all situations
 func (state *AccountStateDB) ProcessTxNew(tx model.AbstractTransaction, block model.AbstractBlock) (err error) {
@@ -1208,11 +1205,11 @@ func (state *AccountStateDB) ProcessTxNew(tx model.AbstractTransaction, block mo
 	if tx.GetType() == common.AddressTypeContract || tx.GetType() == common.AddressTypeContractCreate {
 		switch tx.GetType() {
 		case common.AddressTypeContract:
-			err = state.ProcessContract(tx, block,false)
+			err = state.ProcessContract(tx, block, false)
 		case common.AddressTypeContractCreate:
-			err = state.ProcessContract(tx, block,true)
+			err = state.ProcessContract(tx, block, true)
 		}
-	} else{
+	} else {
 		// All normal transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
 		err = state.processBasicTx(tx)
 		if err != nil {
@@ -1244,7 +1241,6 @@ func (state *AccountStateDB) ProcessTxNew(tx model.AbstractTransaction, block mo
 
 	return
 }
-
 
 func (state *AccountStateDB) processBasicTx(tx model.AbstractTransaction) (err error) {
 	sender, err := tx.Sender(nil)
@@ -1330,4 +1326,3 @@ func (state *AccountStateDB) processEarlyTokenTx(tx model.AbstractTransaction, b
 	err = cProcessor.Process(tx)
 	return
 }
-
