@@ -19,6 +19,7 @@ package model
 import (
 	"container/heap"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/vm/model"
@@ -41,7 +42,9 @@ type Transaction struct {
 	from atomic.Value
 
 	//add receipt cache
-	receipt model.Receipt
+	receipt atomic.Value
+	//add txIndex cache
+	txIndex atomic.Value
 }
 
 type RpcTransaction struct {
@@ -409,11 +412,29 @@ func (tx *Transaction) PaddingReceipt(parameters ReceiptPara)(*model.Receipt,err
 	// Set the receipt Logs and create a bloom for filtering
 	receipt.Logs = parameters.Logs
 	receipt.Bloom = model.CreateBloom(model.Receipts{receipt})
-	return &tx.receipt,nil
+	tx.receipt.Store(receipt)
+	return receipt,nil
 }
 
-func (tx *Transaction) GetReceipt()*model.Receipt{
-	return &tx.receipt
+func (tx *Transaction) GetReceipt()(model.Receipt,error){
+	value:= tx.receipt.Load()
+	if value !=nil{
+		return value.(model.Receipt),nil
+	}
+
+	return model.Receipt{},errors.New("not set tx receipt")
+}
+
+func (tx *Transaction) PaddingTxIndex(index int){
+	tx.txIndex.Store(index)
+}
+
+func (tx *Transaction) GetTxIndex() (int,error){
+	index:= tx.txIndex.Load()
+	if index !=nil{
+		return index.(int),nil
+	}
+	return 0,errors.New("not set tx index")
 }
 
 // Transactions is a Transaction slice type for basic sorting.

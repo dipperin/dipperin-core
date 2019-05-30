@@ -35,7 +35,11 @@ func InsertReceipts(c *BlockContext) Middleware {
 
 		receipts := make(model2.Receipts, len(c.Block.GetTransactions()))
 		err := c.Block.TxIterator(func(i int, transaction model.AbstractTransaction) error {
-			receipts = append(receipts,transaction.GetReceipt())
+			receipt,err := transaction.GetReceipt()
+			if err !=nil{
+				return err
+			}
+			receipts = append(receipts,&receipt)
 			return nil
 		})
 		if err != nil {
