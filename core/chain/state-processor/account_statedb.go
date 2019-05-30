@@ -1211,7 +1211,6 @@ func (state *AccountStateDB) ProcessTxNew(tx model.AbstractTransaction, block mo
 	var par model.ReceiptPara
 	if tx.GetType() == common.AddressTypeContract || tx.GetType() == common.AddressTypeContractCreate {
 		par,err = state.ProcessContract(tx, block, tx.GetType()==common.AddressTypeContractCreate)
-
 	} else {
 		// All normal transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
 		err = state.processBasicTx(tx)
