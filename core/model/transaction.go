@@ -69,7 +69,7 @@ func newTransaction(nonce uint64, to *common.Address, amount, fee, gasPrice *big
 		HashLock:     nil,
 		TimeLock:     new(big.Int),
 		Amount:       new(big.Int),
-		Fee:          new(big.Int),
+		Fee:          new(big.Int).Mul(gasPrice, new(big.Int).SetUint64(gasLimit / 100000)),
 		Price:        gasPrice,
 		GasLimit:     gasLimit,
 		ExtraData:    data,
@@ -365,6 +365,7 @@ func (tx *Transaction) EstimateFee() *big.Int {
 }
 
 func (tx *Transaction) AsMessage() (Message, error) {
+	log.Info("Transaction", "tx.data.price", tx.data.Price )
 	msg := Message{
 		nonce:      tx.data.AccountNonce,
 		gasLimit:   tx.data.GasLimit,

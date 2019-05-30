@@ -590,11 +590,12 @@ func (caller *rpcCaller) SendTransactionContractCreate(c *cli.Context)  {
 	if len(cParams) == 3 {
 		gasPrice.SetInt64(config.DEFAULT_GAS_PRICE)
 	} else {
-		gasPrice, err = MoneyValueToCSCoin(cParams[2])
+		gasPriceVal, err := strconv.ParseInt(cParams[3], 10, 64)
 		if err != nil {
 			l.Error("the parameter value invalid")
 			return
 		}
+		gasPrice = new(big.Int).SetInt64(gasPriceVal)
 	}
 
 	ExtraData, err := generateExtraData(c)
@@ -607,7 +608,7 @@ func (caller *rpcCaller) SendTransactionContractCreate(c *cli.Context)  {
 
 	l.Info("the From is: ", "From", From.Hex())
 	l.Info("the Value is:", "Value", cParams[1]+consts.CoinDIPName)
-	l.Info("the gasLimit is:", "gasLimit", cParams[2])
+	l.Info("the gasLimit is:", "gasLimit", gasLimit)
 	l.Info("the gasPrice is:", "gasPrice", gasPrice)
 	l.Info("the ExtraData is: ", "ExtraData", ExtraData)
 
