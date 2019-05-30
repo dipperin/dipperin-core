@@ -167,11 +167,3 @@ func (f *Fullstate) RevertToSnapshot(int) {
 func (f *Fullstate) Snapshot() int {
 	panic("implement me")
 }
-
-func (f *Fullstate) TxHash() common.Hash {
-	panic("implement me")
-}
-
-func (f *Fullstate) TxIdx() uint32 {
-	panic("implement me")
-}

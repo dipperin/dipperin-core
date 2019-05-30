@@ -87,7 +87,7 @@ func createContractTx(t *testing.T, code, abi string) *model.Transaction {
 func callContractTx(t *testing.T, to *common.Address, funcName string, param [][]byte) *model.Transaction {
 	key, _ := createKey()
 	fs := model.NewMercurySigner(big.NewInt(1))
-	data := genInput(t, funcName, param)
+	data := getContractInput(t, funcName, param)
 	tx := model.NewTransactionSc(0, to, big.NewInt(200), gasPrice, gasLimit, data)
 	tx.SignTx(key, fs)
 	return tx
@@ -151,7 +151,6 @@ func getContractCode(t *testing.T, code, abi string) []byte {
 	var input [][]byte
 	input = make([][]byte, 0)
 	// tx type
-
 	input = append(input, vmcommon.Int64ToBytes(1))
 	// code
 	input = append(input, fileCode)
@@ -164,7 +163,7 @@ func getContractCode(t *testing.T, code, abi string) []byte {
 	return buffer.Bytes()
 }
 
-func genInput(t *testing.T, funcName string, param [][]byte) []byte {
+func getContractInput(t *testing.T, funcName string, param [][]byte) []byte {
 	var input [][]byte
 	input = make([][]byte, 0)
 	// tx type
@@ -450,18 +449,6 @@ func (state fakeStateDB) SetAbi(common.Address, []byte) {
 	panic("implement me")
 }
 
-func (state fakeStateDB) AddRefund(uint64) {
-	panic("implement me")
-}
-
-func (state fakeStateDB) SubRefund(uint64) {
-	panic("implement me")
-}
-
-func (state fakeStateDB) GetRefund() uint64 {
-	return uint64(9000000)
-}
-
 func (state fakeStateDB) GetCommittedState(common.Address, []byte) []byte {
 	panic("implement me")
 }
@@ -498,21 +485,5 @@ func (state fakeStateDB) RevertToSnapshot(int) {
 }
 
 func (state fakeStateDB) Snapshot() int {
-	return 0
-}
-
-func (state fakeStateDB) AddPreimage(common.Hash, []byte) {
-	panic("implement me")
-}
-
-func (state fakeStateDB) ForEachStorage(common.Address, func(common.Hash, common.Hash) bool) {
-	panic("implement me")
-}
-
-func (state fakeStateDB) TxHash() common.Hash {
-	return common.Hash{}
-}
-
-func (state fakeStateDB) TxIdx() uint32 {
 	return 0
 }

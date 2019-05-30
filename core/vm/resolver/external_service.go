@@ -24,6 +24,8 @@ type VmContextService interface {
 	Call(caller ContractRef, addr common.Address, input []byte,gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error)
 	GetCallGasTemp() uint64
 	DelegateCall(caller ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error)
+	GetTxHash() common.Hash
+	GetTxIdx() uint64
 }
 
 type ContractService interface {
@@ -40,8 +42,6 @@ type StateDBService interface {
 	SetState(addr common.Address,key []byte, value []byte)
 	GetState(addr common.Address,key []byte) (data []byte)
 	GetNonce(common.Address) uint64
-	TxHash() common.Hash
-	TxIdx() uint32
 }
 
 type resolverNeedExternalService struct {

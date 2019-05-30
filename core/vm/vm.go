@@ -7,7 +7,6 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"math/big"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 )
@@ -154,7 +153,7 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value
 	// EVM. The contract is a scoped environment for this execution context
 	// only.
 	contract := NewContract(caller, AccountRef(address), value, gas)
-	contract.SetCallCode(&address, common.BytesToHash(crypto.Keccak256(code)), code)
+	contract.SetCallCode(&address, cs_crypto.Keccak256Hash(code), code)
 
 	if vm.vmConfig.NoRecursion && vm.depth > 0 {
 		return nil, address, gas, nil
@@ -187,6 +186,7 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value
 	// above we revert to the snapshot and consume any gas remaining. Additionally
 	// when we're in homestead this also counts for code storage gas errors.
 	if maxCodeSizeExceeded || (err != nil && err != ErrCodeStoreOutOfGas) {
+		log.Info("Run lifeVm failed", "err", err)
 		vm.state.RevertToSnapshot(snapshot)
 		if err != ErrExecutionReverted {
 			contract.UseGas(contract.Gas)
@@ -232,6 +232,8 @@ type Context struct {
 	BlockNumber *big.Int // Provides information for NUMBER
 	Time        *big.Int // Provides information for TIME
 	Difficulty  *big.Int // Provides information for DIFFICULTY
+	TxHash      common.Hash
+	TxIndex		uint64
 
 	// callGasTemp holds the gas available for the current call. This is needed because the
 	// available gas is calculated in gasCall* according to the 63/64 rule and later
@@ -243,6 +245,14 @@ type Context struct {
 	CanTransfer CanTransferFunc
 	// Transfer transfers ether from one account to the other
 	Transfer TransferFunc
+}
+
+func (context *Context) GetTxHash() common.Hash {
+	return context.TxHash
+}
+
+func (context *Context) GetTxIdx() uint64 {
+	return context.TxIndex
 }
 
 func (context *Context) GetCallGasTemp() uint64 {
@@ -289,6 +299,7 @@ func NewVMContext(tx model.AbstractTransaction, block model.AbstractBlock) Conte
 		Coinbase:    block.CoinBaseAddress(),
 		Difficulty:  block.Difficulty().Big(),
 		callGasTemp: tx.Fee().Uint64(),
+		TxHash:      tx.CalTxId(),
 	}
 }
 
