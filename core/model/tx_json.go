@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
-	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/hexutil"
-	"math/big"
 	"encoding/json"
 	"errors"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"math/big"
 )
 
 type TransactionJSON struct {
@@ -56,14 +55,16 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 
 func (t txData) MarshalJSON() ([]byte, error) {
 	type txdata struct {
-		AccountNonce hexutil.Uint64  `json:"nonce"    gencodec:"required"`
+		AccountNonce hexutil.Uint64 `json:"nonce"    gencodec:"required"`
 		//Version      hexutil.Uint64  `json:"version" gencodec:"required"`
-		Recipient    *common.Address `json:"to"       rlp:"nil"`
-		HashLock     *common.Hash    `json:"hashlock" rlp:"nil"`
-		TimeLock     *hexutil.Big    `json:"timelock" gencodec:"required"`
-		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
-		Fee          *hexutil.Big    `json:"fee"      gencodec:"required"`
-		ExtraData    hexutil.Bytes   `json:"extradata"    gencodec:"required"`
+		Recipient *common.Address `json:"to"       rlp:"nil"`
+		HashLock  *common.Hash    `json:"hashlock" rlp:"nil"`
+		TimeLock  *hexutil.Big    `json:"timelock" gencodec:"required"`
+		Amount    *hexutil.Big    `json:"value"    gencodec:"required"`
+		Fee       *hexutil.Big    `json:"fee"      gencodec:"required"`
+		Price     *hexutil.Big    `json:"gasPrice" gencodec:"required"`
+		GasLimit  hexutil.Uint64 `json:"gas"      gencodec:"required"`
+		ExtraData hexutil.Bytes   `json:"input"    gencodec:"required"`
 	}
 	var enc txdata
 	enc.AccountNonce = hexutil.Uint64(t.AccountNonce)
@@ -74,6 +75,9 @@ func (t txData) MarshalJSON() ([]byte, error) {
 	enc.Amount = (*hexutil.Big)(t.Amount)
 	enc.Fee = (*hexutil.Big)(t.Fee)
 	enc.ExtraData = t.ExtraData
+	enc.GasLimit = hexutil.Uint64(t.GasLimit)
+	enc.Price    = (*hexutil.Big)(t.Price)
+
 	return json.Marshal(&enc)
 }
 
@@ -81,12 +85,14 @@ func (t *txData) UnmarshalJSON(input []byte) error {
 	type txdata struct {
 		AccountNonce *hexutil.Uint64 `json:"nonce"    gencodec:"required"`
 		//Version      *hexutil.Uint64 `json:"version" gencodec:"required"`
-		Recipient    *common.Address `json:"to"       rlp:"nil"`
-		HashLock     *common.Hash    `json:"hashlock" rlp:"nil"`
-		TimeLock     *hexutil.Big    `json:"timelock" gencodec:"required"`
-		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
-		Fee          *hexutil.Big    `json:"fee"      gencodec:"required"`
-		ExtraData    *hexutil.Bytes  `json:"extradata"    gencodec:"required"`
+		Recipient *common.Address `json:"to"       rlp:"nil"`
+		HashLock  *common.Hash    `json:"hashlock" rlp:"nil"`
+		TimeLock  *hexutil.Big    `json:"timelock" gencodec:"required"`
+		Amount    *hexutil.Big    `json:"value"    gencodec:"required"`
+		Fee       *hexutil.Big    `json:"fee"      gencodec:"required"`
+		Price     *hexutil.Big    `json:"gasPrice" gencodec:"required"`
+		GasLimit  *hexutil.Uint64 `json:"gas"      gencodec:"required"`
+		ExtraData *hexutil.Bytes  `json:"input"    gencodec:"required"`
 	}
 	var dec txdata
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -123,6 +129,13 @@ func (t *txData) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'extradata' for txData")
 	}
 	t.ExtraData = *dec.ExtraData
+	if dec.Price != nil {
+		t.Price = (*big.Int)(dec.Price)
+	}
+
+	if dec.GasLimit != nil {
+		t.GasLimit = uint64(*dec.GasLimit)
+	}
 	return nil
 }
 

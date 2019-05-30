@@ -373,7 +373,7 @@ func (d Difficulty) Hex() string {
 
 func (d Difficulty) DiffToTarget() (target Hash) {
 	a := HashLength - d[0]
-	//cslog.Debug().Interface("a", a).Interface("d", d).Msg("DiffToTarget")
+	log.Info("Difficulty","a", a, "d[0]", d[0] )
 	if a + 2 > HashLength - 1 || HashLength < d[0] {
 		log.Error("DiffToTarget failed", "diff", d.Hex())
 		panic("The first digit of diff cannot be less than 3 and cannot be greater than 0x20")

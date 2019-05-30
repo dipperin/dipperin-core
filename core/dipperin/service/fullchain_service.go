@@ -673,6 +673,7 @@ func (service *MercuryFullChainService) SendTransactionContractCreate(from, to c
 
 	log.Info("send transaction", "txId", signTx.CalTxId().Hex())
 	log.Info("send transaction", "gasPrice", signTx.GetGasPrice())
+	log.Info("send transaction", "gas limit", signTx.GetGasLimit())
 	signJson,_ := json.Marshal(signTx)
 	txJson,_ := json.Marshal(tx)
 	pbft_log.Info("send transaction", "signTx json", string(signJson))

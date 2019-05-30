@@ -36,6 +36,8 @@ type AbstractHeader interface {
 	SetVerificationRoot(newRoot common.Hash)
 	GetSeed() common.Hash
 	GetProof() []byte
+	GetGasLimit() uint64
+	GetGasUsed()  uint64
 	GetMinerPubKey() (*ecdsa.PublicKey)
 	GetInterLinkRoot() common.Hash
 	GetDifficulty() common.Difficulty
@@ -119,6 +121,7 @@ type AbstractTransaction interface {
 	AsMessage() (Message, error)
 	PaddingReceipt(parameters ReceiptPara)(*model.Receipt,error)
 	GetReceipt()*model.Receipt
+	GetGasLimit() uint64
 }
 
 //go:generate mockgen -destination=./../economy-model/verification_mock_test.go -package=economy_model github.com/dipperin/dipperin-core/core/model AbstractVerification

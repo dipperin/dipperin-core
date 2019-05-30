@@ -309,6 +309,18 @@ type fakeTransaction struct {
 	sender common.Address
 }
 
+func (tx fakeTransaction) PaddingReceipt(parameters model.ReceiptPara) (*model2.Receipt, error) {
+	panic("implement me")
+}
+
+func (tx fakeTransaction) GetReceipt()  *model2.Receipt  {
+	panic("implement me")
+}
+
+func (tx fakeTransaction)  GetGasLimit() uint64 {
+	panic("implement me")
+}
+
 func (tx fakeTransaction) AsMessage() (model.Message, error) {
 	panic("implement me")
 }

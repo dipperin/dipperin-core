@@ -192,7 +192,7 @@ type txData struct {
 	AccountNonce uint64          `json:"nonce"    gencodec:"required"`
 	Recipient    *common.Address `json:"to"       rlp:"nil"`
 	HashLock     *common.Hash    `json:"hashLock" rlp:"nil"`
-	TimeLock     *big.Int        `json:"timeLock" gencodec:"required"`
+	TimeLock     *big.Int        `json:"timeLock22" gencodec:"required"`
 	Amount       *big.Int        `json:"Value"    gencodec:"required"`
 	Fee          *big.Int        `json:"fee"      gencodec:"required"`
 	Price        *big.Int        `json:"gasPrice" gencodec:"required"`
@@ -231,6 +231,10 @@ func (tx *Transaction) EncodeRlpToBytes() ([]byte, error) {
 
 func (tx *Transaction) GetGasPrice() *big.Int {
 	return tx.data.Price
+}
+
+func (tx *Transaction) GetGasLimit() uint64  {
+	return tx.data.GasLimit
 }
 
 //DecodeRLP implements rlp.Decoder

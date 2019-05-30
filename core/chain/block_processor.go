@@ -70,10 +70,11 @@ func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel eco
 	mpt_log.Debug("AccountStateDB Process begin~~~~~~~~~~~~~~", "pre state", state.PreStateRoot().Hex(),"blockId",block.Hash().Hex())
 
 	state.economyModel = economyModel
+	blockGasLimit := block.Header().GetGasLimit()
 	// special block doesn't process txs
 	if !block.IsSpecial() {
 		if err = block.TxIterator(func(i int, tx model.AbstractTransaction) (error) {
-			innerError := state.ProcessTxNew(tx, block)
+			_, innerError := state.ProcessTxNew(tx, block, &blockGasLimit)
 			/*// unrecognized tx means no processing of the tx
 			if innerError == g_error.UnknownTxTypeErr {
 				log.Warn("unknown tx type", "type", tx.GetType())
