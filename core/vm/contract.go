@@ -22,6 +22,8 @@ type Contract struct {
 
 	value *big.Int
 	Gas   uint64
+
+	DelegateCall bool
 }
 
 func NewContract(caller resolver.ContractRef, object resolver.ContractRef, value *big.Int, gas uint64) *Contract {
@@ -69,6 +71,18 @@ func (c *Contract) SetCallAbi(addr *common.Address, hash common.Hash, abi []byte
 	c.ABI = abi
 	c.ABIHash = hash
 	c.ABIAddr = addr
+}
+
+// AsDelegate sets the contract to be a delegate call and returns the current
+// contract (for chaining calls)
+func (c *Contract) AsDelegate() *Contract {
+	c.DelegateCall = true
+	// NOTE: caller must, at all times be a contract. It should never happen
+	// that caller is something other than a Contract.
+	parent := c.caller.(*Contract)
+	c.CallerAddress = parent.CallerAddress
+	c.value = parent.value
+	return c
 }
 
 /*

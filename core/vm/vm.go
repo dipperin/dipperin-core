@@ -46,11 +46,6 @@ func (vm *VM) GetStateDB() StateDB {
 	return vm.state
 }
 
-func (vm *VM) PreCheck() error {
-
-	return nil
-}
-
 func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byte, gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
 	if vm.vmConfig.NoRecursion && vm.depth > 0 {
 		return nil, gas, nil
@@ -118,7 +113,31 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 }
 
 func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error) {
-	return nil, 0, nil
+	if vm.vmConfig.NoRecursion && vm.depth > 0 {
+		return nil, gas, nil
+	}
+	// Fail if we're trying to execute above the call depth limit
+	if vm.depth > int(model2.CallCreateDepth) {
+		return nil, gas, ErrDepth
+	}
+
+	var (
+		snapshot = vm.GetStateDB().Snapshot()
+		to       = AccountRef(caller.Address())
+	)
+
+	// Initialise a new contract and make initialise the delegate values
+	contract := NewContract(caller, to, nil, gas).AsDelegate()
+	contract.SetCallCode(&addr, vm.GetStateDB().GetCodeHash(addr), vm.GetStateDB().GetCode(addr))
+
+	ret, err = run(vm, contract, input, false)
+	if err != nil {
+		vm.GetStateDB().RevertToSnapshot(snapshot)
+		if err != ErrExecutionReverted {
+			contract.UseGas(contract.Gas)
+		}
+	}
+	return ret, contract.Gas, err
 }
 
 func (vm *VM) Create(caller resolver.ContractRef, code []byte, gas uint64, value *big.Int) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
