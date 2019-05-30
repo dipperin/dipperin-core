@@ -55,8 +55,6 @@ func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) 
 }
 
 func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error) {
-	//  1. 合约定义的function, 2. vm提供的方法
-
 	if len(contract.Code) == 0 {
 		return nil, nil
 	}

@@ -5,6 +5,7 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 )
 
 type Fullstate struct {
@@ -38,70 +39,70 @@ func (f *Fullstate) AddNonce(addr common.Address, add uint64) {
 	}
 }
 
-func (f *Fullstate) AddBalance(addr common.Address, amount *big.Int){
+func (f *Fullstate) AddBalance(addr common.Address, amount *big.Int) {
 	err := f.state.AddBalance(addr, amount)
-	if err != nil{
+	if err != nil {
 		panic("Can not add balance")
 	}
 }
-func (f *Fullstate) SubBalance(addr common.Address, amount *big.Int){
-	err := f.state.SubBalance(addr,amount)
-	if err != nil{
+func (f *Fullstate) SubBalance(addr common.Address, amount *big.Int) {
+	err := f.state.SubBalance(addr, amount)
+	if err != nil {
 		panic("Can not sub balance")
 	}
 }
 
-func (f  *Fullstate) GetCodeHash(addr common.Address) common.Hash {
+func (f *Fullstate) GetCodeHash(addr common.Address) common.Hash {
 	code, err := f.state.GetCode(addr)
-	if err!=nil{
+	if err != nil {
 		return common.Hash{}
 	}
-	return common.RlpHashKeccak256(code)
+	return cs_crypto.Keccak256Hash(code)
 }
 
 func (f *Fullstate) GetCode(addr common.Address) (result []byte) {
 	//f.state.contractTrieCache
 	code, err := f.state.GetCode(addr)
-	if err!=nil{
+	if err != nil {
 		return
 	}
 	return code
 }
 
-func (f  *Fullstate) SetCode(addr common.Address, code []byte) {
-	err := f.state.SetCode(addr,code)
-	if err!=nil{
+func (f *Fullstate) SetCode(addr common.Address, code []byte) {
+	err := f.state.SetCode(addr, code)
+	if err != nil {
 		panic("set code error")
 	}
 }
 
-func (f  *Fullstate) GetCodeSize(addr common.Address) (size int) {
+func (f *Fullstate) GetCodeSize(addr common.Address) (size int) {
 	code, err := f.state.GetCode(addr)
-	if err!=nil{
+	if err != nil {
 		return
 	}
 	return len(code)
 }
 
-func (f  *Fullstate) GetAbiHash(addr common.Address) common.Hash {
-	abi,err := f.state.GetAbi(addr)
-	if err != nil{
+func (f *Fullstate) GetAbiHash(addr common.Address) common.Hash {
+	abi, err := f.state.GetAbi(addr)
+	if err != nil {
 		return common.Hash{}
 	}
 	return common.RlpHashKeccak256(abi)
 }
 
-func (f  *Fullstate) GetAbi(addr common.Address) (abi []byte) {
-	abi,err := f.state.GetAbi(addr)
-	if err != nil{
+func (f *Fullstate) GetAbi(addr common.Address) (abi []byte) {
+	abi, err := f.state.GetAbi(addr)
+	if err != nil {
 		return
 	}
 	return abi
 }
 
-func (f  *Fullstate) SetAbi(addr common.Address, abi []byte) {
-	err := f.state.SetAbi(addr,abi)
-	if err != nil{
+func (f *Fullstate) SetAbi(addr common.Address, abi []byte) {
+	err := f.state.SetAbi(addr, abi)
+	if err != nil {
 		panic("set abi error")
 	}
 }

@@ -1,6 +1,5 @@
 package state_processor
 
-
 import (
 	"math/big"
 	"github.com/dipperin/dipperin-core/common"
@@ -19,7 +18,7 @@ type StateTransition struct {
 	initialGas uint64
 	value      *big.Int
 	data       []byte
-	state      AccountStateTx
+	state      vm.StateDB
 	lifeVm     *vm.VM
 }
 
@@ -57,7 +56,7 @@ func IntrinsicGas(data []byte, contractCreation, homestead bool) (uint64, error)
 }
 
 // NewStateTransition initialises and returns a new state transition object.
-func NewStateTransition(vm *vm.VM, msg Message, gp uint64, state AccountStateTx) *StateTransition {
+func NewStateTransition(vm *vm.VM, msg Message, gp uint64) *StateTransition {
 	return &StateTransition{
 		gp:       gp,
 		lifeVm:   vm,
@@ -65,7 +64,7 @@ func NewStateTransition(vm *vm.VM, msg Message, gp uint64, state AccountStateTx)
 		gasPrice: msg.GasPrice(),
 		value:    msg.Value(),
 		data:     msg.Data(),
-		state:    state,
+		state:    vm.GetStateDB(),
 	}
 }
 
@@ -76,13 +75,13 @@ func NewStateTransition(vm *vm.VM, msg Message, gp uint64, state AccountStateTx)
 // the gas used (which includes gas refunds) and an error if it failed. An error always
 // indicates a core error meaning that the message would always fail for that particular
 // state and would never be accepted within a block.
-func ApplyMessage(vm *vm.VM, msg Message, gp uint64, state AccountStateTx) ([]byte, uint64, bool, error) {
-	return NewStateTransition(vm, msg, gp, state).TransitionDb()
+func ApplyMessage(vm *vm.VM, msg Message, gp uint64) ([]byte, uint64, bool, error) {
+	return NewStateTransition(vm, msg, gp).TransitionDb()
 }
 
 // to returns the recipient of the message.
 func (st *StateTransition) to() common.Address {
-	if st.msg == nil || st.msg.To() == nil  {
+	if st.msg == nil || st.msg.To() == nil {
 		return common.Address{}
 	}
 	return *st.msg.To()
@@ -103,7 +102,7 @@ func (st *StateTransition) buyGas() error {
 		return vm.ErrInsufficientBalanceForGas
 	}
 
-	log.Info("Call buyGas","gasPool", st.gp, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()), "value", msgVal)
+	log.Info("Call buyGas", "gasPool", st.gp, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()), "value", msgVal)
 
 	if st.gp < st.msg.Gas() {
 		return g_error.ErrGasLimitReached
@@ -163,6 +162,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		vmerr error
 	)
 	if contractCreation {
+		// data = rlp
 		ret, _, st.gas, vmerr = lifeVm.Create(sender, st.data, st.gas, st.value)
 	} else {
 		// Increment the nonce for the next transaction
@@ -191,11 +191,10 @@ func (st *StateTransition) refundGas() {
 	if refund > st.lifeVm.GetStateDB().GetRefund() {
 		refund = st.lifeVm.GetStateDB().GetRefund()
 	}*/
-	//log.Info("Call refundGas", "refund", refund)
+	log.Info("Call refundGas", "gasPool", st.gp, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()))
 	// Return ETH for remaining gas, exchanged at the original rate.
 	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
 	st.state.AddBalance(st.msg.From(), remaining)
-	log.Info("Gas Refund", "gasLeft", st.gas, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()))
 
 	// Also return remaining gas to the block gas counter so it is
 	// available for the next transaction.
@@ -203,6 +202,7 @@ func (st *StateTransition) refundGas() {
 		panic("gas pool pushed above uint64")
 	}
 	st.gp += st.gas
+	log.Info("Gas Refund", "gasPool", st.gp, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()))
 }
 
 // gasUsed returns the amount of gas used up by the state transition.
