@@ -18,25 +18,25 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 	}
 	msg, err := tx.AsMessage()
 	if err != nil {
-		return model.ReceiptPara{},err
+		return model.ReceiptPara{}, err
 	}
 	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
-	_, usedGas, failed, err := ApplyMessage(dvm, msg, *blockGasLimit)
+	_, usedGas, failed, err := ApplyMessage(dvm, msg, blockGasLimit)
 	if err != nil {
 		log.Error("AccountStateDB#ProcessContract", "ApplyMessage err", err)
 		return model.ReceiptPara{},err
 	}
 
 	root, err := state.Finalise()
-	if err !=nil{
-		return model.ReceiptPara{},err
+	if err != nil {
+		return model.ReceiptPara{}, err
 	}
 	return model.ReceiptPara{
-		Root: root[:],
+		Root:          root[:],
 		HandlerResult: failed,
 		//todo CumulativeGasUsed暂时使用usedGas,不考虑在apply交易前已有gas使用的情景
-		CumulativeGasUsed:usedGas,
-		GasUsed:usedGas,
-		Logs: fullState.GetLogs(tx.CalTxId()),
+		CumulativeGasUsed: usedGas,
+		GasUsed:           usedGas,
+		Logs:              fullState.GetLogs(tx.CalTxId()),
 	}, nil
 }

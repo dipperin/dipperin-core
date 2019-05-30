@@ -75,8 +75,8 @@ func (r *Resolver) envEmitEvent(vm *exec.VirtualMachine) int64 {
 		Topics:[]common.Hash{common.BytesToHash(crypto.Keccak256(t))},
 		Data:d,
 		BlockNumber:r.Service.GetBlockNumber().Uint64(),
-		TxHash:r.Service.TxHash(),
-		TxIndex:uint(r.Service.TxIdx()),
+		TxHash:r.Service.GetTxHash(),
+		TxIndex:uint(r.Service.GetTxIdx()),
 	}
 	addedLog.BlockHash = r.Service.BlockHash(addedLog.BlockNumber)
 

@@ -54,11 +54,11 @@ type StateDB interface {
 	RevertToSnapshot(int)
 	Snapshot() int
 	/*AddPreimage(common.Hash, []byte)
-	ForEachStorage(common.Address, func(common.Hash, common.Hash) bool)
+	ForEachStorage(common.Address, func(common.Hash, common.Hash) bool)*/
 
-	//ppos add*/
-	TxHash() common.Hash
-	TxIdx() uint32
+	//ppos add
+/*	TxHash() common.Hash
+	TxIdx() uint32*/
 }
 
 /*type AccountDB interface {

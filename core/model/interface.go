@@ -120,8 +120,10 @@ type AbstractTransaction interface {
 	GetGasPrice() *big.Int
 	AsMessage() (Message, error)
 	PaddingReceipt(parameters ReceiptPara)(*model.Receipt,error)
-	GetReceipt()*model.Receipt
 	GetGasLimit() uint64
+	GetReceipt()(model.Receipt,error)
+	PaddingTxIndex(index int)
+	GetTxIndex() (int,error)
 }
 
 //go:generate mockgen -destination=./../economy-model/verification_mock_test.go -package=economy_model github.com/dipperin/dipperin-core/core/model AbstractVerification
