@@ -20,6 +20,7 @@ import (
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 	"math/big"
 )
 
@@ -116,6 +117,8 @@ type AbstractTransaction interface {
 	EstimateFee() *big.Int
 	GetGasPrice() *big.Int
 	AsMessage() (Message, error)
+	PaddingReceipt(parameters ReceiptPara)(*model.Receipt,error)
+	GetReceipt()*model.Receipt
 }
 
 //go:generate mockgen -destination=./../economy-model/verification_mock_test.go -package=economy_model github.com/dipperin/dipperin-core/core/model AbstractVerification

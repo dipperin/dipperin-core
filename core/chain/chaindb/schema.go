@@ -104,9 +104,9 @@ func blockBodyKey(number uint64, hash common.Hash) []byte {
 }
 
 // blockReceiptsKey = blockReceiptsPrefix + num (uint64 big endian) + hash
-/*func blockReceiptsKey(number uint64, hash common.Hash) []byte {
+func blockReceiptsKey(number uint64, hash common.Hash) []byte {
 	return append(append(blockReceiptsPrefix, encodeBlockNumber(number)...), hash.Bytes()...)
-}*/
+}
 
 // txLookupKey = txLookupPrefix + hash
 func txLookupKey(hash common.Hash) []byte {
