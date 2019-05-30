@@ -1053,6 +1053,11 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	assert.Equal(t, common.Hash{}, hash)
 
 	nonce = uint64(6)
+	hash, err = service.SendTransactionContractCreate(address,aliceAddr,value,txFee,txFee,[]byte{}, &nonce)
+	assert.NoError(t, err)
+
+
+	nonce = uint64(7)
 	fs1 := model.NewMercurySigner(big.NewInt(1))
 	tx := model.NewTransaction(nonce, aliceAddr, value, txFee, []byte{})
 	signedTx, _ := tx.SignTx(pk, fs1)
