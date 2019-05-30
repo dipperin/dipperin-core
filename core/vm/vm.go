@@ -233,7 +233,7 @@ type Context struct {
 	Time        *big.Int // Provides information for TIME
 	Difficulty  *big.Int // Provides information for DIFFICULTY
 	TxHash      common.Hash
-	TxIndex		uint64
+	TxIndex     uint64
 
 	// callGasTemp holds the gas available for the current call. This is needed because the
 	// available gas is calculated in gasCall* according to the 63/64 rule and later
@@ -290,6 +290,10 @@ func (context *Context) GetOrigin() common.Address {
 // NewVMContext creates a new context for use in the VM.
 func NewVMContext(tx model.AbstractTransaction, block model.AbstractBlock) Context {
 	sender, _ := tx.Sender(tx.GetSigner())
+	txIndex, err := tx.GetTxIndex()
+	if err != nil {
+		panic("GetTxIndex failed")
+	}
 	return Context{
 		Origin:      sender,
 		GasPrice:    tx.GetGasPrice(),
@@ -300,6 +304,7 @@ func NewVMContext(tx model.AbstractTransaction, block model.AbstractBlock) Conte
 		Difficulty:  block.Difficulty().Big(),
 		callGasTemp: tx.Fee().Uint64(),
 		TxHash:      tx.CalTxId(),
+		TxIndex:     uint64(txIndex),
 	}
 }
 
