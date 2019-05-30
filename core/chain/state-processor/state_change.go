@@ -271,6 +271,7 @@ const (
 	LastElectChange
 	AbiChange
 	CodeChange
+	DataChange
 
 	DeleteAccountChange
 )
@@ -359,6 +360,13 @@ type (
 	}
 	codeChange struct{
 		Account *common.Address
+		Prev []byte
+		Current []byte
+		ChangeType uint64
+	}
+	dataChange struct{
+		Account *common.Address
+		Key string
 		Prev []byte
 		Current []byte
 		ChangeType uint64
@@ -696,11 +704,11 @@ func (sc abiChange) digest(change StateChange) StateChange {
 
 
 func (sc codeChange) revert(s *AccountStateDB) {
-	s.setAbi(*sc.Account, sc.Prev)
+	s.setCode(*sc.Account, sc.Prev)
 }
 
 func (sc codeChange) recover(s *AccountStateDB) {
-	s.setAbi(*sc.Account, sc.Current)
+	s.setCode(*sc.Account, sc.Current)
 }
 
 func (sc codeChange) dirtied() *common.Address {
@@ -714,6 +722,30 @@ func (sc codeChange) digest(change StateChange) StateChange {
 	if change.getType() == CodeChange {
 		c := change.(codeChange)
 		return codeChange{Account: sc.Account, Prev: c.Prev, Current: sc.Current, ChangeType: CodeChange}
+	}
+	return nil
+}
+
+
+func (sc dataChange) revert(s *AccountStateDB) {
+	s.SetData(*sc.Account,sc.Key,sc.Prev)
+}
+
+func (sc dataChange) recover(s *AccountStateDB) {
+	s.SetData(*sc.Account,sc.Key,sc.Current)
+}
+
+func (sc dataChange) dirtied() *common.Address {
+	return sc.Account
+}
+
+func (sc dataChange) getType() int {
+	return int(sc.ChangeType)
+}
+func (sc dataChange) digest(change StateChange) StateChange {
+	if change.getType() == DataChange {
+		c := change.(dataChange)
+		return dataChange{Account: sc.Account,Key:c.Key, Prev: c.Prev, Current: sc.Current, ChangeType: DataChange}
 	}
 	return nil
 }

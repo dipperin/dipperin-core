@@ -62,13 +62,12 @@ func TestAccountStateDB_RevertToSnapshot2(t *testing.T){
 	assert.NoError(t, err)
 
 	err = processor.SetCode(aliceAddr,[]byte("coooode"))
-	assert.NoError(t,err)
-
 	code,err := processor.GetCode(aliceAddr)
-	assert.NoError(t,err)
 	assert.Equal(t,[]byte("coooode"),code)
 
-
+	err = processor.SetAbi(aliceAddr,[]byte("{input:int}"))
+	abi,err := processor.GetAbi(aliceAddr)
+	assert.Equal(t,[]byte("{input:int}"),abi)
 
 	root,err =processor.GetDataRoot(aliceAddr)
 	assert.NoError(t,err)
@@ -89,6 +88,12 @@ func TestAccountStateDB_RevertToSnapshot2(t *testing.T){
 
 	assert.Equal(t,formerRoot,reverted)
 	assert.NotEqual(t,reverted,root)
+
+	abi,err = processor.GetAbi(aliceAddr)
+	assert.NotEqual(t,[]byte("{input:int}"),abi)
+
+	code,err = processor.GetCode(aliceAddr)
+	assert.NotEqual(t,[]byte("coooode"),code)
 }
 
 // To revert the trie

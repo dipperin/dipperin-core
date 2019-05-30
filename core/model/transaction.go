@@ -51,8 +51,8 @@ func NewTransaction(nonce uint64, to common.Address, amount, fee *big.Int, data 
 	return newTransaction(nonce, &to, amount, fee, nil, 0, data)
 }
 
-func NewTransactionSc(nonce uint64, to common.Address, amount, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
-	return newTransaction(nonce, &to, amount, nil, gasPrice, gasLimit, data)
+func NewTransactionSc(nonce uint64, to *common.Address, amount, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
+	return newTransaction(nonce, to, amount, nil, gasPrice, gasLimit, data)
 }
 
 func NewContractCreation(nonce uint64, amount *big.Int, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {

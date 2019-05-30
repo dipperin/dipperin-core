@@ -1345,8 +1345,10 @@ func (state *AccountStateDB) clearChangeList(){
 func (state *AccountStateDB) SetData(addr common.Address,key string, value []byte) (err error){
 	if state.smartContractData[addr] == nil{
 		state.smartContractData[addr] = make(map[string][]byte)
+
 	}
 	state.smartContractData[addr][key] = value
+
 	return
 }
 
@@ -1385,6 +1387,7 @@ func (state *AccountStateDB) finalSmartData() error{
 		}
 		state.finalisedContractRoot[addr] = ch
 	}
+	state.smartContractData = make(map[common.Address]map[string][]byte)
 	return nil
 }
 

@@ -4,11 +4,12 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"math/big"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 )
 
 var emptyCodeHash = cs_crypto.Keccak256Hash(nil)
@@ -95,15 +96,15 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 	//start := time.Now()
 
 	// Capture the tracer start/end events in debug mode
-/*	if evm.vmConfig.Debug && evm.depth == 0 {
-		evm.vmConfig.Tracer.CaptureStart(caller.Address(), addr, false, input, gas, value)
+	/*	if evm.vmConfig.Debug && evm.depth == 0 {
+			evm.vmConfig.Tracer.CaptureStart(caller.Address(), addr, false, input, gas, value)
 
-		defer func() { // Lazy evaluation of the parameters
-			evm.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
-		}()
-	}*/
+			defer func() { // Lazy evaluation of the parameters
+				evm.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
+			}()
+		}*/
 	ret, err = run(vm, contract, input, false)
-
+	log.Info("lifeVm run successful", "gasLeft", contract.Gas)
 	// When an error was returned by the EVM or when setting the creation code
 	// above we revert to the snapshot and consume any gas remaining. Additionally
 	// when we're in homestead this also counts for code storage gas errors.
@@ -111,6 +112,7 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 		vm.state.RevertToSnapshot(snapshot)
 		if err != ErrExecutionReverted {
 			contract.UseGas(contract.Gas)
+			log.Info("callContract Use", "gasUsed", contract.Gas, "gasLeft", contract.Gas)
 		}
 	}
 	return ret, contract.Gas, err
@@ -139,7 +141,7 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value
 
 	// Ensure there's no existing contract already at the designated address
 	contractHash := vm.state.GetCodeHash(address)
-	if vm.state.GetNonce(address) != 0 || (contractHash != (common.Hash{}) && contractHash != emptyCodeHash) {
+	if vm.state.GetNonce(address) != 0 || (contractHash != common.Hash{} && contractHash != emptyCodeHash) {
 		return nil, common.Address{}, 0, ErrContractAddressCollision
 	}
 
@@ -158,13 +160,13 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value
 		return nil, address, gas, nil
 	}
 
-/*	if vm.vmConfig.Debug && vm.depth == 0 {
-		vm.vmConfig.Tracer.CaptureStart(caller.Address(), address, true, code, gas, value)
-	}*/
+	/*	if vm.vmConfig.Debug && vm.depth == 0 {
+			vm.vmConfig.Tracer.CaptureStart(caller.Address(), address, true, code, gas, value)
+		}*/
 	//start := time.Now()
 
 	ret, err := run(vm, contract, nil, true)
-
+	log.Info("lifeVm run successful", "gasLeft", contract.Gas)
 	// check whether the max code size has been exceeded
 	maxCodeSizeExceeded := len(ret) > model2.MaxCodeSize
 	// if the contract creation ran successfully and no errors were returned
@@ -175,6 +177,7 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value
 		createDataGas := uint64(len(ret)) * model2.CreateDataGas
 		if contract.UseGas(createDataGas) {
 			vm.state.SetCode(address, ret)
+			log.Info("createDataGas Use", "CodeLen", len(ret), "gasUsed", createDataGas, "gasLeft", contract.Gas)
 		} else {
 			err = ErrCodeStoreOutOfGas
 		}
@@ -194,9 +197,9 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value
 		err = ErrMaxCodeSizeExceeded
 	}
 
-/*	if vm.vmConfig.Debug && vm.depth == 0 {
-		vm.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
-	}*/
+	/*	if vm.vmConfig.Debug && vm.depth == 0 {
+			vm.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
+		}*/
 	return ret, address, contract.Gas, err
 }
 

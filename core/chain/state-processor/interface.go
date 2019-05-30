@@ -80,12 +80,6 @@ type AccountStateProcessor interface {
 }
 
 // state_transaction use
-type AccountStateTx interface {
-	AddBalance(addr common.Address, amount *big.Int) error
-	SubBalance(addr common.Address, amount *big.Int) error
-}
-
-// state_transaction use
 // Message represents a message sent to a contract.
 type Message interface {
 	From() common.Address

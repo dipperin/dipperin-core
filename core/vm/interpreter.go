@@ -55,8 +55,6 @@ func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) 
 }
 
 func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error) {
-	//  1. 合约定义的function, 2. vm提供的方法
-
 	if len(contract.Code) == 0 {
 		return nil, nil
 	}
@@ -85,16 +83,6 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 
 	if create {
 		funcName = "init" // init function.
-		txType, funcName, params, returnType, err = parseInputFromAbi(lifeVm, input, abi)
-		if err != nil {
-			if err == errReturnInsufficientParams && txType == 0 { // transfer to contract address.
-				return nil, nil
-			}
-			return nil, err
-		}
-		if txType == 0 {
-			return nil, nil
-		}
 	} else {
 		// 通过ABI解析input
 		txType, funcName, params, returnType, err = parseInputFromAbi(lifeVm, input, abi)
@@ -123,6 +111,12 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 	if err != nil {
 		fmt.Println("throw exception:", err.Error())
 		return nil, err
+	}
+
+	if contract.Gas > lifeVm.GasUsed {
+		contract.Gas = contract.Gas - lifeVm.GasUsed
+	} else {
+		return nil, ErrOutOfGas
 	}
 
 	if input == nil {
@@ -279,7 +273,6 @@ func parseRlpData(rlpData []byte) (int64, []byte, []byte, error) {
 	}
 	rlpList := reflect.ValueOf(ptr).Elem().Interface()
 
-	fmt.Println(rlpList, 123)
 	if _, ok := rlpList.([]interface{}); !ok {
 		return -1, nil, nil, fmt.Errorf("invalid rlp format.")
 	}
