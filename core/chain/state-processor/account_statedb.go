@@ -1208,14 +1208,10 @@ func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint
 //todo these processes are removed afterwards。
 // todo Write a unit test for each transaction to cover all situations
 func (state *AccountStateDB) ProcessTxNew(tx model.AbstractTransaction, block model.AbstractBlock) (err error) {
-
+	var par model.ReceiptPara
 	if tx.GetType() == common.AddressTypeContract || tx.GetType() == common.AddressTypeContractCreate {
-		switch tx.GetType() {
-		case common.AddressTypeContract:
-			err = state.ProcessContract(tx, block, false)
-		case common.AddressTypeContractCreate:
-			err = state.ProcessContract(tx, block, true)
-		}
+		par,err = state.ProcessContract(tx, block, tx.GetType()==common.AddressTypeContractCreate)
+
 	} else {
 		// All normal transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
 		err = state.processBasicTx(tx)
@@ -1246,6 +1242,7 @@ func (state *AccountStateDB) ProcessTxNew(tx model.AbstractTransaction, block mo
 		}
 	}
 
+	_,err=tx.PaddingReceipt(par)
 	return
 }
 

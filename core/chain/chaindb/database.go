@@ -19,6 +19,7 @@ package chaindb
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
 )
@@ -66,4 +67,7 @@ type Database interface {
 	GetTransaction(txHash common.Hash) (model.AbstractTransaction, common.Hash, uint64, uint64)
 
 	InsertBlock(block model.AbstractBlock) error
+
+	SaveReceipts(hash common.Hash, number uint64,receipts model2.Receipts) error
+	GetReceipts(hash common.Hash, number uint64)model2.Receipts
 }
