@@ -1,14 +1,32 @@
+// Copyright 2014 The go-ethereum Authors
+// This file is part of the go-ethereum library.
+//
+// The go-ethereum library is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// The go-ethereum library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+
 package model
 
 import (
 	"bytes"
 	"fmt"
-	"io"
-	"unsafe"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/ethereum/go-ethereum/rlp"
+	"io"
+	"unsafe"
 )
+
+//go:generate gencodec -type Receipt -field-override receiptMarshaling -out gen_receipt_json.go
 
 var (
 	receiptStatusFailedRLP     = []byte{}
@@ -29,6 +47,7 @@ type Receipt struct {
 	PostState         []byte `json:"root"`
 	Status            uint64 `json:"status"`
 	CumulativeGasUsed uint64 `json:"cumulativeGasUsed" gencodec:"required"`
+	Bloom             Bloom  `json:"logsBloom"         gencodec:"required"`
 	Logs              []*Log `json:"logs"              gencodec:"required"`
 
 	// Implementation fields (don't reorder!)
@@ -48,12 +67,14 @@ type receiptMarshaling struct {
 type receiptRLP struct {
 	PostStateOrStatus []byte
 	CumulativeGasUsed uint64
+	Bloom             Bloom
 	Logs              []*Log
 }
 
 type receiptStorageRLP struct {
 	PostStateOrStatus []byte
 	CumulativeGasUsed uint64
+	Bloom             Bloom
 	TxHash            common.Hash
 	ContractAddress   common.Address
 	Logs              []*LogForStorage
@@ -74,7 +95,7 @@ func NewReceipt(root []byte, failed bool, cumulativeGasUsed uint64) *Receipt {
 // EncodeRLP implements rlp.Encoder, and flattens the consensus fields of a receipt
 // into an RLP stream. If no post state is present, byzantium fork is assumed.
 func (r *Receipt) EncodeRLP(w io.Writer) error {
-	return rlp.Encode(w, &receiptRLP{r.statusEncoding(), r.CumulativeGasUsed, r.Logs})
+	return rlp.Encode(w, &receiptRLP{r.statusEncoding(), r.CumulativeGasUsed, r.Bloom, r.Logs})
 }
 
 // DecodeRLP implements rlp.Decoder, and loads the consensus fields of a receipt
@@ -87,7 +108,7 @@ func (r *Receipt) DecodeRLP(s *rlp.Stream) error {
 	if err := r.setStatus(dec.PostStateOrStatus); err != nil {
 		return err
 	}
-	r.CumulativeGasUsed, r.Logs = dec.CumulativeGasUsed, dec.Logs
+	r.CumulativeGasUsed, r.Bloom, r.Logs = dec.CumulativeGasUsed, dec.Bloom, dec.Logs
 	return nil
 }
 
@@ -122,7 +143,7 @@ func (r *Receipt) Size() common.StorageSize {
 
 	size += common.StorageSize(len(r.Logs)) * common.StorageSize(unsafe.Sizeof(Log{}))
 	for _, log := range r.Logs {
-		size += common.StorageSize(len(log.Topic)*common.HashLength + len(log.Data))
+		size += common.StorageSize(len(log.Topics)*common.HashLength + len(log.Data))
 	}
 	return size
 }
@@ -137,6 +158,7 @@ func (r *ReceiptForStorage) EncodeRLP(w io.Writer) error {
 	enc := &receiptStorageRLP{
 		PostStateOrStatus: (*Receipt)(r).statusEncoding(),
 		CumulativeGasUsed: r.CumulativeGasUsed,
+		Bloom:             r.Bloom,
 		TxHash:            r.TxHash,
 		ContractAddress:   r.ContractAddress,
 		Logs:              make([]*LogForStorage, len(r.Logs)),
@@ -159,7 +181,7 @@ func (r *ReceiptForStorage) DecodeRLP(s *rlp.Stream) error {
 		return err
 	}
 	// Assign the consensus fields
-	r.CumulativeGasUsed = dec.CumulativeGasUsed
+	r.CumulativeGasUsed, r.Bloom = dec.CumulativeGasUsed, dec.Bloom
 	r.Logs = make([]*Log, len(dec.Logs))
 	for i, log := range dec.Logs {
 		r.Logs[i] = (*Log)(log)

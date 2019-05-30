@@ -44,7 +44,7 @@ func DeriveSha(list DerivableList) common.Hash {
 	return tree.Hash()
 }
 
-// merkle root for AbstractVerification
+// merkle Root for AbstractVerification
 type Verifications []AbstractVerification
 
 func (verf Verifications) GetKey(i int) []byte {
@@ -65,7 +65,7 @@ func (verf Verifications) GetRlp(i int) []byte {
 func (verf Verifications) Len() int { return len(verf) }
 
 
-// merkle root for AbstractTransaction
+// merkle Root for AbstractTransaction
 type AbsTransactions []AbstractTransaction
 
 func (verf AbsTransactions) GetKey(i int) []byte {

@@ -20,6 +20,7 @@ import (
 	"encoding/binary"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -258,6 +259,51 @@ func (chainDB *ChainDB) SaveBlock(block model.AbstractBlock) {
 func (chainDB *ChainDB) DeleteBlock(hash common.Hash, number uint64) {
 	chainDB.DeleteHeader(hash, number)
 	chainDB.DeleteBody(hash, number)
+}
+
+//add receipts save get and delete
+func (chainDB *ChainDB) SaveReceipts(hash common.Hash, number uint64,receipts model2.Receipts)error{
+	// Convert the receipts into their storage form and serialize them
+	storageReceipts := make([]*model2.ReceiptForStorage, len(receipts))
+	for i, receipt := range receipts {
+		storageReceipts[i] = (*model2.ReceiptForStorage)(receipt)
+	}
+	bytes, err := rlp.EncodeToBytes(storageReceipts)
+	if err != nil {
+		log.Crit("Failed to encode block receipts", "err", err)
+		return err
+	}
+	// Store the flattened receipt slice
+	if err := chainDB.db.Put(blockReceiptsKey(number, hash), bytes); err != nil {
+		log.Crit("Failed to store block receipts", "err", err)
+		return err
+	}
+	return nil
+}
+
+func (chainDB *ChainDB) DeleteReceipts(hash common.Hash, number uint64){
+	if err := chainDB.db.Delete(blockReceiptsKey(number, hash)); err != nil {
+		log.Crit("Failed to delete block receipt", "err", err)
+	}
+}
+
+func (chainDB *ChainDB) GetReceipts(hash common.Hash, number uint64)model2.Receipts{
+	// Retrieve the flattened receipt slice
+	data, _ := chainDB.db.Get(blockReceiptsKey(number, hash))
+	if len(data) == 0 {
+		return nil
+	}
+	// Convert the receipts from their storage form to their internal representation
+	storageReceipts := []*model2.ReceiptForStorage{}
+	if err := rlp.DecodeBytes(data, &storageReceipts); err != nil {
+		log.Error("Invalid receipt array RLP", "hash", hash, "err", err)
+		return nil
+	}
+	receipts := make(model2.Receipts, len(storageReceipts))
+	for i, receipt := range storageReceipts {
+		receipts[i] = (*model2.Receipt)(receipt)
+	}
+	return receipts
 }
 
 /*func (chainDB *ChainDB) FindCommonAncestor(a, b model.AbstractHeader) model.AbstractHeader {

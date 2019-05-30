@@ -153,6 +153,7 @@ func ValidTxSender(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 		return err
 	}
 	credit, err := state.GetBalance(sender)
+	log.Info("ValidTxSender#credit", "credit",  credit)
 	if err != nil {
 		return err
 	}
@@ -165,7 +166,8 @@ func ValidTxSender(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 	usage := big.NewInt(0).Add(tx.Amount(), tx.Fee())
 	usage.Add(usage, lockValue)
 
-	// log.Info("the credit and the usage is:","credit",credit,"usage",usage)
+
+	log.Info("the credit and the usage is:","credit",credit,"usage",usage)
 	if credit.Cmp(usage) < 0 {
 		return state_processor.NotEnoughBalanceError
 	}

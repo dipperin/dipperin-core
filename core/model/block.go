@@ -70,18 +70,18 @@ type Header struct {
 	CoinBase common.Address `json:"coinbase"  gencodec:"required"`
 	// nonce needed to be mined by the miner
 	Nonce common.BlockNonce `json:"nonce"  gencodec:"required"`
-	//todo add bloom filter for logs or txs
+	//todo add bloom filter for Logs or txs
 	Bloom *iblt.Bloom `json:"Bloom"        gencodec:"required"`
-	// MPT trie root for transaction
+	// MPT trie Root for transaction
 	TransactionRoot common.Hash `json:"txs_root"   gencodec:"required"`
-	// MPT trie root for accounts state
+	// MPT trie Root for accounts state
 	//todo if we want to put normal accounts and contract accounts into different tree we can generate two MPT trie for them
 	StateRoot common.Hash `json:"state_root" gencodec:"required"`
-	// MPT trie root for committed message
+	// MPT trie Root for committed message
 	VerificationRoot common.Hash `json:"verification_root"  gencodec:"required"`
-	// MPT trie root for interlink message
+	// MPT trie Root for interlink message
 	InterlinkRoot common.Hash `json:"interlink_root"  gencodec:"required"`
-	// MPT trie root for register
+	// MPT trie Root for register
 	RegisterRoot common.Hash `json:"register_root"  gencodec:"required"`
 }
 
@@ -482,7 +482,7 @@ func NewBlock(header *Header, txs []*Transaction, msgs []AbstractVerification) *
 		copy(b.body.Txs, txs)
 	}
 
-	// calculate verification root
+	// calculate verification Root
 	if len(msgs) == 0 {
 		b.header.VerificationRoot = EmptyVerfRoot
 	} else {
