@@ -24,6 +24,10 @@ type fakeStateDB struct {
 
 }
 
+func (state fakeStateDB) GetLogs(txHash common.Hash) []*model.Log {
+	panic("implement me")
+}
+
 func (state fakeStateDB) AddLog(addedLog *model.Log) {
 	log.Info("add log success")
 	return
