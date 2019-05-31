@@ -8,6 +8,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"fmt"
 )
 
 type StateTransition struct {

@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
+	"fmt"
 )
 
 func TestAccountStateDB_ProcessContract(t *testing.T) {
@@ -38,8 +39,24 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	processor.AddBalance(ownAddress,  new(big.Int).SetInt64(int64(100000000000000000)))
 	balance, err := processor.GetBalance(ownAddress)
 	log.Info("balance", "balance", balance.String())
-	receipt, err := processor.ProcessContract(&tx, block, true)
+	receipt, err := processor.ProcessContract(&tx, block, &gasLimit, true)
 	assert.NoError(t, err)
 	assert.Equal(t, true, receipt.HandlerResult)
 
+}
+
+func TestAccountStateDB_ProcessContract2(t *testing.T) {
+	var testPath = "/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/event"
+	tx := createContractTx(t, testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
+
+	db, root := createTestStateDB()
+	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
+	assert.NoError(t, err)
+
+	block := createBlock(1, common.Hash{}, []*model.Transaction{tx})
+	gasPool := gasLimit*5
+	receipt, err := processor.ProcessContract(tx, block, &gasPool, true)
+	assert.NoError(t, err)
+	assert.NotNil(t, receipt)
+	fmt.Println(receipt)
 }

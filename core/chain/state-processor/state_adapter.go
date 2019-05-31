@@ -165,5 +165,5 @@ func (f *Fullstate) RevertToSnapshot(int) {
 }
 
 func (f *Fullstate) Snapshot() int {
-	panic("implement me")
+	return 0
 }

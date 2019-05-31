@@ -78,7 +78,7 @@ func (r *Resolver) envEmitEvent(vm *exec.VirtualMachine) int64 {
 		TxHash:r.Service.GetTxHash(),
 		TxIndex:uint(r.Service.GetTxIdx()),
 	}
-	addedLog.BlockHash = r.Service.BlockHash(addedLog.BlockNumber)
+	addedLog.BlockHash = r.Service.GetBlockHash(addedLog.BlockNumber)
 
 	r.Service.AddLog(addedLog)
 	return 0
