@@ -142,6 +142,14 @@ func (body fakeBody) GetInterLinks() model.InterLink {
 
 type fakeHeader struct {}
 
+func (h fakeHeader) GetGasLimit() uint64 {
+	panic("implement me")
+}
+
+func (h fakeHeader) GetGasUsed() uint64 {
+	panic("implement me")
+}
+
 func (h fakeHeader) GetNumber() uint64 {
 	return uint64(0)
 }

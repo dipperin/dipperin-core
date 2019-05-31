@@ -1,10 +1,9 @@
 package state_processor
 
 import (
-	"fmt"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 type CallCode struct {
@@ -12,43 +11,32 @@ type CallCode struct {
 	Input []byte `json:"Input"`
 }
 
-func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block model.AbstractBlock, create bool) (err error) {
-	msg, err := tx.AsMessage()
-	if err != nil {
-		return
-	}
-	gp := model.DefaultGasLimit
+func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block model.AbstractBlock, blockGasLimit *uint64, create bool) (model.ReceiptPara, error) {
 	context := vm.NewVMContext(tx, block)
 	fullState := &Fullstate{
 		state: state,
 	}
+	msg, err := tx.AsMessage()
+	if err != nil {
+		return model.ReceiptPara{}, err
+	}
 	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
-	ret, usedGas, failed, err := ApplyMessage(dvm, msg, gp)
-	/*if create {
-		data := tx.ExtraData()
-		var ca *vm2.CodeAbi
-		err := json.Unmarshal(data,ca)
-		if err!= nil{
-			return err
-		}
-		_, _, _, err = dvm.Create(vm.AccountRef(context.Origin), ca.Code, 0, nil)
-		if err != nil {
-			return err
-		}
-	} else {
-		data := tx.ExtraData()
-		_, _, err = dvm.Call(vm.AccountRef(context.Origin), *tx.To(), data, 0, tx.Amount())
-		if err != nil {
-			return err
-		}
-	}*/
-	fmt.Println(ret, usedGas, failed)
+	_, usedGas, failed, err := ApplyMessage(dvm, msg, blockGasLimit)
+	if err != nil {
+		log.Error("AccountStateDB#ProcessContract", "ApplyMessage err", err)
+		return model.ReceiptPara{},err
+	}
 
 	root, err := state.Finalise()
 	if err != nil {
-		return err
+		return model.ReceiptPara{}, err
 	}
-	model2.NewReceipt(root.Bytes(), false, 0)
-
-	return nil
+	return model.ReceiptPara{
+		Root:          root[:],
+		HandlerResult: failed,
+		//todo CumulativeGasUsed暂时使用usedGas,不考虑在apply交易前已有gas使用的情景
+		CumulativeGasUsed: usedGas,
+		GasUsed:           usedGas,
+		Logs:              fullState.GetLogs(tx.CalTxId()),
+	}, nil
 }

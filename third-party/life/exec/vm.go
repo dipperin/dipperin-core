@@ -91,9 +91,10 @@ type VirtualMachine struct {
 	ImportResolver   ImportResolver
 	AOTService       AOTService
 	StackTrace       string
+	ExternalParams   []int64
 
 	//add 已使用Gas
-	GasUsed  uint64
+	GasUsed uint64
 	//add GasLimited
 	GasLimit uint64
 }
@@ -139,7 +140,7 @@ type ImportResolver interface {
 }
 
 func ImportGasFunc(vm *VirtualMachine, frame *Frame) (uint64, error) {
-	importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
+	importID := int(LE.Uint32(frame.Code[frame.IP: frame.IP+4]))
 	return vm.FunctionImports[importID].F.GasCost(vm)
 }
 
@@ -181,7 +182,7 @@ func NewVirtualMachine(
 				funcImports = append(funcImports, FunctionImportInfo{
 					ModuleName: imp.ModuleName,
 					FieldName:  imp.FieldName,
-					F:          *impResolver.ResolveFunc(imp.ModuleName,imp.FieldName), // deferred
+					F:          *impResolver.ResolveFunc(imp.ModuleName, imp.FieldName), // deferred
 				})
 			case wasm.ExternalGlobal:
 				globals = append(globals, impResolver.ResolveGlobal(imp.ModuleName, imp.FieldName))
@@ -280,6 +281,7 @@ func NewVirtualMachine(
 		Exited:          true,
 		GasPolicy:       gasPolicy,
 		ImportResolver:  impResolver,
+		ExternalParams:  make([]int64, 0),
 	}, nil
 }
 
@@ -1778,21 +1780,21 @@ func (vm *VirtualMachine) Execute() {
 			}
 
 		case opcodes.InvokeImport:
-/*			importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
-			frame.IP += 4
-			vmcommon.Delegate = func() {
-				defer func() {
-					if err := recover(); err != nil {
-						vmcommon.Exited = true
-						vmcommon.ExitError = err
-					}
-				}()
-				imp := vmcommon.FunctionImports[importID]
-				if imp.F == nil {
-					imp.F = vmcommon.ImportResolver.ResolveFunc(imp.ModuleName, imp.FieldName)
-				}
-				frame.Regs[valueID] = imp.F(vmcommon)
-			}*/
+			/*			importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
+						frame.IP += 4
+						vmcommon.Delegate = func() {
+							defer func() {
+								if err := recover(); err != nil {
+									vmcommon.Exited = true
+									vmcommon.ExitError = err
+								}
+							}()
+							imp := vmcommon.FunctionImports[importID]
+							if imp.F == nil {
+								imp.F = vmcommon.ImportResolver.ResolveFunc(imp.ModuleName, imp.FieldName)
+							}
+							frame.Regs[valueID] = imp.F(vmcommon)
+						}*/
 			//修改成和 platOn相同
 			importID := int(LE.Uint32(frame.Code[frame.IP: frame.IP+4]))
 			frame.IP += 4
@@ -1823,7 +1825,6 @@ func (vm *VirtualMachine) Execute() {
 		case opcodes.AddGas:
 			delta := LE.Uint64(frame.Code[frame.IP: frame.IP+8])
 			frame.IP += 8
-			fmt.Println("11111")
 			if !vm.AddAndCheckGas(delta) {
 				vm.GasLimitExceeded = true
 				return

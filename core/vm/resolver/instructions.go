@@ -71,12 +71,12 @@ func (r *Resolver) envEmitEvent(vm *exec.VirtualMachine) int64 {
 
 	log.Info("the blockNumber is:","blockNumber",r.Service.GetBlockNumber())
 	addedLog := &model.Log{
-		ContractAddr:r.Service.Address(),
-		Topic:common.BytesToHash(crypto.Keccak256(t)),
+		Address:r.Service.Address(),
+		Topics:[]common.Hash{common.BytesToHash(crypto.Keccak256(t))},
 		Data:d,
 		BlockNumber:r.Service.GetBlockNumber().Uint64(),
-		TxHash:r.Service.TxHash(),
-		TxIndex:uint(r.Service.TxIdx()),
+		TxHash:r.Service.GetTxHash(),
+		TxIndex:uint(r.Service.GetTxIdx()),
 	}
 	addedLog.BlockHash = r.Service.BlockHash(addedLog.BlockNumber)
 

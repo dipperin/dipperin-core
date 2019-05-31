@@ -20,6 +20,7 @@ import (
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 	"math/big"
 )
 
@@ -35,6 +36,8 @@ type AbstractHeader interface {
 	SetVerificationRoot(newRoot common.Hash)
 	GetSeed() common.Hash
 	GetProof() []byte
+	GetGasLimit() uint64
+	GetGasUsed()  uint64
 	GetMinerPubKey() (*ecdsa.PublicKey)
 	GetInterLinkRoot() common.Hash
 	GetDifficulty() common.Difficulty
@@ -116,6 +119,11 @@ type AbstractTransaction interface {
 	EstimateFee() *big.Int
 	GetGasPrice() *big.Int
 	AsMessage() (Message, error)
+	PaddingReceipt(parameters ReceiptPara)(*model.Receipt,error)
+	GetGasLimit() uint64
+	GetReceipt()(model.Receipt,error)
+	PaddingTxIndex(index int)
+	GetTxIndex() (int,error)
 }
 
 //go:generate mockgen -destination=./../economy-model/verification_mock_test.go -package=economy_model github.com/dipperin/dipperin-core/core/model AbstractVerification

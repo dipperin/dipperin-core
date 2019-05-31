@@ -18,6 +18,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
@@ -671,6 +672,14 @@ func (service *MercuryFullChainService) SendTransactionContractCreate(from, to c
 	}
 
 	log.Info("send transaction", "txId", signTx.CalTxId().Hex())
+	log.Info("send transaction", "gasPrice", signTx.GetGasPrice())
+	log.Info("send transaction", "gas limit", signTx.GetGasLimit())
+	signJson,_ := json.Marshal(signTx)
+	txJson,_ := json.Marshal(tx)
+	pbft_log.Info("send transaction", "signTx json", string(signJson))
+	pbft_log.Info("send transaction", "tx json", string(txJson))
+	log.Info("send transaction", "signTx json", string(signJson))
+	pbft_log.Info("send transaction", "signTx", signTx.String())
 	pbft_log.Info("send transaction", "txId", signTx.CalTxId().Hex())
 	txHash := signTx.CalTxId()
 	log.Info("the SendTransaction txId is: ", "txId", txHash.Hex(), "txSize", signTx.Size())
