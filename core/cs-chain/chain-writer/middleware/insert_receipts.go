@@ -35,19 +35,19 @@ func InsertReceipts(c *BlockContext) Middleware {
 
 		receipts := make(model2.Receipts, len(c.Block.GetTransactions()))
 		if err := c.Block.TxIterator(func(i int, transaction model.AbstractTransaction) error {
-			receipt,err := transaction.GetReceipt()
-			if err !=nil{
+			receipt, err := transaction.GetReceipt()
+			if err != nil {
 				return err
 			}
-			receipts = append(receipts,&receipt)
+			receipts = append(receipts, receipt)
 			return nil
-		});err != nil {
+		}); err != nil {
 			return err
 		}
 
 		//check receipt hash
 		receiptHash := model.DeriveSha(receipts)
-		if receiptHash != c.Block.GetReceiptHash(){
+		if receiptHash != c.Block.GetReceiptHash() {
 			return g_error.ReceiptHashError
 		}
 

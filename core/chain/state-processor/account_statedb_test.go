@@ -57,8 +57,8 @@ func TestAccountStateDB_GetAccountState(t *testing.T) {
 	assert.NoError(t, err)
 
 	alice, _ := processor.GetAccountState(aliceAddr)
-	assert.Equal(t, alice.Nonce, uint64(1))
-	assert.Equal(t, big.NewInt(9000000),alice.Balance)
+	assert.Equal(t, alice.Nonce, uint64(0))
+	assert.Equal(t, big.NewInt(9e6),alice.Balance)
 }
 
 func TestAccountStateDB_PutContract(t *testing.T) {
@@ -200,7 +200,7 @@ AddPeerSet, Elect, Evidence, Cancel
 func TestAccountStateProcessor_Process_Register(t *testing.T) {
 	processor := createStateProcessor(t)
 	k1, _ := createKey()
-	tx := getTestRegisterTransaction(1, k1, big.NewInt(1000))
+	tx := getTestRegisterTransaction(0, k1, big.NewInt(1000))
 
 	aliceStake, _ := processor.GetStake(aliceAddr)
 	aliceBalance, _ := processor.GetBalance(aliceAddr)
@@ -230,7 +230,7 @@ func TestAccountStateProcessor_Process_Evidence(t *testing.T) {
 	bobStake, _ := processor.GetStake(bobAddr)
 	assert.EqualValues(t, big.NewInt(1000), bobStake)
 
-	tx := getTestEvidenceTransaction(1, key1, bobAddr, voteA, voteB)
+	tx := getTestEvidenceTransaction(0, key1, bobAddr, voteA, voteB)
 	err = processor.ProcessTx(tx, 1)
 	assert.NoError(t, err)
 	aliceStake, _ := processor.GetStake(aliceAddr)
@@ -245,7 +245,7 @@ func TestAccountStateProcessor_Process_Evidence(t *testing.T) {
 func TestAccountStateProcessor_Process_Cancel(t *testing.T) {
 	processor := createStateProcessor(t)
 	k1, _ := createKey()
-	tx := getTestCancelTransaction(1, k1)
+	tx := getTestCancelTransaction(0, k1)
 
 	err := processor.AddStake(aliceAddr, big.NewInt(1000))
 	assert.NoError(t, err)
@@ -267,7 +267,7 @@ func TestAccountStateProcessor_Process_Cancel(t *testing.T) {
 func TestAccountStateProcessor_Process_UnStake(t *testing.T) {
 	processor := createStateProcessor(t)
 	k1, _ := createKey()
-	tx := getTestUnStakeTransaction(1, k1)
+	tx := getTestUnStakeTransaction(0, k1)
 
 	err := processor.AddStake(aliceAddr, big.NewInt(1000))
 	assert.NoError(t, err)
@@ -299,7 +299,7 @@ func createStateProcessor(t *testing.T) *AccountStateDB {
 
 	assert.EqualValues(t, big.NewInt(0), aliceOriginalStake)
 	assert.EqualValues(t, big.NewInt(9000000), aliceOriginalBalance)
-	assert.EqualValues(t, uint64(1), aliceOriginalNonce)
+	assert.EqualValues(t, uint64(0), aliceOriginalNonce)
 	assert.EqualValues(t, uint64(0), aliceOriginalLastElect)
 	return processor
 }

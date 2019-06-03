@@ -75,10 +75,10 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	processor, err = NewAccountStateDB(root, tdb)
 	assert.NoError(t, err)
 
-	name := []byte("0000")
-	num := vmcommon.Int64ToBytes(2)
+	name := []byte("ProcessContract")
+	num := vmcommon.Int64ToBytes(456)
 	param := [][]byte{name, num}
-	tx = callContractTx(t, &receipt1.ContractAddress, "hello", param)
+	tx = callContractTx(t, &receipt1.ContractAddress, "hello", param, 1)
 
 	block = createBlock(2, block.Hash(), []*model.Transaction{tx}, &gasPool)
 	config = &TxProcessConfig{
