@@ -57,8 +57,8 @@ func TestAccountStateDB_GetAccountState(t *testing.T) {
 	assert.NoError(t, err)
 
 	alice, _ := processor.GetAccountState(aliceAddr)
-	assert.Equal(t, alice.Nonce, uint64(1))
-	assert.Equal(t, alice.Balance, big.NewInt(4790))
+	assert.Equal(t, alice.Nonce, uint64(0))
+	assert.Equal(t, big.NewInt(9e6),alice.Balance)
 }
 
 func TestAccountStateDB_PutContract(t *testing.T) {
@@ -200,12 +200,12 @@ AddPeerSet, Elect, Evidence, Cancel
 func TestAccountStateProcessor_Process_Register(t *testing.T) {
 	processor := createStateProcessor(t)
 	k1, _ := createKey()
-	tx := getTestRegisterTransaction(1, k1, big.NewInt(1000))
+	tx := getTestRegisterTransaction(0, k1, big.NewInt(1000))
 
 	aliceStake, _ := processor.GetStake(aliceAddr)
 	aliceBalance, _ := processor.GetBalance(aliceAddr)
 	assert.EqualValues(t, big.NewInt(0), aliceStake)
-	assert.EqualValues(t, big.NewInt(4790), aliceBalance)
+	assert.EqualValues(t, big.NewInt(9000000), aliceBalance)
 
 	err := processor.ProcessTx(tx, 1)
 	assert.NoError(t, err)
@@ -213,7 +213,7 @@ func TestAccountStateProcessor_Process_Register(t *testing.T) {
 	aliceStake, _ = processor.GetStake(aliceAddr)
 	aliceBalance, _ = processor.GetBalance(aliceAddr)
 	assert.EqualValues(t, big.NewInt(1000), aliceStake)
-	assert.EqualValues(t, big.NewInt(3750), aliceBalance)
+	assert.EqualValues(t, big.NewInt(8998960), aliceBalance)
 }
 
 func TestAccountStateProcessor_Process_Evidence(t *testing.T) {
@@ -227,22 +227,25 @@ func TestAccountStateProcessor_Process_Evidence(t *testing.T) {
 	err := processor.AddStake(bobAddr, big.NewInt(1000))
 	assert.NoError(t, err)
 
-	tx := getTestEvidenceTransaction(1, key1, bobAddr, voteA, voteB)
+	bobStake, _ := processor.GetStake(bobAddr)
+	assert.EqualValues(t, big.NewInt(1000), bobStake)
+
+	tx := getTestEvidenceTransaction(0, key1, bobAddr, voteA, voteB)
 	err = processor.ProcessTx(tx, 1)
 	assert.NoError(t, err)
 	aliceStake, _ := processor.GetStake(aliceAddr)
 	aliceBalance, _ := processor.GetBalance(aliceAddr)
-	bobStake, _ := processor.GetStake(bobAddr)
+	bobStake, _ = processor.GetStake(bobAddr)
 
 	assert.EqualValues(t, big.NewInt(0), aliceStake)
-	assert.EqualValues(t, big.NewInt(5750), aliceBalance)
+	assert.EqualValues(t, big.NewInt(9000960), aliceBalance)
 	assert.EqualValues(t, big.NewInt(0), bobStake)
 }
 
 func TestAccountStateProcessor_Process_Cancel(t *testing.T) {
 	processor := createStateProcessor(t)
 	k1, _ := createKey()
-	tx := getTestCancelTransaction(1, k1)
+	tx := getTestCancelTransaction(0, k1)
 
 	err := processor.AddStake(aliceAddr, big.NewInt(1000))
 	assert.NoError(t, err)
@@ -264,7 +267,7 @@ func TestAccountStateProcessor_Process_Cancel(t *testing.T) {
 func TestAccountStateProcessor_Process_UnStake(t *testing.T) {
 	processor := createStateProcessor(t)
 	k1, _ := createKey()
-	tx := getTestUnStakeTransaction(1, k1)
+	tx := getTestUnStakeTransaction(0, k1)
 
 	err := processor.AddStake(aliceAddr, big.NewInt(1000))
 	assert.NoError(t, err)
@@ -292,10 +295,11 @@ func createStateProcessor(t *testing.T) *AccountStateDB {
 	aliceOriginalBalance, _ := processor.GetBalance(aliceAddr)
 	aliceOriginalNonce, _ := processor.GetNonce(aliceAddr)
 	aliceOriginalLastElect, _ := processor.GetLastElect(aliceAddr)
+	processor.newAccountState(bobAddr)
 
 	assert.EqualValues(t, big.NewInt(0), aliceOriginalStake)
-	assert.EqualValues(t, big.NewInt(4790), aliceOriginalBalance)
-	assert.EqualValues(t, uint64(1), aliceOriginalNonce)
+	assert.EqualValues(t, big.NewInt(9000000), aliceOriginalBalance)
+	assert.EqualValues(t, uint64(0), aliceOriginalNonce)
 	assert.EqualValues(t, uint64(0), aliceOriginalLastElect)
 	return processor
 }

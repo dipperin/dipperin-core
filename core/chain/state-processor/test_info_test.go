@@ -80,29 +80,29 @@ func createContractTx(t *testing.T, code, abi string) *model.Transaction {
 	key, _ := createKey()
 	fs := model.NewMercurySigner(big.NewInt(1))
 	data := getContractCode(t, code, abi)
-
-	to := common.HexToAddress("0x00120000000000000000000000000000000000000000")
-	fmt.Println("test type",common.TxType(binary.BigEndian.Uint16(to.Bytes()[:2])))
-	tx := model.NewTransactionSc(0,&to, big.NewInt(200), gasPrice, gasLimit, data)
-	tx.PaddingTxIndex(0)
+	to := common.HexToAddress(common.AddressContractCreate)
+	tx := model.NewTransactionSc(0, &to, big.NewInt(200), gasPrice, gasLimit, data)
 	tx.SignTx(key, fs)
+	tx.PaddingTxIndex(0)
 	return tx
 }
 
-func callContractTx(t *testing.T, to *common.Address, funcName string, param [][]byte) *model.Transaction {
+func callContractTx(t *testing.T, to *common.Address, funcName string, param [][]byte, nonce uint64) *model.Transaction {
 	key, _ := createKey()
 	fs := model.NewMercurySigner(big.NewInt(1))
 	data := getContractInput(t, funcName, param)
-	tx := model.NewTransactionSc(0, to, big.NewInt(200), gasPrice, gasLimit, data)
+	tx := model.NewTransactionSc(nonce, to, big.NewInt(200), gasPrice, gasLimit, data)
 	tx.SignTx(key, fs)
+	tx.PaddingTxIndex(0)
 	return tx
 }
 
-func createBlock(num uint64, preHash common.Hash, txList []*model.Transaction) *model.Block {
-	header := model.NewHeader(1, num, preHash, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), aliceAddr, common.BlockNonce{})
+func createBlock(num uint64, preHash common.Hash, txList []*model.Transaction, limit *uint64) *model.Block {
+	header := model.NewHeader(1, num, preHash, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), bobAddr, common.BlockNonce{})
 
 	// vote
 	var voteList []model.AbstractVerification
+	header.GasLimit = limit
 	block := model.NewBlock(header, txList, voteList)
 
 	// calculate block nonce
@@ -118,7 +118,8 @@ func createTestStateDB() (ethdb.Database, common.Hash) {
 	tdb := NewStateStorageWithCache(db)
 	processor, _ := NewAccountStateDB(common.Hash{}, tdb)
 	processor.NewAccountState(aliceAddr)
-	processor.AddBalance(aliceAddr, big.NewInt(9000000))
+	processor.NewAccountState(bobAddr)
+	processor.AddBalance(aliceAddr, big.NewInt(9e6))
 
 	root, _ := processor.Commit()
 	tdb.TrieDB().Commit(root, false)
@@ -147,7 +148,14 @@ func getTestVm(account map[common.Address]*big.Int, code map[common.Address][]by
 		CanTransfer: testCanTransfer,
 		Transfer:    testTransfer,
 		GasLimit:    model2.TxGas,
+		GetHash:     getTestHashFunc(),
 	}, fakeStateDB{account: account, code: code}, vm.DEFAULT_VM_CONFIG)
+}
+
+func getTestHashFunc() func(num uint64) common.Hash {
+	return func(num uint64) common.Hash {
+		return common.Hash{}
+	}
 }
 
 func getContractCode(t *testing.T, code, abi string) []byte {
@@ -320,11 +328,10 @@ func (tx fakeTransaction) PaddingReceipt(parameters model.ReceiptPara) (*model2.
 	panic("implement me")
 }
 
-
-func (tx fakeTransaction)  GetGasLimit() uint64 {
+func (tx fakeTransaction) GetGasLimit() uint64 {
 	panic("implement me")
 }
-func (tx fakeTransaction) GetReceipt() (model2.Receipt, error) {
+func (tx fakeTransaction) GetReceipt() (*model2.Receipt, error) {
 	panic("implement me")
 }
 

@@ -2,6 +2,7 @@ package vmcommon
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/third-party/log"
@@ -60,7 +61,8 @@ func ParseAndGetRlpData(rlpData []byte, input []byte) (extraData []byte, err err
 	}
 
 	wasmAbi := new(utils.WasmAbi)
-	err = wasmAbi.FromJson(abi)
+	//err = wasmAbi.FromJson(abi)
+	err = json.Unmarshal(abi, wasmAbi)
 	if err != nil {
 		log.Error("ParseAndGetRlpData abi from json", "err", err)
 		return nil, errors.New("call contract: invalid abi, encoded fail")

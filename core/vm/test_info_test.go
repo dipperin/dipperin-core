@@ -26,7 +26,6 @@ func (ref fakeContractRef) Address() common.Address {
 }
 
 type fakeStateDB struct {
-
 }
 
 func (state fakeStateDB) GetLogs(txHash common.Hash) []*model.Log {
@@ -62,7 +61,7 @@ func (state fakeStateDB) SetNonce(common.Address, uint64) {
 	panic("implement me")
 }
 
-func (state fakeStateDB)AddNonce(common.Address, uint64){
+func (state fakeStateDB) AddNonce(common.Address, uint64) {
 	panic("implement me")
 }
 
@@ -208,13 +207,13 @@ func getContract(t *testing.T, addr common.Address, code, abi string) *Contract 
 	return &Contract{
 		self: fakeContractRef{addr: addr},
 		Code: ca,
-		Gas:model.TxGas,
+		Gas:  model.TxGas,
 	}
 }
 
 func getTestVm() *VM {
 	return NewVM(Context{
 		BlockNumber: big.NewInt(1),
-		GasLimit:model.TxGas,
+		GasLimit:    model.TxGas,
 	}, fakeStateDB{}, DEFAULT_VM_CONFIG)
 }

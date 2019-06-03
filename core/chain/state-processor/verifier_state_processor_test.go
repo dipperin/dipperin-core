@@ -40,7 +40,7 @@ func TestAccountStateProcessor_Stake(t *testing.T) {
 	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
 	assert.NoError(t, err)
 	aliceOriginal, _ := processor.GetBalance(aliceAddr)
-	assert.EqualValues(t, big.NewInt(4790), aliceOriginal)
+	assert.EqualValues(t, big.NewInt(9e6), aliceOriginal)
 
 	//Valid
 	//Alice stake 30
@@ -51,10 +51,10 @@ func TestAccountStateProcessor_Stake(t *testing.T) {
 	aliceBalance, err := processor.GetBalance(aliceAddr)
 	assert.NoError(t, err)
 	assert.EqualValues(t, big.NewInt(30), aliceStake)
-	assert.EqualValues(t, big.NewInt(4760), aliceBalance)
+	assert.EqualValues(t, big.NewInt(8999970), aliceBalance)
 
 	//Invalid
-	err = processor.Stake(aliceAddr, big.NewInt(5000)) //Not enough money
+	err = processor.Stake(aliceAddr, big.NewInt(1e7)) //Not enough money
 	assert.EqualValues(t, NotEnoughBalanceError, err)
 
 	err = processor.Stake(common.HexToAddress("test"), big.NewInt(20)) //Account not exit
@@ -70,7 +70,7 @@ func TestAccountStateProcessor_UnStake(t *testing.T) {
 	aliceStake, _ := processor.GetStake(aliceAddr)
 	assert.EqualValues(t, big.NewInt(800), aliceStake)
 	aliceBalance, _ := processor.GetBalance(aliceAddr)
-	assert.EqualValues(t, big.NewInt(3990), aliceBalance)
+	assert.EqualValues(t, big.NewInt(8999200), aliceBalance)
 
 	//Valid
 	//Alice un stake
@@ -82,7 +82,7 @@ func TestAccountStateProcessor_UnStake(t *testing.T) {
 	aliceNewStake, _ := processor.GetStake(aliceAddr)
 	aliceNewBalance, _ := processor.GetBalance(aliceAddr)
 	assert.EqualValues(t, big.NewInt(0), aliceNewStake)
-	assert.EqualValues(t, big.NewInt(4790), aliceNewBalance)
+	assert.EqualValues(t, big.NewInt(9e6), aliceNewBalance)
 
 	//Invalid
 	bobStake, _ := processor.GetStake(bobAddr)
@@ -100,9 +100,9 @@ func TestAccountStateProcessor_MoveStakeToAddress(t *testing.T) {
 	bobOriginalBalance, _ := processor.GetBalance(bobAddr)
 
 	assert.EqualValues(t, big.NewInt(800), aliceOriginalStake)
-	assert.EqualValues(t, big.NewInt(3990), aliceOriginalBalance)
+	assert.EqualValues(t, big.NewInt(8999200), aliceOriginalBalance)
 	assert.EqualValues(t, big.NewInt(0), bobOriginalStake)
-	assert.EqualValues(t, big.NewInt(200), bobOriginalBalance)
+	assert.EqualValues(t, big.NewInt(0), bobOriginalBalance)
 
 	//Valid
 	// Move stake from alice's stake to bob's balance
@@ -113,9 +113,9 @@ func TestAccountStateProcessor_MoveStakeToAddress(t *testing.T) {
 	bobBalance, _ := processor.GetBalance(bobAddr)
 	assert.NoError(t, err)
 	assert.EqualValues(t, big.NewInt(0), aliceStake)
-	assert.EqualValues(t, big.NewInt(3990), aliceBalance)
+	assert.EqualValues(t, big.NewInt(8999200), aliceBalance)
 	assert.EqualValues(t, big.NewInt(0), bobStake)
-	assert.EqualValues(t, big.NewInt(1000), bobBalance)
+	assert.EqualValues(t, big.NewInt(800), bobBalance)
 
 	//InValid
 	//Alice has no stake at all
@@ -155,7 +155,7 @@ func TestAccountStateDB_processStakeTx_Error(t *testing.T) {
 	err = processor.processStakeTx(tx)
 	assert.Equal(t, NotEnoughStakeErr, err)
 
-	tx = getTestRegisterTransaction(0, key1, big.NewInt(1e4))
+	tx = getTestRegisterTransaction(0, key1, big.NewInt(1e7))
 	err = processor.processStakeTx(tx)
 	assert.Equal(t, NotEnoughBalanceError, err)
 }

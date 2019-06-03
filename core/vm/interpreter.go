@@ -2,16 +2,16 @@ package vm
 
 import (
 	"bytes"
-	"github.com/dipperin/dipperin-core/common/g-error"
-	"github.com/dipperin/dipperin-core/common/vmcommon"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	"github.com/dipperin/dipperin-core/core/vm/resolver"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"encoding/binary"
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/math"
+	"github.com/dipperin/dipperin-core/common/vmcommon"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/core/vm/resolver"
+	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
@@ -23,7 +23,7 @@ var (
 	errReturnInvalidRlpFormat   = errors.New("interpreter_life: invalid rlp format")
 	errReturnInsufficientParams = errors.New("interpreter_life: invalid input. ele must greater than 2")
 	errReturnInvalidAbi         = errors.New("interpreter_life: invalid abi, encoded fail")
-	errReturnInputAbiNotMatch	= errors.New("interpreter_life: length of input and abi not match")
+	errReturnInputAbiNotMatch   = errors.New("interpreter_life: length of input and abi not match")
 )
 
 const (
@@ -57,6 +57,7 @@ func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) 
 
 func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error) {
 	if len(contract.Code) == 0 {
+		log.Debug("Code Length is 0")
 		return nil, nil
 	}
 
@@ -95,14 +96,14 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 		// 通过ABI解析input
 		txType, funcName, params, returnType, err = parseInputFromAbi(lifeVm, input, abi)
 		if err != nil {
-			if err == errReturnInsufficientParams && txType == 0 { // transfer to contract address.
-				return nil, nil
-			}
+			/*			if err == errReturnInsufficientParams && txType == 0 { // transfer to contract address.
+							return nil, nil
+						}*/
 			return nil, err
 		}
-		if txType == 0 {
-			return nil, nil
-		}
+		/*		if txType == 0 {
+					return nil, nil
+				}*/
 	}
 	log.Info("parseInput", "type", txType, "funcName", funcName, "params", params, "return", returnType, "err", err)
 
@@ -215,6 +216,8 @@ func parseInputFromAbi(vm *exec.VirtualMachine, input []byte, abi []byte) (txTyp
 	}
 
 	wasmAbi := new(utils.WasmAbi)
+	// TODO
+	//  err = json.Unmarshal(abi, wasmAbi)
 	err = wasmAbi.FromJson(abi)
 	if err != nil {
 		return -1, "", nil, "", errReturnInvalidAbi
@@ -282,7 +285,10 @@ func parseRlpData(vm *exec.VirtualMachine, rlpData []byte) (int64, []byte, []byt
 	}
 
 	wasmAbi := new(utils.WasmAbi)
+	//TODO
 	err = wasmAbi.FromJson(abi)
+	//err = json.Unmarshal(abi,wasmAbi)
+
 	if err != nil {
 		return -1, nil, nil, nil, errReturnInvalidAbi
 	}

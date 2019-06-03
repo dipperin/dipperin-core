@@ -100,7 +100,6 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 			}()
 		}*/
 	ret, err = run(vm, contract, input, false)
-	log.Info("lifeVm run successful", "gasLeft", contract.Gas)
 	// When an error was returned by the EVM or when setting the creation code
 	// above we revert to the snapshot and consume any gas remaining. Additionally
 	// when we're in homestead this also counts for code storage gas errors.
@@ -111,6 +110,7 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 			log.Info("callContract Use", "gasUsed", contract.Gas, "gasLeft", contract.Gas)
 		}
 	}
+	log.Info("lifeVm run successful", "gasLeft", contract.Gas)
 	return ret, contract.Gas, err
 }
 
@@ -312,7 +312,7 @@ func (context *Context) GetOrigin() common.Address {
 }
 
 // NewVMContext creates a new context for use in the VM.
-func NewVMContext(tx model.AbstractTransaction, header *model.Header, GetHash GetHashFunc) Context {
+func NewVMContext(tx model.AbstractTransaction, header model.AbstractHeader, GetHash GetHashFunc) Context {
 	sender, _ := tx.Sender(tx.GetSigner())
 	txIndex, err := tx.GetTxIndex()
 	if err != nil {
@@ -322,15 +322,15 @@ func NewVMContext(tx model.AbstractTransaction, header *model.Header, GetHash Ge
 		Origin:      sender,
 		GasPrice:    tx.GetGasPrice(),
 		GasLimit:    tx.Fee().Uint64(),
-		BlockNumber: new(big.Int).SetUint64(header.Number),
+		BlockNumber: new(big.Int).SetUint64(header.GetNumber()),
 		callGasTemp: tx.Fee().Uint64(),
 		//BlockHash:   block.Hash(),
 		TxHash:      tx.CalTxId(),
 		TxIndex:     uint64(txIndex),
 		CanTransfer: CanTransfer,
 		Transfer:    Transfer,
-		Coinbase:    header.CoinBase,
-		Time:        header.TimeStamp,
+		Coinbase:    header.CoinBaseAddress(),
+		Time:        header.GetTimeStamp(),
 		GetHash:     GetHash,
 	}
 }

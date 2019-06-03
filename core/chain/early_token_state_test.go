@@ -37,6 +37,7 @@ test foundation contract execution is correct
 */
 
 func TestProcessEarlyContract(t *testing.T) {
+	t.Skip()
 	mpt_log.InitMptLogger(log.LvlDebug, "TestProcessEarlyContract", true)
 
 	eModel := economy_model.MakeDipperinEconomyModel(&earlyContractFakeChainService{}, economy_model.DIPProportion)

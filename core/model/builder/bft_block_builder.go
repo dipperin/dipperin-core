@@ -45,14 +45,14 @@ type BftBlockBuilder struct {
 	ModelConfig
 }
 
-func (builder *BftBlockBuilder) commitTransaction(tx model.AbstractTransaction, state *chain.BlockProcessor,txIndex int,header *model.Header) error {
+func (builder *BftBlockBuilder) commitTransaction(tx model.AbstractTransaction, state *chain.BlockProcessor, txIndex int, header *model.Header) error {
 	snap := state.Snapshot()
 	//err := state.ProcessTx(tx, height)
 	conf := state_processor.TxProcessConfig{
-		Tx:tx,
-		TxIndex:txIndex,
-		Header:header,
-		GetHash:state.GetBlockHashByNumber,
+		Tx:      tx,
+		TxIndex: txIndex,
+		Header:  header,
+		GetHash: state.GetBlockHashByNumber,
 	}
 	err := state.ProcessTxNew(&conf)
 	if err != nil {
@@ -62,7 +62,7 @@ func (builder *BftBlockBuilder) commitTransaction(tx model.AbstractTransaction, 
 	return nil
 }
 
-func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndNonce, state *chain.BlockProcessor, header *model.Header, vers []model.AbstractVerification) (txBuf []model.AbstractTransaction,receipts model2.Receipts) {
+func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndNonce, state *chain.BlockProcessor, header *model.Header, vers []model.AbstractVerification) (txBuf []model.AbstractTransaction, receipts model2.Receipts) {
 	var invalidList []*model.Transaction
 	txIndex := 0
 	for {
@@ -72,21 +72,21 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 			break
 		}
 		//from, _ := tx.Sender(builder.nodeContext.TxSigner())
-		err := builder.commitTransaction(tx, state,txIndex,header)
+		err := builder.commitTransaction(tx, state, txIndex, header)
 		if err != nil {
 			log.Info("transaction is not processable because:", "err", err, "txID", tx.CalTxId(), "nonce:", tx.Nonce())
 			txs.Pop()
 			invalidList = append(invalidList, tx.(*model.Transaction))
 		} else {
-			receipt,err := tx.GetReceipt()
-			if err !=nil{
-				log.Info("cant get tx receipt","txId",tx.CalTxId().Hex())
+			receipt, err := tx.GetReceipt()
+			if err != nil {
+				log.Info("cant get tx receipt", "txId", tx.CalTxId().Hex())
 				txs.Pop()
 				invalidList = append(invalidList, tx.(*model.Transaction))
-			}else {
+			} else {
 				txBuf = append(txBuf, tx)
 				txs.Shift()
-				receipts = append(receipts,&receipt)
+				receipts = append(receipts, receipt)
 				txIndex++
 			}
 		}
@@ -159,7 +159,7 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address) 
 
 	log.Info("~~~~~~~~~~~~~~~the pending len is:", "number", len(pending))
 	txs := model.NewTransactionsByFeeAndNonce(builder.TxSigner, pending)
-	txBuf,receipts := builder.commitTransactions(txs, processor, header, vers)
+	txBuf, receipts := builder.commitTransactions(txs, processor, header, vers)
 
 	//log.Info("~~~~~~~~~~~~~~ the txBuf len is: ", "txBuf Len", len(txBuf))
 

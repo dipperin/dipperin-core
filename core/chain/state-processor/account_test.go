@@ -171,7 +171,7 @@ func TestContractCreate(t *testing.T){
 	processor, _:= NewAccountStateDB(common.Hash{}, tdb)
 	processor.NewAccountState(aliceAddr)
 	processor.AddBalance(aliceAddr, big.NewInt(2000))
-	processor.AddNonce(aliceAddr, 10)
+	processor.AddNonce(aliceAddr, 11)
 
 	nonce,_:=processor.GetNonce(aliceAddr)
 	fmt.Println(nonce)

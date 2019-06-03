@@ -88,7 +88,7 @@ func TestTransaction(t *testing.T) {
 	assert.Equal(t, txAmount, tx.Amount())
 	assert.Equal(t, big.NewInt(1), tx.ChainId())
 	assert.Equal(t, big.NewInt(20000), tx.Cost())
-	assert.Equal(t, big.NewInt(106), tx.EstimateFee())
+	assert.Equal(t, big.NewInt(110), tx.EstimateFee())
 	assert.Equal(t, []byte{}, tx.ExtraData())
 	assert.Equal(t, big.NewInt(10000), tx.Fee())
 	assert.Equal(t, uint64(0), tx.Nonce())
@@ -99,8 +99,8 @@ func TestTransaction(t *testing.T) {
 	assert.NotNil(t, tx.String())
 
 	// read from cache
-	assert.Equal(t, common.StorageSize(106), tx.Size())
-	assert.Equal(t, common.StorageSize(106), tx.Size())
+	assert.Equal(t, common.StorageSize(110), tx.Size())
+	assert.Equal(t, common.StorageSize(110), tx.Size())
 
 	signer := NewMercurySigner(big.NewInt(1))
 	assert.Equal(t, signer, tx.GetSigner())
@@ -135,7 +135,7 @@ func TestTransactions(t *testing.T) {
 	tx2 := CreateSignedTx(1, txAmount)
 	txs := Transactions{tx1, tx2}
 
-	assert.True(t, txs.Less(0, 1))
+	assert.True(t, txs.Less(1, 0))
 	assert.NotNil(t, txs.GetRlp(0))
 	assert.NotNil(t, txs.String())
 

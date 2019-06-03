@@ -34,9 +34,9 @@ func TestAccountStateDB_ProcessVerification(t *testing.T) {
 	// createVote(height, viewId, sequenceId uint64, blockHash common.Hash, address common.Address, privKey string)
 	verify := createSignedVote(1, common.HexToHash("123456"), model.VoteMessage, testPriv1, aliceAddr)
 	aliceOriginalVerifyNum, _ := processor.GetVerifyNum(aliceAddr)
-	assert.EqualValues(t, uint64(7), aliceOriginalVerifyNum)
+	assert.EqualValues(t, uint64(0), aliceOriginalVerifyNum)
 	aliceOriginalCommitNum, _ := processor.GetCommitNum(aliceAddr)
-	assert.EqualValues(t, uint64(5), aliceOriginalCommitNum)
+	assert.EqualValues(t, uint64(0), aliceOriginalCommitNum)
 	aliceOriginalPerformance, _ := processor.GetPerformance(aliceAddr)
 	assert.EqualValues(t, uint64(30), aliceOriginalPerformance)
 

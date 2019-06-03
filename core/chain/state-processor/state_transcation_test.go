@@ -34,7 +34,7 @@ func TestApplyMessage(t *testing.T) {
 	num := vmcommon.Int64ToBytes(234)
 	params := [][]byte{name, num}
 	to := cs_crypto.CreateContractAddress(aliceAddr, 0)
-	tx = callContractTx(t, &to, "hello", params)
+	tx = callContractTx(t, &to, "hello", params, 0)
 	msg, err = tx.AsMessage()
 	assert.NoError(t, err)
 
