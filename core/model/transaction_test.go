@@ -149,6 +149,7 @@ func TestTransactionsByFeeAndNonce(t *testing.T) {
 	txs := make(map[common.Address][]AbstractTransaction, 2)
 	tx1 := CreateSignedTx(0, txAmount)
 	tx2 := CreateSignedTx(1, txAmount)
+
 	txs[aliceAddr] = []AbstractTransaction{tx1, tx2}
 	txs[bobAddr] = []AbstractTransaction{tx1, tx2}
 	signer := NewMercurySigner(big.NewInt(1))

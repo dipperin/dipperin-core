@@ -22,7 +22,7 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	if err != nil {
 		log.Info("TestAccountStateDB_ProcessContract", "err", err)
 	}
-	log.Info("processContract", "tx", tx)
+	log.Info("processContract", "Tx", tx)
 
 	/*block := model.NewBlock(model.NewHeader(1, 101, common.HexToHash("ss"), common.HexToHash("fdfs"), common.StringToDiff("000000000000000000000011"), big.NewInt(111), common.StringToAddress("fdsfds"), common.EncodeNonce(33)), nil, nil)*/
 
@@ -40,7 +40,7 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	balance, err := processor.GetBalance(ownAddress)
 	log.Info("balance", "balance", balance.String())
 
-	receipt, err := processor.ProcessContract(&tx, block, &gasLimit, true)
+	receipt, err := processor.ProcessContract(&tx, block.Header().(*model.Header), true,fakeGetBlockHash)
 	assert.NoError(t, err)
 	assert.Equal(t, true, receipt.HandlerResult)
 
@@ -55,11 +55,15 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	assert.NoError(t, err)
 
 	block := createBlock(1, common.Hash{}, []*model.Transaction{tx})
-	gasPool := gasLimit*5
-	receipt, err := processor.ProcessTxNew(tx, block, &gasPool)
+	//gasPool := gasLimit*5
+	conf := TxProcessConfig{
+		Tx:tx,
+		TxIndex:0,
+		Header:block.Header().(*model.Header),
+		GetHash:fakeGetBlockHash,
+	}
+	err = processor.ProcessTxNew(&conf)
 	assert.NoError(t, err)
-	assert.NotNil(t, receipt)
-	fmt.Println(receipt)
 
 	fullReceipt,err:= tx.GetReceipt()
 	nonce, err := processor.GetNonce(fullReceipt.ContractAddress)

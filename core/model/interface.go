@@ -94,6 +94,8 @@ type AbstractBlock interface {
 	SetVerifications(vs []AbstractVerification)
 	VersIterator(func(int, AbstractVerification, AbstractBlock) error) (error)
 	GetVerifications() ([]AbstractVerification)
+	SetReceiptHash(receiptHash common.Hash)
+	GetReceiptHash() common.Hash
 	//GasLimit() uint64
 }
 

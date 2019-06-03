@@ -84,6 +84,8 @@ type Header struct {
 	InterlinkRoot common.Hash `json:"interlink_root"  gencodec:"required"`
 	// MPT trie Root for register
 	RegisterRoot common.Hash `json:"register_root"  gencodec:"required"`
+	//add receipt hash
+	ReceiptHash common.Hash    `json:"receiptsRoot"     gencodec:"required"`
 }
 
 func (h *Header) GetGasLimit() uint64 {
@@ -298,6 +300,14 @@ func (b *Block) SetRegisterRoot(root common.Hash) {
 	b.header.RegisterRoot = root
 }
 
+func (b *Block) SetReceiptHash(receiptHash common.Hash) {
+	b.header.RegisterRoot = receiptHash
+}
+
+func (b *Block) GetReceiptHash() common.Hash{
+	return b.header.RegisterRoot
+}
+
 // Get block txs bloom
 func (b *Block) GetBlockTxsBloom() *iblt.Bloom {
 	bloom := iblt.NewBloom(iblt.DeriveBloomConfig(len(b.GetTransactions())))
@@ -438,6 +448,7 @@ func (b *Block) GetInterLinkRoot() (root common.Hash) {
 	root = b.header.InterlinkRoot
 	return
 }
+
 
 func (b *Block) SetInterLinks(inter InterLink) {
 	b.body.Inters = inter

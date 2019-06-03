@@ -50,7 +50,7 @@ var (
 	charlieAddr = common.HexToAddress("0x00007dbbf084F4a6CcC070568f7674d4c2CE8CD2709E")
 
 	TrieError = errors.New("trie error")
-	TxError   = errors.New("tx error")
+	TxError   = errors.New("Tx error")
 
 	gasPrice = big.NewInt(2)
 	gasLimit = uint64(2100000)
@@ -158,7 +158,7 @@ func getContractCode(t *testing.T, code, abi string) []byte {
 	assert.NoError(t, err)
 	var input [][]byte
 	input = make([][]byte, 0)
-	// tx type
+	// Tx type
 	input = append(input, vmcommon.Int64ToBytes(1))
 	// code
 	input = append(input, fileCode)
@@ -174,7 +174,7 @@ func getContractCode(t *testing.T, code, abi string) []byte {
 func getContractInput(t *testing.T, funcName string, param [][]byte) []byte {
 	var input [][]byte
 	input = make([][]byte, 0)
-	// tx type
+	// Tx type
 	input = append(input, vmcommon.Int64ToBytes(1))
 	// func name
 	input = append(input, []byte(funcName))

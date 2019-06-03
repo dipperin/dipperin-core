@@ -1,4 +1,4 @@
-package vm
+package g_error
 
 import "errors"
 

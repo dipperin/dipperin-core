@@ -22,4 +22,6 @@ import "errors"
 var (
 	BlockNumberError = errors.New("the block number is smaller than 2")
 	BlockIsNilError  = errors.New("the block is nil")
+	ReceiptHashError = errors.New("the receipt hash does not match")
+	BlockIsNotCorrect = errors.New("the block number isn't correct")
 )
