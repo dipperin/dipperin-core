@@ -1,7 +1,6 @@
 package vm
 
 import (
-	"fmt"
 	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
@@ -9,7 +8,7 @@ import (
 )
 
 func TestWASMInterpreter_Run_map_string(t *testing.T) {
-	var testPath = "./map-string"
+	/*var testPath = "./map-string"
 	contract := getContract(t, contractAddr, testPath+"/map2.wasm", testPath+"/StringMap.cpp.abi.json")
 
 	testVm := getTestVm()
@@ -41,7 +40,7 @@ func TestWASMInterpreter_Run_map_string(t *testing.T) {
 	result, err = interpreter.Run(testVm, contract, genInput(t, "getBalance", [][]byte{key}), false)
 	expect = append(expect[:28], value...)
 	assert.Equal(t, expect, result)
-	assert.NoError(t, err)
+	assert.NoError(t, err)*/
 }
 
 func TestWASMInterpreter_Run_event(t *testing.T) {

@@ -83,7 +83,7 @@ func createContractTx(t *testing.T, code, abi string) *model.Transaction {
 
 	to := common.HexToAddress("0x00120000000000000000000000000000000000000000")
 	fmt.Println("test type",common.TxType(binary.BigEndian.Uint16(to.Bytes()[:2])))
-	tx := model.NewTransactionSc(0,&to, big.NewInt(200), gasPrice, gasLimit, data)
+	tx := model.NewTransactionSc(1,&to, big.NewInt(200), gasPrice, gasLimit, data)
 	tx.PaddingTxIndex(0)
 	tx.SignTx(key, fs)
 	return tx
@@ -119,6 +119,7 @@ func createTestStateDB() (ethdb.Database, common.Hash) {
 	processor, _ := NewAccountStateDB(common.Hash{}, tdb)
 	processor.NewAccountState(aliceAddr)
 	processor.AddBalance(aliceAddr, big.NewInt(9000000))
+	processor.AddNonce(aliceAddr,1)
 
 	root, _ := processor.Commit()
 	tdb.TrieDB().Commit(root, false)

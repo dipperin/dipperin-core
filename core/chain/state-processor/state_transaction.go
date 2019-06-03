@@ -1,6 +1,7 @@
 package state_processor
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/core/model"
 	"math/big"
 	"github.com/dipperin/dipperin-core/common"
@@ -89,6 +90,8 @@ func (st *StateTransition) preCheck() error {
 	// Make sure this transaction's nonce is correct.
 	if st.msg.CheckNonce() {
 		nonce := st.lifeVm.GetStateDB().GetNonce(st.msg.From())
+
+		fmt.Println("?????",st.msg.From().Hex(),nonce,st.msg.Nonce())
 		if nonce < st.msg.Nonce() {
 			return g_error.ErrNonceTooHigh
 		} else if nonce > st.msg.Nonce() {
@@ -134,7 +137,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 	} else {
 		// Increment the nonce for the next transaction
 		st.lifeVm.GetStateDB().AddNonce(msg.From(), uint64(1))
-		//log.Debug("Nonce tracking: SetNonce", "from", msg.From(), "nonce", st.state.GetNonce(sender.Address()))
+		// log.Debug("Nonce tracking: SetNonce", "from", msg.From(), "nonce", st.state.GetNonce(sender.Address()))
 		ret, st.gas, vmerr = lifeVm.Call(sender, st.to(), st.data, st.gas, st.value)
 	}
 	if vmerr != nil {
@@ -148,7 +151,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 	}
 	st.refundGas()
 	//todo handle reward in ProcessExceptTxs
-	//st.state.AddBalance(st.lifeVm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
+	st.state.AddBalance(st.lifeVm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
 	return ret, st.gasUsed(), vmerr != nil, err
 }
 
