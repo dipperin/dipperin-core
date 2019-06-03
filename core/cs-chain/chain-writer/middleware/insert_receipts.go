@@ -48,6 +48,7 @@ func InsertReceipts(c *BlockContext) Middleware {
 		//check receipt hash
 		receiptHash := model.DeriveSha(receipts)
 		if receiptHash != c.Block.GetReceiptHash() {
+			log.Error("InsertReceipts#receiptHash", "receiptHash", receiptHash, "block.ReciptHash", c.Block.GetReceiptHash())
 			return g_error.ReceiptHashError
 		}
 

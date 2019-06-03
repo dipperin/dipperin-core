@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_state
 
 import (
@@ -36,7 +35,7 @@ import (
 // configuration of ChainState
 type ChainStateConfig struct {
 	ChainConfig   *chain_config.ChainConfig
-	DataDir string
+	DataDir       string
 	WriterFactory chain_writer.AbstractChainWriterFactory
 }
 
@@ -44,10 +43,10 @@ type ChainStateConfig struct {
 type ChainState struct {
 	*ChainStateConfig
 
-	ethDB ethdb.Database
-	ChainDB       chaindb.Database
-	StateStorage  state_processor.StateStorage
-	EconomyModel  economy_model.EconomyModel
+	ethDB        ethdb.Database
+	ChainDB      chaindb.Database
+	StateStorage state_processor.StateStorage
+	EconomyModel economy_model.EconomyModel
 }
 
 // create a new BlockProcessor according to the root hash
@@ -67,7 +66,7 @@ func (cs *ChainState) BlockProcessorByNumber(num uint64) (*chain.BlockProcessor,
 // create a new ChainState
 func NewChainState(conf *ChainStateConfig) *ChainState {
 	g_event.Add(g_event.NewBlockInsertEvent)
-	cs := &ChainState{ ChainStateConfig: conf }
+	cs := &ChainState{ChainStateConfig: conf}
 	cs.initConfigAndDB(conf.DataDir)
 	cs.WriterFactory = conf.WriterFactory
 	cs.WriterFactory.SetChain(cs)

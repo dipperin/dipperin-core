@@ -24,15 +24,45 @@ import (
 	ecdsa "crypto/ecdsa"
 	common "github.com/dipperin/dipperin-core/common"
 	model "github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	gomock "github.com/golang/mock/gomock"
 	big "math/big"
 	reflect "reflect"
+
 )
 
 // MockAbstractTransaction is a mock of AbstractTransaction interface
 type MockAbstractTransaction struct {
 	ctrl     *gomock.Controller
 	recorder *MockAbstractTransactionMockRecorder
+}
+
+func (m *MockAbstractTransaction) GetGasPrice() *big.Int {
+	panic("implement me")
+}
+
+func (m *MockAbstractTransaction) AsMessage() (model.Message, error) {
+	panic("implement me")
+}
+
+func (m *MockAbstractTransaction) PaddingReceipt(parameters model.ReceiptPara) (*model2.Receipt, error) {
+	panic("implement me")
+}
+
+func (m *MockAbstractTransaction) GetGasLimit() uint64 {
+	panic("implement me")
+}
+
+func (m *MockAbstractTransaction) GetReceipt() (*model2.Receipt, error) {
+	panic("implement me")
+}
+
+func (m *MockAbstractTransaction) PaddingTxIndex(index int) {
+	panic("implement me")
+}
+
+func (m *MockAbstractTransaction) GetTxIndex() (int, error) {
+	panic("implement me")
 }
 
 // MockAbstractTransactionMockRecorder is the mock recorder for MockAbstractTransaction
