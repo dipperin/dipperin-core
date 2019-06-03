@@ -102,7 +102,7 @@ func createBlock(num uint64, preHash common.Hash, txList []*model.Transaction, l
 
 	// vote
 	var voteList []model.AbstractVerification
-	header.GasLimit = *limit
+	header.GasLimit = limit
 	block := model.NewBlock(header, txList, voteList)
 
 	// calculate block nonce

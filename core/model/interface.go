@@ -36,8 +36,8 @@ type AbstractHeader interface {
 	SetVerificationRoot(newRoot common.Hash)
 	GetSeed() common.Hash
 	GetProof() []byte
-	GetGasLimit() uint64
-	GetGasUsed() uint64
+	GetGasLimit() *uint64
+	GetGasUsed() *uint64
 	GetMinerPubKey() (*ecdsa.PublicKey)
 	GetTimeStamp() *big.Int
 	GetInterLinkRoot() common.Hash
