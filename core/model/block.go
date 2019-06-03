@@ -116,6 +116,7 @@ func NewHeader(version uint64, num uint64, prehash common.Hash, seed common.Hash
 		CoinBase:  coinbase,
 		Nonce:     nonce,
 		Bloom:     iblt.NewBloom(DefaultBlockBloomConfig),
+		GasLimit:  uint64(6666666666),
 	}
 }
 

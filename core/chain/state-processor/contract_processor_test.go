@@ -66,7 +66,7 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 
 	fullReceipt,err:= tx.GetReceipt()
 	nonce, err = processor.GetNonce(fullReceipt.ContractAddress)
-	fmt.Println(nonce, err)
+	fmt.Println(fullReceipt.ContractAddress.Hex(),nonce, err)
 	code,err:=processor.GetCode(fullReceipt.ContractAddress)
 	trueCode := getContractCode(t,testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
 	assert.Equal(t,trueCode,code)
