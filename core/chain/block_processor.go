@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
-
 package chain
 
 import (
@@ -33,7 +31,7 @@ import (
 
 var (
 	//performanceInitial = uint64(30)
-	reward = float64(1)
+	reward  = float64(1)
 	penalty = float64(-10)
 )
 
@@ -61,17 +59,17 @@ func NewBlockProcessor(fullChain AccountDBChainReader, preStateRoot common.Hash,
 		return nil, err
 	}
 	return &BlockProcessor{
-		fullChain: fullChain,
+		fullChain:      fullChain,
 		AccountStateDB: aDB,
 	}, nil
 }
 
-func (state *BlockProcessor) GetBlockHashByNumber(number uint64) common.Hash{
+func (state *BlockProcessor) GetBlockHashByNumber(number uint64) common.Hash {
 	return state.fullChain.GetBlockByNumber(number).Hash()
 }
 
 func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel economy_model.EconomyModel) (err error) {
-	mpt_log.Debug("AccountStateDB Process begin~~~~~~~~~~~~~~", "pre state", state.PreStateRoot().Hex(),"blockId",block.Hash().Hex())
+	mpt_log.Debug("AccountStateDB Process begin~~~~~~~~~~~~~~", "pre state", state.PreStateRoot().Hex(), "blockId", block.Hash().Hex())
 
 	state.economyModel = economyModel
 	blockHeader := block.Header().(*model.Header)
@@ -80,10 +78,10 @@ func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel eco
 		if err = block.TxIterator(func(i int, tx model.AbstractTransaction) (error) {
 			tx.PaddingTxIndex(i)
 			conf := state_processor.TxProcessConfig{
-				Tx:tx,
-				TxIndex:i,
-				Header:blockHeader,
-				GetHash:state.GetBlockHashByNumber,
+				Tx:      tx,
+				TxIndex: i,
+				Header:  blockHeader,
+				GetHash: state.GetBlockHashByNumber,
 			}
 			innerError := state.ProcessTxNew(&conf)
 			/*// unrecognized tx means no processing of the tx
@@ -100,15 +98,14 @@ func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel eco
 		}
 	}
 
-	if err = state.ProcessExceptTxs(block, economyModel,false); err != nil {
+	if err = state.ProcessExceptTxs(block, economyModel, false); err != nil {
 		return
 	}
 	mpt_log.Debug("AccountStateDB Process end~~~~~~~~~~~~~~~~~", "pre state", state.PreStateRoot().Hex())
 	return
 }
 
-
-func (state *BlockProcessor) ProcessExceptTxs(block model.AbstractBlock, economyModel economy_model.EconomyModel,isProcessPackageBlock bool) (err error) {
+func (state *BlockProcessor) ProcessExceptTxs(block model.AbstractBlock, economyModel economy_model.EconomyModel, isProcessPackageBlock bool) (err error) {
 	mpt_log.Debug("ProcessExceptTxs begin", "pre state", state.PreStateRoot().Hex())
 	state.economyModel = economyModel
 	if block.Number() == 0 {
@@ -122,13 +119,13 @@ func (state *BlockProcessor) ProcessExceptTxs(block model.AbstractBlock, economy
 		return
 	}
 	// process commits
-	err = state.processCommitList(block,isProcessPackageBlock)
+	err = state.processCommitList(block, isProcessPackageBlock)
 	mpt_log.Debug("ProcessExceptTxs finished ---", "pre state", state.PreStateRoot().Hex())
 	return
 }
 
 //Process verifiers and commit list of previous block
-func (state *BlockProcessor) processCommitList(block model.AbstractBlock,isProcessPackageBlock bool) (err error) {
+func (state *BlockProcessor) processCommitList(block model.AbstractBlock, isProcessPackageBlock bool) (err error) {
 	if block.Number() != 0 {
 		// fixme cur block v list is pre,
 		previous := block.Number() - 1

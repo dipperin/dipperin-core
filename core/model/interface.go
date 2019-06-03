@@ -37,7 +37,7 @@ type AbstractHeader interface {
 	GetSeed() common.Hash
 	GetProof() []byte
 	GetGasLimit() uint64
-	GetGasUsed()  uint64
+	GetGasUsed() uint64
 	GetMinerPubKey() (*ecdsa.PublicKey)
 	GetTimeStamp() *big.Int
 	GetInterLinkRoot() common.Hash
@@ -122,11 +122,11 @@ type AbstractTransaction interface {
 	EstimateFee() *big.Int
 	GetGasPrice() *big.Int
 	AsMessage() (Message, error)
-	PaddingReceipt(parameters ReceiptPara)(*model.Receipt,error)
+	PaddingReceipt(parameters ReceiptPara) (*model.Receipt, error)
 	GetGasLimit() uint64
-	GetReceipt()(*model.Receipt,error)
+	GetReceipt() (*model.Receipt, error)
 	PaddingTxIndex(index int)
-	GetTxIndex() (int,error)
+	GetTxIndex() (int, error)
 }
 
 //go:generate mockgen -destination=./../economy-model/verification_mock_test.go -package=economy_model github.com/dipperin/dipperin-core/core/model AbstractVerification

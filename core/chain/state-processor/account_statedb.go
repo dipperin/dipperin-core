@@ -1279,17 +1279,24 @@ type TxProcessConfig struct {
 
 func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
 	// All transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
+	if conf.Tx.GetType() == common.AddressTypeContract || conf.Tx.GetType() == common.AddressTypeContractCreate {
+		var par model.ReceiptPara
+		par, err = state.ProcessContract(conf.Tx, conf.Header, conf.Tx.GetType() == common.AddressTypeContractCreate, conf.GetHash)
+		err = state.setTxReceiptPar(conf.Tx, &par)
+		if err != nil {
+			return
+		}
+		_, err = conf.Tx.PaddingReceipt(par)
+		return
+	}
+
 	err = state.processBasicTx(conf.Tx)
 	if err != nil {
 		log.Debug("processBasicTx failed", "err", err)
 		return
 	}
 
-	var par model.ReceiptPara
-
 	switch conf.Tx.GetType() {
-	case common.AddressTypeContract, common.AddressTypeContractCreate:
-		par, err = state.ProcessContract(conf.Tx, conf.Header, conf.Tx.GetType() == common.AddressTypeContractCreate, conf.GetHash)
 	case common.AddressTypeNormal:
 		err = state.processNormalTx(conf.Tx)
 	case common.AddressTypeCross:
@@ -1312,12 +1319,6 @@ func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
 	if err != nil {
 		return
 	}
-
-	err = state.setTxReceiptPar(conf.Tx, &par)
-	if err != nil {
-		return
-	}
-	_, err = conf.Tx.PaddingReceipt(par)
 	return
 }
 

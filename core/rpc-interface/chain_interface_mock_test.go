@@ -29,6 +29,7 @@ import (
 	state_processor "github.com/dipperin/dipperin-core/core/chain/state-processor"
 	economy_model "github.com/dipperin/dipperin-core/core/economy-model"
 	model "github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	rlp "github.com/ethereum/go-ethereum/rlp"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
@@ -38,6 +39,10 @@ import (
 type MockChainInterface struct {
 	ctrl     *gomock.Controller
 	recorder *MockChainInterfaceMockRecorder
+}
+
+func (m *MockChainInterface) GetReceipts(hash common.Hash, number uint64) model2.Receipts {
+	panic("implement me")
 }
 
 // MockChainInterfaceMockRecorder is the mock recorder for MockChainInterface
