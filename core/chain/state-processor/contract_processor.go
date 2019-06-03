@@ -29,6 +29,7 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 
 	root, err := state.Finalise()
 	if err != nil {
+		log.Debug("Process Contract failed", "err", err)
 		return model.ReceiptPara{}, err
 	}
 	return model.ReceiptPara{

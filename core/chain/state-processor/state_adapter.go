@@ -157,7 +157,7 @@ func (f *Fullstate) Exist(addr common.Address) bool {
 }
 
 func (f *Fullstate) Empty(addr common.Address) bool {
-	return  f.state.IsEmptyAccount(addr)
+	return f.state.IsEmptyAccount(addr)
 }
 
 func (f *Fullstate) RevertToSnapshot(id int) {

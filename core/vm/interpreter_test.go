@@ -54,11 +54,7 @@ func TestWASMInterpreter_Run_event(t *testing.T) {
 
 	name := []byte("0000")
 	num := vmcommon.Int64ToBytes(2)
-	log.Info("the num is:","num",num)
-
-	/*	name := []byte("logName")
-		test, err := rlp.EncodeToBytes(append(name, []byte{133, 101, 118, 101, 110, 116, 127}...))
-		fmt.Println(test)*/
+	log.Info("the num is:", "num", num)
 
 	expect := make([]byte, 32)
 	param := [][]byte{name, num}

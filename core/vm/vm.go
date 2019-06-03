@@ -98,7 +98,6 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 			}()
 		}*/
 	ret, err = run(vm, contract, input, false)
-	log.Info("lifeVm run successful", "gasLeft", contract.Gas)
 	// When an error was returned by the EVM or when setting the creation code
 	// above we revert to the snapshot and consume any gas remaining. Additionally
 	// when we're in homestead this also counts for code storage gas errors.
@@ -109,6 +108,7 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 			log.Info("callContract Use", "gasUsed", contract.Gas, "gasLeft", contract.Gas)
 		}
 	}
+	log.Info("lifeVm run successful", "gasLeft", contract.Gas)
 	return ret, contract.Gas, err
 }
 

@@ -121,7 +121,7 @@ type AbstractTransaction interface {
 	AsMessage() (Message, error)
 	PaddingReceipt(parameters ReceiptPara)(*model.Receipt,error)
 	GetGasLimit() uint64
-	GetReceipt()(model.Receipt,error)
+	GetReceipt()(*model.Receipt,error)
 	PaddingTxIndex(index int)
 	GetTxIndex() (int,error)
 }

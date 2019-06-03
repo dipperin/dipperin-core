@@ -80,7 +80,8 @@ func createContractTx(t *testing.T, code, abi string) *model.Transaction {
 	key, _ := createKey()
 	fs := model.NewMercurySigner(big.NewInt(1))
 	data := getContractCode(t, code, abi)
-	tx := model.NewTransactionSc(0, nil, big.NewInt(200), gasPrice, gasLimit, data)
+	to := common.HexToAddress(common.AddressContractCreate)
+	tx := model.NewTransactionSc(0, &to, big.NewInt(200), gasPrice, gasLimit, data)
 	tx.PaddingTxIndex(0)
 	tx.SignTx(key, fs)
 	return tx
@@ -90,13 +91,14 @@ func callContractTx(t *testing.T, to *common.Address, funcName string, param [][
 	key, _ := createKey()
 	fs := model.NewMercurySigner(big.NewInt(1))
 	data := getContractInput(t, funcName, param)
-	tx := model.NewTransactionSc(0, to, big.NewInt(200), gasPrice, gasLimit, data)
+	tx := model.NewTransactionSc(1, to, big.NewInt(200), gasPrice, gasLimit, data)
+	tx.PaddingTxIndex(0)
 	tx.SignTx(key, fs)
 	return tx
 }
 
 func createBlock(num uint64, preHash common.Hash, txList []*model.Transaction) *model.Block {
-	header := model.NewHeader(1, num, preHash, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), aliceAddr, common.BlockNonce{})
+	header := model.NewHeader(1, num, preHash, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), bobAddr, common.BlockNonce{})
 
 	// vote
 	var voteList []model.AbstractVerification
@@ -115,6 +117,7 @@ func createTestStateDB() (ethdb.Database, common.Hash) {
 	tdb := NewStateStorageWithCache(db)
 	processor, _ := NewAccountStateDB(common.Hash{}, tdb)
 	processor.NewAccountState(aliceAddr)
+	processor.NewAccountState(bobAddr)
 	processor.AddBalance(aliceAddr, big.NewInt(9000000))
 
 	root, _ := processor.Commit()
@@ -317,11 +320,10 @@ func (tx fakeTransaction) PaddingReceipt(parameters model.ReceiptPara) (*model2.
 	panic("implement me")
 }
 
-
-func (tx fakeTransaction)  GetGasLimit() uint64 {
+func (tx fakeTransaction) GetGasLimit() uint64 {
 	panic("implement me")
 }
-func (tx fakeTransaction) GetReceipt() (model2.Receipt, error) {
+func (tx fakeTransaction) GetReceipt() (*model2.Receipt, error) {
 	panic("implement me")
 }
 

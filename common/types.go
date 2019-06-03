@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package common
 
 import (
@@ -41,18 +40,19 @@ const (
 )
 
 type TxType int
+
 // address type
 const (
-	AddressTypeNormal   = 0x0000
-	AddressTypeCross    = 0x0001
-	AddressTypeStake    = 0x0002
-	AddressTypeCancel   = 0x0003
-	AddressTypeUnStake  = 0x0004
-	AddressTypeEvidence = 0x0005
-	AddressTypeERC20    = 0x0010
+	AddressTypeNormal         = 0x0000
+	AddressTypeCross          = 0x0001
+	AddressTypeStake          = 0x0002
+	AddressTypeCancel         = 0x0003
+	AddressTypeUnStake        = 0x0004
+	AddressTypeEvidence       = 0x0005
+	AddressTypeERC20          = 0x0010
 	AddressTypeEarlyReward    = 0x0011
-	AddressTypeContractCreate    = 0x0012
-	AddressTypeContract = 0x0014
+	AddressTypeContractCreate = 0x0012
+	AddressTypeContract       = 0x0014
 )
 
 func (txType TxType) String() string {
@@ -77,9 +77,10 @@ func (txType TxType) String() string {
 }
 
 const (
-	AddressStake   = "0x00020000000000000000000000000000000000000000"
-	AddressCancel  = "0x00030000000000000000000000000000000000000000"
-	AddressUnStake = "0x00040000000000000000000000000000000000000000"
+	AddressStake          = "0x00020000000000000000000000000000000000000000"
+	AddressCancel         = "0x00030000000000000000000000000000000000000000"
+	AddressUnStake        = "0x00040000000000000000000000000000000000000000"
+	AddressContractCreate = "0x00120000000000000000000000000000000000000000"
 )
 
 // Dipperin hash
@@ -91,8 +92,8 @@ func (h Hash) String() string {
 
 // Returns an exact copy of the provided bytes
 func CopyHash(h *Hash) (*Hash) {
-	copied:=Hash{}
-	if len(h)==0{
+	copied := Hash{}
+	if len(h) == 0 {
 		return &copied
 	}
 	copy(copied[:], h[:])
@@ -373,7 +374,8 @@ func (d Difficulty) Hex() string {
 
 func (d Difficulty) DiffToTarget() (target Hash) {
 	a := HashLength - d[0]
-	if a + 2 > HashLength - 1 || HashLength < d[0] {
+	log.Info("Difficulty", "a", a, "d[0]", d[0])
+	if a+2 > HashLength-1 || HashLength < d[0] {
 		log.Error("DiffToTarget failed", "diff", d.Hex())
 		panic("The first digit of diff cannot be less than 3 and cannot be greater than 0x20")
 	}
@@ -446,7 +448,7 @@ func (bn *BlockNonce) UnmarshalJSON(input []byte) error {
 }
 
 //Compare block nonce
-func (bn BlockNonce) IsEqual(obn BlockNonce) bool{
+func (bn BlockNonce) IsEqual(obn BlockNonce) bool {
 	return bytes.Equal(bn[:], obn[:])
 }
 

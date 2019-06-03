@@ -60,8 +60,8 @@ func NewTransaction(nonce uint64, to common.Address, amount, fee *big.Int, data 
 }
 
 func NewTransactionSc(nonce uint64, to *common.Address, amount, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
-	tx :=  newTransaction(nonce, to, amount, nil, gasPrice, gasLimit, data)
-	tx.data.Fee = new(big.Int).Mul(gasPrice, new(big.Int).SetUint64(gasLimit / 100000))
+	tx := newTransaction(nonce, to, amount, nil, gasPrice, gasLimit, data)
+	tx.data.Fee = new(big.Int).Mul(gasPrice, new(big.Int).SetUint64(gasLimit/100000))
 	return tx
 }
 
@@ -236,7 +236,7 @@ func (tx *Transaction) GetGasPrice() *big.Int {
 	return tx.data.Price
 }
 
-func (tx *Transaction) GetGasLimit() uint64  {
+func (tx *Transaction) GetGasLimit() uint64 {
 	return tx.data.GasLimit
 }
 
@@ -379,7 +379,7 @@ func (tx *Transaction) EstimateFee() *big.Int {
 }
 
 func (tx *Transaction) AsMessage() (Message, error) {
-	log.Info("Transaction", "tx.data.price", tx.data.Price )
+	log.Info("Transaction", "tx.data.price", tx.data.Price)
 	msg := Message{
 		nonce:      tx.data.AccountNonce,
 		gasLimit:   tx.data.GasLimit,
@@ -403,44 +403,46 @@ type ReceiptPara struct {
 	Logs              []*model.Log
 }
 
-func (tx *Transaction) PaddingReceipt(parameters ReceiptPara)(*model.Receipt,error){
+func (tx *Transaction) PaddingReceipt(parameters ReceiptPara) (*model.Receipt, error) {
 	receipt := model.NewReceipt(parameters.Root, parameters.HandlerResult, parameters.CumulativeGasUsed)
 	receipt.TxHash = tx.CalTxId()
 	receipt.GasUsed = parameters.GasUsed
 	// if the transaction created a contract, store the creation address in the receipt.
 	if tx.GetType() == common.AddressTypeContractCreate {
-		callerAddress ,err := tx.Sender(nil)
-		if err!=nil{
-			return &model.Receipt{},err
+		callerAddress, err := tx.Sender(nil)
+		if err != nil {
+			return &model.Receipt{}, err
 		}
 		receipt.ContractAddress = cs_crypto.CreateContractAddress(callerAddress, tx.Nonce())
+	} else {
+		receipt.ContractAddress = *tx.To()
 	}
 	// Set the receipt Logs and create a bloom for filtering
 	receipt.Logs = parameters.Logs
 	receipt.Bloom = model.CreateBloom(model.Receipts{receipt})
 	tx.receipt.Store(receipt)
-	return receipt,nil
+	return receipt, nil
 }
 
-func (tx *Transaction) GetReceipt()(model.Receipt,error){
-	value:= tx.receipt.Load()
-	if value !=nil{
-		return value.(model.Receipt),nil
+func (tx *Transaction) GetReceipt() (*model.Receipt, error) {
+	value := tx.receipt.Load()
+	if value != nil {
+		return value.(*model.Receipt), nil
 	}
 
-	return model.Receipt{},errors.New("not set tx receipt")
+	return &model.Receipt{}, errors.New("not set tx receipt")
 }
 
-func (tx *Transaction) PaddingTxIndex(index int){
+func (tx *Transaction) PaddingTxIndex(index int) {
 	tx.txIndex.Store(index)
 }
 
-func (tx *Transaction) GetTxIndex() (int,error){
-	index:= tx.txIndex.Load()
-	if index !=nil{
-		return index.(int),nil
+func (tx *Transaction) GetTxIndex() (int, error) {
+	index := tx.txIndex.Load()
+	if index != nil {
+		return index.(int), nil
 	}
-	return 0,errors.New("not set tx index")
+	return 0, errors.New("not set tx index")
 }
 
 // Transactions is a Transaction slice type for basic sorting.

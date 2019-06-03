@@ -22,7 +22,7 @@ var (
 	errReturnInvalidRlpFormat   = errors.New("interpreter_life: invalid rlp format")
 	errReturnInsufficientParams = errors.New("interpreter_life: invalid input. ele must greater than 2")
 	errReturnInvalidAbi         = errors.New("interpreter_life: invalid abi, encoded fail")
-	errReturnInputAbiNotMatch	= errors.New("interpreter_life: length of input and abi not match")
+	errReturnInputAbiNotMatch   = errors.New("interpreter_life: length of input and abi not match")
 )
 
 const (
@@ -56,6 +56,7 @@ func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) 
 
 func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error) {
 	if len(contract.Code) == 0 {
+		log.Debug("Code Length is 0")
 		return nil, nil
 	}
 
@@ -94,14 +95,14 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 		// 通过ABI解析input
 		txType, funcName, params, returnType, err = parseInputFromAbi(lifeVm, input, abi)
 		if err != nil {
-			if err == errReturnInsufficientParams && txType == 0 { // transfer to contract address.
-				return nil, nil
-			}
+			/*			if err == errReturnInsufficientParams && txType == 0 { // transfer to contract address.
+							return nil, nil
+						}*/
 			return nil, err
 		}
-		if txType == 0 {
-			return nil, nil
-		}
+		/*		if txType == 0 {
+					return nil, nil
+				}*/
 	}
 	log.Info("parseInput", "type", txType, "funcName", funcName, "params", params, "return", returnType, "err", err)
 

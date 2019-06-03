@@ -9,7 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common/vmcommon"
 )
 
 func TestAccountStateDB_ProcessContract(t *testing.T) {
@@ -26,9 +28,7 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 
 	/*block := model.NewBlock(model.NewHeader(1, 101, common.HexToHash("ss"), common.HexToHash("fdfs"), common.StringToDiff("000000000000000000000011"), big.NewInt(111), common.StringToAddress("fdsfds"), common.EncodeNonce(33)), nil, nil)*/
 
-	block := model.NewBlock(model.NewHeader(1, 10, common.Hash{}, common.HexToHash("1111"), common.HexToDiff("0x20ffffff"), big.NewInt(324234), common.Address{}, common.BlockNonceFromInt(432423)),nil,nil)
-
-
+	block := model.NewBlock(model.NewHeader(1, 10, common.Hash{}, common.HexToHash("1111"), common.HexToDiff("0x20ffffff"), big.NewInt(324234), common.Address{}, common.BlockNonceFromInt(432423)), nil, nil)
 
 	db := ethdb.NewMemDatabase()
 	sdb := NewStateStorageWithCache(db)
@@ -36,7 +36,7 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	processor.NewAccountState(ownAddress)
 	err = processor.AddNonce(ownAddress, 6)
 	assert.NoError(t, err)
-	processor.AddBalance(ownAddress,  new(big.Int).SetInt64(int64(100000000000000000)))
+	processor.AddBalance(ownAddress, new(big.Int).SetInt64(int64(100000000000000000)))
 	balance, err := processor.GetBalance(ownAddress)
 	log.Info("balance", "balance", balance.String())
 	receipt, err := processor.ProcessContract(&tx, block, &gasLimit, true)
@@ -50,13 +50,47 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	tx := createContractTx(t, testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
 
 	db, root := createTestStateDB()
-	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
+	tdb := NewStateStorageWithCache(db)
+	processor, err := NewAccountStateDB(root, tdb)
 	assert.NoError(t, err)
 
 	block := createBlock(1, common.Hash{}, []*model.Transaction{tx})
-	gasPool := gasLimit*5
-	receipt, err := processor.ProcessContract(tx, block, &gasPool, true)
+	gasPool := gasLimit * 5
+	_, err = processor.ProcessTxNew(tx, block, &gasPool)
 	assert.NoError(t, err)
-	assert.NotNil(t, receipt)
-	fmt.Println(receipt)
+
+	receipt1, err := tx.GetReceipt()
+	assert.NoError(t, err)
+	assert.Equal(t, tx.CalTxId(), receipt1.TxHash)
+	assert.Equal(t, cs_crypto.CreateContractAddress(aliceAddr, 0), receipt1.ContractAddress)
+	assert.Len(t, receipt1.Logs, 0)
+
+	fmt.Println("---------------------------")
+
+	root, err = processor.Commit()
+	assert.NoError(t, err)
+	tdb.TrieDB().Commit(root, false)
+	processor, err = NewAccountStateDB(root, tdb)
+	assert.NoError(t, err)
+
+	name := []byte("0000")
+	num := vmcommon.Int64ToBytes(2)
+	param := [][]byte{name, num}
+	tx = callContractTx(t, &receipt1.ContractAddress, "hello", param)
+
+	block = createBlock(2, block.Hash(), []*model.Transaction{tx})
+	_, err = processor.ProcessTxNew(tx, block, &gasPool)
+	assert.NoError(t, err)
+
+	receipt2, err := tx.GetReceipt()
+	assert.NoError(t, err)
+	assert.Equal(t, tx.CalTxId(), receipt2.TxHash)
+	assert.Equal(t, receipt1.ContractAddress, receipt2.ContractAddress)
+	assert.Len(t, receipt2.Logs, 1)
+
+	log1 := receipt2.Logs[0]
+	assert.Equal(t, tx.CalTxId(), log1.TxHash)
+	assert.Equal(t, block.Hash(), log1.BlockHash)
+	assert.Equal(t, receipt2.ContractAddress, log1.Address)
+	assert.Equal(t, uint64(2), log1.BlockNumber)
 }
