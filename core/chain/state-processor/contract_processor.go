@@ -33,7 +33,7 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 	}
 	return model.ReceiptPara{
 		Root:          root[:],
-		HandlerResult: failed,
+		HandlerResult: !failed,
 		//todo CumulativeGasUsed暂时使用usedGas,不考虑在apply交易前已有gas使用的情景
 		CumulativeGasUsed: usedGas,
 		GasUsed:           usedGas,

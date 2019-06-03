@@ -102,7 +102,8 @@ func (st *StateTransition) buyGas() error {
 		return vm.ErrInsufficientBalanceForGas
 	}
 
-	log.Info("Call buyGas", "gasPool", *st.gp, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()), "value", msgVal)
+	log.Info("Call buyGas", "gasPool", *st.gp, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()), "value", msgVal, "st.msg.Gas()", st.msg.Gas())
+
 
 	if *st.gp < st.msg.Gas() {
 		return g_error.ErrGasLimitReached
@@ -122,6 +123,7 @@ func (st *StateTransition) preCheck() error {
 	// Make sure this transaction's nonce is correct.
 	if st.msg.CheckNonce() {
 		nonce := st.lifeVm.GetStateDB().GetNonce(st.msg.From())
+		//log.Info("StateTransition#preCheck", "nonce", nonce, "st.msg.Nonce()", st.msg.Nonce())
 		if nonce < st.msg.Nonce() {
 			return g_error.ErrNonceTooHigh
 		} else if nonce > st.msg.Nonce() {
@@ -171,7 +173,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		ret, st.gas, vmerr = lifeVm.Call(sender, st.to(), st.data, st.gas, st.value)
 	}
 	if vmerr != nil {
-		log.Debug("VM returned with error", "err", vmerr)
+		log.Info("VM returned with error", "err", vmerr)
 		// The only possible consensus-error would be if there wasn't
 		// sufficient balance to make the transfer happen. The first
 		// balance transfer may never fail.

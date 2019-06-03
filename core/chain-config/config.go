@@ -97,8 +97,8 @@ func defaultChainConfig() *ChainConfig {
 		BlockCountOfPeriod: uint64(4096),
 
 		//verifier boot node number
-		//VerifierBootNodeNumber: 4,
-		VerifierBootNodeNumber: 1,
+		VerifierBootNodeNumber: 4,
+		//VerifierBootNodeNumber: 1,
 
 		BlockTimeRestriction: 15*time.Second,
 	}
