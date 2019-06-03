@@ -3,12 +3,12 @@ package vm
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/vm/resolver"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
-	"math/big"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/core/vm/resolver"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"math/big"
 )
 
 var emptyCodeHash = cs_crypto.Keccak256Hash(nil)
@@ -44,11 +44,6 @@ func NewVM(context Context, state StateDB, config exec.VMConfig) *VM {
 
 func (vm *VM) GetStateDB() StateDB {
 	return vm.state
-}
-
-func (vm *VM) PreCheck() error {
-
-	return nil
 }
 
 func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byte, gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
@@ -119,7 +114,31 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 }
 
 func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error) {
-	return nil, 0, nil
+	if vm.vmConfig.NoRecursion && vm.depth > 0 {
+		return nil, gas, nil
+	}
+	// Fail if we're trying to execute above the call depth limit
+	if vm.depth > int(model2.CallCreateDepth) {
+		return nil, gas, ErrDepth
+	}
+
+	var (
+		snapshot = vm.GetStateDB().Snapshot()
+		to       = AccountRef(caller.Address())
+	)
+
+	// Initialise a new contract and make initialise the delegate values
+	contract := NewContract(caller, to, nil, gas).AsDelegate()
+	contract.SetCallCode(&addr, vm.GetStateDB().GetCodeHash(addr), vm.GetStateDB().GetCode(addr))
+
+	ret, err = run(vm, contract, input, false)
+	if err != nil {
+		vm.GetStateDB().RevertToSnapshot(snapshot)
+		if err != ErrExecutionReverted {
+			contract.UseGas(contract.Gas)
+		}
+	}
+	return ret, contract.Gas, err
 }
 
 func (vm *VM) Create(caller resolver.ContractRef, code []byte, gas uint64, value *big.Int) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
@@ -223,8 +242,6 @@ type Context struct {
 	// Message information
 	Origin common.Address // Provides information for ORIGIN
 
-	GetHash GetHashFunc
-
 	// Block information
 	Coinbase common.Address // Provides information for COINBASE
 
@@ -233,6 +250,7 @@ type Context struct {
 	BlockNumber *big.Int // Provides information for NUMBER
 	Time        *big.Int // Provides information for TIME
 	Difficulty  *big.Int // Provides information for DIFFICULTY
+	BlockHash   common.Hash
 	TxHash      common.Hash
 	TxIndex     uint64
 
@@ -264,8 +282,8 @@ func (context *Context) GetGasPrice() int64 {
 	return context.GasPrice.Int64()
 }
 
-func (context *Context) BlockHash(num uint64) common.Hash {
-	return context.GetHash(num)
+func (context *Context) GetBlockHash(num uint64) common.Hash {
+	return context.BlockHash
 }
 
 func (context *Context) GetBlockNumber() *big.Int {
@@ -304,9 +322,24 @@ func NewVMContext(tx model.AbstractTransaction, block model.AbstractBlock) Conte
 		Coinbase:    block.CoinBaseAddress(),
 		Difficulty:  block.Difficulty().Big(),
 		callGasTemp: tx.Fee().Uint64(),
+		BlockHash:   block.Hash(),
 		TxHash:      tx.CalTxId(),
 		TxIndex:     uint64(txIndex),
+		CanTransfer: CanTransfer,
+		Transfer:    Transfer,
 	}
+}
+
+// CanTransfer checks whether there are enough funds in the address' account to make a transfer.
+// This does not take the necessary gas in to account to make the transfer valid.
+func CanTransfer(db StateDB, addr common.Address, amount *big.Int) bool {
+	return db.GetBalance(addr).Cmp(amount) >= 0
+}
+
+// Transfer subtracts amount from sender and adds amount to recipient using the given Db
+func Transfer(db StateDB, sender, recipient common.Address, amount *big.Int) {
+	db.SubBalance(sender, amount)
+	db.AddBalance(recipient, amount)
 }
 
 type Caller struct {

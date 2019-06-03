@@ -425,7 +425,8 @@ func (tx *Transaction) PaddingReceipt(parameters ReceiptPara)(*model.Receipt,err
 func (tx *Transaction) GetReceipt()(model.Receipt,error){
 	value:= tx.receipt.Load()
 	if value !=nil{
-		return value.(model.Receipt),nil
+		receipt := value.(*model.Receipt)
+		return *receipt,nil
 	}
 
 	return model.Receipt{},errors.New("not set tx receipt")

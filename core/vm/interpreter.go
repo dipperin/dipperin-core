@@ -60,6 +60,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 	}
 
 	// 第一次rlp解析合约获取code
+	contract.Input = input
 	code, err := getCode(contract.Code)
 	if err != nil {
 		return nil, err
@@ -68,16 +69,16 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 	//　life方法注入新建虚拟机
 	solver := resolver.NewResolver(vm, contract, in.state)
 	lifeVm, err := exec.NewVirtualMachine(code, in.config, solver, nil)
+	lifeVm.GasLimit = contract.Gas
 	if err != nil {
 		return []byte{}, err
 	}
-	lifeVm.GasLimit = contract.Gas
+	defer func() {
+		lifeVm.Stop()
+	}()
 
 	// 第二次rlp解析合约
 	_, abi, code, initParams, err := parseRlpData(lifeVm, contract.Code)
-	if err != nil {
-		return nil, err
-	}
 
 	var (
 		funcName   string

@@ -1208,7 +1208,6 @@ func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint
 //todo these processes are removed afterwards。
 // todo Write a unit test for each transaction to cover all situations
 func (state *AccountStateDB) ProcessTxNew(tx model.AbstractTransaction, block model.AbstractBlock, blockGasLimit *uint64) (par model.ReceiptPara, err error) {
-
 	if tx.GetType() == common.AddressTypeContract || tx.GetType() == common.AddressTypeContractCreate {
 		par, err = state.ProcessContract(tx, block, blockGasLimit, tx.GetType()==common.AddressTypeContractCreate)
 	} else {
@@ -1339,12 +1338,20 @@ func (state *AccountStateDB) clearChangeList(){
 
 //fixme
 func (state *AccountStateDB) SetData(addr common.Address,key string, value []byte) (err error){
+	var preValue []byte
 	if state.smartContractData[addr] == nil{
 		state.smartContractData[addr] = make(map[string][]byte)
-
 	}
-	state.smartContractData[addr][key] = value
-
+	preValue = state.smartContractData[addr][key]
+	if value != nil{
+		state.smartContractData[addr][key] = value
+	}else{
+		delete(state.smartContractData[addr],key)
+		if len(state.smartContractData[addr])==0{
+			delete(state.smartContractData,addr)
+		}
+	}
+	state.stateChangeList.append(dataChange{Account: &addr, Key: key, Prev:preValue,Current:value,ChangeType: DataChange})
 	return
 }
 

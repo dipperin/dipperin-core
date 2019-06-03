@@ -275,7 +275,7 @@ func (r *Resolver)envGasPrice(vm *exec.VirtualMachine) int64 {
 func (r *Resolver)envBlockHash(vm *exec.VirtualMachine) int64 {
 	num := int(int32(vm.GetCurrentFrame().Locals[0]))
 	offset := int(int32(vm.GetCurrentFrame().Locals[1]))
-	blockHash := r.Service.BlockHash(uint64(num))
+	blockHash := r.Service.GetBlockHash(uint64(num))
 	//fmt.Printf("Number:%v ,Num:%v ,0:%v, 1:%v, (-2):%v, (-1):%v. \n", num, blockHash.Hex(), " -> ", blockHash[0], blockHash[1], blockHash[len(blockHash)-2], blockHash[len(blockHash)-1])
 	copy(vm.Memory.Memory[offset:], blockHash.Bytes())
 	return 0

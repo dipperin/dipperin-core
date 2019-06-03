@@ -152,18 +152,18 @@ func (f *Fullstate) HasSuicided(common.Address) bool {
 	panic("implement me")
 }
 
-func (f *Fullstate) Exist(common.Address) bool {
-	panic("implement me")
+func (f *Fullstate) Exist(addr common.Address) bool {
+	return !f.state.IsEmptyAccount(addr)
 }
 
-func (f *Fullstate) Empty(common.Address) bool {
-	panic("implement me")
+func (f *Fullstate) Empty(addr common.Address) bool {
+	return  f.state.IsEmptyAccount(addr)
 }
 
-func (f *Fullstate) RevertToSnapshot(int) {
-	panic("implement me")
+func (f *Fullstate) RevertToSnapshot(id int) {
+	f.state.RevertToSnapshot(id)
 }
 
 func (f *Fullstate) Snapshot() int {
-	panic("implement me")
+	return f.state.Snapshot()
 }

@@ -2,11 +2,11 @@ package resolver
 
 import (
 	"encoding/hex"
-	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/vm/common/params"
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"math/big"
+	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 type ContractRef interface {
@@ -16,7 +16,7 @@ type ContractRef interface {
 type VmContextService interface {
 	GetGasPrice() int64
 	GetGasLimit() uint64
-	BlockHash(num uint64) common.Hash
+	GetBlockHash(num uint64) common.Hash
 	GetBlockNumber() *big.Int
 	GetTime() *big.Int
 	GetCoinBase() common.Address
@@ -69,20 +69,17 @@ func (service *resolverNeedExternalService) Transfer(toAddr common.Address, valu
 	if value.Sign() != 0 {
 		gas += params.CallStipend
 	}
-	fmt.Println("Transfer to:", toAddr.String())
-	fmt.Println("Transfer caller:", service.Address().Hex())
+	log.Info("Call Transfer", "Transfer to:", toAddr.String(), "Transfer caller:", service.Address().Hex())
 	ret, returnGas, err := service.VmContextService.Call(service.ContractService, toAddr, nil, gas, value)
 	return ret, returnGas, err
 }
 
 func (service *resolverNeedExternalService) ResolverCall(addr, param []byte) ([]byte, error) {
-
 	ret, _, err := service.VmContextService.Call(service.ContractService, common.HexToAddress(hex.EncodeToString(addr)), param, service.ContractService.GetGas(), service.ContractService.CallValue())
 	return ret, err
 }
 
 func (service *resolverNeedExternalService) ResolverDelegateCall(addr, param []byte) ([]byte, error) {
-
 	ret, _, err := service.VmContextService.DelegateCall(service.ContractService, common.HexToAddress(hex.EncodeToString(addr)), param,service.ContractService.GetGas())
 	return ret, err
 }

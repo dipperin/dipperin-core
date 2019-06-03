@@ -1,13 +1,19 @@
 package state_processor
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	"math/big"
 	"testing"
 )
 
+// Test cannot revert after commit
 func TestAccountStateDB_RevertToSnapshot1(t *testing.T){
 	db := ethdb.NewMemDatabase()
 	tdb := NewStateStorageWithCache(db)
@@ -42,6 +48,7 @@ func TestAccountStateDB_RevertToSnapshot1(t *testing.T){
 
 }
 
+// Test modification of code and abi
 func TestAccountStateDB_RevertToSnapshot2(t *testing.T){
 	db := ethdb.NewMemDatabase()
 	tdb := NewStateStorageWithCache(db)
@@ -96,7 +103,106 @@ func TestAccountStateDB_RevertToSnapshot2(t *testing.T){
 	assert.NotEqual(t,[]byte("coooode"),code)
 }
 
-// To revert the trie
+// Test the modification of contract data
 func TestAccountStateDB_RevertToSnapshot3(t *testing.T){
+	db := ethdb.NewMemDatabase()
+	tdb := NewStateStorageWithCache(db)
 
+	processor, err := NewAccountStateDB(common.Hash{}, tdb)
+	assert.NoError(t, err)
+
+	root := processor.PreStateRoot()
+	assert.Equal(t, common.Hash{}, root)
+
+	err = processor.NewAccountState(aliceAddr)
+	assert.NoError(t, err)
+
+	err = processor.AddBalance(aliceAddr, big.NewInt(2000))
+	assert.NoError(t, err)
+	err = processor.AddNonce(aliceAddr, 10)
+	assert.NoError(t, err)
+
+	err = processor.SetCode(aliceAddr,[]byte("coooode"))
+	err = processor.SetAbi(aliceAddr,[]byte("{input:int}"))
+	processor.SetData(aliceAddr,"tkey",[]byte("value"))
+
+	assert.Equal(t,[]byte("value"),processor.smartContractData[aliceAddr]["tkey"])
+
+	err = processor.finalSmartData()
+	root,err =processor.GetDataRoot(aliceAddr)
+
+	tr,err:= processor.getContractTrie(aliceAddr)
+	v,err:=tr.TryGet(GetContractFieldKey(aliceAddr,"tkey"))
+	assert.Equal(t,v,[]byte("value"))
+}
+
+func TestAccountStateDB_RevertToSnapshot4(t *testing.T){
+	db := ethdb.NewMemDatabase()
+	tdb := NewStateStorageWithCache(db)
+
+	processor, err := NewAccountStateDB(common.Hash{}, tdb)
+	err = processor.NewAccountState(aliceAddr)
+	assert.NoError(t, err)
+
+	snapshot := processor.Snapshot()
+	processor.AddBalance(aliceAddr, big.NewInt(2000))
+	processor.AddNonce(aliceAddr, 10)
+
+	processor.SetCode(aliceAddr,[]byte("coooode"))
+	processor.SetAbi(aliceAddr,[]byte("{input:int}"))
+
+	processor.SetData(aliceAddr,"tkey",[]byte("value"))
+	processor.SetData(aliceAddr,"taaa",[]byte("vaaaa"))
+
+	assert.Equal(t,[]byte("value"),processor.smartContractData[aliceAddr]["tkey"])
+	assert.Equal(t,[]byte("vaaaa"),processor.smartContractData[aliceAddr]["taaa"])
+
+	processor.RevertToSnapshot(snapshot)
+	assert.Equal(t,true,processor.smartContractData[aliceAddr]==nil)
+}
+
+func TestContractCreate(t *testing.T){
+	db := ethdb.NewMemDatabase()
+	tdb := NewStateStorageWithCache(db)
+
+	processor, _:= NewAccountStateDB(common.Hash{}, tdb)
+	processor.NewAccountState(aliceAddr)
+	processor.AddBalance(aliceAddr, big.NewInt(2000))
+	processor.AddNonce(aliceAddr, 10)
+
+	nonce,_:=processor.GetNonce(aliceAddr)
+	fmt.Println(nonce)
+	tx := FakeContract(t)
+
+	blockGas := uint64(100000000)
+	block := model.NewBlock(model.NewHeader(1, 10, common.Hash{}, common.HexToHash("1111"), common.HexToDiff("0x20ffffff"), big.NewInt(324234), common.Address{}, common.BlockNonceFromInt(432423)),nil,nil)
+	_,err:=processor.ProcessTxNew(tx,block, &blockGas)
+	assert.NoError(t,err)
+}
+
+func FakeContract(t *testing.T) *model.Transaction{
+	codePath := "./../../vm/map-string/map2.wasm"
+	abiPath := "./../../vm/map-string/StringMap.cpp.abi.json"
+	fileCode, err := ioutil.ReadFile(codePath)
+	assert.NoError(t, err)
+
+	fileABI, err := ioutil.ReadFile(abiPath)
+	assert.NoError(t, err)
+	var input [][]byte
+	input = make([][]byte, 0)
+	// code
+	input = append(input, fileCode)
+	// abi
+	input = append(input, fileABI)
+
+	buffer := new(bytes.Buffer)
+	err = rlp.Encode(buffer, input)
+
+	fs := model.NewMercurySigner(big.NewInt(1))
+	to := common.HexToAddress("0x00140000000000")
+	tx := model.NewTransactionSc(uint64(11),&to,big.NewInt(0),big.NewInt(10),uint64(2000),buffer.Bytes())
+	key, _ := createKey()
+
+	tx.SignTx(key, fs)
+	return tx
 }
