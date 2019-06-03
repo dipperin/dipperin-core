@@ -86,7 +86,7 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 			}else {
 				txBuf = append(txBuf, tx)
 				txs.Shift()
-				receipts = append(receipts,&receipt)
+				receipts = append(receipts,receipt)
 				txIndex++
 			}
 		}
