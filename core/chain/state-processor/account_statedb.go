@@ -25,6 +25,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/util/json-kv"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/core/vm"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/mpt_log"
@@ -157,14 +158,14 @@ func (state *AccountStateDB) getContractKV(addr common.Address) (kv map[string]s
 	return kv, nil
 }
 
-//func (state *AccountStateDB) ProcessHeader(header model.AbstractHeader) (receipt model.AbstractReceipt, err error) {
-//	log.Debug("add reward to coinbase address", "addr", header.CoinBaseAddress().Hex())
-//	if state.IsEmptyAccount(header.CoinBaseAddress()) {
-//		if err = state.NewAccountState(header.CoinBaseAddress()); err != nil {
+//func (state *AccountStateDB) ProcessHeader(Header model.AbstractHeader) (receipt model.AbstractReceipt, err error) {
+//	log.Debug("add reward to coinbase address", "addr", Header.CoinBaseAddress().Hex())
+//	if state.IsEmptyAccount(Header.CoinBaseAddress()) {
+//		if err = state.NewAccountState(Header.CoinBaseAddress()); err != nil {
 //			return
 //		}
 //	}
-//	return nil, state.AddBalance(header.CoinBaseAddress(), big.NewInt(20*consts.DIP))
+//	return nil, state.AddBalance(Header.CoinBaseAddress(), big.NewInt(20*consts.DIP))
 //}
 
 // add chain reader out side
@@ -1207,41 +1208,116 @@ func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint
 
 //todo these processes are removed afterwards。
 // todo Write a unit test for each transaction to cover all situations
-func (state *AccountStateDB) ProcessTxNew(tx model.AbstractTransaction, block model.AbstractBlock, blockGasLimit *uint64) (par model.ReceiptPara, err error) {
 
-	if tx.GetType() == common.AddressTypeContract || tx.GetType() == common.AddressTypeContractCreate {
-		par, err = state.ProcessContract(tx, block, blockGasLimit, tx.GetType() == common.AddressTypeContractCreate)
+/*func (state *AccountStateDB) ProcessTxNew(Tx model.AbstractTransaction, block model.AbstractBlock, blockGasLimit *uint64) (par model.ReceiptPara, err error) {
+
+	if Tx.GetType() == common.AddressTypeContract || Tx.GetType() == common.AddressTypeContractCreate {
+		par, err = state.ProcessContract(Tx, block, blockGasLimit, Tx.GetType()==common.AddressTypeContractCreate)
 	} else {
 		// All normal transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
-		err = state.processBasicTx(tx)
+		err = state.processBasicTx(Tx)
 		if err != nil {
 			log.Debug("processBasicTx failed", "err", err)
 			return
 		}
-		switch tx.GetType() {
+		switch Tx.GetType() {
 		case common.AddressTypeNormal:
-			err = state.processNormalTx(tx)
+			err = state.processNormalTx(Tx)
 		case common.AddressTypeCross:
-			err = state.processCrossTx(tx)
+			err = state.processCrossTx(Tx)
 		case common.AddressTypeERC20:
-			err = state.processERC20Tx(tx, block.Number())
+			err = state.processERC20Tx(Tx, block.Number())
 			// Verifier relate transaction processor
 		case common.AddressTypeStake:
-			err = state.processStakeTx(tx)
+			err = state.processStakeTx(Tx)
 		case common.AddressTypeCancel:
-			err = state.processCancelTx(tx, block.Number())
+			err = state.processCancelTx(Tx, block.Number())
 		case common.AddressTypeUnStake:
-			err = state.processUnStakeTx(tx)
+			err = state.processUnStakeTx(Tx)
 		case common.AddressTypeEvidence:
-			err = state.processEvidenceTx(tx)
+			err = state.processEvidenceTx(Tx)
 		case common.AddressTypeEarlyReward:
-			err = state.processEarlyTokenTx(tx, block.Number())
+			err = state.processEarlyTokenTx(Tx, block.Number())
 		default:
 			err = g_error.UnknownTxTypeErr
 		}
 	}
 
-	_, err = tx.PaddingReceipt(par)
+	_,err=Tx.PaddingReceipt(par)
+	return
+}*/
+
+func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *model.ReceiptPara) error {
+	if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContract {
+		return nil
+	}
+
+	root, err := state.Finalise()
+	if err != nil {
+		return err
+	}
+
+	gasUsed, err := model.IntrinsicGas(tx.ExtraData(), false, false)
+	if err != nil {
+		return err
+	}
+
+	par.GasUsed = gasUsed
+	par.CumulativeGasUsed = gasUsed
+	par.HandlerResult = true
+	par.Root = root[:]
+	par.Logs = []*model2.Log{}
+	return nil
+}
+
+type TxProcessConfig struct {
+	Tx      model.AbstractTransaction
+	TxIndex int
+	Header  model.AbstractHeader
+	GetHash vm.GetHashFunc
+}
+
+func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
+	// All transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
+	err = state.processBasicTx(conf.Tx)
+	if err != nil {
+		log.Debug("processBasicTx failed", "err", err)
+		return
+	}
+
+	var par model.ReceiptPara
+
+	switch conf.Tx.GetType() {
+	case common.AddressTypeContract, common.AddressTypeContractCreate:
+		par, err = state.ProcessContract(conf.Tx, conf.Header, conf.Tx.GetType() == common.AddressTypeContractCreate, conf.GetHash)
+	case common.AddressTypeNormal:
+		err = state.processNormalTx(conf.Tx)
+	case common.AddressTypeCross:
+		err = state.processCrossTx(conf.Tx)
+	case common.AddressTypeERC20:
+		err = state.processERC20Tx(conf.Tx, conf.Header.GetNumber())
+	case common.AddressTypeStake:
+		err = state.processStakeTx(conf.Tx)
+	case common.AddressTypeCancel:
+		err = state.processCancelTx(conf.Tx, conf.Header.GetNumber())
+	case common.AddressTypeUnStake:
+		err = state.processUnStakeTx(conf.Tx)
+	case common.AddressTypeEvidence:
+		err = state.processEvidenceTx(conf.Tx)
+	case common.AddressTypeEarlyReward:
+		err = state.processEarlyTokenTx(conf.Tx, conf.Header.GetNumber())
+	default:
+		err = g_error.UnknownTxTypeErr
+	}
+	if err != nil {
+		return
+	}
+
+	err = state.setTxReceiptPar(conf.Tx, &par)
+	if err != nil {
+		return
+	}
+	_, err = conf.Tx.PaddingReceipt(par)
 	return
 }
 
@@ -1249,11 +1325,11 @@ func (state *AccountStateDB) processBasicTx(tx model.AbstractTransaction) (err e
 	sender, err := tx.Sender(nil)
 	receiver := *(tx.To())
 	if err != nil {
-		log.Debug("get tx sender failed", "err", err)
+		log.Debug("get Tx sender failed", "err", err)
 		return
 	}
 	if sender.IsEmpty() || receiver.IsEmpty() {
-		log.Warn("tx ("+tx.CalTxId().Hex()+") but sender or receiver is empty", "sender", sender, "receiver", receiver)
+		log.Warn("Tx ("+tx.CalTxId().Hex()+") but sender or receiver is empty", "sender", sender, "receiver", receiver)
 		return SenderOrReceiverIsEmptyErr
 	}
 	if empty := state.IsEmptyAccount(sender); empty {
@@ -1262,7 +1338,7 @@ func (state *AccountStateDB) processBasicTx(tx model.AbstractTransaction) (err e
 
 	curNonce, _ := state.GetNonce(sender)
 	if tx.Nonce() != curNonce {
-		log.Info("tx nonce not match", "tx n", tx.Nonce(), "cur account nonce", curNonce)
+		log.Info("Tx nonce not match", "Tx n", tx.Nonce(), "cur account nonce", curNonce)
 		return g_error.ErrTxNonceNotMatch
 	}
 	/*	if empty := state.IsEmptyAccount(receiver); empty {
@@ -1338,12 +1414,20 @@ func (state *AccountStateDB) clearChangeList() {
 
 //fixme
 func (state *AccountStateDB) SetData(addr common.Address, key string, value []byte) (err error) {
+	var preValue []byte
 	if state.smartContractData[addr] == nil {
 		state.smartContractData[addr] = make(map[string][]byte)
-
 	}
-	state.smartContractData[addr][key] = value
-
+	preValue = state.smartContractData[addr][key]
+	if value != nil {
+		state.smartContractData[addr][key] = value
+	} else {
+		delete(state.smartContractData[addr], key)
+		if len(state.smartContractData[addr]) == 0 {
+			delete(state.smartContractData, addr)
+		}
+	}
+	state.stateChangeList.append(dataChange{Account: &addr, Key: key, Prev: preValue, Current: value, ChangeType: DataChange})
 	return
 }
 

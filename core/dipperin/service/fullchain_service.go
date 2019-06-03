@@ -38,6 +38,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/mine/minemaster"
 	"github.com/dipperin/dipperin-core/core/mine/mineworker"
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
@@ -79,6 +80,8 @@ type Chain interface {
 	CurrentHeader() model.AbstractHeader
 
 	GetEconomyModel() economy_model.EconomyModel
+
+	GetReceipts(hash common.Hash, number uint64)model2.Receipts
 }
 
 type TxPool interface {
@@ -572,7 +575,7 @@ func (service *MercuryFullChainService) SendTransactions(from common.Address, rp
 
 	txs := make([]model.AbstractTransaction, 0)
 	for _, item := range rpcTxs {
-		tx := model.NewTransaction(item.Nonce, item.To, item.Value, item.TransactionFee, item.Data)
+		tx := model.NewTransaction(item.Nonce, item.To, item.Value,item.TransactionFee,item.Data)
 		signedTx, err := tmpWallet.SignTx(fromAccount, tx, service.ChainConfig.ChainId)
 		if err != nil {
 			log.Info("send Transactions SignTx:", "err", err)
@@ -1515,4 +1518,18 @@ func (service *MercuryFullChainService) StopDipperin() {
 		time.Sleep(1 * time.Second)
 		os.Exit(0)
 	}()
+}
+
+//add get tx receipt
+func (service *MercuryFullChainService)TransactionReceipt(txHash common.Hash) (model2.Receipts,error){
+	_,blockHash,blockNumber,_,err:=service.Transaction(txHash)
+	if err !=nil{
+		return nil,err
+	}
+
+	receipts:=service.ChainReader.GetReceipts(blockHash,blockNumber)
+	if receipts == nil{
+		return nil,g_error.ErrReceiptIsNil
+	}
+	return receipts,nil
 }

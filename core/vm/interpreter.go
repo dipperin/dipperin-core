@@ -2,6 +2,7 @@ package vm
 
 import (
 	"bytes"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
@@ -124,7 +125,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 	if contract.Gas > lifeVm.GasUsed {
 		contract.Gas = contract.Gas - lifeVm.GasUsed
 	} else {
-		return nil, ErrOutOfGas
+		return nil, g_error.ErrOutOfGas
 	}
 
 	if create {

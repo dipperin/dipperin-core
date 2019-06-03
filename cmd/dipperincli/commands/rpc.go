@@ -1587,6 +1587,11 @@ func (caller *rpcCaller) GetAddressNonceFromWallet(c *cli.Context) {
 	l.Info("the address nonce from wallet is:", "nonce", nonce)
 }
 
+//get tx receipt
+func (caller *rpcCaller) GetTxReceipt(c *cli.Context){
+
+}
+
 func initWallet(path, password, passPhrase string) (err error) {
 
 	var identifier accounts.WalletIdentifier
@@ -1685,7 +1690,6 @@ func RecordRegistration(txHash string) {
 	}), 0644); err != nil {
 		l.Error("can't record registration")
 	}
-
 }
 
 // remove file after unregister transaction

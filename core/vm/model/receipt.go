@@ -23,6 +23,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
+	"strconv"
 	"unsafe"
 )
 
@@ -205,3 +206,8 @@ func (r Receipts) GetRlp(i int) []byte {
 	}
 	return bytes
 }
+
+func (r Receipts) GetKey(i int) []byte{
+	return []byte(strconv.Itoa(i))
+}
+

@@ -50,7 +50,7 @@ var (
 	charlieAddr = common.HexToAddress("0x00007dbbf084F4a6CcC070568f7674d4c2CE8CD2709E")
 
 	TrieError = errors.New("trie error")
-	TxError   = errors.New("tx error")
+	TxError   = errors.New("Tx error")
 
 	gasPrice = big.NewInt(2)
 	gasLimit = uint64(2100000)
@@ -82,8 +82,8 @@ func createContractTx(t *testing.T, code, abi string) *model.Transaction {
 	data := getContractCode(t, code, abi)
 	to := common.HexToAddress(common.AddressContractCreate)
 	tx := model.NewTransactionSc(0, &to, big.NewInt(200), gasPrice, gasLimit, data)
-	tx.PaddingTxIndex(0)
 	tx.SignTx(key, fs)
+	tx.PaddingTxIndex(0)
 	return tx
 }
 
@@ -92,16 +92,17 @@ func callContractTx(t *testing.T, to *common.Address, funcName string, param [][
 	fs := model.NewMercurySigner(big.NewInt(1))
 	data := getContractInput(t, funcName, param)
 	tx := model.NewTransactionSc(1, to, big.NewInt(200), gasPrice, gasLimit, data)
-	tx.PaddingTxIndex(0)
 	tx.SignTx(key, fs)
+	tx.PaddingTxIndex(0)
 	return tx
 }
 
-func createBlock(num uint64, preHash common.Hash, txList []*model.Transaction) *model.Block {
+func createBlock(num uint64, preHash common.Hash, txList []*model.Transaction, limit *uint64) *model.Block {
 	header := model.NewHeader(1, num, preHash, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), bobAddr, common.BlockNonce{})
 
 	// vote
 	var voteList []model.AbstractVerification
+	header.GasLimit = *limit
 	block := model.NewBlock(header, txList, voteList)
 
 	// calculate block nonce
@@ -150,6 +151,12 @@ func getTestVm(account map[common.Address]*big.Int, code map[common.Address][]by
 	}, fakeStateDB{account: account, code: code}, vm.DEFAULT_VM_CONFIG)
 }
 
+func getTestHashFunc() func(num uint64) common.Hash {
+	return func(num uint64) common.Hash {
+		return common.Hash{}
+	}
+}
+
 func getContractCode(t *testing.T, code, abi string) []byte {
 	fileCode, err := ioutil.ReadFile(code)
 	assert.NoError(t, err)
@@ -158,7 +165,7 @@ func getContractCode(t *testing.T, code, abi string) []byte {
 	assert.NoError(t, err)
 	var input [][]byte
 	input = make([][]byte, 0)
-	// tx type
+	// Tx type
 	input = append(input, vmcommon.Int64ToBytes(1))
 	// code
 	input = append(input, fileCode)
@@ -174,7 +181,7 @@ func getContractCode(t *testing.T, code, abi string) []byte {
 func getContractInput(t *testing.T, funcName string, param [][]byte) []byte {
 	var input [][]byte
 	input = make([][]byte, 0)
-	// tx type
+	// Tx type
 	input = append(input, vmcommon.Int64ToBytes(1))
 	// func name
 	input = append(input, []byte(funcName))

@@ -17,7 +17,7 @@
 package middleware
 
 import (
-	"errors"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
@@ -30,20 +30,25 @@ func InsertReceipts(c *BlockContext) Middleware {
 		log.Info("insert block receipts", "cur number", curBlock.Number(), "new number", c.Block.Number())
 		// check block number
 		if c.Chain.CurrentBlock().Number()+1 != c.Block.Number() {
-			return errors.New("wrong number")
+			return g_error.BlockIsNotCorrect
 		}
 
 		receipts := make(model2.Receipts, len(c.Block.GetTransactions()))
-		err := c.Block.TxIterator(func(i int, transaction model.AbstractTransaction) error {
+		if err := c.Block.TxIterator(func(i int, transaction model.AbstractTransaction) error {
 			receipt,err := transaction.GetReceipt()
 			if err !=nil{
 				return err
 			}
 			receipts = append(receipts,&receipt)
 			return nil
-		})
-		if err != nil {
+		});err != nil {
 			return err
+		}
+
+		//check receipt hash
+		receiptHash := model.DeriveSha(receipts)
+		if receiptHash != c.Block.GetReceiptHash(){
+			return g_error.ReceiptHashError
 		}
 
 		if err := c.Chain.GetChainDB().SaveReceipts(c.Block.Hash(), c.Block.Number(), receipts); err != nil {

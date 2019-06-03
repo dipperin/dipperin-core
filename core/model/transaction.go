@@ -22,6 +22,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/math"
+
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -55,8 +58,59 @@ type RpcTransaction struct {
 	Nonce          uint64
 }
 
+// IntrinsicGas computes the 'intrinsic gas' for a message with the given data.
+func IntrinsicGas(data []byte, contractCreation, homestead bool) (uint64, error) {
+	// Set the starting gas for the raw transaction
+	var gas uint64
+	if contractCreation && homestead {
+		gas = model.TxGasContractCreation
+	} else {
+		gas = model.TxGas
+	}
+	// Bump the required gas by the amount of transactional data
+	if len(data) > 0 {
+		// Zero and non-zero bytes are priced differently
+		var nz uint64
+		for _, byt := range data {
+			if byt != 0 {
+				nz++
+			}
+		}
+		// Make sure we don't exceed uint64 for all data combinations
+		if (math.MaxUint64-gas)/model.TxDataNonZeroGas < nz {
+			return 0, g_error.ErrOutOfGas
+		}
+		gas += nz * model.TxDataNonZeroGas
+
+		z := uint64(len(data)) - nz
+		if (math.MaxUint64-gas)/model.TxDataZeroGas < z {
+			return 0, g_error.ErrOutOfGas
+		}
+		gas += z * model.TxDataZeroGas
+	}
+	return gas, nil
+}
+
+//convert transaction fee to gasPrice and gasLimit
+func ConvertFeeToGasPriceAndGasLimit(fee *big.Int,txExtraData []byte) (gasPrice *big.Int,gasLimit uint64,err error){
+	needGas ,err:= IntrinsicGas(txExtraData,false,false)
+	if err !=nil{
+		return nil,0,err
+	}
+
+	gasPrice = big.NewInt(0).Div(fee,big.NewInt(int64(needGas)))
+	gasLimit = needGas
+	return
+}
+
 func NewTransaction(nonce uint64, to common.Address, amount, fee *big.Int, data []byte) *Transaction {
-	return newTransaction(nonce, &to, amount, fee, nil, 0, data)
+	//return newTransaction(nonce, &to, amount, fee, nil, 0, data)
+	gasPrice,gasLimit,err := ConvertFeeToGasPriceAndGasLimit(fee,data)
+	if err !=nil{
+		log.Info("NewTransaction error","err",err)
+		return nil
+	}
+	return newTransaction(nonce, &to, amount, fee, gasPrice, gasLimit, data)
 }
 
 func NewTransactionSc(nonce uint64, to *common.Address, amount, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
@@ -162,6 +216,8 @@ func (tx Transaction) String() string {
 	From:     0x%s
 	To:       0x%s
 	Nonce:    %v
+	GasPrice: %v
+	GasLimit: %v
 	Hashlock: %v
 	Timelock: %#x
 	Value:    %d CSC
@@ -178,6 +234,8 @@ func (tx Transaction) String() string {
 		from,
 		to,
 		tx.data.AccountNonce,
+		tx.data.Price,
+		tx.data.GasLimit,
 		tx.data.HashLock,
 		tx.data.TimeLock,
 		tx.data.Amount,
@@ -429,7 +487,6 @@ func (tx *Transaction) GetReceipt() (*model.Receipt, error) {
 	if value != nil {
 		return value.(*model.Receipt), nil
 	}
-
 	return &model.Receipt{}, errors.New("not set tx receipt")
 }
 
@@ -502,7 +559,7 @@ func (self txSorter) Less(i, j int) bool { return self.by(self.blocks[i], self.b
 type TxByFee []AbstractTransaction
 
 func (s TxByFee) Len() int           { return len(s) }
-func (s TxByFee) Less(i, j int) bool { return s[i].Fee().Cmp(s[j].Fee()) > 0 }
+func (s TxByFee) Less(i, j int) bool { return s[i].GetGasPrice().Cmp(s[j].GetGasPrice()) > 0 }
 func (s TxByFee) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
 func (s *TxByFee) Push(x interface{}) {

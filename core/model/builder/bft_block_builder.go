@@ -20,7 +20,9 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/bloom"
+	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"time"
@@ -43,9 +45,16 @@ type BftBlockBuilder struct {
 	ModelConfig
 }
 
-func (builder *BftBlockBuilder) commitTransaction(tx model.AbstractTransaction, state *chain.BlockProcessor, height uint64) error {
+func (builder *BftBlockBuilder) commitTransaction(tx model.AbstractTransaction, state *chain.BlockProcessor,txIndex int,header *model.Header) error {
 	snap := state.Snapshot()
-	err := state.ProcessTx(tx, height)
+	//err := state.ProcessTx(tx, height)
+	conf := state_processor.TxProcessConfig{
+		Tx:tx,
+		TxIndex:txIndex,
+		Header:header,
+		GetHash:state.GetBlockHashByNumber,
+	}
+	err := state.ProcessTxNew(&conf)
 	if err != nil {
 		state.RevertToSnapshot(snap)
 		return err
@@ -53,8 +62,9 @@ func (builder *BftBlockBuilder) commitTransaction(tx model.AbstractTransaction, 
 	return nil
 }
 
-func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndNonce, state *chain.BlockProcessor, header *model.Header, vers []model.AbstractVerification) (txBuf []model.AbstractTransaction) {
+func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndNonce, state *chain.BlockProcessor, header *model.Header, vers []model.AbstractVerification) (txBuf []model.AbstractTransaction,receipts model2.Receipts) {
 	var invalidList []*model.Transaction
+	txIndex := 0
 	for {
 		// Retrieve the next transaction and abort if all done
 		tx := txs.Peek()
@@ -62,14 +72,23 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 			break
 		}
 		//from, _ := tx.Sender(builder.nodeContext.TxSigner())
-		err := builder.commitTransaction(tx, state, header.Number)
+		err := builder.commitTransaction(tx, state,txIndex,header)
 		if err != nil {
 			log.Info("transaction is not processable because:", "err", err, "txID", tx.CalTxId(), "nonce:", tx.Nonce())
 			txs.Pop()
 			invalidList = append(invalidList, tx.(*model.Transaction))
 		} else {
-			txBuf = append(txBuf, tx)
-			txs.Shift()
+			receipt,err := tx.GetReceipt()
+			if err !=nil{
+				log.Info("cant get tx receipt","txId",tx.CalTxId().Hex())
+				txs.Pop()
+				invalidList = append(invalidList, tx.(*model.Transaction))
+			}else {
+				txBuf = append(txBuf, tx)
+				txs.Shift()
+				receipts = append(receipts,&receipt)
+				txIndex++
+			}
 		}
 	}
 
@@ -140,7 +159,7 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address) 
 
 	log.Info("~~~~~~~~~~~~~~~the pending len is:", "number", len(pending))
 	txs := model.NewTransactionsByFeeAndNonce(builder.TxSigner, pending)
-	txBuf := builder.commitTransactions(txs, processor, header, vers)
+	txBuf,receipts := builder.commitTransactions(txs, processor, header, vers)
 
 	//log.Info("~~~~~~~~~~~~~~ the txBuf len is: ", "txBuf Len", len(txBuf))
 
@@ -161,6 +180,10 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address) 
 		panic(fmt.Sprintf("invalid v root: %v", block.VerificationRoot()))
 	}
 	log.Info("build bft block2", "vers", len(block.GetVerifications()))
+
+	//calculate receipt hash
+	receiptHash := model.DeriveSha(&receipts)
+	block.SetReceiptHash(receiptHash)
 
 	//TODO:calculate block interlinks
 	linkList := model.NewInterLink(curBlock.GetInterlinks(), block)

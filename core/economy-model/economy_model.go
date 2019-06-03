@@ -22,6 +22,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
+
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 )

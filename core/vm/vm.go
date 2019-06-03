@@ -2,13 +2,14 @@ package vm
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/vm/resolver"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
-	"math/big"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/core/vm/resolver"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"math/big"
 )
 
 var emptyCodeHash = cs_crypto.Keccak256Hash(nil)
@@ -53,11 +54,11 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 
 	// Fail if we're trying to execute above the call depth limit
 	if vm.depth > int(model2.CallCreateDepth) {
-		return nil, gas, ErrDepth
+		return nil, gas, g_error.ErrDepth
 	}
 	// Fail if we're trying to transfer more than the available balance
 	if !vm.Context.CanTransfer(vm.state, caller.Address(), value) {
-		return nil, gas, ErrInsufficientBalance
+		return nil, gas, g_error.ErrInsufficientBalance
 	}
 
 	var (
@@ -103,7 +104,7 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 	// when we're in homestead this also counts for code storage gas errors.
 	if err != nil {
 		vm.state.RevertToSnapshot(snapshot)
-		if err != ErrExecutionReverted {
+		if err != g_error.ErrExecutionReverted {
 			contract.UseGas(contract.Gas)
 			log.Info("callContract Use", "gasUsed", contract.Gas, "gasLeft", contract.Gas)
 		}
@@ -118,7 +119,7 @@ func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, inp
 	}
 	// Fail if we're trying to execute above the call depth limit
 	if vm.depth > int(model2.CallCreateDepth) {
-		return nil, gas, ErrDepth
+		return nil, gas, g_error.ErrDepth
 	}
 
 	var (
@@ -133,7 +134,7 @@ func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, inp
 	ret, err = run(vm, contract, input, false)
 	if err != nil {
 		vm.GetStateDB().RevertToSnapshot(snapshot)
-		if err != ErrExecutionReverted {
+		if err != g_error.ErrExecutionReverted {
 			contract.UseGas(contract.Gas)
 		}
 	}
@@ -149,18 +150,18 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
 	if vm.depth > int(model2.CallCreateDepth) {
-		return nil, common.Address{}, gas, ErrDepth
+		return nil, common.Address{}, gas, g_error.ErrDepth
 	}
 
 	if !vm.CanTransfer(vm.state, caller.Address(), value) {
-		return nil, common.Address{}, gas, ErrInsufficientBalance
+		return nil, common.Address{}, gas, g_error.ErrInsufficientBalance
 	}
 	vm.state.AddNonce(caller.Address(), uint64(1))
 
 	// Ensure there's no existing contract already at the designated address
 	contractHash := vm.state.GetCodeHash(address)
 	if vm.state.GetNonce(address) != 0 || (contractHash != common.Hash{} && contractHash != emptyCodeHash) {
-		return nil, common.Address{}, 0, ErrContractAddressCollision
+		return nil, common.Address{}, 0, g_error.ErrContractAddressCollision
 	}
 
 	// Create a new account on the state
@@ -197,23 +198,23 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value
 			vm.state.SetCode(address, ret)
 			log.Info("createDataGas Use", "CodeLen", len(ret), "gasUsed", createDataGas, "gasLeft", contract.Gas)
 		} else {
-			err = ErrCodeStoreOutOfGas
+			err = g_error.ErrCodeStoreOutOfGas
 		}
 	}
 
 	// When an error was returned by the EVM or when setting the creation code
 	// above we revert to the snapshot and consume any gas remaining. Additionally
 	// when we're in homestead this also counts for code storage gas errors.
-	if maxCodeSizeExceeded || (err != nil && err != ErrCodeStoreOutOfGas) {
+	if maxCodeSizeExceeded || (err != nil && err != g_error.ErrCodeStoreOutOfGas) {
 		log.Info("Run lifeVm failed", "err", err)
 		vm.state.RevertToSnapshot(snapshot)
-		if err != ErrExecutionReverted {
+		if err != g_error.ErrExecutionReverted {
 			contract.UseGas(contract.Gas)
 		}
 	}
 	// Assign err if contract code size exceeds the max while the err is still empty.
 	if maxCodeSizeExceeded && err == nil {
-		err = ErrMaxCodeSizeExceeded
+		err = g_error.ErrMaxCodeSizeExceeded
 	}
 
 	/*	if vm.vmConfig.Debug && vm.depth == 0 {
@@ -234,7 +235,7 @@ type (
 	TransferFunc func(StateDB, common.Address, common.Address, *big.Int)
 	// GetHashFunc returns the nth block hash in the blockchain
 	// and is used by the BLOCKHASH EVM op code.
-	GetHashFunc func(uint64) common.Hash
+ 	GetHashFunc func(uint64) common.Hash
 )
 
 type Context struct {
@@ -249,9 +250,10 @@ type Context struct {
 	BlockNumber *big.Int // Provides information for NUMBER
 	Time        *big.Int // Provides information for TIME
 	Difficulty  *big.Int // Provides information for DIFFICULTY
-	BlockHash   common.Hash
-	TxHash      common.Hash
-	TxIndex     uint64
+	//BlockHash   common.Hash
+
+	TxHash  common.Hash
+	TxIndex uint64
 
 	// callGasTemp holds the gas available for the current call. This is needed because the
 	// available gas is calculated in gasCall* according to the 63/64 rule and later
@@ -263,6 +265,9 @@ type Context struct {
 	CanTransfer CanTransferFunc
 	// Transfer transfers ether from one account to the other
 	Transfer TransferFunc
+
+	// GetHash returns the hash corresponding to n
+	GetHash GetHashFunc
 }
 
 func (context *Context) GetTxHash() common.Hash {
@@ -282,7 +287,7 @@ func (context *Context) GetGasPrice() int64 {
 }
 
 func (context *Context) GetBlockHash(num uint64) common.Hash {
-	return context.BlockHash
+	return context.GetHash(num)
 }
 
 func (context *Context) GetBlockNumber() *big.Int {
@@ -306,7 +311,7 @@ func (context *Context) GetOrigin() common.Address {
 }
 
 // NewVMContext creates a new context for use in the VM.
-func NewVMContext(tx model.AbstractTransaction, block model.AbstractBlock) Context {
+func NewVMContext(tx model.AbstractTransaction, header model.AbstractHeader, GetHash GetHashFunc) Context {
 	sender, _ := tx.Sender(tx.GetSigner())
 	txIndex, err := tx.GetTxIndex()
 	if err != nil {
@@ -316,16 +321,16 @@ func NewVMContext(tx model.AbstractTransaction, block model.AbstractBlock) Conte
 		Origin:      sender,
 		GasPrice:    tx.GetGasPrice(),
 		GasLimit:    tx.Fee().Uint64(),
-		BlockNumber: new(big.Int).SetUint64(block.Number()),
-		Time:        block.Timestamp(),
-		Coinbase:    block.CoinBaseAddress(),
-		Difficulty:  block.Difficulty().Big(),
+		BlockNumber: new(big.Int).SetUint64(header.GetNumber()),
 		callGasTemp: tx.Fee().Uint64(),
-		BlockHash:   block.Hash(),
+		//BlockHash:   block.Hash(),
 		TxHash:      tx.CalTxId(),
 		TxIndex:     uint64(txIndex),
 		CanTransfer: CanTransfer,
 		Transfer:    Transfer,
+		Coinbase:    header.CoinBaseAddress(),
+		Time:        header.GetTimeStamp(),
+		GetHash:     GetHash,
 	}
 }
 

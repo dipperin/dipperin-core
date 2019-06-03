@@ -79,4 +79,5 @@ var (
 	ErrBlockVer		= errors.New("block version not accept")
 	ErrBlockTimeStamp = errors.New("the block time stamp is invalid")
 
+	ErrReceiptIsNil = errors.New("the transaction receipt is nil")
 )

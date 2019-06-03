@@ -22,6 +22,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"errors"
 	"crypto/ecdsa"
+	"math/big"
 )
 
 var (
@@ -141,6 +142,10 @@ func (body fakeBody) GetInterLinks() model.InterLink {
 }
 
 type fakeHeader struct {}
+
+func (h fakeHeader) GetTimeStamp() *big.Int {
+	panic("implement me")
+}
 
 func (h fakeHeader) GetGasLimit() uint64 {
 	panic("implement me")

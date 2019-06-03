@@ -1,13 +1,14 @@
 package state_processor
 
 import (
+	"github.com/dipperin/dipperin-core/core/model"
 	"math/big"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/vm"
 	"github.com/dipperin/dipperin-core/common/g-error"
-	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"fmt"
 )
 
 type StateTransition struct {
@@ -20,39 +21,6 @@ type StateTransition struct {
 	data       []byte
 	state      vm.StateDB
 	lifeVm     *vm.VM
-}
-
-// IntrinsicGas computes the 'intrinsic gas' for a message with the given data.
-func IntrinsicGas(data []byte, contractCreation, homestead bool) (uint64, error) {
-	// Set the starting gas for the raw transaction
-	var gas uint64
-	if contractCreation && homestead {
-		gas = model.TxGasContractCreation
-	} else {
-		gas = model.TxGas
-	}
-	// Bump the required gas by the amount of transactional data
-	if len(data) > 0 {
-		// Zero and non-zero bytes are priced differently
-		var nz uint64
-		for _, byt := range data {
-			if byt != 0 {
-				nz++
-			}
-		}
-		// Make sure we don't exceed uint64 for all data combinations
-		if (math.MaxUint64-gas)/model.TxDataNonZeroGas < nz {
-			return 0, vm.ErrOutOfGas
-		}
-		gas += nz * model.TxDataNonZeroGas
-
-		z := uint64(len(data)) - nz
-		if (math.MaxUint64-gas)/model.TxDataZeroGas < z {
-			return 0, vm.ErrOutOfGas
-		}
-		gas += z * model.TxDataZeroGas
-	}
-	return gas, nil
 }
 
 // NewStateTransition initialises and returns a new state transition object.
@@ -89,7 +57,7 @@ func (st *StateTransition) to() common.Address {
 
 func (st *StateTransition) useGas(amount uint64) error {
 	if st.gas < amount {
-		return vm.ErrOutOfGas
+		return g_error.ErrOutOfGas
 	}
 	st.gas -= amount
 
@@ -99,7 +67,7 @@ func (st *StateTransition) useGas(amount uint64) error {
 func (st *StateTransition) buyGas() error {
 	msgVal := new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Gas()), st.gasPrice)
 	if st.lifeVm.GetStateDB().GetBalance(st.msg.From()).Cmp(msgVal) < 0 {
-		return vm.ErrInsufficientBalanceForGas
+		return g_error.ErrInsufficientBalanceForGas
 	}
 
 	log.Info("Call buyGas", "gasPool", *st.gp, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()), "value", msgVal)
@@ -122,6 +90,7 @@ func (st *StateTransition) preCheck() error {
 	// Make sure this transaction's nonce is correct.
 	if st.msg.CheckNonce() {
 		nonce := st.lifeVm.GetStateDB().GetNonce(st.msg.From())
+		fmt.Println(nonce, st.msg.Nonce())
 		if nonce < st.msg.Nonce() {
 			return g_error.ErrNonceTooHigh
 		} else if nonce > st.msg.Nonce() {
@@ -144,7 +113,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 	contractCreation := msg.To().GetAddressType() == common.AddressTypeContractCreate
 
 	// Pay intrinsic gas
-	gas, err := IntrinsicGas(st.data, contractCreation, true)
+	gas, err := model.IntrinsicGas(st.data, contractCreation, true)
 	if err != nil {
 		return nil, 0, false, err
 	}
@@ -175,13 +144,13 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		// The only possible consensus-error would be if there wasn't
 		// sufficient balance to make the transfer happen. The first
 		// balance transfer may never fail.
-		if vmerr == vm.ErrInsufficientBalance {
+		if vmerr == g_error.ErrInsufficientBalance {
 			return nil, 0, false, vmerr
 		}
 	}
 	st.refundGas()
-	//Todo reward to both miner and verifier?
-	st.state.AddBalance(st.lifeVm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
+	//todo handle reward in ProcessExceptTxs
+	//st.state.AddBalance(st.lifeVm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
 	return ret, st.gasUsed(), vmerr != nil, err
 }
 

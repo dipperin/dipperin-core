@@ -24,7 +24,7 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	if err != nil {
 		log.Info("TestAccountStateDB_ProcessContract", "err", err)
 	}
-	log.Info("processContract", "tx", tx)
+	log.Info("processContract", "Tx", tx)
 
 	/*block := model.NewBlock(model.NewHeader(1, 101, common.HexToHash("ss"), common.HexToHash("fdfs"), common.StringToDiff("000000000000000000000011"), big.NewInt(111), common.StringToAddress("fdsfds"), common.EncodeNonce(33)), nil, nil)*/
 
@@ -39,7 +39,8 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	processor.AddBalance(ownAddress, new(big.Int).SetInt64(int64(100000000000000000)))
 	balance, err := processor.GetBalance(ownAddress)
 	log.Info("balance", "balance", balance.String())
-	receipt, err := processor.ProcessContract(&tx, block, &gasLimit, true)
+
+	receipt, err := processor.ProcessContract(&tx, block.Header().(*model.Header), true,fakeGetBlockHash)
 	assert.NoError(t, err)
 	assert.Equal(t, true, receipt.HandlerResult)
 
@@ -54,9 +55,14 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	processor, err := NewAccountStateDB(root, tdb)
 	assert.NoError(t, err)
 
-	block := createBlock(1, common.Hash{}, []*model.Transaction{tx})
 	gasPool := gasLimit * 5
-	_, err = processor.ProcessTxNew(tx, block, &gasPool)
+	block := createBlock(1, common.Hash{}, []*model.Transaction{tx}, &gasPool)
+	config := &TxProcessConfig{
+		Tx:tx,
+		Header:block.Header(),
+		GetHash:getTestHashFunc(),
+	}
+	err = processor.ProcessTxNew(config)
 	assert.NoError(t, err)
 
 	receipt1, err := tx.GetReceipt()
@@ -78,8 +84,13 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	param := [][]byte{name, num}
 	tx = callContractTx(t, &receipt1.ContractAddress, "hello", param)
 
-	block = createBlock(2, block.Hash(), []*model.Transaction{tx})
-	_, err = processor.ProcessTxNew(tx, block, &gasPool)
+	block = createBlock(2, block.Hash(), []*model.Transaction{tx}, &gasPool)
+	config = &TxProcessConfig{
+		Tx:tx,
+		Header:block.Header(),
+		GetHash:getTestHashFunc(),
+	}
+	err = processor.ProcessTxNew(config)
 	assert.NoError(t, err)
 
 	receipt2, err := tx.GetReceipt()
