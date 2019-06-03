@@ -16,7 +16,7 @@ type ContractRef interface {
 type VmContextService interface {
 	GetGasPrice() int64
 	GetGasLimit() uint64
-	BlockHash(num uint64) common.Hash
+	GetBlockHash(num uint64) common.Hash
 	GetBlockNumber() *big.Int
 	GetTime() *big.Int
 	GetCoinBase() common.Address

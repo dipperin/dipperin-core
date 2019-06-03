@@ -71,6 +71,10 @@ func (txType TxType) String() string {
 		return "evidence transaction"
 	case AddressTypeERC20:
 		return "erc20 transaction"
+	case AddressTypeContractCreate:
+		return "contract creation"
+	case AddressTypeContract:
+		return "contract call"
 	default:
 		return fmt.Sprintf("unkonw tx:%v", int(txType))
 	}
@@ -80,6 +84,7 @@ const (
 	AddressStake   = "0x00020000000000000000000000000000000000000000"
 	AddressCancel  = "0x00030000000000000000000000000000000000000000"
 	AddressUnStake = "0x00040000000000000000000000000000000000000000"
+
 )
 
 // Dipperin hash
@@ -254,6 +259,10 @@ func (addr Address) GetAddressTypeStr() string {
 		return "Evidence"
 	case AddressTypeEarlyReward:
 		return consts.EarlyTokenTypeName
+	case AddressTypeContractCreate:
+		return "ContractCreation"
+	case AddressTypeContract:
+		return "ContractCall"
 	}
 	return "UnKnown"
 }
@@ -373,7 +382,6 @@ func (d Difficulty) Hex() string {
 
 func (d Difficulty) DiffToTarget() (target Hash) {
 	a := HashLength - d[0]
-	log.Info("Difficulty","a", a, "d[0]", d[0] )
 	if a + 2 > HashLength - 1 || HashLength < d[0] {
 		log.Error("DiffToTarget failed", "diff", d.Hex())
 		panic("The first digit of diff cannot be less than 3 and cannot be greater than 0x20")

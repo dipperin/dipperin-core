@@ -3,12 +3,12 @@ package vm
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/vm/resolver"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
-	"math/big"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/core/vm/resolver"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"math/big"
 )
 
 var emptyCodeHash = cs_crypto.Keccak256Hash(nil)
@@ -241,8 +241,6 @@ type Context struct {
 	// Message information
 	Origin common.Address // Provides information for ORIGIN
 
-	GetHash GetHashFunc
-
 	// Block information
 	Coinbase common.Address // Provides information for COINBASE
 
@@ -251,6 +249,7 @@ type Context struct {
 	BlockNumber *big.Int // Provides information for NUMBER
 	Time        *big.Int // Provides information for TIME
 	Difficulty  *big.Int // Provides information for DIFFICULTY
+	BlockHash   common.Hash
 	TxHash      common.Hash
 	TxIndex     uint64
 
@@ -282,8 +281,8 @@ func (context *Context) GetGasPrice() int64 {
 	return context.GasPrice.Int64()
 }
 
-func (context *Context) BlockHash(num uint64) common.Hash {
-	return context.GetHash(num)
+func (context *Context) GetBlockHash(num uint64) common.Hash {
+	return context.BlockHash
 }
 
 func (context *Context) GetBlockNumber() *big.Int {
@@ -322,9 +321,24 @@ func NewVMContext(tx model.AbstractTransaction, block model.AbstractBlock) Conte
 		Coinbase:    block.CoinBaseAddress(),
 		Difficulty:  block.Difficulty().Big(),
 		callGasTemp: tx.Fee().Uint64(),
+		BlockHash:   block.Hash(),
 		TxHash:      tx.CalTxId(),
 		TxIndex:     uint64(txIndex),
+		CanTransfer: CanTransfer,
+		Transfer:    Transfer,
 	}
+}
+
+// CanTransfer checks whether there are enough funds in the address' account to make a transfer.
+// This does not take the necessary gas in to account to make the transfer valid.
+func CanTransfer(db StateDB, addr common.Address, amount *big.Int) bool {
+	return db.GetBalance(addr).Cmp(amount) >= 0
+}
+
+// Transfer subtracts amount from sender and adds amount to recipient using the given Db
+func Transfer(db StateDB, sender, recipient common.Address, amount *big.Int) {
+	db.SubBalance(sender, amount)
+	db.AddBalance(recipient, amount)
 }
 
 type Caller struct {

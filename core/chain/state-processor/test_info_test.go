@@ -38,6 +38,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"time"
 )
 
 var (
@@ -79,7 +80,11 @@ func createContractTx(t *testing.T, code, abi string) *model.Transaction {
 	key, _ := createKey()
 	fs := model.NewMercurySigner(big.NewInt(1))
 	data := getContractCode(t, code, abi)
-	tx := model.NewTransactionSc(0, nil, big.NewInt(200), gasPrice, gasLimit, data)
+
+	to := common.HexToAddress("0x00120000000000000000000000000000000000000000")
+	fmt.Println("test type",common.TxType(binary.BigEndian.Uint16(to.Bytes()[:2])))
+	tx := model.NewTransactionSc(0,&to, big.NewInt(200), gasPrice, gasLimit, data)
+	tx.PaddingTxIndex(0)
 	tx.SignTx(key, fs)
 	return tx
 }
@@ -93,20 +98,27 @@ func callContractTx(t *testing.T, to *common.Address, funcName string, param [][
 	return tx
 }
 
+func createBlock(num uint64, preHash common.Hash, txList []*model.Transaction) *model.Block {
+	header := model.NewHeader(1, num, preHash, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), aliceAddr, common.BlockNonce{})
+
+	// vote
+	var voteList []model.AbstractVerification
+	block := model.NewBlock(header, txList, voteList)
+
+	// calculate block nonce
+	model.CalNonce(block)
+	block.RefreshHashCache()
+	return block
+}
+
 func createTestStateDB() (ethdb.Database, common.Hash) {
 	db := ethdb.NewMemDatabase()
 
 	//todo The new method does not take the tree from the underlying database
 	tdb := NewStateStorageWithCache(db)
 	processor, _ := NewAccountStateDB(common.Hash{}, tdb)
-
 	processor.NewAccountState(aliceAddr)
-	processor.AddBalance(aliceAddr, big.NewInt(5000))
-	processor.SetVerifyNum(aliceAddr, 7)
-	processor.setCommitNum(aliceAddr, 5)
-
-	tx1, _ := createTestTx()
-	processor.ProcessTx(tx1, 0)
+	processor.AddBalance(aliceAddr, big.NewInt(9000000))
 
 	root, _ := processor.Commit()
 	tdb.TrieDB().Commit(root, false)
@@ -124,9 +136,6 @@ func createSignedVote(num uint64, blockId common.Hash, voteType model.VoteMsgTyp
 }
 
 func getTestVm(account map[common.Address]*big.Int, code map[common.Address][]byte) *vm.VM {
-	testGetHash := func(blockNumber uint64) common.Hash {
-		return common.Hash{}
-	}
 	testCanTransfer := func(vm.StateDB, common.Address, *big.Int) bool {
 		return true
 	}
@@ -135,7 +144,6 @@ func getTestVm(account map[common.Address]*big.Int, code map[common.Address][]by
 	}
 	return vm.NewVM(vm.Context{
 		BlockNumber: big.NewInt(1),
-		GetHash:     testGetHash,
 		CanTransfer: testCanTransfer,
 		Transfer:    testTransfer,
 		GasLimit:    model2.TxGas,

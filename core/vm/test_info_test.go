@@ -8,6 +8,11 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 	"github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"github.com/dipperin/dipperin-core/common/vmcommon"
+	"testing"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 var contractAddr = common.HexToAddress("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
@@ -154,4 +159,62 @@ func (state fakeStateDB) TxHash() common.Hash {
 
 func (state fakeStateDB) TxIdx() uint32 {
 	return 0
+}
+
+func genInput(t *testing.T, funcName string, param [][]byte) []byte {
+	var input [][]byte
+	input = make([][]byte, 0)
+	// tx type
+	input = append(input, vmcommon.Int64ToBytes(1))
+	// func name
+	input = append(input, []byte(funcName))
+	// func parameter
+	for _, v := range (param) {
+		input = append(input, v)
+	}
+
+	buffer := new(bytes.Buffer)
+	err := rlp.Encode(buffer, input)
+	assert.NoError(t, err)
+	return buffer.Bytes()
+}
+
+func getCodeWithABI(t *testing.T, code, abi []byte) []byte {
+	var input [][]byte
+	input = make([][]byte, 0)
+	// tx type
+
+	input = append(input, vmcommon.Int64ToBytes(1))
+	// code
+	input = append(input, code)
+	// abi
+	input = append(input, abi)
+
+	buffer := new(bytes.Buffer)
+	err := rlp.Encode(buffer, input)
+	assert.NoError(t, err)
+	return buffer.Bytes()
+}
+
+func getContract(t *testing.T, addr common.Address, code, abi string) *Contract {
+	fileCode, err := ioutil.ReadFile(code)
+	assert.NoError(t, err)
+
+	fileABI, err := ioutil.ReadFile(abi)
+	assert.NoError(t, err)
+
+	ca := getCodeWithABI(t, fileCode, fileABI)
+
+	return &Contract{
+		self: fakeContractRef{addr: addr},
+		Code: ca,
+		Gas:model.TxGas,
+	}
+}
+
+func getTestVm() *VM {
+	return NewVM(Context{
+		BlockNumber: big.NewInt(1),
+		GasLimit:model.TxGas,
+	}, fakeStateDB{}, DEFAULT_VM_CONFIG)
 }
