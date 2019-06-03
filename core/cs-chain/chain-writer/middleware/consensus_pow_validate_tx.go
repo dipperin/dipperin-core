@@ -45,6 +45,12 @@ var txValidators = map[common.TxType]func(tx model.AbstractTransaction, chain Ch
 	common.TxType(common.AddressTypeEvidence):    validEvidenceTx,
 	common.TxType(common.AddressTypeERC20):       validContractTx,
 	common.TxType(common.AddressTypeEarlyReward): validEarlyTokenTx,
+	common.TxType(common.AddressTypeContract): func(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
+		return nil
+	},
+	common.TxType(common.AddressTypeContractCreate): func(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
+		return nil
+	},
 }
 
 //type TxContext struct {

@@ -17,7 +17,9 @@
 package commands
 
 import (
+	"encoding/json"
 	"errors"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -680,6 +682,99 @@ func Test_rpcCaller_SendTransaction(t *testing.T) {
 
 	app.Run([]string{"xxx"})
 	client = nil
+}
+
+func TestRpcCaller_SendTransactionContract(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	app := cli.NewApp()
+
+	app.Flags = []cli.Flag{
+		cli.StringFlag{Name: "m", Usage: "operation"},
+		cli.StringFlag{Name: "p", Usage: "parameters"},
+		cli.StringFlag{Name: "abi", Usage:"abi path"},
+		cli.StringFlag{Name: "wasm", Usage:"wasm path"},
+		cli.StringFlag{Name: "input", Usage: "contract params"},
+		cli.BoolFlag{Name:   "isCreate", Usage: "create contract or not"},
+		cli.StringFlag{Name: "funcName", Usage: "call function name"},
+	}
+
+	app.Action = func(c *cli.Context) {
+		client = NewMockRpcClient(ctrl)
+		caller := &rpcCaller{}
+		SyncStatus.Store(false)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(nil)
+		caller.SendTransactionContract(c)
+
+		SyncStatus.Store(true)
+		caller.SendTransactionContract(c)
+
+		c.Set("m", "SendTransactionContract")
+		c.Set("p", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,10,11122,10")
+		c.Set("abi", "Users/konggan/workspace/chain/dipperin/dipc/cmake-build-debug/example/example.cpp.abi.json")
+		caller.SendTransactionContract(c)
+
+		caller.SendTransaction(c)
+	}
+
+	app.Run([]string{"xxx"})
+	client = nil
+}
+
+
+func TestRpcCaller_SendTransactionContract2(t *testing.T) {
+/*	app := cli.NewApp()
+
+	app.Flags = []cli.Flag{
+		cli.StringFlag{Name: "m", Usage: "operation"},
+		cli.StringFlag{Name: "p", Usage: "parameters"},
+		cli.StringFlag{Name: "abi", Usage:"abi path"},
+		cli.StringFlag{Name: "wasm", Usage:"wasm path"},
+		cli.StringFlag{Name: "input", Usage: "contract params"},
+		cli.BoolFlag{Name:   "isCreate", Usage: "create contract or not"},
+		cli.StringFlag{Name: "funcName", Usage: "call function name"},
+	}
+
+	app.Action = func(c *cli.Context) {
+		caller := &rpcCaller{}
+
+		c.Set("m", "SendTransactionContract")
+		c.Set("p", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,10,11122,10")
+		c.Set("abi", "Users/konggan/workspace/chain/dipperin/dipc/cmake-build-debug/example/example.cpp.abi.json")
+		c.Set("wasm", "/Users/konggan/workspace/chain/dipperin/dipc/cmake-build-debug/example/example.wasm")
+		c.Set("isCreate", "true")
+		caller.SendTransactionContract(c)
+	}*/
+	//app := cli.NewApp()
+	//
+	//app.Flags = []cli.Flag{
+	//	cli.StringFlag{Name: "m", Usage: "operation"},
+	//	cli.StringFlag{Name: "p", Usage: "parameters"},
+	//	cli.StringFlag{Name: "abi", Usage:"abi path"},
+	//	cli.StringFlag{Name: "wasm", Usage:"wasm path"},
+	//	cli.StringFlag{Name: "input", Usage: "contract params"},
+	//	cli.BoolFlag{Name:   "isCreate", Usage: "create contract or not"},
+	//	cli.StringFlag{Name: "funcName", Usage: "call function name"},
+	//}
+	//c := cli.NewContext(app, nil, nil)
+	//c.Set("m", "SendTransactionContract")
+	//c.Set("p", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,10,11122,10")
+	//c.Set("abi", "Users/konggan/workspace/chain/dipperin/dipc/cmake-build-debug/example/example.cpp.abi.json")
+	//c.Set("wasm", "/Users/konggan/workspace/chain/dipperin/dipc/cmake-build-debug/example/example.wasm")
+	//c.Set("isCreate", "true")
+	//
+	//SendTransactionContractCreate(c)
+
+}
+
+func Test_AbiFile(t *testing.T)  {
+	abiBytes, err := ioutil.ReadFile("/Users/konggan/workspace/chain/dipperin/dipc/cmake-build-debug/example/example.cpp.abi.json")
+	assert.NoError(t, err)
+	var wasmAbi utils.WasmAbi
+	err = json.Unmarshal(abiBytes, &wasmAbi)
+	assert.NoError(t, err)
+
 }
 
 func Test_rpcCaller_Transaction(t *testing.T) {

@@ -38,7 +38,8 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	processor.AddBalance(ownAddress,  new(big.Int).SetInt64(int64(100000000000000000)))
 	balance, err := processor.GetBalance(ownAddress)
 	log.Info("balance", "balance", balance.String())
-	receipt, err := processor.ProcessContract(&tx, block, true)
+	blockGasLimit := uint64(1000000000000)
+	receipt, err := processor.ProcessContract(&tx, block, &blockGasLimit,true)
 	assert.NoError(t, err)
 	assert.Equal(t, true, receipt.HandlerResult)
 

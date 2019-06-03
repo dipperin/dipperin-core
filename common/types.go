@@ -80,6 +80,7 @@ const (
 	AddressStake   = "0x00020000000000000000000000000000000000000000"
 	AddressCancel  = "0x00030000000000000000000000000000000000000000"
 	AddressUnStake = "0x00040000000000000000000000000000000000000000"
+	AddressContractCreate = "0x00120000000000000000000000000000000000000000"
 )
 
 // Dipperin hash
@@ -373,7 +374,7 @@ func (d Difficulty) Hex() string {
 
 func (d Difficulty) DiffToTarget() (target Hash) {
 	a := HashLength - d[0]
-	log.Info("Difficulty","a", a, "d[0]", d[0] )
+	//log.Info("Difficulty","a", a, "d[0]", d[0] )
 	if a + 2 > HashLength - 1 || HashLength < d[0] {
 		log.Error("DiffToTarget failed", "diff", d.Hex())
 		panic("The first digit of diff cannot be less than 3 and cannot be greater than 0x20")

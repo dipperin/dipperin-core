@@ -26,18 +26,20 @@ import (
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"github.com/ethereum/go-ethereum/rlp"
+	"math/big"
+
 	//"github.com/ethereum/go-ethereum/rlp"
 	"github.com/urfave/cli"
 	"io/ioutil"
-	"math/big"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -553,17 +555,27 @@ func (caller *rpcCaller) SendTx(c *cli.Context) {
 
 }
 
-func (caller *rpcCaller) SendTransactionContractCreate(c *cli.Context)  {
+func (caller *rpcCaller) SendTransactionContract(c *cli.Context)  {
 	if checkSync(){
 		return
 	}
+
+	if ContractCreate(c) {
+		SendTransactionContractCreate(c)
+	} else {
+		SendTransactionContractCall(c)
+	}
+
+}
+
+func SendTransactionContractCreate(c *cli.Context)  {
 	mName, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
 		l.Error("getRpcMethodAndParam error", "err", err)
 		return
 	}
 	if len(cParams) != 3 && len(cParams) != 4 {
-		l.Error("parameter includes：from value gasLimit gasPrice")
+		l.Error("parameter includes：from value gasLimit gasPrice, gasPrice is optional")
 		return
 	}
 
@@ -573,7 +585,7 @@ func (caller *rpcCaller) SendTransactionContractCreate(c *cli.Context)  {
 		l.Error(err.Error())
 		return
 	}
-	to := common.HexToAddress(strconv.Itoa(common.AddressTypeContractCreate))
+	to := common.HexToAddress(common.AddressContractCreate)
 
 	Value, err := MoneyValueToCSCoin(cParams[1])
 	if err != nil {
@@ -600,7 +612,7 @@ func (caller *rpcCaller) SendTransactionContractCreate(c *cli.Context)  {
 
 	ExtraData, err := generateExtraData(c)
 	if err != nil {
-		l.Error("generate extraData err")
+		l.Error("generate extraData err", "err", err)
 		return
 	}
 
@@ -620,17 +632,119 @@ func (caller *rpcCaller) SendTransactionContractCreate(c *cli.Context)  {
 	l.Info("SendTransaction result", "txId", resp.Hex())
 }
 
+func SendTransactionContractCall(c *cli.Context)  {
+	mName, cParams, err := getRpcMethodAndParam(c)
+	if err != nil {
+		l.Error("getRpcMethodAndParam error", "err", err)
+		return
+	}
+	if len(cParams) != 3 && len(cParams) != 4 {
+		l.Error("parameter includes：from to gasLimit gasPrice, gasPrice is optional")
+		return
+	}
+	From, err := CheckAndChangeHexToAddress(cParams[0])
+	if err != nil {
+		l.Error("call  the from address is invalid", "err", err)
+		return
+	}
+	to, err := CheckAndChangeHexToAddress(cParams[1])
+	if err != nil {
+		l.Error("call the to address is invalid", "err", err)
+		return
+	}
+
+	gasLimit, err := MoneyValueToCSCoin(cParams[2])
+	if err != nil {
+		l.Error("call the parameter value invalid", "err", err)
+		return
+	}
+
+	var gasPrice  *big.Int
+	if len(cParams) == 2 {
+		gasPrice.SetInt64(config.DEFAULT_GAS_PRICE)
+	} else {
+		gasPriceVal, err := strconv.ParseInt(cParams[3], 10, 64)
+		if err != nil {
+			l.Error("call the parameter value invalid")
+			return
+		}
+		gasPrice = new(big.Int).SetInt64(gasPriceVal)
+	}
+
+	funcName,err := getCalledFuncName(c)
+	if err != nil {
+		l.Error(err.Error())
+		return
+	}
+	input := getRpcSpecialParam(c, "input")
+	// RLP([funcName][params])
+	inputRlp,err := rlp.EncodeToBytes([]interface{}{
+		funcName,input,
+	})
+	if err != nil {
+		log.Error("input rlp err")
+	}
+	var resp common.Hash
+
+	l.Info("the From is: ", "From", From.Hex())
+	l.Info("the gasLimit is:", "gasLimit", gasLimit)
+	l.Info("the gasPrice is:", "gasPrice", gasPrice)
+	l.Info("the funcName is:", "funcName", funcName)
+	l.Info("the ExtraData is: ", "ExtraData", inputRlp)
+
+	//SendTransactionContract(from, to common.Address,value,gasLimit, gasPrice *big.Int, data []byte, nonce *uint64 )
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, to, nil,gasLimit, gasPrice, inputRlp, nil); err != nil {
+		l.Error("call sendTransactionContract fail", "err", err)
+		return
+	}
+
+	l.Info("call sendTransactionContract result", "txId", resp.Hex())
+}
+
+func getCalledFuncName(c *cli.Context) (funcName string, err  error) {
+	funcName = c.String("funcName")
+	if funcName == "" {
+		return "", errors.New("function name is need")
+	}
+	return funcName,nil
+}
+
+func ContractCreate(c *cli.Context) bool {
+	return  c.Bool("isCreate")
+}
+
 func generateExtraData(c *cli.Context)(ExtraData []byte, err error) {
 	abiPath, err := getRpcParamValue(c, "abi")
 	if err != nil {
-		l.Error("the abi path value invalid")
-		return
+		return nil, errors.New("the abi path value invalid")
 	}
 	abiBytes, err := ioutil.ReadFile(abiPath)
 	if err != nil {
-		l.Error("the abi file read err")
-		return
+		return nil, errors.New("the abi file read err")
 	}
+	var wasmAbi utils.WasmAbi
+	err = json.Unmarshal(abiBytes, &wasmAbi)
+	if err != nil {
+		return nil, errors.New("abi file is err")
+	}
+
+	var args []utils.InputParam
+	for _, v := range wasmAbi.AbiArr {
+		if strings.EqualFold("init", v.Name) && strings.EqualFold(v.Type, "function") {
+			args = v.Inputs
+			if len(v.Outputs) != 0 {
+				return nil, errors.New("invalid init function outputs length")
+			}
+			break
+		}
+	}
+
+	input := getRpcSpecialParam(c, "input")
+	params := getRpcParamFromString(input)
+	if len(params) != len(args) {
+		l.Error("not enough create contract params")
+	}
+
 	wasmPath, err := getRpcParamValue(c, "wasm")
 	if err != nil {
 		l.Error("the wasm path value invalid")
@@ -641,18 +755,81 @@ func generateExtraData(c *cli.Context)(ExtraData []byte, err error) {
 		l.Error("the abi file read err")
 		return
 	}
-	input := getRpcSpecialParam(c, "input")
-	inputRlp, err := geneteInputRlpBytes(input)
+
+	rlpParams := []interface{}{
+		strconv.Itoa(common.AddressTypeContractCreate),wasmBytes, abiBytes,
+	}
+
+	for i, v := range args {
+		bts := params[i]
+		switch v.Type {
+		case "string":
+			rlpParams = append(rlpParams, bts)
+		case "int8":
+			result, err  := strconv.ParseInt(bts,10,8)
+			if err != nil {
+				return nil, errors.New("contract param type is wrong")
+			}
+			rlpParams = append(rlpParams, result)
+		case "int16":
+			result, err  := strconv.ParseInt(bts,10,16)
+			if err != nil {
+				return nil, errors.New("contract param type is wrong")
+			}
+			rlpParams = append(rlpParams, result)
+		case "int32", "int":
+			result, err  := strconv.ParseInt(bts,10,32)
+			if err != nil {
+				return nil, errors.New("contract param type is wrong")
+			}
+			rlpParams = append(rlpParams, result)
+		case "int64":
+
+			result, err  := strconv.ParseInt(bts,10,64)
+			if err != nil {
+				return nil, errors.New("contract param type is wrong")
+			}
+			rlpParams = append(rlpParams, result)
+		case "uint8":
+			result, err  := strconv.ParseUint(bts,10,8)
+			if err != nil {
+				return nil, errors.New("contract param type is wrong")
+			}
+			rlpParams = append(rlpParams, result)
+		case "uint32", "uint":
+			result, err  := strconv.ParseUint(bts,10,32)
+			if err != nil {
+				return nil, errors.New("contract param type is wrong")
+			}
+			rlpParams = append(rlpParams, result)
+		case "uint64":
+			result, err  := strconv.ParseUint(bts,10,64)
+			if err != nil {
+				return nil, errors.New("contract param type is wrong")
+			}
+			rlpParams = append(rlpParams, result)
+		case "bool":
+			result, err  := strconv.ParseBool(bts)
+			if err != nil {
+				return nil, errors.New("contract param type is wrong")
+			}
+			rlpParams = append(rlpParams, result)
+		}
+	}
+
+	//rlp.EncodeToBytes([]interface{}{common.AddressTypeContractCreate, "init", input })
+	/*inputRlp, err := geneteInputRlpBytes(input)
 	if err != nil {
 		l.Error("input to rlp error")
 		return
 	}
-	ExtraData, err = json.Marshal(vmcommon.CodeAbi{Abi: abiBytes, Code: wasmBytes, Input: inputRlp})
-	return
+	ExtraData, err = json.Marshal(vmcommon.CodeAbi{Abi: abiBytes, Code: wasmBytes, Input: inputRlp})*/
+	//rlpData=RLP([txType][code][abi][init params])
+	return rlp.EncodeToBytes(rlpParams)
 }
+
 func geneteInputRlpBytes(input string) (result  []byte, err error)  {
-	return
-	//return rlp.EncodeToBytes([]interface{}{common.AddressTypeContractCreate, "init", input })
+	return rlp.EncodeToBytes([]interface{}{strconv.Itoa(common.AddressTypeContractCreate), "init", input })
 }
 
 //send transaction

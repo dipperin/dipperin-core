@@ -793,8 +793,8 @@ func (api *DipperinMercuryApi) SendTransaction(from, to common.Address, value, t
     return api.service.SendTransaction(from, to, value, transactionFee, data, nonce)
 }
 
-func (api *DipperinMercuryApi) SendTransactionContractCreate(from, to common.Address,value,gasLimit, gasPrice *big.Int, data []byte, nonce *uint64 ) (common.Hash, error) {
-    return api.service.SendTransactionContractCreate(from,to, value, gasLimit, gasPrice, data, nonce)
+func (api *DipperinMercuryApi) SendTransactionContract(from, to common.Address,value,gasLimit, gasPrice *big.Int, data []byte, nonce *uint64 ) (common.Hash, error) {
+    return api.service.SendTransactionContract(from,to, value, gasLimit, gasPrice, data, nonce)
 }
 
 //send multiple-txs

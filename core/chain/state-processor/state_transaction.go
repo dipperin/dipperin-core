@@ -141,7 +141,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 	}
 	msg := st.msg
 	sender := vm.AccountRef(msg.From())
-	contractCreation := msg.To() == nil
+	contractCreation := msg.To().IsEqual(common.HexToAddress(common.AddressContractCreate))
 
 	// Pay intrinsic gas
 	gas, err := IntrinsicGas(st.data, contractCreation, true)

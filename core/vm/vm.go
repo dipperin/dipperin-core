@@ -83,6 +83,7 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 			}
 			return nil, gas, nil
 		}*/
+
 		vm.state.CreateAccount(addr)
 	}
 	vm.Transfer(vm.state, caller.Address(), to.Address(), value)
