@@ -39,7 +39,7 @@ func InsertReceipts(c *BlockContext) Middleware {
 			if err !=nil{
 				return err
 			}
-			receipts = append(receipts,&receipt)
+			receipts = append(receipts,receipt)
 			return nil
 		});err != nil {
 			return err

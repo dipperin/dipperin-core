@@ -57,7 +57,7 @@ func TestAccountStateDB_GetAccountState(t *testing.T) {
 	assert.NoError(t, err)
 
 	alice, _ := processor.GetAccountState(aliceAddr)
-	assert.Equal(t, alice.Nonce, uint64(1))
+	assert.Equal(t,uint64(1),alice.Nonce)
 	assert.Equal(t, big.NewInt(9000000),alice.Balance)
 }
 
