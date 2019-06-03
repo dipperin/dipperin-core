@@ -11,17 +11,20 @@ type CallCode struct {
 	Input []byte `json:"Input"`
 }
 
-func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block model.AbstractBlock, blockGasLimit *uint64, create bool) (model.ReceiptPara, error) {
-	context := vm.NewVMContext(tx, block)
+func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction,header *model.Header, create bool,GetHash vm.GetHashFunc) (model.ReceiptPara, error) {
+	context := vm.NewVMContext(tx, header,GetHash)
 	fullState := &Fullstate{
 		state: state,
 	}
 	msg, err := tx.AsMessage()
 	if err != nil {
+		log.Error("AccountStateDB#ProcessContract", "as Message err", err)
 		return model.ReceiptPara{}, err
 	}
 	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
-	_, usedGas, failed, err := ApplyMessage(dvm, msg, blockGasLimit)
+	//gasLimit := header.GasLimit
+	gasLimit := uint64(2100000) * 10000000000
+	_, usedGas, failed, err := ApplyMessage(dvm, msg, &gasLimit)
 	if err != nil {
 		log.Error("AccountStateDB#ProcessContract", "ApplyMessage err", err)
 		return model.ReceiptPara{},err
@@ -29,6 +32,7 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, block
 
 	root, err := state.Finalise()
 	if err != nil {
+		log.Error("AccountStateDB#ProcessContract", "state finalise err", err)
 		return model.ReceiptPara{}, err
 	}
 	return model.ReceiptPara{

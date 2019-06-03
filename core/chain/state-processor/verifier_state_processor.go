@@ -122,7 +122,7 @@ func (state *AccountStateDB) MoveStakeToAddress(fromAdd common.Address, toAdd co
 * Process verifier related transactions
 * Include AddPeerSet(Stake), Evidence, Cancel, UnStake
 
-* Process register tx
+* Process register Tx
 * Stake some money
   */
 func (state *AccountStateDB) processStakeTx(tx model.AbstractTransaction) (err error) {
@@ -150,14 +150,14 @@ func (state *AccountStateDB) processStakeTx(tx model.AbstractTransaction) (err e
 	if err != nil {
 		return
 	}
-	pbft_log.Info("success process a register transaction", "tx hash", tx.CalTxId().Hex())
+	pbft_log.Info("success process a register transaction", "Tx hash", tx.CalTxId().Hex())
 
 	//TODO add receipt?
 	return
 }
 
 /*
-Process cancel tx, num is processing block num
+Process cancel Tx, num is processing block num
  */
 func (state *AccountStateDB) processCancelTx(tx model.AbstractTransaction, num uint64) (err error) {
 	//Check
@@ -190,14 +190,14 @@ func (state *AccountStateDB) processCancelTx(tx model.AbstractTransaction, num u
 	if err != nil {
 		return
 	}
-	pbft_log.Info("success process a cancel transaction", "tx hash", tx.CalTxId().Hex())
+	pbft_log.Info("success process a cancel transaction", "Tx hash", tx.CalTxId().Hex())
 
 	//TODO add receipt return?
 	return
 }
 
 /*
-Process UnStake tx
+Process UnStake Tx
 Un stake money
  */
 func (state *AccountStateDB) processUnStakeTx(tx model.AbstractTransaction) (err error) {
@@ -232,14 +232,14 @@ func (state *AccountStateDB) processUnStakeTx(tx model.AbstractTransaction) (err
 	if err != nil {
 		return
 	}
-	pbft_log.Info("success process a unStake transaction", "tx hash", tx.CalTxId().Hex())
+	pbft_log.Info("success process a unStake transaction", "Tx hash", tx.CalTxId().Hex())
 
 	//TODO add receipt return?
 	return
 }
 
 /*
-Process Evidence tx
+Process Evidence Tx
 Punish target account
 Move all target account stake to the sender of this transaction
 */

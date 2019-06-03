@@ -17,7 +17,6 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -28,6 +27,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-metrics"
 	"github.com/dipperin/dipperin-core/common/g-timer"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/core/chain-communication"
@@ -39,18 +39,14 @@ import (
 	"github.com/dipperin/dipperin-core/core/mine/minemaster"
 	"github.com/dipperin/dipperin-core/core/mine/mineworker"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
-	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 	"os"
-	"reflect"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -85,6 +81,8 @@ type Chain interface {
 	CurrentHeader() model.AbstractHeader
 
 	GetEconomyModel() economy_model.EconomyModel
+
+	GetReceipts(hash common.Hash, number uint64)model2.Receipts
 }
 
 type TxPool interface {
@@ -578,7 +576,7 @@ func (service *MercuryFullChainService) SendTransactions(from common.Address, rp
 
 	txs := make([]model.AbstractTransaction, 0)
 	for _, item := range rpcTxs {
-		tx := model.NewTransaction(item.Nonce, item.To, item.Value, item.TransactionFee, item.Data)
+		tx := model.NewTransaction(item.Nonce, item.To, item.Value,item.TransactionFee,item.Data)
 		signedTx, err := tmpWallet.SignTx(fromAccount, tx, service.ChainConfig.ChainId)
 		if err != nil {
 			log.Info("send Transactions SignTx:", "err", err)
@@ -670,7 +668,7 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 			log.Error("MercuryFullChainService#SendTransactionContract get contract code err", "err", err )
 			return common.Hash{}, err
 		}
-		extraData, err = ParseAndGetRlpData(code, data)
+		extraData, err = vmcommon.ParseAndGetRlpData(code, data)
 		if err != nil {
 			return common.Hash{}, err
 		}
@@ -707,142 +705,6 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 	log.Info("the SendTransaction txId is: ", "txId", txHash.Hex(), "txSize", signTx.Size())
 	return txHash, nil
 }
-
-
-//  RLP([txType][code][abi][init params])
-func ParseAndGetRlpData(rlpData []byte, input []byte) (extraData []byte, err error)   {
-
-	inputPtr := new(interface{})
-	err = rlp.Decode(bytes.NewReader(input), &inputPtr)
-	if err != nil {
-		return
-	}
-	inputRlpList := reflect.ValueOf(inputPtr).Elem().Interface()
-	if _,ok := inputRlpList.([]interface{}); !ok {
-		return nil,errors.New("call contract: invalid input param")
-	}
-	inRlpList := inputRlpList.([]interface{})
-	var funcName string
-	if v,ok := inRlpList[0].([]byte); ok {
-		funcName = string(v)
-	}
-
-	var paramStr string
-	if v,ok := inRlpList[1].([]byte); ok {
-		paramStr = string(v)
-	}
-
-	params := strings.Split(paramStr, ",")
-
-
-	ptr := new(interface{})
-	err = rlp.Decode(bytes.NewReader(rlpData), &ptr)
-	if err != nil {
-		return
-	}
-	rlpList := reflect.ValueOf(ptr).Elem().Interface()
-
-	if _, ok := rlpList.([]interface{}); !ok {
-		return nil, errors.New("call contract: invalid rlp format")
-	}
-
-	iRlpList := rlpList.([]interface{})
-	if len(iRlpList) <= 2 {
-		return nil, errors.New("invalid input, ele must greater than 2")
-	}
-	var (
-		abi    []byte
-	)
-
-	if v, ok := iRlpList[2].([]byte); ok {
-		abi = v
-	}
-
-	wasmAbi := new(utils.WasmAbi)
-	err = wasmAbi.FromJson(abi)
-	if err != nil {
-		return nil, errors.New("interpreter_life: invalid abi, encoded fail")
-	}
-
-
-	var args []utils.InputParam
-	for _, v := range wasmAbi.AbiArr {
-		if strings.EqualFold(funcName, v.Name) && strings.EqualFold(v.Type, "function") {
-			args = v.Inputs
-			break
-		}
-	}
-
-
-	if len(args) != len(params) {
-		return nil, errors.New("interpreter_life: length of input and abi not match")
-	}
-
-	rlpParams := []interface{}{
-		funcName,
-	}
-
-	for i, v := range args {
-		bts := params[i]
-		switch v.Type {
-		case "string":
-			rlpParams = append(rlpParams, bts)
-		case "int8":
-			result, err  := strconv.ParseInt(bts,10,8)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "int16":
-			result, err  := strconv.ParseInt(bts,10,16)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "int32", "int":
-			result, err  := strconv.ParseInt(bts,10,32)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "int64":
-
-			result, err  := strconv.ParseInt(bts,10,64)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "uint8":
-			result, err  := strconv.ParseUint(bts,10,8)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "uint32", "uint":
-			result, err  := strconv.ParseUint(bts,10,32)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "uint64":
-			result, err  := strconv.ParseUint(bts,10,64)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "bool":
-			result, err  := strconv.ParseBool(bts)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		}
-	}
-
-	return rlp.EncodeToBytes(rlpParams)
-}
-
-
 
 //send a register transaction
 func (service *MercuryFullChainService) SendRegisterTransaction(from common.Address, stake, fee *big.Int, nonce *uint64) (common.Hash, error) {
@@ -1673,4 +1535,18 @@ func (service *MercuryFullChainService) StopDipperin() {
 		time.Sleep(1 * time.Second)
 		os.Exit(0)
 	}()
+}
+
+//add get tx receipt
+func (service *MercuryFullChainService)TransactionReceipt(txHash common.Hash) (model2.Receipts,error){
+	_,blockHash,blockNumber,_,err:=service.Transaction(txHash)
+	if err !=nil{
+		return nil,err
+	}
+
+	receipts:=service.ChainReader.GetReceipts(blockHash,blockNumber)
+	if receipts == nil{
+		return nil,g_error.ErrReceiptIsNil
+	}
+	return receipts,nil
 }

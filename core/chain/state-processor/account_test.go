@@ -161,6 +161,9 @@ func TestAccountStateDB_RevertToSnapshot4(t *testing.T){
 	assert.Equal(t,true,processor.smartContractData[aliceAddr]==nil)
 }
 
+func fakeGetBlockHash(number uint64) common.Hash{
+	return common.Hash{}
+}
 func TestContractCreate(t *testing.T){
 	db := ethdb.NewMemDatabase()
 	tdb := NewStateStorageWithCache(db)
@@ -174,9 +177,15 @@ func TestContractCreate(t *testing.T){
 	fmt.Println(nonce)
 	tx := FakeContract(t)
 
-	blockGas := uint64(100000000)
+	//blockGas := uint64(100000000)
 	block := model.NewBlock(model.NewHeader(1, 10, common.Hash{}, common.HexToHash("1111"), common.HexToDiff("0x20ffffff"), big.NewInt(324234), common.Address{}, common.BlockNonceFromInt(432423)),nil,nil)
-	_,err:=processor.ProcessTxNew(tx,block, &blockGas)
+	conf := TxProcessConfig{
+		Tx:tx,
+		TxIndex:0,
+		Header:block.Header().(*model.Header),
+		GetHash:fakeGetBlockHash,
+	}
+	err:=processor.ProcessTxNew(&conf)
 	assert.NoError(t,err)
 }
 

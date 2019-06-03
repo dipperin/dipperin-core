@@ -25,6 +25,7 @@ import (
     "github.com/dipperin/dipperin-core/core/contract"
     "github.com/dipperin/dipperin-core/core/economy-model"
     "github.com/dipperin/dipperin-core/core/model"
+    model2 "github.com/dipperin/dipperin-core/core/vm/model"
     "github.com/dipperin/dipperin-core/third-party/log"
     "github.com/dipperin/dipperin-core/common/util"
     "context"
@@ -1207,3 +1208,9 @@ func (api *DipperinMercuryApi) SubscribeBlock(ctx context.Context) (*rpc.Subscri
 func (api *DipperinMercuryApi) StopDipperin() {
     api.service.StopDipperin()
 }
+
+//get tx receipt
+func (api *DipperinMercuryApi) TransactionReceipt(txHash common.Hash) (model2.Receipts,error){
+    return api.service.TransactionReceipt(txHash)
+}
+

@@ -66,16 +66,26 @@ func NewBlockProcessor(fullChain AccountDBChainReader, preStateRoot common.Hash,
 	}, nil
 }
 
+func (state *BlockProcessor) GetBlockHashByNumber(number uint64) common.Hash{
+	return state.fullChain.GetBlockByNumber(number).Hash()
+}
+
 func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel economy_model.EconomyModel) (err error) {
 	mpt_log.Debug("AccountStateDB Process begin~~~~~~~~~~~~~~", "pre state", state.PreStateRoot().Hex(),"blockId",block.Hash().Hex())
 
 	state.economyModel = economyModel
-	blockGasLimit := block.Header().GetGasLimit()
+	blockHeader := block.Header().(*model.Header)
 	// special block doesn't process txs
 	if !block.IsSpecial() {
 		if err = block.TxIterator(func(i int, tx model.AbstractTransaction) (error) {
 			tx.PaddingTxIndex(i)
-			_, innerError := state.ProcessTxNew(tx, block, &blockGasLimit)
+			conf := state_processor.TxProcessConfig{
+				Tx:tx,
+				TxIndex:i,
+				Header:blockHeader,
+				GetHash:state.GetBlockHashByNumber,
+			}
+			innerError := state.ProcessTxNew(&conf)
 			/*// unrecognized tx means no processing of the tx
 			if innerError == g_error.UnknownTxTypeErr {
 				log.Warn("unknown tx type", "type", tx.GetType())

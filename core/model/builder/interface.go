@@ -23,7 +23,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 )
@@ -36,7 +35,6 @@ type Chain interface {
 	CurrentBlock() model.AbstractBlock
 	GetBlockByNumber(number uint64) model.AbstractBlock
 	GetVerifiers(round uint64) []common.Address
-	StateAtByBlockNumber(num uint64) (*state_processor.AccountStateDB, error)
 
 	IsChangePoint(block model.AbstractBlock, isProcessPackageBlock bool) bool
 	GetLastChangePoint(block model.AbstractBlock) *uint64

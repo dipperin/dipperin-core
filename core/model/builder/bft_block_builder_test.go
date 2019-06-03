@@ -23,7 +23,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/cachedb"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/cs-chain"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
@@ -184,10 +183,6 @@ func (f *fakeChainReader) GetBlockByNumber(number uint64) model.AbstractBlock {
 }
 
 func (f *fakeChainReader) GetVerifiers(round uint64) []common.Address {
-	panic("implement me")
-}
-
-func (f *fakeChainReader) StateAtByBlockNumber(num uint64) (*state_processor.AccountStateDB, error) {
 	panic("implement me")
 }
 

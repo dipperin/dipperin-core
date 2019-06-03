@@ -18,7 +18,6 @@ package commands
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
@@ -723,7 +722,8 @@ func generateExtraData(c *cli.Context)(ExtraData []byte, err error) {
 		return nil, errors.New("the abi file read err")
 	}
 	var wasmAbi utils.WasmAbi
-	err = json.Unmarshal(abiBytes, &wasmAbi)
+	err = wasmAbi.FromJson(abiBytes)
+	//err = json.Unmarshal(abiBytes, &wasmAbi.AbiArr)
 	if err != nil {
 		return nil, errors.New("abi file is err")
 	}
@@ -1764,6 +1764,11 @@ func (caller *rpcCaller) GetAddressNonceFromWallet(c *cli.Context) {
 	l.Info("the address nonce from wallet is:", "nonce", nonce)
 }
 
+//get tx receipt
+func (caller *rpcCaller) GetTxReceipt(c *cli.Context){
+
+}
+
 func initWallet(path, password, passPhrase string) (err error) {
 
 	var identifier accounts.WalletIdentifier
@@ -1862,7 +1867,6 @@ func RecordRegistration(txHash string) {
 	}), 0644); err != nil {
 		l.Error("can't record registration")
 	}
-
 }
 
 // remove file after unregister transaction

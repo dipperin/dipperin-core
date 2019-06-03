@@ -54,8 +54,8 @@ func (cw *BftChainWriter) SaveBlock() error {
 	c.Use(middleware.UpdateStateRoot(&c.BlockContext))
 
 	c.Use(middleware.UpdateBlockVerifier(&c.BlockContext))
-	c.Use(middleware.InsertBlock(&c.BlockContext))
 	c.Use(middleware.InsertReceipts(&c.BlockContext))
+	c.Use(middleware.InsertBlock(&c.BlockContext))
 
 	// after insert block, update verifier
 	c.Use(middleware.NextRoundVerifier(&c.BlockContext))

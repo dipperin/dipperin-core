@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/dipperin/service"
+	"github.com/dipperin/dipperin-core/common/vmcommon"
+	"github.com/dipperin/dipperin-core/core/accounts"
+	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
@@ -22,7 +25,7 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	if err != nil {
 		log.Info("TestAccountStateDB_ProcessContract", "err", err)
 	}
-	log.Info("processContract", "tx", tx)
+	log.Info("processContract", "Tx", tx)
 
 	tx.PaddingTxIndex(0)
 	block := createBlock(1,common.Hash{},[]*model.Transaction{&tx} )
@@ -33,18 +36,19 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 
 	processor.NewAccountState(ownAddress)
 	err = processor.AddNonce(ownAddress, 0)
-	processor.AddBalance(ownAddress,  new(big.Int).SetInt64(int64(1000000000000000)))
+	processor.AddBalance(ownAddress,  new(big.Int).SetInt64(int64(1000000000000000000)))
 
 	assert.NoError(t,err)
-	//balance, err := processor.GetBalance(ownAddress)
-	//nonce, err := processor.GetNonce(ownAddress)
-	//log.Info("balance", "balance", balance.String())
+	balance, err := processor.GetBalance(ownAddress)
+	nonce, err := processor.GetNonce(ownAddress)
+	log.Info("balance", "balance", balance.String())
 	//log.Info("nonce", "nonce", nonce, "tx.nonce", tx.Nonce())
 
-	gasLimit := gasLimit * 1000000000
+	gasLimit := gasLimit * 10000000000
 	log.Info("gasLimit", "gasLimit", gasLimit)
 
-	receipt, err := processor.ProcessContract(&tx, block, &gasLimit, true)
+
+	receipt, err := processor.ProcessContract(&tx, block.Header().(*model.Header), true,fakeGetBlockHash)
 	assert.NoError(t, err)
 	log.Info("result", "receipt", receipt)
 	assert.Equal(t, true, receipt.HandlerResult)
@@ -57,15 +61,51 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, code, tx.ExtraData())
 
-	newContractCallTx(ownAddress, receiptResult.ContractAddress, new(big.Int).SetUint64(1),uint64(15000), "hello", "name")
 
+
+    sw, err := soft_wallet.NewSoftWallet()
+    sw.Open("/Users/konggan/tmp/dipperin_apps/node/CSWallet", "CSWallet","123")
+
+
+	callTx, err := newContractCallTx(nil, &receiptResult.ContractAddress, new(big.Int).SetUint64(1),uint64(1500000), "hello", "name", nonce+1, code)
+	account := accounts.Account{ownAddress}
+	signCallTx, err := sw.SignTx(account, callTx, nil )
+
+
+
+	assert.NoError(t, err)
+	callTx.PaddingTxIndex(0)
+	block2 := createBlock(2,common.Hash{},[]*model.Transaction{signCallTx} )
+	log.Info("callTx info", "callTx", callTx)
+	callRecipt, err := processor.ProcessContract(signCallTx, block2.Header().(*model.Header), false,fakeGetBlockHash)
+	assert.NoError(t, err)
+	log.Info("TestAccountStateDB_ProcessContract2", "callRecipt", callRecipt, "err", err)
 
 }
 
-func newContractCallTx(from common.Address, to common.Address, gasPrice *big.Int, gasLimit uint64, funcName string, input string, nonce uint64, data []byte, code []byte)  {
-	service.ParseAndGetRlpData()
-	model.NewTransactionSc(nonce,to,nil,gasPrice, gasLimit,)
+func newContractCallTx(from *common.Address, to *common.Address, gasPrice *big.Int, gasLimit uint64, funcName string, input string, nonce uint64, code []byte) (tx *model.Transaction, err error)  {
+	// RLP([funcName][params])
+	inputRlp,err := rlp.EncodeToBytes([]interface{}{
+		funcName,input,
+	})
+	if err != nil {
+		log.Error("input rlp err")
+		return
+	}
+
+	extraData, err := vmcommon.ParseAndGetRlpData(code, inputRlp)
+
+
+	if err != nil {
+		log.Error("ParseAndGetRlpData  inputRlp", "err", err)
+		return
+	}
+
+	tx = model.NewTransactionSc(nonce,to,nil,gasPrice, gasLimit, extraData)
+	return tx, nil
 }
+
+
 
 func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	var testPath = "../../vm/event"
@@ -76,12 +116,15 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	assert.NoError(t, err)
 
 	block := createBlock(1, common.Hash{}, []*model.Transaction{tx})
-	gasPool := gasLimit*5
-	receipt, err := processor.ProcessTxNew(tx, block, &gasPool)
+	//gasPool := gasLimit*5
+	conf := TxProcessConfig{
+		Tx:tx,
+		TxIndex:0,
+		Header:block.Header().(*model.Header),
+		GetHash:fakeGetBlockHash,
+	}
+	err = processor.ProcessTxNew(&conf)
 	assert.NoError(t, err)
-	assert.NotNil(t, receipt)
-	//assert.Equal(t, true, receipt.HandlerResult)
-	fmt.Println(receipt)
 
 	fullReceipt,err:= tx.GetReceipt()
 	assert.NoError(t, err)

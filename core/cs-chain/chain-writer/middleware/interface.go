@@ -25,6 +25,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/dipperin/dipperin-core/core/chain"
 )
@@ -58,6 +59,7 @@ type StateReader interface {
 	HasHeader(hash common.Hash, number uint64) bool
 	GetBlockNumber(hash common.Hash) *uint64
 	GetTransaction(txHash common.Hash) (model.AbstractTransaction, common.Hash, uint64, uint64)
+	GetReceipts(hash common.Hash, number uint64)model2.Receipts
 
 	GetLatestNormalBlock() model.AbstractBlock
 
