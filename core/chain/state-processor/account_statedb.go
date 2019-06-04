@@ -1146,6 +1146,12 @@ func (state *AccountStateDB) Finalise() (result common.Hash, err error) {
 		return result, err
 	}
 
+	if err := state.finalSmartData(); err != nil{
+		mpt_log.Debug("Finalise smart data failed", "err", err, "pre state", state.preStateRoot.Hex())
+		result = common.Hash{}
+		return result, err
+	}
+
 
 	state.alreadyFinalised = true
 	fmt.Println("CCCCCCC Finalise called state.alreadyFinalised",state.alreadyFinalised)
@@ -1168,6 +1174,12 @@ func (state *AccountStateDB) IntermediateRoot() (result common.Hash, err error) 
 		mpt_log.Debug("Finalise failed", "err", err, "pre state", state.preStateRoot.Hex())
 		result = common.Hash{}
 		return result,err
+	}
+
+	if err := state.finalSmartData(); err != nil{
+		mpt_log.Debug("Finalise smart data failed", "err", err, "pre state", state.preStateRoot.Hex())
+		result = common.Hash{}
+		return result, err
 	}
 
 	result, err = state.blockStateTrie.Commit(nil)
@@ -1206,47 +1218,6 @@ func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint
 	}
 	return
 }
-
-//todo these processes are removed afterwards。
-// todo Write a unit test for each transaction to cover all situations
-
-/*func (state *AccountStateDB) ProcessTxNew(Tx model.AbstractTransaction, block model.AbstractBlock, blockGasLimit *uint64) (par model.ReceiptPara, err error) {
-
-	if Tx.GetType() == common.AddressTypeContract || Tx.GetType() == common.AddressTypeContractCreate {
-		par, err = state.ProcessContract(Tx, block, blockGasLimit, Tx.GetType()==common.AddressTypeContractCreate)
-	} else {
-		// All normal transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
-		err = state.processBasicTx(Tx)
-		if err != nil {
-			log.Debug("processBasicTx failed", "err", err)
-			return
-		}
-		switch Tx.GetType() {
-		case common.AddressTypeNormal:
-			err = state.processNormalTx(Tx)
-		case common.AddressTypeCross:
-			err = state.processCrossTx(Tx)
-		case common.AddressTypeERC20:
-			err = state.processERC20Tx(Tx, block.Number())
-			// Verifier relate transaction processor
-		case common.AddressTypeStake:
-			err = state.processStakeTx(Tx)
-		case common.AddressTypeCancel:
-			err = state.processCancelTx(Tx, block.Number())
-		case common.AddressTypeUnStake:
-			err = state.processUnStakeTx(Tx)
-		case common.AddressTypeEvidence:
-			err = state.processEvidenceTx(Tx)
-		case common.AddressTypeEarlyReward:
-			err = state.processEarlyTokenTx(Tx, block.Number())
-		default:
-			err = g_error.UnknownTxTypeErr
-		}
-	}
-
-	_,err=Tx.PaddingReceipt(par)
-	return
-}*/
 
 func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *model.ReceiptPara) error {
 	if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContract {
