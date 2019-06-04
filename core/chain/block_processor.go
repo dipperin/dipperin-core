@@ -17,16 +17,16 @@
 package chain
 
 import (
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"reflect"
-	"github.com/dipperin/dipperin-core/core/economy-model"
-	"github.com/dipperin/dipperin-core/third-party/log/mpt_log"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"github.com/dipperin/dipperin-core/core/contract"
+	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/core/contract"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/third-party/log/mpt_log"
+	"reflect"
 )
 
 var (
@@ -200,6 +200,7 @@ func (state *BlockProcessor) doRewards(block model.AbstractBlock) (err error) {
 	if err != nil {
 		return
 	}
+
 	earlyContract := earlyContractV.Interface().(*contract.EarlyRewardContract)
 
 	earlyContract.AccountDB = state

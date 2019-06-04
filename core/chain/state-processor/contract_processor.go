@@ -28,7 +28,7 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, heade
 		return model.ReceiptPara{}, err
 	}
 
-	root, err := state.Finalise()
+	root, err := state.IntermediateRoot()
 	if err != nil {
 		log.Debug("Process Contract failed", "err", err)
 		return model.ReceiptPara{}, err

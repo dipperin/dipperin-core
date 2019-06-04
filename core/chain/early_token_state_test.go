@@ -18,15 +18,16 @@
 package chain
 
 import (
+	"fmt"
+	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/mpt_log"
-	"testing"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"reflect"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"testing"
 )
 
 
@@ -37,7 +38,6 @@ test foundation contract execution is correct
 */
 
 func TestProcessEarlyContract(t *testing.T) {
-	t.Skip()
 	mpt_log.InitMptLogger(log.LvlDebug, "TestProcessEarlyContract", true)
 
 	eModel := economy_model.MakeDipperinEconomyModel(&earlyContractFakeChainService{}, economy_model.DIPProportion)
@@ -53,6 +53,11 @@ func TestProcessEarlyContract(t *testing.T) {
 	err = aStateDB.Process(tmpB, eModel)
 	assert.NoError(t, err)
 
+	hash, err:=aStateDB.Finalise()
+	assert.NoError(t,err)
+	fmt.Println(hash.Hex())
+
+
 	//the root of finalise and commit
 	fHash, err := aStateDB.Finalise()
 	assert.NoError(t, err)
@@ -60,19 +65,25 @@ func TestProcessEarlyContract(t *testing.T) {
 	// start with kv db completely
 	trDB = state_processor.NewStateStorageWithCache(kvDB)
 	aStateDB, err = NewBlockProcessor(cReader, originStateRoot, trDB)
+	fmt.Println("1111111111111",aStateDB.Finalised())
 	assert.NoError(t, err)
 	err = aStateDB.Process(tmpB, eModel)
 	assert.NoError(t, err)
 
 	// Do a commit, then take the contract data from kvDB
+	fmt.Println("22222222222222",aStateDB.Finalised())
 	cHash, err := aStateDB.Commit()
+	fmt.Println("333333333333333",aStateDB.Finalised())
 	assert.NoError(t, err)
 	assert.Equal(t, fHash, cHash)
 
 	// Take out contract data from KVDB
 	trDB = state_processor.NewStateStorageWithCache(kvDB)
 	aStateDB, err = NewBlockProcessor(cReader, cHash, trDB)
+	fmt.Println("44444444444444",aStateDB.Finalised())
 	assert.NoError(t, err)
+
+
 	earlyTCV, err := aStateDB.GetContract(contract.EarlyContractAddress, reflect.TypeOf(contract.EarlyRewardContract{}))
 	assert.NoError(t, err)
 

@@ -299,7 +299,6 @@ func (earlyToken *EarlyRewardContract) RewardMineMaster(DIPReward *big.Int, bloc
 
 	earlyToken.Balances[rewardAddress.Hex()].Add(earlyToken.Balances[rewardAddress.Hex()], rewardEDIP)
 	earlyToken.Balances[earlyToken.Owner.Hex()].Sub(earlyToken.Balances[earlyToken.Owner.Hex()], rewardEDIP)
-
 	return nil
 }
 

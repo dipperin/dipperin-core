@@ -114,6 +114,7 @@ func (state *AccountStateDB) GetContract(addr common.Address, vType reflect.Type
 		return
 	}
 
+
 	//log.Info("get contract", "addr", addr)
 	kv, err := state.getContractKV(addr)
 	if err != nil {
@@ -185,6 +186,7 @@ func NewAccountStateDB(preStateRoot common.Hash, db StateStorage) (*AccountState
 		finalisedContractRoot: map[common.Address]common.Hash{},
 		stateChangeList:       newStateChangeList(),
 		logs:                  map[common.Hash][]*model2.Log{},
+		alreadyFinalised:      false,
 	}
 	return stateDB, nil
 }
@@ -376,24 +378,8 @@ func (state *AccountStateDB) GetLastElect(addr common.Address) (uint64, error) {
 	return res, nil
 }
 
-//func (state *AccountStateDB) GetContractRoot(addr common.Address) (common.Hash, error) {
-//    empty := state.IsEmptyAccount(addr)
-//    if empty {
-//        return common.Hash{}, g_error.AccountNotExist
-//    }
-//    res := common.Hash{}
-//    enc, err1 := state.blockStateTrie.TryGet(GetContractRootKey(addr))
-//    if err1 != nil {
-//        return res, err1
-//    }
-//    err2 := rlp.DecodeBytes(enc, &res)
-//    if err2 != nil {
-//        return res, err2
-//    }
-//    return res, nil
-//}
-
 func (state *AccountStateDB) GetDataRoot(addr common.Address) (common.Hash, error) {
+
 	empty := state.IsEmptyAccount(addr)
 	if empty {
 		return common.Hash{}, g_error.AccountNotExist
@@ -401,12 +387,10 @@ func (state *AccountStateDB) GetDataRoot(addr common.Address) (common.Hash, erro
 	res := common.Hash{}
 	enc, err1 := state.blockStateTrie.TryGet(GetDataRootKey(addr))
 	if err1 != nil {
+
 		return res, err1
 	}
-	err2 := rlp.DecodeBytes(enc, &res)
-	if err2 != nil {
-		return res, err2
-	}
+	res = common.BytesToHash(enc)
 	return res, nil
 }
 func (state *AccountStateDB) GetStake(addr common.Address) (*big.Int, error) {
@@ -906,10 +890,6 @@ func (state *AccountStateDB) newAccountState(addr common.Address) (acc *account,
 	if err != nil {
 		return nil, err
 	}
-	//err = state.blockStateTrie.TryUpdate(GetContractRootKey(addr), tempAccount.ContractRootBytes())
-	//if err != nil {
-	//    return nil, err
-	//}
 	err = state.blockStateTrie.TryUpdate(GetDataRootKey(addr), tempAccount.DataRootBytes())
 	if err != nil {
 		return nil, err
@@ -950,10 +930,6 @@ func (state *AccountStateDB) deleteAccountState(addr common.Address) (err error)
 	if err != nil {
 		return err
 	}
-	/*err = state.blockStateTrie.TryDelete(GetContractRootKey(addr))
-	if err != nil {
-		return err
-	}*/
 	err = state.blockStateTrie.TryDelete(GetDataRootKey(addr))
 	if err != nil {
 		return err
@@ -1048,6 +1024,7 @@ func (state *AccountStateDB) GetAccountState(addr common.Address) (*account, err
 // commit contract data
 func (state *AccountStateDB) commitContractData() error {
 	for addr, root := range state.finalisedContractRoot {
+		fmt.Println("commit contract", "addr", addr.Hex(), "root", root.Hex(), "pre state", state.preStateRoot.Hex())
 		mpt_log.Debug("commit contract", "addr", addr.Hex(), "root", root.Hex(), "pre state", state.preStateRoot.Hex())
 		//log.Info("commit contract trie", "root", root.Hex())
 		if err := state.contractTrieCache.TrieDB().Commit(root, false); err != nil {
@@ -1122,6 +1099,10 @@ func (state *AccountStateDB) finalised() bool {
 	return state.alreadyFinalised
 }
 
+func (state *AccountStateDB) Finalised() bool {
+	return state.alreadyFinalised
+}
+
 func (state *AccountStateDB) finaliseContractData() error {
 	for addr, data := range state.contractData {
 		ct, err := state.putContractDataToTrie(addr, util.StringifyJsonToBytes(data.Interface()))
@@ -1150,7 +1131,6 @@ func (state *AccountStateDB) finaliseContractData() error {
 // Doing a trie commit logic here is more complicated, so don't consider committing for the time being.
 // If finalised, don't change any state outside, otherwise there will be problems.
 func (state *AccountStateDB) Finalise() (result common.Hash, err error) {
-
 	if state.finalised() {
 		result = state.blockStateTrie.Hash()
 		mpt_log.Debug("Finalise", "cur root", result.Hex(), "pre state", state.preStateRoot.Hex())
@@ -1166,10 +1146,31 @@ func (state *AccountStateDB) Finalise() (result common.Hash, err error) {
 		return result, err
 	}
 
-	state.alreadyFinalised = true
 
+	state.alreadyFinalised = true
+	fmt.Println("CCCCCCC Finalise called state.alreadyFinalised",state.alreadyFinalised)
 	result, err = state.blockStateTrie.Commit(nil)
 	mpt_log.Debug("Finalise", "cur root", result.Hex(), "pre state", state.preStateRoot.Hex())
+	return
+}
+
+func (state *AccountStateDB) IntermediateRoot() (result common.Hash, err error) {
+	if state.finalised() {
+		result = state.blockStateTrie.Hash()
+		mpt_log.Debug("Finalise", "cur root", result.Hex(), "pre state", state.preStateRoot.Hex())
+		return result,nil
+	}
+	// finalise contracts
+	if err := state.finaliseContractData(); err != nil {
+		// change blockStateTrie to origin pre hash？
+		// If you want, clear the finalised contract root. But it is best to discard the AccountStateDB directly after the error is reported.
+		//state.resetThisStateDB()
+		mpt_log.Debug("Finalise failed", "err", err, "pre state", state.preStateRoot.Hex())
+		result = common.Hash{}
+		return result,err
+	}
+
+	result, err = state.blockStateTrie.Commit(nil)
 	return
 }
 
@@ -1252,7 +1253,7 @@ func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *
 		return nil
 	}
 
-	root, err := state.Finalise()
+	root, err := state.IntermediateRoot()
 	if err != nil {
 		return err
 	}
