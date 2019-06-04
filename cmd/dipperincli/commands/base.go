@@ -52,4 +52,6 @@ var rpcFlags = []cli.Flag{
 	cli.StringFlag{Name: "abi", Usage:"abi path"},
 	cli.StringFlag{Name: "wasm", Usage:"wasm path"},
 	cli.StringFlag{Name: "input", Usage: "contract params"},
+	cli.BoolFlag{Name:   "isCreate", Usage: "create contract or not"},
+	cli.StringFlag{Name: "funcName", Usage: "call function name"},
 }

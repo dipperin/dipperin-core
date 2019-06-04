@@ -49,6 +49,7 @@ const (
 	AddressTypeCancel         = 0x0003
 	AddressTypeUnStake        = 0x0004
 	AddressTypeEvidence       = 0x0005
+	AddressTypeUnNormal       = 0x0009
 	AddressTypeERC20          = 0x0010
 	AddressTypeEarlyReward    = 0x0011
 	AddressTypeContractCreate = 0x0012
@@ -85,6 +86,7 @@ const (
 	AddressCancel         = "0x00030000000000000000000000000000000000000000"
 	AddressUnStake        = "0x00040000000000000000000000000000000000000000"
 	AddressContractCreate = "0x00120000000000000000000000000000000000000000"
+	AddressUnNormal       = "0x00090000000000000000000000000000000000000000"
 )
 
 // Dipperin hash

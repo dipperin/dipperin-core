@@ -293,7 +293,7 @@ func TestCalculator_GetElectPriority_Multi(t *testing.T) {
 		resultMap[j] = jAccounts
 		//baseHashStr = GenerateNewStr(baseHashStr+strconv.Itoa(int(j)))
 	}
-	PrintAccountElectResult(resultMap, round, stakeCount, topVerifierNum)
+	//PrintAccountElectResult(resultMap, round, stakeCount, topVerifierNum)
 }
 
 func generateNormalPerformance(performance uint) uint64 {

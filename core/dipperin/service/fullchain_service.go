@@ -27,6 +27,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-metrics"
 	"github.com/dipperin/dipperin-core/common/g-timer"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/core/chain-communication"
@@ -648,7 +649,7 @@ func (service *MercuryFullChainService) SendTransaction(from, to common.Address,
 	return txHash, nil
 }
 
-func (service *MercuryFullChainService) SendTransactionContractCreate(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
+func (service *MercuryFullChainService) SendTransactionContract(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
 	//start:=time.Now()
 	// automatic transfer need this
 	if from.IsEqual(common.Address{}) {
@@ -658,6 +659,22 @@ func (service *MercuryFullChainService) SendTransactionContractCreate(from, to c
 		}
 	}
 
+	var extraData []byte
+
+	if !to.IsEqual(common.HexToAddress(common.AddressContractCreate)){
+		state, err := service.ChainReader.CurrentState()
+		code, err := state.GetCode(to)
+		if err != nil {
+			log.Error("MercuryFullChainService#SendTransactionContract get contract code err", "err", err )
+			return common.Hash{}, err
+		}
+		extraData, err = vmcommon.ParseAndGetRlpData(code, data)
+		if err != nil {
+			return common.Hash{}, err
+		}
+	} else {
+		extraData = data
+	}
 	//log.Info("send Transaction the nonce is:", "nonce", nonce)
 
 	tmpWallet, usedNonce, err := service.getSendTxInfo(from, nonce)
@@ -666,7 +683,7 @@ func (service *MercuryFullChainService) SendTransactionContractCreate(from, to c
 		return common.Hash{}, err
 	}
 
-	tx := model.NewTransactionSc(usedNonce, &to, value, gasPrice, gasLimit.Uint64(), data)
+	tx := model.NewTransactionSc(usedNonce, &to, value, gasPrice, gasLimit.Uint64(), extraData)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
 		pbft_log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
