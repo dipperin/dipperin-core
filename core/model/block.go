@@ -304,11 +304,11 @@ func (b *Block) SetRegisterRoot(root common.Hash) {
 }
 
 func (b *Block) SetReceiptHash(receiptHash common.Hash) {
-	b.header.RegisterRoot = receiptHash
+	b.header.ReceiptHash = receiptHash
 }
 
 func (b *Block) GetReceiptHash() common.Hash{
-	return b.header.RegisterRoot
+	return b.header.ReceiptHash
 }
 
 // Get block txs bloom

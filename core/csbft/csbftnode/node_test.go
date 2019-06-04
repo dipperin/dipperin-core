@@ -182,7 +182,13 @@ type FakeBlock struct {
 	Headers    model.AbstractHeader
 }
 
+func (fb *FakeBlock) SetReceiptHash(receiptHash common.Hash) {
+	panic("implement me")
+}
 
+func (fb *FakeBlock) GetReceiptHash() common.Hash {
+	panic("implement me")
+}
 
 func (fb *FakeBlock) IsSpecial() bool {
 	panic("implement me")

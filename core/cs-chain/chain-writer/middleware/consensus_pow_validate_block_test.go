@@ -166,6 +166,14 @@ type fakeWrongBlock struct {
 	X int
 }
 
+func (f *fakeWrongBlock) SetReceiptHash(receiptHash common.Hash) {
+	panic("implement me")
+}
+
+func (f *fakeWrongBlock) GetReceiptHash() common.Hash {
+	panic("implement me")
+}
+
 func (f *fakeWrongBlock) Body() model.AbstractBody {
 	panic("implement me")
 }

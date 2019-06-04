@@ -21,19 +21,14 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"fmt"
 )
 
 func InsertReceipts(c *BlockContext) Middleware {
 	return func() error {
 		curBlock := c.Chain.CurrentBlock()
-
 		log.Info("insert block receipts", "cur number", curBlock.Number(), "new number", c.Block.Number())
-		// check block number
-		if c.Chain.CurrentBlock().Number()+1 != c.Block.Number() {
-			return g_error.BlockIsNotCorrect
-		}
-
-		receipts := make(model2.Receipts, len(c.Block.GetTransactions()))
+		receipts := make(model2.Receipts, 0, c.Block.TxCount())
 		if err := c.Block.TxIterator(func(i int, transaction model.AbstractTransaction) error {
 			receipt, err := transaction.GetReceipt()
 			if err != nil {
@@ -48,6 +43,7 @@ func InsertReceipts(c *BlockContext) Middleware {
 		//check receipt hash
 		receiptHash := model.DeriveSha(receipts)
 		if receiptHash != c.Block.GetReceiptHash() {
+			fmt.Println(receiptHash, c.Block.GetReceiptHash())
 			return g_error.ReceiptHashError
 		}
 
