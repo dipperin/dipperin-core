@@ -67,8 +67,8 @@ type Header struct {
 	TimeStamp *big.Int `json:"timestamp"  gencodec:"required"`
 	// the address of the miner who mined this block
 	CoinBase common.Address `json:"coinbase"  gencodec:"required"`
-	GasLimit *uint64         `json:"gasLimit"         gencodec:"required"`
-	GasUsed  *uint64         `json:"gasUsed"          gencodec:"required"`
+	GasLimit *uint64        `json:"gasLimit"         gencodec:"required"`
+	GasUsed  *uint64        `json:"gasUsed"          gencodec:"required"`
 	// nonce needed to be mined by the miner
 	Nonce common.BlockNonce `json:"nonce"  gencodec:"required"`
 	//todo add bloom filter for Logs or txs
@@ -85,7 +85,7 @@ type Header struct {
 	// MPT trie Root for register
 	RegisterRoot common.Hash `json:"register_root"  gencodec:"required"`
 	//add receipt hash
-	ReceiptHash common.Hash    `json:"receiptsRoot"     gencodec:"required"`
+	ReceiptHash common.Hash `json:"receiptsRoot"     gencodec:"required"`
 }
 
 func (h *Header) GetGasLimit() *uint64 {
@@ -101,7 +101,7 @@ func (h *Header) IsEqual(header AbstractHeader) bool {
 }
 
 func (h *Header) CoinBaseAddress() common.Address { return h.CoinBase }
-func (h *Header) GetTimeStamp() *big.Int { return h.TimeStamp }
+func (h *Header) GetTimeStamp() *big.Int          { return h.TimeStamp }
 func (h *Header) GetStateRoot() common.Hash {
 	return h.StateRoot
 }
@@ -109,16 +109,19 @@ func (h *Header) GetStateRoot() common.Hash {
 func NewHeader(version uint64, num uint64, prehash common.Hash, seed common.Hash, diff common.Difficulty, time *big.Int, coinbase common.Address, nonce common.BlockNonce) *Header {
 	gasLimit := uint64(6666666666)
 	return &Header{
-		Version:   version,
-		Number:    num,
-		PreHash:   prehash,
-		Seed:      seed,
-		Diff:      diff,
-		TimeStamp: time,
-		CoinBase:  coinbase,
-		Nonce:     nonce,
-		Bloom:     iblt.NewBloom(DefaultBlockBloomConfig),
-		GasLimit:  &gasLimit,
+		Version:     version,
+		Number:      num,
+		PreHash:     prehash,
+		Seed:        seed,
+		Diff:        diff,
+		TimeStamp:   time,
+		CoinBase:    coinbase,
+		Nonce:       nonce,
+		Bloom:       iblt.NewBloom(DefaultBlockBloomConfig),
+		GasLimit:    &gasLimit,
+		GasUsed:     new(uint64),
+		Proof:       []byte{},
+		MinerPubKey: []byte{},
 	}
 }
 
@@ -307,7 +310,7 @@ func (b *Block) SetReceiptHash(receiptHash common.Hash) {
 	b.header.ReceiptHash = receiptHash
 }
 
-func (b *Block) GetReceiptHash() common.Hash{
+func (b *Block) GetReceiptHash() common.Hash {
 	return b.header.ReceiptHash
 }
 
@@ -451,7 +454,6 @@ func (b *Block) GetInterLinkRoot() (root common.Hash) {
 	root = b.header.InterlinkRoot
 	return
 }
-
 
 func (b *Block) SetInterLinks(inter InterLink) {
 	b.body.Inters = inter

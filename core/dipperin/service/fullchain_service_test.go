@@ -251,7 +251,7 @@ func TestMercuryFullChainService_GetAddressNonceFromWallet(t *testing.T) {
 
 func TestMercuryFullChainService_GetTransactionNonce(t *testing.T) {
 	csChain := createCsChain(nil)
-	config := &DipperinConfig{ChainReader:csChain}
+	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
 
 	nonce, err := service.GetTransactionNonce(chain.VerifierAddress[0])
@@ -562,20 +562,20 @@ func TestMercuryFullChainService_OpenWallet(t *testing.T) {
 	err := service.OpenWallet(*createWalletIdentifier(), "123")
 	assert.NoError(t, err)
 
-	identifier := &accounts.WalletIdentifier{WalletType:123}
+	identifier := &accounts.WalletIdentifier{WalletType: 123}
 	err = service.OpenWallet(*identifier, "123")
 	assert.Equal(t, "wallet type error", err.Error())
 
 	identifier = &accounts.WalletIdentifier{
-		WalletType:accounts.SoftWallet,
-		Path:"t",
-		WalletName:"name",
+		WalletType: accounts.SoftWallet,
+		Path:       "t",
+		WalletName: "name",
 	}
 	err = service.OpenWallet(*identifier, "123")
 	assert.Equal(t, accounts.ErrWalletPathError, err)
 }
 
-type fakeMsgSigner struct { addr common.Address }
+type fakeMsgSigner struct{ addr common.Address }
 
 func (f *fakeMsgSigner) SetBaseAddress(address common.Address) {}
 
@@ -588,7 +588,7 @@ func TestMercuryFullChainService_CloseWallet(t *testing.T) {
 	config := &DipperinConfig{
 		NodeConf:      fakeNodeConfig{nodeType: chain_config.NodeTypeOfMineMaster},
 		WalletManager: manager,
-		MsgSigner: &fakeMsgSigner{},
+		MsgSigner:     &fakeMsgSigner{},
 	}
 	service := MakeFullChainService(config)
 
@@ -600,7 +600,7 @@ func TestMercuryFullChainService_CloseWallet(t *testing.T) {
 	identifier := createWalletIdentifier()
 	err := service.CloseWallet(*identifier)
 	assert.NoError(t, err)
-	assert.NoError(t, os.RemoveAll(util.HomeDir() + testPath))
+	assert.NoError(t, os.RemoveAll(util.HomeDir()+testPath))
 
 	// wallet contains coinbase
 	manager = createWalletManager(t)
@@ -608,7 +608,7 @@ func TestMercuryFullChainService_CloseWallet(t *testing.T) {
 	account, err := manager.Wallets[0].Accounts()
 	assert.NoError(t, err)
 	config.WalletManager = manager
-	config.MsgSigner = &fakeMsgSigner{addr:account[0].Address}
+	config.MsgSigner = &fakeMsgSigner{addr: account[0].Address}
 	service = MakeFullChainService(config)
 	err = service.CloseWallet(*identifier)
 	assert.Equal(t, "this wallet contains coinbase, can not close", err.Error())
@@ -640,7 +640,7 @@ func TestMercuryFullChainService_RestoreWallet(t *testing.T) {
 		ChainReader:   createCsChain(nil),
 	}
 	service := MakeFullChainService(config)
-	assert.NoError(t, os.RemoveAll(util.HomeDir() + testPath))
+	assert.NoError(t, os.RemoveAll(util.HomeDir()+testPath))
 
 	// No error
 	go func() {
@@ -652,7 +652,7 @@ func TestMercuryFullChainService_RestoreWallet(t *testing.T) {
 
 	err = service.RestoreWallet(*createWalletIdentifier(), "123", "", memory)
 	assert.NoError(t, err)
-	assert.NoError(t, os.RemoveAll(util.HomeDir() + testPath))
+	assert.NoError(t, os.RemoveAll(util.HomeDir()+testPath))
 }
 
 func TestMercuryFullChainService_RestoreWallet_Error(t *testing.T) {
@@ -661,7 +661,7 @@ func TestMercuryFullChainService_RestoreWallet_Error(t *testing.T) {
 	config := &DipperinConfig{
 		NodeConf:      fakeNodeConfig{nodeType: chain_config.NodeTypeOfMineMaster},
 		WalletManager: manager,
-		MsgSigner: &fakeMsgSigner{},
+		MsgSigner:     &fakeMsgSigner{},
 	}
 	service := MakeFullChainService(config)
 
@@ -669,7 +669,6 @@ func TestMercuryFullChainService_RestoreWallet_Error(t *testing.T) {
 	identifier.Path = "t"
 	err := service.RestoreWallet(identifier, "123", "", "")
 	assert.Equal(t, accounts.ErrWalletPathError, err)
-
 
 	identifier.WalletType = 123
 	err = service.RestoreWallet(identifier, "123", "", "")
@@ -696,15 +695,15 @@ func TestMercuryFullChainService_EstablishWallet(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, memory)
 
-	identifier = &accounts.WalletIdentifier{WalletType:123}
+	identifier = &accounts.WalletIdentifier{WalletType: 123}
 	memory, err = service.EstablishWallet(*identifier, "123", "")
 	assert.Equal(t, "wallet type error", err.Error())
 	assert.Equal(t, "", memory)
 
 	identifier = &accounts.WalletIdentifier{
-		WalletType:accounts.SoftWallet,
-		Path:"t",
-		WalletName:"name",
+		WalletType: accounts.SoftWallet,
+		Path:       "t",
+		WalletName: "name",
 	}
 	memory, err = service.EstablishWallet(*identifier, "123", "")
 	assert.Equal(t, accounts.ErrWalletPathError, err)
@@ -802,7 +801,7 @@ func TestMercuryFullChainService_SetMineCoinBase(t *testing.T) {
 	}
 	service = MakeFullChainService(config)
 	err = service.SetMineCoinBase(aliceAddr)
-	assert.Equal(t,"can not find the target wallet of this address, or the wallet is not open" ,err.Error())
+	assert.Equal(t, "can not find the target wallet of this address, or the wallet is not open", err.Error())
 
 	err = service.SetMineCoinBase(account[0].Address)
 	assert.NoError(t, err)
@@ -840,19 +839,19 @@ func TestMercuryFullChainService_getSendTxInfo_Error(t *testing.T) {
 	config := &DipperinConfig{
 		NodeConf:      fakeNodeConfig{},
 		WalletManager: manager,
-		ChainReader:csChain,
+		ChainReader:   csChain,
 	}
 	service := MakeFullChainService(config)
 
 	// FindWalletFromAddress error
 	wallet, nonce, err := service.getSendTxInfo(common.HexToAddress("123"), nil)
-	assert.Equal(t, accounts.ErrNotFindWallet ,err)
+	assert.Equal(t, accounts.ErrNotFindWallet, err)
 	assert.Equal(t, uint64(0), nonce)
 	assert.Nil(t, wallet)
 
 	// CurrentState error
 	wallet, nonce, err = service.getSendTxInfo(account[0].Address, nil)
-	assert.Equal(t, "current block is nil" ,err.Error())
+	assert.Equal(t, "current block is nil", err.Error())
 	assert.Equal(t, uint64(0), nonce)
 	assert.Nil(t, wallet)
 
@@ -861,7 +860,7 @@ func TestMercuryFullChainService_getSendTxInfo_Error(t *testing.T) {
 	config.ChainReader = csChain
 	service = MakeFullChainService(config)
 	wallet, nonce, err = service.getSendTxInfo(account[0].Address, nil)
-	assert.Equal(t, g_error.AccountNotExist ,err)
+	assert.Equal(t, g_error.AccountNotExist, err)
 	assert.Equal(t, uint64(0), nonce)
 	assert.Nil(t, wallet)
 }
@@ -871,7 +870,7 @@ func TestMercuryFullChainService_Transaction(t *testing.T) {
 	config := DipperinConfig{ChainReader: csChain}
 	service := MercuryFullChainService{
 		DipperinConfig: &config,
-		TxValidator:      fakeValidator{},
+		TxValidator:    fakeValidator{},
 	}
 
 	tx, blockHash, blockNum, txIndex, err := service.Transaction(common.Hash{})
@@ -888,7 +887,7 @@ func TestMercuryFullChainService_NewSendTransactions(t *testing.T) {
 	config := DipperinConfig{ChainReader: csChain, TxPool: fakeTxPool{}}
 	service := MercuryFullChainService{
 		DipperinConfig: &config,
-		TxValidator:      fakeValidator{},
+		TxValidator:    fakeValidator{},
 	}
 
 	tx := createSignedTx(0, aliceAddr, big.NewInt(1000), []byte{})
@@ -897,8 +896,8 @@ func TestMercuryFullChainService_NewSendTransactions(t *testing.T) {
 	assert.Equal(t, 1, txLen)
 
 	// tx pool AddLocals failed
-	config.TxPool = fakeTxPool{err:testErr}
-	service.DipperinConfig= &config
+	config.TxPool = fakeTxPool{err: testErr}
+	service.DipperinConfig = &config
 	txLen, err = service.NewSendTransactions([]model.Transaction{*tx})
 	assert.Equal(t, testErr, err)
 	assert.Equal(t, 0, txLen)
@@ -910,12 +909,12 @@ func TestMercuryFullChainService_signTxAndSend_Error(t *testing.T) {
 	account, err := manager.Wallets[0].Accounts()
 
 	config := DipperinConfig{
-		WalletManager:manager,
-		TxPool:fakeTxPool{err:testErr},
+		WalletManager: manager,
+		TxPool:        fakeTxPool{err: testErr},
 	}
 	service := MercuryFullChainService{
-		DipperinConfig:&config,
-		TxValidator:fakeValidator{},
+		DipperinConfig: &config,
+		TxValidator:    fakeValidator{},
 	}
 
 	sk, err := crypto.HexToECDSA(alicePriv)
@@ -954,7 +953,7 @@ func TestMercuryFullChainService_SendTransactions(t *testing.T) {
 
 	service := MercuryFullChainService{
 		DipperinConfig: config,
-		TxValidator:      fakeValidator{},
+		TxValidator:    fakeValidator{},
 	}
 
 	tx := model.RpcTransaction{
@@ -977,7 +976,7 @@ func TestMercuryFullChainService_SendTransactions(t *testing.T) {
 	// Valid tx error
 	service = MercuryFullChainService{
 		DipperinConfig: config,
-		TxValidator:      fakeValidator{err:testErr},
+		TxValidator:    fakeValidator{err: testErr},
 	}
 	num, err = service.SendTransactions(address, []model.RpcTransaction{tx})
 	assert.Equal(t, testErr, err)
@@ -1016,7 +1015,7 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 
 	service := MercuryFullChainService{
 		DipperinConfig: config,
-		TxValidator:      fakeValidator{},
+		TxValidator:    fakeValidator{},
 	}
 
 	nonce := uint64(0)
@@ -1043,19 +1042,19 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	assert.NotNil(t, hash)
 
 	nonce = uint64(4)
-	hash, err = service.SendTransaction(address, aliceAddr, value, txFee,[]byte{}, &nonce)
+	hash, err = service.SendTransaction(address, aliceAddr, value, txFee, []byte{}, &nonce)
 	assert.NoError(t, err)
 	assert.NotNil(t, hash)
 
 	nonce = uint64(5)
 	hash, err = service.SendTransaction(common.Address{}, aliceAddr, value, txFee, []byte{}, &nonce)
-	assert.Equal(t, "no default account in this node",  err.Error())
+	assert.Equal(t, "no default account in this node", err.Error())
 	assert.Equal(t, common.Hash{}, hash)
 
 	nonce = uint64(6)
-	hash, err = service.SendTransactionContract(address,aliceAddr,value,txFee,txFee,[]byte{}, &nonce)
+	to := common.HexToAddress(common.AddressContractCreate)
+	hash, err = service.SendTransactionContract(address, to, value, txFee, txFee, []byte{}, &nonce)
 	assert.NoError(t, err)
-
 
 	nonce = uint64(7)
 	fs1 := model.NewMercurySigner(big.NewInt(1))
@@ -1083,7 +1082,6 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	signCallTx, err := sw.SignTx(account, callTx, nil )
 }*/
 
-
 func TestMercuryFullChainService_SendTransaction_Error(t *testing.T) {
 	manager := createWalletManager(t)
 	defer os.Remove(util.HomeDir() + testPath)
@@ -1099,14 +1097,14 @@ func TestMercuryFullChainService_SendTransaction_Error(t *testing.T) {
 	config := &DipperinConfig{
 		NodeConf:      fakeNodeConfig{nodeType: chain_config.NodeTypeOfVerifier},
 		WalletManager: manager,
-		ChainReader:  csChain ,
+		ChainReader:   csChain,
 		ChainConfig:   *chain_config.GetChainConfig(),
-		TxPool:createTxPool(csChain.ChainState),
+		TxPool:        createTxPool(csChain.ChainState),
 	}
 
 	service := MercuryFullChainService{
 		DipperinConfig: config,
-		TxValidator:      fakeValidator{err:testErr},
+		TxValidator:    fakeValidator{err: testErr},
 	}
 
 	// signTxAndSend-valid error
@@ -1156,7 +1154,7 @@ func TestMercuryFullChainService_SendTransaction_Error(t *testing.T) {
 	assert.Equal(t, accounts.ErrNotFindWallet, err)
 	assert.Equal(t, common.Hash{}, hash)
 
-	hash, err = service.SendTransaction(fakeAddr, aliceAddr, value, txFee,   []byte{}, &nonce)
+	hash, err = service.SendTransaction(fakeAddr, aliceAddr, value, txFee, []byte{}, &nonce)
 	assert.Equal(t, accounts.ErrNotFindWallet, err)
 	assert.Equal(t, common.Hash{}, hash)
 
@@ -1230,7 +1228,7 @@ func TestMercuryFullChainService_StopDipperin(t *testing.T) {
 	service := MakeFullChainService(&config)
 
 	service.StopDipperin()
-	time.Sleep(time.Millisecond*100)
+	time.Sleep(time.Millisecond * 100)
 }
 
 func TestMercuryFullChainService_Metrics(t *testing.T) {
