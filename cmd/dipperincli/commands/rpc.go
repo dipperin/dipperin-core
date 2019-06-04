@@ -31,6 +31,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -934,7 +935,35 @@ func (caller *rpcCaller) Transaction(c *cli.Context) {
 	printTransactionInfo(resp)
 }
 
-func (caller *rpcCaller) TransactionReceipt(c *cli.Context)  {
+func (caller *rpcCaller) GetContractAddressByTxHash(c *cli.Context)  {
+	_, cParams, err := getRpcMethodAndParam(c)
+	if err != nil {
+		l.Error("TransactionReceipt  getRpcMethodAndParam error")
+		return
+	}
+	if len(cParams) < 1 {
+		l.Error("TransactionReceipt need：txHash")
+		return
+	}
+	tmpHash, err := hexutil.Decode(cParams[0])
+	if err != nil {
+		l.Error("TransactionReceipt decode error")
+		return
+	}
+	var hash common.Hash
+	_ = copy(hash[:], tmpHash)
+
+	var resp model.Receipts
+	if err := client.Call(&resp, getDipperinRpcMethodByName("TransactionReceipt"), hash); err != nil {
+		l.Error("Call TransactionReceipt", "err", err)
+		return
+	}
+
+	for i := 0; i < len(resp); i++ {
+		if hash.IsEqual(resp[i].TxHash){
+			l.Info("Call GetContractAddressByTxHash", "Contract Address", resp[i].ContractAddress )
+		}
+	}
 
 }
 

@@ -48,8 +48,8 @@ func ParseAndGetRlpData(rlpData []byte, input []byte) (extraData []byte, err err
 	}
 
 	iRlpList := rlpList.([]interface{})
-	if len(iRlpList) <= 2 {
-		return nil, errors.New("invalid input, ele must greater than 2")
+	if len(iRlpList) < 2 {
+		return nil, errors.New("invalid input, ele must greater than 1")
 	}
 	var (
 		abi []byte

@@ -115,7 +115,7 @@ func NewTransaction(nonce uint64, to common.Address, amount, fee *big.Int, data 
 
 func NewTransactionSc(nonce uint64, to *common.Address, amount, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
 	tx := newTransaction(nonce, to, amount, nil, gasPrice, gasLimit, data)
-	tx.data.Fee = new(big.Int).Mul(gasPrice, new(big.Int).SetUint64(gasLimit/100000))
+	tx.data.Fee = new(big.Int).Mul(gasPrice, new(big.Int).SetUint64(gasLimit))
 	return tx
 }
 

@@ -82,8 +82,8 @@ func defaultChainConfig() *ChainConfig {
 		// the interval of the Verify section from the election section
 		SlotMargin: uint64(2),
 		// number of verifier
-		VerifierNumber: 22,
-		//VerifierNumber:4,
+		//VerifierNumber: 22,
+		VerifierNumber:4,
 
 		// angel verifier priority
 		SystemVerifierPriority: 0,
@@ -253,7 +253,11 @@ func initLocalBoots(dataDir string) {
 	// Two miners are 50030, one miner is 50027
 	if VerifierBootNodes = LoadVerifierBootNodesFromFile(dataDir); len(VerifierBootNodes) == 0 {
 		//n, _ := enode.ParseV4(fmt.Sprintf("enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@127.0.0.1:%v", TestVerifierBootNodePort))
-		n, _ := enode.ParseV4(fmt.Sprintf("" +
+	/*	n, _ := enode.ParseV4(fmt.Sprintf("" +
+			"enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@127.0.0.1:%v", TestVerifierBootNodePort))
+		VerifierBootNodes = append(VerifierBootNodes, n)
+	}*/
+	n, _ := enode.ParseV4(fmt.Sprintf("" +
 			"enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@127.0.0.1:%v", TestVerifierBootNodePort))
 		VerifierBootNodes = append(VerifierBootNodes, n)
 	}
@@ -261,8 +265,12 @@ func initLocalBoots(dataDir string) {
 	ver_halt_check_log.Info("the VerifierBootNodes is:", "VerifierBootNodes", VerifierBootNodes)
 
 	// local boot node
-	if KBucketNodes = LoadBootNodesFromFile(dataDir); len(KBucketNodes) == 0 {
+	/*if KBucketNodes = LoadBootNodesFromFile(dataDir); len(KBucketNodes) == 0 {
 		n, _ := enode.ParseV4("enode://f569bb9b4a7ac1ff1aa807f2c8edcc1dab877bfd6b9ea0692f12683ba06229971c1482d6748e7b09e07cd0278ada7137bcb0b84b571f977a385aec7887be75bc@127.0.0.1:30301")
+		KBucketNodes = append(KBucketNodes, n)
+	}	*/
+	if KBucketNodes = LoadBootNodesFromFile(dataDir); len(KBucketNodes) == 0 {
+		n, _ := enode.ParseV4("enode://e53903ee0001e81f9328c8d0929cedbaf9b4f5b65b536df5f5dd65e5aa650cc059976250d6fcc62685e46e035b52e22801e97b06bc84d8fc4848037c128a7b22@127.0.0.1:30301")
 		KBucketNodes = append(KBucketNodes, n)
 	}
 }

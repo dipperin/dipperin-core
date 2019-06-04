@@ -64,6 +64,7 @@ func (builder *BftBlockBuilder) commitTransaction(tx model.AbstractTransaction, 
 
 func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndNonce, state *chain.BlockProcessor, header *model.Header, vers []model.AbstractVerification) (txBuf []model.AbstractTransaction, receipts model2.Receipts) {
 	var invalidList []*model.Transaction
+	log.Info("BftBlockBuilder#commitTransactions  start ~~~~~++")
 	txIndex := 0
 	for {
 		// Retrieve the next transaction and abort if all done
@@ -71,7 +72,9 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 		if tx == nil {
 			break
 		}
+		log.Info("BftBlockBuilder#commitTransactions ", "tx hash",  tx.CalTxId())
 		//from, _ := tx.Sender(builder.nodeContext.TxSigner())
+		tx.PaddingTxIndex(txIndex)
 		err := builder.commitTransaction(tx, state, txIndex, header)
 		if err != nil {
 			log.Info("transaction is not processable because:", "err", err, "txID", tx.CalTxId(), "nonce:", tx.Nonce())
@@ -137,6 +140,7 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address) 
 		CoinBase:    coinbaseAddr,
 		// TODO:
 		Bloom: iblt.NewBloom(model.DefaultBlockBloomConfig),
+		GasLimit: &model.DefaultGasLimit,
 	}
 
 	// set pre block verifications

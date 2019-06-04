@@ -65,11 +65,12 @@ func (st *StateTransition) useGas(amount uint64) error {
 
 func (st *StateTransition) buyGas() error {
 	msgVal := new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Gas()), st.gasPrice)
+	log.Info("Call buyGas", "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()), "value", msgVal)
 	if st.lifeVm.GetStateDB().GetBalance(st.msg.From()).Cmp(msgVal) < 0 {
 		return g_error.ErrInsufficientBalanceForGas
 	}
+	log.Info("Call buyGas", "gasPool", st.gp, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()), "value", msgVal, "st.msg.Gas()", st.msg.Gas())
 
-	log.Info("Call buyGas", "gasPool", *st.gp, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()), "value", msgVal, "st.msg.Gas()", st.msg.Gas())
 
 
 	if *st.gp < st.msg.Gas() {

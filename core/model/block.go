@@ -45,7 +45,7 @@ var (
 	DefaultBlockBloomConfig = iblt.NewBloomConfig(8, 4)
 	DefaultInvBloomConfig   = iblt.NewInvBloomConfig(1<<12, 4)
 	DefaultTxs              = 100
-	DefaultGasLimit         = uint64(20000000)
+	DefaultGasLimit         = uint64(6666666666)
 )
 
 type Header struct {
@@ -107,7 +107,7 @@ func (h *Header) GetStateRoot() common.Hash {
 }
 
 func NewHeader(version uint64, num uint64, prehash common.Hash, seed common.Hash, diff common.Difficulty, time *big.Int, coinbase common.Address, nonce common.BlockNonce) *Header {
-	gasLimit := uint64(6666666666)
+
 	return &Header{
 		Version:   version,
 		Number:    num,
@@ -118,7 +118,7 @@ func NewHeader(version uint64, num uint64, prehash common.Hash, seed common.Hash
 		CoinBase:  coinbase,
 		Nonce:     nonce,
 		Bloom:     iblt.NewBloom(DefaultBlockBloomConfig),
-		GasLimit:  &gasLimit,
+		GasLimit:  &DefaultGasLimit,
 	}
 }
 
