@@ -18,6 +18,7 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, heade
 	}
 	msg, err := tx.AsMessage()
 	if err != nil {
+		log.Error("AccountStateDB#ProcessContract", "as Message err", err)
 		return model.ReceiptPara{}, err
 	}
 	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
@@ -30,12 +31,12 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, heade
 
 	root, err := state.Finalise()
 	if err != nil {
-		log.Debug("Process Contract failed", "err", err)
+		log.Error("AccountStateDB#ProcessContract", "state finalise err", err)
 		return model.ReceiptPara{}, err
 	}
 	return model.ReceiptPara{
 		Root:          root[:],
-		HandlerResult: failed,
+		HandlerResult: !failed,
 		//todo CumulativeGasUsed暂时使用usedGas,不考虑在apply交易前已有gas使用的情景
 		CumulativeGasUsed: usedGas,
 		GasUsed:           usedGas,

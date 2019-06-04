@@ -2,16 +2,16 @@ package vm
 
 import (
 	"bytes"
-	"github.com/dipperin/dipperin-core/common/g-error"
-	"github.com/dipperin/dipperin-core/common/vmcommon"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	"github.com/dipperin/dipperin-core/core/vm/resolver"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"encoding/binary"
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/math"
+	"github.com/dipperin/dipperin-core/common/vmcommon"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/core/vm/resolver"
+	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
@@ -125,6 +125,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 	if contract.Gas > lifeVm.GasUsed {
 		contract.Gas = contract.Gas - lifeVm.GasUsed
 	} else {
+
 		return nil, g_error.ErrOutOfGas
 	}
 
@@ -215,6 +216,8 @@ func parseInputFromAbi(vm *exec.VirtualMachine, input []byte, abi []byte) (txTyp
 	}
 
 	wasmAbi := new(utils.WasmAbi)
+	// TODO
+	//  err = json.Unmarshal(abi, wasmAbi)
 	err = wasmAbi.FromJson(abi)
 	if err != nil {
 		return -1, "", nil, "", errReturnInvalidAbi
@@ -282,7 +285,10 @@ func parseRlpData(vm *exec.VirtualMachine, rlpData []byte) (int64, []byte, []byt
 	}
 
 	wasmAbi := new(utils.WasmAbi)
+	//TODO
 	err = wasmAbi.FromJson(abi)
+	//err = json.Unmarshal(abi,wasmAbi)
+
 	if err != nil {
 		return -1, nil, nil, nil, errReturnInvalidAbi
 	}

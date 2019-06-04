@@ -25,7 +25,10 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/chaindb"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
+	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/economy-model"
+	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/ethereum/go-ethereum/ethdb"
@@ -33,34 +36,30 @@ import (
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
-
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
-	"github.com/dipperin/dipperin-core/core/model"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 )
 
 func TestNewTxValidatorForRpcService(t *testing.T) {
 	v := NewTxValidatorForRpcService(&fakeChainInterface{})
 	assert.NotNil(t, v)
 	assert.Panics(t, func() {
-		v.Valid(&fakeTx{ sender: common.Address{0x11} })
+		v.Valid(&fakeTx{sender: common.Address{0x11}})
 	})
 
 	assert.Error(t, ValidateBlockTxs(&BlockContext{Block: &fakeBlock{}, Chain: &fakeChainInterface{}})())
 	assert.NoError(t, ValidateBlockTxs(&BlockContext{Block: &fakeBlock{
-		txRoot: common.HexToHash("0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"),
+		txRoot:    common.HexToHash("0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"),
 		isSpecial: true,
 	}, Chain: &fakeChainInterface{}})())
 	assert.Error(t, ValidateBlockTxs(&BlockContext{Block: &fakeBlock{
-		txRoot: common.HexToHash("0xd76a8eabd6e80cb0bcac287d629cc69b498e995847eae3057bc2b36d752d6c63"),
+		txRoot:    common.HexToHash("0xd76a8eabd6e80cb0bcac287d629cc69b498e995847eae3057bc2b36d752d6c63"),
 		isSpecial: true,
-		txs: []model.AbstractTransaction{&fakeTx{}},
+		txs:       []model.AbstractTransaction{&fakeTx{}},
 	}, Chain: &fakeChainInterface{}})())
 
 	assert.Error(t, ValidateBlockTxs(&BlockContext{Block: &fakeBlock{
-		txRoot: common.HexToHash("0xd76a8eabd6e80cb0bcac287d629cc69b498e995847eae3057bc2b36d752d6c63"),
+		txRoot:    common.HexToHash("0xd76a8eabd6e80cb0bcac287d629cc69b498e995847eae3057bc2b36d752d6c63"),
 		isSpecial: false,
-		txs: []model.AbstractTransaction{&fakeTx{ fee: big.NewInt(1) }},
+		txs:       []model.AbstractTransaction{&fakeTx{fee: big.NewInt(1)}},
 	}, Chain: &fakeChainInterface{}})())
 }
 
@@ -70,18 +69,18 @@ func TestTxValidatorForRpcService_Valid(t *testing.T) {
 
 	assert.Error(t, ValidTxSender(&fakeTx{
 		sender: common.Address{0x11},
-		fee: big.NewInt(1),
+		fee:    big.NewInt(1),
 	}, &fakeChainInterface{}, 0))
 
 	assert.Error(t, ValidTxSender(&fakeTx{
 		sender: common.Address{0x11},
-		fee: big.NewInt(100000),
+		fee:    big.NewInt(100000),
 	}, &fakeChainInterface{}, 0))
 
 	adb, _ := NewEmptyAccountDB()
 	assert.Error(t, ValidTxSender(&fakeTx{
 		sender: common.Address{0x11},
-		fee: big.NewInt(100000),
+		fee:    big.NewInt(100000),
 	}, &fakeChainInterface{
 		state: adb,
 	}, 1))
@@ -91,36 +90,36 @@ func TestTxValidatorForRpcService_Valid(t *testing.T) {
 	assert.NoError(t, adb.AddBalance(sender, big.NewInt(10000011)))
 	assert.Error(t, ValidTxSender(&fakeTx{
 		sender: sender,
-		fee: big.NewInt(100000),
+		fee:    big.NewInt(100000),
 	}, &fakeChainInterface{
 		state: adb,
 		block: &fakeBlock{},
-		em: &fakeEconomyModel{},
+		em:    &fakeEconomyModel{},
 	}, 1))
 	assert.Error(t, ValidTxSender(&fakeTx{
 		sender: sender,
-		fee: big.NewInt(100000),
+		fee:    big.NewInt(100000),
 		amount: big.NewInt(10),
 	}, &fakeChainInterface{
 		state: adb,
 		block: &fakeBlock{},
-		em: &fakeEconomyModel{ lockM: big.NewInt(10000011) },
+		em:    &fakeEconomyModel{lockM: big.NewInt(10000011)},
 	}, 1))
 	assert.NoError(t, ValidTxSender(&fakeTx{
 		sender: sender,
-		fee: big.NewInt(100000),
+		fee:    big.NewInt(100000),
 		amount: big.NewInt(10),
 	}, &fakeChainInterface{
 		state: adb,
 		block: &fakeBlock{},
-		em: &fakeEconomyModel{ lockM: big.NewInt(0) },
+		em:    &fakeEconomyModel{lockM: big.NewInt(0)},
 	}, 1))
 }
 
 func TestValidTxByType(t *testing.T) {
 	assert.NoError(t, ValidTxByType(&fakeTx{}, &fakeChainInterface{}, 0)())
-	assert.Error(t, ValidTxByType(&fakeTx{ txType: 0x9999 }, &fakeChainInterface{}, 0)())
-	assert.Error(t, ValidTxByType(&fakeTx{ txType: common.AddressTypeUnStake }, &fakeChainInterface{}, 0)())
+	assert.Error(t, ValidTxByType(&fakeTx{txType: 0x9999}, &fakeChainInterface{}, 0)())
+	assert.Error(t, ValidTxByType(&fakeTx{txType: common.AddressTypeUnStake}, &fakeChainInterface{}, 0)())
 }
 
 func Test_validTx(t *testing.T) {
@@ -165,7 +164,7 @@ func Test_validCancelTx(t *testing.T) {
 func Test_validContractTx(t *testing.T) {
 	assert.Error(t, validContractTx(&fakeTx{}, &fakeChainInterface{}, 0))
 	s, _ := NewEmptyAccountDB()
-	assert.Error(t, validContractTx(&fakeTx{}, &fakeChainInterface{ state: s }, 0))
+	assert.Error(t, validContractTx(&fakeTx{}, &fakeChainInterface{state: s}, 0))
 }
 
 func Test_validEarlyTokenTx(t *testing.T) {
@@ -173,13 +172,13 @@ func Test_validEarlyTokenTx(t *testing.T) {
 }
 
 func Test_validEvidenceTx(t *testing.T) {
-	assert.Error(t, validEvidenceTx(&fakeTx{ extraData: []byte{} }, &fakeChainInterface{}, 0))
+	assert.Error(t, validEvidenceTx(&fakeTx{extraData: []byte{}}, &fakeChainInterface{}, 0))
 
 	a, p := getPassConflictVote(t)
 	pb, err := rlp.EncodeToBytes(p)
 	assert.NoError(t, err)
 	tmpAddr := a.Address()
-	assert.Error(t, validEvidenceTx(&fakeTx{ extraData: pb, to: &tmpAddr }, &fakeChainInterface{}, 0))
+	assert.Error(t, validEvidenceTx(&fakeTx{extraData: pb, to: &tmpAddr}, &fakeChainInterface{}, 0))
 }
 
 func Test_conflictVote(t *testing.T) {
@@ -187,21 +186,21 @@ func Test_conflictVote(t *testing.T) {
 	pb, err := rlp.EncodeToBytes(p)
 	assert.NoError(t, err)
 	tmpAddr := common.Address{0x12}
-	assert.Error(t, conflictVote(&fakeTx{ extraData: pb, to: &tmpAddr }, &fakeChainInterface{}, 0))
+	assert.Error(t, conflictVote(&fakeTx{extraData: pb, to: &tmpAddr}, &fakeChainInterface{}, 0))
 
 	p.VoteB = a.getVoteMsg(0, 1, common.Hash{}, model.VoteMessage)
 	pb, err = rlp.EncodeToBytes(p)
-	assert.Error(t, conflictVote(&fakeTx{ extraData: pb }, &fakeChainInterface{}, 0))
+	assert.Error(t, conflictVote(&fakeTx{extraData: pb}, &fakeChainInterface{}, 0))
 
 	p.VoteB.Height = 3
 	pb, err = rlp.EncodeToBytes(p)
-	assert.Error(t, conflictVote(&fakeTx{ extraData: pb }, &fakeChainInterface{}, 0))
+	assert.Error(t, conflictVote(&fakeTx{extraData: pb}, &fakeChainInterface{}, 0))
 
 	p.VoteA.Height = 2
 	pb, err = rlp.EncodeToBytes(p)
-	assert.Error(t, conflictVote(&fakeTx{ extraData: pb }, &fakeChainInterface{}, 0))
+	assert.Error(t, conflictVote(&fakeTx{extraData: pb}, &fakeChainInterface{}, 0))
 
-	assert.Error(t, conflictVote(&fakeTx{ extraData: []byte{} }, &fakeChainInterface{}, 0))
+	assert.Error(t, conflictVote(&fakeTx{extraData: []byte{}}, &fakeChainInterface{}, 0))
 }
 
 func Test_validEvidenceTime(t *testing.T) {
@@ -231,15 +230,15 @@ func Test_validTargetStake(t *testing.T) {
 
 func Test_validUnStakeTime(t *testing.T) {
 	assert.Error(t, validUnStakeTime(&fakeTx{}, &fakeChainInterface{}, 0))
-	assert.Error(t, validUnStakeTime(&fakeTx{ sender: common.Address{0x12} }, &fakeChainInterface{}, 0))
+	assert.Error(t, validUnStakeTime(&fakeTx{sender: common.Address{0x12}}, &fakeChainInterface{}, 0))
 	adb, _ := NewEmptyAccountDB()
-	assert.Error(t, validUnStakeTime(&fakeTx{ sender: common.Address{0x12} }, &fakeChainInterface{ state: adb }, 0))
+	assert.Error(t, validUnStakeTime(&fakeTx{sender: common.Address{0x12}}, &fakeChainInterface{state: adb}, 0))
 	assert.NoError(t, adb.NewAccountState(common.Address{0x12}))
-	assert.Error(t, validUnStakeTime(&fakeTx{ sender: common.Address{0x12} }, &fakeChainInterface{ state: adb }, 0))
+	assert.Error(t, validUnStakeTime(&fakeTx{sender: common.Address{0x12}}, &fakeChainInterface{state: adb}, 0))
 
 	assert.NoError(t, adb.AddStake(common.Address{0x12}, big.NewInt(12)))
 	assert.NoError(t, adb.SetLastElect(common.Address{0x12}, 12))
-	assert.Error(t, validUnStakeTime(&fakeTx{ sender: common.Address{0x12} }, &fakeChainInterface{
+	assert.Error(t, validUnStakeTime(&fakeTx{sender: common.Address{0x12}}, &fakeChainInterface{
 		state: adb,
 		block: &fakeBlock{},
 	}, 0))
@@ -250,10 +249,10 @@ func getPassConflictVote(t *testing.T) (*Account, model.Proofs) {
 	va := a.getVoteMsg(0, 1, common.Hash{}, model.VoteMessage)
 	vb := a.getVoteMsg(0, 1, common.Hash{0x12}, model.VoteMessage)
 	p := model.Proofs{
-		VoteA: va,
-		VoteB: vb,
-		VRFHash: common.Hash{0x12},
-		Proof: []byte{},
+		VoteA:    va,
+		VoteB:    vb,
+		VRFHash:  common.Hash{0x12},
+		Proof:    []byte{},
 		Priority: 12,
 	}
 	return a, p
@@ -267,13 +266,13 @@ func getTxTestEnv(t *testing.T) (common.Address, *state_processor.AccountStateDB
 	assert.NoError(t, adb.AddBalance(s, big.NewInt(10000011)))
 	passTx := &fakeTx{
 		sender: s,
-		fee: f,
+		fee:    f,
 		amount: big.NewInt(10),
 	}
 	passChain := &fakeChainInterface{
-		state: adb,
-		block: &fakeBlock{},
-		em: &fakeEconomyModel{ lockM: big.NewInt(0) },
+		state:   adb,
+		block:   &fakeBlock{},
+		em:      &fakeEconomyModel{lockM: big.NewInt(0)},
 		storage: storage,
 	}
 	return s, adb, passTx, passChain
@@ -314,13 +313,13 @@ func (a *Account) getVoteMsg(height, round uint64, blockID common.Hash, voteType
 }
 
 type fakeChainInterface struct {
-	state *state_processor.AccountStateDB
-	block *fakeBlock
-	em *fakeEconomyModel
-	storage state_processor.StateStorage
-	slot uint64
+	state     *state_processor.AccountStateDB
+	block     *fakeBlock
+	em        *fakeEconomyModel
+	storage   state_processor.StateStorage
+	slot      uint64
 	verifiers []common.Address
-	cf *chain_config.ChainConfig
+	cf        *chain_config.ChainConfig
 }
 
 func (ci *fakeChainInterface) GetReceipts(hash common.Hash, number uint64) model2.Receipts {
@@ -558,13 +557,13 @@ func (fe *fakeEconomyModel) GetOneBlockTotalDIPReward(blockNumber uint64) (*big.
 }
 
 type fakeTx struct {
-	sender common.Address
-	fee *big.Int
-	size common.StorageSize
-	amount *big.Int
-	txType common.TxType
+	sender    common.Address
+	fee       *big.Int
+	size      common.StorageSize
+	amount    *big.Int
+	txType    common.TxType
 	extraData []byte
-	to *common.Address
+	to        *common.Address
 }
 
 func (ft *fakeTx) PaddingReceipt(parameters model.ReceiptPara) (*model2.Receipt, error) {
@@ -654,23 +653,23 @@ func (ft *fakeTx) EstimateFee() *big.Int {
 }
 
 type fakeBlock struct {
-	txRoot common.Hash
-	isSpecial bool
-	txs []model.AbstractTransaction
-	num uint64
-	hash common.Hash
-	stateRoot common.Hash
-	ts *big.Int
-	preHash common.Hash
+	txRoot       common.Hash
+	isSpecial    bool
+	txs          []model.AbstractTransaction
+	num          uint64
+	hash         common.Hash
+	stateRoot    common.Hash
+	ts           *big.Int
+	preHash      common.Hash
 	registerRoot common.Hash
-	vs []model.AbstractVerification
-	vRoot common.Hash
-	diff common.Difficulty
-	cb common.Address
-	seed common.Hash
-	proof []byte
-	mPk []byte
-	version uint64
+	vs           []model.AbstractVerification
+	vRoot        common.Hash
+	diff         common.Difficulty
+	cb           common.Address
+	seed         common.Hash
+	proof        []byte
+	mPk          []byte
+	version      uint64
 
 	ExtraData []byte
 }
@@ -805,10 +804,10 @@ func (fb *fakeBlock) GetBloom() iblt.Bloom {
 func (fb *fakeBlock) Header() model.AbstractHeader {
 	return &model.Header{
 		RegisterRoot: fb.registerRoot,
-		Seed: fb.seed,
-		Proof: fb.proof,
-		MinerPubKey: fb.mPk,
-		Bloom: iblt.NewBloom(model.DefaultBlockBloomConfig),
+		Seed:         fb.seed,
+		Proof:        fb.proof,
+		MinerPubKey:  fb.mPk,
+		Bloom:        iblt.NewBloom(model.DefaultBlockBloomConfig),
 	}
 }
 
@@ -836,7 +835,7 @@ func (fb *fakeBlock) SetVerifications(vs []model.AbstractVerification) {
 	panic("implement me")
 }
 
-func (fb *fakeBlock) VersIterator(func(int, model.AbstractVerification, model.AbstractBlock) error) (error) {
+func (fb *fakeBlock) VersIterator(func(int, model.AbstractVerification, model.AbstractBlock) error) error {
 	panic("implement me")
 }
 

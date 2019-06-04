@@ -1053,7 +1053,7 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	assert.Equal(t, common.Hash{}, hash)
 
 	nonce = uint64(6)
-	hash, err = service.SendTransactionContractCreate(address,aliceAddr,value,txFee,txFee,[]byte{}, &nonce)
+	hash, err = service.SendTransactionContract(address,aliceAddr,value,txFee,txFee,[]byte{}, &nonce)
 	assert.NoError(t, err)
 
 
@@ -1069,6 +1069,20 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	assert.Equal(t, "this transaction already in tx pool", err.Error())
 	assert.Equal(t, common.Hash{}, hash)
 }
+
+/*func TestGetTxData(t *testing.T)  {
+	ownAddress := common.HexToAddress("0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41")
+	to := common.HexToAddress(common.AddressContractCreate)
+	sw, err := soft_wallet.NewSoftWallet()
+	assert.NoError(t, err)
+	sw.Open("/Users/konggan/tmp/dipperin_apps/node/CSWallet", "CSWallet","123")
+
+	tx := model.NewTransactionSc(0, &to, new(big.Int).SetInt64(10), new(big.Int).SetInt64(1110), 10, extraData)
+
+	account := accounts.Account{ownAddress}
+	signCallTx, err := sw.SignTx(account, callTx, nil )
+}*/
+
 
 func TestMercuryFullChainService_SendTransaction_Error(t *testing.T) {
 	manager := createWalletManager(t)

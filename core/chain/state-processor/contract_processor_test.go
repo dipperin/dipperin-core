@@ -1,50 +1,117 @@
 package state_processor
 
 import (
+	"encoding/json"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/vmcommon"
+	"github.com/dipperin/dipperin-core/core/accounts"
+	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
+	"math/big"
 	"testing"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"fmt"
+
 )
 
 func TestAccountStateDB_ProcessContract(t *testing.T) {
-	/*ownAddress := common.HexToAddress("0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41")
+	ownAddress := common.HexToAddress("0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41")
 	log.InitLogger(log.LvlDebug)
-	transactionJson := "{\"TxData\":{\"nonce\":\"0x6\",\"to\":\"0x00000000000000000000000000000000000000000018\",\"hashlock\":null,\"timelock\":\"0x0\",\"value\":\"0x2540be400\",\"fee\":\"0x424ad340\",\"gasPrice\":\"0xa\",\"gas\":\"0xa1d8adbf400\",\"input\":\"0x7b22636f6465223a224147467a625145414141414244514e674158384159414a2f6677426741414143485149445a573532426e427961573530637741414132567564676877636d6c7564484e666241414241775144416749414241554263414542415155444151414342685544667746426b49674543333841515a43494241742f41454747434173484e4155476257567462334a354167414c5831396f5a57467758324a68633255444151706658325268644746665a57356b4177494561573570644141444257686c624778764141514b52514d4341417343414173394151462f4977424245477369415351415159414945414167415545674f674150494146424432704241524142494141514143414251516f36414134674155454f616b45424541456741554551616951414377734e415142426741674c426d686c6247787641413d3d222c22616269223a2257776f674943416765776f67494341674943416749434a755957316c496a6f67496d6c75615851694c416f67494341674943416749434a70626e423164484d694f6942625853774b494341674943416749434169623356306348563063794936494674644c416f67494341674943416749434a6a6232357a644746756443493649434a6d5957787a5a534973436941674943416749434167496e5235634755694f6941695a6e5675593352706232346943694167494342394c416f674943416765776f67494341674943416749434a755957316c496a6f67496d686c624778764969774b494341674943416749434169615735776458527a496a6f6757776f6749434167494341674943416749434237436941674943416749434167494341674943416749434169626d46745a53493649434a755957316c4969774b494341674943416749434167494341674943416749434a306558426c496a6f67496e4e30636d6c755a79494b4943416749434167494341674943416766516f67494341674943416749463073436941674943416749434167496d39316448423164484d694f6942625853774b4943416749434167494341695932397563335268626e51694f69416964484a315a534973436941674943416749434167496e5235634755694f6941695a6e567559335270623234694369416749434239436c303d222c22496e707574223a6e756c6c7d\"},\"Wit\":{\"r\":\"0x2f9d296eeeda2bfe075729dc6114b593550814695553ce895a16da21a714b7b5\",\"s\":\"0x76134a5681f704456ab9c875e3c78e3f49ce0fcdc73b2616792502e62c40f9e0\",\"v\":\"0x39\",\"hashkey\":\"0x\"}}"
+	transactionJson := "{\"TxData\":{\"nonce\":\"0x0\",\"to\":\"0x00120000000000000000000000000000000000000000\",\"hashlock\":null,\"timelock\":\"0x0\",\"value\":\"0x2540be400\",\"fee\":\"0x69db9c0\",\"gasPrice\":\"0xa\",\"gas\":\"0x1027127dc00\",\"input\":\"0xf9027b823138b8eb0061736d01000000010d0360017f0060027f7f00600000021d0203656e76067072696e7473000003656e76087072696e74735f6c00010304030202000405017001010105030100020615037f01419088040b7f00419088040b7f004186080b073405066d656d6f727902000b5f5f686561705f6261736503010a5f5f646174615f656e64030204696e697400030568656c6c6f00040a450302000b02000b3d01017f230041106b220124004180081000200141203a000f2001410f6a41011001200010002001410a3a000e2001410e6a41011001200141106a24000b0b0d01004180080b0668656c6c6f00b901887b22616269417272223a5b0a202020207b0a2020202020202020226e616d65223a2022696e6974222c0a202020202020202022696e70757473223a205b5d2c0a2020202020202020226f757470757473223a205b5d2c0a202020202020202022636f6e7374616e74223a202266616c7365222c0a20202020202020202274797065223a202266756e6374696f6e220a202020207d2c0a202020207b0a2020202020202020226e616d65223a202268656c6c6f222c0a202020202020202022696e70757473223a205b0a2020202020202020202020207b0a20202020202020202020202020202020226e616d65223a20226e616d65222c0a202020202020202020202020202020202274797065223a2022737472696e67220a2020202020202020202020207d0a20202020202020205d2c0a2020202020202020226f757470757473223a205b5d2c0a202020202020202022636f6e7374616e74223a202274727565222c0a20202020202020202274797065223a202266756e6374696f6e220a202020207d0a5d7d0a\"},\"Wit\":{\"r\":\"0x30e173f7590a6e12bb4d51bbf6ae113ee668245d2e30a145d1845f55ae5a9f4a\",\"s\":\"0x7d9f36d62573ac09e1dd84d31650a8b5e20b5dffb34d3955dde224c61d299744\",\"v\":\"0x39\",\"hashkey\":\"0x\"}}"
 
 	var tx model.Transaction
 	err := json.Unmarshal([]byte(transactionJson), &tx)
 	if err != nil {
 		log.Info("TestAccountStateDB_ProcessContract", "err", err)
 	}
-	log.Info("processContract", "Tx", tx)*/
+	log.Info("processContract", "Tx", tx)
 
-	/*block := model.NewBlock(model.NewHeader(1, 101, common.HexToHash("ss"), common.HexToHash("fdfs"), common.StringToDiff("000000000000000000000011"), big.NewInt(111), common.StringToAddress("fdsfds"), common.EncodeNonce(33)), nil, nil)*/
+	tx.PaddingTxIndex(0)
+	gasLimit := gasLimit * 10000000000
+	block := createBlock(1,common.Hash{},[]*model.Transaction{&tx} ,&gasLimit)
 
-	/*block := model.NewBlock(model.NewHeader(1, 10, common.Hash{}, common.HexToHash("1111"), common.HexToDiff("0x20ffffff"), big.NewInt(324234), common.Address{}, common.BlockNonceFromInt(432423)),nil,nil)
-
-	db := ethdb.NewMemDatabase()
-	sdb := NewStateStorageWithCache(db)
-	processor, _ := NewAccountStateDB(common.Hash{}, sdb)
-	processor.NewAccountState(ownAddress)
-	err = processor.AddNonce(ownAddress, 6)
+	db, root := createTestStateDB()
+	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
 	assert.NoError(t, err)
-	processor.AddBalance(ownAddress, new(big.Int).SetInt64(int64(100000000000000000)))
+
+	processor.NewAccountState(ownAddress)
+	err = processor.AddNonce(ownAddress, 0)
+	processor.AddBalance(ownAddress,  new(big.Int).SetInt64(int64(1000000000000000000)))
+
+	assert.NoError(t,err)
 	balance, err := processor.GetBalance(ownAddress)
+	nonce, err := processor.GetNonce(ownAddress)
 	log.Info("balance", "balance", balance.String())
+	//log.Info("nonce", "nonce", nonce, "tx.nonce", tx.Nonce())
+
+
+	log.Info("gasLimit", "gasLimit", gasLimit)
+
 
 	receipt, err := processor.ProcessContract(&tx, block.Header().(*model.Header), true,fakeGetBlockHash)
 	assert.NoError(t, err)
-	assert.Equal(t, true, receipt.HandlerResult)*/
+	log.Info("result", "receipt", receipt)
+	assert.Equal(t, true, receipt.HandlerResult)
+	tx.PaddingReceipt(receipt)
+	receiptResult, err := tx.GetReceipt()
+	assert.NoError(t, err)
+	contractNonce, err := processor.GetNonce(receiptResult.ContractAddress)
+	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce, "receiptResult", receiptResult)
+	code, err := processor.GetCode(receiptResult.ContractAddress)
+	assert.NoError(t, err)
+	assert.Equal(t, code, tx.ExtraData())
+
+
+    sw, err := soft_wallet.NewSoftWallet()
+    sw.Open("/Users/konggan/tmp/dipperin_apps/node/CSWallet", "CSWallet","123")
+
+
+	callTx, err := newContractCallTx(nil, &receiptResult.ContractAddress, new(big.Int).SetUint64(1),uint64(1500000), "hello", "name", nonce+1, code)
+	account := accounts.Account{ownAddress}
+	signCallTx, err := sw.SignTx(account, callTx, nil )
+
+
+
+	assert.NoError(t, err)
+	callTx.PaddingTxIndex(0)
+	block2 := createBlock(2,common.Hash{},[]*model.Transaction{signCallTx}, &gasLimit )
+	log.Info("callTx info", "callTx", callTx)
+	callRecipt, err := processor.ProcessContract(signCallTx, block2.Header().(*model.Header), false,fakeGetBlockHash)
+	//assert.NoError(t, err)
+	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", callRecipt, "err", err)
 
 }
 
+func newContractCallTx(from *common.Address, to *common.Address, gasPrice *big.Int, gasLimit uint64, funcName string, input string, nonce uint64, code []byte) (tx *model.Transaction, err error)  {
+	// RLP([funcName][params])
+	inputRlp,err := rlp.EncodeToBytes([]interface{}{
+		funcName,input,
+	})
+	if err != nil {
+		log.Error("input rlp err")
+		return
+	}
+
+	extraData, err := vmcommon.ParseAndGetRlpData(code, inputRlp)
+
+
+	if err != nil {
+		log.Error("ParseAndGetRlpData  inputRlp", "err", err)
+		return
+	}
+
+	tx = model.NewTransactionSc(nonce,to,nil,gasPrice, gasLimit, extraData)
+	return tx, nil
+}
+
+
+
 func TestAccountStateDB_ProcessContract2(t *testing.T) {
-	var testPath = "/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/event"
-	tx := createContractTx(t,testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
+	var testPath = "../../vm/event"
+	tx := createContractTx(t, testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
 
 	db, root := createTestStateDB()
 	tdb := NewStateStorageWithCache(db)

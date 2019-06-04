@@ -42,6 +42,7 @@ func (f *Fullstate) AddNonce(addr common.Address, add uint64) {
 func (f *Fullstate) AddBalance(addr common.Address, amount *big.Int) {
 	err := f.state.AddBalance(addr, amount)
 	if err != nil {
+		log.Error("Fullstate#AddBalance", "err", err)
 		panic("Can not add balance")
 	}
 }
