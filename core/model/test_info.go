@@ -51,7 +51,7 @@ func CreateSignedVote(height, round uint64, blockId common.Hash, voteType VoteMs
 func CreateSignedTx(nonce uint64, amount *big.Int) *Transaction {
 	key1, _ := CreateKey()
 	fs1 := NewMercurySigner(big.NewInt(1))
-	testTx1 := NewTransaction(nonce, bobAddr, amount, big.NewInt(10000), []byte{})
+	testTx1 := NewTransaction(nonce, bobAddr, amount, big.NewInt(210000), []byte{})
 	signedTx, _ := testTx1.SignTx(key1, fs1)
 	return signedTx
 }

@@ -29,7 +29,7 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, heade
 		return model.ReceiptPara{}, err
 	}
 
-	root, err := state.Finalise()
+	root, err := state.IntermediateRoot()
 	if err != nil {
 		log.Error("AccountStateDB#ProcessContract", "state finalise err", err)
 		return model.ReceiptPara{}, err

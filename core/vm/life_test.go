@@ -2,16 +2,12 @@ package vm
 
 import (
 	"bytes"
-	platOnLifeExec "github.com/dipperin/dipperin-core/third-party/life/exec"
-	"fmt"
-	"github.com/perlin-network/life/exec"
 	"github.com/stretchr/testify/assert"
 	"io"
-	"io/ioutil"
 	"testing"
 )
 
-func TestPlatOnLifeMap(t *testing.T){
+/*func TestPlatOnLifeMap(t *testing.T){
 	fileCode, err := ioutil.ReadFile("./sample/test.wasm")
 	assert.NoError(t, err)
 
@@ -44,7 +40,7 @@ func TestOriginLifeMap(t *testing.T){
 	assert.NoError(t,err)
 
 	fmt.Printf("the data is: %d",data)
-}
+}*/
 
 func TestIOByteReader(t *testing.T){
 	testData := []byte{
@@ -62,4 +58,3 @@ func TestIOByteReader(t *testing.T){
 	assert.Equal(t,len(testData)-1,n)
 	assert.Equal(t,[]byte{0x01,0x02,0x03,0x04,0x05,},readByte)
 }
-

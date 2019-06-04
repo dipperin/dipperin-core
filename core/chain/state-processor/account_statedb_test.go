@@ -18,13 +18,13 @@ package state_processor
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/ethereum/go-ethereum/ethdb"
-	"testing"
 	"github.com/stretchr/testify/assert"
 	"math/big"
-	"github.com/dipperin/dipperin-core/core/model"
 	"reflect"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"testing"
 )
 
 func TestAccountStateDB_Commit(t *testing.T) {
@@ -516,8 +516,6 @@ func TestAccountStateDB_GetError(t *testing.T) {
 	_, err = processor.GetHashLock(aliceAddr)
 	assert.Error(t, err)
 	_, err = processor.GetTimeLock(aliceAddr)
-	assert.Error(t, err)
-	_, err = processor.GetDataRoot(aliceAddr)
 	assert.Error(t, err)
 }
 

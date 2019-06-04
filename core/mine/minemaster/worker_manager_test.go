@@ -40,6 +40,14 @@ func TestDefaultPerformance_GetPerformance(t *testing.T) {
 
 type fakeCalculableBlock struct{}
 
+func (fakeCalculableBlock) SetReceiptHash(receiptHash common.Hash) {
+	panic("implement me")
+}
+
+func (fakeCalculableBlock) GetReceiptHash() common.Hash {
+	panic("implement me")
+}
+
 func (fakeCalculableBlock) IsSpecial() bool {
 	panic("implement me")
 }

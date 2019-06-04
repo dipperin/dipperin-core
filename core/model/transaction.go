@@ -593,7 +593,7 @@ func NewTransactionsByFeeAndNonce(signer Signer, txs map[common.Address][]Abstra
 	// Initialize a price based heap with the head transactions
 	heads := make(TxByFee, 0, len(txs))
 	for from, accTxs := range txs {
-		log.Info("NewTransactionsByFeeAndNonce ", "from", from, "len(heads)", len(heads))
+		log.Info("NewTransactionsByFeeAndNonce ", "from", from, "len(heads)", len(heads), "len()Txs", len(accTxs))
 		heads = append(heads, accTxs[0])
 		// Ensure the sender address is from the signer
 		acc, _ := accTxs[0].Sender(signer)

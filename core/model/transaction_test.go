@@ -87,10 +87,10 @@ func TestTransaction(t *testing.T) {
 	tx := CreateSignedTx(0, txAmount)
 	assert.Equal(t, txAmount, tx.Amount())
 	assert.Equal(t, big.NewInt(1), tx.ChainId())
-	assert.Equal(t, big.NewInt(20000), tx.Cost())
-	assert.Equal(t, big.NewInt(110), tx.EstimateFee())
+	assert.Equal(t, big.NewInt(220000), tx.Cost())
+	assert.Equal(t, big.NewInt(111), tx.EstimateFee())
 	assert.Equal(t, []byte{}, tx.ExtraData())
-	assert.Equal(t, big.NewInt(10000), tx.Fee())
+	assert.Equal(t, big.NewInt(210000), tx.Fee())
 	assert.Equal(t, uint64(0), tx.Nonce())
 	assert.Equal(t, big.NewInt(0), tx.TimeLock())
 	assert.Equal(t, &bobAddr, tx.To())
@@ -99,8 +99,8 @@ func TestTransaction(t *testing.T) {
 	assert.NotNil(t, tx.String())
 
 	// read from cache
-	assert.Equal(t, common.StorageSize(110), tx.Size())
-	assert.Equal(t, common.StorageSize(110), tx.Size())
+	assert.Equal(t, common.StorageSize(111), tx.Size())
+	assert.Equal(t, common.StorageSize(111), tx.Size())
 
 	signer := NewMercurySigner(big.NewInt(1))
 	assert.Equal(t, signer, tx.GetSigner())
@@ -135,7 +135,7 @@ func TestTransactions(t *testing.T) {
 	tx2 := CreateSignedTx(1, txAmount)
 	txs := Transactions{tx1, tx2}
 
-	assert.True(t, txs.Less(1, 0))
+	assert.True(t, txs.Less(0, 1))
 	assert.NotNil(t, txs.GetRlp(0))
 	assert.NotNil(t, txs.String())
 
@@ -146,12 +146,11 @@ func TestTransactions(t *testing.T) {
 }
 
 func TestTransactionsByFeeAndNonce(t *testing.T) {
-	txs := make(map[common.Address][]AbstractTransaction, 2)
+	txs := make(map[common.Address][]AbstractTransaction, 1)
 	tx1 := CreateSignedTx(0, txAmount)
 	tx2 := CreateSignedTx(1, txAmount)
 
 	txs[aliceAddr] = []AbstractTransaction{tx1, tx2}
-	txs[bobAddr] = []AbstractTransaction{tx1, tx2}
 	signer := NewMercurySigner(big.NewInt(1))
 
 	tx := NewTransactionsByFeeAndNonce(signer, txs)
@@ -159,10 +158,6 @@ func TestTransactionsByFeeAndNonce(t *testing.T) {
 
 	tx.Shift()
 	assert.Equal(t, tx2.CalTxId(), tx.Peek().CalTxId())
-	assert.Equal(t, 2, tx.heads.Len())
-
-	tx.Shift()
-	assert.Equal(t, tx1.CalTxId(), tx.Peek().CalTxId())
 	assert.Equal(t, 1, tx.heads.Len())
 
 	tx.Pop()
