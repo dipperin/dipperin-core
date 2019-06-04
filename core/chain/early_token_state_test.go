@@ -65,22 +65,18 @@ func TestProcessEarlyContract(t *testing.T) {
 	// start with kv db completely
 	trDB = state_processor.NewStateStorageWithCache(kvDB)
 	aStateDB, err = NewBlockProcessor(cReader, originStateRoot, trDB)
-	fmt.Println("1111111111111",aStateDB.Finalised())
 	assert.NoError(t, err)
 	err = aStateDB.Process(tmpB, eModel)
 	assert.NoError(t, err)
 
 	// Do a commit, then take the contract data from kvDB
-	fmt.Println("22222222222222",aStateDB.Finalised())
 	cHash, err := aStateDB.Commit()
-	fmt.Println("333333333333333",aStateDB.Finalised())
 	assert.NoError(t, err)
 	assert.Equal(t, fHash, cHash)
 
 	// Take out contract data from KVDB
 	trDB = state_processor.NewStateStorageWithCache(kvDB)
 	aStateDB, err = NewBlockProcessor(cReader, cHash, trDB)
-	fmt.Println("44444444444444",aStateDB.Finalised())
 	assert.NoError(t, err)
 
 
@@ -91,4 +87,39 @@ func TestProcessEarlyContract(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, earlyTC.Balances[aliceAddr.Hex()])
 	assert.Equal(t, 1, earlyTC.Balances[aliceAddr.Hex()].Cmp(big.NewInt(0)))
+}
+
+func TestProcessEarlyContract2(t *testing.T) {
+	mpt_log.InitMptLogger(log.LvlDebug, "TestProcessEarlyContract", true)
+
+	eModel := economy_model.MakeDipperinEconomyModel(&earlyContractFakeChainService{}, economy_model.DIPProportion)
+	cReader := &fakeAccountDBChain{}
+	kvDB, originStateRoot := createTestStateDB(t)
+
+	// Test processing block can correctly modify the contract value
+	trDB := state_processor.NewStateStorageWithCache(kvDB)
+	aStateDB, err := NewBlockProcessor(cReader, originStateRoot, trDB)
+	assert.NoError(t, err)
+
+	snapshot := aStateDB.Snapshot()
+	tmpB := createBlock(20)
+	err = aStateDB.Process(tmpB, eModel)
+	assert.NoError(t, err)
+	aStateDB.RevertToSnapshot(snapshot)
+
+	//the root of finalise and commit
+	fHash, err := aStateDB.Finalise()
+	assert.NoError(t, err)
+
+	// start with kv db completely
+	trDB = state_processor.NewStateStorageWithCache(kvDB)
+	aStateDB, err = NewBlockProcessor(cReader, originStateRoot, trDB)
+	assert.NoError(t, err)
+	err = aStateDB.Process(tmpB, eModel)
+	assert.NoError(t, err)
+
+	// Do a commit, then take the contract data from kvDB
+	cHash, err := aStateDB.Commit()
+	assert.NoError(t, err)
+	assert.NotEqual(t, fHash, cHash)
 }

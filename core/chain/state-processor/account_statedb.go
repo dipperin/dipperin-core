@@ -103,8 +103,9 @@ func (state *AccountStateDB) PutContract(addr common.Address, v reflect.Value) e
 		log.Warn("invalid contract data", "data", v)
 		return errors.New("invalid contract data")
 	}
-
+	old := state.contractData[addr]
 	state.contractData[addr] = v
+	state.stateChangeList.append(contractChange{Account:&addr,Prev:old,Current:v,ChangeType:ContractChange})
 	return nil
 }
 
