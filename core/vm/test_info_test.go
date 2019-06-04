@@ -10,7 +10,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
-	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"testing"
 	"github.com/ethereum/go-ethereum/rlp"
 )
@@ -163,8 +162,6 @@ func (state fakeStateDB) TxIdx() uint32 {
 func genInput(t *testing.T, funcName string, param [][]byte) []byte {
 	var input [][]byte
 	input = make([][]byte, 0)
-	// tx type
-	input = append(input, vmcommon.Int64ToBytes(1))
 	// func name
 	input = append(input, []byte(funcName))
 	// func parameter
@@ -181,9 +178,6 @@ func genInput(t *testing.T, funcName string, param [][]byte) []byte {
 func getCodeWithABI(t *testing.T, code, abi []byte) []byte {
 	var input [][]byte
 	input = make([][]byte, 0)
-	// tx type
-
-	input = append(input, vmcommon.Int64ToBytes(1))
 	// code
 	input = append(input, code)
 	// abi
@@ -203,7 +197,6 @@ func getContract(t *testing.T, addr common.Address, code, abi string) *Contract 
 	assert.NoError(t, err)
 
 	ca := getCodeWithABI(t, fileCode, fileABI)
-
 	return &Contract{
 		self: fakeContractRef{addr: addr},
 		Code: ca,
@@ -215,5 +208,12 @@ func getTestVm() *VM {
 	return NewVM(Context{
 		BlockNumber: big.NewInt(1),
 		GasLimit:    model.TxGas,
+		GetHash:     getTestHashFunc(),
 	}, fakeStateDB{}, DEFAULT_VM_CONFIG)
+}
+
+func getTestHashFunc() func(num uint64) common.Hash {
+	return func(num uint64) common.Hash {
+		return common.Hash{}
+	}
 }

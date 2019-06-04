@@ -34,6 +34,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain/chaindb"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/dipperin/dipperin-core/core/chain"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 )
 
 type BftChainState interface {
@@ -165,7 +166,7 @@ func (builder *BlockBuilder) BuildFuture() model.AbstractBlock {
 	}
 
 	txs := model.NewTransactionsByFeeAndNonce(nil, pending)
-	txBuf := builder.commitTransactions(txs, processor, header, vers)
+	txBuf, receipts := builder.commitTransactions(txs, processor, header, vers)
 
 	var tmpTxs []*model.Transaction
 	for _, tx := range txBuf {
@@ -177,6 +178,10 @@ func (builder *BlockBuilder) BuildFuture() model.AbstractBlock {
 	}
 
 	block := model.NewBlock(header, tmpTxs, vers)
+
+	// calculate receipt hash
+	receiptHash := model.DeriveSha(&receipts)
+	block.SetReceiptHash(receiptHash)
 
 	linkList := model.NewInterLink(curBlock.GetInterlinks(), block)
 	block.SetInterLinks(linkList)
@@ -251,7 +256,7 @@ func (builder *BlockBuilder) Build() model.AbstractBlock {
 	}
 
 	txs := model.NewTransactionsByFeeAndNonce(nil, pending)
-	txBuf := builder.commitTransactions(txs, processor, header, vers)
+	txBuf, receipts := builder.commitTransactions(txs, processor, header, vers)
 
 	var tmpTxs []*model.Transaction
 	for _, tx := range txBuf {
@@ -262,6 +267,10 @@ func (builder *BlockBuilder) Build() model.AbstractBlock {
 		panic(fmt.Sprintf("no verifications for height: %v", curHeight+1))
 	}
 	block := model.NewBlock(header, tmpTxs, vers)
+
+	// calculate receipt hash
+	receiptHash := model.DeriveSha(&receipts)
+	block.SetReceiptHash(receiptHash)
 
 	linkList := model.NewInterLink(curBlock.GetInterlinks(), block)
 	block.SetInterLinks(linkList)
@@ -321,6 +330,11 @@ func (builder *BlockBuilder) BuildSpecialBlock() model.AbstractBlock {
 	// build block
 	block := model.NewBlock(header, []*model.Transaction{}, vers)
 
+	// calculate receipt hash
+	var receipts model2.Receipts
+	receiptHash := model.DeriveSha(&receipts)
+	block.SetReceiptHash(receiptHash)
+
 	// set interlink root
 	linkList := model.NewInterLink(preBlock.GetInterlinks(), block)
 	block.SetInterLinks(linkList)
@@ -354,9 +368,16 @@ func (builder *BlockBuilder) BuildSpecialBlock() model.AbstractBlock {
 	return block
 }
 
-func (builder *BlockBuilder) commitTransaction(tx model.AbstractTransaction, state *chain.BlockProcessor, height uint64) (error) {
+func (builder *BlockBuilder) commitTransaction(tx model.AbstractTransaction, state *chain.BlockProcessor, txIndex int, header *model.Header) error {
 	snap := state.Snapshot()
-	err := state.ProcessTx(tx, height)
+	//err := state.ProcessTx(tx, height)
+	conf := state_processor.TxProcessConfig{
+		Tx:      tx,
+		TxIndex: txIndex,
+		Header:  header,
+		GetHash: state.GetBlockHashByNumber,
+	}
+	err := state.ProcessTxNew(&conf)
 	if err != nil {
 		state.RevertToSnapshot(snap)
 		return err
@@ -371,7 +392,9 @@ func (builder *BlockBuilder) getDiff() common.Difficulty {
 	return builder.PreBlock.Difficulty()
 }
 
-func (builder *BlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndNonce, state *chain.BlockProcessor, header *model.Header, vers []model.AbstractVerification) (txBuf []model.AbstractTransaction) {
+func (builder *BlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndNonce, state *chain.BlockProcessor, header *model.Header, vers []model.AbstractVerification) (txBuf []model.AbstractTransaction, receipts model2.Receipts) {
+	var invalidList []*model.Transaction
+	txIndex := 0
 	for {
 		// Retrieve the next transaction and abort if all done
 		tx := txs.Peek()
@@ -379,19 +402,27 @@ func (builder *BlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndN
 			break
 		}
 		//from, _ := tx.Sender(builder.nodeContext.TxSigner())
-		err := builder.commitTransaction(tx, state, header.Number)
+		err := builder.commitTransaction(tx, state, txIndex, header)
 		if err != nil {
-			log.Info("transaction is not processable because", "err", err, "txID", tx.CalTxId(), "nonce", tx.Nonce())
+			log.Info("transaction is not processable because:", "err", err, "txID", tx.CalTxId(), "nonce:", tx.Nonce())
 			txs.Pop()
-			builder.InvalidTxList = append(builder.InvalidTxList, tx.(*model.Transaction))
+			invalidList = append(invalidList, tx.(*model.Transaction))
 		} else {
-			txBuf = append(txBuf, tx)
-			txs.Shift()
+			receipt, err := tx.GetReceipt()
+			if err != nil {
+				log.Info("cant get tx receipt", "txId", tx.CalTxId().Hex())
+				txs.Pop()
+				invalidList = append(invalidList, tx.(*model.Transaction))
+			} else {
+				txBuf = append(txBuf, tx)
+				txs.Shift()
+				receipts = append(receipts, receipt)
+				txIndex++
+			}
 		}
 	}
 
-	// We can't do finalise here. We need finalise after processing ProcessExcept Txs
-	// because the state root will be changed later.
+	// ProcessExceptTxs then finalise for fear that changing state root
 	return
 }
 

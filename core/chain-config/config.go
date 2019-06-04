@@ -82,8 +82,8 @@ func defaultChainConfig() *ChainConfig {
 		// the interval of the Verify section from the election section
 		SlotMargin: uint64(2),
 		// number of verifier
-		//VerifierNumber: 22,
-		VerifierNumber:4,
+		VerifierNumber: 22,
+		//VerifierNumber:4,
 
 		// angel verifier priority
 		SystemVerifierPriority: 0,
@@ -97,9 +97,9 @@ func defaultChainConfig() *ChainConfig {
 		BlockCountOfPeriod: uint64(4096),
 
 		//verifier boot node number
-		VerifierBootNodeNumber: 4,
-		//VerifierBootNodeNumber: 1,
 
+		//VerifierBootNodeNumber: 4,
+		VerifierBootNodeNumber: 4,
 		BlockTimeRestriction: 15*time.Second,
 	}
 

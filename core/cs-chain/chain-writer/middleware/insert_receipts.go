@@ -26,14 +26,8 @@ import (
 func InsertReceipts(c *BlockContext) Middleware {
 	return func() error {
 		curBlock := c.Chain.CurrentBlock()
-
 		log.Info("insert block receipts", "cur number", curBlock.Number(), "new number", c.Block.Number())
-		// check block number
-		if c.Chain.CurrentBlock().Number()+1 != c.Block.Number() {
-			return g_error.BlockIsNotCorrect
-		}
-
-		receipts := make(model2.Receipts, len(c.Block.GetTransactions()))
+		receipts := make(model2.Receipts, 0, c.Block.TxCount())
 		if err := c.Block.TxIterator(func(i int, transaction model.AbstractTransaction) error {
 			receipt, err := transaction.GetReceipt()
 			if err != nil {

@@ -322,6 +322,18 @@ type fakeChainInterface struct {
 	cf        *chain_config.ChainConfig
 }
 
+func (ci *fakeChainInterface) GetReceipts(hash common.Hash, number uint64) model2.Receipts {
+	panic("implement me")
+}
+
+func (ci *fakeChainInterface) GetSeenCommit(height uint64) []model.AbstractVerification {
+	panic("implement me")
+}
+
+func (ci *fakeChainInterface) SaveBlock(block model.AbstractBlock, seenCommits []model.AbstractVerification) error {
+	panic("implement me")
+}
+
 func (ci *fakeChainInterface) Genesis() model.AbstractBlock {
 	panic("implement me")
 }
@@ -562,7 +574,7 @@ func (ft *fakeTx) GetGasLimit() uint64 {
 	panic("implement me")
 }
 
-func (ft *fakeTx) GetReceipt() (model2.Receipt, error) {
+func (ft *fakeTx) GetReceipt() (*model2.Receipt, error) {
 	panic("implement me")
 }
 
@@ -660,6 +672,14 @@ type fakeBlock struct {
 	version      uint64
 
 	ExtraData []byte
+}
+
+func (fb *fakeBlock) SetReceiptHash(receiptHash common.Hash) {
+	panic("implement me")
+}
+
+func (fb *fakeBlock) GetReceiptHash() common.Hash {
+	panic("implement me")
 }
 
 func (fb *fakeBlock) Version() uint64 {
