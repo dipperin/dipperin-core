@@ -89,10 +89,6 @@ func (scl *StateChangeList) DecodeRLP(s *rlp.Stream) (err error) {
 			var change timeLockChange
 			rlp.DecodeBytes(state.StateChange, &change)
 			scl.append(change)
-		//case ContractRootChange:
-		//	var change contractRootChange
-		//	rlp.DecodeBytes(state.StateChange, &change)
-		//	scl.append(change)
 		case DataRootChange:
 			var change dataRootChange
 			rlp.DecodeBytes(state.StateChange, &change)
@@ -127,6 +123,10 @@ func (scl *StateChangeList) DecodeRLP(s *rlp.Stream) (err error) {
 			scl.append(change)
 		case CodeChange:
 			var change codeChange
+			rlp.DecodeBytes(state.StateChange,&change)
+			scl.append(change)
+		case DataChange:
+			var change dataChange
 			rlp.DecodeBytes(state.StateChange,&change)
 			scl.append(change)
 		default:

@@ -1024,7 +1024,6 @@ func (state *AccountStateDB) GetAccountState(addr common.Address) (*account, err
 // commit contract data
 func (state *AccountStateDB) commitContractData() error {
 	for addr, root := range state.finalisedContractRoot {
-		fmt.Println("commit contract", "addr", addr.Hex(), "root", root.Hex(), "pre state", state.preStateRoot.Hex())
 		mpt_log.Debug("commit contract", "addr", addr.Hex(), "root", root.Hex(), "pre state", state.preStateRoot.Hex())
 		//log.Info("commit contract trie", "root", root.Hex())
 		if err := state.contractTrieCache.TrieDB().Commit(root, false); err != nil {
@@ -1154,7 +1153,6 @@ func (state *AccountStateDB) Finalise() (result common.Hash, err error) {
 
 
 	state.alreadyFinalised = true
-	fmt.Println("CCCCCCC Finalise called state.alreadyFinalised",state.alreadyFinalised)
 	result, err = state.blockStateTrie.Commit(nil)
 	mpt_log.Debug("Finalise", "cur root", result.Hex(), "pre state", state.preStateRoot.Hex())
 	return
@@ -1170,12 +1168,13 @@ func (state *AccountStateDB) IntermediateRoot() (result common.Hash, err error) 
 	if err := state.finaliseContractData(); err != nil {
 		// change blockStateTrie to origin pre hash？
 		// If you want, clear the finalised contract root. But it is best to discard the AccountStateDB directly after the error is reported.
-		//state.resetThisStateDB()
+		// state.resetThisStateDB()
 		mpt_log.Debug("Finalise failed", "err", err, "pre state", state.preStateRoot.Hex())
 		result = common.Hash{}
 		return result,err
 	}
 
+	// finalise smart contracts data
 	if err := state.finalSmartData(); err != nil{
 		mpt_log.Debug("Finalise smart data failed", "err", err, "pre state", state.preStateRoot.Hex())
 		result = common.Hash{}

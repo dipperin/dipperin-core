@@ -60,10 +60,6 @@ func GetContractAddrAndKey(key []byte) (common.Address, []byte) {
 	return common.Address{}, nil
 }
 
-/*func GetContractRootKey(address common.Address) []byte {
-	return append(address[:], []byte(contractRootSuffix)...)
-}*/
-
 func GetNonceKey(address common.Address) []byte {
 	return append(address[:], []byte(nonceKeySuffix)...)
 }
@@ -165,11 +161,6 @@ func (a *account) TimeLockBytes() []byte {
 	v, _ := rlp.EncodeToBytes(a.TimeLock)
 	return v
 }
-
-/*func (a *account) ContractRootBytes() []byte {
-	v, _ := rlp.EncodeToBytes(a.ContractRoot)
-	return v
-}*/
 
 func (a *account) DataRootBytes() []byte {
 	v, _ := rlp.EncodeToBytes(a.DataRoot)
