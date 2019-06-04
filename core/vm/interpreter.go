@@ -93,6 +93,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 	} else {
 		// 通过ABI解析input
 		funcName, params, returnType, err = parseInputFromAbi(lifeVm, input, abi)
+		log.Info("WASMInterpreter#run", "funcName", funcName, "params", params)
 		if err != nil {
 			/*			if err == errReturnInsufficientParams && txType == 0 { // transfer to contract address.
 							return nil, nil

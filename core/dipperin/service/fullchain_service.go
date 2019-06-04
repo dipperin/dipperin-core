@@ -542,7 +542,7 @@ func (service *MercuryFullChainService) signTxAndSend(tmpWallet accounts.Wallet,
 	}
 	pbft_log.Debug("Sign and send transaction", "txid", signedTx.CalTxId().Hex())
 	if err := service.TxValidator.Valid(signedTx); err != nil {
-		log.Warn("Transaction not valid", "error", err)
+		log.Error("Transaction not valid", "error", err)
 		return nil, err
 	}
 
@@ -691,14 +691,14 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 		return common.Hash{}, err
 	}
 
-	log.Info("send transaction", "txId", signTx.CalTxId().Hex())
-	log.Info("send transaction", "gasPrice", signTx.GetGasPrice())
-	log.Info("send transaction", "gas limit", signTx.GetGasLimit())
+	//log.Info("send transaction", "txId", signTx.CalTxId().Hex())
+	//log.Info("send transaction", "gasPrice", signTx.GetGasPrice())
+	//log.Info("send transaction", "gas limit", signTx.GetGasLimit())
 	signJson,_ := json.Marshal(signTx)
-	txJson,_ := json.Marshal(tx)
+	//txJson,_ := json.Marshal(tx)
 	pbft_log.Info("send transaction", "signTx json", string(signJson))
-	pbft_log.Info("send transaction", "tx json", string(txJson))
-	log.Info("send transaction", "signTx json", string(signJson))
+	//pbft_log.Info("send transaction", "tx json", string(txJson))
+	//log.Info("send transaction", "signTx json", string(signJson))
 	pbft_log.Info("send transaction", "signTx", signTx.String())
 	pbft_log.Info("send transaction", "txId", signTx.CalTxId().Hex())
 	txHash := signTx.CalTxId()
