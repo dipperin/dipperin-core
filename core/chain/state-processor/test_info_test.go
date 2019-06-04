@@ -26,7 +26,6 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"errors"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"bytes"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -166,8 +165,6 @@ func getContractCode(t *testing.T, code, abi string) []byte {
 	assert.NoError(t, err)
 	var input [][]byte
 	input = make([][]byte, 0)
-	// Tx type
-	input = append(input, vmcommon.Int64ToBytes(1))
 	// code
 	input = append(input, fileCode)
 	// abi
@@ -182,8 +179,6 @@ func getContractCode(t *testing.T, code, abi string) []byte {
 func getContractInput(t *testing.T, funcName string, param [][]byte) []byte {
 	var input [][]byte
 	input = make([][]byte, 0)
-	// Tx type
-	input = append(input, vmcommon.Int64ToBytes(1))
 	// func name
 	input = append(input, []byte(funcName))
 	// func parameter

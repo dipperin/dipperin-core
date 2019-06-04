@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-//  RLP([txType][code][abi][init params])
+//  RLP([code][abi][init params])
 func ParseAndGetRlpData(rlpData []byte, input []byte) (extraData []byte, err error) {
 
 	inputPtr := new(interface{})

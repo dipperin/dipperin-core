@@ -14,7 +14,6 @@ import (
 	"testing"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"fmt"
-
 )
 
 func TestAccountStateDB_ProcessContract(t *testing.T) {
@@ -31,7 +30,7 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 
 	tx.PaddingTxIndex(0)
 	gasLimit := gasLimit * 10000000000
-	block := createBlock(1,common.Hash{},[]*model.Transaction{&tx} ,&gasLimit)
+	block := createBlock(1, common.Hash{}, []*model.Transaction{&tx}, &gasLimit)
 
 	db, root := createTestStateDB()
 	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
@@ -39,19 +38,17 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 
 	processor.NewAccountState(ownAddress)
 	err = processor.AddNonce(ownAddress, 0)
-	processor.AddBalance(ownAddress,  new(big.Int).SetInt64(int64(1000000000000000000)))
+	processor.AddBalance(ownAddress, new(big.Int).SetInt64(int64(1000000000000000000)))
 
-	assert.NoError(t,err)
+	assert.NoError(t, err)
 	balance, err := processor.GetBalance(ownAddress)
 	nonce, err := processor.GetNonce(ownAddress)
 	log.Info("balance", "balance", balance.String())
 	//log.Info("nonce", "nonce", nonce, "tx.nonce", tx.Nonce())
 
-
 	log.Info("gasLimit", "gasLimit", gasLimit)
 
-
-	receipt, err := processor.ProcessContract(&tx, block.Header().(*model.Header), true,fakeGetBlockHash)
+	receipt, err := processor.ProcessContract(&tx, block.Header().(*model.Header), true, fakeGetBlockHash)
 	assert.NoError(t, err)
 	log.Info("result", "receipt", receipt)
 	assert.Equal(t, true, receipt.HandlerResult)
@@ -64,31 +61,27 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, code, tx.ExtraData())
 
+	sw, err := soft_wallet.NewSoftWallet()
+	sw.Open("/Users/konggan/tmp/dipperin_apps/node/CSWallet", "CSWallet", "123")
 
-    sw, err := soft_wallet.NewSoftWallet()
-    sw.Open("/Users/konggan/tmp/dipperin_apps/node/CSWallet", "CSWallet","123")
-
-
-	callTx, err := newContractCallTx(nil, &receiptResult.ContractAddress, new(big.Int).SetUint64(1),uint64(1500000), "hello", "name", nonce+1, code)
+	callTx, err := newContractCallTx(nil, &receiptResult.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "hello", "name", nonce+1, code)
 	account := accounts.Account{ownAddress}
-	signCallTx, err := sw.SignTx(account, callTx, nil )
-
-
+	signCallTx, err := sw.SignTx(account, callTx, nil)
 
 	assert.NoError(t, err)
 	callTx.PaddingTxIndex(0)
-	block2 := createBlock(2,common.Hash{},[]*model.Transaction{signCallTx}, &gasLimit )
+	block2 := createBlock(2, common.Hash{}, []*model.Transaction{signCallTx}, &gasLimit)
 	log.Info("callTx info", "callTx", callTx)
-	callRecipt, err := processor.ProcessContract(signCallTx, block2.Header().(*model.Header), false,fakeGetBlockHash)
+	callRecipt, err := processor.ProcessContract(signCallTx, block2.Header().(*model.Header), false, fakeGetBlockHash)
 	//assert.NoError(t, err)
 	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", callRecipt, "err", err)
 
 }
 
-func newContractCallTx(from *common.Address, to *common.Address, gasPrice *big.Int, gasLimit uint64, funcName string, input string, nonce uint64, code []byte) (tx *model.Transaction, err error)  {
+func newContractCallTx(from *common.Address, to *common.Address, gasPrice *big.Int, gasLimit uint64, funcName string, input string, nonce uint64, code []byte) (tx *model.Transaction, err error) {
 	// RLP([funcName][params])
-	inputRlp,err := rlp.EncodeToBytes([]interface{}{
-		funcName,input,
+	inputRlp, err := rlp.EncodeToBytes([]interface{}{
+		funcName, input,
 	})
 	if err != nil {
 		log.Error("input rlp err")
@@ -97,17 +90,14 @@ func newContractCallTx(from *common.Address, to *common.Address, gasPrice *big.I
 
 	extraData, err := vmcommon.ParseAndGetRlpData(code, inputRlp)
 
-
 	if err != nil {
 		log.Error("ParseAndGetRlpData  inputRlp", "err", err)
 		return
 	}
 
-	tx = model.NewTransactionSc(nonce,to,nil,gasPrice, gasLimit, extraData)
+	tx = model.NewTransactionSc(nonce, to, nil, gasPrice, gasLimit, extraData)
 	return tx, nil
 }
-
-
 
 func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	var testPath = "../../vm/event"
@@ -121,9 +111,9 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	gasPool := gasLimit * 5
 	block := createBlock(1, common.Hash{}, []*model.Transaction{tx}, &gasPool)
 	config := &TxProcessConfig{
-		Tx:tx,
-		Header:block.Header(),
-		GetHash:getTestHashFunc(),
+		Tx:      tx,
+		Header:  block.Header(),
+		GetHash: getTestHashFunc(),
 	}
 	err = processor.ProcessTxNew(config)
 	assert.NoError(t, err)
@@ -149,9 +139,9 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 
 	block = createBlock(2, block.Hash(), []*model.Transaction{tx}, &gasPool)
 	config = &TxProcessConfig{
-		Tx:tx,
-		Header:block.Header(),
-		GetHash:getTestHashFunc(),
+		Tx:      tx,
+		Header:  block.Header(),
+		GetHash: getTestHashFunc(),
 	}
 	err = processor.ProcessTxNew(config)
 	assert.NoError(t, err)

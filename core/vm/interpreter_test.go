@@ -51,8 +51,8 @@ func TestWASMInterpreter_Run_event(t *testing.T) {
 	testVm := getTestVm()
 	interpreter := testVm.Interpreter
 
-	name := []byte("0000")
-	num := vmcommon.Int64ToBytes(2)
+	name := []byte("RunEvent")
+	num := vmcommon.Int64ToBytes(100)
 	log.Info("the num is:", "num", num)
 
 	expect := make([]byte, 32)
