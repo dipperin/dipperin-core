@@ -757,7 +757,8 @@ func generateExtraData(c *cli.Context)(ExtraData []byte, err error) {
 	}
 
 	rlpParams := []interface{}{
-		strconv.Itoa(common.AddressTypeContractCreate),wasmBytes, abiBytes,
+		//strconv.Itoa(common.AddressTypeContractCreate),wasmBytes, abiBytes,
+		wasmBytes, abiBytes,
 	}
 
 	for i, v := range args {
@@ -932,6 +933,11 @@ func (caller *rpcCaller) Transaction(c *cli.Context) {
 
 	printTransactionInfo(resp)
 }
+
+func (caller *rpcCaller) TransactionReceipt(c *cli.Context)  {
+
+}
+
 
 //List Wallet
 func (caller *rpcCaller) ListWallet(c *cli.Context) {
