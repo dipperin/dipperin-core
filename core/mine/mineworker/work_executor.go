@@ -79,7 +79,7 @@ func (executor *defaultWorkExecutor) ChangeNonce() bool {
 		if bHash.ValidHashForDifficulty(executor.curWork.BlockHeader.Diff) {
 			// some thing interesting here
 			executor.curWork.ResultNonce = executor.curWork.BlockHeader.Nonce
-			log.Info("found nonce", "diff", executor.curWork.BlockHeader.Diff.Hex(), "nonce", executor.curWork.BlockHeader.Nonce.Hex(), "block hash hex", executor.curWork.BlockHeader.Hash().Hex(), "coinbase address", executor.curWork.BlockHeader.CoinBaseAddress().Hex(), "block num", executor.curWork.BlockHeader.Number, "register root", executor.curWork.BlockHeader.RegisterRoot, "v root", executor.curWork.BlockHeader.VerificationRoot)
+			log.Info("ChangeNonce successful", "block", executor.curWork.BlockHeader.String())
 			health_info_log.Info("found nonce", "height", executor.curWork.BlockHeader.Number)
 			return true
 		}
