@@ -234,21 +234,23 @@ func rlpHash(x interface{}) (h common.Hash, err error) {
 
 func (h *Header) String() string {
 	return fmt.Sprintf(`Header(%s):
-[
-	Version:	        %d
-	PreHash:	        %s
-	Seed:				%s
+[	Version:	        %d
 	Number:	            %d
-	Nonce:		        %s
+	Seed:				%s
+	PreHash:	        %s
 	Difficulty:	        %s
 	TimeStamp:	        %v
-	Bloom：             %v
 	CoinBase:           %s
-	StateRoot:	        %s
+	GasLimit        	%d
+	GasUsed             %d
+	Nonce:		        %s
+	Bloom：         		%v
 	TransactionRoot:    %s
+	StateRoot:	        %s
 	VerificationRoot:   %s
 	InterlinkRoot:      %s
-]`, h.Hash().Hex(), h.Version, h.PreHash.Hex(), h.Seed.Hex(), h.Number, h.Nonce.Hex(), h.Diff.Hex(), h.TimeStamp, h.Bloom.Hex(), h.CoinBase.Hex(), h.StateRoot.Hex(), h.TransactionRoot.Hex(), h.VerificationRoot.Hex(), h.InterlinkRoot.Hex())
+	RegisterRoot     	%s
+	ReceiptHash      	%s]`, h.Hash().Hex(), h.Version, h.Number, h.Seed.Hex(), h.PreHash.Hex(), h.Diff.Hex(), h.TimeStamp, h.CoinBase.Hex(), *h.GasLimit, *h.GasUsed, h.Nonce.Hex(), h.Bloom.Hex(), h.TransactionRoot.Hex(), h.StateRoot.Hex(), h.VerificationRoot.Hex(), h.InterlinkRoot.Hex(), h.RegisterRoot.Hex(), h.ReceiptHash.Hex())
 }
 
 // swagger:response Body

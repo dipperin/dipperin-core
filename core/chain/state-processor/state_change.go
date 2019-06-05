@@ -21,6 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
+	"reflect"
 	"sort"
 	"io"
 )
@@ -128,6 +129,10 @@ func (scl *StateChangeList) DecodeRLP(s *rlp.Stream) (err error) {
 		case DataChange:
 			var change dataChange
 			rlp.DecodeBytes(state.StateChange,&change)
+			scl.append(change)
+		case ContractChange:
+			var change contractChange
+			rlp.DecodeBytes(state.StateChange, &change)
 			scl.append(change)
 		default:
 			panic("no type")
@@ -272,6 +277,7 @@ const (
 	AbiChange
 	CodeChange
 	DataChange
+	ContractChange
 
 	DeleteAccountChange
 )
@@ -310,12 +316,6 @@ type (
 		Current    *big.Int
 		ChangeType uint64
 	}
-	//contractRootChange struct {
-	//	Account    *common.Address
-	//	Prev       common.Hash
-	//	Current    common.Hash
-	//	ChangeType uint64
-	//}
 	dataRootChange struct {
 		Account    *common.Address
 		Prev       common.Hash
@@ -369,6 +369,12 @@ type (
 		Key string
 		Prev []byte
 		Current []byte
+		ChangeType uint64
+	}
+	contractChange struct{
+		Account *common.Address
+		Prev reflect.Value
+		Current reflect.Value
 		ChangeType uint64
 	}
 )
@@ -746,6 +752,30 @@ func (sc dataChange) digest(change StateChange) StateChange {
 	if change.getType() == DataChange {
 		c := change.(dataChange)
 		return dataChange{Account: sc.Account,Key:c.Key, Prev: c.Prev, Current: sc.Current, ChangeType: DataChange}
+	}
+	return nil
+}
+
+func (c contractChange) revert(s *AccountStateDB) {
+	s.PutContract(*c.Account,c.Prev)
+}
+
+func (c contractChange) dirtied() *common.Address {
+	return c.Account
+}
+
+func (c contractChange) recover(s *AccountStateDB) {
+	s.PutContract(*c.Account, c.Current)
+}
+
+func (c contractChange) getType() int {
+	return  int(c.ChangeType)
+}
+
+func (c contractChange) digest(sc StateChange) StateChange {
+	if sc.getType() == ContractChange{
+		c := sc.(contractChange)
+		return contractChange{Account:c.Account, Prev:c.Prev, Current:c.Current, ChangeType:ContractChange}
 	}
 	return nil
 }
