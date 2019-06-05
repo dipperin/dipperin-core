@@ -37,8 +37,8 @@ func (h Header) MarshalJSON() ([]byte, error) {
 		Diff             common.Difficulty `json:"diff"  gencodec:"required"`
 		TimeStamp        *hexutil.Big      `json:"timestamp"  gencodec:"required"`
 		CoinBase         common.Address    `json:"coinbase"  gencodec:"required"`
-		GasLimit         *hexutil.Uint64   `json:"gasLimit"         gencodec:"required"`
-		GasUsed          *hexutil.Uint64   `json:"gasUsed"          gencodec:"required"`
+		GasLimit         hexutil.Uint64   `json:"gasLimit"         gencodec:"required"`
+		GasUsed          hexutil.Uint64   `json:"gasUsed"          gencodec:"required"`
 		Nonce            common.BlockNonce `json:"nonce"  gencodec:"required"`
 		Bloom            iblt.BloomRLP     `json:"Bloom"        gencodec:"required"`
 		TransactionRoot  common.Hash       `json:"txs_root"   gencodec:"required"`
@@ -60,8 +60,8 @@ func (h Header) MarshalJSON() ([]byte, error) {
 	enc.Diff = h.Diff
 	enc.TimeStamp = (*hexutil.Big)(h.TimeStamp)
 	enc.CoinBase = h.CoinBase
-	enc.GasLimit = (*hexutil.Uint64)(h.GasLimit)
-	enc.GasUsed = (*hexutil.Uint64)(h.GasUsed)
+	enc.GasLimit = (hexutil.Uint64)(h.GasLimit)
+	enc.GasUsed = (hexutil.Uint64)(h.GasUsed)
 	enc.Nonce = h.Nonce
 	enc.Bloom = *h.Bloom.BloomRLP()
 	enc.TransactionRoot = h.TransactionRoot
@@ -138,11 +138,11 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 	if dec.GasLimit == nil {
 		return errors.New("missing required field 'gasLimit' for Header")
 	}
-	h.GasLimit = (*uint64)(dec.GasLimit)
+	h.GasLimit = uint64(*dec.GasLimit)
 	if dec.GasUsed == nil {
 		return errors.New("missing required field 'gasUsed' for Header")
 	}
-	h.GasUsed = (*uint64)(dec.GasUsed)
+	h.GasUsed = uint64(*dec.GasUsed)
 	if dec.Nonce == nil {
 		return errors.New("missing required field 'nonce' for Header")
 	}

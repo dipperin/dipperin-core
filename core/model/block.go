@@ -67,8 +67,8 @@ type Header struct {
 	TimeStamp *big.Int `json:"timestamp"  gencodec:"required"`
 	// the address of the miner who mined this block
 	CoinBase common.Address `json:"coinbase"  gencodec:"required"`
-	GasLimit *uint64        `json:"gasLimit"         gencodec:"required"`
-	GasUsed  *uint64        `json:"gasUsed"          gencodec:"required"`
+	GasLimit uint64        `json:"gasLimit"         gencodec:"required"`
+	GasUsed  uint64        `json:"gasUsed"          gencodec:"required"`
 	// nonce needed to be mined by the miner
 	Nonce common.BlockNonce `json:"nonce"  gencodec:"required"`
 	//todo add bloom filter for Logs or txs
@@ -88,11 +88,11 @@ type Header struct {
 	ReceiptHash common.Hash `json:"receiptsRoot"     gencodec:"required"`
 }
 
-func (h *Header) GetGasLimit() *uint64 {
+func (h *Header) GetGasLimit() uint64 {
 	return h.GasLimit
 }
 
-func (h *Header) GetGasUsed() *uint64 {
+func (h *Header) GetGasUsed() uint64 {
 	return h.GasUsed
 }
 
@@ -118,8 +118,7 @@ func NewHeader(version uint64, num uint64, prehash common.Hash, seed common.Hash
 		CoinBase:    coinbase,
 		Nonce:       nonce,
 		Bloom:       iblt.NewBloom(DefaultBlockBloomConfig),
-		GasLimit:    &DefaultGasLimit,
-		GasUsed:     new(uint64),
+		GasLimit:    DefaultGasLimit,
 		Proof:       []byte{},
 		MinerPubKey: []byte{},
 	}
@@ -250,7 +249,7 @@ func (h *Header) String() string {
 	VerificationRoot:   %s
 	InterlinkRoot:      %s
 	RegisterRoot     	%s
-	ReceiptHash      	%s]`, h.Hash().Hex(), h.Version, h.Number, h.Seed.Hex(), h.PreHash.Hex(), h.Diff.Hex(), h.TimeStamp, h.CoinBase.Hex(), *h.GasLimit, *h.GasUsed, h.Nonce.Hex(), h.Bloom.Hex(), h.TransactionRoot.Hex(), h.StateRoot.Hex(), h.VerificationRoot.Hex(), h.InterlinkRoot.Hex(), h.RegisterRoot.Hex(), h.ReceiptHash.Hex())
+	ReceiptHash      	%s]`, h.Hash().Hex(), h.Version, h.Number, h.Seed.Hex(), h.PreHash.Hex(), h.Diff.Hex(), h.TimeStamp, h.CoinBase.Hex(), h.GasLimit, h.GasUsed, h.Nonce.Hex(), h.Bloom.Hex(), h.TransactionRoot.Hex(), h.StateRoot.Hex(), h.VerificationRoot.Hex(), h.InterlinkRoot.Hex(), h.RegisterRoot.Hex(), h.ReceiptHash.Hex())
 }
 
 // swagger:response Body

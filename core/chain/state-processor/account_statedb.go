@@ -105,7 +105,7 @@ func (state *AccountStateDB) PutContract(addr common.Address, v reflect.Value) e
 	}
 	old := state.contractData[addr]
 	state.contractData[addr] = v
-	state.stateChangeList.append(contractChange{Account:&addr,Prev:old,Current:v,ChangeType:ContractChange})
+	state.stateChangeList.append(contractChange{Account: &addr, Prev: old, Current: v, ChangeType: ContractChange})
 	return nil
 }
 
@@ -114,7 +114,6 @@ func (state *AccountStateDB) GetContract(addr common.Address, vType reflect.Type
 	if v.IsValid() && !v.IsNil() {
 		return
 	}
-
 
 	//log.Info("get contract", "addr", addr)
 	kv, err := state.getContractKV(addr)
@@ -1146,12 +1145,11 @@ func (state *AccountStateDB) Finalise() (result common.Hash, err error) {
 		return result, err
 	}
 
-	if err := state.finalSmartData(); err != nil{
+	if err := state.finalSmartData(); err != nil {
 		mpt_log.Debug("Finalise smart data failed", "err", err, "pre state", state.preStateRoot.Hex())
 		result = common.Hash{}
 		return result, err
 	}
-
 
 	state.alreadyFinalised = true
 	result, err = state.blockStateTrie.Commit(nil)
@@ -1163,7 +1161,7 @@ func (state *AccountStateDB) IntermediateRoot() (result common.Hash, err error) 
 	if state.finalised() {
 		result = state.blockStateTrie.Hash()
 		mpt_log.Debug("Finalise", "cur root", result.Hex(), "pre state", state.preStateRoot.Hex())
-		return result,nil
+		return result, nil
 	}
 	// finalise contracts
 	if err := state.finaliseContractData(); err != nil {
@@ -1172,11 +1170,11 @@ func (state *AccountStateDB) IntermediateRoot() (result common.Hash, err error) 
 		// state.resetThisStateDB()
 		mpt_log.Debug("Finalise failed", "err", err, "pre state", state.preStateRoot.Hex())
 		result = common.Hash{}
-		return result,err
+		return result, err
 	}
 
 	// finalise smart contracts data
-	if err := state.finalSmartData(); err != nil{
+	if err := state.finalSmartData(); err != nil {
 		mpt_log.Debug("Finalise smart data failed", "err", err, "pre state", state.preStateRoot.Hex())
 		result = common.Hash{}
 		return result, err
@@ -1243,10 +1241,12 @@ func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *
 }
 
 type TxProcessConfig struct {
-	Tx      model.AbstractTransaction
-	TxIndex int
-	Header  model.AbstractHeader
-	GetHash vm.GetHashFunc
+	Tx       model.AbstractTransaction
+	TxIndex  int
+	Header   model.AbstractHeader
+	GetHash  vm.GetHashFunc
+	GasLimit *uint64
+	GasUsed  *uint64
 }
 
 func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
