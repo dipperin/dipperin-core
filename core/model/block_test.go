@@ -323,6 +323,7 @@ func Test_rlpHash(t *testing.T) {
 func TestHeader_String(t *testing.T) {
 	h := newTestHeader()
 	str := h.String()
+	fmt.Println(str)
 	assert.NotEqual(t, 0, len(str))
 }
 

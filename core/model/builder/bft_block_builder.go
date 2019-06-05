@@ -72,7 +72,7 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 		if tx == nil {
 			break
 		}
-		log.Info("BftBlockBuilder#commitTransactions ", "tx hash",  tx.CalTxId())
+		log.Info("BftBlockBuilder#commitTransactions ", "tx hash", tx.CalTxId())
 		//from, _ := tx.Sender(builder.nodeContext.TxSigner())
 		tx.PaddingTxIndex(txIndex)
 		err := builder.commitTransaction(tx, state, txIndex, header)
@@ -139,8 +139,8 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address) 
 		TimeStamp:   big.NewInt(time.Now().Add(time.Second * 3).UnixNano()),
 		CoinBase:    coinbaseAddr,
 		// TODO:
-		Bloom: iblt.NewBloom(model.DefaultBlockBloomConfig),
-		GasLimit: &model.DefaultGasLimit,
+		Bloom:    iblt.NewBloom(model.DefaultBlockBloomConfig),
+		GasLimit: model.DefaultGasLimit,
 	}
 
 	// set pre block verifications

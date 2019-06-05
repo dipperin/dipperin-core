@@ -96,7 +96,7 @@ func callContractTx(t *testing.T, to *common.Address, funcName string, param [][
 	return tx
 }
 
-func createBlock(num uint64, preHash common.Hash, txList []*model.Transaction, limit *uint64) *model.Block {
+func createBlock(num uint64, preHash common.Hash, txList []*model.Transaction, limit uint64) *model.Block {
 	header := model.NewHeader(1, num, preHash, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), bobAddr, common.BlockNonce{})
 
 	// vote

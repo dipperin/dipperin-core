@@ -130,14 +130,15 @@ func ValidateBlockDifficulty(c *BlockContext) Middleware {
 
 		targetDiff := model.NewCalNewWorkDiff(preSpanBlock, findBlock, c.Block.Number()-1)
 		//targetDiff := model.CalNewWorkDiff(preSpanBlock, lastBlock)
-		//log.Info("the two Diff is:", "calc", targetDiff.Hex(), "block", c.Block.Difficulty().Hex())
 		if !targetDiff.Equal(c.Block.Difficulty()) {
 			return g_error.ErrInvalidDiff
 		}
 
 		// valid block hash for difficulty
 		if !c.Block.RefreshHashCache().ValidHashForDifficulty(c.Block.Difficulty()) {
-			return g_error.ErrWrongHashDiff
+			log.Info("ValidateBlockDifficulty failed")
+			fmt.Println(c.Block.Header().(*model.Header).String())
+			return g_error. ErrWrongHashDiff
 		}
 		return c.Next()
 	}
