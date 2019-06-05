@@ -22,8 +22,8 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, heade
 		return model.ReceiptPara{}, err
 	}
 	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
-	gasLimit := header.GetGasLimit()
-	_, usedGas, failed, err := ApplyMessage(dvm, msg, gasLimit)
+	gasPool := header.GetGasLimit()
+	_, usedGas, failed, err := ApplyMessage(dvm, msg, &gasPool)
 	if err != nil {
 		log.Error("AccountStateDB#ProcessContract", "ApplyMessage err", err)
 		return model.ReceiptPara{}, err

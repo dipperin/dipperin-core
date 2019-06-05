@@ -138,7 +138,8 @@ func ValidateBlockDifficulty(c *BlockContext) Middleware {
 		log.Info("ValidateBlockDifficulty", "calculate difficulty", c.Block.RefreshHashCache().Hex(), "block difficulty", c.Block.Difficulty().DiffToTarget().Hex(), "block", c.Block)
 
 		if !c.Block.RefreshHashCache().ValidHashForDifficulty(c.Block.Difficulty()) {
-			log.Info("ValidateBlockDifficulty failed", "block", c.Block.Header().(*model.Header).String())
+			log.Info("ValidateBlockDifficulty failed")
+			fmt.Println(c.Block.Header().(*model.Header).String())
 			return g_error. ErrWrongHashDiff
 		}
 		return c.Next()

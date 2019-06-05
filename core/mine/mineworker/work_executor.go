@@ -79,7 +79,8 @@ func (executor *defaultWorkExecutor) ChangeNonce() bool {
 		if bHash.ValidHashForDifficulty(executor.curWork.BlockHeader.Diff) {
 			// some thing interesting here
 			executor.curWork.ResultNonce = executor.curWork.BlockHeader.Nonce
-			log.Info("ChangeNonce successful", "block", executor.curWork.BlockHeader.String())
+			log.Info("ChangeNonce successful")
+			//fmt.Println(executor.curWork.BlockHeader.String())
 			health_info_log.Info("found nonce", "height", executor.curWork.BlockHeader.Number)
 			return true
 		}
