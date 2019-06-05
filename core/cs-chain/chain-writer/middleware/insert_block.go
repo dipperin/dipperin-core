@@ -45,6 +45,12 @@ func InsertBlock(c *BlockContext) Middleware{
 		log.Info("insert block successful", "num", c.Block.Number())
 		//currentBlock := c.Chain.CurrentBlock()
 		//log.Info("the currentBlock number is~~~~~~~~~~~~~`:","number",currentBlock.Number())
+
+		//insert receipts
+		if err := c.Chain.GetChainDB().SaveReceipts(c.Block.Hash(), c.Block.Number(), c.receipts); err != nil {
+			return err
+		}
+		log.Info("insert receipts successful", "num", c.Block.Number())
 		return c.Next()
 	}
 }

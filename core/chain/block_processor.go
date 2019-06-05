@@ -73,6 +73,7 @@ func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel eco
 
 	state.economyModel = economyModel
 	blockHeader := block.Header().(*model.Header)
+
 	// special block doesn't process txs
 	if !block.IsSpecial() {
 		if err = block.TxIterator(func(i int, tx model.AbstractTransaction) (error) {
@@ -92,6 +93,8 @@ func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel eco
 			if innerError != nil {
 				return innerError
 			}
+
+
 			return nil
 		}); err != nil {
 			return err

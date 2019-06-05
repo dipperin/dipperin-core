@@ -77,10 +77,12 @@ func (v *BftBlockValidator) Valid(b model.AbstractBlock) error {
 	c.Use(ValidateBlockCoinBase(c))
 	c.Use(ValidateSeed(c))
 	c.Use(ValidateBlockTime(c))
+	c.Use(ValidateGasLimit(c))
 	c.Use(ValidateBlockTxs(c))
 	c.Use(ValidateVotesForBFT(c))
 
 	c.Use(ValidStateRoot(c))
+	c.Use(ValidGasUsedAndReceipts(c))
 	c.Use(ValidBlockVerifier(c))
 	return c.Process()
 }

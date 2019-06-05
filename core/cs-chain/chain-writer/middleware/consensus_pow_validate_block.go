@@ -23,6 +23,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/core/vm/common/params"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
@@ -200,6 +201,29 @@ func ValidateBlockTime(c *BlockContext) Middleware {
 		if time.Now().Add(c.Chain.GetChainConfig().BlockTimeRestriction).UnixNano() < blockTime {
 			return g_error.ErrBlockTimeStamp
 		}
+		return c.Next()
+	}
+}
+
+// valid gas limit
+func ValidateGasLimit(c *BlockContext) Middleware{
+	return func() error {
+		currentGasLimit := *c.Block.Header().GetGasLimit()
+		// Verify that the gas limit is <= 2^63-1
+		if currentGasLimit > chain_config.MaxGasLimit {
+			return errors.New(fmt.Sprintf("invalid gasLimit: have %v, max %v",currentGasLimit,chain_config.MaxGasLimit))
+		}
+		parentGasLimit := *c.Chain.GetBlockByNumber(c.Block.Number()-1).Header().GetGasLimit()
+		diff := int64(currentGasLimit) - int64(parentGasLimit)
+		if diff < 0 {
+			diff *= -1
+		}
+		limit := parentGasLimit / params.GasLimitBoundDivisor
+
+		if uint64(diff) >= limit || currentGasLimit < params.MinGasLimit {
+			return errors.New(fmt.Sprintf("invalid gas limit: have %d, want %d += %d", currentGasLimit, parentGasLimit, limit))
+		}
+
 		return c.Next()
 	}
 }

@@ -277,10 +277,15 @@ type Block struct {
 	// caches
 	hash atomic.Value `json:"-"`
 	size atomic.Value `json:"-"`
+	receipts atomic.Value `json:"-"`
 }
 
 func (b *Block) GasLimit() uint64 {
-	return DefaultGasLimit
+	return *b.header.GasLimit
+}
+
+func (b *Block) GasUsed() uint64{
+	return *b.header.GasUsed
 }
 
 func (b *Block) IsSpecial() bool {
@@ -313,6 +318,18 @@ func (b *Block) SetReceiptHash(receiptHash common.Hash) {
 func (b *Block) GetReceiptHash() common.Hash {
 	return b.header.ReceiptHash
 }
+
+/*func (b *Block) PaddingReceipts(receipts model.Receipts){
+	b.receipts.Store(receipts)
+}
+
+func (b *Block) GetReceipts() (model.Receipts,error){
+	if r:=b.receipts.Load();r!=nil{
+		return r.(model.Receipts),nil
+	}
+
+	return nil,g_error.BlockReceiptsAreEmpty
+}*/
 
 // Get block txs bloom
 func (b *Block) GetBlockTxsBloom() *iblt.Bloom {

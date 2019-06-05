@@ -18,7 +18,11 @@ package model
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -165,6 +169,76 @@ func TestTransactionsByFeeAndNonce(t *testing.T) {
 	assert.Equal(t, 0, tx.heads.Len())
 }
 
+// Tests that transactions can be correctly sorted according to their price in
+// decreasing order, but at the same time with increasing nonces when issued by
+// the same account.
+func TestTransactionPriceNonceSort(t *testing.T) {
+	// Generate a batch of accounts to start with
+	keys := make([]*ecdsa.PrivateKey, 2)
+	for i := 0; i < len(keys); i++ {
+		keys[i], _ = crypto.GenerateKey()
+	}
+
+	signer := MercurySigner{big.NewInt(1)}
+	// Generate a batch of transactions with overlapping values, but shifted nonces
+	groups := map[common.Address][]AbstractTransaction{}
+	for start, key := range keys {
+		addr := cs_crypto.GetNormalAddress(key.PublicKey)
+		for i := 0; i < 2; i++ {
+			tx:=NewTransaction(uint64(start+i), common.Address{}, big.NewInt(100), big.NewInt(100), nil)
+			tx.SignTx(key,signer)
+			tx.PaddingTxIndex(i)
+			groups[addr] = append(groups[addr], tx)
+		}
+	}
+
+	log.Info("the group txs is:")
+	for addr,txs:=range groups{
+		log.Info("the addr is:","addr",addr.Hex())
+		for _,tx := range txs{
+			log.Info("the tx is:","txId",tx.CalTxId().Hex())
+		}
+	}
+
+	// Sort the transactions and cross check the nonce ordering
+	txset := NewTransactionsByFeeAndNonce(signer, groups)
+
+	log.Info("the txset head is:")
+	for _,tx := range txset.heads{
+		log.Info("the head tx is:","txId",tx.CalTxId().Hex())
+	}
+
+	txs := make([]AbstractTransaction,0)
+	for tx := txset.Peek(); tx != nil; tx = txset.Peek() {
+		txs = append(txs, tx)
+		txset.Shift()
+	}
+	if len(txs) != 2*2 {
+		t.Errorf("expected %d transactions, found %d", 25*25, len(txs))
+	}
+	for i, txi := range txs {
+		fromi, _ := txi.Sender(signer)
+
+		// Make sure the nonce order is valid
+		for j, txj := range txs[i+1:] {
+			fromj, _ := txj.Sender(signer)
+
+			if fromi == fromj && txi.Nonce() > txj.Nonce() {
+				t.Errorf("invalid nonce ordering: tx #%d (A=%x N=%v) < tx #%d (A=%x N=%v)", i, fromi[:4], txi.Nonce(), i+j, fromj[:4], txj.Nonce())
+			}
+		}
+
+		// If the next tx has different from account, the price must be lower than the current one
+		if i+1 < len(txs) {
+			next := txs[i+1]
+			fromNext, _ := next.Sender(signer)
+			if fromi != fromNext && txi.GetGasPrice().Cmp(next.GetGasPrice()) < 0 {
+				t.Errorf("invalid gasprice ordering: tx #%d (A=%x P=%v) < tx #%d (A=%x P=%v)", i, fromi[:4], txi.GetGasPrice(), i+1, fromNext[:4], next.GetGasPrice())
+			}
+		}
+	}
+}
+
 func TestTxByFee(t *testing.T) {
 	tx1 := CreateSignedTx(0, big.NewInt(100))
 	tx2 := CreateSignedTx(1, big.NewInt(100))
@@ -204,3 +278,5 @@ func TestTxDifference(t *testing.T) {
 	result := TxDifference([]AbstractTransaction{tx1}, []AbstractTransaction{tx2})
 	assert.NotNil(t, result)
 }
+
+

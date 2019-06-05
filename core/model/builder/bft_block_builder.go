@@ -22,6 +22,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/core/vm/common/params"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
@@ -128,6 +129,9 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address) 
 		return nil
 	}
 
+	lastGasLimit := curBlock.Header().GetGasLimit()
+	tmpValue := CalcGasLimit(curBlock.(*model.Block),*lastGasLimit,*lastGasLimit)
+
 	header := &model.Header{
 		Version:     curBlock.Version(),
 		Number:      curHeight + 1,
@@ -140,7 +144,7 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address) 
 		CoinBase:    coinbaseAddr,
 		// TODO:
 		Bloom: iblt.NewBloom(model.DefaultBlockBloomConfig),
-		GasLimit: &model.DefaultGasLimit,
+		GasLimit:  &tmpValue ,
 	}
 
 	// set pre block verifications
@@ -300,4 +304,46 @@ func (builder *BftBlockBuilder) GetDifficulty() common.Difficulty {
 
 	log.Debug("mine master difficulty", "diff", diff.Hex())
 	return diff
+}
+
+
+// CalcGasLimit computes the gas limit of the next block after parent. It aims
+// to keep the baseline gas above the provided floor, and increase it towards the
+// ceil if the blocks are full. If the ceil is exceeded, it will always decrease
+// the gas allowance.
+//　以parentGasUsed > parentGasLimit * (2/3)为判断，若大于则contrib-decay正，limit增加，
+//  若小于则取决于差值有多大，若非常接近2/3则会增加1. 与此同时，gas limit的调整量在上一个块limit的１/1024之间
+//  gas limit要大于系统定义最小limit:5000. 于此同时其要介于传入的gasFloor 和gasCeil之间．增量和减量都是以decay来修改的
+//  共识处需要对gas limit进行检查，查看其修改量是否超出上一个limit的1/1024.并且其介于系统设置最大最小值之间．
+func CalcGasLimit(parent *model.Block, gasFloor, gasCeil uint64) uint64 {
+	// contrib = (parentGasUsed * 3 / 2) / 1024
+	contrib := (parent.GasUsed() + parent.GasUsed()/2) / params.GasLimitBoundDivisor
+
+	// decay = parentGasLimit / 1024 -1
+	decay := parent.GasLimit()/params.GasLimitBoundDivisor - 1
+
+	/*
+		strategy: gasLimit of block-to-mine is set based on parent's
+		gasUsed value.  if parentGasUsed > parentGasLimit * (2/3) then we
+		increase it, otherwise lower it (or leave it unchanged if it's right
+		at that usage) the amount increased/decreased depends on how far away
+		from parentGasLimit * (2/3) parentGasUsed is.
+	*/
+	limit := parent.GasLimit() - decay + contrib
+	if limit < params.MinGasLimit {
+		limit = params.MinGasLimit
+	}
+	// If we're outside our allowed gas range, we try to hone towards them
+	if limit < gasFloor {
+		limit = parent.GasLimit() + decay
+		if limit > gasFloor {
+			limit = gasFloor
+		}
+	} else if limit > gasCeil {
+		limit = parent.GasLimit() - decay
+		if limit < gasCeil {
+			limit = gasCeil
+		}
+	}
+	return limit
 }

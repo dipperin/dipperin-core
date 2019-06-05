@@ -229,7 +229,7 @@ func (builder *BlockBuilder) Build() model.AbstractBlock {
 	curHeight := curBlock.Number()
 	pubKey := &builder.MinerPk.PublicKey
 	seed, proof := crypto.Evaluate(builder.MinerPk, builder.PreBlock.Seed().Bytes())
-
+	gaLimit := uint64(chain_config.BlockGasLimit)
 	header := &model.Header{
 		Version:     curBlock.Version(),
 		Number:      curHeight + 1,
@@ -243,6 +243,7 @@ func (builder *BlockBuilder) Build() model.AbstractBlock {
 		TimeStamp: big.NewInt(time.Now().Add(time.Second * 3).UnixNano()),
 		CoinBase:  coinbaseAddr,
 		Bloom:     iblt.NewBloom(model.DefaultBlockBloomConfig),
+		GasLimit:  &gaLimit,
 	}
 
 	// set pre block verifications

@@ -29,4 +29,6 @@ var (
 	ErrNonceTooHigh = errors.New("nonce too high")
 	ErrNonceTooLow = errors.New("nonce too low")
 	ErrGasLimitReached = errors.New("gas limit reached")
+	ErrTxGasIsOverRanging = errors.New("the tx gas is over-ranging ")
+	ErrGasUsedIsInvalid = errors.New("the gasUsed is invalid in the block header")
 )
