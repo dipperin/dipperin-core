@@ -97,7 +97,7 @@ func newContractCallTx(from *common.Address, to *common.Address, gasPrice *big.I
 }
 
 func TestAccountStateDB_ProcessContract2(t *testing.T) {
-	var testPath = "../../vm/event"
+	var testPath = "../../api/event"
 	tx := createContractTx(t, testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
 
 	db, root := createTestStateDB()
