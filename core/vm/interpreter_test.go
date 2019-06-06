@@ -5,7 +5,6 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"fmt"
 )
 
 func TestWASMInterpreter_Run_map_string(t *testing.T) {

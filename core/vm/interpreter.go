@@ -17,6 +17,7 @@ import (
 	"math/big"
 	"reflect"
 	"strings"
+	"runtime"
 )
 
 var (
@@ -55,14 +56,28 @@ func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) 
 	}
 }
 
-func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) ([]byte, error) {
+func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret[]byte, err error) {
+	defer func() {
+		if er := recover(); er != nil {
+			fmt.Println(stack())
+			ret, err = nil, fmt.Errorf("VM execute fail: %v", er)
+		}
+	}()
+	vm.depth++
+	defer func() {
+		vm.depth--
+		if vm.depth == 0 {
+			log.Info("VM depth = 0")
+		}
+	}()
+
 	if len(contract.Code) == 0 {
 		log.Debug("Code Length is 0")
 		return nil, nil
 	}
 
 	// rlp解析合约
-	abi, code, err := parseRlpData(contract.Code)
+	code, abi, err := parseRlpData(contract.Code)
 
 	//　life方法注入新建虚拟机
 	solver := resolver.NewResolver(vm, contract, in.state)
@@ -166,7 +181,7 @@ func (in *WASMInterpreter) CanRun([]byte) bool {
 }
 
 // rlpData=RLP([code][abi])
-func parseRlpData(rlpData []byte) (abi, code []byte, err error) {
+func parseRlpData(rlpData []byte) (code, abi []byte, err error) {
 	ptr := new(interface{})
 	err = rlp.Decode(bytes.NewReader(rlpData), &ptr)
 	if err != nil {
@@ -347,4 +362,9 @@ func parseInitParams(rlpData []byte) (rlpCode, rlpInit []byte, err error) {
 		return nil, nil, err
 	}
 	return
+}
+
+func stack() string {
+	var buf [2 << 10]byte
+	return string(buf[:runtime.Stack(buf[:], true)])
 }
