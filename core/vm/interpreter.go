@@ -33,7 +33,7 @@ const (
 type Interpreter interface {
 	// Run loops and evaluates the contract's code with the given input data and returns
 	// the return byte-slice and an error if one occurred.
-	Run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error)
+	Run(vm *VM, contract *Contract, create bool) ([]byte, error)
 	// CanRun tells if the contract, passed as an argument, can be
 	CanRun([]byte) bool
 }
@@ -55,18 +55,14 @@ func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) 
 	}
 }
 
-func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error) {
+func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) ([]byte, error) {
 	if len(contract.Code) == 0 {
 		log.Debug("Code Length is 0")
 		return nil, nil
 	}
 
-	// 第一次rlp解析合约获取code
-	contract.Input = input
-	code, err := getCode(contract.Code)
-	if err != nil {
-		return nil, err
-	}
+	// rlp解析合约
+	abi, code, err := parseRlpData(contract.Code)
 
 	//　life方法注入新建虚拟机
 	solver := resolver.NewResolver(vm, contract, in.state)
@@ -79,8 +75,6 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 		lifeVm.Stop()
 	}()
 
-	// 第二次rlp解析合约
-	abi, code, initParams, err := parseRlpData(lifeVm, contract.Code)
 	var (
 		funcName   string
 		params     []int64
@@ -88,21 +82,22 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 	)
 
 	if create {
-		funcName = "init" // init function.
-		params = initParams
-	} else {
-		// 通过ABI解析input
-		funcName, params, returnType, err = parseInputFromAbi(lifeVm, input, abi)
-		log.Info("WASMInterpreter#run", "funcName", funcName, "params", params)
+		// init function.
+		funcName, params, returnType, err = parseInputFromAbiByInit(lifeVm, contract.Input, abi)
+		log.Info("WASMInterpreter#run", "funcName", "init", "params", params)
 		if err != nil {
-			/*			if err == errReturnInsufficientParams && txType == 0 { // transfer to contract address.
-							return nil, nil
-						}*/
 			return nil, err
 		}
-		/*		if txType == 0 {
-					return nil, nil
-				}*/
+	} else {
+		// parse input
+		funcName, params, returnType, err = parseInputFromAbi(lifeVm, contract.Input, abi)
+		log.Info("WASMInterpreter#run", "funcName", funcName, "params", params)
+		if err != nil {
+			if err == errReturnInsufficientParams { // transfer to contract address.
+				return nil, nil
+			}
+			return nil, err
+		}
 	}
 	log.Info("parseInput", "funcName", funcName, "params", params, "return", returnType, "err", err)
 
@@ -128,6 +123,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, input []byte, create 
 	if create {
 		return contract.Code, nil
 	}
+
 	switch returnType {
 	case "void", "int8", "int", "int32", "int64":
 		bigRes := new(big.Int)
@@ -169,43 +165,109 @@ func (in *WASMInterpreter) CanRun([]byte) bool {
 	return true
 }
 
+// rlpData=RLP([code][abi])
+func parseRlpData(rlpData []byte) (abi, code []byte, err error) {
+	ptr := new(interface{})
+	err = rlp.Decode(bytes.NewReader(rlpData), &ptr)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	rlpList := reflect.ValueOf(ptr).Elem().Interface()
+	if _, ok := rlpList.([]interface{}); !ok {
+		return nil, nil, errReturnInvalidRlpFormat
+	}
+
+	iRlpList := rlpList.([]interface{})
+	if len(iRlpList) <= 1 {
+		return nil, nil, fmt.Errorf("invalid input, ele must greater than 1")
+	}
+
+	if v, ok := iRlpList[0].([]byte); ok {
+		code = v
+	}
+
+	if v, ok := iRlpList[1].([]byte); ok {
+		abi = v
+	}
+	return
+}
+
+// input = RLP([params])
+// returnType must void
+func parseInputFromAbiByInit(vm *exec.VirtualMachine, input []byte, abi []byte) (funcName string, params []int64, returnType string, err error) {
+	funcName = "init"
+	if input == nil {
+		log.Info("InitFunc has no input")
+		return
+	}
+
+	// rlp decode
+	ptr := new(interface{})
+	err = rlp.Decode(bytes.NewReader(input), &ptr)
+	if err != nil {
+		return funcName, nil, "", err
+	}
+
+	rlpList := reflect.ValueOf(ptr).Elem().Interface()
+	if _, ok := rlpList.([]interface{}); !ok {
+		return funcName, nil, "", errReturnInvalidRlpFormat
+	}
+
+	params, returnType, err = findParams(vm, abi, funcName, rlpList.([]interface{}))
+	if returnType != "void" {
+		return funcName, nil, returnType, errors.New("InitFunc returnType must be void")
+	}
+	return
+}
+
 // input = RLP([funcName][params])
-// returnType[0] if more than 1 return
+// get returnType[0] if more than 1 return
 func parseInputFromAbi(vm *exec.VirtualMachine, input []byte, abi []byte) (funcName string, params []int64, returnType string, err error) {
 	if input == nil || len(input) <= 1 {
 		return "", nil, "", fmt.Errorf("invalid input")
 	}
-	// [txType][funcName][args1][args2]
+
 	// rlp decode
 	ptr := new(interface{})
 	err = rlp.Decode(bytes.NewReader(input), &ptr)
 	if err != nil {
 		return "", nil, "", err
 	}
-	rlpList := reflect.ValueOf(ptr).Elem().Interface()
 
+	rlpList := reflect.ValueOf(ptr).Elem().Interface()
 	if _, ok := rlpList.([]interface{}); !ok {
 		return "", nil, "", errReturnInvalidRlpFormat
 	}
 
 	iRlpList := rlpList.([]interface{})
+	if len(iRlpList) == 0 {
+		return "", nil, "", errReturnInsufficientParams
+	}
+
+	if v, ok := iRlpList[0].([]byte); ok {
+		funcName = string(v)
+	}
+
+	if len(iRlpList) > 1 {
+		params, returnType, err = findParams(vm, abi, funcName, iRlpList[1:])
+	}
+	return
+}
+
+func findParams(vm *exec.VirtualMachine, abi []byte, funcName string, inputList []interface{}) (params []int64, returnType string, err error) {
 	wasmAbi := new(utils.WasmAbi)
 	// TODO
 	//  err = json.Unmarshal(abi, wasmAbi)
 	err = wasmAbi.FromJson(abi)
 	if err != nil {
-		return "", nil, "", errReturnInvalidAbi
+		return nil, "", errReturnInvalidAbi
 	}
 
-	params = make([]int64, 0)
-	if v, ok := iRlpList[0].([]byte); ok {
-		funcName = string(v)
-	}
-
-	var args []utils.InputParam
+	var abiParam []utils.InputParam
 	for _, v := range wasmAbi.AbiArr {
 		if strings.EqualFold(funcName, v.Name) && strings.EqualFold(v.Type, "function") {
-			args = v.Inputs
+			abiParam = v.Inputs
 			if len(v.Outputs) != 0 {
 				returnType = v.Outputs[0].Type
 			} else {
@@ -214,118 +276,75 @@ func parseInputFromAbi(vm *exec.VirtualMachine, input []byte, abi []byte) (funcN
 			break
 		}
 	}
-	argsRlp := iRlpList[1:]
-	if len(args) != len(argsRlp) {
-		return "", nil, returnType, errReturnInputAbiNotMatch
+
+	if len(abiParam) != len(inputList) {
+		return nil, "", errReturnInputAbiNotMatch
 	}
 
-	params = findParams(vm, args, argsRlp)
-	return funcName, params, returnType, nil
-}
-
-// rlpData=RLP([code][abi][init params])
-func parseRlpData(vm *exec.VirtualMachine, rlpData []byte) ([]byte, []byte, []int64, error) {
-	ptr := new(interface{})
-	err := rlp.Decode(bytes.NewReader(rlpData), &ptr)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	rlpList := reflect.ValueOf(ptr).Elem().Interface()
-
-	if _, ok := rlpList.([]interface{}); !ok {
-		return nil, nil, nil, errReturnInvalidRlpFormat
-	}
-
-	iRlpList := rlpList.([]interface{})
-	if len(iRlpList) <= 1 {
-		return nil, nil, nil, fmt.Errorf("invalid input, ele must greater than 1")
-	}
-	var (
-		code []byte
-		abi  []byte
-	)
-	if v, ok := iRlpList[0].([]byte); ok {
-		code = v
-	}
-	if v, ok := iRlpList[1].([]byte); ok {
-		abi = v
-	}
-
-	wasmAbi := new(utils.WasmAbi)
-	//TODO
-	err = wasmAbi.FromJson(abi)
-	//err = json.Unmarshal(abi,wasmAbi)
-
-	if err != nil {
-		return nil, nil, nil, errReturnInvalidAbi
-	}
-
-	var args []utils.InputParam
-	for _, v := range wasmAbi.AbiArr {
-		if strings.EqualFold("init", v.Name) && strings.EqualFold(v.Type, "function") {
-			args = v.Inputs
-			if len(v.Outputs) != 0 {
-				return nil, nil, nil, fmt.Errorf("invalid init function outputs length")
-			}
-			break
+	// uint64 uint32  uint16 uint8 int64 int32  int16 int8 float32 float64 string void
+	for i, v := range abiParam {
+		input := inputList[i].([]byte)
+		switch v.Type {
+		case "string":
+			pos := resolver.MallocString(vm, string(input))
+			params = append(params, pos)
+		case "int8":
+			params = append(params, int64(input[0]))
+		case "int16":
+			params = append(params, int64(binary.BigEndian.Uint16(input)))
+		case "int32", "int":
+			params = append(params, int64(binary.BigEndian.Uint32(input)))
+		case "int64":
+			params = append(params, int64(binary.BigEndian.Uint64(input)))
+		case "uint8":
+			params = append(params, int64(input[0]))
+		case "uint32", "uint":
+			params = append(params, int64(binary.BigEndian.Uint32(input)))
+		case "uint64":
+			params = append(params, int64(binary.BigEndian.Uint64(input)))
+		case "bool":
+			params = append(params, int64(input[0]))
 		}
 	}
-	argsRlp := iRlpList[2:]
-	if len(args) != len(argsRlp) {
-		return nil, nil, nil, errReturnInputAbiNotMatch
-	}
-	params := findParams(vm, args, argsRlp)
-	return abi, code, params, nil
+	return
 }
 
 // rlpData=RLP([code][abi][init params])
-func getCode(rlpData []byte) (code []byte, err error) {
+func parseInitParams(rlpData []byte) (rlpCode, rlpInit []byte, err error) {
 	ptr := new(interface{})
 	err = rlp.Decode(bytes.NewReader(rlpData), &ptr)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	rlpList := reflect.ValueOf(ptr).Elem().Interface()
 
+	rlpList := reflect.ValueOf(ptr).Elem().Interface()
 	if _, ok := rlpList.([]interface{}); !ok {
-		return nil, errReturnInvalidRlpFormat
+		return nil, nil, errReturnInvalidRlpFormat
 	}
 
 	iRlpList := rlpList.([]interface{})
 	if len(iRlpList) <= 1 {
-		return nil, fmt.Errorf("invalid input, ele must greater than 1")
+		return nil, nil, fmt.Errorf("invalid input, ele must greater than 1")
 	}
-	if v, ok := iRlpList[0].([]byte); ok {
-		code = v
-	}
-	return code, nil
-}
 
-func findParams(vm *exec.VirtualMachine, args []utils.InputParam, argsRlp []interface{}) (params []int64) {
-	// uint64 uint32  uint16 uint8 int64 int32  int16 int8 float32 float64 string void
-	for i, v := range args {
-		bts := argsRlp[i].([]byte)
-		switch v.Type {
-		case "string":
-			pos := resolver.MallocString(vm, string(bts))
-			params = append(params, pos)
-		case "int8":
-			params = append(params, int64(bts[0]))
-		case "int16":
-			params = append(params, int64(binary.BigEndian.Uint16(bts)))
-		case "int32", "int":
-			params = append(params, int64(binary.BigEndian.Uint32(bts)))
-		case "int64":
-			params = append(params, int64(binary.BigEndian.Uint64(bts)))
-		case "uint8":
-			params = append(params, int64(bts[0]))
-		case "uint32", "uint":
-			params = append(params, int64(binary.BigEndian.Uint32(bts)))
-		case "uint64":
-			params = append(params, int64(binary.BigEndian.Uint64(bts)))
-		case "bool":
-			params = append(params, int64(bts[0]))
-		}
+	if len(iRlpList) == 2 {
+		return rlpData, nil, nil
+	}
+
+	// encode code and abi
+	code := []interface{}{
+		iRlpList[0], iRlpList[1],
+	}
+	rlpCode, err = rlp.EncodeToBytes(code)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// encode init
+	init := []interface{}{iRlpList[2:]}
+	rlpInit, err = rlp.EncodeToBytes(init)
+	if err != nil {
+		return nil, nil, err
 	}
 	return
 }
