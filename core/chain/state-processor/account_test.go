@@ -199,8 +199,8 @@ func TestContractCreate(t *testing.T){
 }
 
 func FakeContract(t *testing.T) *model.Transaction{
-	codePath := "./../../api/map-string/map2.wasm"
-	abiPath := "./../../api/map-string/StringMap.cpp.abi.json"
+	codePath := "./../../vm/map-string/map2.wasm"
+	abiPath := "./../../vm/map-string/StringMap.cpp.abi.json"
 	fileCode, err := ioutil.ReadFile(codePath)
 	assert.NoError(t, err)
 

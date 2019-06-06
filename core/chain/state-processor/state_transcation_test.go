@@ -11,7 +11,7 @@ import (
 )
 
 func TestApplyMessage(t *testing.T) {
-	var testPath = "/home/qydev/go/src/github.com/dipperin/dipperin-core/core/api/event"
+	var testPath = "/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/event"
 	tx := createContractTx(t, testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
 	msg, err := tx.AsMessage()
 	assert.NoError(t, err)

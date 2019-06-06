@@ -97,20 +97,24 @@ func newContractCallTx(from *common.Address, to *common.Address, gasPrice *big.I
 }
 
 func TestAccountStateDB_ProcessContract2(t *testing.T) {
-	var testPath = "../../api/event"
-	tx := createContractTx(t, testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
+	var testPath = "../../vm/event"
+	tx1 := createContractTx(t, testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
+	contractAddr := cs_crypto.CreateContractAddress(aliceAddr, 0)
+	name := []byte("ProcessContract")
+	num := vmcommon.Int64ToBytes(456)
+	param := [][]byte{name, num}
+	tx2 := callContractTx(t, &contractAddr, "hello", param, 1)
 
 	db, root := createTestStateDB()
 	tdb := NewStateStorageWithCache(db)
 	processor, err := NewAccountStateDB(root, tdb)
 	assert.NoError(t, err)
 
-	gasPool := gasLimit * 5
-	block := createBlock(1, common.Hash{}, []*model.Transaction{tx}, gasPool)
+	block := createBlock(1, common.Hash{}, []*model.Transaction{tx1, tx2}, 5*gasLimit)
 	tmpGasLimit := block.GasLimit()
 	gasUsed := block.GasUsed()
 	config := &TxProcessConfig{
-		Tx:      tx,
+		Tx:      tx1,
 		Header:  block.Header(),
 		GetHash: getTestHashFunc(),
 		GasLimit: &tmpGasLimit,
@@ -120,48 +124,27 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	err = processor.ProcessTxNew(config)
 	assert.NoError(t, err)
 
-	receipt1, err := tx.GetReceipt()
+	receipt1, err := tx1.GetReceipt()
 	assert.NoError(t, err)
-	assert.Equal(t, tx.CalTxId(), receipt1.TxHash)
+	assert.Equal(t, tx1.CalTxId(), receipt1.TxHash)
 	assert.Equal(t, cs_crypto.CreateContractAddress(aliceAddr, 0), receipt1.ContractAddress)
 	assert.Len(t, receipt1.Logs, 0)
 
 	fmt.Println("---------------------------")
 
-	root, err = processor.Commit()
-	assert.NoError(t, err)
-	tdb.TrieDB().Commit(root, false)
-	processor, err = NewAccountStateDB(root, tdb)
-	assert.NoError(t, err)
-
-	name := []byte("ProcessContract")
-	num := vmcommon.Int64ToBytes(456)
-	param := [][]byte{name, num}
-	tx = callContractTx(t, &receipt1.ContractAddress, "hello", param, 1)
-
-	block = createBlock(2, block.Hash(), []*model.Transaction{tx}, gasPool)
-	tmpGasLimit = block.GasLimit()
-	gasUsed = block.GasUsed()
-	config = &TxProcessConfig{
-		Tx:      tx,
-		Header:  block.Header(),
-		GetHash: getTestHashFunc(),
-		GasLimit: &tmpGasLimit,
-		GasUsed: &gasUsed,
-		TxFee: big.NewInt(0),
-	}
+	config.Tx = tx2
 	err = processor.ProcessTxNew(config)
 	assert.NoError(t, err)
 
-	receipt2, err := tx.GetReceipt()
+	receipt2, err := tx2.GetReceipt()
 	assert.NoError(t, err)
-	assert.Equal(t, tx.CalTxId(), receipt2.TxHash)
+	assert.Equal(t, tx2.CalTxId(), receipt2.TxHash)
 	assert.Equal(t, receipt1.ContractAddress, receipt2.ContractAddress)
 	assert.Len(t, receipt2.Logs, 1)
 
 	log1 := receipt2.Logs[0]
-	assert.Equal(t, tx.CalTxId(), log1.TxHash)
+	assert.Equal(t, tx2.CalTxId(), log1.TxHash)
 	assert.Equal(t, common.Hash{}, log1.BlockHash)
 	assert.Equal(t, receipt2.ContractAddress, log1.Address)
-	assert.Equal(t, uint64(2), log1.BlockNumber)
+	assert.Equal(t, uint64(1), log1.BlockNumber)
 }

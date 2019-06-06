@@ -78,12 +78,17 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret[]by
 
 	// rlp解析合约
 	code, abi, err := parseRlpData(contract.Code)
+	if err != nil {
+		log.Info("parseRlpData failed", "err", err)
+		return nil, err
+	}
 
 	//　life方法注入新建虚拟机
 	solver := resolver.NewResolver(vm, contract, in.state)
 	lifeVm, err := exec.NewVirtualMachine(code, in.config, solver, nil)
 	if err != nil {
-		return []byte{}, err
+		log.Info("NewVirtualMachine failed", "err", err)
+		return nil, err
 	}
 	lifeVm.GasLimit = contract.Gas
 	defer func() {
@@ -99,14 +104,12 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret[]by
 	if create {
 		// init function.
 		funcName, params, returnType, err = parseInputFromAbiByInit(lifeVm, contract.Input, abi)
-		log.Info("WASMInterpreter#run", "funcName", "init", "params", params)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		// parse input
 		funcName, params, returnType, err = parseInputFromAbi(lifeVm, contract.Input, abi)
-		log.Info("WASMInterpreter#run", "funcName", funcName, "params", params)
 		if err != nil {
 			if err == errReturnInsufficientParams { // transfer to contract address.
 				return nil, nil
@@ -114,7 +117,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret[]by
 			return nil, err
 		}
 	}
-	log.Info("parseInput", "funcName", funcName, "params", params, "return", returnType, "err", err)
+	log.Info("WASMInterpreter Run", "funcName", funcName, "params", params, "return", returnType, "err", err)
 
 	//　获取entryID
 	entryID, ok := lifeVm.GetFunctionExport(funcName)
@@ -123,7 +126,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret[]by
 	}
 
 	res, err := lifeVm.Run(entryID, params...)
-	log.Info("Run lifeVm", "Gas Used", lifeVm.GasUsed, "Gas", lifeVm.Gas, "Gas Limit", lifeVm.GasLimit)
+	log.Info("Run lifeVm", "gasUsed", lifeVm.GasUsed, "gasLimit", lifeVm.GasLimit)
 	if err != nil {
 		fmt.Println("throw exception:", err.Error())
 		return nil, err
@@ -194,8 +197,8 @@ func parseRlpData(rlpData []byte) (code, abi []byte, err error) {
 	}
 
 	iRlpList := rlpList.([]interface{})
-	if len(iRlpList) <= 1 {
-		return nil, nil, fmt.Errorf("invalid input, ele must greater than 1")
+	if len(iRlpList) != 2 {
+		return nil, nil, fmt.Errorf("invalid Data, eleLen must be 2")
 	}
 
 	if v, ok := iRlpList[0].([]byte); ok {

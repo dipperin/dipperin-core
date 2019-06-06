@@ -70,7 +70,7 @@ func (st *StateTransition) buyGas() error {
 	if st.lifeVm.GetStateDB().GetBalance(st.msg.From()).Cmp(msgVal) < 0 {
 		return g_error.ErrInsufficientBalanceForGas
 	}
-	log.Info("Call buyGas", "gasPool", st.gp, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()), "value", msgVal, "st.msg.Gas()", st.msg.Gas())
+	log.Info("Call buyGas", "gasPool", *st.gp, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()), "value", msgVal, "st.msg.Gas()", st.msg.Gas())
 
 	if *st.gp < st.msg.Gas() {
 		return g_error.ErrGasLimitReached
