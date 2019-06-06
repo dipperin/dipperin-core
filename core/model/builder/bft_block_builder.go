@@ -17,21 +17,21 @@
 package builder
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/bloom"
+	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/params"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
-	"time"
 	"math/big"
-	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/core/chain"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"time"
 )
 
 // context must have chainReader state_processor.ChainReader, stateProcessorBuilder stateProcessorBuilder, accountStorage state_processor.StateStorage, txPool txPool
@@ -46,20 +46,23 @@ type BftBlockBuilder struct {
 	ModelConfig
 }
 
-func (builder *BftBlockBuilder) commitTransaction(tx model.AbstractTransaction, state *chain.BlockProcessor, txIndex int, header *model.Header) error {
+func (builder *BftBlockBuilder) commitTransaction(conf *state_processor.TxProcessConfig, state *chain.BlockProcessor) error {
 	snap := state.Snapshot()
 	//err := state.ProcessTx(tx, height)
-	conf := state_processor.TxProcessConfig{
-		Tx:      tx,
-		TxIndex: txIndex,
-		Header:  header,
-		GetHash: state.GetBlockHashByNumber,
-	}
-	err := state.ProcessTxNew(&conf)
+	/*	conf := state_processor.TxProcessConfig{
+			Tx:      tx,
+			TxIndex: txIndex,
+			Header:  header,
+			GetHash: state.GetBlockHashByNumber,
+		}*/
+	err := state.ProcessTxNew(conf)
 	if err != nil {
 		state.RevertToSnapshot(snap)
 		return err
 	}
+
+	//updating tx fee
+	conf.Tx.(*model.Transaction).PaddingTxFee(conf.TxFee)
 	return nil
 }
 
@@ -67,16 +70,26 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 	var invalidList []*model.Transaction
 	log.Info("BftBlockBuilder#commitTransactions  start ~~~~~++")
 	txIndex := 0
+	gasUsed := header.GasUsed
+	gasLimit := header.GasLimit
 	for {
 		// Retrieve the next transaction and abort if all done
 		tx := txs.Peek()
 		if tx == nil {
 			break
 		}
-		log.Info("BftBlockBuilder#commitTransactions ", "tx hash",  tx.CalTxId())
+		log.Info("BftBlockBuilder#commitTransactions ", "tx hash", tx.CalTxId())
 		//from, _ := tx.Sender(builder.nodeContext.TxSigner())
 		tx.PaddingTxIndex(txIndex)
-		err := builder.commitTransaction(tx, state, txIndex, header)
+		conf := state_processor.TxProcessConfig{
+			Tx:       tx,
+			TxIndex:  txIndex,
+			Header:   header,
+			GetHash:  state.GetBlockHashByNumber,
+			GasLimit: &gasLimit,
+			GasUsed:  &gasUsed,
+		}
+		err := builder.commitTransaction(&conf, state)
 		if err != nil {
 			log.Info("transaction is not processable because:", "err", err, "txID", tx.CalTxId(), "nonce:", tx.Nonce())
 			txs.Pop()
@@ -103,6 +116,8 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 		log.Info("remove invalid Txs from pool", "num of txs", len(invalidList))
 	}
 
+	//update gasUsed in header
+	header.GasUsed = gasUsed
 	// ProcessExceptTxs then finalise for fear that changing state root
 	return
 }
@@ -129,8 +144,9 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address) 
 		return nil
 	}
 
-	lastGasLimit := curBlock.Header().GetGasLimit()
-	tmpValue := CalcGasLimit(curBlock.(*model.Block),*lastGasLimit,*lastGasLimit)
+	lastNormalBlock:=builder.ChainReader.GetLatestNormalBlock()
+	lastGasLimit := lastNormalBlock.Header().GetGasLimit()
+	tmpValue := CalcGasLimit(lastNormalBlock.(*model.Block), lastGasLimit, lastGasLimit)
 
 	header := &model.Header{
 		Version:     curBlock.Version(),
@@ -143,8 +159,8 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address) 
 		TimeStamp:   big.NewInt(time.Now().Add(time.Second * 3).UnixNano()),
 		CoinBase:    coinbaseAddr,
 		// TODO:
-		Bloom: iblt.NewBloom(model.DefaultBlockBloomConfig),
-		GasLimit:  &tmpValue ,
+		Bloom:    iblt.NewBloom(model.DefaultBlockBloomConfig),
+		GasLimit: tmpValue,
 	}
 
 	// set pre block verifications
@@ -305,7 +321,6 @@ func (builder *BftBlockBuilder) GetDifficulty() common.Difficulty {
 	log.Debug("mine master difficulty", "diff", diff.Hex())
 	return diff
 }
-
 
 // CalcGasLimit computes the gas limit of the next block after parent. It aims
 // to keep the baseline gas above the provided floor, and increase it towards the

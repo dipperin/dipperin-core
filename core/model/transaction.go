@@ -482,6 +482,16 @@ func (tx *Transaction) PaddingReceipt(parameters ReceiptPara) (*model.Receipt, e
 	return receipt, nil
 }
 
+func (tx *Transaction) PaddingTxFee(fee *big.Int) error{
+	if tx.GetType() != common.AddressTypeContractCreate && tx.GetType() != common.AddressTypeContract{
+		log.Info("the tx isn't contract transaction")
+		return nil
+	}
+
+	tx.data.Fee = fee
+	return nil
+}
+
 func (tx *Transaction) GetReceipt() (*model.Receipt, error) {
 	value := tx.receipt.Load()
 	if value != nil {
@@ -499,7 +509,7 @@ func (tx *Transaction) GetTxIndex() (int, error) {
 	if index != nil {
 		return index.(int), nil
 	}
-	return 0, errors.New("not set tx index")
+	return 0, g_error.ErrNotSetTxIndex
 }
 
 // Transactions is a Transaction slice type for basic sorting.

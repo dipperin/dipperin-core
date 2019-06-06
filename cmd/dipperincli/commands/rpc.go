@@ -56,7 +56,7 @@ var (
 
 	defaultAccount common.Address
 	defaultWallet  accounts.WalletIdentifier
-	osExit = os.Exit
+	osExit         = os.Exit
 )
 
 const (
@@ -212,7 +212,6 @@ func getDipperinRpcMethodByName(mName string) string {
 	return "dipperin_" + lm
 }
 
-
 // get rpc parameters from map, return string list, delete space at end
 func getRpcParamFromString(cParam string) []string {
 	if cParam == "" {
@@ -238,7 +237,7 @@ func getRpcMethodAndParam(c *cli.Context) (mName string, cParams []string, err e
 	return mName, cParams, nil
 }
 
-func getRpcParamValue(c *cli.Context, paramName string) (path string, err error)  {
+func getRpcParamValue(c *cli.Context, paramName string) (path string, err error) {
 	path = c.String(paramName)
 	if path == "" {
 		return "", errors.New("the " + paramName + " path is nil")
@@ -246,10 +245,9 @@ func getRpcParamValue(c *cli.Context, paramName string) (path string, err error)
 	return
 }
 
-func getRpcSpecialParam(c *cli.Context, paramName string)(value string)  {
+func getRpcSpecialParam(c *cli.Context, paramName string) (value string) {
 	return c.String(paramName)
 }
-
 
 func checkSync() bool {
 	if !SyncStatus.Load().(bool) {
@@ -265,7 +263,6 @@ func checkSync() bool {
 
 	return false
 }
-
 
 func (caller *rpcCaller) GetDefaultAccountBalance(c *cli.Context) {
 	var resp rpc_interface.CurBalanceResp
@@ -451,7 +448,7 @@ func (caller *rpcCaller) StartMine(c *cli.Context) {
 		l.Error("start mining error", "err", err)
 		return
 	}
-	l.Debug("Mining Started" )
+	l.Debug("Mining Started")
 }
 
 func (caller *rpcCaller) StopMine(c *cli.Context) {
@@ -555,8 +552,8 @@ func (caller *rpcCaller) SendTx(c *cli.Context) {
 
 }
 
-func (caller *rpcCaller) SendTransactionContract(c *cli.Context)  {
-	if checkSync(){
+func (caller *rpcCaller) SendTransactionContract(c *cli.Context) {
+	if checkSync() {
 		return
 	}
 
@@ -568,7 +565,7 @@ func (caller *rpcCaller) SendTransactionContract(c *cli.Context)  {
 
 }
 
-func SendTransactionContractCreate(c *cli.Context)  {
+func SendTransactionContractCreate(c *cli.Context) {
 	mName, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
 		l.Error("getRpcMethodAndParam error", "err", err)
@@ -598,7 +595,7 @@ func SendTransactionContractCreate(c *cli.Context)  {
 		return
 	}
 
-	var gasPrice  *big.Int
+	var gasPrice *big.Int
 	if len(cParams) == 3 {
 		gasPrice.SetInt64(config.DEFAULT_GAS_PRICE)
 	} else {
@@ -632,7 +629,7 @@ func SendTransactionContractCreate(c *cli.Context)  {
 	l.Info("SendTransaction result", "txId", resp.Hex())
 }
 
-func SendTransactionContractCall(c *cli.Context)  {
+func SendTransactionContractCall(c *cli.Context) {
 	mName, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
 		l.Error("getRpcMethodAndParam error", "err", err)
@@ -659,7 +656,7 @@ func SendTransactionContractCall(c *cli.Context)  {
 		return
 	}
 
-	var gasPrice  *big.Int
+	var gasPrice *big.Int
 	if len(cParams) == 2 {
 		gasPrice.SetInt64(config.DEFAULT_GAS_PRICE)
 	} else {
@@ -671,15 +668,15 @@ func SendTransactionContractCall(c *cli.Context)  {
 		gasPrice = new(big.Int).SetInt64(gasPriceVal)
 	}
 
-	funcName,err := getCalledFuncName(c)
+	funcName, err := getCalledFuncName(c)
 	if err != nil {
 		l.Error(err.Error())
 		return
 	}
 	input := getRpcSpecialParam(c, "input")
 	// RLP([funcName][params])
-	inputRlp,err := rlp.EncodeToBytes([]interface{}{
-		funcName,input,
+	inputRlp, err := rlp.EncodeToBytes([]interface{}{
+		funcName, input,
 	})
 	if err != nil {
 		log.Error("input rlp err")
@@ -693,7 +690,7 @@ func SendTransactionContractCall(c *cli.Context)  {
 	l.Info("the ExtraData is: ", "ExtraData", inputRlp)
 
 	//SendTransactionContract(from, to common.Address,value,gasLimit, gasPrice *big.Int, data []byte, nonce *uint64 )
-	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, to, nil,gasLimit, gasPrice, inputRlp, nil); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, to, nil, gasLimit, gasPrice, inputRlp, nil); err != nil {
 		l.Error("call sendTransactionContract fail", "err", err)
 		return
 	}
@@ -701,19 +698,19 @@ func SendTransactionContractCall(c *cli.Context)  {
 	l.Info("call sendTransactionContract result", "txId", resp.Hex())
 }
 
-func getCalledFuncName(c *cli.Context) (funcName string, err  error) {
+func getCalledFuncName(c *cli.Context) (funcName string, err error) {
 	funcName = c.String("funcName")
 	if funcName == "" {
 		return "", errors.New("function name is need")
 	}
-	return funcName,nil
+	return funcName, nil
 }
 
 func ContractCreate(c *cli.Context) bool {
-	return  c.Bool("isCreate")
+	return c.Bool("isCreate")
 }
 
-func generateExtraData(c *cli.Context)(ExtraData []byte, err error) {
+func generateExtraData(c *cli.Context) (ExtraData []byte, err error) {
 	abiPath, err := getRpcParamValue(c, "abi")
 	if err != nil {
 		return nil, errors.New("the abi path value invalid")
@@ -768,50 +765,50 @@ func generateExtraData(c *cli.Context)(ExtraData []byte, err error) {
 		case "string":
 			rlpParams = append(rlpParams, bts)
 		case "int8":
-			result, err  := strconv.ParseInt(bts,10,8)
+			result, err := strconv.ParseInt(bts, 10, 8)
 			if err != nil {
 				return nil, errors.New("contract param type is wrong")
 			}
 			rlpParams = append(rlpParams, result)
 		case "int16":
-			result, err  := strconv.ParseInt(bts,10,16)
+			result, err := strconv.ParseInt(bts, 10, 16)
 			if err != nil {
 				return nil, errors.New("contract param type is wrong")
 			}
 			rlpParams = append(rlpParams, result)
 		case "int32", "int":
-			result, err  := strconv.ParseInt(bts,10,32)
+			result, err := strconv.ParseInt(bts, 10, 32)
 			if err != nil {
 				return nil, errors.New("contract param type is wrong")
 			}
 			rlpParams = append(rlpParams, result)
 		case "int64":
 
-			result, err  := strconv.ParseInt(bts,10,64)
+			result, err := strconv.ParseInt(bts, 10, 64)
 			if err != nil {
 				return nil, errors.New("contract param type is wrong")
 			}
 			rlpParams = append(rlpParams, result)
 		case "uint8":
-			result, err  := strconv.ParseUint(bts,10,8)
+			result, err := strconv.ParseUint(bts, 10, 8)
 			if err != nil {
 				return nil, errors.New("contract param type is wrong")
 			}
 			rlpParams = append(rlpParams, result)
 		case "uint32", "uint":
-			result, err  := strconv.ParseUint(bts,10,32)
+			result, err := strconv.ParseUint(bts, 10, 32)
 			if err != nil {
 				return nil, errors.New("contract param type is wrong")
 			}
 			rlpParams = append(rlpParams, result)
 		case "uint64":
-			result, err  := strconv.ParseUint(bts,10,64)
+			result, err := strconv.ParseUint(bts, 10, 64)
 			if err != nil {
 				return nil, errors.New("contract param type is wrong")
 			}
 			rlpParams = append(rlpParams, result)
 		case "bool":
-			result, err  := strconv.ParseBool(bts)
+			result, err := strconv.ParseBool(bts)
 			if err != nil {
 				return nil, errors.New("contract param type is wrong")
 			}
@@ -830,8 +827,8 @@ func generateExtraData(c *cli.Context)(ExtraData []byte, err error) {
 	return rlp.EncodeToBytes(rlpParams)
 }
 
-func geneteInputRlpBytes(input string) (result  []byte, err error)  {
-	return rlp.EncodeToBytes([]interface{}{strconv.Itoa(common.AddressTypeContractCreate), "init", input })
+func geneteInputRlpBytes(input string) (result []byte, err error) {
+	return rlp.EncodeToBytes([]interface{}{strconv.Itoa(common.AddressTypeContractCreate), "init", input})
 }
 
 //send transaction
@@ -898,7 +895,6 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 	l.Info("SendTransaction result", "txId", resp.Hex())
 }
 
-
 //check transaction from transaction hash
 func (caller *rpcCaller) Transaction(c *cli.Context) {
 
@@ -935,7 +931,7 @@ func (caller *rpcCaller) Transaction(c *cli.Context) {
 	printTransactionInfo(resp)
 }
 
-func (caller *rpcCaller) GetContractAddressByTxHash(c *cli.Context)  {
+func (caller *rpcCaller) GetContractAddressByTxHash(c *cli.Context) {
 	_, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
 		l.Error("TransactionReceipt  getRpcMethodAndParam error")
@@ -960,13 +956,12 @@ func (caller *rpcCaller) GetContractAddressByTxHash(c *cli.Context)  {
 	}
 
 	for i := 0; i < len(resp); i++ {
-		if hash.IsEqual(resp[i].TxHash){
-			l.Info("Call GetContractAddressByTxHash", "Contract Address", resp[i].ContractAddress )
+		if hash.IsEqual(resp[i].TxHash) {
+			l.Info("Call GetContractAddressByTxHash", "Contract Address", resp[i].ContractAddress)
 		}
 	}
 
 }
-
 
 //List Wallet
 func (caller *rpcCaller) ListWallet(c *cli.Context) {
@@ -1800,7 +1795,7 @@ func (caller *rpcCaller) GetAddressNonceFromWallet(c *cli.Context) {
 }
 
 //get tx receipt
-func (caller *rpcCaller) GetTxReceipt(c *cli.Context){
+func (caller *rpcCaller) GetTxReceipt(c *cli.Context) {
 
 }
 
@@ -1879,7 +1874,6 @@ func getDefaultWallet() accounts.WalletIdentifier {
 
 	return resp[0]
 }
-
 
 //if user applies for registering verifier, record,
 // creating a file in $Home/.dipperin

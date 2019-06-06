@@ -131,14 +131,15 @@ func ValidateBlockDifficulty(c *BlockContext) Middleware {
 
 		targetDiff := model.NewCalNewWorkDiff(preSpanBlock, findBlock, c.Block.Number()-1)
 		//targetDiff := model.CalNewWorkDiff(preSpanBlock, lastBlock)
-		//log.Info("the two Diff is:", "calc", targetDiff.Hex(), "block", c.Block.Difficulty().Hex())
 		if !targetDiff.Equal(c.Block.Difficulty()) {
 			return g_error.ErrInvalidDiff
 		}
 
 		// valid block hash for difficulty
 		if !c.Block.RefreshHashCache().ValidHashForDifficulty(c.Block.Difficulty()) {
-			return g_error.ErrWrongHashDiff
+			log.Info("ValidateBlockDifficulty failed")
+			fmt.Println(c.Block.Header().(*model.Header).String())
+			return g_error. ErrWrongHashDiff
 		}
 		return c.Next()
 	}
@@ -208,12 +209,16 @@ func ValidateBlockTime(c *BlockContext) Middleware {
 // valid gas limit
 func ValidateGasLimit(c *BlockContext) Middleware{
 	return func() error {
-		currentGasLimit := *c.Block.Header().GetGasLimit()
+		if c.Block.IsSpecial() {
+			return c.Next()
+
+		}
+		currentGasLimit := c.Block.Header().GetGasLimit()
 		// Verify that the gas limit is <= 2^63-1
 		if currentGasLimit > chain_config.MaxGasLimit {
 			return errors.New(fmt.Sprintf("invalid gasLimit: have %v, max %v",currentGasLimit,chain_config.MaxGasLimit))
 		}
-		parentGasLimit := *c.Chain.GetBlockByNumber(c.Block.Number()-1).Header().GetGasLimit()
+		parentGasLimit := c.Chain.GetLatestNormalBlock().Header().GetGasLimit()
 		diff := int64(currentGasLimit) - int64(parentGasLimit)
 		if diff < 0 {
 			diff *= -1

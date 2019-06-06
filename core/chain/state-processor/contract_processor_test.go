@@ -106,11 +106,16 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	assert.NoError(t, err)
 
 	gasPool := gasLimit * 5
-	block := createBlock(1, common.Hash{}, []*model.Transaction{tx}, &gasPool)
+	block := createBlock(1, common.Hash{}, []*model.Transaction{tx}, gasPool)
+	tmpGasLimit := block.GasLimit()
+	gasUsed := block.GasUsed()
 	config := &TxProcessConfig{
 		Tx:      tx,
 		Header:  block.Header(),
 		GetHash: getTestHashFunc(),
+		GasLimit: &tmpGasLimit,
+		GasUsed: &gasUsed,
+		TxFee: big.NewInt(0),
 	}
 	err = processor.ProcessTxNew(config)
 	assert.NoError(t, err)
@@ -134,11 +139,16 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	param := [][]byte{name, num}
 	tx = callContractTx(t, &receipt1.ContractAddress, "hello", param, 1)
 
-	block = createBlock(2, block.Hash(), []*model.Transaction{tx}, &gasPool)
+	block = createBlock(2, block.Hash(), []*model.Transaction{tx}, gasPool)
+	tmpGasLimit = block.GasLimit()
+	gasUsed = block.GasUsed()
 	config = &TxProcessConfig{
 		Tx:      tx,
 		Header:  block.Header(),
 		GetHash: getTestHashFunc(),
+		GasLimit: &tmpGasLimit,
+		GasUsed: &gasUsed,
+		TxFee: big.NewInt(0),
 	}
 	err = processor.ProcessTxNew(config)
 	assert.NoError(t, err)

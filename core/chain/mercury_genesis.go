@@ -262,7 +262,7 @@ func (g *Genesis) ToBlock() *model.Block {
 		MinerPubKey: make([]byte, 0),
 		Diff:        g.Difficulty,
 		Bloom:       iblt.NewBloom(model.DefaultBlockBloomConfig),
-		GasLimit:    &g.GasLimit,
+		GasLimit:    g.GasLimit,
 	}
 
 	if g.Difficulty.Equal(common.Difficulty{}) {

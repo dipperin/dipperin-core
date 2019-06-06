@@ -181,11 +181,16 @@ func TestContractCreate(t *testing.T){
 
 	//blockGas := uint64(100000000)
 	block := model.NewBlock(model.NewHeader(1, 10, common.Hash{}, common.HexToHash("1111"), common.HexToDiff("0x20ffffff"), big.NewInt(324234), common.Address{}, common.BlockNonceFromInt(432423)),nil,nil)
+	gasLimit := block.GasLimit()
+	gasUsed := block.GasUsed()
 	conf := TxProcessConfig{
 		Tx:tx,
 		TxIndex:0,
 		Header:block.Header().(*model.Header),
 		GetHash:fakeGetBlockHash,
+		GasLimit: &gasLimit,
+		GasUsed: &gasUsed,
+		TxFee: big.NewInt(0),
 	}
 
 	tx.PaddingTxIndex(0)

@@ -105,7 +105,7 @@ func (state *AccountStateDB) PutContract(addr common.Address, v reflect.Value) e
 	}
 	old := state.contractData[addr]
 	state.contractData[addr] = v
-	state.stateChangeList.append(contractChange{Account:&addr,Prev:old,Current:v,ChangeType:ContractChange})
+	state.stateChangeList.append(contractChange{Account: &addr, Prev: old, Current: v, ChangeType: ContractChange})
 	return nil
 }
 
@@ -114,7 +114,6 @@ func (state *AccountStateDB) GetContract(addr common.Address, vType reflect.Type
 	if v.IsValid() && !v.IsNil() {
 		return
 	}
-
 
 	//log.Info("get contract", "addr", addr)
 	kv, err := state.getContractKV(addr)
@@ -1146,16 +1145,16 @@ func (state *AccountStateDB) Finalise() (result common.Hash, err error) {
 		return result, err
 	}
 
-	if err := state.finalSmartData(); err != nil{
+	if err := state.finalSmartData(); err != nil {
 		mpt_log.Debug("Finalise smart data failed", "err", err, "pre state", state.preStateRoot.Hex())
 		result = common.Hash{}
 		return result, err
 	}
 
-
 	state.alreadyFinalised = true
 	result, err = state.blockStateTrie.Commit(nil)
 	mpt_log.Debug("Finalise", "cur root", result.Hex(), "pre state", state.preStateRoot.Hex())
+	//log.Debug("~~~~~~Finalise", "cur root", result.Hex(), "pre state", state.preStateRoot.Hex())
 	return
 }
 
@@ -1163,7 +1162,7 @@ func (state *AccountStateDB) IntermediateRoot() (result common.Hash, err error) 
 	if state.finalised() {
 		result = state.blockStateTrie.Hash()
 		mpt_log.Debug("Finalise", "cur root", result.Hex(), "pre state", state.preStateRoot.Hex())
-		return result,nil
+		return result, nil
 	}
 	// finalise contracts
 	if err := state.finaliseContractData(); err != nil {
@@ -1172,11 +1171,11 @@ func (state *AccountStateDB) IntermediateRoot() (result common.Hash, err error) 
 		// state.resetThisStateDB()
 		mpt_log.Debug("Finalise failed", "err", err, "pre state", state.preStateRoot.Hex())
 		result = common.Hash{}
-		return result,err
+		return result, err
 	}
 
 	// finalise smart contracts data
-	if err := state.finalSmartData(); err != nil{
+	if err := state.finalSmartData(); err != nil {
 		mpt_log.Debug("Finalise smart data failed", "err", err, "pre state", state.preStateRoot.Hex())
 		result = common.Hash{}
 		return result, err
@@ -1219,7 +1218,7 @@ func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint
 	return
 }
 
-func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *model.ReceiptPara) error {
+func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *model.ReceiptPara,blockGasUsed *uint64) error {
 	if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContract {
 		return nil
 	}
@@ -1234,6 +1233,9 @@ func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *
 		return err
 	}
 
+	//add block gasUsed
+	*blockGasUsed += gasUsed
+
 	par.GasUsed = gasUsed
 	par.CumulativeGasUsed = gasUsed
 	par.HandlerResult = true
@@ -1243,10 +1245,13 @@ func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *
 }
 
 type TxProcessConfig struct {
-	Tx      model.AbstractTransaction
-	TxIndex int
-	Header  model.AbstractHeader
-	GetHash vm.GetHashFunc
+	Tx       model.AbstractTransaction
+	TxIndex  int
+	Header   model.AbstractHeader
+	GetHash  vm.GetHashFunc
+	GasLimit *uint64
+	GasUsed  *uint64
+	TxFee    *big.Int
 }
 
 func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
@@ -1262,9 +1267,9 @@ func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
 	var par model.ReceiptPara
 	switch conf.Tx.GetType() {
 	case common.AddressTypeContract:
-		par, err = state.ProcessContract(conf.Tx, conf.Header, false, conf.GetHash)
+		par, err = state.ProcessContract(conf, false)
 	case common.AddressTypeContractCreate:
-		par, err = state.ProcessContract(conf.Tx, conf.Header, true, conf.GetHash)
+		par, err = state.ProcessContract(conf, true)
 	case common.AddressTypeNormal:
 		err = state.processNormalTx(conf.Tx)
 	case common.AddressTypeCross:
@@ -1288,7 +1293,7 @@ func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
 		return
 	}
 
-	err = state.setTxReceiptPar(conf.Tx, &par)
+	err = state.setTxReceiptPar(conf.Tx, &par,conf.GasUsed)
 	if err != nil {
 		return
 	}
