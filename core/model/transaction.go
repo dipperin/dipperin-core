@@ -209,7 +209,6 @@ func (tx Transaction) String() string {
 	} else {
 		to = fmt.Sprintf("%x", tx.data.Recipient[:])
 	}
-	enc, _ := rlp.EncodeToBytes(&tx)
 	return fmt.Sprintf(`
 	TX(0x%x)
 	Type:     %s
@@ -227,7 +226,6 @@ func (tx Transaction) String() string {
 	R:        %#x
 	S:        %#x
 	HashKey:  0x%x    
-	Hex:      %x
 `,
 		tx.CalTxId(),
 		tx.data.Recipient.GetAddressTypeStr(),
@@ -245,7 +243,6 @@ func (tx Transaction) String() string {
 		tx.wit.R,
 		tx.wit.S,
 		tx.wit.HashKey,
-		enc,
 	)
 }
 
