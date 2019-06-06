@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
@@ -170,28 +171,36 @@ func TestContractCreate(t *testing.T){
 
 	processor, _:= NewAccountStateDB(common.Hash{}, tdb)
 	processor.NewAccountState(aliceAddr)
-	processor.AddBalance(aliceAddr, big.NewInt(2000))
+	processor.AddBalance(aliceAddr, big.NewInt(200000000))
 	processor.AddNonce(aliceAddr, 11)
 
 	nonce,_:=processor.GetNonce(aliceAddr)
 	fmt.Println(nonce)
 	tx := FakeContract(t)
+	assert.Equal(t,common.AddressTypeContractCreate,int(tx.GetType()))
 
 	//blockGas := uint64(100000000)
 	block := model.NewBlock(model.NewHeader(1, 10, common.Hash{}, common.HexToHash("1111"), common.HexToDiff("0x20ffffff"), big.NewInt(324234), common.Address{}, common.BlockNonceFromInt(432423)),nil,nil)
+	gasLimit := block.GasLimit()
+	gasUsed := block.GasUsed()
 	conf := TxProcessConfig{
 		Tx:tx,
 		TxIndex:0,
 		Header:block.Header().(*model.Header),
 		GetHash:fakeGetBlockHash,
+		GasLimit: &gasLimit,
+		GasUsed: &gasUsed,
+		TxFee: big.NewInt(0),
 	}
+
+	tx.PaddingTxIndex(0)
 	err:=processor.ProcessTxNew(&conf)
 	assert.NoError(t,err)
 }
 
 func FakeContract(t *testing.T) *model.Transaction{
-	codePath := "./../../vm/map-string/map2.wasm"
-	abiPath := "./../../vm/map-string/StringMap.cpp.abi.json"
+	codePath := "./../../api/map-string/map2.wasm"
+	abiPath := "./../../api/map-string/StringMap.cpp.abi.json"
 	fileCode, err := ioutil.ReadFile(codePath)
 	assert.NoError(t, err)
 
@@ -208,10 +217,11 @@ func FakeContract(t *testing.T) *model.Transaction{
 	err = rlp.Encode(buffer, input)
 
 	fs := model.NewMercurySigner(big.NewInt(1))
-	to := common.HexToAddress("0x00140000000000")
-	tx := model.NewTransactionSc(uint64(11),&to,big.NewInt(0),big.NewInt(10),uint64(2000),buffer.Bytes())
+	to := common.HexToAddress("0x00120000000000000000000000000000000000000000")
+	tx := model.NewTransactionSc(uint64(11),&to,big.NewInt(0),big.NewInt(1),uint64(20000000),buffer.Bytes())
 	key, _ := createKey()
 
+	log.Info("the tx receipt is:","to",tx.To().Hex())
 	tx.SignTx(key, fs)
 	return tx
 }

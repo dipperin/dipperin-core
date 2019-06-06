@@ -124,10 +124,9 @@ func (register RegisterDB) GetRegisterData() []common.Address {
 }
 
 func (register RegisterDB) Process(block model.AbstractBlock) (err error) {
-	//log.Debug("r db process", "tx len", block.TxCount(), "block num", block.Number())
+	log.Debug("r db process", "tx len", block.TxCount(), "block num", block.Number())
 	//　get all register data
 	if err := block.TxIterator(func(index int, tx model.AbstractTransaction) (error) {
-		//log.Debug("r db tx type", "t", tx.GetType(), "block num", block.Number())
 		switch tx.GetType() {
 		case common.AddressTypeCancel:
 			sender, innerError := tx.Sender(tx.GetSigner())

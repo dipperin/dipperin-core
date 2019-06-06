@@ -479,6 +479,16 @@ func (tx *Transaction) PaddingReceipt(parameters ReceiptPara) (*model.Receipt, e
 	return receipt, nil
 }
 
+func (tx *Transaction) PaddingTxFee(fee *big.Int) error{
+	if tx.GetType() != common.AddressTypeContractCreate && tx.GetType() != common.AddressTypeContract{
+		log.Info("the tx isn't contract transaction")
+		return nil
+	}
+
+	tx.data.Fee = fee
+	return nil
+}
+
 func (tx *Transaction) GetReceipt() (*model.Receipt, error) {
 	value := tx.receipt.Load()
 	if value != nil {
@@ -496,7 +506,7 @@ func (tx *Transaction) GetTxIndex() (int, error) {
 	if index != nil {
 		return index.(int), nil
 	}
-	return 0, errors.New("not set tx index")
+	return 0, g_error.ErrNotSetTxIndex
 }
 
 // Transactions is a Transaction slice type for basic sorting.
@@ -590,13 +600,24 @@ func NewTransactionsByFeeAndNonce(signer Signer, txs map[common.Address][]Abstra
 	// Initialize a price based heap with the head transactions
 	heads := make(TxByFee, 0, len(txs))
 	for from, accTxs := range txs {
-		log.Info("NewTransactionsByFeeAndNonce ", "from", from, "len(heads)", len(heads), "len()Txs", len(accTxs))
-		heads = append(heads, accTxs[0])
+		log.Info("NewTransactionsByFeeAndNonce ", "from", from, "len(heads)", len(heads))
+		// 此处 ethereum　的写法,假设from != acc这种异常情况出现，txs map会被新增acc字段交易或将原acc字段替换成from的相关交易
+		//　导致txs 异常．此外会导致range 不确定性，修改的acc　txs有可能遍历到，也有可能遍历不到
+		//　因此统一修改逻辑为:当出现此异常时，将此from的txs直接删除，heads里也不处理此类交易．
+/*		heads = append(heads, accTxs[0])
 		// Ensure the sender address is from the signer
 		acc, _ := accTxs[0].Sender(signer)
 		txs[acc] = accTxs[1:]
 		if from != acc {
 			delete(txs, from)
+		}*/
+		acc, _ := accTxs[0].Sender(signer)
+		if from != acc{
+			log.Warn("the tx sender and from is different")
+			delete(txs, from)
+		}else{
+			heads = append(heads, accTxs[0])
+			txs[acc] = accTxs[1:]
 		}
 	}
 	heap.Init(&heads)

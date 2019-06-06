@@ -78,6 +78,8 @@ func validStateRoot(c *BlockContext) (*chain.BlockProcessor, error) {
 		return nil, errors.New("state root not match")
 	}
 
+	//check reciptHash
+
 	return processor, nil
 }
 

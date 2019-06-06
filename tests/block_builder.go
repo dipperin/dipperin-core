@@ -229,6 +229,7 @@ func (builder *BlockBuilder) Build() model.AbstractBlock {
 	curHeight := curBlock.Number()
 	pubKey := &builder.MinerPk.PublicKey
 	seed, proof := crypto.Evaluate(builder.MinerPk, builder.PreBlock.Seed().Bytes())
+	gaLimit := uint64(chain_config.BlockGasLimit)
 
 	header := &model.Header{
 		Version:     curBlock.Version(),
@@ -244,6 +245,7 @@ func (builder *BlockBuilder) Build() model.AbstractBlock {
 		TimeStamp: big.NewInt(time.Now().Add(time.Second * 3).UnixNano()),
 		CoinBase:  coinbaseAddr,
 		Bloom:     iblt.NewBloom(model.DefaultBlockBloomConfig),
+		GasLimit:  gaLimit,
 	}
 
 	// set pre block verifications
@@ -296,6 +298,7 @@ func (builder *BlockBuilder) Build() model.AbstractBlock {
 		return nil
 	}
 	registerRoot := register.Finalise()
+	//log.Info("set the register root is:","registerRoot",registerRoot.Hex(),"preRoot",curBlock.GetRegisterRoot().Hex())
 	block.SetRegisterRoot(registerRoot)
 
 	// calculate block nonce
@@ -369,7 +372,27 @@ func (builder *BlockBuilder) BuildSpecialBlock() model.AbstractBlock {
 	return block
 }
 
-func (builder *BlockBuilder) commitTransaction(tx model.AbstractTransaction, state *chain.BlockProcessor, txIndex int, header *model.Header) error {
+func (builder *BlockBuilder) commitTransaction(conf *state_processor.TxProcessConfig, state *chain.BlockProcessor) error {
+	snap := state.Snapshot()
+	//err := state.ProcessTx(tx, height)
+	/*	conf := state_processor.TxProcessConfig{
+			Tx:      tx,
+			TxIndex: txIndex,
+			Header:  header,
+			GetHash: state.GetBlockHashByNumber,
+		}*/
+	err := state.ProcessTxNew(conf)
+	if err != nil {
+		state.RevertToSnapshot(snap)
+		return err
+	}
+
+	//updating tx fee
+	conf.Tx.(*model.Transaction).PaddingTxFee(conf.TxFee)
+	return nil
+}
+
+/*func (builder *BlockBuilder) commitTransaction(tx model.AbstractTransaction, state *chain.BlockProcessor, txIndex int, header *model.Header) error {
 	snap := state.Snapshot()
 	//err := state.ProcessTx(tx, height)
 	conf := state_processor.TxProcessConfig{
@@ -384,7 +407,7 @@ func (builder *BlockBuilder) commitTransaction(tx model.AbstractTransaction, sta
 		return err
 	}
 	return nil
-}
+}*/
 
 func (builder *BlockBuilder) getDiff() common.Difficulty {
 	if builder.PreBlock.Difficulty().Equal(common.Difficulty{}) {
@@ -393,9 +416,13 @@ func (builder *BlockBuilder) getDiff() common.Difficulty {
 	return builder.PreBlock.Difficulty()
 }
 
+
+
 func (builder *BlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndNonce, state *chain.BlockProcessor, header *model.Header, vers []model.AbstractVerification) (txBuf []model.AbstractTransaction, receipts model2.Receipts) {
 	var invalidList []*model.Transaction
 	txIndex := 0
+	gasLimit := header.GetGasLimit()
+	gasUsed := header.GetGasUsed()
 	for {
 		// Retrieve the next transaction and abort if all done
 		tx := txs.Peek()
@@ -403,7 +430,16 @@ func (builder *BlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndN
 			break
 		}
 		//from, _ := tx.Sender(builder.nodeContext.TxSigner())
-		err := builder.commitTransaction(tx, state, txIndex, header)
+		tx.PaddingTxIndex(txIndex)
+		conf := state_processor.TxProcessConfig{
+			Tx:       tx,
+			TxIndex:  txIndex,
+			Header:   header,
+			GetHash:  state.GetBlockHashByNumber,
+			GasLimit: &gasLimit,
+			GasUsed:  &gasUsed,
+		}
+		err := builder.commitTransaction(&conf, state)
 		if err != nil {
 			log.Info("transaction is not processable because:", "err", err, "txID", tx.CalTxId(), "nonce:", tx.Nonce())
 			txs.Pop()
@@ -423,6 +459,7 @@ func (builder *BlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndN
 		}
 	}
 
+	header.GasUsed = gasUsed
 	// ProcessExceptTxs then finalise for fear that changing state root
 	return
 }

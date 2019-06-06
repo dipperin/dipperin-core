@@ -97,7 +97,7 @@ func newContractCallTx(from *common.Address, to *common.Address, gasPrice *big.I
 }
 
 func TestAccountStateDB_ProcessContract2(t *testing.T) {
-	var testPath = "../../vm/event"
+	var testPath = "../../api/event"
 	tx := createContractTx(t, testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
 
 	db, root := createTestStateDB()
@@ -107,10 +107,15 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 
 	gasPool := gasLimit * 5
 	block := createBlock(1, common.Hash{}, []*model.Transaction{tx}, gasPool)
+	tmpGasLimit := block.GasLimit()
+	gasUsed := block.GasUsed()
 	config := &TxProcessConfig{
 		Tx:      tx,
 		Header:  block.Header(),
 		GetHash: getTestHashFunc(),
+		GasLimit: &tmpGasLimit,
+		GasUsed: &gasUsed,
+		TxFee: big.NewInt(0),
 	}
 	err = processor.ProcessTxNew(config)
 	assert.NoError(t, err)
@@ -135,10 +140,15 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	tx = callContractTx(t, &receipt1.ContractAddress, "hello", param, 1)
 
 	block = createBlock(2, block.Hash(), []*model.Transaction{tx}, gasPool)
+	tmpGasLimit = block.GasLimit()
+	gasUsed = block.GasUsed()
 	config = &TxProcessConfig{
 		Tx:      tx,
 		Header:  block.Header(),
 		GetHash: getTestHashFunc(),
+		GasLimit: &tmpGasLimit,
+		GasUsed: &gasUsed,
+		TxFee: big.NewInt(0),
 	}
 	err = processor.ProcessTxNew(config)
 	assert.NoError(t, err)

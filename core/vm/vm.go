@@ -184,8 +184,8 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 		return nil, address, gas, nil
 	}
 
-	/*	if vm.vmConfig.Debug && vm.depth == 0 {
-			vm.vmConfig.Tracer.CaptureStart(caller.Address(), address, true, data, gas, value)
+	/*	if api.vmConfig.Debug && api.depth == 0 {
+			api.vmConfig.Tracer.CaptureStart(caller.Address(), address, true, code, gas, value)
 		}*/
 	//start := time.Now()
 
@@ -222,8 +222,8 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 		err = g_error.ErrMaxCodeSizeExceeded
 	}
 
-	/*	if vm.vmConfig.Debug && vm.depth == 0 {
-			vm.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
+	/*	if api.vmConfig.Debug && api.depth == 0 {
+			api.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
 		}*/
 	return ret, address, contract.Gas, err
 }

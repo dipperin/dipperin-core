@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain
 
 import (
@@ -27,18 +26,18 @@ import (
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/chaindb"
+	"github.com/dipperin/dipperin-core/core/chain/registerdb"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/contract"
+	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"io/ioutil"
 	"math/big"
 	"os"
 	"path/filepath"
-	"time"
 	"reflect"
-	"github.com/dipperin/dipperin-core/core/chain/registerdb"
-	"github.com/dipperin/dipperin-core/core/economy-model"
+	"time"
 )
 
 //the verifier address to generate the first twenty blocks
@@ -76,7 +75,7 @@ type Genesis struct {
 	Nonce     uint64                    `json:"nonce"`
 	Timestamp *big.Int                  `json:"timestamp"`
 	ExtraData []byte                    `json:"extraData"`
-	//GasLimit   uint64              `json:"gasLimit"   gencodec:"required"`
+	GasLimit  uint64                    `json:"gasLimit"   gencodec:"required"`
 	//Difficulty *big.Int            `json:"difficulty" gencodec:"required"`
 	Difficulty common.Difficulty `json:"difficulty" gencodec:"required"`
 	Mixhash    common.Hash       `json:"mixHash"`
@@ -263,6 +262,7 @@ func (g *Genesis) ToBlock() *model.Block {
 		MinerPubKey: make([]byte, 0),
 		Diff:        g.Difficulty,
 		Bloom:       iblt.NewBloom(model.DefaultBlockBloomConfig),
+		GasLimit:    g.GasLimit,
 	}
 
 	if g.Difficulty.Equal(common.Difficulty{}) {
@@ -376,9 +376,9 @@ func (g *Genesis) SetEarlyTokenContract() error {
 // The block is committed as the canonical head block.
 func (g *Genesis) Prepare() (model.AbstractBlock, error) {
 	block := g.ToBlock()
-/*	if block.Number() != 0 {
-		return nil, fmt.Errorf("can't commit genesis block with number > 0")
-	}*/
+	/*	if block.Number() != 0 {
+			return nil, fmt.Errorf("can't commit genesis block with number > 0")
+		}*/
 
 	//write verifier state
 	for _, v := range g.Verifiers {
@@ -464,8 +464,8 @@ func DefaultGenesisBlock(chainDB chaindb.Database, accountStateProcessor state_p
 		gTime, _ = time.Parse("2006-01-02 15:04:05", "2019-01-14 08:08:08")
 	}
 	return &Genesis{
-		ChainDB: chainDB,
-
+		ChainDB:               chainDB,
+		GasLimit:              chain_config.BlockGasLimit,
 		AccountStateProcessor: accountStateProcessor,
 		RegisterProcessor:     registerProcessor,
 		Config:                chain_config.GetChainConfig(),

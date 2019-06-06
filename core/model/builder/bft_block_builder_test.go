@@ -217,3 +217,4 @@ func (f *fakeChainReader) BuildRegisterProcessor(preRoot common.Hash) (*register
 func (f *fakeChainReader) GetEconomyModel() economy_model.EconomyModel {
 	panic("implement me")
 }
+

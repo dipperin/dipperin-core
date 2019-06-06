@@ -11,7 +11,7 @@ import (
 )
 
 func TestApplyMessage(t *testing.T) {
-	var testPath = "/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/event"
+	var testPath = "/home/qydev/go/src/github.com/dipperin/dipperin-core/core/api/event"
 	tx := createContractTx(t, testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
 	msg, err := tx.AsMessage()
 	assert.NoError(t, err)
@@ -21,7 +21,7 @@ func TestApplyMessage(t *testing.T) {
 	testVm := getTestVm(a, c)
 
 	gasPool := uint64(5*gasLimit)
-	result, usedGas, failed, err := ApplyMessage(testVm, msg, &gasPool)
+	result, usedGas, failed,_, err := ApplyMessage(testVm, msg, &gasPool)
 	assert.NoError(t, err)
 	assert.False(t, failed)
 	assert.NotNil(t, usedGas)
@@ -38,7 +38,7 @@ func TestApplyMessage(t *testing.T) {
 	msg, err = tx.AsMessage()
 	assert.NoError(t, err)
 
-	result, usedGas, failed, err = ApplyMessage(testVm, msg, &gasPool)
+	result, usedGas, failed,_, err = ApplyMessage(testVm, msg, &gasPool)
 	assert.NoError(t, err)
 	assert.False(t, failed)
 	assert.NotNil(t, usedGas)
