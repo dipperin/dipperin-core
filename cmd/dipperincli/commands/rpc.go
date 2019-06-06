@@ -25,6 +25,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/core/chain"
@@ -761,69 +762,13 @@ func generateExtraData(c *cli.Context) (ExtraData []byte, err error) {
 
 	for i, v := range args {
 		bts := params[i]
-		switch v.Type {
-		case "string":
-			rlpParams = append(rlpParams, bts)
-		case "int8":
-			result, err := strconv.ParseInt(bts, 10, 8)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "int16":
-			result, err := strconv.ParseInt(bts, 10, 16)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "int32", "int":
-			result, err := strconv.ParseInt(bts, 10, 32)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "int64":
-
-			result, err := strconv.ParseInt(bts, 10, 64)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "uint8":
-			result, err := strconv.ParseUint(bts, 10, 8)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "uint32", "uint":
-			result, err := strconv.ParseUint(bts, 10, 32)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "uint64":
-			result, err := strconv.ParseUint(bts, 10, 64)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "bool":
-			result, err := strconv.ParseBool(bts)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
+		re, err := vmcommon.StringConverter(bts, v.Type)
+		if err != nil {
+			return re,err
 		}
+		rlpParams = append(rlpParams, re)
 	}
 
-	//rlp.EncodeToBytes([]interface{}{common.AddressTypeContractCreate, "init", input })
-	/*inputRlp, err := geneteInputRlpBytes(input)
-	if err != nil {
-		l.Error("input to rlp error")
-		return
-	}
-	ExtraData, err = json.Marshal(vmcommon.CodeAbi{Abi: abiBytes, Code: wasmBytes, Input: inputRlp})*/
-	//rlpData=RLP([txType][code][abi][init params])
 	return rlp.EncodeToBytes(rlpParams)
 }
 

@@ -238,6 +238,7 @@ func (builder *BlockBuilder) Build() model.AbstractBlock {
 		MinerPubKey: crypto.FromECDSAPub(pubKey),
 		PreHash:     curBlock.Hash(),
 
+		//GasLimit:  &model.DefaultGasLimit,
 		// 一定要有，否则nonce和diff为空就会被判断成特殊块
 		Diff:      builder.getDiff(),
 		TimeStamp: big.NewInt(time.Now().Add(time.Second * 3).UnixNano()),

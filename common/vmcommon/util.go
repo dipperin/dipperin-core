@@ -85,50 +85,68 @@ func ParseAndGetRlpData(rlpData []byte, input []byte) (extraData []byte, err err
 
 	for i, v := range args {
 		bts := params[i]
-		switch v.Type {
+		result, err := StringConverter(bts, v.Type)
+		if err != nil {
+			return nil,err
+		}
+		rlpParams = append(rlpParams, result)
+	}
+
+	return rlp.EncodeToBytes(rlpParams)
+}
+
+func GetRlpPrarmsList(rlpParams []interface{}, args []utils.InputParam, params []string) (err error) {
+	for i, v := range args {
+		bts := params[i]
+		result, err := StringConverter(bts, v.Type)
+		if err != nil {
+
+		}
+		rlpParams = append(rlpParams, result)
+		/*switch v.Type {
 		case "string":
 			rlpParams = append(rlpParams, bts)
 		case "int8":
 			result, err := strconv.ParseInt(bts, 10, 8)
 			if err != nil {
-				return nil, errors.New("contract param type is wrong")
+				return errors.New("contract param type is wrong")
 			}
 			rlpParams = append(rlpParams, result)
 		case "int16":
 			result, err := strconv.ParseInt(bts, 10, 16)
 			if err != nil {
-				return nil, errors.New("contract param type is wrong")
+				return errors.New("contract param type is wrong")
 			}
 			rlpParams = append(rlpParams, result)
 		case "int32", "int":
 			result, err := strconv.ParseInt(bts, 10, 32)
 			if err != nil {
-				return nil, errors.New("contract param type is wrong")
+				return errors.New("contract param type is wrong")
 			}
 			rlpParams = append(rlpParams, result)
 		case "int64":
 
 			result, err := strconv.ParseInt(bts, 10, 64)
 			if err != nil {
-				return nil, errors.New("contract param type is wrong")
+				return errors.New("contract param type is wrong")
 			}
 			rlpParams = append(rlpParams, result)
 		case "uint8":
 			result, err := strconv.ParseUint(bts, 10, 8)
 			if err != nil {
-				return nil, errors.New("contract param type is wrong")
+				return errors.New("contract param type is wrong")
 			}
 			rlpParams = append(rlpParams, result)
 		case "uint32", "uint":
 			result, err := strconv.ParseUint(bts, 10, 32)
 			if err != nil {
-				return nil, errors.New("contract param type is wrong")
+				return  errors.New("contract param type is wrong")
 			}
 			rlpParams = append(rlpParams, result)
 		case "uint64":
 			result, err := strconv.ParseUint(bts, 10, 64)
 			if err != nil {
-				return nil, errors.New("contract param type is wrong")
+				return errors.New("contract param type is wrong")
 			}
 			rlpParams = append(rlpParams, result)
 		case "bool":
@@ -137,10 +155,28 @@ func ParseAndGetRlpData(rlpData []byte, input []byte) (extraData []byte, err err
 				return nil, errors.New("contract param type is wrong")
 			}
 			rlpParams = append(rlpParams, result)
-		}
+		}*/
 	}
+	return
+}
 
-	return rlp.EncodeToBytes(rlpParams)
+func ParseStringToUintRlpByte(param string, bitSize int) (result []byte, err error) {
+	r, err := strconv.ParseUint(param, 10, bitSize)
+	if err != nil {
+		return nil, errors.New("contract param type is wrong")
+	}
+	result = Uint64ToBytes(r)
+	return
+}
+
+
+func ParseStringTointRlpByte(param string, bitSize int) (result []byte, err error) {
+	r, err := strconv.ParseUint(param, 10, bitSize)
+	if err != nil {
+		return nil, errors.New("contract param type is wrong")
+	}
+	result = Uint64ToBytes(r)
+	return
 }
 
 
