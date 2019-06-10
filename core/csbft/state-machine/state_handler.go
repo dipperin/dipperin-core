@@ -380,6 +380,7 @@ func (h *StateHandler) onEnterPropose() {
 	//fmt.Println("on enter proposal","id",reflect.ValueOf(h.bs).Pointer())
 	//Pick a valid block
 	block := h.bs.LockedBlock
+	//pbft_log.Info("[onEnterPropose] the block is:","block",block)
 	if block == nil {
 
 		block = h.blockPool.GetProposalBlock()
@@ -401,6 +402,7 @@ func (h *StateHandler) onEnterPropose() {
 		}
 	}
 
+	//pbft_log.Info("[onEnterPropose] get the proposal block is:","block",block)
 
 	msg := model2.Proposal{
 		Height:    h.bs.Height,

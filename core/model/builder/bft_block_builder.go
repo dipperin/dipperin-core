@@ -61,8 +61,6 @@ func (builder *BftBlockBuilder) commitTransaction(conf *state_processor.TxProces
 		return err
 	}
 
-	//updating tx fee
-	conf.Tx.(*model.Transaction).PaddingTxFee(conf.TxFee)
 	return nil
 }
 

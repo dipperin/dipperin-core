@@ -1298,6 +1298,8 @@ func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
 		return
 	}
 
+	//updating tx fee
+	conf.Tx.(*model.Transaction).PaddingTxFee(conf.TxFee)
 	_, err = conf.Tx.PaddingReceipt(par)
 	return
 }

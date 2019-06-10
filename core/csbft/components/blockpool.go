@@ -224,6 +224,8 @@ func (p *BlockPool) doAddBlock(nb newBlockWithResultErr) {
 	}
 }
 func (p *BlockPool) GetProposalBlock() model.AbstractBlock {
+	//pbft_log.Info("[GetProposalBlock] start~~~~~~~~~~~~~~~")
+	//defer pbft_log.Info("[GetProposalBlock] end~~~~~~~~~~~~~~~")
 	resultC := make(chan model.AbstractBlock)
 	p.getBlock(&blockPoolGetter{
 		resultChan: resultC,

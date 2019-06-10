@@ -36,7 +36,8 @@ import (
 
 func TestBlock_GetTransactionFees(t *testing.T) {
 	block := CreateBlock(1, common.Hash{}, 10)
-	assert.Equal(t, block.GetTransactionFees(), big.NewInt(0).Mul(big.NewInt(int64(10)), big.NewInt(10000)))
+	fee := block.GetTransactionFees()
+	assert.Equal(t, fee, big.NewInt(0).Mul(big.NewInt(int64(10)), big.NewInt(10000)))
 }
 
 func TestBlock_EncodeToIBLT(t *testing.T) {
