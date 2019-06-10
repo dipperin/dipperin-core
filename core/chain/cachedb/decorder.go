@@ -45,6 +45,5 @@ func (d *BFTCacheDataDecoder) DecodeSeenCommits(data []byte) (result []model.Abs
 
 	result = make([]model.AbstractVerification, len(from))
 	util.InterfaceSliceCopy(result, from)
-	pbft_log.Debug("Decode Seen commits", "length", len(result))
 	return result, nil
 }

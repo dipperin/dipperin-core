@@ -48,6 +48,8 @@ type Transaction struct {
 	receipt atomic.Value
 	//add txIndex cache
 	txIndex atomic.Value
+	//add contract tx usedFee
+	contractTxFee atomic.Value
 }
 
 type RpcTransaction struct {
@@ -210,7 +212,7 @@ func (tx Transaction) String() string {
 		to = fmt.Sprintf("%x", tx.data.Recipient[:])
 	}
 	return fmt.Sprintf(`
-	TX(0x%x)
+	TXID:	  %s
 	Type:     %s
 	From:     0x%s
 	To:       0x%s
@@ -227,7 +229,7 @@ func (tx Transaction) String() string {
 	S:        %#x
 	HashKey:  0x%x    
 `,
-		tx.CalTxId(),
+		tx.CalTxId().Hex(),
 		tx.data.Recipient.GetAddressTypeStr(),
 		from,
 		to,
@@ -485,7 +487,7 @@ func (tx *Transaction) PaddingTxFee(fee *big.Int) error{
 		return nil
 	}
 
-	tx.data.Fee = fee
+	tx.contractTxFee.Store(fee)
 	return nil
 }
 

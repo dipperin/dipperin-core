@@ -208,10 +208,12 @@ func (p *BlockPool) doAddBlock(nb newBlockWithResultErr) {
 			nb.resultChan <- errors.New("dul block")
 			return
 		}
+		pbft_log.Info("the oldB in block pool","blockHash",oldB.Hash().Hex())
 	}
-
+	pbft_log.Info("the add block in block pool","blockHash",b.Hash().Hex())
 	p.blocks = append(p.blocks, b)
 	pbft_log.Debug("pool length","height",p.height,"len",len(p.blocks))
+
 
 	// send result
 	nb.resultChan <- nil
@@ -250,6 +252,9 @@ If the hash is passed, it means that the block matching the master is obtained.
 */
 func (p *BlockPool) doGetBlock(getter *blockPoolGetter) {
 	var result model.AbstractBlock = nil
+	pbft_log.Info("~~~~~~~~~~~~~~~~~~~~~~~~~~get Block From blockPool~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+	pbft_log.Info("doGetBlock the blockPool len is:","len",len(p.blocks))
+	pbft_log.Info("want get block hash is:","id",getter.blockHash.Hex())
 	// proposer get first block
 	if getter.blockHash.IsEqual(common.Hash{}) {
 		if len(p.blocks) == 0{
@@ -260,6 +265,7 @@ func (p *BlockPool) doGetBlock(getter *blockPoolGetter) {
 		// get match hash block
 	} else {
 		for _, b := range p.blocks {
+			pbft_log.Info("block in block Pool","id",b.Hash().Hex())
 			if b.Hash().IsEqual(getter.blockHash) {
 				result = b
 				break

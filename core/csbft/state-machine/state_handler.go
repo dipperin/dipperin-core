@@ -140,6 +140,7 @@ func (h *StateHandler) loop() {
 }
 
 func (h *StateHandler) OnNewHeight(height uint64) {
+	pbft_log.Info("[**********************start new Block************************]")
 	pbft_log.Info("[StateHandler-OnNewHeight]", "height", height)
 	round := uint64(0)
 	chainHeight := h.ChainReader.CurrentBlock().Number()
@@ -270,7 +271,8 @@ func (h *StateHandler) OnVote(v *model.VoteMsg) {
 		if block != nil {
 			pbft_log.Info("[StateHandler-OnVote]:finalBlock","blockNumber",block.Number())
 			h.finalBlock(block, commits)
-			pbft_log.Info("=========================================================================")
+			pbft_log.Info("==================================pbft save block end=======================================")
+			pbft_log.Info("")
 		}
 	}
 }

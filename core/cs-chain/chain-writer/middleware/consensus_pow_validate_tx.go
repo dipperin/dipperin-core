@@ -25,6 +25,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 	"strings"
@@ -79,7 +80,12 @@ func ValidateBlockTxs(c *BlockContext) Middleware {
 	return func() error {
 		txs := c.Block.GetAbsTransactions()
 		targetRoot := model.DeriveSha(model.AbsTransactions(txs))
-
+		pbft_log.Info("the header tx root is:","root",c.Block.TxRoot().Hex())
+		pbft_log.Info("the calculated tx root is:","root",targetRoot.Hex())
+		pbft_log.Info("the block txs is:","len",len(txs))
+		for _,tx := range txs{
+			pbft_log.Info("the tx is:","tx",tx)
+		}
 		if !targetRoot.IsEqual(c.Block.TxRoot()) {
 			return errors.New(fmt.Sprintf("tx root not match, target: %v, root in block: %v", targetRoot.Hex(), c.Block.TxRoot().Hex()))
 		}

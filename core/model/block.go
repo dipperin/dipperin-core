@@ -24,6 +24,7 @@ import (
 	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/bloom_log"
+	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/log/witch_log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
@@ -502,7 +503,13 @@ func (b Block) GetCoinbase() *big.Int {
 func (b Block) GetTransactionFees() *big.Int {
 	tempfee := big.NewInt(0)
 	for _, tx := range b.body.Txs {
-		tempfee.Add(tempfee, tx.Fee())
+		var addFee *big.Int
+		if tx.GetType() == common.AddressTypeContractCreate || tx.GetType()==common.AddressTypeContract{
+			addFee = tx.contractTxFee.Load().(*big.Int)
+		}else{
+			addFee = tx.Fee()
+		}
+		tempfee.Add(tempfee, addFee)
 	}
 	return tempfee
 }
@@ -523,6 +530,12 @@ func NewBlock(header *Header, txs []*Transaction, msgs []AbstractVerification) *
 		b.header.TransactionRoot = DeriveSha(Transactions(txs))
 		b.body.Txs = make(Transactions, len(txs))
 		copy(b.body.Txs, txs)
+	}
+
+	pbft_log.Info("the calculated tx root is:","root",b.header.TransactionRoot.Hex())
+	pbft_log.Info("the block txs is:","len",len(txs))
+	for _,tx := range txs{
+		pbft_log.Info("the tx is:","tx",tx)
 	}
 
 	// calculate verification Root
