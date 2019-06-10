@@ -905,7 +905,37 @@ func (caller *rpcCaller) GetContractAddressByTxHash(c *cli.Context) {
 			l.Info("Call GetContractAddressByTxHash", "Contract Address", resp[i].ContractAddress)
 		}
 	}
+}
 
+func (caller *rpcCaller) TransactionReceipt(c *cli.Context) {
+	_, cParams, err := getRpcMethodAndParam(c)
+	if err != nil {
+		l.Error("TransactionReceipt  getRpcMethodAndParam error")
+		return
+	}
+	if len(cParams) < 1 {
+		l.Error("TransactionReceipt need：txHash")
+		return
+	}
+	tmpHash, err := hexutil.Decode(cParams[0])
+	if err != nil {
+		l.Error("TransactionReceipt decode error")
+		return
+	}
+	var hash common.Hash
+	_ = copy(hash[:], tmpHash)
+
+	var resp model.Receipts
+	if err := client.Call(&resp, getDipperinRpcMethodByName("TransactionReceipt"), hash); err != nil {
+		l.Error("Call TransactionReceipt", "err", err)
+		return
+	}
+
+	for i := 0; i < len(resp); i++ {
+		if hash.IsEqual(resp[i].TxHash) {
+			fmt.Println(resp[i].String())
+		}
+	}
 }
 
 //List Wallet
@@ -1739,10 +1769,6 @@ func (caller *rpcCaller) GetAddressNonceFromWallet(c *cli.Context) {
 	l.Info("the address nonce from wallet is:", "nonce", nonce)
 }
 
-//get tx receipt
-func (caller *rpcCaller) GetTxReceipt(c *cli.Context) {
-
-}
 
 func initWallet(path, password, passPhrase string) (err error) {
 

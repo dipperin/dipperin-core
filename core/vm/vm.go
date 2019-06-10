@@ -247,12 +247,13 @@ type Context struct {
 	Origin common.Address // Provides information for ORIGIN
 
 	// Block information
-	Coinbase    common.Address // Provides information for COINBASE
-	GasPrice    *big.Int       // Provides information for GASPRICE
-	GasLimit    uint64         // Provides information for GASLIMIT
-	BlockNumber *big.Int       // Provides information for NUMBER
-	Time        *big.Int       // Provides information for TIME
-	Difficulty  *big.Int       // Provides information for DIFFICULTY
+	Coinbase     common.Address // Provides information for COINBASE
+	GasPrice     *big.Int       // Provides information for GASPRICE
+	GasLimit     uint64         // Provides information for GASLIMIT
+	BlockNumber  *big.Int       // Provides information for NUMBER
+	Time         *big.Int       // Provides information for TIME
+	Difficulty   *big.Int       // Provides information for DIFFICULTY
+	CurBlockHash common.Hash    // Provides information for CurBlockHash
 
 	TxHash  common.Hash
 	TxIndex uint64
@@ -292,6 +293,10 @@ func (context *Context) GetBlockHash(num uint64) common.Hash {
 	return context.GetHash(num)
 }
 
+func (context *Context) GetCurBlockHash() common.Hash {
+	return context.CurBlockHash
+}
+
 func (context *Context) GetBlockNumber() *big.Int {
 	return context.BlockNumber
 }
@@ -320,19 +325,19 @@ func NewVMContext(tx model.AbstractTransaction, header model.AbstractHeader, Get
 		panic("GetTxIndex failed")
 	}
 	return Context{
-		Origin:      sender,
-		GasPrice:    tx.GetGasPrice(),
-		GasLimit:    tx.Fee().Uint64(),
-		BlockNumber: new(big.Int).SetUint64(header.GetNumber()),
-		callGasTemp: tx.Fee().Uint64(),
-		//BlockHash:   block.Hash(),
-		TxHash:      tx.CalTxId(),
-		TxIndex:     uint64(txIndex),
-		CanTransfer: CanTransfer,
-		Transfer:    Transfer,
-		Coinbase:    header.CoinBaseAddress(),
-		Time:        header.GetTimeStamp(),
-		GetHash:     GetHash,
+		Origin:       sender,
+		GasPrice:     tx.GetGasPrice(),
+		GasLimit:     tx.Fee().Uint64(),
+		BlockNumber:  new(big.Int).SetUint64(header.GetNumber()),
+		callGasTemp:  tx.Fee().Uint64(),
+		CurBlockHash: header.Hash(),
+		TxHash:       tx.CalTxId(),
+		TxIndex:      uint64(txIndex),
+		CanTransfer:  CanTransfer,
+		Transfer:     Transfer,
+		Coinbase:     header.CoinBaseAddress(),
+		Time:         header.GetTimeStamp(),
+		GetHash:      GetHash,
 	}
 }
 

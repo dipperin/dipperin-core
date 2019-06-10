@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_state
 
 import (
@@ -166,15 +165,15 @@ func (cs *ChainState) GetTransaction(txHash common.Hash) (model.AbstractTransact
 	return cs.ChainDB.GetTransaction(txHash)
 }
 
-func (cs *ChainState) GetReceipts(hash common.Hash, number uint64)model2.Receipts{
-	return cs.ChainDB.GetReceipts(hash,number)
+func (cs *ChainState) GetReceipts(hash common.Hash, number uint64) model2.Receipts {
+	return cs.ChainDB.GetReceipts(hash, number)
 }
 
 func (cs *ChainState) GetLatestNormalBlock() model.AbstractBlock {
 	findBlock := cs.CurrentBlock()
 	for {
 		if findBlock.IsSpecial() {
-			findBlock = cs.GetBlockByNumber(findBlock.Number()-1)
+			findBlock = cs.GetBlockByNumber(findBlock.Number() - 1)
 		} else {
 			break
 		}

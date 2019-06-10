@@ -461,6 +461,7 @@ type ReceiptPara struct {
 }
 
 func (tx *Transaction) PaddingReceipt(parameters ReceiptPara) (*model.Receipt, error) {
+	log.Info("Call PaddingReceipt", "handlerResult", parameters.HandlerResult)
 	receipt := model.NewReceipt(parameters.Root, parameters.HandlerResult, parameters.CumulativeGasUsed)
 	receipt.TxHash = tx.CalTxId()
 	receipt.GasUsed = parameters.GasUsed

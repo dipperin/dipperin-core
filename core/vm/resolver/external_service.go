@@ -17,6 +17,7 @@ type VmContextService interface {
 	GetGasPrice() int64
 	GetGasLimit() uint64
 	GetBlockHash(num uint64) common.Hash
+	GetCurBlockHash() common.Hash
 	GetBlockNumber() *big.Int
 	GetTime() *big.Int
 	GetCoinBase() common.Address

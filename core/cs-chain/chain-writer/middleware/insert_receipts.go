@@ -23,7 +23,7 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
-func ValidGasUsedAndReceipts(c *BlockContext)Middleware{
+func ValidGasUsedAndReceipts(c *BlockContext) Middleware {
 	return func() error {
 		if c.Block.IsSpecial() {
 			return c.Next()
@@ -51,18 +51,18 @@ func ValidGasUsedAndReceipts(c *BlockContext)Middleware{
 			return g_error.ReceiptHashError
 		}
 
-		if accumulatedGas != c.Block.Header().GetGasUsed(){
-			log.Info("the block gas info is:","accumulatedGas",accumulatedGas,"headerGasUsed",c.Block.Header().GetGasUsed())
+		if accumulatedGas != c.Block.Header().GetGasUsed() {
+			log.Info("the block gas info is:", "accumulatedGas", accumulatedGas, "headerGasUsed", c.Block.Header().GetGasUsed())
 			return g_error.ErrGasUsedIsInvalid
 		}
 
 		//check accumulated Gas
-		if accumulatedGas > c.Block.Header().GetGasLimit(){
+		if accumulatedGas > c.Block.Header().GetGasLimit() {
 			return g_error.ErrTxGasIsOverRanging
 		}
 
 		//padding receipts
-		c.receipts =receipts
+		c.receipts = receipts
 		return c.Next()
 	}
 }

@@ -85,7 +85,7 @@ func defaultChainConfig() *ChainConfig {
 		// the interval of the Verify section from the election section
 		SlotMargin: uint64(2),
 		// number of verifier
-		VerifierNumber: 22,
+		VerifierNumber: 4,
 		//VerifierNumber:4,
 
 		// angel verifier priority
