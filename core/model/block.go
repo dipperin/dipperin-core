@@ -24,6 +24,7 @@ import (
 	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/bloom_log"
+	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/log/witch_log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
@@ -67,8 +68,8 @@ type Header struct {
 	TimeStamp *big.Int `json:"timestamp"  gencodec:"required"`
 	// the address of the miner who mined this block
 	CoinBase common.Address `json:"coinbase"  gencodec:"required"`
-	GasLimit uint64        `json:"gasLimit"         gencodec:"required"`
-	GasUsed  uint64        `json:"gasUsed"          gencodec:"required"`
+	GasLimit uint64         `json:"gasLimit"         gencodec:"required"`
+	GasUsed  uint64         `json:"gasUsed"          gencodec:"required"`
 	// nonce needed to be mined by the miner
 	Nonce common.BlockNonce `json:"nonce"  gencodec:"required"`
 	//todo add bloom filter for Logs or txs
@@ -276,8 +277,8 @@ type Block struct {
 	body   *Body
 
 	// caches
-	hash atomic.Value `json:"-"`
-	size atomic.Value `json:"-"`
+	hash     atomic.Value `json:"-"`
+	size     atomic.Value `json:"-"`
 	receipts atomic.Value `json:"-"`
 }
 
@@ -285,7 +286,7 @@ func (b *Block) GasLimit() uint64 {
 	return b.header.GasLimit
 }
 
-func (b *Block) GasUsed() uint64{
+func (b *Block) GasUsed() uint64 {
 	return b.header.GasUsed
 }
 
@@ -502,7 +503,18 @@ func (b Block) GetCoinbase() *big.Int {
 func (b Block) GetTransactionFees() *big.Int {
 	tempfee := big.NewInt(0)
 	for _, tx := range b.body.Txs {
-		tempfee.Add(tempfee, tx.Fee())
+		var addFee *big.Int
+		if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContract {
+			if fee := tx.contractTxFee.Load();fee ==nil{
+				log.Error("the transaction fee cache is nil")
+				return tempfee
+			}else{
+				addFee = fee.(*big.Int)
+			}
+		} else {
+			addFee = tx.Fee()
+		}
+		tempfee.Add(tempfee, addFee)
 	}
 	return tempfee
 }
@@ -523,6 +535,12 @@ func NewBlock(header *Header, txs []*Transaction, msgs []AbstractVerification) *
 		b.header.TransactionRoot = DeriveSha(Transactions(txs))
 		b.body.Txs = make(Transactions, len(txs))
 		copy(b.body.Txs, txs)
+	}
+
+	pbft_log.Info("the calculated tx root is:", "root", b.header.TransactionRoot.Hex())
+	pbft_log.Info("the block txs is:", "len", len(txs))
+	for _, tx := range txs {
+		pbft_log.Info("the tx is:", "tx", tx)
 	}
 
 	// calculate verification Root

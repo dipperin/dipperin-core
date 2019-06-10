@@ -158,7 +158,7 @@ func (bs *BftState) OnVote(v *model.VoteMsg) (common.Hash, []model.AbstractVerif
 	// check have enough votes, reject very past commits
 	maj32Block := bs.Votes.VotesEnough(v.Round)
 	if maj32Block.IsEqual(common.Hash{}) || v.Round < bs.Round {
-		pbft_log.Error("[BftState-OnVote] cannot final block","maj32Block == nil",maj32Block.IsEqual(common.Hash{}),"v.Round < bs.Round")
+		pbft_log.Error("[BftState-OnVote] cannot final block","maj32Block == nil",maj32Block.IsEqual(common.Hash{}),"v.Round < bs.Round",v.Round<bs.Round)
 		return common.Hash{}, nil
 	}
 

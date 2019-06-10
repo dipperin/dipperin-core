@@ -1218,7 +1218,7 @@ func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint
 	return
 }
 
-func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *model.ReceiptPara,blockGasUsed *uint64) error {
+func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *model.ReceiptPara, blockGasUsed *uint64) error {
 	if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContract {
 		return nil
 	}
@@ -1293,11 +1293,13 @@ func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
 		return
 	}
 
-	err = state.setTxReceiptPar(conf.Tx, &par,conf.GasUsed)
+	err = state.setTxReceiptPar(conf.Tx, &par, conf.GasUsed)
 	if err != nil {
 		return
 	}
 
+	//updating tx fee
+	conf.Tx.(*model.Transaction).PaddingTxFee(conf.TxFee)
 	_, err = conf.Tx.PaddingReceipt(par)
 	return
 }

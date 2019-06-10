@@ -136,7 +136,7 @@ func (f *Fullstate) AddLog(addedLog *model2.Log) {
 
 	txHash := addedLog.TxHash
 	contractLogs := f.GetLogs(txHash)
-	addedLog.Index = uint(len(contractLogs) + 1)
+	addedLog.Index = uint(len(contractLogs))
 	f.state.logs[txHash] = append(contractLogs, addedLog)
 
 	log.Info("Log Added", "txHash", txHash, "logs", f.state.logs[txHash])
