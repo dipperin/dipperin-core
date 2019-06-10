@@ -68,6 +68,7 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	contractNonce, err := processor.GetNonce(receiptResult.ContractAddress)
 	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce, "receiptResult", receiptResult)
 	code, err := processor.GetCode(receiptResult.ContractAddress)
+	log.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
 	assert.NoError(t, err)
 	assert.Equal(t, code, tx.ExtraData())
 

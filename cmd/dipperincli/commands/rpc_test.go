@@ -712,7 +712,7 @@ func TestRpcCaller_SendTransactionContract(t *testing.T) {
 
 		c.Set("m", "SendTransactionContract")
 		c.Set("p", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,10,11122,10")
-		c.Set("abi", "Users/konggan/workspace/chain/dipperin/dipc/cmake-build-debug/example/example.cpp.abi.json")
+		//c.Set("abi", "Users/konggan/workspace/chain/dipperin/dipc/cmake-build-debug/example/example.cpp.abi.json")
 		caller.SendTransactionContract(c)
 
 		caller.SendTransaction(c)
