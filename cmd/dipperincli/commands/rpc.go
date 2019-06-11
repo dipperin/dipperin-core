@@ -895,7 +895,7 @@ func (caller *rpcCaller) GetReceiptByTxHash(c *cli.Context) {
 		l.Error("Call GetReceiptByTxHash", "err", err)
 		return
 	}
-	fmt.Println(resp)
+	fmt.Println(resp.String())
 }
 
 func (caller *rpcCaller) GetReceiptsByBlockNum(c *cli.Context) {
@@ -908,14 +908,13 @@ func (caller *rpcCaller) GetReceiptsByBlockNum(c *cli.Context) {
 		l.Error("GetReceiptsByBlockNum need：blockNum")
 		return
 	}
-	num, err := hexutil.Decode(cParams[0])
+	blockNum, err := strconv.Atoi(cParams[0])
 	if err != nil {
-		l.Error("GetReceiptsByBlockNum decode error")
-		return
+		l.Error("the blockNumber error")
 	}
 
 	var resp model.Receipts
-	if err = client.Call(&resp, getDipperinRpcMethodByName("GetReceiptsByBlockNum"), num); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName("GetReceiptsByBlockNum"), blockNum); err != nil {
 		l.Error("Call GetReceiptsByBlockNum", "err", err)
 		return
 	}

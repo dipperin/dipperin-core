@@ -79,7 +79,7 @@ func ParseAndGetRlpData(rlpData []byte, input []byte) (extraData []byte, err err
 	//log.Info("the params is:","params",params)
 
 	if len(args) != len(params) {
-		return nil, errors.New("interpreter_life: length of input and abi not match")
+		return nil, errors.New("ParseAndGetRlpData: length of input and abi not match")
 	}
 
 	rlpParams := []interface{}{
