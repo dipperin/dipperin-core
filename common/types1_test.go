@@ -30,6 +30,13 @@ func TestBlockNonceFromInt(t *testing.T) {
 	fmt.Println(BlockNonceFromInt(1))
 }
 
+
+func TestHash_ValidHashForDifficulty(t *testing.T) {
+	hash := HexToHash("0xd0b3bc1c37915fb1d582dcfe98ea62328656141a099bbc46f6a3b9a38c01a9de")
+	diff := HexToHash("0x0000566611000000000000000000000000000000000000000000000000000000")
+	fmt.Println(hash.Cmp(diff))
+}
+
 //type tBig struct {
 //	//X *big.Int `json:"x"`
 //	X *CsBigInt `json:"x"`

@@ -82,7 +82,7 @@ type Chain interface {
 
 	GetEconomyModel() economy_model.EconomyModel
 
-	GetReceipts(hash common.Hash, number uint64)model2.Receipts
+	GetReceipts(hash common.Hash, number uint64) model2.Receipts
 }
 
 type TxPool interface {
@@ -576,7 +576,7 @@ func (service *MercuryFullChainService) SendTransactions(from common.Address, rp
 
 	txs := make([]model.AbstractTransaction, 0)
 	for _, item := range rpcTxs {
-		tx := model.NewTransaction(item.Nonce, item.To, item.Value,item.TransactionFee,item.Data)
+		tx := model.NewTransaction(item.Nonce, item.To, item.Value, item.TransactionFee, item.Data)
 		signedTx, err := tmpWallet.SignTx(fromAccount, tx, service.ChainConfig.ChainId)
 		if err != nil {
 			log.Info("send Transactions SignTx:", "err", err)
@@ -661,11 +661,11 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 
 	var extraData []byte
 
-	if !to.IsEqual(common.HexToAddress(common.AddressContractCreate)){
+	if !to.IsEqual(common.HexToAddress(common.AddressContractCreate)) {
 		state, err := service.ChainReader.CurrentState()
 		code, err := state.GetCode(to)
 		if err != nil {
-			log.Error("MercuryFullChainService#SendTransactionContract get contract code err", "err", err )
+			log.Error("MercuryFullChainService#SendTransactionContract get contract code err", "err", err)
 			return common.Hash{}, err
 		}
 		extraData, err = vmcommon.ParseAndGetRlpData(code, data)
@@ -694,7 +694,7 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 	//log.Info("send transaction", "txId", signTx.CalTxId().Hex())
 	//log.Info("send transaction", "gasPrice", signTx.GetGasPrice())
 	//log.Info("send transaction", "gas limit", signTx.GetGasLimit())
-	signJson,_ := json.Marshal(signTx)
+	signJson, _ := json.Marshal(signTx)
 	//txJson,_ := json.Marshal(tx)
 	pbft_log.Info("send transaction", "signTx json", string(signJson))
 	//pbft_log.Info("send transaction", "tx json", string(txJson))
@@ -1538,15 +1538,15 @@ func (service *MercuryFullChainService) StopDipperin() {
 }
 
 //add get tx receipt
-func (service *MercuryFullChainService)TransactionReceipt(txHash common.Hash) (model2.Receipts,error){
-	_,blockHash,blockNumber,_,err:=service.Transaction(txHash)
-	if err !=nil{
-		return nil,err
+func (service *MercuryFullChainService) TransactionReceipt(txHash common.Hash) (model2.Receipts, error) {
+	_, blockHash, blockNumber, _, err := service.Transaction(txHash)
+	if err != nil {
+		return nil, err
 	}
 
-	receipts:=service.ChainReader.GetReceipts(blockHash,blockNumber)
-	if receipts == nil{
-		return nil,g_error.ErrReceiptIsNil
+	receipts := service.ChainReader.GetReceipts(blockHash, blockNumber)
+	if receipts == nil {
+		return nil, g_error.ErrReceiptIsNil
 	}
-	return receipts,nil
+	return receipts, nil
 }

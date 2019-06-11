@@ -1154,6 +1154,7 @@ func (state *AccountStateDB) Finalise() (result common.Hash, err error) {
 	state.alreadyFinalised = true
 	result, err = state.blockStateTrie.Commit(nil)
 	mpt_log.Debug("Finalise", "cur root", result.Hex(), "pre state", state.preStateRoot.Hex())
+	//log.Debug("~~~~~~Finalise", "cur root", result.Hex(), "pre state", state.preStateRoot.Hex())
 	return
 }
 
@@ -1217,7 +1218,7 @@ func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint
 	return
 }
 
-func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *model.ReceiptPara) error {
+func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *model.ReceiptPara, blockGasUsed *uint64) error {
 	if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContract {
 		return nil
 	}
@@ -1231,6 +1232,9 @@ func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *
 	if err != nil {
 		return err
 	}
+
+	//add block gasUsed
+	*blockGasUsed += gasUsed
 
 	par.GasUsed = gasUsed
 	par.CumulativeGasUsed = gasUsed
@@ -1247,6 +1251,7 @@ type TxProcessConfig struct {
 	GetHash  vm.GetHashFunc
 	GasLimit *uint64
 	GasUsed  *uint64
+	TxFee    *big.Int
 }
 
 func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
@@ -1262,9 +1267,9 @@ func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
 	var par model.ReceiptPara
 	switch conf.Tx.GetType() {
 	case common.AddressTypeContract:
-		par, err = state.ProcessContract(conf.Tx, conf.Header, false, conf.GetHash)
+		par, err = state.ProcessContract(conf, false)
 	case common.AddressTypeContractCreate:
-		par, err = state.ProcessContract(conf.Tx, conf.Header, true, conf.GetHash)
+		par, err = state.ProcessContract(conf, true)
 	case common.AddressTypeNormal:
 		err = state.processNormalTx(conf.Tx)
 	case common.AddressTypeCross:
@@ -1288,11 +1293,13 @@ func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
 		return
 	}
 
-	err = state.setTxReceiptPar(conf.Tx, &par)
+	err = state.setTxReceiptPar(conf.Tx, &par, conf.GasUsed)
 	if err != nil {
 		return
 	}
 
+	//updating tx fee
+	conf.Tx.(*model.Transaction).PaddingTxFee(conf.TxFee)
 	_, err = conf.Tx.PaddingReceipt(par)
 	return
 }

@@ -19,6 +19,7 @@ package middleware
 
 import (
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 )
 
 func NewBlockContext(block model.AbstractBlock, chain ChainInterface) *BlockContext {
@@ -39,6 +40,9 @@ type BlockContext struct {
 	Block model.AbstractBlock
 	// chain
 	Chain ChainInterface
+
+	//add block receipts
+	receipts model2.Receipts
 }
 
 // basic middleware, can be comprised by other middleware

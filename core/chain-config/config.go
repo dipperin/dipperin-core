@@ -48,11 +48,14 @@ const (
 	TestVerifierBootNodePort = "10000"
 	TestIPWhiteList = "127.0.0.0/16,172.0.0.0/8,192.0.0.0/8,10.0.0.0/8"
 
-	// 20M
-	MaxBlockSize = 20 * 1024 * 1024
+	// 100M
+	MaxBlockSize = 100 * 1024 * 1024
 	MaxTxSize    = 512 * 1024
 
-	//
+	//使用gasLimit限制block容量,但区块容量可调节上限依然由MaxBlockSize控制
+	BlockGasLimit = 3360000000 //160000 normal tx
+	MaxGasLimit = uint64(0x7fffffffffffffff)
+
 	CallCreateDepth  uint64 = 1024
 )
 
@@ -82,8 +85,8 @@ func defaultChainConfig() *ChainConfig {
 		// the interval of the Verify section from the election section
 		SlotMargin: uint64(2),
 		// number of verifier
-		//VerifierNumber: 22,
-		VerifierNumber:4,
+		VerifierNumber: 4,
+		//VerifierNumber:4,
 
 		// angel verifier priority
 		SystemVerifierPriority: 0,

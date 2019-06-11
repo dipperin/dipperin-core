@@ -235,6 +235,7 @@ func (cs *ChainState) CalVerifiers(block model.AbstractBlock) []common.Address {
 		pbft_log.Debug("BuildRegisterProcessor failed", "err", err)
 	}
 	list := register.GetRegisterData()
+	log.Info("the register list len is:","len",len(list))
 	//pbft_log.Debug("GetRegisterData", "register data", list, "root", root)
 	//log.Info("GetRegisterData", "register data", list, "root", root)
 

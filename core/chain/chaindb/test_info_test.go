@@ -147,11 +147,11 @@ func (h fakeHeader) GetTimeStamp() *big.Int {
 	panic("implement me")
 }
 
-func (h fakeHeader) GetGasLimit() *uint64 {
+func (h fakeHeader) GetGasLimit() uint64 {
 	panic("implement me")
 }
 
-func (h fakeHeader) GetGasUsed() *uint64 {
+func (h fakeHeader) GetGasUsed() uint64 {
 	panic("implement me")
 }
 

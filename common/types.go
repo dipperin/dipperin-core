@@ -199,10 +199,11 @@ func (h Hash) ValidHashForDifficulty(difficulty Difficulty) bool {
 	//log.Debug("h ValidHashForDifficulty", "hash", h.Hex(), "diff", difficulty.Hex())
 	result := h.Cmp(difficulty.DiffToTarget())
 	if result <= 0 {
+		log.Info("===============received-hash==============","hash hex", h.Hex())
+		log.Info("===============block info ==============","block info", h.Hex())
+		log.Info("===============difftohash==============","diffculty", difficulty.DiffToTarget().Hex())
 		return true
 	} else {
-		//log.Info("===============received-hash==============",h.Hex())
-		//log.Info("===============difftohash==============",difficulty.DiffToTarget().Hex())
 		return false
 	}
 	//prefix := strings.Repeat("0", difficulty)

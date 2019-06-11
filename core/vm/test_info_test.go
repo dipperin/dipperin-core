@@ -189,7 +189,7 @@ func getCodeWithABI(t *testing.T, code, abi []byte) []byte {
 	return buffer.Bytes()
 }
 
-func getContract(t *testing.T, addr common.Address, code, abi string) *Contract {
+func getContract(t *testing.T, addr common.Address, code, abi string, input []byte) *Contract {
 	fileCode, err := ioutil.ReadFile(code)
 	assert.NoError(t, err)
 
@@ -201,6 +201,7 @@ func getContract(t *testing.T, addr common.Address, code, abi string) *Contract 
 		self: fakeContractRef{addr: addr},
 		Code: ca,
 		Gas:  model.TxGas,
+		Input:input,
 	}
 }
 

@@ -140,6 +140,7 @@ func (h *StateHandler) loop() {
 }
 
 func (h *StateHandler) OnNewHeight(height uint64) {
+	pbft_log.Info("[**********************start new Block************************]")
 	pbft_log.Info("[StateHandler-OnNewHeight]", "height", height)
 	round := uint64(0)
 	chainHeight := h.ChainReader.CurrentBlock().Number()
@@ -270,7 +271,8 @@ func (h *StateHandler) OnVote(v *model.VoteMsg) {
 		if block != nil {
 			pbft_log.Info("[StateHandler-OnVote]:finalBlock","blockNumber",block.Number())
 			h.finalBlock(block, commits)
-			pbft_log.Info("=========================================================================")
+			pbft_log.Info("==================================pbft save block end=======================================")
+			pbft_log.Info("")
 		}
 	}
 }
@@ -378,6 +380,7 @@ func (h *StateHandler) onEnterPropose() {
 	//fmt.Println("on enter proposal","id",reflect.ValueOf(h.bs).Pointer())
 	//Pick a valid block
 	block := h.bs.LockedBlock
+	//pbft_log.Info("[onEnterPropose] the block is:","block",block)
 	if block == nil {
 
 		block = h.blockPool.GetProposalBlock()
@@ -399,6 +402,7 @@ func (h *StateHandler) onEnterPropose() {
 		}
 	}
 
+	//pbft_log.Info("[onEnterPropose] get the proposal block is:","block",block)
 
 	msg := model2.Proposal{
 		Height:    h.bs.Height,

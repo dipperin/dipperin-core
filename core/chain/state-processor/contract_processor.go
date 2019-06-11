@@ -11,19 +11,18 @@ type CallCode struct {
 	Input []byte `json:"Input"`
 }
 
-func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, header model.AbstractHeader, create bool, GetHash vm.GetHashFunc) (model.ReceiptPara, error) {
-	context := vm.NewVMContext(tx, header, GetHash)
+func (state *AccountStateDB) ProcessContract(conf *TxProcessConfig, create bool) (model.ReceiptPara, error) {
+	context := vm.NewVMContext(conf.Tx, conf.Header, conf.GetHash)
 	fullState := &Fullstate{
 		state: state,
 	}
-	msg, err := tx.AsMessage()
+	msg, err := conf.Tx.AsMessage()
 	if err != nil {
 		log.Error("AccountStateDB#ProcessContract", "as Message err", err)
 		return model.ReceiptPara{}, err
 	}
 	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
-	gasPool := header.GetGasLimit()
-	_, usedGas, failed, err := ApplyMessage(dvm, msg, &gasPool)
+	_, usedGas, failed, fee, err := ApplyMessage(dvm, msg, conf.GasLimit)
 	if err != nil {
 		log.Error("AccountStateDB#ProcessContract", "ApplyMessage err", err)
 		return model.ReceiptPara{}, err
@@ -34,12 +33,16 @@ func (state *AccountStateDB) ProcessContract(tx model.AbstractTransaction, heade
 		log.Error("AccountStateDB#ProcessContract", "state finalise err", err)
 		return model.ReceiptPara{}, err
 	}
+
+	//padding fee and add block gasUsed
+	conf.TxFee = fee
+	*conf.GasUsed += usedGas
 	return model.ReceiptPara{
 		Root:          root[:],
-		HandlerResult: !failed,
+		HandlerResult: failed,
 		//todo CumulativeGasUsed暂时使用usedGas,不考虑在apply交易前已有gas使用的情景
 		CumulativeGasUsed: usedGas,
 		GasUsed:           usedGas,
-		Logs:              fullState.GetLogs(tx.CalTxId()),
+		Logs:              fullState.GetLogs(conf.Tx.CalTxId()),
 	}, nil
 }

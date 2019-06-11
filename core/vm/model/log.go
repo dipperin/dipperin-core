@@ -21,6 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
+	"fmt"
 )
 
 //go:generate gencodec -type Log -field-override logMarshaling -out gen_log_json.go
@@ -76,6 +77,34 @@ type rlpStorageLog struct {
 	TxIndex     uint
 	BlockHash   common.Hash
 	Index       uint
+}
+
+func (l *Log) String() string {
+	var topics []string
+	for _, value := range l.Topics {
+		topics = append(topics, value.Hex())
+	}
+	return fmt.Sprintf(`
+		ContractAddress:	%s
+		TopicsHash:			%s
+		Data:				0x%x
+		BlockNumber:		%v
+		TxHash:				%s
+		TxIndex:			%v
+		BlockHash:			%s
+		Index:				%v
+		Removed:			%v
+		`,
+		l.Address.Hex(),
+		topics,
+		l.Data,
+		l.BlockNumber,
+		l.TxHash.Hex(),
+		l.TxIndex,
+		l.BlockHash.Hex(),
+		l.Index,
+		l.Removed,
+	)
 }
 
 // EncodeRLP implements rlp.Encoder.

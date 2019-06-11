@@ -11,13 +11,13 @@ import (
 	fileCode, err := ioutil.ReadFile("./sample/test.wasm")
 	assert.NoError(t, err)
 
-	vm, err := platOnLifeExec.NewVirtualMachine(fileCode, DEFAULT_VM_CONFIG, nil, nil)
+	api, err := platOnLifeExec.NewVirtualMachine(fileCode, DEFAULT_VM_CONFIG, nil, nil)
 	assert.NoError(t,err)
 
-	entryID, ok := vm.GetFunctionExport("main")
+	entryID, ok := api.GetFunctionExport("main")
 	assert.Equal(t,true,ok)
 
-	_, err = vm.Run(entryID)
+	_, err = api.Run(entryID)
 	assert.NoError(t,err)
 }
 
@@ -26,17 +26,17 @@ func TestOriginLifeMap(t *testing.T){
 	fileCode, err := ioutil.ReadFile("./sample/test.wasm")
 	assert.NoError(t, err)
 
-	vm, err := exec.NewVirtualMachine(fileCode, exec.VMConfig{
+	api, err := exec.NewVirtualMachine(fileCode, exec.VMConfig{
 		EnableJIT:          false,
 		DefaultMemoryPages: 128,
 		DefaultTableSize:   65536,
 	}, nil, nil)
 	assert.NoError(t,err)
 
-	entryID, ok := vm.GetFunctionExport("_Z10getmapdatav")
+	entryID, ok := api.GetFunctionExport("_Z10getmapdatav")
 	assert.Equal(t,true,ok)
 
-	data, err := vm.Run(entryID)
+	data, err := api.Run(entryID)
 	assert.NoError(t,err)
 
 	fmt.Printf("the data is: %d",data)

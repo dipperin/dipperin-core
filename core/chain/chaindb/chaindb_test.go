@@ -20,6 +20,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"testing"
 	"github.com/stretchr/testify/assert"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 )
 
 func TestChainDB_InsertBlock(t *testing.T) {
@@ -264,4 +265,15 @@ func TestReadTransaction(t *testing.T) {
 func TestChainDB_DB(t *testing.T) {
 	db := newChainDB()
 	assert.NotNil(t, db.DB())
+}
+
+func TestChainDB_SaveReceipts(t *testing.T) {
+	db := newChainDB()
+	receipt := model.NewReceipt(common.HexToHash("0xd36884f1f26ca542ac572832eb02316f3a665571c34653e104eb74bebd2d4335").Bytes(), false, uint64(100))
+	receipts := []*model.Receipt{receipt}
+	err := db.SaveReceipts(common.Hash{}, 1, receipts)
+	assert.NoError(t, err)
+
+	result := db.GetReceipts(common.Hash{}, 1)
+	assert.Equal(t, receipts[0], result[0])
 }

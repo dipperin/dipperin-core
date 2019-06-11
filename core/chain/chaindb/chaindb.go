@@ -262,7 +262,7 @@ func (chainDB *ChainDB) DeleteBlock(hash common.Hash, number uint64) {
 }
 
 //add receipts save get and delete
-func (chainDB *ChainDB) SaveReceipts(hash common.Hash, number uint64,receipts model2.Receipts)error{
+func (chainDB *ChainDB) SaveReceipts(hash common.Hash, number uint64, receipts model2.Receipts) error {
 	// Convert the receipts into their storage form and serialize them
 	storageReceipts := make([]*model2.ReceiptForStorage, len(receipts))
 	for i, receipt := range receipts {
@@ -281,24 +281,26 @@ func (chainDB *ChainDB) SaveReceipts(hash common.Hash, number uint64,receipts mo
 	return nil
 }
 
-func (chainDB *ChainDB) DeleteReceipts(hash common.Hash, number uint64){
+func (chainDB *ChainDB) DeleteReceipts(hash common.Hash, number uint64) {
 	if err := chainDB.db.Delete(blockReceiptsKey(number, hash)); err != nil {
 		log.Crit("Failed to delete block receipt", "err", err)
 	}
 }
 
-func (chainDB *ChainDB) GetReceipts(hash common.Hash, number uint64)model2.Receipts{
+func (chainDB *ChainDB) GetReceipts(hash common.Hash, number uint64) model2.Receipts {
 	// Retrieve the flattened receipt slice
 	data, _ := chainDB.db.Get(blockReceiptsKey(number, hash))
 	if len(data) == 0 {
 		return nil
 	}
+
 	// Convert the receipts from their storage form to their internal representation
 	storageReceipts := []*model2.ReceiptForStorage{}
 	if err := rlp.DecodeBytes(data, &storageReceipts); err != nil {
 		log.Error("Invalid receipt array RLP", "hash", hash, "err", err)
 		return nil
 	}
+
 	receipts := make(model2.Receipts, len(storageReceipts))
 	for i, receipt := range storageReceipts {
 		receipts[i] = (*model2.Receipt)(receipt)

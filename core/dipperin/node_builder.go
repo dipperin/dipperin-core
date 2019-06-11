@@ -188,7 +188,7 @@ func newBaseComponent(nodeConfig NodeConfig) *BaseComponent {
 	} else {
 		pbft_log.InitPbftLogger(log.LvlDebug, nodeName, true)
 		health_info_log.InitHealthLogger(log.LvlDebug, nodeName, true)
-		mpt_log.InitMptLogger(log.LvlInfo, nodeName, true)
+		mpt_log.InitMptLogger(log.LvlDebug, nodeName, true)
 	}
 	pm_log.InitPMLogger(log.LvlInfo, nodeName, true)
 	bloom_log.InitLogger(log.LvlError, nodeName, true)

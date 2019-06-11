@@ -117,6 +117,7 @@ func (g *GenesisEnv) initGenesis(chainDB chaindb.Database, stateStorage state_pr
 			g.defaultVerifiers[2].Address(): big.NewInt(9999 * consts.DIP),
 		},
 		Verifiers: chain.VerifierAddress[:g.chainConf.VerifierNumber],
+		GasLimit: chain_config.BlockGasLimit,
 	}
 	g.gBlock = g.genesis.ToBlock()
 	_, _, err = chain.SetupGenesisBlock(g.genesis)

@@ -26,13 +26,14 @@ type Contract struct {
 	DelegateCall bool
 }
 
-func NewContract(caller resolver.ContractRef, object resolver.ContractRef, value *big.Int, gas uint64) *Contract {
+func NewContract(caller, object resolver.ContractRef, value *big.Int, gas uint64, input []byte) *Contract {
 	return &Contract{
 		CallerAddress: caller.Address(),
 		caller:        caller,
 		self:          object,
 		value:         value,
 		Gas:           gas,
+		Input:         input,
 	}
 }
 

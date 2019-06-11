@@ -23,16 +23,21 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
-func InsertReceipts(c *BlockContext) Middleware {
+func ValidGasUsedAndReceipts(c *BlockContext) Middleware {
 	return func() error {
+		if c.Block.IsSpecial() {
+			return c.Next()
+		}
 		curBlock := c.Chain.CurrentBlock()
 		log.Info("insert block receipts", "cur number", curBlock.Number(), "new number", c.Block.Number())
 		receipts := make(model2.Receipts, 0, c.Block.TxCount())
+		var accumulatedGas uint64
 		if err := c.Block.TxIterator(func(i int, transaction model.AbstractTransaction) error {
 			receipt, err := transaction.GetReceipt()
 			if err != nil {
 				return err
 			}
+			accumulatedGas += receipt.GasUsed
 			receipts = append(receipts, receipt)
 			return nil
 		}); err != nil {
@@ -46,10 +51,18 @@ func InsertReceipts(c *BlockContext) Middleware {
 			return g_error.ReceiptHashError
 		}
 
-		if err := c.Chain.GetChainDB().SaveReceipts(c.Block.Hash(), c.Block.Number(), receipts); err != nil {
-			return err
+		if accumulatedGas != c.Block.Header().GetGasUsed() {
+			log.Info("the block gas info is:", "accumulatedGas", accumulatedGas, "headerGasUsed", c.Block.Header().GetGasUsed())
+			return g_error.ErrGasUsedIsInvalid
 		}
-		log.Info("insert receipts successful", "num", c.Block.Number())
+
+		//check accumulated Gas
+		if accumulatedGas > c.Block.Header().GetGasLimit() {
+			return g_error.ErrTxGasIsOverRanging
+		}
+
+		//padding receipts
+		c.receipts = receipts
 		return c.Next()
 	}
 }

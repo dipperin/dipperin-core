@@ -25,6 +25,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/tests"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 	"github.com/dipperin/dipperin-core/core/model"
 )
@@ -62,6 +63,8 @@ func (suite *BaseChainSuite) SetupTest() {
 		PreBlock:   suite.ChainState.CurrentBlock(),
 		MinerPk:    suite.Env.Miner().Pk,
 	}
+
+	log.Info("the suit preBlock is~~~~:","preBlock",suite.ChainState.CurrentBlock())
 }
 
 func (suite *BaseChainSuite) TearDownTest() {

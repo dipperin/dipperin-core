@@ -93,6 +93,41 @@ func NewReceipt(root []byte, failed bool, cumulativeGasUsed uint64) *Receipt {
 	return r
 }
 
+func (r *Receipt) GetStatusStr() string {
+	switch r.Status {
+	case uint64(0):
+		return "Failed"
+	case uint64(1):
+		return "Successful"
+	}
+	return "UnKnown"
+}
+
+func (r *Receipt) String() string {
+	var logList []string
+	for _, value := range r.Logs {
+		logParam := value.String()
+		logList = append(logList, logParam)
+	}
+	return fmt.Sprintf(`
+	PostState:			0x%x
+	Status: 			%s
+	CumulativeGasUsed:	%v
+	Logs:				%s
+	TxHash:				%s
+	ContractAddress:	%s
+	GasUsed:			%v
+`,
+		r.PostState,
+		r.GetStatusStr(),
+		r.CumulativeGasUsed,
+		logList,
+		r.TxHash.Hex(),
+		r.ContractAddress.Hex(),
+		r.GasUsed,
+	)
+}
+
 // EncodeRLP implements rlp.Encoder, and flattens the consensus fields of a receipt
 // into an RLP stream. If no post state is present, byzantium fork is assumed.
 func (r *Receipt) EncodeRLP(w io.Writer) error {
@@ -207,7 +242,6 @@ func (r Receipts) GetRlp(i int) []byte {
 	return bytes
 }
 
-func (r Receipts) GetKey(i int) []byte{
+func (r Receipts) GetKey(i int) []byte {
 	return []byte(strconv.Itoa(i))
 }
-

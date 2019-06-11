@@ -86,7 +86,7 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 
 	// Initialise a new contract and set the code that is to be used by the EVM.
 	// The contract is a scoped environment for this execution context only.
-	contract := NewContract(caller, to, value, gas)
+	contract := NewContract(caller, to, value, gas, input)
 	contract.SetCallCode(&addr, vm.state.GetCodeHash(addr), vm.state.GetCode(addr))
 
 	//start := time.Now()
@@ -99,7 +99,7 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 				evm.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
 			}()
 		}*/
-	ret, err = run(vm, contract, input, false)
+	ret, err = run(vm, contract, false)
 	// When an error was returned by the EVM or when setting the creation code
 	// above we revert to the snapshot and consume any gas remaining. Additionally
 	// when we're in homestead this also counts for code storage gas errors.
@@ -110,7 +110,6 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 			log.Info("callContract Use", "gasUsed", contract.Gas, "gasLeft", contract.Gas)
 		}
 	}
-	log.Info("lifeVm run successful", "gasLeft", contract.Gas)
 	return ret, contract.Gas, err
 }
 
@@ -129,10 +128,10 @@ func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, inp
 	)
 
 	// Initialise a new contract and make initialise the delegate values
-	contract := NewContract(caller, to, nil, gas).AsDelegate()
+	contract := NewContract(caller, to, nil, gas, input).AsDelegate()
 	contract.SetCallCode(&addr, vm.GetStateDB().GetCodeHash(addr), vm.GetStateDB().GetCode(addr))
 
-	ret, err = run(vm, contract, input, false)
+	ret, err = run(vm, contract, false)
 	if err != nil {
 		vm.GetStateDB().RevertToSnapshot(snapshot)
 		if err != g_error.ErrExecutionReverted {
@@ -142,12 +141,12 @@ func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, inp
 	return ret, contract.Gas, err
 }
 
-func (vm *VM) Create(caller resolver.ContractRef, code []byte, gas uint64, value *big.Int) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
+func (vm *VM) Create(caller resolver.ContractRef, data []byte, gas uint64, value *big.Int) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
 	contractAddr = cs_crypto.CreateContractAddress(caller.Address(), vm.state.GetNonce(caller.Address()))
-	return vm.create(caller, code, gas, value, contractAddr)
+	return vm.create(caller, data, gas, value, contractAddr)
 }
 
-func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value *big.Int, address common.Address) ([]byte, common.Address, uint64, error) {
+func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value *big.Int, address common.Address) ([]byte, common.Address, uint64, error) {
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
 	if vm.depth > int(model2.CallCreateDepth) {
@@ -170,42 +169,46 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value
 	vm.state.CreateAccount(address)
 	vm.Transfer(vm.state, caller.Address(), address, value)
 
-	// initialise a new contract and set the code that is to be used by the
+	// initialise a new contract and set the data that is to be used by the
 	// EVM. The contract is a scoped environment for this execution context
 	// only.
-	contract := NewContract(caller, AccountRef(address), value, gas)
+	code, init, err := parseInitParams(data)
+	if err != nil {
+		return nil, common.Address{}, 0, err
+	}
+	contract := NewContract(caller, AccountRef(address), value, gas, init)
 	contract.SetCallCode(&address, cs_crypto.Keccak256Hash(code), code)
 
 	if vm.vmConfig.NoRecursion && vm.depth > 0 {
 		return nil, address, gas, nil
 	}
 
-	/*	if vm.vmConfig.Debug && vm.depth == 0 {
-			vm.vmConfig.Tracer.CaptureStart(caller.Address(), address, true, code, gas, value)
+	/*	if api.vmConfig.Debug && api.depth == 0 {
+			api.vmConfig.Tracer.CaptureStart(caller.Address(), address, true, code, gas, value)
 		}*/
 	//start := time.Now()
 
-	ret, err := run(vm, contract, nil, true)
-	log.Info("lifeVm run successful", "gasLeft", contract.Gas)
-	// check whether the max code size has been exceeded
+	ret, err := run(vm, contract, true)
+	// check whether the max data size has been exceeded
 	maxCodeSizeExceeded := len(ret) > model2.MaxCodeSize
 	// if the contract creation ran successfully and no errors were returned
-	// calculate the gas required to store the code. If the code could not
+	// calculate the gas required to store the data. If the data could not
 	// be stored due to not enough gas set an error and let it be handled
 	// by the error checking condition below.
 	if err == nil && !maxCodeSizeExceeded {
+		log.Info("LifeVm run successful", "gasLeft", contract.Gas)
 		createDataGas := uint64(len(ret)) * model2.CreateDataGas
 		if contract.UseGas(createDataGas) {
 			vm.state.SetCode(address, ret)
-			log.Info("createDataGas Use", "CodeLen", len(ret), "gasUsed", createDataGas, "gasLeft", contract.Gas)
+			log.Info("CreateDataGas Use", "codeLen", len(ret), "gasUsed", createDataGas, "gasLeft", contract.Gas)
 		} else {
 			err = g_error.ErrCodeStoreOutOfGas
 		}
 	}
 
-	// When an error was returned by the EVM or when setting the creation code
+	// When an error was returned by the EVM or when setting the creation data
 	// above we revert to the snapshot and consume any gas remaining. Additionally
-	// when we're in homestead this also counts for code storage gas errors.
+	// when we're in homestead this also counts for data storage gas errors.
 	if maxCodeSizeExceeded || (err != nil && err != g_error.ErrCodeStoreOutOfGas) {
 		log.Info("Run lifeVm failed", "err", err)
 		vm.state.RevertToSnapshot(snapshot)
@@ -213,20 +216,20 @@ func (vm *VM) create(caller resolver.ContractRef, code []byte, gas uint64, value
 			contract.UseGas(contract.Gas)
 		}
 	}
-	// Assign err if contract code size exceeds the max while the err is still empty.
+	// Assign err if contract data size exceeds the max while the err is still empty.
 	if maxCodeSizeExceeded && err == nil {
 		err = g_error.ErrMaxCodeSizeExceeded
 	}
 
-	/*	if vm.vmConfig.Debug && vm.depth == 0 {
-			vm.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
+	/*	if api.vmConfig.Debug && api.depth == 0 {
+			api.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
 		}*/
 	return ret, address, contract.Gas, err
 }
 
-func run(vm *VM, contract *Contract, input []byte, create bool) ([]byte, error) {
+func run(vm *VM, contract *Contract, create bool) ([]byte, error) {
 	// call Interpreter.Run()
-	return vm.Interpreter.Run(vm, contract, input, create)
+	return vm.Interpreter.Run(vm, contract, create)
 }
 
 type (
@@ -236,7 +239,7 @@ type (
 	TransferFunc func(StateDB, common.Address, common.Address, *big.Int)
 	// GetHashFunc returns the nth block hash in the blockchain
 	// and is used by the BLOCKHASH EVM op code.
- 	GetHashFunc func(uint64) common.Hash
+	GetHashFunc func(uint64) common.Hash
 )
 
 type Context struct {
@@ -244,14 +247,13 @@ type Context struct {
 	Origin common.Address // Provides information for ORIGIN
 
 	// Block information
-	Coinbase common.Address // Provides information for COINBASE
-
-	GasPrice    *big.Int // Provides information for GASPRICE
-	GasLimit    uint64   // Provides information for GASLIMIT
-	BlockNumber *big.Int // Provides information for NUMBER
-	Time        *big.Int // Provides information for TIME
-	Difficulty  *big.Int // Provides information for DIFFICULTY
-	//BlockHash   common.Hash
+	Coinbase     common.Address // Provides information for COINBASE
+	GasPrice     *big.Int       // Provides information for GASPRICE
+	GasLimit     uint64         // Provides information for GASLIMIT
+	BlockNumber  *big.Int       // Provides information for NUMBER
+	Time         *big.Int       // Provides information for TIME
+	Difficulty   *big.Int       // Provides information for DIFFICULTY
+	CurBlockHash common.Hash    // Provides information for CurBlockHash
 
 	TxHash  common.Hash
 	TxIndex uint64
@@ -291,6 +293,10 @@ func (context *Context) GetBlockHash(num uint64) common.Hash {
 	return context.GetHash(num)
 }
 
+func (context *Context) GetCurBlockHash() common.Hash {
+	return context.CurBlockHash
+}
+
 func (context *Context) GetBlockNumber() *big.Int {
 	return context.BlockNumber
 }
@@ -319,19 +325,19 @@ func NewVMContext(tx model.AbstractTransaction, header model.AbstractHeader, Get
 		panic("GetTxIndex failed")
 	}
 	return Context{
-		Origin:      sender,
-		GasPrice:    tx.GetGasPrice(),
-		GasLimit:    tx.Fee().Uint64(),
-		BlockNumber: new(big.Int).SetUint64(header.GetNumber()),
-		callGasTemp: tx.Fee().Uint64(),
-		//BlockHash:   block.Hash(),
-		TxHash:      tx.CalTxId(),
-		TxIndex:     uint64(txIndex),
-		CanTransfer: CanTransfer,
-		Transfer:    Transfer,
-		Coinbase:    header.CoinBaseAddress(),
-		Time:        header.GetTimeStamp(),
-		GetHash:     GetHash,
+		Origin:       sender,
+		GasPrice:     tx.GetGasPrice(),
+		GasLimit:     tx.Fee().Uint64(),
+		BlockNumber:  new(big.Int).SetUint64(header.GetNumber()),
+		callGasTemp:  tx.Fee().Uint64(),
+		CurBlockHash: header.Hash(),
+		TxHash:       tx.CalTxId(),
+		TxIndex:      uint64(txIndex),
+		CanTransfer:  CanTransfer,
+		Transfer:     Transfer,
+		Coinbase:     header.CoinBaseAddress(),
+		Time:         header.GetTimeStamp(),
+		GetHash:      GetHash,
 	}
 }
 
