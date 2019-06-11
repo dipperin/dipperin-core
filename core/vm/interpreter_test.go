@@ -1,9 +1,13 @@
 package vm
 
 import (
+	"dipperin-vm/common/utils"
 	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"strings"
 	"testing"
 )
 
@@ -63,4 +67,48 @@ func TestWASMInterpreter_Run_event(t *testing.T) {
 	result, err := interpreter.Run(testVm, contract, false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
+}
+
+func TestParseInputFromAbiByInit(t *testing.T)  {
+	abiBytes, err := ioutil.ReadFile("./event/token/token.cpp.abi.json")
+	assert.NoError(t, err)
+	var wasmAbi utils.WasmAbi
+	err = wasmAbi.FromJson(abiBytes)
+	//err = json.Unmarshal(abiBytes, &wasmAbi.AbiArr)
+	assert.NoError(t, err)
+
+	var args []utils.InputParam
+	for _, v := range wasmAbi.AbiArr {
+		if strings.EqualFold("init", v.Name) && strings.EqualFold(v.Type, "function") {
+			args = v.Inputs
+		}
+	}
+
+	params := []string{"dipp", "DIPP", "100000000"}
+	wasmBytes, err := ioutil.ReadFile("./event/token/token5.wasm")
+	assert.NoError(t, err)
+
+	rlpParams := []interface{}{
+		wasmBytes, abiBytes,
+	}
+
+	inputParams := []interface{}{}
+	for i, v := range args {
+		bts := params[i]
+		re, err := vmcommon.StringConverter(bts, v.Type)
+		assert.NoError(t, err)
+		rlpParams = append(rlpParams, re)
+		inputParams = append(inputParams, re)
+	}
+
+	//data, err :=  rlp.EncodeToBytes(rlpParams)
+	input, err := rlp.EncodeToBytes(inputParams)
+	assert.NoError(t, err)
+
+	//　life方法注入新建虚拟机
+	//solver := resolver.NewResolver(vm, contract, in.state)
+	//lifeVm, err := exec.NewVirtualMachine(wasmBytes, in.config, solver, nil)
+
+	funcName, pms, returnType, err := parseInputFromAbiByInit(nil,input, abiBytes)
+	log.Info("result", "funcName", funcName, "pms", pms, "returnType", returnType, "err", err)
 }

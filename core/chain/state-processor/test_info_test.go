@@ -17,26 +17,26 @@
 package state_processor
 
 import (
-	"github.com/dipperin/dipperin-core/common"
-	"math/big"
-	"crypto/ecdsa"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/dipperin/dipperin-core/third-party/trie"
-	"errors"
-	"github.com/dipperin/dipperin-core/common/util"
 	"bytes"
-	"github.com/stretchr/testify/assert"
-	"io/ioutil"
-	"testing"
-	"github.com/ethereum/go-ethereum/rlp"
+	"crypto/ecdsa"
+	"encoding/binary"
+	"errors"
+	"fmt"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
-	"encoding/binary"
-	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/third-party/trie"
+	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"math/big"
+	"testing"
 	"time"
 )
 
@@ -169,6 +169,7 @@ func getContractCode(t *testing.T, code, abi string) []byte {
 	input = append(input, fileCode)
 	// abi
 	input = append(input, fileABI)
+	// params
 
 	buffer := new(bytes.Buffer)
 	err = rlp.Encode(buffer, input)

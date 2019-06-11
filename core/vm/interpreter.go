@@ -233,6 +233,7 @@ func parseInputFromAbiByInit(vm *exec.VirtualMachine, input []byte, abi []byte) 
 	}
 
 	params, returnType, err = findParams(vm, abi, funcName, rlpList.([]interface{}))
+	//fmt.Println("returnType", returnType)
 	if returnType != "void" {
 		return funcName, nil, returnType, errors.New("InitFunc returnType must be void")
 	}
@@ -286,6 +287,8 @@ func findParams(vm *exec.VirtualMachine, abi []byte, funcName string, inputList 
 	for _, v := range wasmAbi.AbiArr {
 		if strings.EqualFold(funcName, v.Name) && strings.EqualFold(v.Type, "function") {
 			abiParam = v.Inputs
+			//fmt.Println("len outputs", len(v.Outputs), "abiParam", len(abiParam), "inputlist", len(inputList) )
+			log.Info("findParams", "len outputs", len(v.Outputs), "abiParam", len(abiParam), "inputlist", len(inputList) )
 			if len(v.Outputs) != 0 {
 				returnType = v.Outputs[0].Type
 			} else {
@@ -294,6 +297,7 @@ func findParams(vm *exec.VirtualMachine, abi []byte, funcName string, inputList 
 			break
 		}
 	}
+
 
 	if len(abiParam) != len(inputList) {
 		return nil, "", errReturnInputAbiNotMatch
