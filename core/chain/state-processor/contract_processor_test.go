@@ -215,7 +215,7 @@ func TestAccountStateDB_ProcessContract3(t *testing.T) {
 		//inputParams = append(inputParams, re)
 	}
 
-	data, err :=  rlp.EncodeToBytes(rlpParams)
+	data, err :=  rlp.EncodeTloBytes(rlpParams)
 	//input, err := rlp.EncodeToBytes(inputParams)
 	assert.NoError(t, err)
 
