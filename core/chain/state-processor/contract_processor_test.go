@@ -188,7 +188,6 @@ func TestAccountStateDB_ProcessContract3(t *testing.T) {
 	assert.NoError(t, err)
 	var wasmAbi utils.WasmAbi
 	err = wasmAbi.FromJson(abiBytes)
-	//err = json.Unmarshal(abiBytes, &wasmAbi.AbiArr)
 	assert.NoError(t, err)
 
 	var args []utils.InputParam
@@ -206,7 +205,7 @@ func TestAccountStateDB_ProcessContract3(t *testing.T) {
 		wasmBytes, abiBytes,
 	}
 
-	//inputParams := []interface{}{}
+	assert.Equal(t, len(params), len(args))
 	for i, v := range args {
 		bts := params[i]
 		re, err := vmcommon.StringConverter(bts, v.Type)
