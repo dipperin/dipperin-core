@@ -10,18 +10,6 @@ char na[5] = "dipc";
 char allow[10] = "allowance";
 class TestToken : public Contract {
 public: 
-    String<na> name ;
-    String<na> symbol;
-    uint8_t decimals = 6;
-    Map<bal, std::string, uint64_t >  balance;
-    //Map<allow, std::string, Map<bal, std::string, uint64_t>> allowance;
-    //         存放授权地址    存放授权地址与被授权地址的拼接值
-    Map<allow, std::string, std::string> allowance;
-    Uint64<tmp> total_supply;
-    bool stopped = false;
-    //std::string addr = "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41";
-    bytes result = fromHex("0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41");
-    Address2 owner = Address2(&result[0], 22);
     void init(char* tokenName, char* symbol, uint64_t supply);
     void stop(){
         isOwner();
@@ -41,7 +29,18 @@ public:
     void approve(const char* spender, uint64_t value);
     void burn(uint64_t _value);
 private: 
- 
+    String<na> name ;
+    String<na> symbol;
+    uint8_t decimals = 6;
+    Map<bal, std::string, uint64_t >  balance;
+    //Map<allow, std::string, Map<bal, std::string, uint64_t>> allowance;
+    //         存放授权地址    存放授权地址与被授权地址的拼接值
+    Map<allow, std::string, std::string> allowance;
+    Uint64<tmp> total_supply;
+    bool stopped = false;
+    //std::string addr = "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41";
+    bytes result = fromHex("0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41");
+    Address2 owner = Address2(&result[0], 22);
     
     inline void isOwner(){
         DipcAssertEQ(owner, address2());

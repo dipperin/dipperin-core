@@ -183,9 +183,12 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 func TestAccountStateDB_ProcessContract3(t *testing.T) {
 	ownAddress := common.HexToAddress("0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41")
 
-	abiPath := "../../vm/event/token/token.cpp.abi.json"
-	wasmPath := "../../vm/event/token/token5.wasm"
-	err, data := getExtraData(t,abiPath, wasmPath)
+	//abiPath := "../../vm/event/token/token.cpp.abi.json"
+	//wasmPath := "../../vm/event/token/token4.wasm"
+	abiPath := "../../vm/event/token/StringMap.cpp.abi.json"
+	wasmPath := "../../vm/event/token/map2.wasm"
+	//params := []string{"dipp", "DIPP", "100000000"}
+	err, data := getExtraData(t,abiPath, wasmPath, []string{})
 
 	addr := common.HexToAddress(common.AddressContractCreate)
 
@@ -219,30 +222,136 @@ func TestAccountStateDB_ProcessContract3(t *testing.T) {
 	err = processor.ProcessTxNew(config)
 	assert.NoError(t, err)
 
-	receipt1, err := tx.GetReceipt()
-	fmt.Println(receipt1)
-	//assert.NoError(t, err)
-	//assert.Equal(t, tx.CalTxId(), receipt1.TxHash)
-	//assert.Equal(t, cs_crypto.CreateContractAddress(aliceAddr, 0), receipt1.ContractAddress)
-	//assert.Len(t, receipt1.Logs, 0)
+	receipt, err := tx.GetReceipt()
 
-	fmt.Println("---------------------------")
+	assert.NoError(t, err)
 
-	//config.Tx = tx2
-	//err = processor.ProcessTxNew(config)
+	contractNonce, err := processor.GetNonce(receipt.ContractAddress)
+	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce, "receiptResult", receipt)
+	code, err := processor.GetCode(receipt.ContractAddress)
+	log.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
+	assert.NoError(t, err)
+	assert.Equal(t, code, tx.ExtraData())
+
+	sw, err := soft_wallet.NewSoftWallet()
+	err = sw.Open(util.HomeDir() +"/go/src/github.com/dipperin/dipperin-core/core/vm/event/CSWallet", "CSWallet", "123")
+	assert.NoError(t, err)
+
+	callTx, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "setBalance", "alice,100", contractNonce+1, code)
+	account := accounts.Account{ownAddress}
+	signCallTx, err := sw.SignTx(account, callTx, nil)
+
+	assert.NoError(t, err)
+	callTx.PaddingTxIndex(0)
+	block2 := createBlock(2, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
+	log.Info("callTx info", "callTx", callTx)
+
+
+	gasUsed2 := uint64(0);
+	txConfig := &TxProcessConfig  {
+		Tx:signCallTx,
+		Header:  block2.Header().(*model.Header),
+		GetHash:fakeGetBlockHash,
+		GasLimit:&gasLimit,
+		GasUsed:&gasUsed2,
+	}
+
+	callRecipt, err := processor.ProcessContract(txConfig, false)
 	//assert.NoError(t, err)
-	//
-	//receipt2, err := tx2.GetReceipt()
-	//assert.NoError(t, err)
-	//assert.Equal(t, tx2.CalTxId(), receipt2.TxHash)
-	//assert.Equal(t, receipt1.ContractAddress, receipt2.ContractAddress)
-	//assert.Len(t, receipt2.Logs, 1)
-	//
-	//log1 := receipt2.Logs[0]
-	//assert.Equal(t, tx2.CalTxId(), log1.TxHash)
-	//assert.Equal(t, common.Hash{}, log1.BlockHash)
-	//assert.Equal(t, receipt2.ContractAddress, log1.Address)
-	//assert.Equal(t, uint64(1), log1.BlockNumber)
+	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", callRecipt, "err", err)
+}
+
+
+func TestAccountStateDB_ProcessContractToken(t *testing.T) {
+	aliceStr := "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333"
+	ownAddress := common.HexToAddress("0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41")
+	aliceAddress := common.HexToAddress(aliceStr)
+
+	abiPath := "../../vm/event/token/token.cpp.abi.json"
+	wasmPath := "../../vm/event/token/token15.wasm"
+	//params := []string{"dipp", "DIPP", "100000000"}
+	err, data := getExtraData(t,abiPath, wasmPath, []string{"dipp", "DIPP", "100000000"})
+
+	addr := common.HexToAddress(common.AddressContractCreate)
+
+	tx := model.NewTransactionSc(0, &addr, new(big.Int).SetUint64(uint64(10)), new(big.Int).SetUint64(uint64(1)), 26427000, data)
+
+	signCreateTx := getSignedTx( t, "/go/src/github.com/dipperin/dipperin-core/core/vm/event/CSWallet", ownAddress,tx)
+
+	signCreateTx.PaddingTxIndex(0)
+
+	gasLimit := gasLimit * 10000000000
+	block := createBlock(1, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
+
+	db, root := createTestStateDB()
+	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
+	assert.NoError(t, err)
+
+	processor.NewAccountState(ownAddress)
+	err = processor.AddNonce(ownAddress, 0)
+	processor.AddBalance(ownAddress, new(big.Int).SetInt64(int64(1000000000000000000)))
+
+	processor.NewAccountState(aliceAddress)
+	err = processor.AddNonce(aliceAddress, 0)
+
+	tmpGasLimit := block.GasLimit()
+	gasUsed := block.GasUsed()
+	config := &TxProcessConfig{
+		Tx:       tx,
+		Header:   block.Header(),
+		GetHash:  getTestHashFunc(),
+		GasLimit: &tmpGasLimit,
+		GasUsed:  &gasUsed,
+		TxFee:    big.NewInt(0),
+	}
+	err = processor.ProcessTxNew(config)
+	assert.NoError(t, err)
+
+	receipt, err := tx.GetReceipt()
+
+	assert.NoError(t, err)
+	//assert.Equal(t, receipt.Status)
+
+	contractNonce, err := processor.GetNonce(receipt.ContractAddress)
+	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce, "receiptResult", receipt)
+	code, err := processor.GetCode(receipt.ContractAddress)
+	log.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
+	assert.NoError(t, err)
+	//assert.Equal(t, code, tx.ExtraData())
+
+	sw, err := soft_wallet.NewSoftWallet()
+	err = sw.Open(util.HomeDir() +"/go/src/github.com/dipperin/dipperin-core/core/vm/event/CSWallet", "CSWallet", "123")
+	assert.NoError(t, err)
+
+	callTx, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "transfer", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333,100", contractNonce+1, code)
+	account := accounts.Account{ownAddress}
+	signCallTx, err := sw.SignTx(account, callTx, nil)
+
+	assert.NoError(t, err)
+	callTx.PaddingTxIndex(0)
+	block2 := createBlock(2, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
+	log.Info("callTx info", "callTx", callTx)
+
+
+	gasUsed2 := uint64(0);
+	txConfig := &TxProcessConfig  {
+		Tx:signCallTx,
+		Header:  block2.Header().(*model.Header),
+		GetHash:fakeGetBlockHash,
+		GasLimit:&gasLimit,
+		GasUsed:&gasUsed2,
+	}
+
+	err = processor.ProcessTxNew(txConfig)
+	assert.NoError(t, err)
+	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", "", "err", err)
+}
+
+
+func TestGetByteFromAbiFile(t *testing.T){
+	bytes ,err  := ioutil.ReadFile("../../vm/event/example.cpp.abi.json")
+	assert.NoError(t, err)
+	fmt.Println(bytes)
 }
 
 func getSignedTx(t *testing.T, walletPath string, ownAddress common.Address, tx *model.Transaction) (*model.Transaction) {
@@ -251,11 +360,12 @@ func getSignedTx(t *testing.T, walletPath string, ownAddress common.Address, tx 
 	assert.NoError(t, err)
 	account := accounts.Account{ownAddress}
 	signCreateTx, err := sw.SignTx(account, tx, nil)
+	defer sw.Close()
 
 	return signCreateTx
 }
 
-func getExtraData(t *testing.T, abiPath,wasmPath string) (error, []byte) {
+func getExtraData(t *testing.T, abiPath,wasmPath string, params []string) (error, []byte) {
 	// GetContractExtraData
 	abiBytes, err := ioutil.ReadFile(abiPath)
 	assert.NoError(t, err)
@@ -268,7 +378,7 @@ func getExtraData(t *testing.T, abiPath,wasmPath string) (error, []byte) {
 			args = v.Inputs
 		}
 	}
-	params := []string{"dipp", "DIPP", "100000000"}
+	//params := []string{"dipp", "DIPP", "100000000"}
 	wasmBytes, err := ioutil.ReadFile(wasmPath)
 	assert.NoError(t, err)
 	rlpParams := []interface{}{
