@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package rpc_interface
 
 import (
@@ -37,9 +36,9 @@ type CurStakeResp struct {
 // swagger:response TransactionResp
 type TransactionResp struct {
 	Transaction *model.Transaction `json:"transaction"`
-	BlockHash common.Hash `json:"blockHash"`
-	BlockNumber uint64 `json:"blockNumber"`
-	TxIndex uint64 `json:"transactionIndex"`
+	BlockHash   common.Hash        `json:"blockHash"`
+	BlockNumber uint64             `json:"blockNumber"`
+	TxIndex     uint64             `json:"transactionIndex"`
 }
 
 // swagger:response BlockResp
@@ -58,20 +57,19 @@ type SendTxReq struct {
 }
 
 type ERC20Resp struct {
-	TxId common.Hash `json:"txid"`
+	TxId common.Hash    `json:"txid"`
 	CtId common.Address `json:"ctid"`
 }
 
 //current practical verifiers resp
 type PeerInfoResp struct {
-	NodeId string
+	NodeId  string
 	Address common.Address
 }
 
-
 //Election resp
 type ElectionResp struct {
-	TxId common.Hash
+	TxId            common.Hash
 	SendBlockNumber uint64
 }
 
@@ -90,16 +88,9 @@ type GetElectionStatus struct {
 }
 
 type VerifierStatus struct {
-	Status string
-	Stake *hexutil.Big
-	Balance *hexutil.Big
-	Reputation uint64
+	Status            string
+	Stake             *hexutil.Big
+	Balance           *hexutil.Big
+	Reputation        uint64
 	IsCurrentVerifier bool
 }
-
-
-
-
-
-
-

@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"time"
 	"fmt"
+	"github.com/dipperin/dipperin-core/tests/factory"
 )
 
 var (
@@ -33,11 +34,12 @@ func Test_WASMContractCreate(t *testing.T) {
 	to := common.HexToAddress(common.AddressContractCreate)
 	Value := big.NewInt(100)
 	gasLimit := big.NewInt(2 * consts.DIP)
-	gasPrice := big.NewInt(1)
+	gasPrice := big.NewInt(5)
+	txFee := big.NewInt(0).Mul(gasLimit, gasPrice)
 
 	balance, err := cluster.GetAddressBalance(nodeName, from)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, balance.Cmp(big.NewInt(0).Mul(gasLimit, gasPrice)))
+	assert.Equal(t, 1, balance.Cmp(txFee))
 
 	abiBytes, err := ioutil.ReadFile(AbiPath)
 	assert.NoError(t, err)
@@ -47,8 +49,12 @@ func Test_WASMContractCreate(t *testing.T) {
 	assert.NoError(t, err)
 
 	var txHashList []common.Hash
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 1; i++ {
 		txHash, innerErr := SendTransactionContract(client, from, to, Value, gasLimit, gasPrice, ExtraData)
+		assert.NoError(t, innerErr)
+		txHashList = append(txHashList, txHash)
+
+		txHash, innerErr = SendTransaction(client, from, factory.AliceAddrV, Value, txFee, nil)
 		assert.NoError(t, innerErr)
 		txHashList = append(txHashList, txHash)
 	}
@@ -67,7 +73,6 @@ func Test_WASMContractCreate(t *testing.T) {
 		}
 		time.Sleep(time.Millisecond * 100)
 	}
-
 }
 
 func TestGetReceiptsByBlockNum(t *testing.T) {
@@ -77,7 +82,7 @@ func TestGetReceiptsByBlockNum(t *testing.T) {
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
 
-	receipts := GetReceiptsByBlockNum(client, 459)
+	receipts := GetReceiptsByBlockNum(client, 75)
 	fmt.Println(receipts)
 }
 
@@ -88,8 +93,19 @@ func TestGetContractAddressByTxHash(t *testing.T) {
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
 
-	txHash := common.HexToHash("0xa83dc01453cb2d9b41588d1cedff1ff47767ab45ad3877a42d0a9f13f42fbb76")
+	txHash := common.HexToHash("0x7a11365d934a0e583a26a70773b1fb46fb0d2c7307f802e10d6348a2ae78d0ac")
 	contractAddr := GetContractAddressByTxHash(client, txHash)
 	receipt := GetReceiptByTxHash(client, txHash)
 	assert.Equal(t, receipt.ContractAddress, contractAddr)
+}
+
+func TestGetBlockByNumber(t *testing.T) {
+	cluster, err := node_cluster.CreateNodeCluster()
+	assert.NoError(t, err)
+
+	nodeName := "default_v0"
+	client := cluster.NodeClient[nodeName]
+
+	block := GetBlockByNumber(client, 75)
+	fmt.Println(block.Header.String())
 }
