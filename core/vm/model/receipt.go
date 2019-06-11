@@ -17,7 +17,6 @@
 package model
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
@@ -66,14 +65,16 @@ type receiptMarshaling struct {
 
 // receiptRLP is the consensus encoding of a receipt.
 type receiptRLP struct {
-	PostStateOrStatus []byte
+	PostState         []byte
+	Status            uint64
 	CumulativeGasUsed uint64
 	Bloom             Bloom
 	Logs              []*Log
 }
 
 type receiptStorageRLP struct {
-	PostStateOrStatus []byte
+	PostState         []byte
+	Status            uint64
 	CumulativeGasUsed uint64
 	Bloom             Bloom
 	TxHash            common.Hash
@@ -131,7 +132,7 @@ func (r *Receipt) String() string {
 // EncodeRLP implements rlp.Encoder, and flattens the consensus fields of a receipt
 // into an RLP stream. If no post state is present, byzantium fork is assumed.
 func (r *Receipt) EncodeRLP(w io.Writer) error {
-	return rlp.Encode(w, &receiptRLP{r.statusEncoding(), r.CumulativeGasUsed, r.Bloom, r.Logs})
+	return rlp.Encode(w, &receiptRLP{r.PostState, r.Status, r.CumulativeGasUsed, r.Bloom, r.Logs})
 }
 
 // DecodeRLP implements rlp.Decoder, and loads the consensus fields of a receipt
@@ -141,35 +142,9 @@ func (r *Receipt) DecodeRLP(s *rlp.Stream) error {
 	if err := s.Decode(&dec); err != nil {
 		return err
 	}
-	if err := r.setStatus(dec.PostStateOrStatus); err != nil {
-		return err
-	}
+	r.PostState, r.Status = dec.PostState, dec.Status
 	r.CumulativeGasUsed, r.Bloom, r.Logs = dec.CumulativeGasUsed, dec.Bloom, dec.Logs
 	return nil
-}
-
-func (r *Receipt) setStatus(postStateOrStatus []byte) error {
-	switch {
-	case bytes.Equal(postStateOrStatus, receiptStatusSuccessfulRLP):
-		r.Status = ReceiptStatusSuccessful
-	case bytes.Equal(postStateOrStatus, receiptStatusFailedRLP):
-		r.Status = ReceiptStatusFailed
-	case len(postStateOrStatus) == len(common.Hash{}):
-		r.PostState = postStateOrStatus
-	default:
-		return fmt.Errorf("invalid receipt status %x", postStateOrStatus)
-	}
-	return nil
-}
-
-func (r *Receipt) statusEncoding() []byte {
-	if len(r.PostState) == 0 {
-		if r.Status == ReceiptStatusFailed {
-			return receiptStatusFailedRLP
-		}
-		return receiptStatusSuccessfulRLP
-	}
-	return r.PostState
 }
 
 // Size returns the approximate memory used by all internal contents. It is used
@@ -192,7 +167,8 @@ type ReceiptForStorage Receipt
 // into an RLP stream.
 func (r *ReceiptForStorage) EncodeRLP(w io.Writer) error {
 	enc := &receiptStorageRLP{
-		PostStateOrStatus: (*Receipt)(r).statusEncoding(),
+		PostState:         r.PostState,
+		Status:            r.Status,
 		CumulativeGasUsed: r.CumulativeGasUsed,
 		Bloom:             r.Bloom,
 		TxHash:            r.TxHash,
@@ -213,10 +189,9 @@ func (r *ReceiptForStorage) DecodeRLP(s *rlp.Stream) error {
 	if err := s.Decode(&dec); err != nil {
 		return err
 	}
-	if err := (*Receipt)(r).setStatus(dec.PostStateOrStatus); err != nil {
-		return err
-	}
+
 	// Assign the consensus fields
+	r.PostState, r.Status = dec.PostState, dec.Status
 	r.CumulativeGasUsed, r.Bloom = dec.CumulativeGasUsed, dec.Bloom
 	r.Logs = make([]*Log, len(dec.Logs))
 	for i, log := range dec.Logs {

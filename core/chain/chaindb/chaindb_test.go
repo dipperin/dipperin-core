@@ -270,6 +270,7 @@ func TestChainDB_DB(t *testing.T) {
 func TestChainDB_SaveReceipts(t *testing.T) {
 	db := newChainDB()
 	receipt := model.NewReceipt(common.HexToHash("0xd36884f1f26ca542ac572832eb02316f3a665571c34653e104eb74bebd2d4335").Bytes(), false, uint64(100))
+	receipt.Logs = []*model.Log{}
 	receipts := []*model.Receipt{receipt}
 	err := db.SaveReceipts(common.Hash{}, 1, receipts)
 	assert.NoError(t, err)
