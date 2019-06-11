@@ -2,7 +2,9 @@
 
 package log
 
-import "sync/atomic"
+import (
+	"sync/atomic"
+)
 
 // swapHandler wraps another handler that may be swapped out
 // dynamically at runtime in a thread-safe fashion.
@@ -17,6 +19,7 @@ func (h *swapHandler) Log(r *Record) error {
 func (h *swapHandler) Swap(newHandler Handler) {
 	h.handler.Store(&newHandler)
 }
+
 
 func (h *swapHandler) Get() Handler {
 	return *h.handler.Load().(*Handler)
