@@ -363,7 +363,11 @@ func parseInitParams(rlpData []byte) (rlpCode, rlpInit []byte, err error) {
 	}
 
 	// encode init
-	init := []interface{}{iRlpList[2:]}
+	var init []interface{}
+	for _, value := range iRlpList[2:] {
+		init = append(init, value)
+	}
+
 	rlpInit, err = rlp.EncodeToBytes(init)
 	if err != nil {
 		return nil, nil, err
