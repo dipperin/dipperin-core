@@ -4,6 +4,7 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/dipperin/dipperin-core/common"
 	"fmt"
+	"strings"
 )
 
 type Node struct {
@@ -21,4 +22,8 @@ func newRpcClient(host string, port string) *rpc.Client {
 		panic(err.Error())
 	}
 	return client
+}
+
+func getRpcTXMethod(methodName string) string {
+	return "dipperin_" + strings.ToLower(methodName[0:1]) + methodName[1:]
 }

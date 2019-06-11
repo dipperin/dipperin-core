@@ -1537,14 +1537,51 @@ func (service *MercuryFullChainService) StopDipperin() {
 	}()
 }
 
+func (service *MercuryFullChainService) GetContractAddressByTxHash(txHash common.Hash) (common.Address, error) {
+	_, blockHash, blockNumber, _, err := service.Transaction(txHash)
+	if err != nil {
+		return common.Address{}, err
+	}
+
+	receipts := service.ChainReader.GetReceipts(blockHash, blockNumber)
+	if receipts == nil {
+		return common.Address{}, g_error.ErrReceiptIsNil
+	}
+	for _, value := range receipts {
+		if txHash.IsEqual(value.TxHash) {
+			return value.ContractAddress, nil
+		}
+	}
+	return common.Address{}, g_error.ErrReceiptNotFound
+}
+
 //add get tx receipt
-func (service *MercuryFullChainService) TransactionReceipt(txHash common.Hash) (model2.Receipts, error) {
+func (service *MercuryFullChainService) GetReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
 	_, blockHash, blockNumber, _, err := service.Transaction(txHash)
 	if err != nil {
 		return nil, err
 	}
 
 	receipts := service.ChainReader.GetReceipts(blockHash, blockNumber)
+	if receipts == nil {
+		return nil, g_error.ErrReceiptIsNil
+	}
+	for _, value := range receipts {
+		if txHash.IsEqual(value.TxHash) {
+			return value, nil
+		}
+	}
+	return nil, g_error.ErrReceiptNotFound
+}
+
+//add get tx receipt
+func (service *MercuryFullChainService) GetReceiptsByBlockNum(num uint64) (model2.Receipts, error) {
+	block, err := service.GetBlockByNumber(num)
+	if err != nil {
+		return nil, err
+	}
+
+	receipts := service.ChainReader.GetReceipts(block.Hash(), block.Number())
 	if receipts == nil {
 		return nil, g_error.ErrReceiptIsNil
 	}

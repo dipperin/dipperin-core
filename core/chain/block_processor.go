@@ -48,7 +48,7 @@ type AccountDBChainReader interface {
 
 // process chain state before insert a block
 type BlockProcessor struct {
-	fullChain AccountDBChainReader
+	fullChain    AccountDBChainReader
 	*state_processor.AccountStateDB
 	economyModel economy_model.EconomyModel
 }
@@ -73,7 +73,7 @@ func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel eco
 
 	state.economyModel = economyModel
 	blockHeader := block.Header().(*model.Header)
-	gasUsed := blockHeader.GasUsed
+	gasUsed := uint64(0)
 	gasLimit := blockHeader.GasLimit
 	// special block doesn't process txs
 	if !block.IsSpecial() {

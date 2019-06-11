@@ -9,6 +9,8 @@ import (
 	"github.com/dipperin/dipperin-core/common/util"
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"math/big"
+	"github.com/dipperin/dipperin-core/core/rpc-interface"
 )
 
 const (
@@ -27,6 +29,16 @@ func (cluster NodeCluster) GetNodeMainAddress(name string) (common.Address, erro
 		return common.Address{}, errors.New(fmt.Sprintf("can't find %d main address", name))
 	}
 	return common.HexToAddress(address), nil
+}
+
+func (cluster NodeCluster) GetAddressBalance(nodeName string, address common.Address) (*big.Int, error) {
+	client := cluster.NodeClient[nodeName]
+	//check the account balance
+	var resp rpc_interface.CurBalanceResp
+	if err := client.Call(&resp, getRpcTXMethod("CurrentBalance"), address); err != nil {
+		return big.NewInt(0), err
+	}
+	return resp.Balance.ToInt(), nil
 }
 
 type NodeConf struct {

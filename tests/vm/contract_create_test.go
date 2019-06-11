@@ -1,6 +1,6 @@
 package vm
 
-/*import (
+import (
 	"github.com/stretchr/testify/assert"
 	"path/filepath"
 	"math/big"
@@ -10,6 +10,9 @@ package vm
 	"testing"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/ethereum/go-ethereum/rlp"
+	"time"
+	"fmt"
 )
 
 var (
@@ -23,26 +26,18 @@ func Test_WASMContractCreate(t *testing.T) {
 
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
-	From, err := cluster.GetNodeMainAddress(nodeName)
-	LogTestPrint("Test_WASMContractCreat", "the from address is:", "addr", From.Hex())
+	from, err := cluster.GetNodeMainAddress(nodeName)
+	LogTestPrint("Test", "From", "addr", from.Hex())
 	assert.NoError(t, err)
 
-	accounts, err := (nodeName)
-	assert.NoError(t, err)
-	for _, account := range accounts {
-		LogTestPrint("Test_WASMContractCreat", "the account addr is:", "addr", account.Address.Hex())
-	}
-
-	//return
-
-	to := common.AddressContractCreate
+	to := common.HexToAddress(common.AddressContractCreate)
 	Value := big.NewInt(100)
-	gasLimit := 2 * consts.DIP
-	gasPrice := 1
+	gasLimit := big.NewInt(2 * consts.DIP)
+	gasPrice := big.NewInt(1)
 
-	balance, err := cluster.GetAddressBalance(nodeName, From)
+	balance, err := cluster.GetAddressBalance(nodeName, from)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, balance.Cmp(big.NewInt(int64(gasLimit*gasPrice))))
+	assert.Equal(t, 1, balance.Cmp(big.NewInt(0).Mul(gasLimit, gasPrice)))
 
 	abiBytes, err := ioutil.ReadFile(AbiPath)
 	assert.NoError(t, err)
@@ -50,33 +45,51 @@ func Test_WASMContractCreate(t *testing.T) {
 	assert.NoError(t, err)
 	ExtraData, err := rlp.EncodeToBytes([]interface{}{WASMBytes, abiBytes})
 	assert.NoError(t, err)
-	var resp common.Hash
-	if err := client.Call(&resp, GetRpcMethod("SendTransactionContract"), From, to, Value, gasLimit, gasPrice, ExtraData, nil); err != nil {
 
-		LogTestPrint("Test_WASMContractCreat", "call send transaction", "err", err)
-		return
+	var txHashList []common.Hash
+	for i := 0; i < 5; i++ {
+		txHash, innerErr := SendTransactionContract(client, from, to, Value, gasLimit, gasPrice, ExtraData)
+		assert.NoError(t, innerErr)
+		txHashList = append(txHashList, txHash)
 	}
-	LogTestPrint("Test_WASMContractCreat", "the contract creat transaction id is:", "txId", resp.Hex())
 
-	cluster.CheckTxIsOnBlockChain(nodeName, resp, ContractTxType)
+	// 检查交易是否上链
+	for i := 0; i < len(txHashList); i++ {
+		for {
+			result, num := Transaction(client, txHashList[i])
+			if result {
+				receipts := GetReceiptByTxHash(client, txHashList[i])
+				fmt.Println(receipts)
+				LogTestPrint("Test", "CallTransaction", "blockNum", num)
+				break
+			}
+			time.Sleep(time.Second * 2)
+		}
+		time.Sleep(time.Millisecond * 100)
+	}
+
 }
 
-func Test_TransactionReceipt(t *testing.T) {
-	cluster, err := CreateNodeCluster()
+func TestGetReceiptsByBlockNum(t *testing.T) {
+	cluster, err := node_cluster.CreateNodeCluster()
 	assert.NoError(t, err)
 
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
 
-	txHash := "0x47d4beb428771608aa2a77b5eae05aad695b5928d1ecba8c32ee37a7fddf5111"
-	var resp model.Receipts
-	if err := client.Call(&resp, GetRpcMethod("TransactionReceipt"), txHash); err != nil {
-		LogTestPrint("Test_TransactionReceipt", "call TransactionReceipt", "err", err)
-		return
-	}
-	for i := 0; i < len(resp); i++ {
-		if common.HexToHash(txHash).IsEqual(resp[i].TxHash) {
-			fmt.Println(resp[i].String())
-		}
-	}
-}*/
+	receipts := GetReceiptsByBlockNum(client, 459)
+	fmt.Println(receipts)
+}
+
+func TestGetContractAddressByTxHash(t *testing.T) {
+	cluster, err := node_cluster.CreateNodeCluster()
+	assert.NoError(t, err)
+
+	nodeName := "default_v0"
+	client := cluster.NodeClient[nodeName]
+
+	txHash := common.HexToHash("0xa83dc01453cb2d9b41588d1cedff1ff47767ab45ad3877a42d0a9f13f42fbb76")
+	contractAddr := GetContractAddressByTxHash(client, txHash)
+	receipt := GetReceiptByTxHash(client, txHash)
+	assert.Equal(t, receipt.ContractAddress, contractAddr)
+}

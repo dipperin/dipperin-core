@@ -37,6 +37,7 @@ func (state *AccountStateDB) ProcessContract(conf *TxProcessConfig, create bool)
 	//padding fee and add block gasUsed
 	conf.TxFee = fee
 	*conf.GasUsed += usedGas
+	log.Info("ProcessContract", "CumulativeGasUsed", *conf.GasUsed, "usedGas", usedGas)
 	return model.ReceiptPara{
 		Root:              root[:],
 		HandlerResult:     failed,
