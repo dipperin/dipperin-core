@@ -668,13 +668,20 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 			log.Error("MercuryFullChainService#SendTransactionContract get contract code err", "err", err)
 			return common.Hash{}, err
 		}
+
+		//log.Info("the contract address is:","addr",to.Hex())
+		//log.Info("the contract code is:","code",hexutil.Encode([]byte(code)))
+		//log.Info("the call contract data is:","data",hexutil.Encode(data))
 		extraData, err = vmcommon.ParseAndGetRlpData(code, data)
 		if err != nil {
+			log.Error("call SendTransactionContract ParseAndGetRlpData error","err",err)
 			return common.Hash{}, err
 		}
 	} else {
 		extraData = data
 	}
+
+
 	//log.Info("send Transaction the nonce is:", "nonce", nonce)
 
 	tmpWallet, usedNonce, err := service.getSendTxInfo(from, nonce)

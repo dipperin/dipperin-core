@@ -18,6 +18,7 @@
 package commands
 
 import (
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"path/filepath"
 	"math/big"
 	"fmt"
@@ -33,6 +34,7 @@ import (
 func CheckAndChangeHexToAddress(address string) (common.Address, error) {
 	// Ignore 0x
 	if len(address) - 2 != common.AddressLength * 2 {
+		log.Error("the address is:","len",len(address),"addr",address)
 		return common.Address{}, errors.New("address length is invalid")
 	}
 
