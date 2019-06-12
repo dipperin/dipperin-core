@@ -305,16 +305,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	gasLimit := gasLimit * 10000000000
 	block := createBlock(1, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
 
-	db, root := createTestStateDB()
-	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
-	assert.NoError(t, err)
-
-	processor.NewAccountState(ownAddress)
-	err = processor.AddNonce(ownAddress, 0)
-	processor.AddBalance(ownAddress, new(big.Int).SetInt64(int64(1000000000000000000)))
-
-	processor.NewAccountState(aliceAddress)
-	err = processor.AddNonce(aliceAddress, 0)
+	processor, err := CreateProcessorAndInitAccount(err, t, ownAddress, aliceAddress)
 
 	tmpGasLimit := block.GasLimit()
 	gasUsed := block.GasUsed()
@@ -327,7 +318,6 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 		TxFee:    big.NewInt(0),
 	}
 
-
 	err = processor.ProcessTxNew(config)
 	assert.NoError(t, err)
 
@@ -336,9 +326,9 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	assert.NoError(t, err)
 	//assert.Equal(t, receipt.Status)
 
-	byteBalance := []byte{7, 98, 97, 108, 97, 110 ,99, 101}
+	byteBalance := []byte{7, 98, 97, 108, 97, 110, 99, 101}
 	baData := processor.GetData(receipt.ContractAddress, string(byteBalance))
-	fmt.Println("&&&&&",receipt.ContractAddress,baData,processor.smartContractData)
+	fmt.Println("&&&&&", receipt.ContractAddress, baData, processor.smartContractData)
 
 	contractNonce, err := processor.GetNonce(receipt.ContractAddress)
 	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce, "receiptResult", receipt)
@@ -349,10 +339,10 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	processor.Commit()
 
 	baData = processor.GetData(receipt.ContractAddress, string(byteBalance))
-	fmt.Println("&&&&&",receipt.ContractAddress,baData,processor.smartContractData[common.HexToAddress("0x0014006082600c6461E48429cb467Ef33c4bA99cfF25")][string(byteBalance)])
+	fmt.Println("&&&&&", receipt.ContractAddress, baData, processor.smartContractData[common.HexToAddress("0x0014006082600c6461E48429cb467Ef33c4bA99cfF25")][string(byteBalance)])
 
 	sw, err := soft_wallet.NewSoftWallet()
-	err = sw.Open(util.HomeDir() +"/go/src/github.com/dipperin/dipperin-core/core/vm/event/CSWallet", "CSWallet", "123")
+	err = sw.Open(util.HomeDir()+"/go/src/github.com/dipperin/dipperin-core/core/vm/event/CSWallet", "CSWallet", "123")
 	assert.NoError(t, err)
 	// 获取私钥
 	//sk, _ := sw.GetSKFromAddress(ownAddress)
@@ -377,24 +367,21 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	block2 := createBlock(2, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
 	log.Info("callTx info", "callTx", callTx)
 
-
 	gasUsed2 := uint64(0);
-	txConfig := &TxProcessConfig  {
-		Tx:signCallTx,
-		Header:  block2.Header().(*model.Header),
-		GetHash:fakeGetBlockHash,
-		GasLimit:&gasLimit,
-		GasUsed:&gasUsed2,
+	txConfig := &TxProcessConfig{
+		Tx:       signCallTx,
+		Header:   block2.Header().(*model.Header),
+		GetHash:  fakeGetBlockHash,
+		GasLimit: &gasLimit,
+		GasUsed:  &gasUsed2,
 	}
 
 	err = processor.ProcessTxNew(txConfig)
 	assert.NoError(t, err)
 	processor.Commit()
 
-
-	ownTransferNonce,err := processor.GetNonce(ownAddress)
+	ownTransferNonce, err := processor.GetNonce(ownAddress)
 	assert.NoError(t, err)
-
 
 	//合约调用  transfer方法  Transfer
 	log.Info("contractNaonce+2", "contractNonce+2", contractNonce+2)
@@ -408,18 +395,17 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	block3 := createBlock(3, common.Hash{}, []*model.Transaction{signCallTxTransfer}, gasLimit)
 	log.Info("callTx info", "callTx", callTx)
 
-	txConfig3 := &TxProcessConfig  {
-		Tx:signCallTxTransfer,
-		Header:  block3.Header().(*model.Header),
-		GetHash:fakeGetBlockHash,
-		GasLimit:&gasLimit,
-		GasUsed:&gasUsed2,
+	txConfig3 := &TxProcessConfig{
+		Tx:       signCallTxTransfer,
+		Header:   block3.Header().(*model.Header),
+		GetHash:  fakeGetBlockHash,
+		GasLimit: &gasLimit,
+		GasUsed:  &gasUsed2,
 	}
 
 	err = processor.ProcessTxNew(txConfig3)
 	assert.NoError(t, err)
 	processor.Commit()
-
 
 	//  合约调用getBalance方法
 	log.Info("==========================================")
@@ -432,13 +418,12 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	block4 := createBlock(4, common.Hash{}, []*model.Transaction{signCallTxAlice}, gasLimit)
 	log.Info("signCallTxAlice info", "signCallTxAlice", signCallTxAlice)
 
-
-	txConfig4 := &TxProcessConfig  {
-		Tx:signCallTxAlice,
-		Header:  block4.Header().(*model.Header),
-		GetHash:fakeGetBlockHash,
-		GasLimit:&gasLimit,
-		GasUsed:&gasUsed2,
+	txConfig4 := &TxProcessConfig{
+		Tx:       signCallTxAlice,
+		Header:   block4.Header().(*model.Header),
+		GetHash:  fakeGetBlockHash,
+		GasLimit: &gasLimit,
+		GasUsed:  &gasUsed2,
 	}
 
 	err = processor.ProcessTxNew(txConfig4)
@@ -446,6 +431,18 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	processor.Commit()
 
 	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", "", "err", err)
+}
+
+func CreateProcessorAndInitAccount(err error, t *testing.T, ownAddress common.Address, aliceAddress common.Address) (*AccountStateDB, error) {
+	db, root := createTestStateDB()
+	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
+	assert.NoError(t, err)
+	processor.NewAccountState(ownAddress)
+	err = processor.AddNonce(ownAddress, 0)
+	processor.AddBalance(ownAddress, new(big.Int).SetInt64(int64(1000000000000000000)))
+	processor.NewAccountState(aliceAddress)
+	err = processor.AddNonce(aliceAddress, 0)
+	return processor, err
 }
 
 
@@ -466,6 +463,8 @@ func getSignedTx(t *testing.T, walletPath string, ownAddress common.Address, tx 
 	return signCreateTx
 }
 
+
+// 获取合约数据
 func getExtraData(t *testing.T, abiPath,wasmPath string, params []string) (error, []byte) {
 	// GetContractExtraData
 	abiBytes, err := ioutil.ReadFile(abiPath)
