@@ -8,20 +8,24 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/common/consts"
 	"io/ioutil"
-	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/ethereum/go-ethereum/rlp"
 	"path/filepath"
 	"github.com/dipperin/dipperin-core/common/util"
-	"fmt"
+	"github.com/dipperin/dipperin-core/common/vmcommon"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 )
 
 var (
 	AbiPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/event.cpp.abi.json")
 	WASMPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/event.wasm")
+)
+
+var (
+	AbiTokenPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/token/token.cpp.abi.json")
+	WASMTokenPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/token/token.wasm")
 )
 
 func LogTestPrint(function, msg string, ctx ...interface{}) {
@@ -100,59 +104,7 @@ func GetBlockByNumber(client *rpc.Client, num uint64) rpc_interface.BlockResp {
 	return respBlock
 }
 
-func CreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, times int) []common.Hash {
-	client := cluster.NodeClient[nodeName]
-	from, err := cluster.GetNodeMainAddress(nodeName)
-	LogTestPrint("Test", "From", "addr", from.Hex())
-	assert.NoError(t, err)
-
-	to := common.HexToAddress(common.AddressContractCreate)
-	value := big.NewInt(100)
-	gasLimit := big.NewInt(2 * consts.DIP)
-	gasPrice := big.NewInt(1)
-	//txFee := big.NewInt(0).Mul(gasLimit, gasPrice)
-
-	abiBytes, err := ioutil.ReadFile(AbiPath)
-	assert.NoError(t, err)
-	WASMBytes, err := ioutil.ReadFile(WASMPath)
-	assert.NoError(t, err)
-	ExtraData, err := rlp.EncodeToBytes([]interface{}{WASMBytes, abiBytes})
-	assert.NoError(t, err)
-
-	var txHashList []common.Hash
-	for i := 0; i < times; i++ {
-		txHash, innerErr := SendTransactionContract(client, from, to, value, gasLimit, gasPrice, ExtraData)
-		assert.NoError(t, innerErr)
-		txHashList = append(txHashList, txHash)
-
-		/*		txHash, innerErr = SendTransaction(client, from, factory.AliceAddrV, value, txFee, nil)
-				assert.NoError(t, innerErr)
-				txHashList = append(txHashList, txHash)*/
-	}
-	return txHashList
-}
-
-func CallContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, addrList []common.Address) []common.Hash {
-	client := cluster.NodeClient[nodeName]
-	from, err := cluster.GetNodeMainAddress(nodeName)
-	LogTestPrint("Test", "From", "addr", from.Hex())
-	assert.NoError(t, err)
-
-	value := big.NewInt(100)
-	gasLimit := big.NewInt(2 * consts.DIP)
-	gasPrice := big.NewInt(1)
-
-	var txHashList []common.Hash
-	for i := 0; i < len(addrList); i++ {
-		input := genInput(t, "hello", fmt.Sprintf("Event,%v", 100*i))
-		txHash, innerErr := SendTransactionContract(client, from, addrList[i], value, gasLimit, gasPrice, input)
-		assert.NoError(t, innerErr)
-		txHashList = append(txHashList, txHash)
-	}
-	return txHashList
-}
-
-func genInput(t *testing.T, funcName, param string) []byte {
+func getCallExtraData(t *testing.T, funcName, param string) []byte {
 	input := []interface{}{
 		funcName,
 		param,
@@ -161,4 +113,37 @@ func genInput(t *testing.T, funcName, param string) []byte {
 	result, err := rlp.EncodeToBytes(input)
 	assert.NoError(t, err)
 	return result
+}
+
+func getCreateExtraData(t *testing.T, abiPath, wasmPath string, params []string) []byte {
+	// GetContractExtraData
+	abiBytes, err := ioutil.ReadFile(abiPath)
+	assert.NoError(t, err)
+	var wasmAbi utils.WasmAbi
+	err = wasmAbi.FromJson(abiBytes)
+	assert.NoError(t, err)
+	var args []utils.InputParam
+	for _, v := range wasmAbi.AbiArr {
+		if strings.EqualFold("init", v.Name) && strings.EqualFold(v.Type, "function") {
+			args = v.Inputs
+		}
+	}
+	//params := []string{"dipp", "DIPP", "100000000"}
+	wasmBytes, err := ioutil.ReadFile(wasmPath)
+	assert.NoError(t, err)
+	rlpParams := []interface{}{
+		wasmBytes, abiBytes,
+	}
+	assert.Equal(t, len(params), len(args))
+	for i, v := range args {
+		bts := params[i]
+		re, err := vmcommon.StringConverter(bts, v.Type)
+		assert.NoError(t, err)
+		rlpParams = append(rlpParams, re)
+		//inputParams = append(inputParams, re)
+	}
+	data, err := rlp.EncodeToBytes(rlpParams)
+	//input, err := rlp.EncodeToBytes(inputParams)
+	assert.NoError(t, err)
+	return data
 }

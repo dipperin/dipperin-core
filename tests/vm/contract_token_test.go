@@ -2,28 +2,31 @@ package vm
 
 import (
 	"github.com/stretchr/testify/assert"
-	"time"
+	"math/big"
+	"github.com/dipperin/dipperin-core/common/consts"
 	"testing"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/dipperin/dipperin-core/common"
+	"time"
 	"fmt"
-	"math/big"
-	"github.com/dipperin/dipperin-core/common/consts"
 )
 
-func Test_WASMContractCall(t *testing.T) {
+func Test_TokenContractCall(t *testing.T) {
 	cluster, err := node_cluster.CreateNodeCluster()
 	assert.NoError(t, err)
 
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
-	txHashList := CreateContract(t, cluster, nodeName, 5)
+	txHashList := CreateTokenContract(t, cluster, nodeName, 1)
 
 	// 检查交易是否上链
 	for i := 0; i < len(txHashList); i++ {
 		for {
-			result, _ := Transaction(client, txHashList[i])
+			result, num := Transaction(client, txHashList[i])
 			if result {
+				receipts := GetReceiptByTxHash(client, txHashList[i])
+				LogTestPrint("Test", "CallTransaction", "blockNum", num)
+				fmt.Println(receipts)
 				break
 			}
 			time.Sleep(time.Second * 2)
@@ -38,7 +41,7 @@ func Test_WASMContractCall(t *testing.T) {
 		addrList = append(addrList, addr)
 	}
 
-	txHashList = CallContract(t, cluster, nodeName, addrList)
+	txHashList = CallTokenContract(t, cluster, nodeName, addrList)
 
 	// 检查交易是否上链
 	for i := 0; i < len(txHashList); i++ {
@@ -56,7 +59,7 @@ func Test_WASMContractCall(t *testing.T) {
 	}
 }
 
-func CreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, times int) []common.Hash {
+func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, times int) []common.Hash {
 	client := cluster.NodeClient[nodeName]
 	from, err := cluster.GetNodeMainAddress(nodeName)
 	LogTestPrint("Test", "From", "addr", from.Hex())
@@ -66,23 +69,20 @@ func CreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName st
 	value := big.NewInt(100)
 	gasLimit := big.NewInt(2 * consts.DIP)
 	gasPrice := big.NewInt(2)
-	//txFee := big.NewInt(0).Mul(gasLimit, gasPrice)
 
-	data := getCreateExtraData(t, AbiPath, WASMPath, nil)
+	params := []string{"dipp", "DIPP", "100000000"}
+	data := getCreateExtraData(t, AbiTokenPath, WASMTokenPath, params)
+
 	var txHashList []common.Hash
 	for i := 0; i < times; i++ {
 		txHash, innerErr := SendTransactionContract(client, from, to, value, gasLimit, gasPrice, data)
 		assert.NoError(t, innerErr)
 		txHashList = append(txHashList, txHash)
-
-		/*		txHash, innerErr = SendTransaction(client, from, factory.AliceAddrV, value, txFee, nil)
-				assert.NoError(t, innerErr)
-				txHashList = append(txHashList, txHash)*/
 	}
 	return txHashList
 }
 
-func CallContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, addrList []common.Address) []common.Hash {
+func CallTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, addrList []common.Address) []common.Hash {
 	client := cluster.NodeClient[nodeName]
 	from, err := cluster.GetNodeMainAddress(nodeName)
 	LogTestPrint("Test", "From", "addr", from.Hex())
@@ -94,7 +94,7 @@ func CallContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName stri
 
 	var txHashList []common.Hash
 	for i := 0; i < len(addrList); i++ {
-		input := getCallExtraData(t, "hello", fmt.Sprintf("Event,%v", 100*i))
+		input := getCallExtraData(t, "transfer", "0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9,10000")
 		txHash, innerErr := SendTransactionContract(client, from, addrList[i], value, gasLimit, gasPrice, input)
 		assert.NoError(t, innerErr)
 		txHashList = append(txHashList, txHash)

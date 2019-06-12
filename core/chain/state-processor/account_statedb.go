@@ -1397,6 +1397,7 @@ func (state *AccountStateDB) clearChangeList() {
 
 //fixme
 func (state *AccountStateDB) SetData(addr common.Address, key string, value []byte) (err error) {
+	log.Debug("SetData","addr",addr.String(),"key",key,"keybyte",[]byte(key),"value",value)
 	var preValue []byte
 	if state.smartContractData[addr] == nil {
 		state.smartContractData[addr] = make(map[string][]byte)
@@ -1410,6 +1411,7 @@ func (state *AccountStateDB) SetData(addr common.Address, key string, value []by
 			delete(state.smartContractData, addr)
 		}
 	}
+	log.Debug("SetData result","key",key,"result",state.smartContractData[addr][key])
 	state.stateChangeList.append(dataChange{Account: &addr, Key: key, Prev: preValue, Current: value, ChangeType: DataChange})
 	return
 }
@@ -1425,7 +1427,11 @@ func (state *AccountStateDB) GetData(addr common.Address, key string) (data []by
 	if err != nil {
 		return
 	}
-	return tier.GetKey(GetContractFieldKey(addr, key))
+	data,err = tier.TryGet(GetContractFieldKey(addr, key))
+	if err != nil {
+		return
+	}
+	return
 }
 
 func (state *AccountStateDB) finalSmartData() error {

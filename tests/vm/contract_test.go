@@ -5,33 +5,8 @@ import (
 	"testing"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/dipperin/dipperin-core/common"
-	"time"
 	"fmt"
 )
-
-func Test_WASMContractCreate(t *testing.T) {
-	cluster, err := node_cluster.CreateNodeCluster()
-	assert.NoError(t, err)
-
-	nodeName := "default_v0"
-	client := cluster.NodeClient[nodeName]
-	txHashList := CreateContract(t, cluster, nodeName, 5)
-
-	// 检查交易是否上链
-	for i := 0; i < len(txHashList); i++ {
-		for {
-			result, num := Transaction(client, txHashList[i])
-			if result {
-				receipts := GetReceiptByTxHash(client, txHashList[i])
-				fmt.Println(receipts)
-				LogTestPrint("Test", "CallTransaction", "blockNum", num)
-				break
-			}
-			time.Sleep(time.Second * 2)
-		}
-		time.Sleep(time.Millisecond * 100)
-	}
-}
 
 func TestGetReceiptsByBlockNum(t *testing.T) {
 	cluster, err := node_cluster.CreateNodeCluster()
