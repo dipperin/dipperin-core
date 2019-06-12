@@ -1427,7 +1427,11 @@ func (state *AccountStateDB) GetData(addr common.Address, key string) (data []by
 	if err != nil {
 		return
 	}
-	return tier.GetKey(GetContractFieldKey(addr, key))
+	data,err = tier.TryGet(GetContractFieldKey(addr, key))
+	if err != nil {
+		return
+	}
+	return
 }
 
 func (state *AccountStateDB) finalSmartData() error {

@@ -373,7 +373,6 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	//assert.NoError(t, err)
 
 
-
 	//合约调用  transfer方法  Transfer
 	/*log.Info("contractNaonce+2", "contractNonce+2", contractNonce+2)
 	log.Info("ownTransferNonce+2", "ownTransferNonce+2", ownTransferNonce)
