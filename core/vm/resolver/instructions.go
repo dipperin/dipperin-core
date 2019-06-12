@@ -84,7 +84,7 @@ func (r *Resolver) envEmitEvent(vm *exec.VirtualMachine) int64 {
 }
 
 func envMalloc(vm *exec.VirtualMachine) int64 {
-	log.Info("envMalloc Called")
+	//log.Info("envMalloc Called")
 	size := int(uint32(vm.GetCurrentFrame().Locals[0]))
 
 	pos := vm.Memory.Malloc(size)
@@ -100,7 +100,7 @@ func envFree(vm *exec.VirtualMachine) int64 {
 	/*	if vmcommon.Config.DisableFree {
 			return 0
 		}*/
-	log.Info("envFree Called")
+	//log.Info("envFree Called")
 	mem := vm.Memory
 	offset := int(uint32(vm.GetCurrentFrame().Locals[0]))
 
@@ -108,13 +108,13 @@ func envFree(vm *exec.VirtualMachine) int64 {
 	if err != nil {
 		panic("free error...")
 	}
-	log.Info("Malloc Free", "offset", offset)
+	//log.Info("Malloc Free", "offset", offset)
 	return 0
 }
 
 //void * memory copy ( void * destination, const void * source, size_t num );
 func envMemcpy(vm *exec.VirtualMachine) int64 {
-	log.Info("envMemcpy Called")
+	//log.Info("envMemcpy Called")
 	dest := int(uint32(vm.GetCurrentFrame().Locals[0]))
 	src := int(uint32(vm.GetCurrentFrame().Locals[1]))
 	len := int(uint32(vm.GetCurrentFrame().Locals[2]))
@@ -126,7 +126,7 @@ func envMemcpy(vm *exec.VirtualMachine) int64 {
 
 //void * memmove ( void * destination, const void * source, size_t num );
 func envMemmove(vm *exec.VirtualMachine) int64 {
-	log.Info("envMemmove Called")
+	//log.Info("envMemmove Called")
 	dest := int(uint32(vm.GetCurrentFrame().Locals[0]))
 	src := int(uint32(vm.GetCurrentFrame().Locals[1]))
 	len := int(uint32(vm.GetCurrentFrame().Locals[2]))
