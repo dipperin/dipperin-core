@@ -290,7 +290,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	aliceAddress := common.HexToAddress(aliceStr)
 
 	abiPath := "../../vm/event/token/token.cpp.abi.json"
-	wasmPath := "../../vm/event/token/token1.wasm"
+	wasmPath := "../../vm/event/token/token3.wasm"
 	//params := []string{"dipp", "DIPP", "100000000"}
 	err, data := getExtraData(t,abiPath, wasmPath, []string{"dipp", "DIPP", "100000000"})
 
@@ -368,7 +368,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 	//  合约调用getBalance方法
 	log.Info("getBalance=================================================")
-	callTx, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "getBalance", "000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 1, code)
+	callTx, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 1, code)
 	accountOwn := accounts.Account{ownAddress}
 	signCallTx, err := sw.SignTx(accountOwn, callTx, nil)
 
@@ -423,18 +423,18 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 	//  合约调用getBalance方法
 	log.Info("==========================================")
-	callTxAlice, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333", 1, code)
+	callTxAlice, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333", ownTransferNonce+1, code)
 	//accountAlice := accounts.Account{aliceAddress}
 	signCallTxAlice, err := sw.SignTx(accountOwn, callTxAlice, nil)
 
 	assert.NoError(t, err)
 	signCallTxAlice.PaddingTxIndex(0)
 	block4 := createBlock(4, common.Hash{}, []*model.Transaction{signCallTxAlice}, gasLimit)
-	log.Info("callTx info", "callTx", callTx)
+	log.Info("signCallTxAlice info", "signCallTxAlice", signCallTxAlice)
 
 
 	txConfig4 := &TxProcessConfig  {
-		Tx:callTxAlice,
+		Tx:signCallTxAlice,
 		Header:  block4.Header().(*model.Header),
 		GetHash:fakeGetBlockHash,
 		GasLimit:&gasLimit,
