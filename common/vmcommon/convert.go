@@ -98,6 +98,11 @@ func Uint64ToBytes(n uint64) []byte {
 	return buf
 }
 
+func BytesToUint64(b []byte) uint64 {
+	b = append(make([]byte, 8-len(b)), b...)
+	return binary.LittleEndian.Uint64(b)
+}
+
 func Float32ToBytes(float float32) []byte {
 	bits := math.Float32bits(float)
 	bytes := make([]byte, 4)
