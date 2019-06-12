@@ -5,7 +5,6 @@ import (
 	"testing"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/dipperin/dipperin-core/common"
-	"time"
 	"fmt"
 )
 
