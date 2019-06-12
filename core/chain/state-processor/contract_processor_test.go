@@ -268,7 +268,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	aliceAddress := common.HexToAddress(aliceStr)
 
 	abiPath := "../../vm/event/token/token.cpp.abi.json"
-	wasmPath := "../../vm/event/token/token15.wasm"
+	wasmPath := "../../vm/event/token/token.wasm"
 	//params := []string{"dipp", "DIPP", "100000000"}
 	err, data := getExtraData(t,abiPath, wasmPath, []string{"dipp", "DIPP", "100000000"})
 
@@ -318,12 +318,23 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	log.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
 	assert.NoError(t, err)
 	//assert.Equal(t, code, tx.ExtraData())
+	processor.Commit()
 
 	sw, err := soft_wallet.NewSoftWallet()
 	err = sw.Open(util.HomeDir() +"/go/src/github.com/dipperin/dipperin-core/core/vm/event/CSWallet", "CSWallet", "123")
 	assert.NoError(t, err)
+	sk, _ := sw.GetSKFromAddress(ownAddress)
+	fmt.Println("============================")
+	fmt.Println(sk.D.Bytes())
+	fmt.Println(sk.X.Bytes())
+	fmt.Println(sk.Y.Bytes())
 
-	callTx, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "transfer", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333,100", contractNonce+1, code)
+	//key:=ecdsa.PrivateKey{}
+	//key.D
+	//key.X
+	//key.
+
+	callTx, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "getBalance", "000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", contractNonce+1, code)
 	account := accounts.Account{ownAddress}
 	signCallTx, err := sw.SignTx(account, callTx, nil)
 
