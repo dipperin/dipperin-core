@@ -113,19 +113,11 @@ func (f *Fullstate) GetCommittedState(common.Address, []byte) []byte {
 }
 
 func (f *Fullstate) GetState(addr common.Address, key []byte) (data []byte) {
-	ct, err := f.state.getContractTrie(addr)
-	if err != nil {
-		return
-	}
-	return ct.GetKey(GetContractFieldKey(addr, string(key)))
+	return f.state.GetData(addr, string(key))
 }
 
 func (f *Fullstate) SetState(addr common.Address, key []byte, value []byte) {
-	ct, err := f.state.getContractTrie(addr)
-	if err != nil {
-		return
-	}
-	err = ct.TryUpdate(GetContractFieldKey(addr, string(key)), value)
+	err := f.state.SetData(addr, string(key),value)
 	if err != nil {
 		panic("can not update contract field")
 	}
@@ -162,6 +154,7 @@ func (f *Fullstate) Empty(addr common.Address) bool {
 }
 
 func (f *Fullstate) RevertToSnapshot(id int) {
+	log.Debug("State Reverted","id",id)
 	f.state.RevertToSnapshot(id)
 }
 
