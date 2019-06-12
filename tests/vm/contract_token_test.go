@@ -41,7 +41,9 @@ func Test_TokenContractCall(t *testing.T) {
 		addrList = append(addrList, addr)
 	}
 
-	txHashList = CallTokenContract(t, cluster, nodeName, addrList)
+	aliceAddr := "0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9"
+	// transfer money
+	txHashList = CallTokenContract(t, cluster, nodeName, "transfer", fmt.Sprintf("%s,1000", aliceAddr), addrList)
 
 	// 检查交易是否上链
 	for i := 0; i < len(txHashList); i++ {
@@ -82,7 +84,7 @@ func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNa
 	return txHashList
 }
 
-func CallTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, addrList []common.Address) []common.Hash {
+func CallTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName, funcName, params string, addrList []common.Address) []common.Hash {
 	client := cluster.NodeClient[nodeName]
 	from, err := cluster.GetNodeMainAddress(nodeName)
 	LogTestPrint("Test", "From", "addr", from.Hex())
@@ -94,20 +96,10 @@ func CallTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName
 
 	var txHashList []common.Hash
 	for i := 0; i < len(addrList); i++ {
-		input := getCallExtraData(t, "transfer", "0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,1000")
+		input := getCallExtraData(t, funcName, params)
 		txHash, innerErr := SendTransactionContract(client, from, addrList[i], value, gasLimit, gasPrice, input)
 		assert.NoError(t, innerErr)
 		txHashList = append(txHashList, txHash)
 	}
 	return txHashList
-}
-
-func TestGetReceiptByTxHash(t *testing.T) {
-	//input := []byte{0, 225, 245, 5, 0, 0, 0, 0}
-	//input := []byte{16, 39, 0, 0, 0, 0, 0, 0}
-	input := []byte{1, 44, 48, 48, 48, 48, 54, 50, 98, 101, 49, 48, 102, 52, 54, 98, 53, 100, 48, 49, 101, 99, 100, 57, 98, 53, 48, 50, 99, 52, 98, 97, 51, 100, 54, 49, 51, 49, 102, 54, 102, 99, 50, 101, 52, 49, 16, 39, 0, 0, 0, 0, 0, 0,}
-	fmt.Println(string(input))
-
-	addr := common.HexToAddress("0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978")
-	fmt.Println(addr[:])
 }

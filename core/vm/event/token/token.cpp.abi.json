@@ -127,6 +127,27 @@
         "type": "function"
     },
     {
+        "name": "getApproveBalance",
+        "inputs": [
+            {
+                "name": "from",
+                "type": "string"
+            },
+            {
+                "name": "approved",
+                "type": "string"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "constant": "false",
+        "type": "function"
+    },
+    {
         "name": "Tranfer",
         "inputs": [
             {
