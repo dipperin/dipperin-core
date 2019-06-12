@@ -70,7 +70,7 @@ func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNa
 	gasLimit := big.NewInt(2 * consts.DIP)
 	gasPrice := big.NewInt(2)
 
-	params := []string{"dipp", "DIPP", "10000"}
+	params := []string{"dipp", "DIPP", "1000000"}
 	data := getCreateExtraData(t, AbiTokenPath, WASMTokenPath, params)
 
 	var txHashList []common.Hash
@@ -94,7 +94,7 @@ func CallTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName
 
 	var txHashList []common.Hash
 	for i := 0; i < len(addrList); i++ {
-		input := getCallExtraData(t, "getBalance", "0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978")
+		input := getCallExtraData(t, "transfer", "0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,1000")
 		txHash, innerErr := SendTransactionContract(client, from, addrList[i], value, gasLimit, gasPrice, input)
 		assert.NoError(t, innerErr)
 		txHashList = append(txHashList, txHash)

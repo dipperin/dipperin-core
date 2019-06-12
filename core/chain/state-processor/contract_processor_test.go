@@ -257,7 +257,29 @@ func TestAccountStateDB_ProcessContract3(t *testing.T) {
 	}
 
 	callRecipt, err := processor.ProcessContract(txConfig, false)
-	//assert.NoError(t, err)
+
+
+	// call contract getBalance
+	callTxGet, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "getBalance", "", contractNonce+1, code)
+	//account := accounts.Account{ownAddress}
+	signCallTxGet, err := sw.SignTx(account, callTxGet, nil)
+
+	assert.NoError(t, err)
+	signCallTxGet.PaddingTxIndex(0)
+	block3 := createBlock(2, common.Hash{}, []*model.Transaction{signCallTxGet}, gasLimit)
+	log.Info("callTx info", "callTx", callTx)
+
+
+	txConfigGet := &TxProcessConfig  {
+		Tx:signCallTx,
+		Header:  block3.Header().(*model.Header),
+		GetHash:fakeGetBlockHash,
+		GasLimit:&gasLimit,
+		GasUsed:&gasUsed2,
+	}
+
+	_, err = processor.ProcessContract(txConfigGet, false)
+	assert.NoError(t, err)
 	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", callRecipt, "err", err)
 }
 
@@ -268,7 +290,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	aliceAddress := common.HexToAddress(aliceStr)
 
 	abiPath := "../../vm/event/token/token.cpp.abi.json"
-	wasmPath := "../../vm/event/token/token1.wasm"
+	wasmPath := "../../vm/event/token/token3.wasm"
 	//params := []string{"dipp", "DIPP", "100000000"}
 	err, data := getExtraData(t,abiPath, wasmPath, []string{"dipp", "DIPP", "100000000"})
 
@@ -345,7 +367,8 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	//key.
 
 	//  合约调用getBalance方法
-	callTx, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "getBalance", "000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 1, code)
+	log.Info("getBalance=================================================")
+	callTx, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 1, code)
 	accountOwn := accounts.Account{ownAddress}
 	signCallTx, err := sw.SignTx(accountOwn, callTx, nil)
 
@@ -369,15 +392,15 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	processor.Commit()
 
 
-	//ownTransferNonce,err := processor.GetNonce(ownAddress)
-	//assert.NoError(t, err)
+	ownTransferNonce,err := processor.GetNonce(ownAddress)
+	assert.NoError(t, err)
 
 
 	//合约调用  transfer方法  Transfer
-	/*log.Info("contractNaonce+2", "contractNonce+2", contractNonce+2)
+	log.Info("contractNaonce+2", "contractNonce+2", contractNonce+2)
 	log.Info("ownTransferNonce+2", "ownTransferNonce+2", ownTransferNonce)
 	log.Info("contractNaonce+2", "contractNonce+3", contractNonce+3)
-	callTxTransfer, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "transfer", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333,1", ownTransferNonce, code)
+	callTxTransfer, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "transfer", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333,2", ownTransferNonce, code)
 	signCallTxTransfer, err := sw.SignTx(accountOwn, callTxTransfer, nil)
 
 	assert.NoError(t, err)
@@ -397,19 +420,21 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	assert.NoError(t, err)
 	processor.Commit()
 
+
 	//  合约调用getBalance方法
-	callTxAlice, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333", 1, code)
-	accountAlice := accounts.Account{aliceAddress}
-	signCallTxAlice, err := sw.SignTx(accountAlice, callTxAlice, nil)
+	log.Info("==========================================")
+	callTxAlice, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333", ownTransferNonce+1, code)
+	//accountAlice := accounts.Account{aliceAddress}
+	signCallTxAlice, err := sw.SignTx(accountOwn, callTxAlice, nil)
 
 	assert.NoError(t, err)
 	signCallTxAlice.PaddingTxIndex(0)
 	block4 := createBlock(4, common.Hash{}, []*model.Transaction{signCallTxAlice}, gasLimit)
-	log.Info("callTx info", "callTx", callTx)
+	log.Info("signCallTxAlice info", "signCallTxAlice", signCallTxAlice)
 
 
 	txConfig4 := &TxProcessConfig  {
-		Tx:callTxAlice,
+		Tx:signCallTxAlice,
 		Header:  block4.Header().(*model.Header),
 		GetHash:fakeGetBlockHash,
 		GasLimit:&gasLimit,
@@ -418,7 +443,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 	err = processor.ProcessTxNew(txConfig4)
 	assert.NoError(t, err)
-	processor.Commit()*/
+	processor.Commit()
 
 	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", "", "err", err)
 }
