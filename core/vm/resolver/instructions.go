@@ -92,7 +92,7 @@ func envMalloc(vm *exec.VirtualMachine) int64 {
 		panic("melloc error...")
 	}
 
-	log.Info("Malloc Memory", "pos", pos, "size", size)
+	//log.Info("Malloc Memory", "pos", pos, "size", size)
 	return int64(pos)
 }
 
@@ -120,7 +120,7 @@ func envMemcpy(vm *exec.VirtualMachine) int64 {
 	len := int(uint32(vm.GetCurrentFrame().Locals[2]))
 
 	copy(vm.Memory.Memory[dest:dest+len], vm.Memory.Memory[src:src+len])
-	log.Info("Memory Copyed", "dest", dest, "src", src, "valueLen", len, "value", vm.Memory.Memory[dest:dest+len])
+	//log.Info("Memory Copyed", "dest", dest, "src", src, "valueLen", len, "value", vm.Memory.Memory[dest:dest+len])
 	return int64(dest)
 }
 
