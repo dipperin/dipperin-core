@@ -11,6 +11,8 @@ import (
 	"fmt"
 )
 
+
+
 func Test_TokenContractCall(t *testing.T) {
 	cluster, err := node_cluster.CreateNodeCluster()
 	assert.NoError(t, err)

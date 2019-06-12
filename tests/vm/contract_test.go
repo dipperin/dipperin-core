@@ -5,7 +5,6 @@ import (
 	"testing"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/dipperin/dipperin-core/common"
-	"time"
 	"fmt"
 )
 
@@ -27,7 +26,7 @@ func TestGetContractAddressByTxHash(t *testing.T) {
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
 
-	txHash := common.HexToHash("0x9d553401af38bbbe348947b94a7cf0881e4454307e2b092622048b336e6d0f98")
+	txHash := common.HexToHash("0x380699fc9660dffaa6d33e95194f72cc0cffdfe7bef9e3397fccd3fe182985d8")
 	contractAddr := GetContractAddressByTxHash(client, txHash)
 	receipt := GetReceiptByTxHash(client, txHash)
 	assert.Equal(t, receipt.ContractAddress, contractAddr)

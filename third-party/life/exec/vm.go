@@ -584,7 +584,7 @@ func (vm *VirtualMachine) Execute() {
 		vm.GasUsed += cost
 
 		//fmt.Printf("INS: [%d] %s\n", valueID, ins.String(), )
-		log.Info("VirtualMachine#Execute", "ins", ins.String(), "valueID", valueID)
+		//log.Info("VirtualMachine#Execute", "ins", ins.String(), "valueID", valueID)
 		switch ins {
 		case opcodes.Nop:
 		case opcodes.Unreachable:
@@ -1801,7 +1801,7 @@ func (vm *VirtualMachine) Execute() {
 			importID := int(LE.Uint32(frame.Code[frame.IP: frame.IP+4]))
 			frame.IP += 4
 			vm.Delegate = func() {
-				//log.Info("the FunctionImports is:","FunctionImports",api.FunctionImports)
+				log.Info("the call func is:","f",vm.FunctionImports[importID])
 				frame.Regs[valueID] = vm.FunctionImports[importID].F.Execute(vm)
 			}
 			return
