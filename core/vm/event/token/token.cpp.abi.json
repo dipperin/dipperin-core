@@ -110,6 +110,23 @@
         "type": "function"
     },
     {
+        "name": "getBalance",
+        "inputs": [
+            {
+                "name": "own",
+                "type": "string"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "constant": "false",
+        "type": "function"
+    },
+    {
         "name": "Tranfer",
         "inputs": [
             {

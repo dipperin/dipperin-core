@@ -17,6 +17,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/vm_log"
 	"math"
 	"math/big"
@@ -76,6 +77,7 @@ func (r *Resolver)envPrints(vm *exec.VirtualMachine) int64 {
 		}
 	}
 	vm_log.Debug(string(vm.Memory.Memory[start:end]))
+	log.Info("prints envPrints", "prints", string(vm.Memory.Memory[start:end]))
 
 	//fmt.Printf("%s", string(vmcommon.Memory.Memory[start:end]))
 	return 0
@@ -117,6 +119,7 @@ func envPrintiGasCost(vm *exec.VirtualMachine) (uint64, error) {
 }
 
 func envPrintui(vm *exec.VirtualMachine) int64 {
+	log.Info("envPrintui  result", "printui" , fmt.Sprintf("%d", vm.GetCurrentFrame().Locals[0]))
 	vm_log.Debug(fmt.Sprintf("%d", vm.GetCurrentFrame().Locals[0]))
 	return 0
 }
