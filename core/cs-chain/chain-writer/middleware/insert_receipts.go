@@ -29,7 +29,7 @@ func ValidGasUsedAndReceipts(c *BlockContext) Middleware {
 			return c.Next()
 		}
 		curBlock := c.Chain.CurrentBlock()
-		log.Info("insert block receipts", "cur number", curBlock.Number(), "new number", c.Block.Number())
+		log.Info("Insert block receipts", "cur number", curBlock.Number(), "new number", c.Block.Number())
 		receipts := make(model2.Receipts, 0, c.Block.TxCount())
 		var accumulatedGas uint64
 		if err := c.Block.TxIterator(func(i int, transaction model.AbstractTransaction) error {
@@ -47,12 +47,12 @@ func ValidGasUsedAndReceipts(c *BlockContext) Middleware {
 		//check receipt hash
 		receiptHash := model.DeriveSha(receipts)
 		if receiptHash != c.Block.GetReceiptHash() {
-			log.Error("InsertReceipts#receiptHash", "receiptHash", receiptHash, "block.ReciptHash", c.Block.GetReceiptHash())
+			log.Error("InsertReceipts receiptHash not match", "receiptHash", receiptHash, "block.ReciptHash", c.Block.GetReceiptHash())
 			return g_error.ReceiptHashError
 		}
 
 		if accumulatedGas != c.Block.Header().GetGasUsed() {
-			log.Info("the block gas info is:", "accumulatedGas", accumulatedGas, "headerGasUsed", c.Block.Header().GetGasUsed())
+			log.Error("InsertReceipts accumulatedGas not match", "accumulatedGas", accumulatedGas, "headerGasUsed", c.Block.Header().GetGasUsed())
 			return g_error.ErrGasUsedIsInvalid
 		}
 

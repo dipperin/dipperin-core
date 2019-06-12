@@ -1237,8 +1237,8 @@ func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *
 	*blockGasUsed += gasUsed
 
 	par.GasUsed = gasUsed
-	par.CumulativeGasUsed = gasUsed
-	par.HandlerResult = true
+	par.CumulativeGasUsed = *blockGasUsed
+	par.HandlerResult = false
 	par.Root = root[:]
 	par.Logs = []*model2.Log{}
 	return nil

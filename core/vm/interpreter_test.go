@@ -1,7 +1,6 @@
 package vm
 
 import (
-	"dipperin-vm/common/utils"
 	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -9,6 +8,7 @@ import (
 	"io/ioutil"
 	"strings"
 	"testing"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 )
 
 func TestWASMInterpreter_Run_map_string(t *testing.T) {

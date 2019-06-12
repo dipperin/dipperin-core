@@ -668,13 +668,20 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 			log.Error("MercuryFullChainService#SendTransactionContract get contract code err", "err", err)
 			return common.Hash{}, err
 		}
+
+		//log.Info("the contract address is:","addr",to.Hex())
+		//log.Info("the contract code is:","code",hexutil.Encode([]byte(code)))
+		//log.Info("the call contract data is:","data",hexutil.Encode(data))
 		extraData, err = vmcommon.ParseAndGetRlpData(code, data)
 		if err != nil {
+			log.Error("call SendTransactionContract ParseAndGetRlpData error","err",err)
 			return common.Hash{}, err
 		}
 	} else {
 		extraData = data
 	}
+
+
 	//log.Info("send Transaction the nonce is:", "nonce", nonce)
 
 	tmpWallet, usedNonce, err := service.getSendTxInfo(from, nonce)
@@ -1537,14 +1544,51 @@ func (service *MercuryFullChainService) StopDipperin() {
 	}()
 }
 
+func (service *MercuryFullChainService) GetContractAddressByTxHash(txHash common.Hash) (common.Address, error) {
+	_, blockHash, blockNumber, _, err := service.Transaction(txHash)
+	if err != nil {
+		return common.Address{}, err
+	}
+
+	receipts := service.ChainReader.GetReceipts(blockHash, blockNumber)
+	if receipts == nil {
+		return common.Address{}, g_error.ErrReceiptIsNil
+	}
+	for _, value := range receipts {
+		if txHash.IsEqual(value.TxHash) {
+			return value.ContractAddress, nil
+		}
+	}
+	return common.Address{}, g_error.ErrReceiptNotFound
+}
+
 //add get tx receipt
-func (service *MercuryFullChainService) TransactionReceipt(txHash common.Hash) (model2.Receipts, error) {
+func (service *MercuryFullChainService) GetReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
 	_, blockHash, blockNumber, _, err := service.Transaction(txHash)
 	if err != nil {
 		return nil, err
 	}
 
 	receipts := service.ChainReader.GetReceipts(blockHash, blockNumber)
+	if receipts == nil {
+		return nil, g_error.ErrReceiptIsNil
+	}
+	for _, value := range receipts {
+		if txHash.IsEqual(value.TxHash) {
+			return value, nil
+		}
+	}
+	return nil, g_error.ErrReceiptNotFound
+}
+
+//add get tx receipt
+func (service *MercuryFullChainService) GetReceiptsByBlockNum(num uint64) (model2.Receipts, error) {
+	block, err := service.GetBlockByNumber(num)
+	if err != nil {
+		return nil, err
+	}
+
+	receipts := service.ChainReader.GetReceipts(block.Hash(), block.Number())
 	if receipts == nil {
 		return nil, g_error.ErrReceiptIsNil
 	}

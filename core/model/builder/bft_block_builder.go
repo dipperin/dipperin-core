@@ -68,7 +68,7 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 	var invalidList []*model.Transaction
 	log.Info("BftBlockBuilder#commitTransactions  start ~~~~~++")
 	txIndex := 0
-	gasUsed := header.GasUsed
+	gasUsed := uint64(0)
 	gasLimit := header.GasLimit
 	for {
 		// Retrieve the next transaction and abort if all done
@@ -142,7 +142,7 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address) 
 		return nil
 	}
 
-	lastNormalBlock:=builder.ChainReader.GetLatestNormalBlock()
+	lastNormalBlock := builder.ChainReader.GetLatestNormalBlock()
 	lastGasLimit := lastNormalBlock.Header().GetGasLimit()
 	tmpValue := CalcGasLimit(lastNormalBlock.(*model.Block), lastGasLimit, lastGasLimit)
 

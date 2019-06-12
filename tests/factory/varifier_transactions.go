@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package factory
 
 import (
@@ -54,17 +53,17 @@ func (chain *fakeChainReader) GetLastChangePoint(block model.AbstractBlock) *uin
 
 func (chain *fakeChainReader) GetSlot(block model.AbstractBlock) *uint64 {
 	slotSize := chain_config.GetChainConfig().SlotSize
-	slot := block.Number()/slotSize
+	slot := block.Number() / slotSize
 	return &slot
 }
 
-func (chain *fakeChainReader) IsChangePoint(block model.AbstractBlock,isProcessPackageBlock bool) bool {
+func (chain *fakeChainReader) IsChangePoint(block model.AbstractBlock, isProcessPackageBlock bool) bool {
 	return true
 }
 
 func (chain *fakeChainReader) GetSlotByNum(num uint64) *uint64 {
 	slotSize := chain_config.GetChainConfig().SlotSize
-	slot := num/slotSize
+	slot := num / slotSize
 	return &slot
 }
 
@@ -76,10 +75,9 @@ func (chain *fakeChainReader) CurrentBlock() model.AbstractBlock {
 	return block2
 }
 
-func (chain *fakeChainReader)GetLatestNormalBlock() model.AbstractBlock{
+func (chain *fakeChainReader) GetLatestNormalBlock() model.AbstractBlock {
 	return nil
 }
-
 
 func (chain *fakeChainReader) GetBlockByNumber(number uint64) model.AbstractBlock {
 	slotSize := chain_config.GetChainConfig().SlotSize
@@ -103,12 +101,13 @@ func newFakeEconomyModel() *fakeEconomyModel {
 	return &fakeEconomyModel{}
 }
 
-type fakeEconomyModel struct {}
-func (em fakeEconomyModel) GetBlockYear(blockNumber uint64) (uint64,error){
+type fakeEconomyModel struct{}
+
+func (em fakeEconomyModel) GetBlockYear(blockNumber uint64) (uint64, error) {
 	panic("implement me")
 }
 
-func (em fakeEconomyModel) GetOneBlockTotalDIPReward(blockNumber uint64) (*big.Int, error){
+func (em fakeEconomyModel) GetOneBlockTotalDIPReward(blockNumber uint64) (*big.Int, error) {
 	panic("implement me")
 }
 
@@ -144,7 +143,7 @@ func (em fakeEconomyModel) CheckAddressType(address common.Address) economy_mode
 	panic("implement me")
 }
 
-func (em fakeEconomyModel) GetDiffVerifierAddress(preBlock,Block model.AbstractBlock) (map[economy_model.VerifierType][]common.Address, error) {
+func (em fakeEconomyModel) GetDiffVerifierAddress(preBlock, Block model.AbstractBlock) (map[economy_model.VerifierType][]common.Address, error) {
 	panic("implement me")
 }
 

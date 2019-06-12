@@ -269,7 +269,11 @@ func parseInputFromAbi(vm *exec.VirtualMachine, input []byte, abi []byte) (funcN
 	}
 
 	if len(iRlpList) > 1 {
-		params, returnType, err = findParams(vm, abi, funcName, iRlpList[1:])
+		var inputList []interface{}
+		for _, value := range iRlpList[1:] {
+			inputList = append(inputList, value)
+		}
+		params, returnType, err = findParams(vm, abi, funcName, inputList)
 	}
 	return
 }
@@ -298,8 +302,8 @@ func findParams(vm *exec.VirtualMachine, abi []byte, funcName string, inputList 
 		}
 	}
 
-
 	if len(abiParam) != len(inputList) {
+		log.Error("findParams failed", "err", errReturnInputAbiNotMatch, "abiLen", len(abiParam), "inputLen", len(inputList))
 		return nil, "", errReturnInputAbiNotMatch
 	}
 
@@ -363,7 +367,11 @@ func parseInitParams(rlpData []byte) (rlpCode, rlpInit []byte, err error) {
 	}
 
 	// encode init
-	init := []interface{}{iRlpList[2:]}
+	var init []interface{}
+	for _, value := range iRlpList[2:] {
+		init = append(init, value)
+	}
+
 	rlpInit, err = rlp.EncodeToBytes(init)
 	if err != nil {
 		return nil, nil, err
