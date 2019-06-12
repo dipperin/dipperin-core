@@ -3,7 +3,6 @@ package exec
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"math"
 	"math/bits"
 	"runtime/debug"
@@ -584,7 +583,7 @@ func (vm *VirtualMachine) Execute() {
 		vm.GasUsed += cost
 
 		//fmt.Printf("INS: [%d] %s\n", valueID, ins.String(), )
-		log.Info("VirtualMachine#Execute", "ins", ins.String(), "valueID", valueID)
+		//log.Info("VirtualMachine#Execute", "ins", ins.String(), "valueID", valueID)
 		switch ins {
 		case opcodes.Nop:
 		case opcodes.Unreachable:

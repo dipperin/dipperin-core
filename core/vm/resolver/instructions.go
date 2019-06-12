@@ -22,7 +22,7 @@ func (r *Resolver) envSetState(vm *exec.VirtualMachine) int64 {
 	copy(copyKey, vm.Memory.Memory[key:key+keyLen])
 	copy(copyValue, vm.Memory.Memory[value:value+valueLen])
 
-	log.Info("Get Params From Memory ", "copyKey", copyKey, "copyValue", copyValue)
+	log.Info("Get Params From Memory ", "copyKey", string(copyKey), "copyValue", copyValue)
 	r.Service.ReSolverSetState(copyKey, copyValue)
 	return 0
 }

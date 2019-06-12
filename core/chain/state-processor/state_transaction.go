@@ -43,6 +43,7 @@ func NewStateTransition(vm *vm.VM, msg Message, gp *uint64) *StateTransition {
 // indicates a core error meaning that the message would always fail for that particular
 // state and would never be accepted within a block.
 func ApplyMessage(vm *vm.VM, msg Message, gp *uint64) ([]byte, uint64, bool, *big.Int, error) {
+	//log.Debug("Called create","data",vm.state.GetState(addrs,[]byte{7, 98, 97, 108, 97, 110 ,99, 101}),"err",vmerr)
 	return NewStateTransition(vm, msg, gp).TransitionDb()
 }
 
@@ -90,7 +91,7 @@ func (st *StateTransition) preCheck() error {
 	// Make sure this transaction's nonce is correct.
 	if st.msg.CheckNonce() {
 		nonce := st.lifeVm.GetStateDB().GetNonce(st.msg.From())
-		//log.Info("StateTransition#preCheck", "nonce", nonce, "st.msg.Nonce()", st.msg.Nonce())
+		log.Info("StateTransition#preCheck", "nonce", nonce, "st.msg.Nonce()", st.msg.Nonce())
 		if nonce < st.msg.Nonce() {
 			return g_error.ErrNonceTooHigh
 		} else if nonce > st.msg.Nonce() {
@@ -134,7 +135,9 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 	)
 	if contractCreation {
 		// data = rlp
-		ret, _, st.gas, vmerr = lifeVm.Create(sender, st.data, st.gas, st.value)
+		var addrs common.Address
+		ret, addrs, st.gas, vmerr = lifeVm.Create(sender, st.data, st.gas, st.value)
+		log.Debug("Called create","data",st.state.GetState(addrs,[]byte{7, 98, 97, 108, 97, 110 ,99, 101}),"err",vmerr)
 	} else {
 		// Increment the nonce for the next transaction
 		st.lifeVm.GetStateDB().AddNonce(msg.From(), uint64(1))

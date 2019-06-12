@@ -268,7 +268,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	aliceAddress := common.HexToAddress(aliceStr)
 
 	abiPath := "../../vm/event/token/token.cpp.abi.json"
-	wasmPath := "../../vm/event/token/token.wasm"
+	wasmPath := "../../vm/event/token/token1.wasm"
 	//params := []string{"dipp", "DIPP", "100000000"}
 	err, data := getExtraData(t,abiPath, wasmPath, []string{"dipp", "DIPP", "100000000"})
 
@@ -304,6 +304,8 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 		GasUsed:  &gasUsed,
 		TxFee:    big.NewInt(0),
 	}
+
+
 	err = processor.ProcessTxNew(config)
 	assert.NoError(t, err)
 
@@ -311,6 +313,10 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 	assert.NoError(t, err)
 	//assert.Equal(t, receipt.Status)
+
+	byteBalance := []byte{7, 98, 97, 108, 97, 110 ,99, 101}
+	baData := processor.GetData(receipt.ContractAddress, string(byteBalance))
+	fmt.Println("&&&&&",receipt.ContractAddress,baData,processor.smartContractData)
 
 	contractNonce, err := processor.GetNonce(receipt.ContractAddress)
 	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce, "receiptResult", receipt)
@@ -320,23 +326,28 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	//assert.Equal(t, code, tx.ExtraData())
 	processor.Commit()
 
+	baData = processor.GetData(receipt.ContractAddress, string(byteBalance))
+	fmt.Println("&&&&&",receipt.ContractAddress,baData,processor.smartContractData[common.HexToAddress("0x0014006082600c6461E48429cb467Ef33c4bA99cfF25")][string(byteBalance)])
+
 	sw, err := soft_wallet.NewSoftWallet()
 	err = sw.Open(util.HomeDir() +"/go/src/github.com/dipperin/dipperin-core/core/vm/event/CSWallet", "CSWallet", "123")
 	assert.NoError(t, err)
-	sk, _ := sw.GetSKFromAddress(ownAddress)
-	fmt.Println("============================")
-	fmt.Println(sk.D.Bytes())
-	fmt.Println(sk.X.Bytes())
-	fmt.Println(sk.Y.Bytes())
+	// 获取私钥
+	//sk, _ := sw.GetSKFromAddress(ownAddress)
+	//fmt.Println("============================")
+	//fmt.Println(sk.D.Bytes())
+	//fmt.Println(sk.X.Bytes())
+	//fmt.Println(sk.Y.Bytes())
 
 	//key:=ecdsa.PrivateKey{}
 	//key.D
 	//key.X
 	//key.
 
-	callTx, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "getBalance", "000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", contractNonce+1, code)
-	account := accounts.Account{ownAddress}
-	signCallTx, err := sw.SignTx(account, callTx, nil)
+	//  合约调用getBalance方法
+	callTx, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "getBalance", "000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 1, code)
+	accountOwn := accounts.Account{ownAddress}
+	signCallTx, err := sw.SignTx(accountOwn, callTx, nil)
 
 	assert.NoError(t, err)
 	callTx.PaddingTxIndex(0)
@@ -355,6 +366,61 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 	err = processor.ProcessTxNew(txConfig)
 	assert.NoError(t, err)
+	processor.Commit()
+
+
+	//ownTransferNonce,err := processor.GetNonce(ownAddress)
+	//assert.NoError(t, err)
+
+
+
+	//合约调用  transfer方法  Transfer
+	/*log.Info("contractNaonce+2", "contractNonce+2", contractNonce+2)
+	log.Info("ownTransferNonce+2", "ownTransferNonce+2", ownTransferNonce)
+	log.Info("contractNaonce+2", "contractNonce+3", contractNonce+3)
+	callTxTransfer, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "transfer", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333,1", ownTransferNonce, code)
+	signCallTxTransfer, err := sw.SignTx(accountOwn, callTxTransfer, nil)
+
+	assert.NoError(t, err)
+	signCallTxTransfer.PaddingTxIndex(0)
+	block3 := createBlock(3, common.Hash{}, []*model.Transaction{signCallTxTransfer}, gasLimit)
+	log.Info("callTx info", "callTx", callTx)
+
+	txConfig3 := &TxProcessConfig  {
+		Tx:signCallTxTransfer,
+		Header:  block3.Header().(*model.Header),
+		GetHash:fakeGetBlockHash,
+		GasLimit:&gasLimit,
+		GasUsed:&gasUsed2,
+	}
+
+	err = processor.ProcessTxNew(txConfig3)
+	assert.NoError(t, err)
+	processor.Commit()
+
+	//  合约调用getBalance方法
+	callTxAlice, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333", 1, code)
+	accountAlice := accounts.Account{aliceAddress}
+	signCallTxAlice, err := sw.SignTx(accountAlice, callTxAlice, nil)
+
+	assert.NoError(t, err)
+	signCallTxAlice.PaddingTxIndex(0)
+	block4 := createBlock(4, common.Hash{}, []*model.Transaction{signCallTxAlice}, gasLimit)
+	log.Info("callTx info", "callTx", callTx)
+
+
+	txConfig4 := &TxProcessConfig  {
+		Tx:callTxAlice,
+		Header:  block4.Header().(*model.Header),
+		GetHash:fakeGetBlockHash,
+		GasLimit:&gasLimit,
+		GasUsed:&gasUsed2,
+	}
+
+	err = processor.ProcessTxNew(txConfig4)
+	assert.NoError(t, err)
+	processor.Commit()*/
+
 	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", "", "err", err)
 }
 
