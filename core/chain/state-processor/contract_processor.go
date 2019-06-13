@@ -4,7 +4,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 )
 
 type CallCode struct {
@@ -24,13 +23,6 @@ func (state *AccountStateDB) ProcessContract(conf *TxProcessConfig, create bool)
 	}
 	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
 	_, usedGas, failed, fee, err := ApplyMessage(dvm, msg, conf.GasLimit)
-	//log.Debug("Called create","data",fullState.GetState(addrs,[]byte{7, 98, 97, 108, 97, 110 ,99, 101}),"err",vmerr)
-	signer := conf.Tx.GetSigner()
-	caller,err := conf.Tx.Sender(signer)
-	addr := cs_crypto.CreateContractAddress(caller, conf.Tx.Nonce())
-	byteKey := []byte{7, 98, 97, 108, 97, 110 ,99, 101}
-	log.Debug("Called process contract","data",state.GetData(addr,string(byteKey)),"err",err)
-
 	if err != nil {
 		log.Error("AccountStateDB#ProcessContract", "ApplyMessage err", err)
 		return model.ReceiptPara{}, err

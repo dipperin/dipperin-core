@@ -35,12 +35,15 @@ func (r *Resolver) envGetState(vm *exec.VirtualMachine) int64 {
 	value := int(int32(vm.GetCurrentFrame().Locals[2]))
 	valueLen := int(int32(vm.GetCurrentFrame().Locals[3]))
 
-	val := r.Service.ReSolverGetState(vm.Memory.Memory[key: key+keyLen])
+	copyKey := make([]byte, keyLen)
+	copy(copyKey, vm.Memory.Memory[key:key+keyLen])
+	log.Info("Get Params key From Memory ", "copyKey", string(copyKey))
+	val := r.Service.ReSolverGetState(copyKey)
 	if len(val) > valueLen {
 		return 0
 	}
 	copy(vm.Memory.Memory[value:value+valueLen], val)
-	log.Info("Save Value Into Memory", "valuePos", value, "valueLen", valueLen, "value", val)
+	log.Info("Save Value Into Memory", "valuePos", value, "valueLen", valueLen, "value", string(val))
 	return 0
 }
 
