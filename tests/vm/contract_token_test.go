@@ -7,7 +7,6 @@ import (
 	"testing"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/dipperin/dipperin-core/common"
-	"time"
 	"fmt"
 )
 
@@ -18,21 +17,7 @@ func Test_TokenContractCall(t *testing.T) {
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
 	txHashList := CreateTokenContract(t, cluster, nodeName, 1)
-
-	// 检查交易是否上链
-	for i := 0; i < len(txHashList); i++ {
-		for {
-			result, num := Transaction(client, txHashList[i])
-			if result {
-				receipts := GetReceiptByTxHash(client, txHashList[i])
-				LogTestPrint("Test", "CallTransaction", "blockNum", num)
-				fmt.Println(receipts)
-				break
-			}
-			time.Sleep(time.Second * 2)
-		}
-		time.Sleep(time.Millisecond * 100)
-	}
+	checkTransactionOnChain(client, txHashList)
 
 	// 根据交易ID获取合约地址
 	var addrList []common.Address
@@ -41,24 +26,14 @@ func Test_TokenContractCall(t *testing.T) {
 		addrList = append(addrList, addr)
 	}
 
+	// Transfer money
 	aliceAddr := "0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9"
-	// transfer money
 	txHashList = CallTokenContract(t, cluster, nodeName, "transfer", fmt.Sprintf("%s,1000", aliceAddr), addrList)
+	checkTransactionOnChain(client, txHashList)
 
-	// 检查交易是否上链
-	for i := 0; i < len(txHashList); i++ {
-		for {
-			result, num := Transaction(client, txHashList[i])
-			if result {
-				receipts := GetReceiptByTxHash(client, txHashList[i])
-				LogTestPrint("Test", "CallTransaction", "blockNum", num)
-				fmt.Println(receipts)
-				break
-			}
-			time.Sleep(time.Second * 2)
-		}
-		time.Sleep(time.Millisecond * 100)
-	}
+	// Get Balance
+	txHashList = CallTokenContract(t, cluster, nodeName, "getBalance", aliceAddr, addrList)
+	checkTransactionOnChain(client, txHashList)
 }
 
 func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, times int) []common.Hash {

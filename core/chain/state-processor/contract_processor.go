@@ -23,6 +23,19 @@ func (state *AccountStateDB) ProcessContract(conf *TxProcessConfig, create bool)
 	}
 	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
 	_, usedGas, failed, fee, err := ApplyMessage(dvm, msg, conf.GasLimit)
+<<<<<<< HEAD
+=======
+	if err != nil {
+		return model.ReceiptPara{}, err
+	}
+	//log.Debug("Called create","data",fullState.GetState(addrs,[]byte{7, 98, 97, 108, 97, 110 ,99, 101}),"err",vmerr)
+	signer := conf.Tx.GetSigner()
+	caller,err := conf.Tx.Sender(signer)
+	addr := cs_crypto.CreateContractAddress(caller, conf.Tx.Nonce())
+	byteKey := []byte{7, 98, 97, 108, 97, 110 ,99, 101}
+	log.Debug("Called process contract","data",state.GetData(addr,string(byteKey)),"err",err)
+
+>>>>>>> a8de11453f87afd621648ced836d87ec643a2681
 	if err != nil {
 		log.Error("AccountStateDB#ProcessContract", "ApplyMessage err", err)
 		return model.ReceiptPara{}, err
