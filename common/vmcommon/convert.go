@@ -12,9 +12,6 @@ const (
 	ALIGN_LENGTH = 32
 )
 
-
-
-
 func Int16ToBytes(n int16) []byte  {
 	tmp := int16(n)
 	bytesBuffer := bytes.NewBuffer([]byte{})
@@ -55,6 +52,11 @@ func Uint32ToBytes(val uint32) []byte {
 	return buf[:]
 }
 
+func BytesToUint32(b []byte) uint32 {
+	b = append(make([]byte, 4-len(b)), b...)
+	return binary.BigEndian.Uint32(b)
+}
+
 func BytesToInt32(b []byte) int32 {
 	bytesBuffer := bytes.NewBuffer(b)
 	var tmp int32
@@ -71,12 +73,9 @@ func Align32Bytes(b []byte) []byte {
 	return tmp
 }
 
-
 func BytesCombine(pBytes ...[]byte) []byte {
 	return bytes.Join(pBytes, []byte(""))
 }
-
-
 
 func Int64ToBytes(n int64) []byte {
 	tmp := int64(n)
@@ -100,7 +99,7 @@ func Uint64ToBytes(n uint64) []byte {
 
 func BytesToUint64(b []byte) uint64 {
 	b = append(make([]byte, 8-len(b)), b...)
-	return binary.LittleEndian.Uint64(b)
+	return binary.BigEndian.Uint64(b)
 }
 
 func Float32ToBytes(float float32) []byte {
@@ -134,10 +133,18 @@ func BoolToBytes(b bool) []byte {
 
 func BytesConverter(source []byte, t string) interface{} {
 	switch t {
-	case "int32", "uint32", "uint", "int":
+	case "int16":
+		return BytesToInt16(source)
+	case "uint16":
+		return BytesToUint16(source)
+	case "int32", "int":
 		return BytesToInt32(source)
-	case "int64", "uint64":
+	case "uint32", "uint":
+		return BytesToUint32(source)
+	case "int64":
 		return BytesToInt64(source)
+	case "uint64":
+		return BytesToUint64(source)
 	case "float32":
 		return BytesToFloat32(source)
 	case "float64":
@@ -146,8 +153,6 @@ func BytesConverter(source []byte, t string) interface{} {
 		return string(source[:])
 	case "bool":
 		return bytes.Equal(source, []byte{1})
-	//case "uint64":
-	//	return BytesToInt64(source)
 	default:
 		return source
 	}

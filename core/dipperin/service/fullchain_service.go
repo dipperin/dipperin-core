@@ -678,13 +678,12 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 		//log.Info("the call contract data is:","data",hexutil.Encode(data))
 		extraData, err = vmcommon.ParseAndGetRlpData(code, data)
 		if err != nil {
-			log.Error("call SendTransactionContract ParseAndGetRlpData error","err",err)
+			log.Error("call SendTransactionContract ParseAndGetRlpData error", "err", err)
 			return common.Hash{}, err
 		}
 	} else {
 		extraData = data
 	}
-
 
 	//log.Info("send Transaction the nonce is:", "nonce", nonce)
 
@@ -1566,13 +1565,7 @@ func (service *MercuryFullChainService) GetContractAddressByTxHash(txHash common
 	return common.Address{}, g_error.ErrReceiptNotFound
 }
 
-func convertLogData(src []byte,logInputs []vm.InputParam)([]byte,error){
-/*	rlpList := make([]interface{},len(logInputs))
-	err := rlp.DecodeBytes(src,rlpList)
-	if err !=nil{
-		return nil,err
-	}*/
-	// rlp decode
+func convertLogData(src []byte, logInputs []vm.InputParam) ([]byte, error) {
 	ptr := new(interface{})
 	err := rlp.Decode(bytes.NewReader(src), &ptr)
 	if err != nil {
@@ -1585,70 +1578,90 @@ func convertLogData(src []byte,logInputs []vm.InputParam)([]byte,error){
 	}
 
 	inputList := rlpList.([]interface{})
-
-	log.Info("the inputList is:","inputList",inputList)
-	return nil,nil
-	// uint64 uint32  uint16 uint8 int64 int32  int16 int8 float32 float64 string void
-/*	for i, v := range logInputs {
+	var data []byte
+	for i, v := range logInputs {
 		input := inputList[i].([]byte)
-		switch v.Type {
-		case "string":
-			pos := resolver.MallocString(vm, string(input))
-			params = append(params, pos)
-		case "int8":
-			params = append(params, int64(input[0]))
-		case "int16":
-			params = append(params, int64(binary.BigEndian.Uint16(input)))
-		case "int32", "int":
-			params = append(params, int64(binary.BigEndian.Uint32(input)))
-		case "int64":
-			params = append(params, int64(binary.BigEndian.Uint64(input)))
-		case "uint8":
-			params = append(params, int64(input[0]))
-		case "uint32", "uint":
-			params = append(params, int64(binary.BigEndian.Uint32(input)))
-		case "uint64":
-			params = append(params, int64(binary.BigEndian.Uint64(input)))
-		case "bool":
-			params = append(params, int64(input[0]))
-		}
-	}*/
+		convert := vmcommon.BytesConverter(input, v.Type)
+		result := fmt.Sprintf("%v,", convert)
+		data = append(data, []byte(result)...)
+	}
+	return data, nil
 }
 
-func (service *MercuryFullChainService)convertReceiptLog(src model2.Receipt)(*model2.Receipt, error){
+func (service *MercuryFullChainService) convertReceiptLog(src model2.Receipt) (*model2.Receipt, error) {
 	stateRoot := service.CurrentBlock().StateRoot()
-	stateDB ,err := service.ChainReader.AccountStateDB(stateRoot)
-	if err !=nil{
-		return nil,err
+	stateDB, err := service.ChainReader.AccountStateDB(stateRoot)
+	if err != nil {
+		return nil, err
 	}
+
 	fullState := state_processor.NewFullState(stateDB)
+	code := fullState.GetCode(src.ContractAddress)
+	_, dataAbi, err := vm.ParseRlpData(code)
+	if err != nil {
+		log.Info("convertReceiptLog failed", "err", err)
+		return nil, err
+	}
 
 	abi := vm.WasmAbi{}
-	err = abi.FromJson(fullState.GetAbi(src.ContractAddress))
-	if err !=nil{
-		return nil,err
+	err = abi.FromJson(dataAbi)
+	if err != nil {
+		return nil, err
 	}
 
-	logs := make([]*model2.Log,0)
-	for _,log := range src.Logs{
-		for _,function := range abi.AbiArr{
-			if function.Type == "event" && function.Name == log.TopicName{
-				data,err := convertLogData(log.Data,function.Inputs)
-				if err !=nil{
-					return nil,err
+	logs := make([]*model2.Log, 0)
+	for _, value := range src.Logs {
+		for _, function := range abi.AbiArr {
+			if function.Type == "event" && function.Name == value.TopicName {
+				data, innerErr := convertLogData(value.Data, function.Inputs)
+				if innerErr != nil {
+					return nil, innerErr
 				}
-				tmpLog := *log
+				tmpLog := *value
 				tmpLog.Data = data
-				logs = append(logs,&tmpLog)
+				logs = append(logs, &tmpLog)
 			}
 		}
 	}
-
-	src.Logs =logs
-	return &src,nil
+	src.Logs = logs
+	return &src, nil
 }
 
-//add get tx receipt
+func (service *MercuryFullChainService) GetConvertReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
+	_, blockHash, blockNumber, _, err := service.Transaction(txHash)
+	if err != nil {
+		return nil, err
+	}
+
+	receipts := service.ChainReader.GetReceipts(blockHash, blockNumber)
+	if receipts == nil {
+		return nil, g_error.ErrReceiptIsNil
+	}
+	for _, value := range receipts {
+		if txHash.IsEqual(value.TxHash) {
+			result, innerErr := service.convertReceiptLog(*value)
+			if innerErr != nil {
+				return nil, innerErr
+			}
+			return result, nil
+		}
+	}
+	return nil, g_error.ErrReceiptNotFound
+}
+
+func (service *MercuryFullChainService) GetReceiptsByBlockNum(num uint64) (model2.Receipts, error) {
+	block, err := service.GetBlockByNumber(num)
+	if err != nil {
+		return nil, err
+	}
+
+	receipts := service.ChainReader.GetReceipts(block.Hash(), block.Number())
+	if receipts == nil {
+		return nil, g_error.ErrReceiptIsNil
+	}
+	return receipts, nil
+}
+
 func (service *MercuryFullChainService) GetReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
 	_, blockHash, blockNumber, _, err := service.Transaction(txHash)
 	if err != nil {
@@ -1661,27 +1674,8 @@ func (service *MercuryFullChainService) GetReceiptByTxHash(txHash common.Hash) (
 	}
 	for _, value := range receipts {
 		if txHash.IsEqual(value.TxHash) {
-/*			result,err := service.convertReceiptLog(*value)
-			if err !=nil{
-				return nil,err
-			}
-			return result, nil*/
-			return value,nil
+			return value, nil
 		}
 	}
 	return nil, g_error.ErrReceiptNotFound
-}
-
-//add get tx receipt
-func (service *MercuryFullChainService) GetReceiptsByBlockNum(num uint64) (model2.Receipts, error) {
-	block, err := service.GetBlockByNumber(num)
-	if err != nil {
-		return nil, err
-	}
-
-	receipts := service.ChainReader.GetReceipts(block.Hash(), block.Number())
-	if receipts == nil {
-		return nil, g_error.ErrReceiptIsNil
-	}
-	return receipts, nil
 }

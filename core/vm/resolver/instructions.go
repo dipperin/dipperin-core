@@ -73,9 +73,11 @@ func (r *Resolver) envEmitEvent(vm *exec.VirtualMachine) int64 {
 	copy(d, vm.Memory.Memory[dataSrc:dataSrc+dataLen])
 
 	log.Info("the blockNumber is:", "blockNumber", r.Service.GetBlockNumber())
+	log.Info("envEmitEvent", "TopicName", string(t), "Len", topicLen)
 	addedLog := &model.Log{
 		Address:     r.Service.Address(),
 		Topics:      []common.Hash{common.BytesToHash(crypto.Keccak256(t))},
+		TopicName:   string(t),
 		Data:        d,
 		BlockNumber: r.Service.GetBlockNumber().Uint64(),
 		TxHash:      r.Service.GetTxHash(),
