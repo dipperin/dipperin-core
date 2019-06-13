@@ -376,8 +376,21 @@ func (pool *TxPool) validateTx(tx model.AbstractTransaction, local bool) error {
 	//log.Info("[validateTx] the local is:", "local", local)
 	//log.Info("[validateTx] the pool.config.MinFee is: ", "mineFee", pool.config.MinFee)
 	//log.Info("[validateTx] the tx.fee is: ", "txFee", tx.Fee())
-	if !local && economy_model.GetMinimumTxFee(tx.Size()).Cmp(tx.Fee()) > 0 {
-		return fmt.Errorf("tx fee is too low, need: %v got: %v", pool.config.MinFee, tx.Fee())
+
+	if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContract{
+		gas, err := model.IntrinsicGas(tx.ExtraData(), tx.GetType() == common.AddressTypeContractCreate , true)
+		if err !=nil{
+			return err
+		}
+
+		if gas > tx.GetGasLimit() {
+			return fmt.Errorf("gas limit is to low, need:%v got:%v",gas,tx.GetGasLimit())
+		}
+
+	}else{
+		if !local && economy_model.GetMinimumTxFee(tx.Size()).Cmp(tx.Fee()) > 0 {
+			return fmt.Errorf("tx fee is too low, need: %v got: %v", pool.config.MinFee, tx.Fee())
+		}
 	}
 	// Ensure the transaction adheres to nonce ordering
 	curNonce, err := pool.currentState.GetNonce(from)
