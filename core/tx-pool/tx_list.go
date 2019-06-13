@@ -266,16 +266,23 @@ func (l *txList) Add(tx model.AbstractTransaction, feeBump uint64) (bool, model.
 	// If there's an older better transaction, abort
 	old := l.txs.Get(tx.Nonce())
 	if old != nil {
-		threshold := new(big.Int).Div(new(big.Int).Mul(old.Fee(), big.NewInt(100+int64(feeBump))), big.NewInt(100))
-		// threshold = old.Fee() * (1 + feeBump/100)
-		// Have to ensure that the new fee is higher than the fee as well as
-		// checking the percentage threshold to ensure that this is accurate
-		// for low fee replacements
-		if old.Fee().Cmp(tx.Fee()) >= 0 || threshold.Cmp(tx.Fee()) > 0 {
-			// old transaction fee is higher than current one
-			// OR
-			// the input price bump is less than price bump threshold
-			return false, nil
+		//contract tx check gasPrice to replace
+		if tx.GetType() == common.AddressTypeContractCreate || tx.GetType()==common.AddressTypeContract{
+			if old.GetGasPrice().Cmp(tx.GetGasPrice()) >=0{
+				return false, nil
+			}
+		} else {
+			threshold := new(big.Int).Div(new(big.Int).Mul(old.Fee(), big.NewInt(100+int64(feeBump))), big.NewInt(100))
+			// threshold = old.Fee() * (1 + feeBump/100)
+			// Have to ensure that the new fee is higher than the fee as well as
+			// checking the percentage threshold to ensure that this is accurate
+			// for low fee replacements
+			if old.Fee().Cmp(tx.Fee()) >= 0 || threshold.Cmp(tx.Fee()) > 0 {
+				// old transaction fee is higher than current one
+				// OR
+				// the input price bump is less than price bump threshold
+				return false, nil
+			}
 		}
 	}
 
