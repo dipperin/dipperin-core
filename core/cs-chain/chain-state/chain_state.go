@@ -49,6 +49,16 @@ type ChainState struct {
 	EconomyModel economy_model.EconomyModel
 }
 
+//get AccountStateDB
+func (cs *ChainState) AccountStateDB(root common.Hash) (*state_processor.AccountStateDB, error) {
+	aDB, err := state_processor.NewAccountStateDB(root, cs.StateStorage)
+	if err != nil {
+		return nil, err
+	}
+
+	return aDB,nil
+}
+
 // create a new BlockProcessor according to the root hash
 func (cs *ChainState) BlockProcessor(root common.Hash) (*chain.BlockProcessor, error) {
 	return chain.NewBlockProcessor(cs, root, cs.StateStorage)

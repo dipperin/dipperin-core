@@ -65,6 +65,8 @@ type StateReader interface {
 
 	BlockProcessor(root common.Hash) (*chain.BlockProcessor, error)
 	BlockProcessorByNumber(num uint64) (*chain.BlockProcessor, error)
+
+	AccountStateDB(root common.Hash) (*state_processor.AccountStateDB, error)
 }
 
 type VerifierHelper interface {

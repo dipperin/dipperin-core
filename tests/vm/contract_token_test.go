@@ -7,9 +7,10 @@ import (
 	"testing"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/dipperin/dipperin-core/common"
-	"time"
 	"fmt"
 )
+
+
 
 func Test_TokenContractCall(t *testing.T) {
 	cluster, err := node_cluster.CreateNodeCluster()
@@ -18,21 +19,7 @@ func Test_TokenContractCall(t *testing.T) {
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
 	txHashList := CreateTokenContract(t, cluster, nodeName, 1)
-
-	// 检查交易是否上链
-	for i := 0; i < len(txHashList); i++ {
-		for {
-			result, num := Transaction(client, txHashList[i])
-			if result {
-				receipts := GetReceiptByTxHash(client, txHashList[i])
-				LogTestPrint("Test", "CallTransaction", "blockNum", num)
-				fmt.Println(receipts)
-				break
-			}
-			time.Sleep(time.Second * 2)
-		}
-		time.Sleep(time.Millisecond * 100)
-	}
+	checkTransactionOnChain(client, txHashList)
 
 	// 根据交易ID获取合约地址
 	var addrList []common.Address
@@ -41,22 +28,14 @@ func Test_TokenContractCall(t *testing.T) {
 		addrList = append(addrList, addr)
 	}
 
-	txHashList = CallTokenContract(t, cluster, nodeName, addrList)
+	// Transfer money
+	aliceAddr := "0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9"
+	txHashList = CallTokenContract(t, cluster, nodeName, "transfer", fmt.Sprintf("%s,1000", aliceAddr), addrList)
+	checkTransactionOnChain(client, txHashList)
 
-	// 检查交易是否上链
-	for i := 0; i < len(txHashList); i++ {
-		for {
-			result, num := Transaction(client, txHashList[i])
-			if result {
-				receipts := GetReceiptByTxHash(client, txHashList[i])
-				LogTestPrint("Test", "CallTransaction", "blockNum", num)
-				fmt.Println(receipts)
-				break
-			}
-			time.Sleep(time.Second * 2)
-		}
-		time.Sleep(time.Millisecond * 100)
-	}
+	// Get Balance
+	txHashList = CallTokenContract(t, cluster, nodeName, "getBalance", aliceAddr, addrList)
+	checkTransactionOnChain(client, txHashList)
 }
 
 func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, times int) []common.Hash {
@@ -70,7 +49,7 @@ func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNa
 	gasLimit := big.NewInt(2 * consts.DIP)
 	gasPrice := big.NewInt(2)
 
-	params := []string{"dipp", "DIPP", "100000000"}
+	params := []string{"dipp", "DIPP", "1000000"}
 	data := getCreateExtraData(t, AbiTokenPath, WASMTokenPath, params)
 
 	var txHashList []common.Hash
@@ -82,7 +61,7 @@ func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNa
 	return txHashList
 }
 
-func CallTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, addrList []common.Address) []common.Hash {
+func CallTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName, funcName, params string, addrList []common.Address) []common.Hash {
 	client := cluster.NodeClient[nodeName]
 	from, err := cluster.GetNodeMainAddress(nodeName)
 	LogTestPrint("Test", "From", "addr", from.Hex())
@@ -94,7 +73,7 @@ func CallTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName
 
 	var txHashList []common.Hash
 	for i := 0; i < len(addrList); i++ {
-		input := getCallExtraData(t, "transfer", "0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9,10000")
+		input := getCallExtraData(t, funcName, params)
 		txHash, innerErr := SendTransactionContract(client, from, addrList[i], value, gasLimit, gasPrice, input)
 		assert.NoError(t, innerErr)
 		txHashList = append(txHashList, txHash)

@@ -16,6 +16,8 @@ import (
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"time"
+	"fmt"
 )
 
 var (
@@ -25,7 +27,7 @@ var (
 
 var (
 	AbiTokenPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/token/token.cpp.abi.json")
-	WASMTokenPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/token/token.wasm")
+	WASMTokenPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/token/token-jw.wasm")
 )
 
 func LogTestPrint(function, msg string, ctx ...interface{}) {
@@ -146,4 +148,20 @@ func getCreateExtraData(t *testing.T, abiPath, wasmPath string, params []string)
 	//input, err := rlp.EncodeToBytes(inputParams)
 	assert.NoError(t, err)
 	return data
+}
+
+func checkTransactionOnChain(client *rpc.Client, txHashList []common.Hash) {
+	for i := 0; i < len(txHashList); i++ {
+		for {
+			result, num := Transaction(client, txHashList[i])
+			if result {
+				receipts := GetReceiptByTxHash(client, txHashList[i])
+				LogTestPrint("Test", "CallTransaction", "blockNum", num)
+				fmt.Println(receipts)
+				break
+			}
+			time.Sleep(time.Second * 2)
+		}
+		time.Sleep(time.Millisecond * 100)
+	}
 }

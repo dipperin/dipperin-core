@@ -34,6 +34,10 @@ type Log struct {
 	Address common.Address `json:"address" gencodec:"required"`
 	// list of topics provided by the contract.
 	Topics []common.Hash `json:"topics" gencodec:"required"`
+
+	//add topic Name
+	TopicName string
+
 	// supplied by the contract, usually ABI-encoded
 	Data []byte `json:"data" gencodec:"required"`
 
