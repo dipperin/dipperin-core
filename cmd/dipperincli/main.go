@@ -89,7 +89,9 @@ type startConf struct {
 }
 
 func initStartFlag() *startConf {
-	startConfPath := filepath.Join(util.HomeDir(), ".dipperin", "start_conf.json")
+	//TODO
+	//startConfPath := filepath.Join(util.HomeDir(), ".dipperin", "start_conf.json")
+	startConfPath := filepath.Join(util.HomeDir(), ".dipperin", "start_conf2.json")
 	fb, err := ioutil.ReadFile(startConfPath)
 	var conf startConf
 	if err != nil {

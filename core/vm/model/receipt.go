@@ -111,7 +111,7 @@ func (r *Receipt) String() string {
 		logList = append(logList, logParam)
 	}
 	return fmt.Sprintf(`
-	PostState:			0x%x
+	PostState:			0x%xstart_conf.json
 	Status: 			%s
 	CumulativeGasUsed:	%v
 	Logs:				%s
