@@ -153,11 +153,29 @@ func ValidTxSender(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 		return err
 	}
 
+	if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContract{
+		gas, err := model.IntrinsicGas(tx.ExtraData(), tx.GetType() == common.AddressTypeContractCreate , true)
+		if err !=nil{
+			return err
+		}
+
+		if gas > tx.GetGasLimit() {
+			return fmt.Errorf("gas limit is to low, need:%v got:%v",gas,tx.GetGasLimit())
+		}
+
+	}else{
+		// valid tx fee
+		if tx.Fee().Cmp(economy_model.GetMinimumTxFee(tx.Size())) == -1 {
+			log.Info("the tx fee is:", "fee", tx.Fee(),"needFee",economy_model.GetMinimumTxFee(tx.Size()))
+			return g_error.ErrTxFeeTooLow
+		}
+	}
+
 	// valid tx fee
-	if tx.Fee().Cmp(economy_model.GetMinimumTxFee(tx.Size())) == -1 {
+/*	if tx.Fee().Cmp(economy_model.GetMinimumTxFee(tx.Size())) == -1 {
 		log.Info("the tx fee is:", "fee", tx.Fee(),"needFee",economy_model.GetMinimumTxFee(tx.Size()))
 		return g_error.ErrTxFeeTooLow
-	}
+	}*/
 
 	// log.Info("ValidTxSender the blockHeight is:","blockHeight",blockHeight)
 	state, err := getPreStateForHeight(blockHeight, chain)
