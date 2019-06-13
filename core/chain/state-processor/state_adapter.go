@@ -12,6 +12,12 @@ type Fullstate struct {
 	state *AccountStateDB
 }
 
+func NewFullState(state  *AccountStateDB) *Fullstate{
+	return &Fullstate{
+		state: state,
+	}
+}
+
 func (f *Fullstate) CreateAccount(address common.Address) {
 	f.state.newContractAccount(address)
 }
