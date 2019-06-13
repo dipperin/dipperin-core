@@ -4,7 +4,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 )
 
 type CallCode struct {
