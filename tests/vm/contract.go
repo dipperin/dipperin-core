@@ -70,6 +70,15 @@ func Transaction(client *rpc.Client, hash common.Hash) (bool, uint64) {
 	return true, resp.BlockNumber
 }
 
+func GetConvertReceiptByTxHash(client *rpc.Client, hash common.Hash) *model.Receipt {
+	var resp *model.Receipt
+	if err := client.Call(&resp, GetRpcTXMethod("GetConvertReceiptByTxHash"), hash); err != nil {
+		LogTestPrint("Test", "call GetConvertReceiptByTxHash failed", "err", err)
+		return nil
+	}
+	return resp
+}
+
 func GetReceiptByTxHash(client *rpc.Client, hash common.Hash) *model.Receipt {
 	var resp *model.Receipt
 	if err := client.Call(&resp, GetRpcTXMethod("GetReceiptByTxHash"), hash); err != nil {
@@ -155,7 +164,7 @@ func checkTransactionOnChain(client *rpc.Client, txHashList []common.Hash) {
 		for {
 			result, num := Transaction(client, txHashList[i])
 			if result {
-				receipts := GetReceiptByTxHash(client, txHashList[i])
+				receipts := GetConvertReceiptByTxHash(client, txHashList[i])
 				LogTestPrint("Test", "CallTransaction", "blockNum", num)
 				fmt.Println(receipts)
 				break

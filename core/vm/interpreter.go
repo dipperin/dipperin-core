@@ -56,7 +56,7 @@ func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) 
 	}
 }
 
-func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret[]byte, err error) {
+func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []byte, err error) {
 	defer func() {
 		if er := recover(); er != nil {
 			fmt.Println(stack())
@@ -77,9 +77,9 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret[]by
 	}
 
 	// rlp解析合约
-	code, abi, err := parseRlpData(contract.Code)
+	code, abi, err := ParseRlpData(contract.Code)
 	if err != nil {
-		log.Info("parseRlpData failed", "err", err)
+		log.Info("ParseRlpData failed", "err", err)
 		return nil, err
 	}
 
@@ -184,7 +184,7 @@ func (in *WASMInterpreter) CanRun([]byte) bool {
 }
 
 // rlpData=RLP([code][abi])
-func parseRlpData(rlpData []byte) (code, abi []byte, err error) {
+func ParseRlpData(rlpData []byte) (code, abi []byte, err error) {
 	ptr := new(interface{})
 	err = rlp.Decode(bytes.NewReader(rlpData), &ptr)
 	if err != nil {
@@ -292,7 +292,7 @@ func findParams(vm *exec.VirtualMachine, abi []byte, funcName string, inputList 
 		if strings.EqualFold(funcName, v.Name) && strings.EqualFold(v.Type, "function") {
 			abiParam = v.Inputs
 			//fmt.Println("len outputs", len(v.Outputs), "abiParam", len(abiParam), "inputlist", len(inputList) )
-			log.Info("findParams", "len outputs", len(v.Outputs), "abiParam", len(abiParam), "inputlist", len(inputList) )
+			log.Info("findParams", "len outputs", len(v.Outputs), "abiParam", len(abiParam), "inputlist", len(inputList))
 			if len(v.Outputs) != 0 {
 				returnType = v.Outputs[0].Type
 			} else {
