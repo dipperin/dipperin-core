@@ -2,6 +2,8 @@ package vmcommon
 
 import (
 	"fmt"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -21,9 +23,12 @@ func TestInt64ToBytes(t *testing.T) {
 	fmt.Println(c)
 }
 
+
+
 func TestIntConvertBytes(t *testing.T)  {
 	a := "123"
 	byte, err := StringConverter(a, "int64")
+	log.Info("the byte is:","byte",byte)
 	assert.NoError(t, err)
 	v := BytesConverter(byte, "int64")
 	fmt.Println(v.(int64))
@@ -43,4 +48,28 @@ func TestIntConvertBytes(t *testing.T)  {
 	assert.NoError(t, err)
 	fmt.Println(BytesToInt16(byte))
 
+}
+
+func TestFloat32ToBytes(t *testing.T) {
+	var a float32
+	a = 1.1
+
+	byte := Float32ToBytes(a)
+	log.Info("the byte is:","byte",byte)
+}
+
+func TestInputRlpData(t *testing.T){
+	input := "test,123,456"
+	funcName := "testFunc"
+
+	inputRlp, err := rlp.EncodeToBytes([]interface{}{
+		funcName, input,
+	})
+
+	assert.NoError(t,err)
+
+	log.Info("call inputRlp is:","inputRlp",inputRlp)
+
+	//initInput := "test,123,456"
+	//params := getRpcParamFromString(input)
 }

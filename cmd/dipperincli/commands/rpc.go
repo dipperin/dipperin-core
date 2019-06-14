@@ -652,6 +652,7 @@ func SendTransactionContractCall(c *cli.Context) {
 		return
 	}
 	input := getRpcSpecialParam(c, "input")
+	l.Info("the input is:", "input", input)
 	// RLP([funcName][params])
 	inputRlp, err := rlp.EncodeToBytes([]interface{}{
 		funcName, input,

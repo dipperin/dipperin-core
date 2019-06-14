@@ -291,5 +291,10 @@ func TestDebugTxRlp(t *testing.T){
 	assert.NoError(t,err)
 
 	log.Info("the tx is:","transaction",transaction)
+
+	log.Info("the tx extraData is:","extraData",hexutil.Encode(transaction.data.ExtraData))
+
+
+
 }
 
