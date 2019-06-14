@@ -75,6 +75,7 @@ type rlpLog struct {
 type rlpStorageLog struct {
 	Address     common.Address
 	Topics      []common.Hash
+	TopicName   string
 	Data        []byte
 	BlockNumber uint64
 	TxHash      common.Hash
@@ -91,7 +92,8 @@ func (l *Log) String() string {
 	return fmt.Sprintf(`
 		ContractAddress:	%s
 		TopicsHash:			%s
-		Data:				0x%x
+		TopicName:			%s
+		Data:				%s
 		BlockNumber:		%v
 		TxHash:				%s
 		TxIndex:			%v
@@ -101,7 +103,8 @@ func (l *Log) String() string {
 		`,
 		l.Address.Hex(),
 		topics,
-		l.Data,
+		l.TopicName,
+		string(l.Data),
 		l.BlockNumber,
 		l.TxHash.Hex(),
 		l.TxIndex,
@@ -135,6 +138,7 @@ func (l *LogForStorage) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, rlpStorageLog{
 		Address:     l.Address,
 		Topics:      l.Topics,
+		TopicName:   l.TopicName,
 		Data:        l.Data,
 		BlockNumber: l.BlockNumber,
 		TxHash:      l.TxHash,
@@ -152,6 +156,7 @@ func (l *LogForStorage) DecodeRLP(s *rlp.Stream) error {
 		*l = LogForStorage{
 			Address:     dec.Address,
 			Topics:      dec.Topics,
+			TopicName:   dec.TopicName,
 			Data:        dec.Data,
 			BlockNumber: dec.BlockNumber,
 			TxHash:      dec.TxHash,
