@@ -897,7 +897,8 @@ func (caller *rpcCaller) GetConvertReceiptByTxHash(c *cli.Context) {
 		l.Error("Call GetConvertReceiptByTxHash failed", "err", err)
 		return
 	}
-	l.Info("Call GetConvertReceiptByTxHash", "receipt.logs", resp.Logs)
+	l.Info("Call GetConvertReceiptByTxHash")
+	fmt.Print(resp.String())
 }
 
 
