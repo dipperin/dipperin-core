@@ -490,6 +490,9 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	assert.NoError(t, err)
 
 
+	// 合约调用setName方法，设置合约名
+	err = processContractCall(t, receipt.ContractAddress, code, sw,  processor, accountOwn, 11, "setName", "wujinhai", 14)
+	assert.NoError(t, err)
 
 
 
