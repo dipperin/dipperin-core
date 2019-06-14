@@ -24,6 +24,7 @@ public:
 
     void setName(const char* _name){
         isOwner();
+        //当使用非指针类型对存储型变量赋值时，会报unreachable错误
         *name = _name;
     }
     void transfer(const char* to, uint64_t value);
