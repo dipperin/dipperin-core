@@ -517,6 +517,11 @@ func processContractCall(t *testing.T,contractAddress common.Address, code []byt
 		GasUsed:  &gasUsed2,
 	}
 	err = processor.ProcessTxNew(txConfig)
+	if funcName == "getBalance" {
+		receipt,err := callTx.GetReceipt()
+		assert.NoError(t,err)
+		log.Info("receipt  log", "receipt log", receipt.Logs)
+	}
 	assert.NoError(t, err)
 	processor.Commit()
 	return err
