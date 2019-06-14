@@ -1222,3 +1222,4 @@ func (api *DipperinMercuryApi) GetReceiptByTxHash(txHash common.Hash) (*model2.R
 func (api *DipperinMercuryApi) GetReceiptsByBlockNum(num uint64) (model2.Receipts, error) {
 	return api.service.GetReceiptsByBlockNum(num)
 }
+
