@@ -235,7 +235,7 @@ echo "
 #                                                                                   #
 #                                                                                   #
 #                                                                                   #
-#                               Dipperin Shell Script                             #
+#                               Dipperin Shell Script                               #
 #                                                                                   #
 #                                                                                   #
 #                                                                                   #

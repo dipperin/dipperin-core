@@ -57,9 +57,12 @@ void TestToken::burn(uint64_t value){
     Address2 callerAddr = caller2();
     DipcAssert(balance.get()[callerAddr.toString()] >= value);
     DipcAssert(balance.get()[owner.get()] + value >= balance.get()[owner.get()]);
-    
+    prints("burn======");
+    prints(&owner.get()[0]);
+    printui(balance.get()[owner.get()]);
     (*balance)[callerAddr.toString()] -= value;
     (*balance)[owner.get()] += value;
+    printui(balance.get()[owner.get()]);
     DIPC_EMIT_EVENT(Tranfer, &(callerAddr.toString()[0]), &(owner.get()[0]), value);
 }
 
@@ -68,5 +71,18 @@ uint64_t TestToken::getBalance(const char* own){
     std::string ownerStr = CharToAddress2Str(own);
     uint64_t ba =  balance.get()[ownerStr];
     printui(ba);
+    DIPC_EMIT_EVENT(Tranfer, "", own, ba);
     return ba;
+}
+
+uint64_t TestToken::getApproveBalance(const char* from, const char* approved){
+    prints("getApproveBalance");
+    prints(from);
+    prints(approved);
+    std::string fromStr = CharToAddress2Str(from);
+    std::string approvedStr = CharToAddress2Str(approved);
+    uint64_t re = allowance.get()[fromStr+approvedStr];
+    printui(re);
+    DIPC_EMIT_EVENT(Tranfer, from, approved, re);
+    return re;
 }

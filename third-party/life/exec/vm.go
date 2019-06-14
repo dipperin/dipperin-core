@@ -1801,7 +1801,7 @@ func (vm *VirtualMachine) Execute() {
 			importID := int(LE.Uint32(frame.Code[frame.IP: frame.IP+4]))
 			frame.IP += 4
 			vm.Delegate = func() {
-				log.Info("the call func is:","f",vm.FunctionImports[importID])
+				log.Debug("the call func is:","f",vm.FunctionImports[importID])
 				frame.Regs[valueID] = vm.FunctionImports[importID].F.Execute(vm)
 			}
 			return
