@@ -1,7 +1,6 @@
 package vm
 
 import (
-	"github.com/dipperin/dipperin-core/common/hexutil"
 	"math/big"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/dipperin/dipperin-core/common"

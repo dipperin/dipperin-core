@@ -36,15 +36,15 @@ private:
     Map<bal, std::string, uint64_t >  balance;
     //Map<allow, std::string, Map<bal, std::string, uint64_t>> allowance;
     //         存放授权地址    存放授权地址与被授权地址的拼接值
-    Map<allow, std::string, std::string> allowance;
+    Map<allow, std::string, uint64_t> allowance;
     Uint64<tmp> total_supply;
     bool stopped = false;
-    std::string addr = "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41";
-    //bytes result = fromHex("0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41");
-    //Address2 owner = Address2(&result[0], 22);
+    String<na> owner;
     
     inline void isOwner(){
-        DipcAssertEQ(addr, address2().toString());
+        Address2 callerAddr = caller2();
+        std::string callerStr = callerAddr.toString();
+        DipcAssertEQ(owner.get(), callerStr);
     }
 };
 // 没有加这个宏  导致编译wasm的时候没通过也没报错  待优化
