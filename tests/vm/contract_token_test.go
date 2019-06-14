@@ -53,7 +53,7 @@ func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNa
 	to := common.HexToAddress(common.AddressContractCreate)
 	value := big.NewInt(100)
 	gasLimit := big.NewInt(2 * consts.DIP)
-	gasPrice := big.NewInt(2)
+	gasPrice := big.NewInt(3)
 
 	params := []string{"dipp", "DIPP", "1000000"}
 	data := getCreateExtraData(t, AbiTokenPath, WASMTokenPath, params)
