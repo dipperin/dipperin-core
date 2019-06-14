@@ -36,7 +36,7 @@ type Log struct {
 	Topics []common.Hash `json:"topics" gencodec:"required"`
 
 	//add topic Name
-	TopicName string
+	TopicName string  `json:"topicName" gencodec:"required"`
 
 	// supplied by the contract, usually ABI-encoded
 	Data []byte `json:"data" gencodec:"required"`

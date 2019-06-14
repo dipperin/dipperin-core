@@ -4,7 +4,7 @@ using namespace platon;
 
 class envEvent : public Contract {
  public: 
-  void init();
+  void init(char *tokenName, char *sym, uint64_t supply);
 
   void hello(const char* name, int64_t num);
 };

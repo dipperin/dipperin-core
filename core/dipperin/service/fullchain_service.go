@@ -675,7 +675,7 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 
 		//log.Info("the contract address is:","addr",to.Hex())
 		//log.Info("the contract code is:","code",hexutil.Encode([]byte(code)))
-		//log.Info("the call contract data is:","data",hexutil.Encode(data))
+		//log.Info("the call contract data is:","GetReceiptByTxHashdata",hexutil.Encode(data))
 		extraData, err = vmcommon.ParseAndGetRlpData(code, data)
 		if err != nil {
 			log.Error("call SendTransactionContract ParseAndGetRlpData error", "err", err)
