@@ -6,6 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"github.com/dipperin/dipperin-core/common/hexutil"
 )
 
 func TestInt64ToBytes(t *testing.T) {
@@ -34,7 +35,7 @@ func TestIntConvertBytes(t *testing.T) {
 	byte, err = StringConverter(a, "uint64")
 	assert.NoError(t, err)
 	v = BytesConverter(byte, "uint64")
-	fmt.Println(v.(int64))
+	fmt.Println(v.(uint64))
 
 	a = "12345"
 	byte, err = StringConverter(a, "uint16")
@@ -70,4 +71,13 @@ func TestInputRlpData(t *testing.T){
 
 	//initInput := "test,123,456"
 	//params := getRpcParamFromString(input)
+}
+
+func TestAlign32BytesConverter(t *testing.T) {
+	value, innerErr := hexutil.Decode("0x00000000000000000000000000000000000000000000000000000000000f4240")
+	assert.NoError(t, innerErr)
+
+	result, err := Align32BytesConverter(value, "uint64")
+	assert.NoError(t, err)
+	fmt.Println(result)
 }

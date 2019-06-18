@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"fmt"
 )
 
 //  RLP([code][abi][init params])
@@ -68,7 +69,7 @@ func ParseAndGetRlpData(rlpData []byte, input []byte) (extraData []byte, err err
 
 	var args []InputParam
 	for _, v := range wasmAbi.AbiArr {
-		if strings.EqualFold(funcName, v.Name) && strings.EqualFold(v.Type, "function") {
+		if strings.EqualFold(v.Name, funcName) && strings.EqualFold(v.Type, "function") {
 			args = v.Inputs
 			break
 		}
@@ -78,7 +79,7 @@ func ParseAndGetRlpData(rlpData []byte, input []byte) (extraData []byte, err err
 	//log.Info("the params is:","params",params)
 
 	if len(args) != len(params) {
-		return nil, errors.New("ParseAndGetRlpData: length of input and abi not match")
+		return nil, errors.New(fmt.Sprintf("LenInput and LenAbi not match, abi:%v, input:%v", len(args), len(params)))
 	}
 
 	rlpParams := []interface{}{

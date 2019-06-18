@@ -35,6 +35,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/address-util"
 	"encoding/json"
 	"github.com/dipperin/dipperin-core/core/dipperin/service"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 )
 
 type DipperinMercuryApi struct {
@@ -1207,6 +1208,10 @@ func (api *DipperinMercuryApi) StopDipperin() {
 	api.service.StopDipperin()
 }
 
+func (api *DipperinMercuryApi) GetABI(contractAddr common.Address) (*utils.WasmAbi, error) {
+	return api.service.GetABI(contractAddr)
+}
+
 func (api *DipperinMercuryApi) GetContractAddressByTxHash(txHash common.Hash) (common.Address, error) {
 	return api.service.GetContractAddressByTxHash(txHash)
 }
@@ -1223,11 +1228,10 @@ func (api *DipperinMercuryApi) GetReceiptsByBlockNum(num uint64) (model2.Receipt
 	return api.service.GetReceiptsByBlockNum(num)
 }
 
-func (api *DipperinMercuryApi) CallContract(from, to common.Address, data []byte, blockNum uint64) (hexutil.Bytes, error) {
+func (api *DipperinMercuryApi) CallContract(from, to common.Address, data []byte, blockNum uint64) (string, error) {
 	return api.service.CallContract(from, to, data, blockNum)
 }
 
 func (api *DipperinMercuryApi) EstimateGas(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (hexutil.Uint64, error) {
 	return api.service.EstimateGas(from, to, value, gasLimit, gasPrice, data, nonce)
 }
-

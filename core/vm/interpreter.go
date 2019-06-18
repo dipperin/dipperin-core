@@ -21,7 +21,7 @@ import (
 
 var (
 	errReturnInvalidRlpFormat   = errors.New("interpreter_life: invalid rlp format")
-	errReturnInsufficientParams = errors.New("interpreter_life: invalid input. ele must greater than 2")
+	errReturnInsufficientParams = errors.New("interpreter_life: invalid input. ele must greater than 1")
 	errReturnInvalidAbi         = errors.New("interpreter_life: invalid abi, encoded fail")
 	errReturnInputAbiNotMatch   = errors.New("interpreter_life: length of input and abi not match")
 )
@@ -148,7 +148,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 		finalRes := utils.Align32Bytes(math.U256(bigRes).Bytes())
 		return finalRes, nil
 	case "uint8", "uint16", "uint32", "uint64":
-		finalRes := utils.Align32Bytes(utils.Uint64ToBytes((uint64(res))))
+		finalRes := utils.Align32Bytes(utils.Uint64ToBytes(uint64(res)))
 		return finalRes, nil
 	case "string":
 		returnBytes := make([]byte, 0)
@@ -160,7 +160,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 			returnBytes = append(returnBytes, v)
 		}
 		strHash := common.BytesToHash(utils.Int32ToBytes(32))
-		sizeHash := common.BytesToHash(utils.Int64ToBytes(int64((len(returnBytes)))))
+		sizeHash := common.BytesToHash(utils.Int64ToBytes(int64(len(returnBytes))))
 		var dataRealSize = len(returnBytes)
 		if (dataRealSize % 32) != 0 {
 			dataRealSize = dataRealSize + (32 - (dataRealSize % 32))
@@ -206,6 +206,29 @@ func ParseRlpData(rlpData []byte) (code, abi []byte, err error) {
 
 	if v, ok := iRlpList[1].([]byte); ok {
 		abi = v
+	}
+	return
+}
+
+func ParseInputGetFuncName(rlpData []byte) (funcName string, err error) {
+	ptr := new(interface{})
+	err = rlp.Decode(bytes.NewReader(rlpData), &ptr)
+	if err != nil {
+		return "", err
+	}
+
+	rlpList := reflect.ValueOf(ptr).Elem().Interface()
+	if _, ok := rlpList.([]interface{}); !ok {
+		return "", errReturnInvalidRlpFormat
+	}
+
+	iRlpList := rlpList.([]interface{})
+	if len(iRlpList) == 0 {
+		return "", errReturnInsufficientParams
+	}
+
+	if v, ok := iRlpList[0].([]byte); ok {
+		funcName = string(v)
 	}
 	return
 }
@@ -288,7 +311,7 @@ func findParams(vm *exec.VirtualMachine, abi []byte, funcName string, inputList 
 
 	var abiParam []utils.InputParam
 	for _, v := range wasmAbi.AbiArr {
-		if strings.EqualFold(funcName, v.Name) && strings.EqualFold(v.Type, "function") {
+		if strings.EqualFold(v.Name, funcName) && strings.EqualFold(v.Type, "function") {
 			abiParam = v.Inputs
 			//fmt.Println("len outputs", len(v.Outputs), "abiParam", len(abiParam), "inputlist", len(inputList) )
 			log.Info("findParams", "len outputs", len(v.Outputs), "abiParam", len(abiParam), "inputlist", len(inputList))

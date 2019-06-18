@@ -91,7 +91,6 @@ func (caller *rpcCaller) CallContract(c *cli.Context) {
 		log.Error("input rlp err")
 		return
 	}
-	var resp hexutil.Bytes
 
 	l.Info("the From is: ", "From", From.Hex())
 	l.Info("the To is: ", "To", to.Hex())
@@ -99,14 +98,12 @@ func (caller *rpcCaller) CallContract(c *cli.Context) {
 	l.Info("the funcName is:", "funcName", funcName)
 	l.Info("the ExtraData is: ", "ExtraData", inputRlp)
 
+	var resp string
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, to, inputRlp, blockNum); err != nil {
-		l.Error("callContract failed", "err", err)
+		l.Error("CallContract failed", "err", err)
 		return
 	}
-	/*	if resp {
-
-		}*/
-	l.Info("callContract result", "result", resp.String())
+	l.Info(" CallContract", "resp", resp)
 }
 
 func (caller *rpcCaller) EstimateGas(c *cli.Context) {
@@ -114,11 +111,18 @@ func (caller *rpcCaller) EstimateGas(c *cli.Context) {
 		return
 	}
 
+	var resp interface{}
 	if isCreate(c) {
-		contractCreate(c)
+		resp = contractCreate(c)
 	} else {
-		contractCall(c)
+		resp = contractCall(c)
 	}
+
+	value, innerErr := hexutil.DecodeUint64(reflect.ValueOf(resp).String())
+	if innerErr != nil {
+		l.Info(" EstimateGas decode failed","err", innerErr)
+	}
+	l.Info(" EstimateGas", "resp", value)
 }
 
 func (caller *rpcCaller) SendTransactionContract(c *cli.Context) {
@@ -126,51 +130,53 @@ func (caller *rpcCaller) SendTransactionContract(c *cli.Context) {
 		return
 	}
 
+	var resp interface{}
 	if isCreate(c) {
-		contractCreate(c)
+		resp = contractCreate(c)
 	} else {
-		contractCall(c)
+		resp = contractCall(c)
 	}
+	l.Info(" SendTransactionContract", "resp", reflect.ValueOf(resp).String())
 }
 
-func contractCreate(c *cli.Context) {
+func contractCreate(c *cli.Context) interface{} {
 	mName, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
 		l.Error("getRpcMethodAndParam error", "err", err)
-		return
+		return nil
 	}
 	if len(cParams) != 3 && len(cParams) != 4 {
 		l.Error("parameter includes：from value gasLimit gasPrice, gasPrice is optional")
-		return
+		return nil
 	}
 
 	From, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
 		l.Error("the from address is invalid", "err", err)
 		l.Error(err.Error())
-		return
+		return nil
 	}
 	to := common.HexToAddress(common.AddressContractCreate)
 
 	Value, err := MoneyValueToCSCoin(cParams[1])
 	if err != nil {
 		l.Error("the parameter value invalid")
-		return
+		return nil
 	}
 	gasLimit, err := MoneyValueToCSCoin(cParams[2])
 	if err != nil {
 		l.Error("the parameter value invalid")
-		return
+		return nil
 	}
 
 	var gasPrice *big.Int
 	if len(cParams) == 3 {
 		gasPrice.SetInt64(config.DEFAULT_GAS_PRICE)
 	} else {
-		gasPriceVal, err := strconv.ParseInt(cParams[3], 10, 64)
-		if err != nil {
+		gasPriceVal, innerErr := strconv.ParseInt(cParams[3], 10, 64)
+		if innerErr != nil {
 			l.Error("the parameter value invalid")
-			return
+			return nil
 		}
 		gasPrice = new(big.Int).SetInt64(gasPriceVal)
 	}
@@ -178,7 +184,7 @@ func contractCreate(c *cli.Context) {
 	ExtraData, err := generateExtraData(c)
 	if err != nil {
 		l.Error("generate extraData err", "err", err)
-		return
+		return nil
 	}
 
 	var resp interface{}
@@ -189,56 +195,46 @@ func contractCreate(c *cli.Context) {
 	l.Info("the ExtraData is: ", "ExtraData", ExtraData)
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, to, Value, gasLimit, gasPrice, ExtraData, nil); err != nil {
 		l.Error(fmt.Sprintf("%s Create failed", mName), "err", err)
-		return
+		return nil
 	}
-
-	value := reflect.ValueOf(resp).String()
-	if mName == "EstimateGas" {
-		result, innerErr := hexutil.DecodeUint64(value)
-		if innerErr != nil {
-			l.Info(mName+" Create Decode failed", "resp", result, "err", innerErr)
-		}
-		l.Info(mName+" Create", "resp", result)
-	} else {
-		l.Info(mName+" Create", "resp", value)
-	}
+	return resp
 }
 
-func contractCall(c *cli.Context) {
+func contractCall(c *cli.Context) interface{} {
 	mName, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
 		l.Error("getRpcMethodAndParam error", "err", err)
-		return
+		return nil
 	}
 	if len(cParams) != 3 && len(cParams) != 4 {
 		l.Error("parameter includes：from to gasLimit gasPrice, gasPrice is optional")
-		return
+		return nil
 	}
 	From, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
 		l.Error("call  the from address is invalid", "err", err)
-		return
+		return nil
 	}
 	to, err := CheckAndChangeHexToAddress(cParams[1])
 	if err != nil {
 		l.Error("call the to address is invalid", "err", err)
-		return
+		return nil
 	}
 
 	gasLimit, err := MoneyValueToCSCoin(cParams[2])
 	if err != nil {
 		l.Error("call the parameter value invalid", "err", err)
-		return
+		return nil
 	}
 
 	var gasPrice *big.Int
 	if len(cParams) == 2 {
 		gasPrice.SetInt64(config.DEFAULT_GAS_PRICE)
 	} else {
-		gasPriceVal, err := strconv.ParseInt(cParams[3], 10, 64)
-		if err != nil {
+		gasPriceVal, innerErr := strconv.ParseInt(cParams[3], 10, 64)
+		if innerErr != nil {
 			l.Error("call the parameter value invalid")
-			return
+			return nil
 		}
 		gasPrice = new(big.Int).SetInt64(gasPriceVal)
 	}
@@ -246,7 +242,7 @@ func contractCall(c *cli.Context) {
 	funcName, err := getCalledFuncName(c)
 	if err != nil {
 		l.Error(err.Error())
-		return
+		return nil
 	}
 	input := getRpcSpecialParam(c, "input")
 	// RLP([funcName][params])
@@ -267,19 +263,9 @@ func contractCall(c *cli.Context) {
 	//SendTransactionContract(from, to common.Address,value,gasLimit, gasPrice *big.Int, data []byte, nonce *uint64 )
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, to, nil, gasLimit, gasPrice, inputRlp, nil); err != nil {
 		l.Error(fmt.Sprintf("%s Call failed", mName), "err", err)
-		return
+		return nil
 	}
-
-	value := reflect.ValueOf(resp).String()
-	if mName == "EstimateGas" {
-		result, innerErr := hexutil.DecodeUint64(value)
-		if innerErr != nil {
-			l.Info(mName+" Call Decode failed", "resp", result, "err", innerErr)
-		}
-		l.Info(mName+" Call", "resp", result)
-	} else {
-		l.Info(mName+" Call", "resp", value)
-	}
+	return resp
 }
 
 func getCalledFuncName(c *cli.Context) (funcName string, err error) {

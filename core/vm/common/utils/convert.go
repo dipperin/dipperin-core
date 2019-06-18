@@ -131,6 +131,54 @@ func BoolToBytes(b bool) []byte {
 	return buf.Bytes()
 }
 
+// used for output
+func Align32BytesConverter(source []byte, t string) (interface{}, error) {
+	if len(source) < ALIGN_LENGTH {
+		return nil, errors.New("input source isn't align")
+	}
+	switch t {
+	case "int16":
+		source = source[ALIGN_LENGTH-2:]
+		return BytesToInt16(source), nil
+	case "uint16":
+		source = source[ALIGN_LENGTH-2:]
+		return BytesToUint16(source), nil
+	case "int32", "int":
+		source = source[ALIGN_LENGTH-4:]
+		return BytesToInt32(source), nil
+	case "uint32", "uint":
+		source = source[ALIGN_LENGTH-4:]
+		return BytesToUint32(source), nil
+	case "int64":
+		source = source[ALIGN_LENGTH-8:]
+		return BytesToInt64(source), nil
+	case "uint64":
+		source = source[ALIGN_LENGTH-8:]
+		return BytesToUint64(source), nil
+	case "float32":
+		source = source[ALIGN_LENGTH-4:]
+		return BytesToFloat32(source), nil
+	case "float64":
+		source = source[ALIGN_LENGTH-8:]
+		return BytesToFloat64(source), nil
+	case "string":
+		source = source[len(source)-32:]
+		returnBytes := make([]byte, 0)
+		for _, v := range source {
+			if v == 0 {
+				break
+			}
+			returnBytes = append(returnBytes, v)
+		}
+		return string(returnBytes), nil
+	case "bool":
+		source = source[ALIGN_LENGTH-1:]
+		return bytes.Equal(source, []byte{1}), nil
+	default:
+		return source, nil
+	}
+}
+
 func BytesConverter(source []byte, t string) interface{} {
 	switch t {
 	case "int16":

@@ -1502,7 +1502,7 @@ func (service *MercuryFullChainService) GetContractAddressByTxHash(txHash common
 	return common.Address{}, g_error.ErrReceiptNotFound
 }
 
-func (service *MercuryFullChainService) convertReceiptLog(src model2.Receipt) (*model2.Receipt, error) {
+func (service *MercuryFullChainService) GetABI(contractAddr common.Address) (*utils.WasmAbi, error) {
 	stateRoot := service.CurrentBlock().StateRoot()
 	stateDB, err := service.ChainReader.AccountStateDB(stateRoot)
 	if err != nil {
@@ -1510,24 +1510,32 @@ func (service *MercuryFullChainService) convertReceiptLog(src model2.Receipt) (*
 	}
 
 	fullState := state_processor.NewFullState(stateDB)
-	code := fullState.GetCode(src.ContractAddress)
+	code := fullState.GetCode(contractAddr)
 	_, dataAbi, err := vm.ParseRlpData(code)
 	if err != nil {
-		log.Info("convertReceiptLog failed", "err", err)
+		log.Info("GetABI failed", "err", err)
 		return nil, err
 	}
 
-	abi := utils.WasmAbi{}
+	var abi utils.WasmAbi
 	err = abi.FromJson(dataAbi)
+	if err != nil {
+		return nil, err
+	}
+	return &abi, nil
+}
+
+func (service *MercuryFullChainService) convertReceiptLog(src model2.Receipt) (*model2.Receipt, error) {
+	abi, err := service.GetABI(src.ContractAddress)
 	if err != nil {
 		return nil, err
 	}
 
 	logs := make([]*model2.Log, 0)
 	for _, value := range src.Logs {
-		for _, function := range abi.AbiArr {
-			if strings.EqualFold(function.Type, "event") && strings.EqualFold(function.Name, value.TopicName) {
-				data, innerErr := utils.ConvertInputs(value.Data, function.Inputs)
+		for _, v := range abi.AbiArr {
+			if strings.EqualFold(v.Name, value.TopicName) && strings.EqualFold(v.Type, "event") {
+				data, innerErr := utils.ConvertInputs(value.Data, v.Inputs)
 				if innerErr != nil {
 					return nil, innerErr
 				}
@@ -1671,31 +1679,70 @@ type CallArgs struct {
 
 // CallContract executes the given transaction on the state for the given block number.
 // It doesn't make and changes in the state/block chain and is useful to execute and retrieve values.
-func (service *MercuryFullChainService) CallContract(from, to common.Address, data []byte, blockNum uint64) (hexutil.Bytes, error) {
-	var gasLimit uint64
-	if blockNum == 0 {
-		gasLimit = service.CurrentBlock().Header().GetGasLimit()
-	} else {
-		block, err := service.GetBlockByNumber(blockNum)
-		if err != nil {
-			return nil, err
-		}
-		gasLimit = block.Header().GetGasLimit()
-	}
-
-	extraData, err := service.getExtraData(to, data)
+func (service *MercuryFullChainService) CallContract(from, to common.Address, data []byte, blockNum uint64) (string, error) {
+	funcName, err := vm.ParseInputGetFuncName(data)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	args := CallArgs{
-		From: from,
-		To:   &to,
-		Data: extraData,
-		Gas:  hexutil.Uint64(gasLimit),
+	abi, err := service.GetABI(to)
+	if err != nil {
+		return "", err
 	}
+
+	// check function constant by abi
+	for _, v := range abi.AbiArr {
+		if strings.EqualFold(v.Name, funcName) && strings.EqualFold(v.Type, "function") {
+			if strings.EqualFold(v.Constant, "True") {
+				var gasLimit uint64
+				if blockNum == 0 {
+					gasLimit = service.CurrentBlock().Header().GetGasLimit()
+				} else {
+					block, innerErr := service.GetBlockByNumber(blockNum)
+					if innerErr != nil {
+						return "", innerErr
+					}
+					gasLimit = block.Header().GetGasLimit()
+				}
+
+				args := CallArgs{
+					From: from,
+					To:   &to,
+					Data: data,
+					Gas:  hexutil.Uint64(gasLimit),
+				}
+				return service.callContract(args, blockNum, funcName, abi)
+			} else {
+				return "", errors.New("function isn't constant")
+			}
+		}
+	}
+	return "", errors.New("empty ABI")
+}
+
+func (service *MercuryFullChainService) callContract(args CallArgs, blockNum uint64, funcName string, abi *utils.WasmAbi) (string, error) {
 	result, _, err := service.doCall(args, blockNum, 5*time.Second)
-	return (hexutil.Bytes)(result), err
+	if err != nil {
+		return "", err
+	}
+
+	// convert result by abi
+	var resp string
+	for _, v := range abi.AbiArr {
+		if strings.EqualFold(v.Name, funcName) && strings.EqualFold(v.Type, "function") {
+			if len(v.Outputs) != 0 {
+				convertResult, innerErr := utils.Align32BytesConverter(result, v.Outputs[0].Type)
+				if innerErr != nil {
+					return "", innerErr
+				}
+				resp = fmt.Sprintf("%v", convertResult)
+			} else {
+				resp = "void"
+			}
+		}
+	}
+	log.Info("CallContract test", "response", resp)
+	return resp, err
 }
 
 func (service *MercuryFullChainService) EstimateGas(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (hexutil.Uint64, error) {
