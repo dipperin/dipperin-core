@@ -162,7 +162,7 @@ func Align32BytesConverter(source []byte, t string) (interface{}, error) {
 		source = source[ALIGN_LENGTH-8:]
 		return BytesToFloat64(source), nil
 	case "string":
-		source = source[len(source)-32:]
+		source = source[64:]
 		returnBytes := make([]byte, 0)
 		for _, v := range source {
 			if v == 0 {

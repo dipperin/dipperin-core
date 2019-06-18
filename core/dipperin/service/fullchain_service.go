@@ -1603,18 +1603,29 @@ func (service *MercuryFullChainService) GetReceiptByTxHash(txHash common.Hash) (
 }
 
 func (service *MercuryFullChainService) SendTransactionContract(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
-	//start:=time.Now()
+	extraData, err := service.getExtraData(to, data)
+	if err != nil {
+		return common.Hash{}, err
+	}
+
+	// check constant
+	if !to.IsEqual(common.HexToAddress(common.AddressContractCreate)) {
+		constant, _, _, innerErr := service.checkConstant(to, extraData)
+		if innerErr != nil {
+			return common.Hash{}, innerErr
+		}
+
+		if constant {
+			return common.Hash{}, errors.New("function is constant, no need to send transaction")
+		}
+	}
+
 	// automatic transfer need this
 	if from.IsEqual(common.Address{}) {
 		from = service.DefaultAccount
 		if from.IsEqual(common.Address{}) {
 			return common.Hash{}, errors.New("no default account in this node")
 		}
-	}
-
-	extraData, err := service.getExtraData(to, data)
-	if err != nil {
-		return common.Hash{}, err
 	}
 
 	tmpWallet, usedNonce, err := service.getSendTxInfo(from, nonce)
@@ -1680,44 +1691,33 @@ type CallArgs struct {
 // CallContract executes the given transaction on the state for the given block number.
 // It doesn't make and changes in the state/block chain and is useful to execute and retrieve values.
 func (service *MercuryFullChainService) CallContract(from, to common.Address, data []byte, blockNum uint64) (string, error) {
-	funcName, err := vm.ParseInputGetFuncName(data)
+	constant, funcName, abi, err := service.checkConstant(to, data)
 	if err != nil {
 		return "", err
 	}
 
-	abi, err := service.GetABI(to)
-	if err != nil {
-		return "", err
+	if !constant {
+		return "", errors.New("function isn't constant")
 	}
 
-	// check function constant by abi
-	for _, v := range abi.AbiArr {
-		if strings.EqualFold(v.Name, funcName) && strings.EqualFold(v.Type, "function") {
-			if strings.EqualFold(v.Constant, "True") {
-				var gasLimit uint64
-				if blockNum == 0 {
-					gasLimit = service.CurrentBlock().Header().GetGasLimit()
-				} else {
-					block, innerErr := service.GetBlockByNumber(blockNum)
-					if innerErr != nil {
-						return "", innerErr
-					}
-					gasLimit = block.Header().GetGasLimit()
-				}
-
-				args := CallArgs{
-					From: from,
-					To:   &to,
-					Data: data,
-					Gas:  hexutil.Uint64(gasLimit),
-				}
-				return service.callContract(args, blockNum, funcName, abi)
-			} else {
-				return "", errors.New("function isn't constant")
-			}
+	var gasLimit uint64
+	if blockNum == 0 {
+		gasLimit = service.CurrentBlock().Header().GetGasLimit()
+	} else {
+		block, innerErr := service.GetBlockByNumber(blockNum)
+		if innerErr != nil {
+			return "", innerErr
 		}
+		gasLimit = block.Header().GetGasLimit()
 	}
-	return "", errors.New("empty ABI")
+
+	args := CallArgs{
+		From: from,
+		To:   &to,
+		Data: data,
+		Gas:  hexutil.Uint64(gasLimit),
+	}
+	return service.callContract(args, blockNum, funcName, abi)
 }
 
 func (service *MercuryFullChainService) callContract(args CallArgs, blockNum uint64, funcName string, abi *utils.WasmAbi) (string, error) {
@@ -1940,4 +1940,28 @@ func (service *MercuryFullChainService) doCall(args CallArgs, blockNum uint64, t
 		return result, failed, err
 	}
 	return result, failed, nil
+}
+
+func (service *MercuryFullChainService) checkConstant(to common.Address, data []byte) (bool, string, *utils.WasmAbi, error) {
+	funcName, err := vm.ParseInputGetFuncName(data)
+	if err != nil {
+		return false, "", nil, err
+	}
+
+	abi, err := service.GetABI(to)
+	if err != nil {
+		return false, funcName, nil, err
+	}
+
+	// check function constant by abi
+	for _, v := range abi.AbiArr {
+		if strings.EqualFold(v.Name, funcName) && strings.EqualFold(v.Type, "function") {
+			if strings.EqualFold(v.Constant, "True") {
+				return true, funcName, abi, nil
+			} else {
+				return false, funcName, abi, nil
+			}
+		}
+	}
+	return false, funcName, abi, errors.New("function not found")
 }

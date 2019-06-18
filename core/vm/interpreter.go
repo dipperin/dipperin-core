@@ -172,7 +172,6 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 		finalData = append(finalData, strHash.Bytes()...)
 		finalData = append(finalData, sizeHash.Bytes()...)
 		finalData = append(finalData, dataByt...)
-		//fmt.Println("CallReturn:", string(returnBytes))
 		return finalData, nil
 	}
 	return nil, nil
