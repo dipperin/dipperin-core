@@ -1222,3 +1222,11 @@ func (api *DipperinMercuryApi) GetReceiptByTxHash(txHash common.Hash) (*model2.R
 func (api *DipperinMercuryApi) GetReceiptsByBlockNum(num uint64) (model2.Receipts, error) {
 	return api.service.GetReceiptsByBlockNum(num)
 }
+
+func (api *DipperinMercuryApi) CallContract(from, to common.Address, data []byte, blockNum uint64) (hexutil.Bytes, error) {
+	return api.service.CallContract(from, to, data, blockNum)
+}
+
+func (api *DipperinMercuryApi) EstimateGas(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (hexutil.Uint64, error) {
+	return api.service.EstimateGas(from, to, value, gasLimit, gasPrice, data, nonce)
+}

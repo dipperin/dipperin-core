@@ -137,7 +137,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		// data = rlp
 		var addrs common.Address
 		ret, addrs, st.gas, vmerr = lifeVm.Create(sender, st.data, st.gas, st.value)
-		log.Debug("Called create","data",st.state.GetState(addrs,[]byte{7, 98, 97, 108, 97, 110 ,99, 101}),"err",vmerr)
+		log.Debug("Called create", "data", st.state.GetState(addrs, []byte{7, 98, 97, 108, 97, 110, 99, 101}), "err", vmerr)
 	} else {
 		// Increment the nonce for the next transaction
 		st.lifeVm.GetStateDB().AddNonce(msg.From(), uint64(1))
@@ -158,7 +158,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 	//add coinBase reward in ProcessExceptTxs
 	fee = new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice)
 	//st.state.AddBalance(st.lifeVm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
-	log.Info("TransitionDb successful", "failed", vmerr != nil)
+	log.Info("TransitionDb successful", "failed", vmerr != nil, "gasUsed Total", st.gasUsed())
 	return ret, st.gasUsed(), vmerr != nil, fee, err
 }
 

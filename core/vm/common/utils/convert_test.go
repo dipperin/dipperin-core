@@ -1,4 +1,4 @@
-package vmcommon
+package utils
 
 import (
 	"fmt"
@@ -7,12 +7,12 @@ import (
 )
 
 func TestInt64ToBytes(t *testing.T) {
-/*	a := []byte("hello")
-	fmt.Println(a)
-	b := BytesToInt64(a)
-	fmt.Println(b)
-	c := Int64ToBytes(b)
-	fmt.Println(c)*/
+	/*	a := []byte("hello")
+		fmt.Println(a)
+		b := BytesToInt64(a)
+		fmt.Println(b)
+		c := Int64ToBytes(b)
+		fmt.Println(c)*/
 
 	a := int64(2323)
 	b := Int64ToBytes(a)
@@ -21,7 +21,7 @@ func TestInt64ToBytes(t *testing.T) {
 	fmt.Println(c)
 }
 
-func TestIntConvertBytes(t *testing.T)  {
+func TestIntConvertBytes(t *testing.T) {
 	a := "123"
 	byte, err := StringConverter(a, "int64")
 	assert.NoError(t, err)

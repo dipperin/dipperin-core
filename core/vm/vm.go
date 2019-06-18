@@ -10,6 +10,7 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
+	"sync/atomic"
 )
 
 var emptyCodeHash = cs_crypto.Keccak256Hash(nil)
@@ -45,6 +46,12 @@ func NewVM(context Context, state StateDB, config exec.VMConfig) *VM {
 
 func (vm *VM) GetStateDB() StateDB {
 	return vm.state
+}
+
+// Cancel cancels any running EVM operation. This may be called concurrently and
+// it's safe to be called multiple times.
+func (vm *VM) Cancel() {
+	atomic.StoreInt32(&vm.abort, 1)
 }
 
 func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byte, gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {

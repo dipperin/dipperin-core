@@ -1,9 +1,8 @@
-package vmcommon
+package utils
 
 import (
 	"bytes"
 	"errors"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"reflect"
@@ -59,7 +58,7 @@ func ParseAndGetRlpData(rlpData []byte, input []byte) (extraData []byte, err err
 		abi = v
 	}
 
-	wasmAbi := new(utils.WasmAbi)
+	wasmAbi := new(WasmAbi)
 	err = wasmAbi.FromJson(abi)
 	//err = json.Unmarshal(abi, wasmAbi)
 	if err != nil {
@@ -67,7 +66,7 @@ func ParseAndGetRlpData(rlpData []byte, input []byte) (extraData []byte, err err
 		return nil, errors.New("call contract: invalid abi, encoded fail")
 	}
 
-	var args []utils.InputParam
+	var args []InputParam
 	for _, v := range wasmAbi.AbiArr {
 		if strings.EqualFold(funcName, v.Name) && strings.EqualFold(v.Type, "function") {
 			args = v.Inputs
@@ -88,17 +87,16 @@ func ParseAndGetRlpData(rlpData []byte, input []byte) (extraData []byte, err err
 
 	for i, v := range args {
 		bts := params[i]
-		result, err := StringConverter(bts, v.Type)
-		if err != nil {
-			return nil,err
+		result, innerErr := StringConverter(bts, v.Type)
+		if innerErr != nil {
+			return nil, innerErr
 		}
 		rlpParams = append(rlpParams, result)
 	}
-
 	return rlp.EncodeToBytes(rlpParams)
 }
 
-func GetRlpPrarmsList(rlpParams []interface{}, args []utils.InputParam, params []string) (err error) {
+func GetRlpPrarmsList(rlpParams []interface{}, args []InputParam, params []string) (err error) {
 	for i, v := range args {
 		bts := params[i]
 		result, err := StringConverter(bts, v.Type)
@@ -172,7 +170,6 @@ func ParseStringToUintRlpByte(param string, bitSize int) (result []byte, err err
 	return
 }
 
-
 func ParseStringTointRlpByte(param string, bitSize int) (result []byte, err error) {
 	r, err := strconv.ParseUint(param, 10, bitSize)
 	if err != nil {
@@ -181,6 +178,3 @@ func ParseStringTointRlpByte(param string, bitSize int) (result []byte, err erro
 	result = Uint64ToBytes(r)
 	return
 }
-
-
-

@@ -136,10 +136,12 @@ var methodFlags = []prompt.Suggest{
 	{Text: "StopMine", Description: ""},
 	{Text: "Transaction", Description: ""},
 	{Text: "GetContractAddressByTxHash", Description: ""},
+	{Text: "GetConvertReceiptByTxHash", Description: ""},
 	{Text: "GetReceiptByTxHash", Description: ""},
 	{Text: "GetReceiptsByBlockNum", Description: ""},
 	{Text: "TransferEDIPToDIP", Description: ""},
 	{Text: "VerifierStatus", Description: ""},
 	{Text: "GetBlockDiffVerifierInfo", Description: ""},
 	{Text: "CheckVerifierType", Description: ""},
+	{Text: "EstimateGas", Description: ""},
 }

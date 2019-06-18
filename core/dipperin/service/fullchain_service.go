@@ -17,7 +17,6 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -28,7 +27,6 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-metrics"
 	"github.com/dipperin/dipperin-core/common/g-timer"
 	"github.com/dipperin/dipperin-core/common/hexutil"
-	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/core/chain-communication"
@@ -47,11 +45,13 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
-	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 	"os"
-	"reflect"
 	"time"
+	"github.com/dipperin/dipperin-core/common/math"
+	"github.com/dipperin/dipperin-core/common/config"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"strings"
 )
 
 type NodeConf interface {
@@ -647,69 +647,6 @@ func (service *MercuryFullChainService) SendTransaction(from, to common.Address,
 		return common.Hash{}, err
 	}
 
-	pbft_log.Info("send transaction", "txId", signTx.CalTxId().Hex())
-	txHash := signTx.CalTxId()
-	log.Info("the SendTransaction txId is: ", "txId", txHash.Hex(), "txSize", signTx.Size())
-	return txHash, nil
-}
-
-func (service *MercuryFullChainService) SendTransactionContract(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
-	//start:=time.Now()
-	// automatic transfer need this
-	if from.IsEqual(common.Address{}) {
-		from = service.DefaultAccount
-		if from.IsEqual(common.Address{}) {
-			return common.Hash{}, errors.New("no default account in this node")
-		}
-	}
-
-	var extraData []byte
-
-	if !to.IsEqual(common.HexToAddress(common.AddressContractCreate)) {
-		state, err := service.ChainReader.CurrentState()
-		code, err := state.GetCode(to)
-		if err != nil {
-			log.Error("MercuryFullChainService#SendTransactionContract get contract code err", "err", err)
-			return common.Hash{}, err
-		}
-
-		//log.Info("the contract address is:","addr",to.Hex())
-		//log.Info("the contract code is:","code",hexutil.Encode([]byte(code)))
-		//log.Info("the call contract data is:","data",hexutil.Encode(data))
-		extraData, err = vmcommon.ParseAndGetRlpData(code, data)
-		if err != nil {
-			log.Error("call SendTransactionContract ParseAndGetRlpData error", "err", err)
-			return common.Hash{}, err
-		}
-	} else {
-		extraData = data
-	}
-
-	//log.Info("send Transaction the nonce is:", "nonce", nonce)
-
-	tmpWallet, usedNonce, err := service.getSendTxInfo(from, nonce)
-	if err != nil {
-		log.Error("MercuryFullChainService#SendTransactionContractCreate", "err", err)
-		return common.Hash{}, err
-	}
-
-	tx := model.NewTransactionSc(usedNonce, &to, value, gasPrice, gasLimit.Uint64(), extraData)
-	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
-	if err != nil {
-		pbft_log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
-		log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
-		return common.Hash{}, err
-	}
-
-	//log.Info("send transaction", "txId", signTx.CalTxId().Hex())
-	//log.Info("send transaction", "gasPrice", signTx.GetGasPrice())
-	//log.Info("send transaction", "gas limit", signTx.GetGasLimit())
-	signJson, _ := json.Marshal(signTx)
-	//txJson,_ := json.Marshal(tx)
-	pbft_log.Info("send transaction", "signTx json", string(signJson))
-	//pbft_log.Info("send transaction", "tx json", string(txJson))
-	//log.Info("send transaction", "signTx json", string(signJson))
-	pbft_log.Info("send transaction", "signTx", signTx.String())
 	pbft_log.Info("send transaction", "txId", signTx.CalTxId().Hex())
 	txHash := signTx.CalTxId()
 	log.Info("the SendTransaction txId is: ", "txId", txHash.Hex(), "txSize", signTx.Size())
@@ -1565,29 +1502,6 @@ func (service *MercuryFullChainService) GetContractAddressByTxHash(txHash common
 	return common.Address{}, g_error.ErrReceiptNotFound
 }
 
-func convertLogData(src []byte, logInputs []vm.InputParam) ([]byte, error) {
-	ptr := new(interface{})
-	err := rlp.Decode(bytes.NewReader(src), &ptr)
-	if err != nil {
-		return nil, err
-	}
-
-	rlpList := reflect.ValueOf(ptr).Elem().Interface()
-	if _, ok := rlpList.([]interface{}); !ok {
-		return nil, g_error.ErrReturnInvalidRlpFormat
-	}
-
-	inputList := rlpList.([]interface{})
-	var data []byte
-	for i, v := range logInputs {
-		input := inputList[i].([]byte)
-		convert := vmcommon.BytesConverter(input, v.Type)
-		result := fmt.Sprintf("%v,", convert)
-		data = append(data, []byte(result)...)
-	}
-	return data, nil
-}
-
 func (service *MercuryFullChainService) convertReceiptLog(src model2.Receipt) (*model2.Receipt, error) {
 	stateRoot := service.CurrentBlock().StateRoot()
 	stateDB, err := service.ChainReader.AccountStateDB(stateRoot)
@@ -1603,7 +1517,7 @@ func (service *MercuryFullChainService) convertReceiptLog(src model2.Receipt) (*
 		return nil, err
 	}
 
-	abi := vm.WasmAbi{}
+	abi := utils.WasmAbi{}
 	err = abi.FromJson(dataAbi)
 	if err != nil {
 		return nil, err
@@ -1612,8 +1526,8 @@ func (service *MercuryFullChainService) convertReceiptLog(src model2.Receipt) (*
 	logs := make([]*model2.Log, 0)
 	for _, value := range src.Logs {
 		for _, function := range abi.AbiArr {
-			if function.Type == "event" && function.Name == value.TopicName {
-				data, innerErr := convertLogData(value.Data, function.Inputs)
+			if strings.EqualFold(function.Type, "event") && strings.EqualFold(function.Name, value.TopicName) {
+				data, innerErr := utils.ConvertInputs(value.Data, function.Inputs)
 				if innerErr != nil {
 					return nil, innerErr
 				}
@@ -1678,4 +1592,326 @@ func (service *MercuryFullChainService) GetReceiptByTxHash(txHash common.Hash) (
 		}
 	}
 	return nil, g_error.ErrReceiptNotFound
+}
+
+func (service *MercuryFullChainService) SendTransactionContract(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
+	//start:=time.Now()
+	// automatic transfer need this
+	if from.IsEqual(common.Address{}) {
+		from = service.DefaultAccount
+		if from.IsEqual(common.Address{}) {
+			return common.Hash{}, errors.New("no default account in this node")
+		}
+	}
+
+	extraData, err := service.getExtraData(to, data)
+	if err != nil {
+		return common.Hash{}, err
+	}
+
+	tmpWallet, usedNonce, err := service.getSendTxInfo(from, nonce)
+	if err != nil {
+		log.Error("MercuryFullChainService#SendTransactionContractCreate", "err", err)
+		return common.Hash{}, err
+	}
+
+	tx := model.NewTransactionSc(usedNonce, &to, value, gasPrice, gasLimit.Uint64(), extraData)
+	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
+	if err != nil {
+		pbft_log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
+		log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
+		return common.Hash{}, err
+	}
+
+	//log.Info("send transaction", "txId", signTx.CalTxId().Hex())
+	//log.Info("send transaction", "gasPrice", signTx.GetGasPrice())
+	//log.Info("send transaction", "gas limit", signTx.GetGasLimit())
+	signJson, _ := json.Marshal(signTx)
+	//txJson,_ := json.Marshal(tx)
+	pbft_log.Info("send transaction", "signTx json", string(signJson))
+	//pbft_log.Info("send transaction", "tx json", string(txJson))
+	//log.Info("send transaction", "signTx json", string(signJson))
+	pbft_log.Info("send transaction", "signTx", signTx.String())
+	pbft_log.Info("send transaction", "txId", signTx.CalTxId().Hex())
+	txHash := signTx.CalTxId()
+	log.Info("the SendTransaction txId is: ", "txId", txHash.Hex(), "txSize", signTx.Size())
+	return txHash, nil
+}
+
+/*func (service *MercuryFullChainService) getExtraData(to common.Address, data []byte) ([]byte, error) {
+	var extraData []byte
+	if !to.IsEqual(common.HexToAddress(common.AddressContractCreate)) {
+		state, err := service.ChainReader.CurrentState()
+		code, err := state.GetCode(to)
+		if err != nil {
+			log.Error("getExtraData#GetCode failed", "err", err)
+			return nil, err
+		}
+
+		extraData, err = vmcommon.ParseAndGetRlpData(code, data)
+		if err != nil {
+			log.Error("getExtraData#ParseData failed", "err", err)
+			return nil, err
+		}
+	} else {
+		extraData = data
+	}
+	return extraData, nil
+}*/
+
+func (service *MercuryFullChainService) getExtraData(to common.Address, data []byte) ([]byte, error) {
+	var extraData []byte
+	if !to.IsEqual(common.HexToAddress(common.AddressContractCreate)) {
+		state, err := service.ChainReader.CurrentState()
+		code, err := state.GetCode(to)
+		if err != nil {
+			log.Error("getExtraData#GetCode failed", "err", err)
+			return nil, err
+		}
+
+		extraData, err = utils.ParseAndGetRlpData(code, data)
+		if err != nil {
+			log.Error("getExtraData#ParseData failed", "err", err)
+			return nil, err
+		}
+	} else {
+		extraData = data
+	}
+	return extraData, nil
+}
+
+// CallArgs represents the arguments for a call.
+type CallArgs struct {
+	From     common.Address  `json:"from"`
+	To       *common.Address `json:"to"`
+	Gas      hexutil.Uint64  `json:"gas"`
+	GasPrice hexutil.Big     `json:"gasPrice"`
+	Value    hexutil.Big     `json:"value"`
+	Data     hexutil.Bytes   `json:"data"`
+}
+
+// CallContract executes the given transaction on the state for the given block number.
+// It doesn't make and changes in the state/block chain and is useful to execute and retrieve values.
+func (service *MercuryFullChainService) CallContract(from, to common.Address, data []byte, blockNum uint64) (hexutil.Bytes, error) {
+	var gasLimit uint64
+	if blockNum == 0 {
+		gasLimit = service.CurrentBlock().Header().GetGasLimit()
+	} else {
+		block, err := service.GetBlockByNumber(blockNum)
+		if err != nil {
+			return nil, err
+		}
+		gasLimit = block.Header().GetGasLimit()
+	}
+
+	extraData, err := service.getExtraData(to, data)
+	if err != nil {
+		return nil, err
+	}
+
+	args := CallArgs{
+		From: from,
+		To:   &to,
+		Data: extraData,
+		Gas:  hexutil.Uint64(gasLimit),
+	}
+	result, _, err := service.doCall(args, blockNum, 5*time.Second)
+	return (hexutil.Bytes)(result), err
+}
+
+func (service *MercuryFullChainService) EstimateGas(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (hexutil.Uint64, error) {
+	if value == nil {
+		value = new(big.Int).SetUint64(0)
+	}
+
+	if gasLimit == nil || gasPrice == nil {
+		return hexutil.Uint64(0), errors.New("gasLimit or gasPrice are nil")
+	}
+
+	extraData, err := service.getExtraData(to, data)
+	if err != nil {
+		return hexutil.Uint64(0), err
+	}
+
+	args := CallArgs{
+		From:     from,
+		To:       &to,
+		Gas:      hexutil.Uint64(gasLimit.Uint64()),
+		GasPrice: hexutil.Big(*gasPrice),
+		Value:    hexutil.Big(*value),
+		Data:     hexutil.Bytes(extraData),
+	}
+	return service.estimateGas(args)
+}
+
+// EstimateGas returns an estimate of the amount of gas needed to execute the
+// given transaction against the current block.
+func (service *MercuryFullChainService) estimateGas(args CallArgs) (hexutil.Uint64, error) {
+	log.Info("estimateGas Start")
+
+	// Binary search the gas requirement, as it may be higher than the amount used
+	block := service.CurrentBlock()
+	var (
+		low      = model2.TxGas - 1
+		high     uint64
+		capacity uint64
+	)
+	if uint64(args.Gas) >= model2.TxGas {
+		high = uint64(args.Gas)
+	} else {
+		// Retrieve the current pending block to act as the gas ceiling
+		high = block.Header().GetGasLimit()
+	}
+	capacity = high
+
+	// Create a helper to check if a gas allowance results in an executable transaction
+	executable := func(gas uint64) bool {
+		args.Gas = hexutil.Uint64(gas)
+		_, failed, err := service.doCall(args, block.Number(), 0)
+		if err != nil || failed {
+			return false
+		}
+		return true
+	}
+
+	// Execute the binary search and hone in on an executable gas limit
+	index := 0
+	log.Info("executable Start", "low", low, "high", high, "cap", capacity)
+	for low+1 < high {
+		mid := (high + low) / 2
+		if !executable(mid) {
+			low = mid
+		} else {
+			high = mid
+		}
+		index++
+	}
+	log.Info("executable End", "times", index, "low", low, "high", high, "cap", capacity)
+
+	// Reject the transaction as invalid if it still fails at the highest allowance
+	if high == capacity {
+		if !executable(high) {
+			return 0, fmt.Errorf("gas required exceeds allowance or always failing transaction")
+		}
+	}
+	return hexutil.Uint64(high), nil
+}
+
+func (service *MercuryFullChainService) GetBlockHashByNumber(number uint64) common.Hash {
+	block, _ := service.GetBlockByNumber(number)
+	return block.Hash()
+}
+
+func (service *MercuryFullChainService) doCall(args CallArgs, blockNum uint64, timeout time.Duration) ([]byte, bool, error) {
+	defer func(start time.Time) { log.Debug("Executing EVM call finished", "runtime", time.Since(start)) }(time.Now())
+
+	var (
+		state *state_processor.AccountStateDB
+		err   error
+	)
+	if blockNum == 0 {
+		state, err = service.ChainReader.CurrentState()
+	} else {
+		state, err = service.ChainReader.StateAtByBlockNumber(blockNum)
+	}
+
+	if state == nil || err != nil {
+		return nil, false, err
+	}
+
+	// Set sender address or use a default if none specified
+	from := args.From
+	if from == (common.Address{}) {
+		if wallets := service.WalletManager.Wallets; len(wallets) > 0 {
+			accs, innerErr := wallets[0].Accounts()
+			if innerErr != nil {
+				return nil, false, innerErr
+			}
+			if len(accs) > 0 {
+				from = accs[0].Address
+			}
+		}
+	}
+
+	// Set to address or use a default if none specified
+	to := args.To
+	if to == nil {
+		createAddr := common.HexToAddress(common.AddressContractCreate)
+		to = &createAddr
+	}
+
+	// Set default gas & gas price if none were set
+	gas, gasPrice, value := uint64(args.Gas), args.GasPrice.ToInt(), args.Value.ToInt()
+	if gas == 0 {
+		gas = math.MaxUint64 / 2
+	}
+	if gasPrice.Sign() == 0 {
+		gasPrice = new(big.Int).SetUint64(uint64(config.DEFAULT_GAS_PRICE))
+	}
+	if value.Sign() == 0 {
+		gasPrice = new(big.Int).SetUint64(uint64(1))
+	}
+
+	// Create tmpTransaction
+	tmpWallet, usedNonce, err := service.getSendTxInfo(from, nil)
+	if err != nil {
+		log.Error("doCall#getSendTxInfo failed", "err", err)
+		return nil, false, err
+	}
+
+	tmpTx := model.NewTransactionSc(usedNonce, to, value, gasPrice, gas, args.Data)
+	fromAccount := accounts.Account{Address: from}
+	signedTx, err := tmpWallet.SignTx(fromAccount, tmpTx, service.ChainConfig.ChainId)
+	if err != nil {
+		log.Error("doCall#SignTx failed", "err", err)
+		return nil, false, err
+	}
+
+	// GetBlock
+	block, _ := service.GetBlockByNumber(blockNum)
+
+	// Setup context so it may be cancelled the call has completed
+	// or, in case of unmetered gas, setup a context with a timeout.
+	ctx := context.Background()
+	var cancel context.CancelFunc
+	if timeout > 0 {
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+	} else {
+		ctx, cancel = context.WithCancel(ctx)
+	}
+	// Make sure the context is cancelled when the call has completed
+	// this makes sure resources are cleaned up.
+	defer cancel()
+
+	// Create NewVM
+	signedTx.PaddingTxIndex(0)
+	conText := vm.NewVMContext(signedTx, block.Header(), service.GetBlockHashByNumber)
+	fullState := state_processor.NewFullState(state)
+	dvm := vm.NewVM(conText, fullState, vm.DEFAULT_VM_CONFIG)
+
+	/*	// Wait for the context to be done and cancel the evm. Even if the
+		// EVM has finished, cancelling may be done (repeatedly)
+		go func() {
+			<-ctx.Done()
+			dvm.Cancel()
+		}()*/
+
+	// Setup the gas pool (also for unmetered requests)
+	// and apply the message.
+	gp := uint64(math.MaxUint64)
+	msg, err := signedTx.AsMessage()
+	if err != nil {
+		log.Error("doCall#AsMessage failed", "err", err)
+		return nil, false, err
+	}
+	result, _, failed, _, err := state_processor.ApplyMessage(dvm, msg, &gp)
+	if err != nil {
+		log.Error("doCall#ApplyMessage failed", "err", err)
+		return result, failed, err
+	}
+	if failed {
+		log.Error("doCall#RunVm failed", "err", err)
+		return result, failed, err
+	}
+	return result, failed, nil
 }

@@ -37,8 +37,6 @@ import (
 	"time"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"fmt"
-	"github.com/dipperin/dipperin-core/core/vm"
 )
 
 var testFee = economy_model.GetMinimumTxFee(1000)
@@ -1240,20 +1238,4 @@ func TestMercuryFullChainService_Metrics(t *testing.T) {
 	service.Metrics(false)
 	service.NewBlock(context.Background())
 	service.SubscribeBlock(context.Background())
-}
-
-func TestMercuryFullChainService_GetConvertReceiptByTxHash(t *testing.T) {
-	inputParam1 := vm.InputParam{
-		Type: "string",
-	}
-	inputParam2 := vm.InputParam{
-		Type: "string",
-	}
-	inputParam3 := vm.InputParam{
-		Type: "uint64",
-	}
-	data := []byte{242, 128, 172, 48, 48, 48, 48, 52, 49, 55, 57, 100, 53, 55, 101, 52, 53, 99, 98, 51, 98, 53, 52, 100, 54, 102, 97, 101, 102, 54, 57, 101, 55, 52, 54, 98, 102, 50, 52, 48, 101, 50, 56, 55, 57, 55, 56, 131, 15, 66, 64}
-	convertData, err := convertLogData(data, []vm.InputParam{inputParam1, inputParam2, inputParam3})
-	assert.NoError(t, err)
-	fmt.Println(string(convertData))
 }

@@ -1,4 +1,4 @@
-package vmcommon
+package utils
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ const (
 	ALIGN_LENGTH = 32
 )
 
-func Int16ToBytes(n int16) []byte  {
+func Int16ToBytes(n int16) []byte {
 	tmp := int16(n)
 	bytesBuffer := bytes.NewBuffer([]byte{})
 	binary.Write(bytesBuffer, binary.BigEndian, tmp)
@@ -25,14 +25,14 @@ func Uint16ToBytes(n uint16) []byte {
 	return buf
 }
 
-func BytesToInt16(b []byte) int16  {
+func BytesToInt16(b []byte) int16 {
 	bytesBuffer := bytes.NewBuffer(b)
 	var tmp int16
 	binary.Read(bytesBuffer, binary.BigEndian, &tmp)
 	return int16(tmp)
 }
 
-func BytesToUint16(b []byte) uint16  {
+func BytesToUint16(b []byte) uint16 {
 	bytesBuffer := bytes.NewBuffer(b)
 	var tmp uint16
 	binary.Read(bytesBuffer, binary.BigEndian, &tmp)
@@ -162,10 +162,10 @@ func StringConverter(source string, t string) ([]byte, error) {
 	switch t {
 	case "int16":
 		dest, err := strconv.ParseInt(source, 10, 16)
-		return Int16ToBytes(int16(dest)),err
+		return Int16ToBytes(int16(dest)), err
 	case "uint16":
 		dest, err := strconv.ParseUint(source, 10, 16)
-		return Uint16ToBytes(uint16(dest)),err
+		return Uint16ToBytes(uint16(dest)), err
 	case "int32", "int":
 		dest, err := strconv.Atoi(source)
 		return Int32ToBytes(int32(dest)), err

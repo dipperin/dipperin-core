@@ -8,7 +8,6 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/math"
-	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
@@ -128,7 +127,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 	res, err := lifeVm.Run(entryID, params...)
 	log.Info("Run lifeVm", "gasUsed", lifeVm.GasUsed, "gasLimit", lifeVm.GasLimit)
 	if err != nil {
-		fmt.Println("throw exception:", err.Error())
+		log.Error("throw exception:", "err", err)
 		return nil, err
 	}
 
@@ -146,10 +145,10 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 	case "void", "int8", "int", "int32", "int64":
 		bigRes := new(big.Int)
 		bigRes.SetInt64(res)
-		finalRes := vmcommon.Align32Bytes(math.U256(bigRes).Bytes())
+		finalRes := utils.Align32Bytes(math.U256(bigRes).Bytes())
 		return finalRes, nil
 	case "uint8", "uint16", "uint32", "uint64":
-		finalRes := vmcommon.Align32Bytes(vmcommon.Uint64ToBytes((uint64(res))))
+		finalRes := utils.Align32Bytes(utils.Uint64ToBytes((uint64(res))))
 		return finalRes, nil
 	case "string":
 		returnBytes := make([]byte, 0)
@@ -160,8 +159,8 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 			}
 			returnBytes = append(returnBytes, v)
 		}
-		strHash := common.BytesToHash(vmcommon.Int32ToBytes(32))
-		sizeHash := common.BytesToHash(vmcommon.Int64ToBytes(int64((len(returnBytes)))))
+		strHash := common.BytesToHash(utils.Int32ToBytes(32))
+		sizeHash := common.BytesToHash(utils.Int64ToBytes(int64((len(returnBytes)))))
 		var dataRealSize = len(returnBytes)
 		if (dataRealSize % 32) != 0 {
 			dataRealSize = dataRealSize + (32 - (dataRealSize % 32))
