@@ -21,13 +21,13 @@ import (
 )
 
 var (
-	AbiPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/event.cpp.abi.json")
-	WASMPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/event.wasm")
+	AbiPath  = filepath.Join(util.HomeDir(), "c++/src/dipc/testcontract/cppfile/event/event.cpp.abi.json")
+	WASMPath = filepath.Join(util.HomeDir(), "c++/src/dipc/testcontract/cppfile/event/event.wasm")
 )
 
 var (
 	AbiTokenPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/token/token.cpp.abi.json")
-	WASMTokenPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/token/token-jw.wasm")
+	WASMTokenPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/token/token-wh.wasm")
 )
 
 func LogTestPrint(function, msg string, ctx ...interface{}) {
@@ -128,8 +128,12 @@ func getCallExtraData(t *testing.T, funcName, param string) []byte {
 
 func getCreateExtraData(t *testing.T, abiPath, wasmPath string, params []string) []byte {
 	// GetContractExtraData
+	log.Info("the abiPath is:%v","abiPath",abiPath)
 	abiBytes, err := ioutil.ReadFile(abiPath)
 	assert.NoError(t, err)
+
+	//log.Info("the abiBytes is:","abiBytes",hexutil.Encode(abiBytes))
+
 	var wasmAbi utils.WasmAbi
 	err = wasmAbi.FromJson(abiBytes)
 	assert.NoError(t, err)
@@ -141,10 +145,13 @@ func getCreateExtraData(t *testing.T, abiPath, wasmPath string, params []string)
 	}
 	//params := []string{"dipp", "DIPP", "100000000"}
 	wasmBytes, err := ioutil.ReadFile(wasmPath)
+	//log.Info("the wasmBytes is:","wasmBytes",hexutil.Encode(wasmBytes))
 	assert.NoError(t, err)
 	rlpParams := []interface{}{
 		wasmBytes, abiBytes,
 	}
+
+	//log.Info("the params is:","params",params)
 	assert.Equal(t, len(params), len(args))
 	for i, v := range args {
 		bts := params[i]
@@ -156,6 +163,8 @@ func getCreateExtraData(t *testing.T, abiPath, wasmPath string, params []string)
 	data, err := rlp.EncodeToBytes(rlpParams)
 	//input, err := rlp.EncodeToBytes(inputParams)
 	assert.NoError(t, err)
+
+	//log.Info("the generate extra data is:","extraData",hexutil.Encode(data))
 	return data
 }
 

@@ -1,13 +1,14 @@
 package vm
 
 import (
+	"fmt"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/stretchr/testify/assert"
 	"math/big"
-	"github.com/dipperin/dipperin-core/common/consts"
 	"testing"
-	"github.com/dipperin/dipperin-core/tests/node-cluster"
-	"github.com/dipperin/dipperin-core/common"
-	"fmt"
 )
 
 func Test_TokenContractCall(t *testing.T) {
@@ -34,6 +35,13 @@ func Test_TokenContractCall(t *testing.T) {
 	// Get Balance
 	txHashList = CallTokenContract(t, cluster, nodeName, "getBalance", aliceAddr, addrList)
 	checkTransactionOnChain(client, txHashList)
+
+
+	//get receipt
+	receipt := model.Receipt{}
+	err = client.Call(&receipt, GetRpcTXMethod("GetConvertReceiptByTxHash"), txHashList[0])
+	assert.NoError(t,err)
+	fmt.Print("the getBalance receipt is:\r\n",receipt.String())
 }
 
 func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, times int) []common.Hash {
@@ -45,7 +53,7 @@ func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNa
 	to := common.HexToAddress(common.AddressContractCreate)
 	value := big.NewInt(100)
 	gasLimit := big.NewInt(2 * consts.DIP)
-	gasPrice := big.NewInt(2)
+	gasPrice := big.NewInt(3)
 
 	params := []string{"dipp", "DIPP", "1000000"}
 	data := getCreateExtraData(t, AbiTokenPath, WASMTokenPath, params)

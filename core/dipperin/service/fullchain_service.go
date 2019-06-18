@@ -1638,27 +1638,6 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 	return txHash, nil
 }
 
-/*func (service *MercuryFullChainService) getExtraData(to common.Address, data []byte) ([]byte, error) {
-	var extraData []byte
-	if !to.IsEqual(common.HexToAddress(common.AddressContractCreate)) {
-		state, err := service.ChainReader.CurrentState()
-		code, err := state.GetCode(to)
-		if err != nil {
-			log.Error("getExtraData#GetCode failed", "err", err)
-			return nil, err
-		}
-
-		extraData, err = vmcommon.ParseAndGetRlpData(code, data)
-		if err != nil {
-			log.Error("getExtraData#ParseData failed", "err", err)
-			return nil, err
-		}
-	} else {
-		extraData = data
-	}
-	return extraData, nil
-}*/
-
 func (service *MercuryFullChainService) getExtraData(to common.Address, data []byte) ([]byte, error) {
 	var extraData []byte
 	if !to.IsEqual(common.HexToAddress(common.AddressContractCreate)) {

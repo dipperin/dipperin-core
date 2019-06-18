@@ -1,13 +1,15 @@
 package vm
 
 import (
-	"github.com/stretchr/testify/assert"
-	"testing"
-	"github.com/dipperin/dipperin-core/tests/node-cluster"
-	"github.com/dipperin/dipperin-core/common"
 	"fmt"
-	"math/big"
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/tests/node-cluster"
+	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
 )
 
 func Test_WASMContractCall(t *testing.T) {
@@ -16,7 +18,7 @@ func Test_WASMContractCall(t *testing.T) {
 
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
-	txHashList := CreateContract(t, cluster, nodeName, 5)
+	txHashList := CreateContract(t, cluster, nodeName, 1)
 	checkTransactionOnChain(client, txHashList)
 
 	// 根据交易ID获取合约地址
@@ -28,6 +30,18 @@ func Test_WASMContractCall(t *testing.T) {
 
 	txHashList = CallContract(t, cluster, nodeName, addrList)
 	checkTransactionOnChain(client, txHashList)
+}
+
+func Test_GetReceipt(t *testing.T){
+	cluster, err := node_cluster.CreateNodeCluster()
+	assert.NoError(t, err)
+
+	nodeName := "default_v0"
+	client := cluster.NodeClient[nodeName]
+	txId:= common.HexToHash("0x9ef3eb906c570de048a463ca168a299c67261d00bf4152a9452f91a0ba907dcc")
+	//get receipt
+	receipt:=GetContractReceipt(t,client,txId)
+	fmt.Print("the receipt is:\r\n",receipt.String())
 }
 
 func CreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, times int) []common.Hash {
@@ -42,7 +56,8 @@ func CreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName st
 	gasPrice := big.NewInt(2)
 	//txFee := big.NewInt(0).Mul(gasLimit, gasPrice)
 
-	data := getCreateExtraData(t, AbiPath, WASMPath, nil)
+	params := []string{"dipp", "DIPP", "1000000"}
+	data := getCreateExtraData(t, AbiPath, WASMPath, params)
 	var txHashList []common.Hash
 	for i := 0; i < times; i++ {
 		txHash, innerErr := SendTransactionContract(client, from, to, value, gasLimit, gasPrice, data)
@@ -64,7 +79,7 @@ func CallContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName stri
 
 	value := big.NewInt(100)
 	gasLimit := big.NewInt(2 * consts.DIP)
-	gasPrice := big.NewInt(1)
+	gasPrice := big.NewInt(2)
 
 	var txHashList []common.Hash
 	for i := 0; i < len(addrList); i++ {
@@ -74,4 +89,12 @@ func CallContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName stri
 		txHashList = append(txHashList, txHash)
 	}
 	return txHashList
+}
+
+func GetContractReceipt(t *testing.T,client *rpc.Client,txId common.Hash) *model.Receipt{
+	receipt := model.Receipt{}
+	err := client.Call(&receipt, GetRpcTXMethod("GetConvertReceiptByTxHash"), txId)
+	assert.NoError(t,err)
+
+	return &receipt
 }

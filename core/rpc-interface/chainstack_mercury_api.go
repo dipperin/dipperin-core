@@ -1230,3 +1230,4 @@ func (api *DipperinMercuryApi) CallContract(from, to common.Address, data []byte
 func (api *DipperinMercuryApi) EstimateGas(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (hexutil.Uint64, error) {
 	return api.service.EstimateGas(from, to, value, gasLimit, gasPrice, data, nonce)
 }
+
