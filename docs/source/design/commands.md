@@ -83,46 +83,6 @@ rm .dipperin -fr
 restart command line tool
 
 
-## How to operate test node
-
-### Start-up
-
-```
-cs_ci_ex
-```
-
-### Connect to test node
-
-```
-rpc default-c ${TestServer}:10004
-```
-
-### Perform related operations
-
-Transfer money:
-```
-rpc -n m0 -m ListWallet
-rpc -n m0 -m ListWalletAccount -p SoftWallet,/home/qydev/tmp/dipperin_apps/default_m0/CSWallet,CSWallet
-rpc -n m0 -m SendTransaction -p [from],[to],20000,10
-```
-
-### Error
-
-When executing the above command,it is prompted that connect refused is caused by not connecting to the node.
-
-Generally, it is caused by changes in IP or port.
-
-If the IP of the test server is unchanged,you can log in to test the deployment interface to see the actual port number of the node.
-
-Connect again
-
-Test Deployment Interface Links：
-`http://${TestServer}:8889/nodes`.
-
-```
-rpc default -c ${TestServer}:[actual port number]
-```
-
 ## Related Functional Operations
 
 Separate multiple parameters by','
@@ -135,24 +95,24 @@ rpc -m [MethodName] -p [parameters]
 
 Get current block:
 ```
-rpc -m CurrentBlock
+chain CurrentBlock
 ```
 
 Get genesis block:
 ```
-rpc -m GetGenesis
+chain GetGenesis
 ```
 
 Get block by number
 ```
-rpc -m GetBlockByNumber -p [blockNumber]
-rpc -m GetBlockByNumber -p 1
+chain GetBlockByNumber -p [blockNumber]
+chain GetBlockByNumber -p 1
 ```
 
 Get block by block hash:
 ```
-rpc -m GetBlockByHash -p [blockHash]
-rpc -m GetBlockByHash -p  0x0f7057ff3e3048ed38c0ac2353e001dad6aded5d825d43fcc924a39221713e4c
+chain GetBlockByHash -p [blockHash]
+chain GetBlockByHash -p  0x0f7057ff3e3048ed38c0ac2353e001dad6aded5d825d43fcc924a39221713e4c
 ```
 
 ### Miner master
