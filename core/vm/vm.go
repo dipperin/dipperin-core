@@ -95,6 +95,7 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 	// The contract is a scoped environment for this execution context only.
 	contract := NewContract(caller, to, value, gas, input)
 	contract.SetCallCode(&addr, vm.state.GetCodeHash(addr), vm.state.GetCode(addr))
+	contract.SetCallAbi(&addr, vm.state.GetAbiHash(addr), vm.state.GetAbi(addr))
 
 	//start := time.Now()
 
@@ -130,13 +131,14 @@ func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, inp
 	}
 
 	var (
-		snapshot = vm.GetStateDB().Snapshot()
+		snapshot = vm.state.Snapshot()
 		to       = AccountRef(caller.Address())
 	)
 
 	// Initialise a new contract and make initialise the delegate values
 	contract := NewContract(caller, to, nil, gas, input).AsDelegate()
-	contract.SetCallCode(&addr, vm.GetStateDB().GetCodeHash(addr), vm.GetStateDB().GetCode(addr))
+	contract.SetCallCode(&addr, vm.state.GetCodeHash(addr), vm.state.GetCode(addr))
+	contract.SetCallAbi(&addr, vm.state.GetAbiHash(addr), vm.state.GetAbi(addr))
 
 	ret, err = run(vm, contract, false)
 	if err != nil {
@@ -179,12 +181,13 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 	// initialise a new contract and set the data that is to be used by the
 	// EVM. The contract is a scoped environment for this execution context
 	// only.
-	code, init, err := parseInitParams(data)
+	code, abi, rlpInit, err := parseCreateExtraData(data)
 	if err != nil {
 		return nil, common.Address{}, 0, err
 	}
-	contract := NewContract(caller, AccountRef(address), value, gas, init)
+	contract := NewContract(caller, AccountRef(address), value, gas, rlpInit)
 	contract.SetCallCode(&address, cs_crypto.Keccak256Hash(code), code)
+	contract.SetCallAbi(&address, cs_crypto.Keccak256Hash(abi), abi)
 
 	if vm.vmConfig.NoRecursion && vm.depth > 0 {
 		return nil, address, gas, nil
@@ -204,10 +207,11 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 	// by the error checking condition below.
 	if err == nil && !maxCodeSizeExceeded {
 		log.Info("LifeVm run successful", "gasLeft", contract.Gas)
-		createDataGas := uint64(len(ret)) * model2.CreateDataGas
+		createDataGas := uint64(len(ret)+len(abi)) * model2.CreateDataGas
 		if contract.UseGas(createDataGas) {
 			vm.state.SetCode(address, ret)
-			log.Info("CreateDataGas Use", "codeLen", len(ret), "gasUsed", createDataGas, "gasLeft", contract.Gas)
+			vm.state.SetAbi(address, abi)
+			log.Info("CreateDataGas Use", "gasUsed", createDataGas, "gasLeft", contract.Gas)
 		} else {
 			err = g_error.ErrCodeStoreOutOfGas
 		}

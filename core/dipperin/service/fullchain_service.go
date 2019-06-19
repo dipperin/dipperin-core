@@ -1510,12 +1510,7 @@ func (service *MercuryFullChainService) GetABI(contractAddr common.Address) (*ut
 	}
 
 	fullState := state_processor.NewFullState(stateDB)
-	code := fullState.GetCode(contractAddr)
-	_, dataAbi, err := vm.ParseRlpData(code)
-	if err != nil {
-		log.Info("GetABI failed", "err", err)
-		return nil, err
-	}
+	dataAbi := fullState.GetAbi(contractAddr)
 
 	var abi utils.WasmAbi
 	err = abi.FromJson(dataAbi)
@@ -1641,7 +1636,6 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 		return common.Hash{}, err
 	}
 
-	log.Info("!!!!!!!", "extraData", extraData)
 	tx := model.NewTransactionSc(usedNonce, &to, value, gasPrice, gasLimit.Uint64(), extraData)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
@@ -1673,14 +1667,14 @@ func (service *MercuryFullChainService) getExtraData(to common.Address, data []b
 			return nil, err
 		}
 
-		code, err := state.GetCode(to)
+		abi, err := state.GetAbi(to)
 		if err != nil {
-			log.Error("getExtraData#GetCode failed", "err", err)
+			log.Error("getExtraData#GetABI failed", "err", err)
 			return nil, err
 		}
 
 		log.Info("ParseCallContractData")
-		extraData, err = utils.ParseCallContractData(code, data)
+		extraData, err = utils.ParseCallContractData(abi, data)
 		if err != nil {
 			log.Error("getExtraData#ParseData failed", "err", err)
 			return nil, err
@@ -1967,7 +1961,7 @@ func (service *MercuryFullChainService) doCall(args CallArgs, blockNum uint64, t
 }
 
 func (service *MercuryFullChainService) checkConstant(to common.Address, data []byte) (bool, string, *utils.WasmAbi, error) {
-	funcName, err := vm.ParseInputGetFuncName(data)
+	funcName, err := vm.ParseInputForFuncName(data)
 	if err != nil {
 		return false, "", nil, err
 	}

@@ -24,8 +24,8 @@ var (
 )
 
 var (
-	AbiTokenPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/token/token.cpp.abi.json")
-	WASMTokenPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/token/token-wh.wasm")
+	AbiTokenPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/tokenConstant/token.cpp.abi.json")
+	WASMTokenPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/tokenConstant/token.wasm")
 )
 
 func LogTestPrint(function, msg string, ctx ...interface{}) {
@@ -55,6 +55,16 @@ func SendTransactionContract(client *rpc.Client, from, to common.Address, value,
 	}
 	LogTestPrint("Test", "SendContract Successful", "txId", resp.Hex())
 	return resp, nil
+}
+
+func Call(client *rpc.Client, from, to common.Address, data []byte) error {
+	var resp string
+	if err := client.Call(&resp, GetRpcTXMethod("CallContract"), from, to, data, uint64(0)); err != nil {
+		LogTestPrint("Test", "CallContract failed", "err", err)
+		return err
+	}
+	LogTestPrint("Test", "CallContract Successful", "resp", resp)
+	return nil
 }
 
 func Transaction(client *rpc.Client, hash common.Hash) (bool, uint64) {

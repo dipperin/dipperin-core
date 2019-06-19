@@ -18,10 +18,10 @@ var (
 )
 
 // RLP([code][abi][init params])
-func ParseCallContractData(rlpData []byte, input []byte) (extraData []byte, err error) {
-	// decode input
+func ParseCallContractData(abi []byte, rlpInput []byte) (extraData []byte, err error) {
+	// decode rlpInput
 	inputPtr := new(interface{})
-	err = rlp.Decode(bytes.NewReader(input), &inputPtr)
+	err = rlp.Decode(bytes.NewReader(rlpInput), &inputPtr)
 	if err != nil {
 		return
 	}
@@ -34,28 +34,6 @@ func ParseCallContractData(rlpData []byte, input []byte) (extraData []byte, err 
 	var funcName string
 	if v, ok := inRlpList[0].([]byte); ok {
 		funcName = string(v)
-	}
-
-	// decode code and abi
-	ptr := new(interface{})
-	err = rlp.Decode(bytes.NewReader(rlpData), &ptr)
-	if err != nil {
-		return
-	}
-
-	rlpList := reflect.ValueOf(ptr).Elem().Interface()
-	if _, ok := rlpList.([]interface{}); !ok {
-		return nil, errReturnInvalidRlpFormat
-	}
-
-	iRlpList := rlpList.([]interface{})
-	if len(iRlpList) < 2 {
-		return nil, errReturnInsufficientParams
-	}
-
-	var abi []byte
-	if v, ok := iRlpList[1].([]byte); ok {
-		abi = v
 	}
 
 	wasmAbi := new(WasmAbi)
@@ -79,7 +57,7 @@ func ParseCallContractData(rlpData []byte, input []byte) (extraData []byte, err 
 
 	params := strings.Split(paramStr, ",")
 	if len(args) != len(params) {
-		log.Debug("ParseCallContractData failed", "err", fmt.Sprintf("input:%v, abi:%v", len(params), len(args)))
+		log.Debug("ParseCallContractData failed", "err", fmt.Sprintf("rlpInput:%v, abi:%v", len(params), len(args)))
 		return nil, errLengthInputAbiNotMatch
 	}
 

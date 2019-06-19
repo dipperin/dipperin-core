@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
-	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -33,15 +32,10 @@ func Test_TokenContractCall(t *testing.T) {
 	checkTransactionOnChain(client, txHashList)
 
 	// Get Balance
-	txHashList = CallTokenContract(t, cluster, nodeName, "getBalance", aliceAddr, addrList)
-	fmt.Println(txHashList)
-	checkTransactionOnChain(client, txHashList)
-
-
-	//get receipt
-	receipt := model.Receipt{}
-	err = client.Call(&receipt, GetRpcTXMethod("GetConvertReceiptByTxHash"), txHashList[0])
-	assert.NoError(t,err)
+	from, err := cluster.GetNodeMainAddress(nodeName)
+	input := getCallExtraData(t, "getBalance", aliceAddr)
+	err = Call(client, from, addrList[0], input)
+	assert.NoError(t, err)
 }
 
 func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, times int) []common.Hash {
