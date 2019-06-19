@@ -34,6 +34,7 @@ func Test_TokenContractCall(t *testing.T) {
 
 	// Get Balance
 	txHashList = CallTokenContract(t, cluster, nodeName, "getBalance", aliceAddr, addrList)
+	fmt.Println(txHashList)
 	checkTransactionOnChain(client, txHashList)
 
 
@@ -41,7 +42,6 @@ func Test_TokenContractCall(t *testing.T) {
 	receipt := model.Receipt{}
 	err = client.Call(&receipt, GetRpcTXMethod("GetConvertReceiptByTxHash"), txHashList[0])
 	assert.NoError(t,err)
-	fmt.Print("the getBalance receipt is:\r\n",receipt.String())
 }
 
 func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, times int) []common.Hash {
@@ -55,8 +55,8 @@ func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNa
 	gasLimit := big.NewInt(2 * consts.DIP)
 	gasPrice := big.NewInt(3)
 
-	params := []string{"dipp", "DIPP", "1000000"}
-	data := getCreateExtraData(t, AbiTokenPath, WASMTokenPath, params)
+	params := "dipp,DIPP,1000000"
+	data := getCreateExtraData(t, WASMTokenPath, AbiTokenPath, params)
 
 	var txHashList []common.Hash
 	for i := 0; i < times; i++ {

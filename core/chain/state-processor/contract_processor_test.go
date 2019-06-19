@@ -113,10 +113,10 @@ func newContractCallTx(from *common.Address, to *common.Address, gasPrice *big.I
 		return
 	}
 
-	extraData, err := vmcommon.ParseAndGetRlpData(code, inputRlp)
+	extraData, err := utils.ParseCallContractData(code, inputRlp)
 
 	if err != nil {
-		log.Error("ParseAndGetRlpData  inputRlp", "err", err)
+		log.Error("ParseCallContractData  inputRlp", "err", err)
 		return
 	}
 
@@ -129,7 +129,7 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	tx1 := createContractTx(t, testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
 	contractAddr := cs_crypto.CreateContractAddress(aliceAddr, 0)
 	name := []byte("ProcessContract")
-	num := vmcommon.Int64ToBytes(456)
+	num := utils.Int64ToBytes(456)
 	param := [][]byte{name, num}
 	tx2 := callContractTx(t, &contractAddr, "hello", param, 1)
 
@@ -587,7 +587,7 @@ func getExtraData(t *testing.T, abiPath, wasmPath string, params []string) (erro
 	assert.Equal(t, len(params), len(args))
 	for i, v := range args {
 		bts := params[i]
-		re, err := vmcommon.StringConverter(bts, v.Type)
+		re, err := utils.StringConverter(bts, v.Type)
 		assert.NoError(t, err)
 		rlpParams = append(rlpParams, re)
 		//inputParams = append(inputParams, re)

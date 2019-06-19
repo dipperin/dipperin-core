@@ -6,14 +6,20 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"reflect"
-	"strconv"
 	"strings"
 	"fmt"
 )
 
-//  RLP([code][abi][init params])
-func ParseAndGetRlpData(rlpData []byte, input []byte) (extraData []byte, err error) {
+var (
+	errReturnInvalidRlpFormat    = errors.New("vm_utils: invalid rlp format")
+	errReturnInsufficientParams  = errors.New("vm_utils: invalid input. ele must greater than 1")
+	errReturnInvalidOutputLength = errors.New("vm_utils: invalid init function outputs length")
+	errLengthInputAbiNotMatch    = errors.New("vm_utils: length of input and abi not match")
+)
 
+// RLP([code][abi][init params])
+func ParseCallContractData(rlpData []byte, input []byte) (extraData []byte, err error) {
+	// decode input
 	inputPtr := new(interface{})
 	err = rlp.Decode(bytes.NewReader(input), &inputPtr)
 	if err != nil {
@@ -21,50 +27,41 @@ func ParseAndGetRlpData(rlpData []byte, input []byte) (extraData []byte, err err
 	}
 	inputRlpList := reflect.ValueOf(inputPtr).Elem().Interface()
 	if _, ok := inputRlpList.([]interface{}); !ok {
-		return nil, errors.New("call contract: invalid input param")
+		return nil, errReturnInvalidRlpFormat
 	}
+
 	inRlpList := inputRlpList.([]interface{})
 	var funcName string
 	if v, ok := inRlpList[0].([]byte); ok {
 		funcName = string(v)
 	}
 
-	var paramStr string
-	if v, ok := inRlpList[1].([]byte); ok {
-		paramStr = string(v)
-	}
-
-	params := strings.Split(paramStr, ",")
-
+	// decode code and abi
 	ptr := new(interface{})
 	err = rlp.Decode(bytes.NewReader(rlpData), &ptr)
 	if err != nil {
 		return
 	}
-	rlpList := reflect.ValueOf(ptr).Elem().Interface()
 
+	rlpList := reflect.ValueOf(ptr).Elem().Interface()
 	if _, ok := rlpList.([]interface{}); !ok {
-		return nil, errors.New("call contract: invalid rlp format")
+		return nil, errReturnInvalidRlpFormat
 	}
 
 	iRlpList := rlpList.([]interface{})
 	if len(iRlpList) < 2 {
-		return nil, errors.New("invalid input, ele must greater than 1")
+		return nil, errReturnInsufficientParams
 	}
-	var (
-		abi []byte
-	)
 
+	var abi []byte
 	if v, ok := iRlpList[1].([]byte); ok {
 		abi = v
 	}
 
 	wasmAbi := new(WasmAbi)
 	err = wasmAbi.FromJson(abi)
-	//err = json.Unmarshal(abi, wasmAbi)
 	if err != nil {
-		log.Error("ParseAndGetRlpData abi from json", "err", err)
-		return nil, errors.New("call contract: invalid abi, encoded fail")
+		return nil, err
 	}
 
 	var args []InputParam
@@ -75,11 +72,15 @@ func ParseAndGetRlpData(rlpData []byte, input []byte) (extraData []byte, err err
 		}
 	}
 
-	//log.Info("the args is:","args",args)
-	//log.Info("the params is:","params",params)
+	var paramStr string
+	if v, ok := inRlpList[1].([]byte); ok {
+		paramStr = string(v)
+	}
 
+	params := strings.Split(paramStr, ",")
 	if len(args) != len(params) {
-		return nil, errors.New(fmt.Sprintf("LenInput and LenAbi not match, abi:%v, input:%v", len(args), len(params)))
+		log.Debug("ParseCallContractData failed", "err", fmt.Sprintf("input:%v, abi:%v", len(params), len(args)))
+		return nil, errLengthInputAbiNotMatch
 	}
 
 	rlpParams := []interface{}{
@@ -97,85 +98,79 @@ func ParseAndGetRlpData(rlpData []byte, input []byte) (extraData []byte, err err
 	return rlp.EncodeToBytes(rlpParams)
 }
 
-func GetRlpPrarmsList(rlpParams []interface{}, args []InputParam, params []string) (err error) {
+// RLP([code][abi][init params])
+func ParseCreateContractData(rlpData []byte) (extraData []byte, err error) {
+	ptr := new(interface{})
+	err = rlp.Decode(bytes.NewReader(rlpData), &ptr)
+	if err != nil {
+		return
+	}
+
+	rlpList := reflect.ValueOf(ptr).Elem().Interface()
+	if _, ok := rlpList.([]interface{}); !ok {
+		return nil, errReturnInvalidRlpFormat
+	}
+
+	iRlpList := rlpList.([]interface{})
+	if len(iRlpList) <= 1 {
+		return nil, errReturnInsufficientParams
+	}
+
+	// return if no init params
+	if len(iRlpList) == 2 {
+		log.Info("init function has no params", "len", len(iRlpList))
+		return rlpData, nil
+	}
+
+	var wasmBytes []byte
+	if v, ok := iRlpList[0].([]byte); ok {
+		wasmBytes = v
+	}
+
+	var abiBytes []byte
+	if v, ok := iRlpList[1].([]byte); ok {
+		abiBytes = v
+	}
+
+	var abi WasmAbi
+	err = abi.FromJson(abiBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	var args []InputParam
+	for _, v := range abi.AbiArr {
+		if strings.EqualFold(v.Name, "init") && strings.EqualFold(v.Type, "function") {
+			args = v.Inputs
+			if len(v.Outputs) != 0 {
+				return nil, errReturnInvalidOutputLength
+			}
+			break
+		}
+	}
+
+	var paramStr string
+	if v, ok := iRlpList[2].([]byte); ok {
+		paramStr = string(v)
+	}
+
+	params := strings.Split(paramStr, ",")
+	if len(args) != len(params) {
+		log.Debug("ParseCreateContractData failed", "err", fmt.Sprintf("input:%v, abi:%v", len(params), len(args)))
+		return nil, errLengthInputAbiNotMatch
+	}
+
+	rlpParams := []interface{}{
+		wasmBytes, abiBytes,
+	}
+
 	for i, v := range args {
 		bts := params[i]
-		result, err := StringConverter(bts, v.Type)
-		if err != nil {
-
+		re, innerErr := StringConverter(bts, v.Type)
+		if innerErr != nil {
+			return re, innerErr
 		}
-		rlpParams = append(rlpParams, result)
-		/*switch v.Type {
-		case "string":
-			rlpParams = append(rlpParams, bts)
-		case "int8":
-			result, err := strconv.ParseInt(bts, 10, 8)
-			if err != nil {
-				return errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "int16":
-			result, err := strconv.ParseInt(bts, 10, 16)
-			if err != nil {
-				return errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "int32", "int":
-			result, err := strconv.ParseInt(bts, 10, 32)
-			if err != nil {
-				return errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "int64":
-
-			result, err := strconv.ParseInt(bts, 10, 64)
-			if err != nil {
-				return errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "uint8":
-			result, err := strconv.ParseUint(bts, 10, 8)
-			if err != nil {
-				return errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "uint32", "uint":
-			result, err := strconv.ParseUint(bts, 10, 32)
-			if err != nil {
-				return  errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "uint64":
-			result, err := strconv.ParseUint(bts, 10, 64)
-			if err != nil {
-				return errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		case "bool":
-			result, err := strconv.ParseBool(bts)
-			if err != nil {
-				return nil, errors.New("contract param type is wrong")
-			}
-			rlpParams = append(rlpParams, result)
-		}*/
+		rlpParams = append(rlpParams, re)
 	}
-	return
-}
-
-func ParseStringToUintRlpByte(param string, bitSize int) (result []byte, err error) {
-	r, err := strconv.ParseUint(param, 10, bitSize)
-	if err != nil {
-		return nil, errors.New("contract param type is wrong")
-	}
-	result = Uint64ToBytes(r)
-	return
-}
-
-func ParseStringTointRlpByte(param string, bitSize int) (result []byte, err error) {
-	r, err := strconv.ParseUint(param, 10, bitSize)
-	if err != nil {
-		return nil, errors.New("contract param type is wrong")
-	}
-	result = Uint64ToBytes(r)
-	return
+	return rlp.EncodeToBytes(rlpParams)
 }

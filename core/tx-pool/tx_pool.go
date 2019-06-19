@@ -377,7 +377,7 @@ func (pool *TxPool) validateTx(tx model.AbstractTransaction, local bool) error {
 	//log.Info("[validateTx] the pool.config.MinFee is: ", "mineFee", pool.config.MinFee)
 	//log.Info("[validateTx] the tx.fee is: ", "txFee", tx.Fee())
 
-	if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContract{
+	if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContractCall {
 		gas, err := model.IntrinsicGas(tx.ExtraData(), tx.GetType() == common.AddressTypeContractCreate , true)
 		if err !=nil{
 			return err

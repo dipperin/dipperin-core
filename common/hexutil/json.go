@@ -23,7 +23,6 @@ import (
 	"math/big"
 	"reflect"
 	"strconv"
-	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 var (
@@ -202,13 +201,11 @@ func (b Uint64) MarshalText() ([]byte, error) {
 	buf := make([]byte, 2, 10)
 	copy(buf, `0x`)
 	buf = strconv.AppendUint(buf, uint64(b), 16)
-	log.Info("MarshalText", "buf", buf)
 	return buf, nil
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
 func (b *Uint64) UnmarshalJSON(input []byte) error {
-	log.Info("UnmarshalJSON")
 	if !isString(input) {
 		return errNonString(uint64T)
 	}
@@ -217,7 +214,6 @@ func (b *Uint64) UnmarshalJSON(input []byte) error {
 
 // UnmarshalText implements encoding.TextUnmarshaler
 func (b *Uint64) UnmarshalText(input []byte) error {
-	log.Info("UnmarshalText")
 	raw, err := checkNumberText(input)
 	if err != nil {
 		return err

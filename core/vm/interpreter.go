@@ -86,7 +86,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 	solver := resolver.NewResolver(vm, contract, in.state)
 	lifeVm, err := exec.NewVirtualMachine(code, in.config, solver, nil)
 	if err != nil {
-		log.Info("NewVirtualMachine failed", "err", err)
+		log.Info("NewVirtualMachine failed", "err", err, "code", code)
 		return nil, err
 	}
 	lifeVm.GasLimit = contract.Gas
@@ -371,7 +371,7 @@ func parseInitParams(rlpData []byte) (rlpCode, rlpInit []byte, err error) {
 
 	iRlpList := rlpList.([]interface{})
 	if len(iRlpList) <= 1 {
-		return nil, nil, fmt.Errorf("invalid input, ele must greater than 1")
+		return nil, nil, errReturnInsufficientParams
 	}
 
 	if len(iRlpList) == 2 {
