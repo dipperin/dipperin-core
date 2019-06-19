@@ -283,7 +283,7 @@ func getCalledFuncName(c *cli.Context) (funcName string, err error) {
 }
 
 func isCreate(c *cli.Context) bool {
-	return c.Bool("isCreate")
+	return c.Bool("is-create")
 }
 
 func getCreateExtraData(c *cli.Context) (ExtraData []byte, err error) {
@@ -316,19 +316,17 @@ func getCreateExtraData(c *cli.Context) (ExtraData []byte, err error) {
 	input := getRpcSpecialParam(c, "input")
 	params := getRpcParamFromString(input)
 	if len(params) != len(args) {
-		l.Error("not enough create contract params")
+		return  nil, errors.New("not enough create contract params")
 	}
 
 	wasmPath, err := getRpcParamValue(c, "wasm")
 	if err != nil {
-		l.Error("the wasm path value invalid")
-		return
+		return nil, errors.New("the wasm path value invalid")
 	}
 
 	wasmBytes, err := ioutil.ReadFile(wasmPath)
 	if err != nil {
-		l.Error("the abi file read err")
-		return
+		return nil, errors.New("the abi file read err")
 	}
 
 	rlpParams := []interface{}{

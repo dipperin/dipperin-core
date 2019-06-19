@@ -186,7 +186,7 @@ func appAction(c *cli.Context) {
 		return
 	}
 
-	csConsole := dipperin_console.NewConsole(Executor(c), config2.DipperinCliCompleter)
+	csConsole := dipperin_console.NewConsole(Executor(c), config2.DipperinCliCompleterNew)
 
 	defer func() {
 		if node != nil {
@@ -252,13 +252,26 @@ func Executor(c *cli.Context) prompt.Executor {
 			return
 		}
 
-		cmdArgs := strings.Split(command," ")
+		cmdArgs := strings.Split(strings.TrimSpace(command)," ")
 		if len(cmdArgs) == 0 {
+			return
+		} else if len(cmdArgs) == 1 {
+			fmt.Println("Please assign the method you want to call!")
 			return
 		}
 		s := []string{os.Args[0]}
+		//fmt.Println("s:",s)
 		s = append(s, cmdArgs...)
-		c.App.Run(s)
+		//fmt.Println("s final:",s)
+		if len(cmdArgs) >= 2 {
+			if config2.CheckModuleMethodIsRight(cmdArgs[0], cmdArgs[1]){
+			   c.App.Run(s)
+			} else {
+				fmt.Println("module", cmdArgs[0], "has not method", cmdArgs[1])
+			}
+		} else {
+			c.App.Run(s)
+		}
 	}
 }
 

@@ -184,15 +184,19 @@ func RpcCall(c *cli.Context) {
 		panic("rpc client not initialized")
 	}
 
-	method := c.String("m")
+	method := c.Args()[0]
+	//params := c.String("p")
+	//l.Info("RpcCall", "params", params)
+	l.Info("RpcCall", "method", method, "c.Args", c.Args())
+	/*method := c.String("m")
 	if method == "" {
 		l.Error("Please specify -m")
 		return
-	}
+	}*/
 
 	rvf := callerRv.MethodByName(method)
 	if rvf.Kind() != reflect.Func {
-		l.Error("not found method", "method_name", c.String("m"))
+		l.Error("not found method", "method_name", method)
 		return
 	}
 
@@ -218,7 +222,8 @@ func getRpcParamFromString(cParam string) []string {
 }
 
 func getRpcMethodAndParam(c *cli.Context) (mName string, cParams []string, err error) {
-	mName = c.String("m")
+	mName = c.Args()[0]
+	l.Info("the method name is:", "mName", mName)
 	if mName == "" {
 		return "", []string{}, errors.New("the method name is nil")
 	}
