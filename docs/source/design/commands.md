@@ -83,295 +83,393 @@ rm .dipperin -fr
 restart command line tool
 
 
-## How to operate test node
-
-### Start-up
-
-```
-cs_ci_ex
-```
-
-### Connect to test node
-
-```
-rpc default-c ${TestServer}:10004
-```
-
-### Perform related operations
-
-Transfer money:
-```
-rpc -n m0 -m ListWallet
-rpc -n m0 -m ListWalletAccount -p SoftWallet,/home/qydev/tmp/dipperin_apps/default_m0/CSWallet,CSWallet
-rpc -n m0 -m SendTransaction -p [from],[to],20000,10
-```
-
-### Error
-
-When executing the above command,it is prompted that connect refused is caused by not connecting to the node.
-
-Generally, it is caused by changes in IP or port.
-
-If the IP of the test server is unchanged,you can log in to test the deployment interface to see the actual port number of the node.
-
-Connect again
-
-Test Deployment Interface Links：
-`http://${TestServer}:8889/nodes`.
-
-```
-rpc default -c ${TestServer}:[actual port number]
-```
-
 ## Related Functional Operations
 
 Separate multiple parameters by','
 ```
-rpc -m [MethodName] -p [parameters]
+moduleName MethodName 【-p parameters]
 
 ```
 
 ### Block chain
+{Text: "GetReceiptsByBlockNum", Description: ""},
 
 Get current block:
 ```
-rpc -m CurrentBlock
+chain CurrentBlock
 ```
 
 Get genesis block:
 ```
-rpc -m GetGenesis
+chain GetGenesis
 ```
 
 Get block by number
 ```
-rpc -m GetBlockByNumber -p [blockNumber]
-rpc -m GetBlockByNumber -p 1
+chain GetBlockByNumber -p blockNumber
+chain GetBlockByNumber -p 1
 ```
 
 Get block by block hash:
 ```
-rpc -m GetBlockByHash -p [blockHash]
-rpc -m GetBlockByHash -p  0x0f7057ff3e3048ed38c0ac2353e001dad6aded5d825d43fcc924a39221713e4c
+chain GetBlockByHash -p blockHash
+chain GetBlockByHash -p 0x0f7057ff3e3048ed38c0ac2353e001dad6aded5d825d43fcc924a39221713e4c
+```
+
+Get Peers
+```
+chain GetPeers
+```
+
+Add Peer
+```
+chain AddPeer -p url
+chain AddPeer -p enode://199cc6526cb63866dfa5dc81aed9952f2002b677560b6f3dc2a6a34a5576216f0ca25711c5b4268444fdef5fee4a01a669af90fd5b6049b2a5272b39c466b2ac@127.0.0.1:10006
 ```
 
 ### Miner master
 
 Start mining:
 ```
-rpc -m StartMine
+miner StartMine
 ```
 
 Stop mining:
 ```
-rpc -m StopMine
+miner StopMine
 ```
 
 Set miner address:
 ```
-rpc -m SetMineCoinBase -p [address]
-rpc -m SetMineCoinBase -p 0x0000e447B8B7851D3FBD5C6A03625D288cfE9Bb5eF0E
+miner SetMineCoinBase -p address
+miner SetMineCoinBase -p 0x0000e447B8B7851D3FBD5C6A03625D288cfE9Bb5eF0E
 ```
 
-Send normal transaction:
-```
-rpc -m SendTransaction [from],[to],[value],[transactionFee],[extradata],[nonce]
-rpc -m SendTransaction -p 0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,0x00007eDe4D5D808DA8a267284b38E00ABccb42889dF2,20000,10
-```
+### Personal
 
-Get transaction
-```
-rpc -m Transaction [TxId]
-rpc -m Transaction -p 0xf8dd21db65b2adcb5e3ed3c61475eb66a1653d309b1a82354959fdf58852f023
-```
-
-### Wallet
+#### Wallet
 
 Look up local wallet:
 ```
-rpc -m ListWallet
+personal ListWallet
 ```
 
 Look up local wallet account:
 
 If the wallet type and path are not specified, the default wallet is displayed
 ```
-rpc -m ListWalletAccount -p [walletType],[walletPath]
-rpc -m ListWalletAccount -p SoftWallet,/home/qydev/tmp/dipperin_apps/default_v0/CSWallet
+personal ListWalletAccount [-p walletType,walletPath]
+personal ListWalletAccount -p SoftWallet,~/tmp/dipperin_apps/default_v0/CSWallet
 ```
 
 Create new wallet:
 ```
-rpc -m EstablishWallet -p [walletType],[walletPath],[password]
-rpc -m EstablishWallet -p SoftWallet,/tmp/TestWallet,123
+personal EstablishWallet -p walletType,walletPath,password
+personal EstablishWallet -p SoftWallet,/tmp/TestWallet,123
 
 ```
 
 Recovery wallet:
 ```
-rpc -m RestoreWallet -p [walletType],[walletPath],[password],[passpharse],[mnemonic],...,[mnemonic]
-rpc -m RestoreWallet -p SoftWallet,/tmp/TestWallet2,123,,plastic,balcony,trophy,fuel,vacant,inmate,profit,rival,mimic,cute,hurdle,pig,column,pudding,visit,edge,rhythm,armed,cook,federal,amount,stock,damp,bring
+personal RestoreWallet -p walletType,walletPath,password,passpharse,mnemonic,...,mnemonic
+personal RestoreWallet -p SoftWallet,/tmp/TestWallet2,123,,plastic,balcony,trophy,fuel,vacant,inmate,profit,rival,mimic,cute,hurdle,pig,column,pudding,visit,edge,rhythm,armed,cook,federal,amount,stock,damp,bring
 ```
 
 Open wallet:
 
 If the wallet type and path are not specified, the default wallet is displayed
 ```
-rpc -m OpenWallet -p [walletType],[walletPath],[password]
-rpc -m OpenWallet -p SoftWallet,/tmp/TestWallet3,123
+personal OpenWallet -p walletType,walletPath,password
+personal OpenWallet -p SoftWallet,/tmp/TestWallet3,123
 ```
 
 Close wallet:
 
 If the wallet type and path are not specified, the default wallet is displayed
 ```
-rpc -m CloseWallet -p [walletType],[walletPath]
-rpc -m CloseWallet -p SoftWallet,/tmp/TestWallet3
+personal CloseWallet [-p walletType,walletPath]
+personal CloseWallet -p SoftWallet,/tmp/TestWallet3
 ```
-
-### Account
+	
+#### Account
 
 Add account:
 
 If the wallet type and path are not specified, the default wallet is displayed
 ```
-rpc -m AddAccount -p [walletType],[walletPath]
-rpc -m AddAccount -p SoftWallet,/tmp/TestWallet3
+personal AddAccount -p walletType,walletPath
+personal AddAccount -p SoftWallet,/tmp/TestWallet3
 ```
 
 Get account current balance:
 ```
-rpc -m CurrentBalance -p [address]
-rpc -m CurrentBalance -p 0x0000e447B8B7851D3FBD5C6A03625D288cfE9Bb5eF0E
+personal CurrentBalance [-p address]
+personal CurrentBalance -p 0x0000e447B8B7851D3FBD5C6A03625D288cfE9Bb5eF0E
 ```
 
 Get account deposit:
 ```
-rpc -m CurrentStake -p [address]
-rpc -m CurrentStake -p 0x0000e447B8B7851D3FBD5C6A03625D288cfE9Bb5eF0E
-
+personal CurrentStake [-p address]
+personal CurrentStake -p 0x0000e447B8B7851D3FBD5C6A03625D288cfE9Bb5eF0E
 ```
 
 Get account nonce:
 ```
-rpc -m GetAddressNonceFromWallet -p [address]
-rpc -m GetAddressNonceFromWallet -p 0x00001c2beC8E0E4caac668cD75d520E41f827092Ce79
+personal GetAddressNonceFromWallet [-p address]
+personal GetAddressNonceFromWallet -p 0x00001c2beC8E0E4caac668cD75d520E41f827092Ce79
+```
+
+Get account Reputation:
+```
+personal CurrentReputation [-p address]
+personal CurrentReputation -p 0x00001c2beC8E0E4caac668cD75d520E41f827092Ce79
+```
+
+Get Default Account Balance
+```
+personal GetDefaultAccountBalance
+```
+
+Get Default Account Stake
+```
+personal GetDefaultAccountStake
+```
+
+Get Transaction Nonce
+```
+personal GetTransactionNonce [-p address]
+personal GetTransactionNonce -p 0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41
+```
+
+Set wallet signer（default account）
+```
+personal SetBftSigner -p address
+personal SetBftSigner -p 0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41
 ```
 
 ### Transaction
 
 Register verifier:
 ```
-rpc -m SendRegisterTransaction -p [from],[deposit],[transactionFee],[nonce]
-rpc -m SendRegisterTransaction -p 0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,100,11
+tx SendRegisterTransaction -p from,deposit,transactionFee
+tx SendRegisterTransaction -p 0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,100,11
+
+or
+
+tx SendRegisterTx -p deposit,transactionFee
+tx SendRegisterTx -p 100,11
 ```
 
 Unregister verifier:
 ```
-rpc -m SendCancelTransaction -p [from],[transactionFee],[nonce]
-rpc -m SendCancelTransaction -p 0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,11
+tx SendCancelTransaction -p from,transactionFee
+tx SendCancelTransaction -p 0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,11
+
+or 
+
+tx SendCancelTx -p transactionFee
+tx SendCancelTx -p 11
 ```
 
 Redemption of the deposit:
 ```
-rpc -m SendUnStakeTransaction -p [from],[transactionFee],[nonce]
-rpc -m SendUnStakeTransaction -p 0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,11
+tx SendUnStakeTransaction -p from,transactionFee
+tx SendUnStakeTransaction -p 0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,11
+
+or 
+
+tx SendUnStakeTx -p transactionFee
+tx SendUnStakeTx -p 11
 ```
 
 Get transation nonce:
 ```
-rpc -m GetTransactionNonce -p [address]
-rpc -m GetTransactionNonce -p 0x00001c2beC8E0E4caac668cD75d520E41f827092Ce79
+tx GetTransactionNonce -p [address]
+tx GetTransactionNonce -p 0x00001c2beC8E0E4caac668cD75d520E41f827092Ce79
 ```
 
-### Verifiers
-
-Get Verifiers by slot:
+Send normal transaction:
 ```
-rpc -m GetVerifiersBySlot -p [round]
-rpc -m GetVerifiersBySlot -p 2
+tx SendTransaction -p from,to,value,transactionFee,[extradata]
+tx SendTransaction -p 0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,0x00007eDe4D5D808DA8a267284b38E00ABccb42889dF2,20000,10
 
-```
+or 
 
-Get current slot verifiers:
-```
-rpc -m GetCurVerifiers
+tx SendTx -p to,value,transactionFee,[extradata]
+tx SendTx -p 0x00007eDe4D5D808DA8a267284b38E00ABccb42889dF2,20000,10
 ```
 
-Get next slot verifiers:
+Get transaction
 ```
-rpc -m GetNextVerifiers
+tx Transaction [TxId]
+tx Transaction -p 0xf8dd21db65b2adcb5e3ed3c61475eb66a1653d309b1a82354959fdf58852f023
 ```
 
-### ERC20
+Send create contract transaction
+```
+tx SendTransactionContract -p from,to,gasLimit,[gasPrice] --abi ~/dipc/cmake-build-debug/token/token.cpp.abi.json --wasm ~/dipc/cmake-build-debug/token/token5.wasm [--input pramas...] --is-create
+tx SendTransactionContract -p 0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,10,1,1 -abi ~/dipc/cmake-build-debug/token/token.cpp.abi.json -wasm ~/dipc/cmake-build-debug/token/token5.wasm -input dipp,DIpp,10000000 -isCreate
+```
+
+Send call contract transaction
+```
+tx SendTransactionContract -p from,to,gasLimit,[gasPrice] --func-name funcName [--input pramas...]
+tx SendTransactionContract -p 0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,10,1,1 --func-name getBalance --input 0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41
+```
+
+Get Contract Address By TxHash
+```
+tx GetContractAddressByTxHash -p txHash
+tx GetContractAddressByTxHash -p 0x805bb426f32382cf8731f03aaaec7599bf3d57b1548efd8f6a87ce49b54357d4
+```
+
+Get Convert Receipt By TxHash
+```
+tx GetConvertReceiptByTxHash -p txHash
+tx GetConvertReceiptByTxHash -p 0x805bb426f32382cf8731f03aaaec7599bf3d57b1548efd8f6a87ce49b54357d4
+```
+
+Get Receipt By TxHash
+```
+tx GetReceiptByTxHash -p txHash
+tx GetReceiptByTxHash -p tx GetConvertReceiptByTxHash -p 0x805bb426f32382cf8731f03aaaec7599bf3d57b1548efd8f6a87ce49b54357d4
+```
+
+Estimate Gas for contract transaction create
+```
+tx EstimateGas -p from,to,gasLimit,[gasPrice] --abi ~/dipc/cmake-build-debug/token/token.cpp.abi.json --wasm ~/dipc/cmake-build-debug/token/token5.wasm [--input pramas...] --is-create
+tx EstimateGas -p 0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,10,1,1 -abi ~/dipc/cmake-build-debug/token/token.cpp.abi.json -wasm ~/dipc/cmake-build-debug/token/token5.wasm -input dipp,DIpp,10000000 -isCreate
+```
+
+Estimate Gas for contract transaction call
+```
+tx EstimateGas -p from,to,gasLimit,[gasPrice] --func-name funcName [--input pramas...]
+tx EstimateGas -p 0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,10,1,1 --func-name getBalance --input 0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41
+```
+
+#### ERC20
 
 Create ERC20 contract:
 
 The contract address must be saved for successful creation
 ```
-rpc -m AnnounceERC20 -p [owner_address], [token_name], [token_symbol], [token_total_supply], [decimal],[transactionFee]
-rpc -m AnnounceERC20 -p 0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,chain,stack,5,3,0.00001
+tx AnnounceERC20 -p owner_address, token_name, token_symbol, token_total_supply,decimal,transactionFee
+tx AnnounceERC20 -p 0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,chain,stack,5,3,0.00001
 ```
 
 Look up ERC20 information:
 ```
-rpc -m ERC20GetInfo -p [contract_address]
-rpc -m ERC20GetInfo -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3
+tx ERC20GetInfo -p contract_address
+tx ERC20GetInfo -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3
 ```
 
 Look up ERC20 total supply
 ```
-rpc -m ERC20TotalSupply -p [contract_address]
-rpc -m ERC20TotalSupply -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3
+tx ERC20TotalSupply -p contract_address
+tx ERC20TotalSupply -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3
 ```
 
 Look up ERC20 token name (No need) :
 ```
-rpc -m ERC20TokenName -p [contract_address]
-rpc -m ERC20TokenName -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3
+tx ERC20TokenName -p contract_address
+tx ERC20TokenName -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3
 ```
 
 Look up ERC20 token symbol (No need) :
 ```
-rpc -m ERC20TokenSymbol -p [contract_address]
-rpc -m ERC20TokenSymbol -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3
+tx ERC20TokenSymbol -p contract_address
+tx ERC20TokenSymbol -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3
 ```
 
 Look up ERC20 token decimals (No need) :
 ```
-rpc -m ERC20TokenDecimals -p [contract_address]
-rpc -m ERC20TokenDecimals -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3
+tx ERC20TokenDecimals -p contract_address
+tx ERC20TokenDecimals -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3
 ```
 
 Look up ERC20 token quota:
 ```
-rpc -m ERC20Allowance -p [contract_address],[from_address],[to_address]
-rpc -m ERC20Allowance -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4
+tx ERC20Allowance -p contract_address,from_address,to_address
+tx ERC20Allowance -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4
 ```
 
 Allocation of ERC20 contract quota:
 ```
-rpc -m ERC20Approve -p [contract_address],[from_address],[to_address],[amount],[transactionFee]
-rpc -m ERC20Approve -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,
+tx ERC20Approve -p contract_address,from_address,to_address,amount,transactionFee
+tx ERC20Approve -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,
 0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4,4,0.00001
 ```
 
 Look up ERC20 balance:
 ```
-rpc -m ERC20Balance -p [contract_address],[owner_address]
-rpc -m ERC20Balance -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532
+tx ERC20Balance -p contract_address,owner_address
+tx ERC20Balance -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532
 ```
 
 ERC20 contract transfer:
 ```
-rpc -m ERC20Transfer -p [contract_address],[from_address],[to_address],[amount],[transactionFee]
-rpc -m ERC20Transfer -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,
+tx ERC20Transfer -p contract_address,from_address,to_address,amount,transactionFee
+tx ERC20Transfer -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,
 0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4,4,0.00001
 ```
 
 ERC20 contract transfer from:
 ```
-rpc -m ERC20TransferFrom -p [contract_address],[owner_address],[from_address],[to_address],[amount],[transactionFee]
-rpc -m ERC20TransferFrom -p 0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c5353d,
+tx ERC20TransferFrom -p contract_address,owner_address,from_address,to_address,amount,transactionFee
+tx ERC20TransferFrom -p 0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c5353d,
 0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,4,0.00001
 ```
+
+Transfer EDIP To DIP
+```
+tx TransferEDIPToDIP -p from,eDIPValue,transactionFee
+tx TransferEDIPToDIP -p 0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4,10000,100
+```
+
+Set Exchange Rate
+```
+tx SetExchangeRate -p from,exchangeRate,transactionFee
+tx SetExchangeRate -p 0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4,0.5,100
+```
+
+
+
+### Verifiers
+	{Text: "CheckVerifierType", Description: ""},
+
+Get Verifiers by slot:
+```
+verifier GetVerifiersBySlot -p [round]
+verifier GetVerifiersBySlot -p 2
+
+```
+
+Get current slot verifiers:
+```
+verifier GetCurVerifiers
+```
+
+Get next slot verifiers:
+```
+verifier GetNextVerifiers
+```
+
+Get verifier status
+```
+verifier VerifierStatus [-p accountAddress]
+```
+
+Get Block Different Verifier Info
+```
+verifier GetBlockDiffVerifierInfo -p blockNumber
+verifier GetBlockDiffVerifierInfo -p 11
+```
+
+Check An Address Is Or Not Verifier In Some Slot
+```
+verifier CheckVerifierType -p slot,address
+verifier CheckVerifierType -p 11,0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41
+```
+
+
+

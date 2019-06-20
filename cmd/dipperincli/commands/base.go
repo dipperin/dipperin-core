@@ -44,6 +44,55 @@ var CliCommands = []cli.Command{
 			return nil
 		},
 	},
+	{
+		Name: "miner",
+		Aliases: []string{"m"},
+		Usage: "miner func",
+		Flags: commonFlags,
+		Action: func(c *cli.Context) error {
+			RpcCall(c)
+			return nil
+		},
+	},
+	{
+		Name: "personal",
+		Usage: "personal func",
+		Flags: commonFlags,
+		Action: func(c *cli.Context) error {
+			RpcCall(c)
+			return nil
+		},
+	},
+	{
+		Name: "tx",
+		Aliases: []string{"t"},
+		Usage: "tx func",
+		Flags: txFlags,
+		Action: func(c *cli.Context) error {
+			RpcCall(c)
+			return nil
+		},
+	},
+	{
+		Name: "verifier",
+		Aliases: []string{"v"},
+		Usage: "verifier func",
+		Flags: commonFlags,
+		Action: func(c *cli.Context) error {
+			RpcCall(c)
+			return nil
+		},
+	},
+	{
+		Name: "chain",
+		Aliases: []string{"c"},
+		Usage: "chain func",
+		Flags: commonFlags,
+		Action: func(c *cli.Context) error {
+			RpcCall(c)
+			return nil
+		},
+	},
 }
 
 var rpcFlags = []cli.Flag{
@@ -54,4 +103,18 @@ var rpcFlags = []cli.Flag{
 	cli.StringFlag{Name: "input", Usage: "contract params"},
 	cli.BoolFlag{Name:   "isCreate", Usage: "create contract or not"},
 	cli.StringFlag{Name: "funcName", Usage: "call function name"},
+}
+
+
+var commonFlags = []cli.Flag{
+	cli.StringFlag{Name:"p", Usage: "parameters"},
+}
+
+var txFlags = []cli.Flag{
+	cli.StringFlag{Name: "p", Usage: "parameters"},
+	cli.StringFlag{Name: "abi", Usage: "abi path"},
+	cli.StringFlag{Name: "wasm", Usage: "wasm path"},
+	cli.StringFlag{Name: "input", Usage: "contract params"},
+	cli.BoolFlag{Name:   "is-create", Usage: "create contract or not"},
+	cli.StringFlag{Name: "func-name", Usage: "call function name"},
 }
