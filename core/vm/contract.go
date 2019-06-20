@@ -62,13 +62,13 @@ func (c *Contract) UseGas(gas uint64) (ok bool) {
 	return true
 }
 
-func (c *Contract) SetCallCode(addr *common.Address, hash common.Hash, code []byte) {
+func (c *Contract) SetCode(addr *common.Address, hash common.Hash, code []byte) {
 	c.Code = code
 	c.CodeHash = hash
 	c.CodeAddr = addr
 }
 
-func (c *Contract) SetCallAbi(addr *common.Address, hash common.Hash, abi []byte) {
+func (c *Contract) SetAbi(addr *common.Address, hash common.Hash, abi []byte) {
 	c.ABI = abi
 	c.ABIHash = hash
 	c.ABIAddr = addr
