@@ -732,6 +732,7 @@ func (caller *rpcCaller) ListWalletAccount(c *cli.Context) {
 		identifier = defaultWallet
 	} else if len(cParams) == 2 {
 		identifier.Path, identifier.WalletName = ParseWalletPathAndName(cParams[1])
+		l.Info("ListWalletAccount", "walletPath", identifier.Path, "walletName", identifier.WalletName)
 		if cParams[0] == "SoftWallet" {
 			identifier.WalletType = accounts.SoftWallet
 		} else if cParams[0] == "LedgerWallet" {

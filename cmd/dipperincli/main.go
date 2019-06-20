@@ -255,14 +255,15 @@ func Executor(c *cli.Context) prompt.Executor {
 		cmdArgs := strings.Split(strings.TrimSpace(command)," ")
 		if len(cmdArgs) == 0 {
 			return
-		} else if len(cmdArgs) == 1 {
+		} else if len(cmdArgs) == 1 && cmdArgs[0] != "-h" && cmdArgs[0] != "--help"{
 			fmt.Println("Please assign the method you want to call!")
 			return
 		}
 		s := []string{os.Args[0]}
-		//fmt.Println("s:",s)
 		s = append(s, cmdArgs...)
-		//fmt.Println("s final:",s)
+		fmt.Println("s final:",s)
+		//s = []string{"dipperincli", "tx", "SendTransactionContract", "--abi"}
+		s = []string{"dipperincli", "tx", "SendTransactionContract"}
 		if len(cmdArgs) >= 2 {
 			if config2.CheckModuleMethodIsRight(cmdArgs[0], cmdArgs[1]){
 			   c.App.Run(s)

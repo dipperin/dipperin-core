@@ -69,7 +69,7 @@ func (caller *rpcCaller) Peers(c *cli.Context) {
 
 	var resp []*p2p.PeerInfo
 	if err := client.Call(&resp, getP2pRpcMethodByName(mName)); err != nil {
-		l.Error("add peer error", "err", err)
+		l.Error("get peers error", "err", err)
 		return
 	}
 

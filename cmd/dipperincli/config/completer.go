@@ -18,6 +18,7 @@
 package config
 
 import (
+	"fmt"
 	"github.com/c-bata/go-prompt"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"strings"
@@ -68,14 +69,24 @@ func DipperinCliCompleterNew(d prompt.Document) []prompt.Suggest {
 	}
 
 	args := strings.Split(d.TextBeforeCursor(), " ")
-	w := d.GetWordBeforeCursor()
-	log.Debug("DipperinCliCompleter", "args", args)
-	if strings.HasPrefix(w, "-") {
+	w := d.GetWordAfterCursor()
+	h := d.GetWordBeforeCursorUntilSeparatorIgnoreNextToCursor(" ")
+
+	for w == "" {
+		w = strings.TrimSpace(d.GetWordBeforeCursorUntilSeparatorIgnoreNextToCursor(" "))
+	}
+	fmt.Println("DipperinCliCompleter", "args", args, "w", w, "h", h)
+	/*if strings.HasPrefix(w, "-") {
 		return optionCompleterNew(args,strings.HasPrefix(w, "--"))
 	} else if len(args) == 2 {
 		return optionCompleterNew(args,true)
-	}
+	}*/
 
+	if len(args) == 2 {
+		return optionCompleterNew(args, true)
+	} else {
+		return optionCompleterNew(args,strings.HasPrefix(w, "--"))
+	}
 	/*for i, r := range w {
 		log.Debug("range w ", "i", i, "r", string(r))
 		if i == 0 {
@@ -94,6 +105,9 @@ func CheckModuleMethodIsRight(moduleName, methodName string) bool {
 		if v.Text == methodName {
 			return true
 		}
+	}
+	if methodName == "-h" || methodName == "--help"{
+		return true
 	}
 	return false
 }
@@ -124,11 +138,12 @@ func argumentsCompleterNew(args []string) []prompt.Suggest {
 	}
 
 	first := args[0]
+	fmt.Println("argumentsCompleterNew", "args", args)
 
 	switch first {
 	case "miner", "m", "verifier", "chain", "tx", "personal":
 		if l == 2 {
-			second := args[1]
+			second := strings.TrimSpace(args[1])
 			var subCommands []prompt.Suggest
 			return prompt.FilterHasPrefix(subCommands, second, true)
 		}

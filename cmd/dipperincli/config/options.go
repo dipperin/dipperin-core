@@ -18,6 +18,7 @@
 package config
 
 import (
+	"fmt"
 	"github.com/c-bata/go-prompt"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"strings"
@@ -60,6 +61,7 @@ func optionCompleterNew(args []string, long bool) []prompt.Suggest {
 
 	var suggests []prompt.Suggest
 	commandArgs := excludeOptions(args)
+	fmt.Println("optionCompleterNew", "commandArgs", commandArgs)
 	log.Debug("optionCompleterNew", "commandArgs", commandArgs)
 
 	if len(args) == 2 {
@@ -70,12 +72,15 @@ func optionCompleterNew(args []string, long bool) []prompt.Suggest {
 			suggests = txPromptFlags
 		case "chain", "verifier", "personal", "miner":
 			suggests = commonFlags
-
 		}
 	}
 
 	log.Debug("optionCompleterNew", "suggests", suggests)
 	defer log.Debug("optionCompleterNew", "suggests  defer", suggests)
+	arg := args[l-1]
+	for i := l-1; arg == ""; i-- {
+		arg = args[i]
+	}
 	if long {
 		return prompt.FilterContains(
 			suggests,
@@ -145,6 +150,7 @@ var personalMethods = []prompt.Suggest{
 	{Text: "ListWalletAccount", Description: ""},
 	{Text: "OpenWallet", Description: ""},
 	{Text: "RestoreWallet", Description: ""},
+	{Text: "SetBftSigner", Description: ""},
 }
 
 var minerMethods = []prompt.Suggest{
@@ -198,7 +204,6 @@ var verifierMethods = []prompt.Suggest{
 	{Text: "GetCurVerifiers", Description: ""},
 	{Text: "GetNextVerifiers", Description: ""},
 	{Text: "GetVerifiersBySlot", Description: ""},
-	{Text: "SetBftSigner", Description: ""},
 	{Text: "VerifierStatus", Description: ""},
 	{Text: "GetBlockDiffVerifierInfo", Description: ""},
 	{Text: "CheckVerifierType", Description: ""},

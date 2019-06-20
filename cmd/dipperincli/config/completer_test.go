@@ -100,6 +100,20 @@ func TestDipperinCliCompleterNew(t *testing.T) {
 	suggest = DipperinCliCompleterNew(d)
 	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
 
+
+	args = strings.Split("tx SendTransactionContract --abi ", " ")
+	fmt.Println(len(args), strings.TrimLeft(args[len(args)-1], "--"))
+	for _,arg := range args{
+		fmt.Println(strings.TrimLeft(arg, "--"))
+	}
+	b = prompt.NewBuffer()
+	b.InsertText("tx SendTransactionContract --abi ", false, true)
+
+	d = *b.Document()
+
+	suggest = DipperinCliCompleterNew(d)
+	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+
 	b = prompt.NewBuffer()
 	b.InsertText("rpc.Add -A -F", false, true)
 
