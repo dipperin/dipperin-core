@@ -293,8 +293,25 @@ func TestDebugTxRlp(t *testing.T){
 	log.Info("the tx is:","transaction",transaction)
 
 	log.Info("the tx extraData is:","extraData",hexutil.Encode(transaction.data.ExtraData))
-
-
-
 }
+
+func TestTxSize(t *testing.T){
+	keyAlice, _ := CreateKey()
+	ms := NewMercurySigner(big.NewInt(1))
+	tempTx := NewTransaction(uint64(0), bobAddr, big.NewInt(1000), big.NewInt(10000), []byte{})
+	tempTx.SignTx(keyAlice, ms)
+	log.Info("the tx size is:","size",tempTx.Size())
+
+	bytes,err := tempTx.EncodeRlpToBytes()
+	assert.NoError(t,err)
+
+	log.Info("the tx rlpBytes len is:","len",len(bytes))
+}
+
+
+
+
+
+
+
 

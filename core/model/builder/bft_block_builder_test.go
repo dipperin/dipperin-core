@@ -30,6 +30,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -169,6 +170,48 @@ func TestBftBlockBuilder_GetDifficulty(t *testing.T) {
 
 	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}))
 	assert.NotNil(t, builder.GetDifficulty())
+}
+
+func creatBlockWithGasLimitAndGasUsed(gasUsed,gasLimit,number uint64)*model.Block {
+	header := &model.Header{
+		GasUsed:gasUsed,
+		GasLimit:gasLimit,
+		Number:number,
+	}
+	return model.NewBlock(header,nil,nil)
+}
+
+func TestGasLimitAdjust(t *testing.T){
+/*	controller := gomock.NewController(t)
+	defer controller.Finish()*/
+	var blockNumber uint64
+	gasLimit := uint64(chain_config.BlockGasLimit)
+	gasUsed := gasLimit
+	for {
+		Block := creatBlockWithGasLimitAndGasUsed(gasUsed,gasLimit,blockNumber)
+		log.Info("the block gas info is:","blockNumber",Block.Number(),"gasLimit",Block.GasLimit(),"blockGasUsed",Block.GasUsed())
+
+		blockNumber ++
+		gasLimit = CalcGasLimit(Block,8000000,8000000)
+		//gasLimit = CalcGasLimit(Block,Block.GasLimit(),Block.GasLimit())
+		log.Info("the actual gasLimit after change is:","gasLimit",gasLimit)
+		log.Info("the gasLimit change value is:","change",int64(gasLimit)-int64(Block.GasLimit()))
+		gasUsed = gasLimit
+
+		log.Info("")
+		log.Info("********************next block***********************")
+		log.Info("********************next block***********************")
+		log.Info("")
+
+		if blockNumber == 1{
+			break
+		}
+		//break
+/*
+		if gasLimit == 20000000000{
+			log.Info("the gasLimit is out of the MaxLimit")
+		}*/
+	}
 }
 
 type fakeChainReader struct {
