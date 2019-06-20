@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package config
 
 import (
@@ -77,7 +76,7 @@ func optionCompleterNew(args []string, long bool) []prompt.Suggest {
 	log.Debug("optionCompleterNew", "suggests", suggests)
 	defer log.Debug("optionCompleterNew", "suggests  defer", suggests)
 	arg := args[l-1]
-	for i := l-1; arg == ""; i-- {
+	for i := l - 1; arg == ""; i-- {
 		arg = args[i]
 	}
 	if long {
@@ -92,7 +91,6 @@ func optionCompleterNew(args []string, long bool) []prompt.Suggest {
 	return prompt.FilterContains(suggests, strings.TrimLeft(args[l-1], "--"), true)
 }
 
-
 var optionHelp = []prompt.Suggest{
 	{Text: "-h"},
 	{Text: "--help"},
@@ -104,11 +102,11 @@ var commonFlags = []prompt.Suggest{
 
 var txPromptFlags = []prompt.Suggest{
 	{Text: "-p", Description: "parameters"},
-	{Text: "--abi", Description:"abi path"},
-	{Text: "--wasm", Description:"wasm path"},
-	{Text: "--input", Description:"contract parameters"},
-	{Text: "--is-create", Description:"create contract or call, default is call"},
-	{Text: "--func-name", Description:"the function to call"},
+	{Text: "--abi", Description: "abi path"},
+	{Text: "--wasm", Description: "wasm path"},
+	{Text: "--input", Description: "contract parameters"},
+	{Text: "--is-create", Description: "create contract or call, default is call"},
+	{Text: "--func-name", Description: "the function to call"},
 }
 
 func callMethod(args []string, long bool) []prompt.Suggest {
@@ -153,6 +151,7 @@ var personalMethods = []prompt.Suggest{
 }
 
 var minerMethods = []prompt.Suggest{
+	{Text: "SetMineGasConfig", Description: ""},
 	{Text: "SetMineCoinBase", Description: ""},
 	{Text: "StartMine", Description: ""},
 	{Text: "StopMine", Description: ""},
@@ -226,6 +225,7 @@ var methodFlags = []prompt.Suggest{
 	{Text: "RestoreWallet", Description: ""},
 
 	// miner
+	{Text: "SetMineGasConfig", Description: ""},
 	{Text: "SetMineCoinBase", Description: ""},
 	{Text: "StartMine", Description: ""},
 	{Text: "StopMine", Description: ""},
@@ -259,12 +259,6 @@ var methodFlags = []prompt.Suggest{
 	{Text: "SendTransaction", Description: ""},
 	{Text: "SendTransactionContract", Description: ""},
 	{Text: "SendTx", Description: ""},
-	{Text: "SetExchangeRate", Description: ""},
-	{Text: "SetMineCoinBase", Description: ""},
-	{Text: "SetMineGasConfig", Description: ""},
-	{Text: "SetBftSigner", Description: ""},
-	{Text: "StartMine", Description: ""},
-	{Text: "StopMine", Description: ""},
 	{Text: "Transaction", Description: ""},
 	{Text: "GetContractAddressByTxHash", Description: ""},
 	{Text: "GetConvertReceiptByTxHash", Description: ""},
@@ -274,7 +268,7 @@ var methodFlags = []prompt.Suggest{
 	{Text: "SetExchangeRate", Description: ""},
 	{Text: "EstimateGas", Description: ""},
 
-     // verifier
+	// verifier
 	{Text: "GetCurVerifiers", Description: ""},
 	{Text: "GetNextVerifiers", Description: ""},
 	{Text: "GetVerifiersBySlot", Description: ""},
