@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package dipperin
 
 import (
@@ -68,14 +67,14 @@ type BlockValidator interface {
 type BaseComponent struct {
 	nodeConfig           NodeConfig
 	chainConfig          *chain_config.ChainConfig
-	DipperinConfig     *service.DipperinConfig
+	DipperinConfig       *service.DipperinConfig
 	csChainServiceConfig *cs_chain.CsChainServiceConfig
 	bftConfig            *state_machine.BftConfig
 	pmConf               *chain_communication.CsProtocolManagerConfig
 	txBConf              *chain_communication.NewTxBroadcasterConfig
 	verHaltCheckConfig   *verifiers_halt_check.HaltCheckConf
 
-	prometheusServer *g_metrics.PrometheusMetricsServer
+	prometheusServer            *g_metrics.PrometheusMetricsServer
 	cacheDB                     *cachedb.CacheDB
 	fullChain                   *cs_chain.CsChainService
 	txPool                      *tx_pool.TxPool
@@ -139,7 +138,7 @@ func NewBftNode(nodeConfig NodeConfig) (n Node) {
 	if baseComponent.nodeConfig.ExtraServiceFunc != nil {
 		eApis, eServices := baseComponent.nodeConfig.ExtraServiceFunc(ExtraServiceFuncConfig{
 			DipperinConfig: *baseComponent.DipperinConfig,
-			ChainService:     baseComponent.chainService,
+			ChainService:   baseComponent.chainService,
 		})
 		nodeServices = append(nodeServices, eServices...)
 		baseComponent.rpcService.AddApis(eApis)
@@ -156,9 +155,9 @@ func newBaseComponent(nodeConfig NodeConfig) *BaseComponent {
 	promeS := g_metrics.NewPrometheusMetricsServer(nodeConfig.GetPMetricsPort())
 	g_metrics.InitCSMetrics()
 	b := &BaseComponent{
-		prometheusServer: promeS,
+		prometheusServer:          promeS,
 		chainConfig:               chain_config.GetChainConfig(),
-		DipperinConfig:          &service.DipperinConfig{},
+		DipperinConfig:            &service.DipperinConfig{},
 		csChainServiceConfig:      &cs_chain.CsChainServiceConfig{},
 		defaultPriorityCalculator: model.DefaultPriorityCalculator,
 		defaultMsgDecoder:         chain_communication.MakeDefaultMsgDecoder(),
@@ -258,6 +257,8 @@ func (b *BaseComponent) buildCommunicationConfig() {
 
 func (b *BaseComponent) buildMineConfig(modelConfig builder.ModelConfig) minemaster.MineConfig {
 	return minemaster.MineConfig{
+		GasFloor:         &atomic.Value{},
+		GasCeil:          &atomic.Value{},
 		CoinbaseAddress:  b.coinbaseAddr,
 		BlockBuilder:     builder.MakeBftBlockBuilder(modelConfig),
 		BlockBroadcaster: b.broadcastDelegate,
@@ -266,20 +267,19 @@ func (b *BaseComponent) buildMineConfig(modelConfig builder.ModelConfig) minemas
 
 func (b *BaseComponent) builderModelConfig() builder.ModelConfig {
 	return builder.ModelConfig{
-		ChainReader:                 b.fullChain,
-		TxPool:                      b.txPool,
-		PriorityCalculator:          b.defaultPriorityCalculator,
-		MsgSigner: b.msgSigner,
-		ChainConfig:                 *b.chainConfig,
+		ChainReader:        b.fullChain,
+		TxPool:             b.txPool,
+		PriorityCalculator: b.defaultPriorityCalculator,
+		MsgSigner:          b.msgSigner,
+		ChainConfig:        *b.chainConfig,
 	}
 }
-
 
 func (b *BaseComponent) initFullChain() {
 	// init full chain
 	b.fullChain = cs_chain.NewCsChainService(b.csChainServiceConfig, chain_state.NewChainState(&chain_state.ChainStateConfig{
-		ChainConfig: b.chainConfig,
-		DataDir:     b.nodeConfig.DataDir,
+		ChainConfig:   b.chainConfig,
+		DataDir:       b.nodeConfig.DataDir,
 		WriterFactory: chain_writer.NewChainWriterFactory(),
 	}))
 	b.csChainServiceConfig.CacheDB = cachedb.NewCacheDB(b.fullChain.GetDB())
@@ -320,7 +320,7 @@ func (b *BaseComponent) initWalletManager() {
 	tmpLog := log.New()
 	tmpLog.SetHandler(log.StdoutHandler)
 	var err error
-	log.Info("the nodeType is:","nodeType",b.nodeConfig.NodeType)
+	log.Info("the nodeType is:", "nodeType", b.nodeConfig.NodeType)
 	// No need to create or open a default wallet when the normal node starts
 	if b.nodeConfig.NodeType == chain_config.NodeTypeOfNormal {
 		if b.walletManager, err = accounts.NewWalletManager(b.chainService); err != nil {
@@ -460,6 +460,8 @@ func (b *BaseComponent) initMineMaster() {
 	}
 
 	mineConfig := b.buildMineConfig(b.builderModelConfig())
+	mineConfig.GasFloor.Store(uint64(chain_config.BlockGasLimit))
+	mineConfig.GasCeil.Store(uint64(chain_config.BlockGasLimit))
 	// chain service not init here
 	mineMaster, mineMasterServer := minemaster.MakeMineMaster(mineConfig)
 	minePm := chain_communication.NewMineProtocolManager(mineMasterServer)
@@ -504,14 +506,14 @@ func (b *BaseComponent) setBftAfterP2PInit() {
 func (b *BaseComponent) initVerHaltCheck() {
 	b.buildHaltCheckConfig()
 	b.verHaltCheck = verifiers_halt_check.MakeSystemHaltedCheck(b.verHaltCheckConfig)
-	b.csPm.RegisterCommunicationService(b.verHaltCheck,b.verHaltCheck)
+	b.csPm.RegisterCommunicationService(b.verHaltCheck, b.verHaltCheck)
 }
 
 func (b *BaseComponent) getNodeServices() []NodeService {
 	// these services may have nil
 	return filterNilService([]NodeService{
 		b.chainService, b.bftNode, b.walletManager, b.csPm,
-		b.p2pServer, b.rpcService,b.txPool, b.prometheusServer,
+		b.p2pServer, b.rpcService, b.txPool, b.prometheusServer,
 	})
 }
 

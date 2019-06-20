@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package minemaster
 
 import (
@@ -29,7 +28,7 @@ import (
 // context must have workBuilder workBuilder, blockBuilder blockBuilder, curCoinbaseAddressFunc curCoinbaseAddressFunc
 func newWorkDispatcher(config MineConfig, getWorkersFunc getWorkersFunc) *workDispatcher {
 	return &workDispatcher{
-		MineConfig: config,
+		MineConfig:     config,
 		getWorkersFunc: getWorkersFunc,
 	}
 }
@@ -48,7 +47,7 @@ type workDispatcher struct {
 
 func (dispatcher *workDispatcher) onNewBlock(block model.AbstractBlock) error {
 	// new block num equal or bigger than cur work block num, reset work and dispatch a new
-	if dispatcher.curWorkBlock()!=nil{
+	if dispatcher.curWorkBlock() != nil {
 		if block.Number() < dispatcher.curWorkBlock().Number() {
 			//log.Warn("new block is smaller than cur work, nothing to do", "block num", block.Number())
 			return fmt.Errorf("new block is smaller than cur work, nothing to do block num: %v", block.Number())
@@ -92,7 +91,10 @@ func (dispatcher *workDispatcher) dispatchNewWork() error {
 
 func (dispatcher *workDispatcher) makeNewWorks(workerLen int) (workMsgCode int, works []minemsg.Work) {
 	pbft_log.Debug("make new works")
-	dispatcher.curBlock = dispatcher.BlockBuilder.BuildWaitPackBlock(dispatcher.GetCoinbaseAddr())
+	coinBaseAddr := dispatcher.GetCoinbaseAddr()
+	gasFloor := dispatcher.GetGasFloor()
+	gasCeil := dispatcher.GetGasCeil()
+	dispatcher.curBlock = dispatcher.BlockBuilder.BuildWaitPackBlock(coinBaseAddr, gasFloor, gasCeil)
 	mineWorkBuilder := minemsg.MakeDefaultWorkBuilder()
 	return mineWorkBuilder.BuildWorks(dispatcher.curBlock, workerLen)
 }

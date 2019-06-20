@@ -131,6 +131,7 @@ var methodFlags = []prompt.Suggest{
 	{Text: "SendTx", Description: ""},
 	{Text: "SetExchangeRate", Description: ""},
 	{Text: "SetMineCoinBase", Description: ""},
+	{Text: "SetMineGasConfig", Description: ""},
 	{Text: "SetBftSigner", Description: ""},
 	{Text: "StartMine", Description: ""},
 	{Text: "StopMine", Description: ""},

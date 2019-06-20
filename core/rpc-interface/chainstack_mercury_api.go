@@ -411,6 +411,10 @@ func (api *DipperinMercuryApi) SetMineCoinBase(addr common.Address) error {
 	return api.service.SetMineCoinBase(addr)
 }
 
+func (api *DipperinMercuryApi) SetMineGasConfig(gasFloor, gasCeil uint64) error {
+	return api.service.SetMineGasConfig(gasFloor, gasCeil)
+}
+
 // start mine:
 // swagger:operation POST /url/StartMine mineOperation StartMine
 // ---

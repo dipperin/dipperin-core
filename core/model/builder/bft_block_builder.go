@@ -121,7 +121,7 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 }
 
 //build the wait-pack block
-func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address) model.AbstractBlock {
+func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, gasFloor, gasCeil uint64) model.AbstractBlock {
 	if coinbaseAddr.IsEmpty() {
 		panic("call NewBlockFromLastBlock, but coinbase address is empty")
 	}
@@ -143,8 +143,8 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address) 
 	}
 
 	lastNormalBlock := builder.ChainReader.GetLatestNormalBlock()
-	lastGasLimit := lastNormalBlock.Header().GetGasLimit()
-	tmpValue := CalcGasLimit(lastNormalBlock.(*model.Block), lastGasLimit, lastGasLimit)
+	tmpValue := CalcGasLimit(lastNormalBlock.(*model.Block), gasFloor, gasCeil)
+	log.Info("build block", "gasFloor", gasFloor, "gasCeil", gasCeil, "newGasLimit", tmpValue, "coinBase", coinbaseAddr)
 
 	header := &model.Header{
 		Version:     curBlock.Version(),
@@ -335,7 +335,7 @@ func CalcGasLimit(parent *model.Block, gasFloor, gasCeil uint64) uint64 {
 	// decay = parentGasLimit / 1024 -1
 	decay := parent.GasLimit()/params.GasLimitBoundDivisor - 1
 
-	log.Info("the contrib and decay is:","contrib",contrib,"decay",decay)
+	log.Info("the contrib and decay is:", "contrib", contrib, "decay", decay)
 	/*
 		strategy: gasLimit of block-to-mine is set based on parent's
 		gasUsed value.  if parentGasUsed > parentGasLimit * (2/3) then we
@@ -348,7 +348,7 @@ func CalcGasLimit(parent *model.Block, gasFloor, gasCeil uint64) uint64 {
 		limit = params.MinGasLimit
 	}
 
-	log.Info("the limit after change is:","limit",limit)
+	log.Info("the limit after change is:", "limit", limit)
 	// If we're outside our allowed gas range, we try to hone towards them
 	if limit < gasFloor {
 		limit = parent.GasLimit() + decay

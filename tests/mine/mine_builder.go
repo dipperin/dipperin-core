@@ -34,6 +34,10 @@ type fakeMaster struct {
 
 }
 
+func (m *fakeMaster) SetMineGasConfig(gasFloor, gasCeil uint64) {
+	panic("implement me")
+}
+
 func (m *fakeMaster) Start() {
 	panic("implement me")
 }

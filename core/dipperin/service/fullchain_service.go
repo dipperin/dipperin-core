@@ -284,6 +284,14 @@ func (service *MercuryFullChainService) SetMineCoinBase(addr common.Address) err
 	return nil
 }
 
+func (service *MercuryFullChainService) SetMineGasConfig(gasFloor, gasCeil uint64) error {
+	if gasFloor < gasCeil {
+		return errors.New("gasFloor should greater than gasCeil")
+	}
+	service.MineMaster.SetMineGasConfig(gasFloor, gasCeil)
+	return nil
+}
+
 func (service *MercuryFullChainService) EstablishWallet(walletIdentifier accounts.WalletIdentifier, password, passPhrase string) (string, error) {
 	err := service.checkWalletIdentifier(&walletIdentifier)
 	if err != nil {
@@ -1720,7 +1728,7 @@ func (service *MercuryFullChainService) CallContract(from, to common.Address, da
 
 	var gasLimit uint64
 	curBlock := service.CurrentBlock()
-	if blockNum == 0 || curBlock.Number()<blockNum {
+	if blockNum == 0 || curBlock.Number() < blockNum {
 		gasLimit = curBlock.Header().GetGasLimit()
 	} else {
 		block, _ := service.GetBlockByNumber(blockNum)

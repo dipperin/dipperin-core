@@ -474,6 +474,42 @@ func (caller *rpcCaller) SetMineCoinBase(c *cli.Context) {
 	l.Debug("setting CoinBase　complete")
 }
 
+// SetMinerGasConfig set gasFloor and gasCeil
+func (caller *rpcCaller) SetMineGasConfig(c *cli.Context) {
+	mName, cParams, err := getRpcMethodAndParam(c)
+	if err != nil {
+		l.Error("getRpcMethodAndParam error")
+		return
+	}
+
+	if len(cParams) < 2 {
+		l.Error("parameter includes：gasFloor, gasCeil")
+		return
+	}
+
+	gasFloor, err := strconv.Atoi(cParams[0])
+	if err != nil {
+		l.Error("parse gasFloor error", "err", err)
+		return
+	}
+
+	gasCeil, err := strconv.Atoi(cParams[1])
+	if err != nil {
+		l.Error("parse gasCeil error", "err", err)
+		return
+	}
+
+	l.Info("the gasFloor is:", "gasFloor", gasFloor)
+	l.Info("the gasCeil is:", "gasCeil", gasCeil)
+
+	var resp interface{}
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), uint64(gasFloor), uint64(gasCeil)); err != nil {
+		l.Error("setting MinerGasConfig failed", "err", err)
+		return
+	}
+	l.Info("setting MinerGasConfig complete")
+}
+
 func (caller *rpcCaller) SendTx(c *cli.Context) {
 	if checkSync() {
 		return

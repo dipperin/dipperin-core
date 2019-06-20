@@ -65,22 +65,22 @@ func TestMakeBftBlockBuilder(t *testing.T) {
 	}, nil)
 	mts.EXPECT().GetSender(gomock.Any()).Return(tb.From(), nil).AnyTimes()
 	mts.EXPECT().Equal(gomock.Any()).Return(true).AnyTimes()
-	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}))
+	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}, 1e1, 1e1))
 
 	tb.Nonce = 99
 	mtpool.EXPECT().Pending().Return(map[common.Address][]model.AbstractTransaction{
 		tb.From(): {tb.Build()},
 	}, nil)
 	mtpool.EXPECT().RemoveTxs(gomock.Any()).AnyTimes()
-	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}))
+	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}, 1e1, 1e1))
 
 	assert.Panics(t, func() {
-		builder.BuildWaitPackBlock(common.Address{})
+		builder.BuildWaitPackBlock(common.Address{0x12}, 1e1, 1e1)
 	})
 
 	builder.ChainReader = &fakeChainReader{}
 	assert.Panics(t, func() {
-		builder.BuildWaitPackBlock(common.Address{0x12})
+		builder.BuildWaitPackBlock(common.Address{0x12}, 1e1, 1e1)
 	})
 }
 
@@ -139,7 +139,7 @@ func TestBftBlockBuilder_BuildWaitPackBlock(t *testing.T) {
 	}, nil)
 	mts.EXPECT().GetSender(gomock.Any()).Return(tb.From(), nil).AnyTimes()
 	mts.EXPECT().Equal(gomock.Any()).Return(true).AnyTimes()
-	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}))
+	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}, 1e1, 1e1))
 }
 
 func TestBftBlockBuilder_GetDifficulty(t *testing.T) {
@@ -168,34 +168,34 @@ func TestBftBlockBuilder_GetDifficulty(t *testing.T) {
 	mts.EXPECT().GetSender(gomock.Any()).Return(tb.From(), nil).AnyTimes()
 	mts.EXPECT().Equal(gomock.Any()).Return(true).AnyTimes()
 
-	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}))
+	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}, 1e1, 1e1))
 	assert.NotNil(t, builder.GetDifficulty())
 }
 
-func creatBlockWithGasLimitAndGasUsed(gasUsed,gasLimit,number uint64)*model.Block {
+func creatBlockWithGasLimitAndGasUsed(gasUsed, gasLimit, number uint64) *model.Block {
 	header := &model.Header{
-		GasUsed:gasUsed,
-		GasLimit:gasLimit,
-		Number:number,
+		GasUsed:  gasUsed,
+		GasLimit: gasLimit,
+		Number:   number,
 	}
-	return model.NewBlock(header,nil,nil)
+	return model.NewBlock(header, nil, nil)
 }
 
-func TestGasLimitAdjust(t *testing.T){
-/*	controller := gomock.NewController(t)
-	defer controller.Finish()*/
+func TestGasLimitAdjust(t *testing.T) {
+	/*	controller := gomock.NewController(t)
+		defer controller.Finish()*/
 	var blockNumber uint64
 	gasLimit := uint64(chain_config.BlockGasLimit)
-	gasUsed := gasLimit
+	gasUsed := uint64(0)
 	for {
-		Block := creatBlockWithGasLimitAndGasUsed(gasUsed,gasLimit,blockNumber)
-		log.Info("the block gas info is:","blockNumber",Block.Number(),"gasLimit",Block.GasLimit(),"blockGasUsed",Block.GasUsed())
+		Block := creatBlockWithGasLimitAndGasUsed(gasUsed, gasLimit, blockNumber)
+		log.Info("the block gas info is:", "blockNumber", Block.Number(), "gasLimit", Block.GasLimit(), "blockGasUsed", Block.GasUsed())
 
 		blockNumber ++
-		gasLimit = CalcGasLimit(Block,8000000,8000000)
+		gasLimit = CalcGasLimit(Block, 3000000000, 2999999910)
 		//gasLimit = CalcGasLimit(Block,Block.GasLimit(),Block.GasLimit())
-		log.Info("the actual gasLimit after change is:","gasLimit",gasLimit)
-		log.Info("the gasLimit change value is:","change",int64(gasLimit)-int64(Block.GasLimit()))
+		log.Info("the actual gasLimit after change is:", "gasLimit", gasLimit)
+		log.Info("the gasLimit change value is:", "change", int64(gasLimit)-int64(Block.GasLimit()))
 		gasUsed = gasLimit
 
 		log.Info("")
@@ -203,14 +203,14 @@ func TestGasLimitAdjust(t *testing.T){
 		log.Info("********************next block***********************")
 		log.Info("")
 
-		if blockNumber == 1{
+		if blockNumber == 20000 {
 			break
 		}
 		//break
-/*
-		if gasLimit == 20000000000{
-			log.Info("the gasLimit is out of the MaxLimit")
-		}*/
+		/*
+				if gasLimit == 20000000000{
+					log.Info("the gasLimit is out of the MaxLimit")
+				}*/
 	}
 }
 
@@ -260,4 +260,3 @@ func (f *fakeChainReader) BuildRegisterProcessor(preRoot common.Hash) (*register
 func (f *fakeChainReader) GetEconomyModel() economy_model.EconomyModel {
 	panic("implement me")
 }
-
