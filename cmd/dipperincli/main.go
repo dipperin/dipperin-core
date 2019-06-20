@@ -261,17 +261,19 @@ func Executor(c *cli.Context) prompt.Executor {
 		}
 		s := []string{os.Args[0]}
 		s = append(s, cmdArgs...)
-		fmt.Println("s final:",s)
+		//fmt.Println("s final:",s)
 		//s = []string{"dipperincli", "tx", "SendTransactionContract", "--abi"}
-		s = []string{"dipperincli", "tx", "SendTransactionContract"}
+		//s = []string{"dipperincli", "tx", "SendTransactionContract"}
 		if len(cmdArgs) >= 2 {
 			if config2.CheckModuleMethodIsRight(cmdArgs[0], cmdArgs[1]){
-			   c.App.Run(s)
+			   err := c.App.Run(s)
+				log.Info("Executor", "err", err)
 			} else {
 				fmt.Println("module", cmdArgs[0], "has not method", cmdArgs[1])
 			}
 		} else {
-			c.App.Run(s)
+			err := c.App.Run(s)
+			log.Info("Executor", "err", err)
 		}
 	}
 }

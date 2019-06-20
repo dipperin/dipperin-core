@@ -183,16 +183,11 @@ func RpcCall(c *cli.Context) {
 	if client == nil {
 		panic("rpc client not initialized")
 	}
-
-	method := c.Args()[0]
-	//params := c.String("p")
-	//l.Info("RpcCall", "params", params)
-	l.Info("RpcCall", "method", method, "c.Args", c.Args())
-	/*method := c.String("m")
-	if method == "" {
-		l.Error("Please specify -m")
-		return
-	}*/
+    // when use method := c.Args()[0],the command line `tx SendTransactionContract -p xxxx --abi` lead the node stop
+	method := c.Args().First()
+	if len(c.Args()) == 0 {
+		l.Info("RpcCall params assign err, can't find the method")
+	}
 
 	rvf := callerRv.MethodByName(method)
 	if rvf.Kind() != reflect.Func {

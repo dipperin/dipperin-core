@@ -18,7 +18,6 @@
 package config
 
 import (
-	"fmt"
 	"github.com/c-bata/go-prompt"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"strings"
@@ -61,7 +60,7 @@ func optionCompleterNew(args []string, long bool) []prompt.Suggest {
 
 	var suggests []prompt.Suggest
 	commandArgs := excludeOptions(args)
-	fmt.Println("optionCompleterNew", "commandArgs", commandArgs)
+	//fmt.Println("optionCompleterNew", "commandArgs", commandArgs)
 	log.Debug("optionCompleterNew", "commandArgs", commandArgs)
 
 	if len(args) == 2 {

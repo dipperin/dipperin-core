@@ -18,7 +18,6 @@
 package config
 
 import (
-	"fmt"
 	"github.com/c-bata/go-prompt"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"strings"
@@ -70,12 +69,11 @@ func DipperinCliCompleterNew(d prompt.Document) []prompt.Suggest {
 
 	args := strings.Split(d.TextBeforeCursor(), " ")
 	w := d.GetWordAfterCursor()
-	h := d.GetWordBeforeCursorUntilSeparatorIgnoreNextToCursor(" ")
 
-	for w == "" {
+	/*for w == "" {
 		w = strings.TrimSpace(d.GetWordBeforeCursorUntilSeparatorIgnoreNextToCursor(" "))
-	}
-	fmt.Println("DipperinCliCompleter", "args", args, "w", w, "h", h)
+	}*/
+	//fmt.Println("DipperinCliCompleter", "args", args, "w", w, "h", h)
 	/*if strings.HasPrefix(w, "-") {
 		return optionCompleterNew(args,strings.HasPrefix(w, "--"))
 	} else if len(args) == 2 {
@@ -84,7 +82,7 @@ func DipperinCliCompleterNew(d prompt.Document) []prompt.Suggest {
 
 	if len(args) == 2 {
 		return optionCompleterNew(args, true)
-	} else {
+	} else if strings.HasPrefix(w, "-") {
 		return optionCompleterNew(args,strings.HasPrefix(w, "--"))
 	}
 	/*for i, r := range w {
@@ -138,7 +136,7 @@ func argumentsCompleterNew(args []string) []prompt.Suggest {
 	}
 
 	first := args[0]
-	fmt.Println("argumentsCompleterNew", "args", args)
+	//fmt.Println("argumentsCompleterNew", "args", args)
 
 	switch first {
 	case "miner", "m", "verifier", "chain", "tx", "personal":
