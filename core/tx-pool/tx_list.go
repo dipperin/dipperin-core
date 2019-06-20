@@ -267,7 +267,7 @@ func (l *txList) Add(tx model.AbstractTransaction, feeBump uint64) (bool, model.
 	old := l.txs.Get(tx.Nonce())
 	if old != nil {
 		//contract tx check gasPrice to replace
-		if tx.GetType() == common.AddressTypeContractCreate || tx.GetType()==common.AddressTypeContract{
+		if tx.GetType() == common.AddressTypeContractCreate || tx.GetType()==common.AddressTypeContractCall {
 			if old.GetGasPrice().Cmp(tx.GetGasPrice()) >=0{
 				return false, nil
 			}

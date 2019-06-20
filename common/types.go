@@ -53,7 +53,7 @@ const (
 	AddressTypeERC20          = 0x0010
 	AddressTypeEarlyReward    = 0x0011
 	AddressTypeContractCreate = 0x0012
-	AddressTypeContract       = 0x0014
+	AddressTypeContractCall   = 0x0014
 )
 
 func (txType TxType) String() string {
@@ -74,7 +74,7 @@ func (txType TxType) String() string {
 		return "erc20 transaction"
 	case AddressTypeContractCreate:
 		return "contract creation"
-	case AddressTypeContract:
+	case AddressTypeContractCall:
 		return "contract call"
 	default:
 		return fmt.Sprintf("unkonw tx:%v", int(txType))
@@ -82,9 +82,9 @@ func (txType TxType) String() string {
 }
 
 const (
-	AddressStake          = "0x00020000000000000000000000000000000000000000"
-	AddressCancel         = "0x00030000000000000000000000000000000000000000"
-	AddressUnStake        = "0x00040000000000000000000000000000000000000000"
+	AddressStake   = "0x00020000000000000000000000000000000000000000"
+	AddressCancel  = "0x00030000000000000000000000000000000000000000"
+	AddressUnStake = "0x00040000000000000000000000000000000000000000"
 
 	AddressUnNormal       = "0x00090000000000000000000000000000000000000000"
 	AddressContractCreate = "0x00120000000000000000000000000000000000000000"
@@ -201,9 +201,9 @@ func (h Hash) ValidHashForDifficulty(difficulty Difficulty) bool {
 	//log.Debug("h ValidHashForDifficulty", "hash", h.Hex(), "diff", difficulty.Hex())
 	result := h.Cmp(difficulty.DiffToTarget())
 	if result <= 0 {
-		log.Info("===============received-hash==============","hash hex", h.Hex())
-		log.Info("===============block info ==============","block info", h.Hex())
-		log.Info("===============difftohash==============","diffculty", difficulty.DiffToTarget().Hex())
+		log.Info("===============received-hash==============", "hash hex", h.Hex())
+		log.Info("===============block info ==============", "block info", h.Hex())
+		log.Info("===============difftohash==============", "diffculty", difficulty.DiffToTarget().Hex())
 		return true
 	} else {
 		return false
@@ -266,7 +266,7 @@ func (addr Address) GetAddressTypeStr() string {
 		return consts.EarlyTokenTypeName
 	case AddressTypeContractCreate:
 		return "ContractCreation"
-	case AddressTypeContract:
+	case AddressTypeContractCall:
 		return "ContractCall"
 	}
 	return "UnKnown"

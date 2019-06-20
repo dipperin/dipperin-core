@@ -70,21 +70,14 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 		}
 	}()
 
-	if len(contract.Code) == 0 {
-		log.Debug("Code Length is 0")
+	if len(contract.Code) == 0 || len(contract.ABI) == 0 {
+		log.Debug("Code or ABI Length is 0")
 		return nil, nil
-	}
-
-	// rlp解析合约
-	code, abi, err := ParseRlpData(contract.Code)
-	if err != nil {
-		log.Info("ParseRlpData failed", "err", err)
-		return nil, err
 	}
 
 	//　life方法注入新建虚拟机
 	solver := resolver.NewResolver(vm, contract, in.state)
-	lifeVm, err := exec.NewVirtualMachine(code, in.config, solver, nil)
+	lifeVm, err := exec.NewVirtualMachine(contract.Code, in.config, solver, nil)
 	if err != nil {
 		log.Info("NewVirtualMachine failed", "err", err)
 		return nil, err
@@ -102,13 +95,13 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 
 	if create {
 		// init function.
-		funcName, params, returnType, err = parseInputFromAbiByInit(lifeVm, contract.Input, abi)
+		funcName, params, returnType, err = parseInitFunctionByABI(lifeVm, contract.Input, contract.ABI)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		// parse input
-		funcName, params, returnType, err = parseInputFromAbi(lifeVm, contract.Input, abi)
+		funcName, params, returnType, err = parseCallExtraDataByABI(lifeVm, contract.Input, contract.ABI)
 		if err != nil {
 			if err == errReturnInsufficientParams { // transfer to contract address.
 				return nil, nil
@@ -181,35 +174,8 @@ func (in *WASMInterpreter) CanRun([]byte) bool {
 	return true
 }
 
-// rlpData=RLP([code][abi])
-func ParseRlpData(rlpData []byte) (code, abi []byte, err error) {
-	ptr := new(interface{})
-	err = rlp.Decode(bytes.NewReader(rlpData), &ptr)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	rlpList := reflect.ValueOf(ptr).Elem().Interface()
-	if _, ok := rlpList.([]interface{}); !ok {
-		return nil, nil, errReturnInvalidRlpFormat
-	}
-
-	iRlpList := rlpList.([]interface{})
-	if len(iRlpList) != 2 {
-		return nil, nil, fmt.Errorf("invalid Data, eleLen must be 2")
-	}
-
-	if v, ok := iRlpList[0].([]byte); ok {
-		code = v
-	}
-
-	if v, ok := iRlpList[1].([]byte); ok {
-		abi = v
-	}
-	return
-}
-
-func ParseInputGetFuncName(rlpData []byte) (funcName string, err error) {
+// input = RLP([funcName][params])
+func ParseInputForFuncName(rlpData []byte) (funcName string, err error) {
 	ptr := new(interface{})
 	err = rlp.Decode(bytes.NewReader(rlpData), &ptr)
 	if err != nil {
@@ -234,7 +200,7 @@ func ParseInputGetFuncName(rlpData []byte) (funcName string, err error) {
 
 // input = RLP([params])
 // returnType must void
-func parseInputFromAbiByInit(vm *exec.VirtualMachine, input []byte, abi []byte) (funcName string, params []int64, returnType string, err error) {
+func parseInitFunctionByABI(vm *exec.VirtualMachine, input []byte, abi []byte) (funcName string, params []int64, returnType string, err error) {
 	funcName = "init"
 	if input == nil {
 		log.Info("InitFunc has no input")
@@ -263,7 +229,7 @@ func parseInputFromAbiByInit(vm *exec.VirtualMachine, input []byte, abi []byte) 
 
 // input = RLP([funcName][params])
 // get returnType[0] if more than 1 return
-func parseInputFromAbi(vm *exec.VirtualMachine, input []byte, abi []byte) (funcName string, params []int64, returnType string, err error) {
+func parseCallExtraDataByABI(vm *exec.VirtualMachine, input []byte, abi []byte) (funcName string, params []int64, returnType string, err error) {
 	if input == nil || len(input) <= 1 {
 		return "", nil, "", fmt.Errorf("invalid input")
 	}
@@ -357,34 +323,34 @@ func findParams(vm *exec.VirtualMachine, abi []byte, funcName string, inputList 
 }
 
 // rlpData=RLP([code][abi][init params])
-func parseInitParams(rlpData []byte) (rlpCode, rlpInit []byte, err error) {
+func parseCreateExtraData(rlpData []byte) (code, abi, rlpInit []byte, err error) {
 	ptr := new(interface{})
 	err = rlp.Decode(bytes.NewReader(rlpData), &ptr)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 
 	rlpList := reflect.ValueOf(ptr).Elem().Interface()
 	if _, ok := rlpList.([]interface{}); !ok {
-		return nil, nil, errReturnInvalidRlpFormat
+		return nil, nil, nil, errReturnInvalidRlpFormat
 	}
 
 	iRlpList := rlpList.([]interface{})
-	if len(iRlpList) <= 1 {
-		return nil, nil, fmt.Errorf("invalid input, ele must greater than 1")
+	if len(iRlpList) < 2 {
+		return nil, nil, nil, errReturnInsufficientParams
+	}
+
+	// parse code and abi
+	if v, ok := iRlpList[0].([]byte); ok {
+		code = v
+	}
+
+	if v, ok := iRlpList[1].([]byte); ok {
+		abi = v
 	}
 
 	if len(iRlpList) == 2 {
-		return rlpData, nil, nil
-	}
-
-	// encode code and abi
-	code := []interface{}{
-		iRlpList[0], iRlpList[1],
-	}
-	rlpCode, err = rlp.EncodeToBytes(code)
-	if err != nil {
-		return nil, nil, err
+		return
 	}
 
 	// encode init
@@ -395,7 +361,7 @@ func parseInitParams(rlpData []byte) (rlpCode, rlpInit []byte, err error) {
 
 	rlpInit, err = rlp.EncodeToBytes(init)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 	return
 }

@@ -130,7 +130,7 @@ func GetContractAddress(address common.Address) common.Address {
 
 func CreateContractAddress(b common.Address, nonce uint64) common.Address{
 	var tmpTypeB [2]byte
-	binary.BigEndian.PutUint16(tmpTypeB[:], uint16(common.AddressTypeContract))
+	binary.BigEndian.PutUint16(tmpTypeB[:], uint16(common.AddressTypeContractCall))
 	data, _ := rlp.EncodeToBytes([]interface{}{b, nonce})
 	tempAddr := crypto.Keccak256(data)[12:]
 	addr := append(tmpTypeB[:],tempAddr...)

@@ -7,10 +7,8 @@ import (
 	"reflect"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/dipperin/dipperin-core/common/g-error"
-	"errors"
+	"github.com/dipperin/dipperin-core/third-party/log"
 )
-
-var errReturnInputAbiNotMatch = errors.New("ABI: length of input and abi not match")
 
 type WasmAbi struct {
 	AbiArr []AbiStruct `json:"abiArr"`
@@ -42,7 +40,7 @@ func (abi *WasmAbi) FromJson(body []byte) error {
 	return err
 }
 
-func ConvertInputs(src []byte, inputParam []InputParam) ([]byte, error) {
+func ConvertInputs(src []byte, abiInput []InputParam) ([]byte, error) {
 	ptr := new(interface{})
 	err := rlp.Decode(bytes.NewReader(src), &ptr)
 	if err != nil {
@@ -55,12 +53,13 @@ func ConvertInputs(src []byte, inputParam []InputParam) ([]byte, error) {
 	}
 
 	inputList := rlpList.([]interface{})
-	if len(inputList) != len(inputParam) {
-		return nil, errReturnInputAbiNotMatch
+	if len(inputList) != len(abiInput) {
+		log.Debug("ConvertInputs failed", "err", fmt.Sprintf("input:%v, abi:%v", len(inputList), len(abiInput)))
+		return nil, errLengthInputAbiNotMatch
 	}
 
 	var data []byte
-	for i, v := range inputParam {
+	for i, v := range abiInput {
 		input := inputList[i].([]byte)
 		convert := BytesConverter(input, v.Type)
 		result := fmt.Sprintf("%v,", convert)

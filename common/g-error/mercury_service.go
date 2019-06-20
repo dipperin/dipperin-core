@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package g_error
 
 import "errors"
 
 var (
-	BlockNumberError = errors.New("the block number is smaller than 2")
-	BlockIsNilError  = errors.New("the block is nil")
-	ReceiptHashError = errors.New("the receipt hash does not match")
-	BlockIsNotCorrect = errors.New("the block number isn't correct")
-	BlockReceiptsAreEmpty = errors.New("the block receipts are nil")
+	BlockNumberError             = errors.New("the block number is smaller than 2")
+	BlockIsNilError              = errors.New("the block is nil")
+	ReceiptHashError             = errors.New("the receipt hash does not match")
+	ErrInvalidContractType       = errors.New("invalid contract type")
+	ErrFunctionCalledConstant    = errors.New("function called is constant, no need to send transaction")
+	ErrFunctionCalledNotConstant = errors.New("function called isn't constant, need to send a transaction")
+	ErrFunctionInitCanNotCalled  = errors.New("function init can't be called")
+	ErrFuncNameNotFoundInABI     = errors.New("funcName not found in abi")
 )

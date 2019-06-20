@@ -752,11 +752,10 @@ func creatBlockWithAllTx(n int,t *testing.T) *Block{
 	}
 
 	return NewBlock(header, res, voteList)
-
 }
 
 func Test_BlockTxNumber(t *testing.T){
-
+	//t.Skip()
 	maxNormalTxNumber := chain_config.BlockGasLimit/model.TxGas
 	assert.Equal(t,160000,int(maxNormalTxNumber))
 

@@ -1219,7 +1219,7 @@ func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint
 }
 
 func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *model.ReceiptPara, blockGasUsed *uint64) error {
-	if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContract {
+	if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContractCall {
 		return nil
 	}
 
@@ -1256,7 +1256,7 @@ type TxProcessConfig struct {
 
 func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
 	// All transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
-	if conf.Tx.GetType() != common.AddressTypeContract && conf.Tx.GetType() != common.AddressTypeContractCreate {
+	if conf.Tx.GetType() != common.AddressTypeContractCall && conf.Tx.GetType() != common.AddressTypeContractCreate {
 		err = state.processBasicTx(conf.Tx)
 		if err != nil {
 			log.Debug("processBasicTx failed", "err", err)
@@ -1266,7 +1266,7 @@ func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
 
 	var par model.ReceiptPara
 	switch conf.Tx.GetType() {
-	case common.AddressTypeContract:
+	case common.AddressTypeContractCall:
 		par, err = state.ProcessContract(conf, false)
 	case common.AddressTypeContractCreate:
 		par, err = state.ProcessContract(conf, true)

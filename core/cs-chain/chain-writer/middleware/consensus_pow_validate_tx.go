@@ -46,7 +46,7 @@ var txValidators = map[common.TxType]func(tx model.AbstractTransaction, chain Ch
 	common.TxType(common.AddressTypeEvidence):    validEvidenceTx,
 	common.TxType(common.AddressTypeERC20):       validContractTx,
 	common.TxType(common.AddressTypeEarlyReward): validEarlyTokenTx,
-	common.TxType(common.AddressTypeContract): func(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
+	common.TxType(common.AddressTypeContractCall): func(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
 		return nil
 	},
 	common.TxType(common.AddressTypeContractCreate): func(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
@@ -153,7 +153,7 @@ func ValidTxSender(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 		return err
 	}
 
-	if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContract{
+	if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContractCall {
 		gas, err := model.IntrinsicGas(tx.ExtraData(), tx.GetType() == common.AddressTypeContractCreate , true)
 		if err !=nil{
 			return err

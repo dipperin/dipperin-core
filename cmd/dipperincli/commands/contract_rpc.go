@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"strings"
 	"io/ioutil"
 	"strconv"
 	"github.com/urfave/cli"
@@ -13,7 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"errors"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"reflect"
 )
 
@@ -287,6 +285,17 @@ func isCreate(c *cli.Context) bool {
 }
 
 func getCreateExtraData(c *cli.Context) (ExtraData []byte, err error) {
+	// Get wasm
+	wasmPath, err := getRpcParamValue(c, "wasm")
+	if err != nil {
+		return nil, errors.New("the wasm path value invalid")
+	}
+	wasmBytes, err := ioutil.ReadFile(wasmPath)
+	if err != nil {
+		return nil, errors.New("the wasm file read err")
+	}
+
+	// Get abi
 	abiPath, err := getRpcParamValue(c, "abi")
 	if err != nil {
 		return nil, errors.New("the abi path value invalid")
@@ -295,51 +304,10 @@ func getCreateExtraData(c *cli.Context) (ExtraData []byte, err error) {
 	if err != nil {
 		return nil, errors.New("the abi file read err")
 	}
-	var wasmAbi utils.WasmAbi
-	err = wasmAbi.FromJson(abiBytes)
-	//err = json.Unmarshal(abiBytes, &wasmAbi.AbiArr)
-	if err != nil {
-		return nil, errors.New("abi file is err")
-	}
-
-	var args []utils.InputParam
-	for _, v := range wasmAbi.AbiArr {
-		if strings.EqualFold("init", v.Name) && strings.EqualFold(v.Type, "function") {
-			args = v.Inputs
-			if len(v.Outputs) != 0 {
-				return nil, errors.New("invalid init function outputs length")
-			}
-			break
-		}
-	}
 
 	input := getRpcSpecialParam(c, "input")
-	params := getRpcParamFromString(input)
-	if len(params) != len(args) {
-		return  nil, errors.New("not enough create contract params")
-	}
-
-	wasmPath, err := getRpcParamValue(c, "wasm")
-	if err != nil {
-		return nil, errors.New("the wasm path value invalid")
-	}
-
-	wasmBytes, err := ioutil.ReadFile(wasmPath)
-	if err != nil {
-		return nil, errors.New("the abi file read err")
-	}
-
 	rlpParams := []interface{}{
-		//strconv.Itoa(common.AddressTypeContractCreate),wasmBytes, abiBytes,
-		wasmBytes, abiBytes,
-	}
-	for i, v := range args {
-		bts := params[i]
-		re, err := utils.StringConverter(bts, v.Type)
-		if err != nil {
-			return re, err
-		}
-		rlpParams = append(rlpParams, re)
+		wasmBytes, abiBytes, input,
 	}
 	return rlp.EncodeToBytes(rlpParams)
 }

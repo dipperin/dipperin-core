@@ -14,20 +14,18 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"path/filepath"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/common/vmcommon"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"time"
 	"fmt"
 )
 
 var (
-	AbiPath  = filepath.Join(util.HomeDir(), "c++/src/dipc/testcontract/cppfile/event/event.cpp.abi.json")
-	WASMPath = filepath.Join(util.HomeDir(), "c++/src/dipc/testcontract/cppfile/event/event.wasm")
+	AbiPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/event.cpp.abi.json")
+	WASMPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/event.wasm")
 )
 
 var (
-	AbiTokenPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/token/token.cpp.abi.json")
-	WASMTokenPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/token/token-wh.wasm")
+	AbiTokenPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/tokenConstant/token.cpp.abi.json")
+	WASMTokenPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/tokenConstant/token.wasm")
 )
 
 func LogTestPrint(function, msg string, ctx ...interface{}) {
@@ -57,6 +55,16 @@ func SendTransactionContract(client *rpc.Client, from, to common.Address, value,
 	}
 	LogTestPrint("Test", "SendContract Successful", "txId", resp.Hex())
 	return resp, nil
+}
+
+func Call(client *rpc.Client, from, to common.Address, data []byte) error {
+	var resp string
+	if err := client.Call(&resp, GetRpcTXMethod("CallContract"), from, to, data, uint64(0)); err != nil {
+		LogTestPrint("Test", "CallContract failed", "err", err)
+		return err
+	}
+	LogTestPrint("Test", "CallContract Successful", "resp", resp)
+	return nil
 }
 
 func Transaction(client *rpc.Client, hash common.Hash) (bool, uint64) {
@@ -126,45 +134,27 @@ func getCallExtraData(t *testing.T, funcName, param string) []byte {
 	return result
 }
 
-func getCreateExtraData(t *testing.T, abiPath, wasmPath string, params []string) []byte {
+func getCreateExtraData(t *testing.T, wasmPath, abiPath string, init string) []byte {
 	// GetContractExtraData
-	log.Info("the abiPath is:%v","abiPath",abiPath)
+	wasmBytes, err := ioutil.ReadFile(wasmPath)
+	assert.NoError(t, err)
+
 	abiBytes, err := ioutil.ReadFile(abiPath)
 	assert.NoError(t, err)
 
-	//log.Info("the abiBytes is:","abiBytes",hexutil.Encode(abiBytes))
-
-	var wasmAbi utils.WasmAbi
-	err = wasmAbi.FromJson(abiBytes)
-	assert.NoError(t, err)
-	var args []utils.InputParam
-	for _, v := range wasmAbi.AbiArr {
-		if strings.EqualFold("init", v.Name) && strings.EqualFold(v.Type, "function") {
-			args = v.Inputs
+	var rlpParams []interface{}
+	if init == "" {
+		rlpParams = []interface{}{
+			wasmBytes, abiBytes,
+		}
+	} else {
+		rlpParams = []interface{}{
+			wasmBytes, abiBytes, init,
 		}
 	}
-	//params := []string{"dipp", "DIPP", "100000000"}
-	wasmBytes, err := ioutil.ReadFile(wasmPath)
-	//log.Info("the wasmBytes is:","wasmBytes",hexutil.Encode(wasmBytes))
-	assert.NoError(t, err)
-	rlpParams := []interface{}{
-		wasmBytes, abiBytes,
-	}
 
-	//log.Info("the params is:","params",params)
-	assert.Equal(t, len(params), len(args))
-	for i, v := range args {
-		bts := params[i]
-		re, err := vmcommon.StringConverter(bts, v.Type)
-		assert.NoError(t, err)
-		rlpParams = append(rlpParams, re)
-		//inputParams = append(inputParams, re)
-	}
 	data, err := rlp.EncodeToBytes(rlpParams)
-	//input, err := rlp.EncodeToBytes(inputParams)
 	assert.NoError(t, err)
-
-	//log.Info("the generate extra data is:","extraData",hexutil.Encode(data))
 	return data
 }
 
