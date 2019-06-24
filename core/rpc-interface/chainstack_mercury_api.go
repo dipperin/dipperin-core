@@ -31,6 +31,7 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"github.com/pkg/errors"
 	"math/big"
 	"github.com/dipperin/dipperin-core/common/address-util"
 	"encoding/json"
@@ -147,9 +148,11 @@ func (api *DipperinMercuryApi) GetBlockByHash(hash common.Hash) (*BlockResp, err
 	curBlock, err := api.service.GetBlockByHash(hash)
 	if err != nil {
 		return nil, err
+	} else if curBlock == nil {
+		return nil, errors.New(fmt.Sprintf("no block hash is %s", hash))
 	}
 
-	//	log.Debug("the current block is: ","current block",*curBlock.(*model.Block))
+	log.Info("the current block is: ","current block",*curBlock.(*model.Block))
 
 	blockResp.Header = *curBlock.Header().(*model.Header)
 	blockResp.Body = *curBlock.Body().(*model.Body)
@@ -409,6 +412,10 @@ func (api *DipperinMercuryApi) NewTransaction(transactionRlpB []byte) (TxHash co
 //        description: return the operation result
 func (api *DipperinMercuryApi) SetMineCoinBase(addr common.Address) error {
 	return api.service.SetMineCoinBase(addr)
+}
+
+func (api *DipperinMercuryApi) SetMineGasConfig(gasFloor, gasCeil uint64) error {
+	return api.service.SetMineGasConfig(gasFloor, gasCeil)
 }
 
 // start mine:

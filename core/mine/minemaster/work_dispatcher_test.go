@@ -45,7 +45,7 @@ type fakeBlockBuilder struct {
 
 }
 
-func (b *fakeBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address) model.AbstractBlock {
+func (b *fakeBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, gasFloor, gasCeil uint64) model.AbstractBlock {
 	return block
 }
 

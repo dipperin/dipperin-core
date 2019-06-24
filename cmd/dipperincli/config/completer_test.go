@@ -17,12 +17,16 @@
 package config
 
 import (
+	"fmt"
 	"github.com/c-bata/go-prompt"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
+	"strings"
 	"testing"
 )
 
 func TestDipperinCliCompleter(t *testing.T) {
+	log.InitLogger(log.LvlDebug)
 	d := prompt.Document{}
 
 	assert.Equal(t, DipperinCliCompleter(d), nilSuggest)
@@ -41,6 +45,16 @@ func TestDipperinCliCompleter(t *testing.T) {
 
 	assert.Equal(t, DipperinCliCompleter(d), []prompt.Suggest{})
 
+
+	b = prompt.NewBuffer()
+	b.InsertText("rpc.A -A -F", false, true)
+
+	d = *b.Document()
+
+	DipperinCliCompleterNew(d)
+	//assert.Equal(t, DipperinCliCompleterNew(d), []prompt.Suggest{})
+
+
 	b = prompt.NewBuffer()
 	b.InsertText("RPC", false, true)
 
@@ -49,10 +63,83 @@ func TestDipperinCliCompleter(t *testing.T) {
 	assert.Equal(t, DipperinCliCompleter(d), []prompt.Suggest{{Text:"-h", Description:""}, {Text:"--help", Description:""}})
 }
 
+
+func TestDipperinCliCompleterNew(t *testing.T) {
+	log.InitLogger(log.LvlDebug)
+	d := prompt.Document{}
+
+
+	args := strings.Split("tx ", " ")
+	fmt.Println(len(args))
+	b := prompt.NewBuffer()
+	b.InsertText("tx ", false, true)
+
+	d = *b.Document()
+
+	suggest := DipperinCliCompleterNew(d)
+	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+
+
+	args = strings.Split("tx SendTx ", " ")
+	fmt.Println(len(args))
+	b = prompt.NewBuffer()
+	b.InsertText("tx SendTx ", false, true)
+
+	d = *b.Document()
+
+	suggest = DipperinCliCompleterNew(d)
+	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+
+	args = strings.Split("tx SendTx -", " ")
+	fmt.Println(len(args))
+	b = prompt.NewBuffer()
+	b.InsertText("tx SendTx -", false, true)
+
+	d = *b.Document()
+
+	suggest = DipperinCliCompleterNew(d)
+	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+
+
+	args = strings.Split("tx SendTransactionContract --abi ", " ")
+	fmt.Println(len(args), strings.TrimLeft(args[len(args)-1], "--"))
+	for _,arg := range args{
+		fmt.Println(strings.TrimLeft(arg, "--"))
+	}
+	b = prompt.NewBuffer()
+	b.InsertText("tx SendTransactionContract --abi ", false, true)
+
+	d = *b.Document()
+
+	suggest = DipperinCliCompleterNew(d)
+	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+
+	b = prompt.NewBuffer()
+	b.InsertText("rpc.Add -A -F", false, true)
+
+	d = *b.Document()
+
+	suggest = DipperinCliCompleterNew(d)
+	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+
+
+	b = prompt.NewBuffer()
+	b.InsertText("rp", false, true)
+
+	d = *b.Document()
+
+	suggest = DipperinCliCompleterNew(d)
+	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+	//assert.Equal(t, DipperinCliCompleterNew(d), []prompt.Suggest{})
+}
+
+
 func Test_argumentsCompleter(t *testing.T) {
 	assert.Equal(t, argumentsCompleter([]string{"test"}), []prompt.Suggest{})
 	assert.Equal(t, argumentsCompleter([]string{"rpc", "a"}), []prompt.Suggest{})
 	assert.Equal(t, argumentsCompleter([]string{"rpc", "a", "b"}), nilSuggest)
+	fmt.Println(argumentsCompleter([]string{"rpc", "-a", "b"}))
+	assert.Equal(t, argumentsCompleter([]string{"rpc", "-a"}), nilSuggest)
 }
 
 func Test_excludeOptions(t *testing.T) {

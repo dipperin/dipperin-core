@@ -183,16 +183,15 @@ func RpcCall(c *cli.Context) {
 	if client == nil {
 		panic("rpc client not initialized")
 	}
-
-	method := c.String("m")
-	if method == "" {
-		l.Error("Please specify -m")
-		return
+    // when use method := c.Args()[0],the command line `tx SendTransactionContract -p xxxx --abi` lead the node stop
+	method := c.Args().First()
+	if len(c.Args()) == 0 {
+		l.Info("RpcCall params assign err, can't find the method")
 	}
 
 	rvf := callerRv.MethodByName(method)
 	if rvf.Kind() != reflect.Func {
-		l.Error("not found method", "method_name", c.String("m"))
+		l.Error("not found method", "method_name", method)
 		return
 	}
 
@@ -218,7 +217,8 @@ func getRpcParamFromString(cParam string) []string {
 }
 
 func getRpcMethodAndParam(c *cli.Context) (mName string, cParams []string, err error) {
-	mName = c.String("m")
+	mName = c.Args()[0]
+	l.Info("the method name is:", "mName", mName)
 	if mName == "" {
 		return "", []string{}, errors.New("the method name is nil")
 	}
@@ -474,6 +474,42 @@ func (caller *rpcCaller) SetMineCoinBase(c *cli.Context) {
 	l.Debug("setting CoinBase　complete")
 }
 
+// SetMinerGasConfig set gasFloor and gasCeil
+func (caller *rpcCaller) SetMineGasConfig(c *cli.Context) {
+	mName, cParams, err := getRpcMethodAndParam(c)
+	if err != nil {
+		l.Error("getRpcMethodAndParam error")
+		return
+	}
+
+	if len(cParams) < 2 {
+		l.Error("parameter includes：gasFloor, gasCeil")
+		return
+	}
+
+	gasFloor, err := strconv.Atoi(cParams[0])
+	if err != nil {
+		l.Error("parse gasFloor error", "err", err)
+		return
+	}
+
+	gasCeil, err := strconv.Atoi(cParams[1])
+	if err != nil {
+		l.Error("parse gasCeil error", "err", err)
+		return
+	}
+
+	l.Info("the gasFloor is:", "gasFloor", gasFloor)
+	l.Info("the gasCeil is:", "gasCeil", gasCeil)
+
+	var resp interface{}
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), uint64(gasFloor), uint64(gasCeil)); err != nil {
+		l.Error("setting MinerGasConfig failed", "err", err)
+		return
+	}
+	l.Info("setting MinerGasConfig complete")
+}
+
 func (caller *rpcCaller) SendTx(c *cli.Context) {
 	if checkSync() {
 		return
@@ -727,6 +763,7 @@ func (caller *rpcCaller) ListWalletAccount(c *cli.Context) {
 		identifier = defaultWallet
 	} else if len(cParams) == 2 {
 		identifier.Path, identifier.WalletName = ParseWalletPathAndName(cParams[1])
+		l.Info("ListWalletAccount", "walletPath", identifier.Path, "walletName", identifier.WalletName)
 		if cParams[0] == "SoftWallet" {
 			identifier.WalletType = accounts.SoftWallet
 		} else if cParams[0] == "LedgerWallet" {

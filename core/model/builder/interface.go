@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package builder
 
 import (
@@ -28,7 +27,7 @@ import (
 )
 
 type AbstractBlockBuilder interface {
-	BuildWaitPackBlock(coinbaseAddr common.Address) model.AbstractBlock
+	BuildWaitPackBlock(coinbaseAddr common.Address, gasFloor, gasCeil uint64) model.AbstractBlock
 }
 
 type Chain interface {
