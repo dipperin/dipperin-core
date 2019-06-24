@@ -327,6 +327,7 @@ func (builder *BftBlockBuilder) GetDifficulty() common.Difficulty {
 //　以parentGasUsed > parentGasLimit * (2/3)为判断，若大于则contrib-decay正，limit增加，
 //  若小于则取决于差值有多大，若非常接近2/3则会增加1. 与此同时，gas limit的调整量在上一个块limit的１/1024之间
 //  gas limit要大于系统定义最小limit:5000. 与此同时其要介于传入的gasFloor 和gasCeil之间．增量和减量都是以decay来修改的
+//  gasFloor和gasCeil由矿工进行设置，因此调节会趋近矿工设置范围区块
 //  共识处需要对gas limit进行检查，查看其修改量是否超出上一个limit的1/1024.并且其介于系统设置最大最小值之间．
 func CalcGasLimit(parent *model.Block, gasFloor, gasCeil uint64) uint64 {
 	// contrib = (parentGasUsed * 3 / 2) / 1024

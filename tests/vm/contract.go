@@ -134,7 +134,7 @@ func getCallExtraData(t *testing.T, funcName, param string) []byte {
 	return result
 }
 
-func getCreateExtraData(t *testing.T, wasmPath, abiPath string, init string) []byte {
+func GetCreateExtraData(t *testing.T, wasmPath, abiPath string, init string) []byte {
 	// GetContractExtraData
 	wasmBytes, err := ioutil.ReadFile(wasmPath)
 	assert.NoError(t, err)

@@ -220,7 +220,6 @@ func parseInitFunctionByABI(vm *exec.VirtualMachine, input []byte, abi []byte) (
 	}
 
 	params, returnType, err = findParams(vm, abi, funcName, rlpList.([]interface{}))
-	//fmt.Println("returnType", returnType)
 	if returnType != "void" {
 		return funcName, nil, returnType, errors.New("InitFunc returnType must be void")
 	}

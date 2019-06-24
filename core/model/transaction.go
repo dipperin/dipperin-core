@@ -482,13 +482,27 @@ func (tx *Transaction) PaddingReceipt(parameters ReceiptPara) (*model.Receipt, e
 	return receipt, nil
 }
 
-func (tx *Transaction) PaddingTxFee(fee *big.Int) error {
+func (tx *Transaction) PaddingContractTxFee(fee *big.Int) error {
 	if tx.GetType() != common.AddressTypeContractCreate && tx.GetType() != common.AddressTypeContractCall {
 		log.Info("the tx isn't contract transaction")
 		return nil
 	}
 
 	tx.contractTxFee.Store(fee)
+	return nil
+}
+
+func (tx *Transaction) GetContractTxFee()(fee *big.Int){
+	if tx.GetType() != common.AddressTypeContractCreate && tx.GetType() != common.AddressTypeContractCall {
+		log.Info("the tx isn't contract transaction")
+		return big.NewInt(0)
+	}
+
+	if fee := tx.contractTxFee.Load(); fee != nil {
+		return fee.(*big.Int)
+	}
+
+	log.Error("the transaction fee cache is nil")
 	return nil
 }
 

@@ -36,7 +36,7 @@ UnStake: move all money from stake to balance
 MoveStakeToAddress: move somebody's stake to another person's balance.
  */
 func TestAccountStateProcessor_Stake(t *testing.T) {
-	db, root := createTestStateDB()
+	db, root := CreateTestStateDB()
 	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
 	assert.NoError(t, err)
 	aliceOriginal, _ := processor.GetBalance(aliceAddr)
@@ -61,7 +61,7 @@ func TestAccountStateProcessor_Stake(t *testing.T) {
 	assert.EqualValues(t, NotEnoughBalanceError, err)
 }
 func TestAccountStateProcessor_UnStake(t *testing.T) {
-	db, root := createTestStateDB()
+	db, root := CreateTestStateDB()
 	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
 	assert.NoError(t, err)
 	err = processor.Stake(aliceAddr, big.NewInt(800))
@@ -91,7 +91,7 @@ func TestAccountStateProcessor_UnStake(t *testing.T) {
 	assert.EqualValues(t, NotEnoughStakeErr, err)
 }
 func TestAccountStateProcessor_MoveStakeToAddress(t *testing.T) {
-	db, root := createTestStateDB()
+	db, root := CreateTestStateDB()
 	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
 	processor.Stake(aliceAddr, big.NewInt(800))
 	aliceOriginalStake, _ := processor.GetStake(aliceAddr)
@@ -136,7 +136,7 @@ func TestAccountStateProcessor_MoveStakeToAddress(t *testing.T) {
 }
 
 func TestAccountStateDB_processStakeTx_Error(t *testing.T) {
-	db, root := createTestStateDB()
+	db, root := CreateTestStateDB()
 	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
 
 	key1, err := crypto.HexToECDSA("289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232033")
@@ -161,7 +161,7 @@ func TestAccountStateDB_processStakeTx_Error(t *testing.T) {
 }
 
 func TestAccountStateDB_processCancelTx_Error(t *testing.T) {
-	db, root := createTestStateDB()
+	db, root := CreateTestStateDB()
 	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
 
 	key1, err := crypto.HexToECDSA("289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232033")
@@ -201,7 +201,7 @@ func TestAccountStateDB_processCancelTx_Error(t *testing.T) {
 }
 
 func TestAccountStateDB_processUnStakeTx_Error(t *testing.T) {
-	db, root := createTestStateDB()
+	db, root := CreateTestStateDB()
 	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
 
 	key1, err := crypto.HexToECDSA("289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232033")
@@ -241,7 +241,7 @@ func TestAccountStateDB_processUnStakeTx_Error(t *testing.T) {
 }
 
 func TestAccountStateDB_processEvidenceTx_Error(t *testing.T) {
-	db, root := createTestStateDB()
+	db, root := CreateTestStateDB()
 	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
 
 	key1, err := crypto.HexToECDSA("289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232033")
