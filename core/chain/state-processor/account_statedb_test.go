@@ -52,7 +52,7 @@ func TestAccountStateDB_Commit(t *testing.T) {
 }
 
 func TestAccountStateDB_GetAccountState(t *testing.T) {
-	db, root := createTestStateDB()
+	db, root := CreateTestStateDB()
 	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
 	assert.NoError(t, err)
 
@@ -289,7 +289,7 @@ func TestAccountStateProcessor_Process_UnStake(t *testing.T) {
 }
 
 func createStateProcessor(t *testing.T) *AccountStateDB {
-	db, root := createTestStateDB()
+	db, root := CreateTestStateDB()
 	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
 	aliceOriginalStake, _ := processor.GetStake(aliceAddr)
 	aliceOriginalBalance, _ := processor.GetBalance(aliceAddr)

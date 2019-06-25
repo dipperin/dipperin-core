@@ -27,7 +27,6 @@ import (
 var nilSuggest []prompt.Suggest
 
 var commands = []prompt.Suggest{
-	{Text: "rpc", Description: "rpc method"},
 	{Text: "miner", Description: "miner method"},
 	{Text: "verifier", Description: "verifier method"},
 	{Text: "tx", Description: "tx method"},

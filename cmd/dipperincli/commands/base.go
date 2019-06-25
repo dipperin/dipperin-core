@@ -35,16 +35,6 @@ var CliCommands = []cli.Command{
 		HideHelp: false,
 	},
 	{
-		Name:    "rpc",
-		Aliases: []string{"r"},
-		Usage:   "control node",
-		Flags:   rpcFlags,
-		Action: func(c *cli.Context) error {
-			RpcCall(c)
-			return nil
-		},
-	},
-	{
 		Name: "miner",
 		Aliases: []string{"m"},
 		Usage: "miner func",
@@ -93,16 +83,6 @@ var CliCommands = []cli.Command{
 			return nil
 		},
 	},
-}
-
-var rpcFlags = []cli.Flag{
-	cli.StringFlag{Name: "m", Usage: "operation"},
-	cli.StringFlag{Name: "p", Usage: "parameters"},
-	cli.StringFlag{Name: "abi", Usage:"abi path"},
-	cli.StringFlag{Name: "wasm", Usage:"wasm path"},
-	cli.StringFlag{Name: "input", Usage: "contract params"},
-	cli.BoolFlag{Name:   "isCreate", Usage: "create contract or not"},
-	cli.StringFlag{Name: "funcName", Usage: "call function name"},
 }
 
 

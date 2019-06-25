@@ -168,6 +168,11 @@ func TestDipperinEconomyModel_GetMineMasterDIPReward(t *testing.T) {
 	assert.NoError(t, err)
 	assert.EqualValues(t, big.NewInt(8700000000), reward)
 
+	testBlock.EXPECT().Number().Return(uint64(11 * economy_model.HeightAfterOneYear)+1)
+	reward, err = economyModel.GetMineMasterDIPReward(testBlock)
+	assert.NoError(t, err)
+	assert.EqualValues(t, big.NewInt(12441000000), reward)
+
 	testBlock.EXPECT().Number().Return(uint64(0))
 	_, err = economyModel.GetMineMasterDIPReward(testBlock)
 	assert.Equal(t,economy_model.ErrBlockNumberIs0,err)

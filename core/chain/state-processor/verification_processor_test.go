@@ -27,7 +27,7 @@ import (
 
 func TestAccountStateDB_ProcessVerification(t *testing.T) {
 	// Create original data
-	db, root := createTestStateDB()
+	db, root := CreateTestStateDB()
 	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
 	assert.NoError(t, err)
 
@@ -63,7 +63,7 @@ func TestAccountStateDB_ProcessVerification(t *testing.T) {
 }
 
 func TestAccountStateDB_ProcessPerformance(t *testing.T) {
-	db, root := createTestStateDB()
+	db, root := CreateTestStateDB()
 	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
 	assert.NoError(t, err)
 

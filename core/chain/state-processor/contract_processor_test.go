@@ -33,9 +33,9 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 
 	tx.PaddingTxIndex(0)
 	gasLimit := gasLimit * 10000000000
-	block := createBlock(1, common.Hash{}, []*model.Transaction{&tx}, gasLimit)
+	block := CreateBlock(1, common.Hash{}, []*model.Transaction{&tx}, gasLimit)
 
-	db, root := createTestStateDB()
+	db, root := CreateTestStateDB()
 	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
 	assert.NoError(t, err)
 
@@ -84,7 +84,7 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 
 	assert.NoError(t, err)
 	callTx.PaddingTxIndex(0)
-	block2 := createBlock(2, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
+	block2 := CreateBlock(2, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
 	log.Info("callTx info", "callTx", callTx)
 
 	gasUsed2 := uint64(0)
@@ -132,12 +132,12 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	param := [][]byte{name, num}
 	tx2 := callContractTx(t, &contractAddr, "hello", param, 1)
 
-	db, root := createTestStateDB()
+	db, root := CreateTestStateDB()
 	tdb := NewStateStorageWithCache(db)
 	processor, err := NewAccountStateDB(root, tdb)
 	assert.NoError(t, err)
 
-	block := createBlock(1, common.Hash{}, []*model.Transaction{tx1, tx2}, 5*gasLimit)
+	block := CreateBlock(1, common.Hash{}, []*model.Transaction{tx1, tx2}, 5*gasLimit)
 	tmpGasLimit := block.GasLimit()
 	gasUsed := block.GasUsed()
 	config := &TxProcessConfig{
@@ -195,9 +195,9 @@ func TestAccountStateDB_ProcessContract3(t *testing.T) {
 	signCreateTx.PaddingTxIndex(0)
 
 	gasLimit := gasLimit * 10000000000
-	block := createBlock(1, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
+	block := CreateBlock(1, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
 
-	db, root := createTestStateDB()
+	db, root := CreateTestStateDB()
 	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
 	assert.NoError(t, err)
 
@@ -239,7 +239,7 @@ func TestAccountStateDB_ProcessContract3(t *testing.T) {
 
 	assert.NoError(t, err)
 	callTx.PaddingTxIndex(0)
-	block2 := createBlock(2, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
+	block2 := CreateBlock(2, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
 	log.Info("callTx info", "callTx", callTx)
 
 	gasUsed2 := uint64(0)
@@ -260,7 +260,7 @@ func TestAccountStateDB_ProcessContract3(t *testing.T) {
 
 	assert.NoError(t, err)
 	signCallTxGet.PaddingTxIndex(0)
-	block3 := createBlock(2, common.Hash{}, []*model.Transaction{signCallTxGet}, gasLimit)
+	block3 := CreateBlock(2, common.Hash{}, []*model.Transaction{signCallTxGet}, gasLimit)
 	log.Info("callTx info", "callTx", callTx)
 
 	txConfigGet := &TxProcessConfig{
@@ -303,7 +303,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	signCreateTx.PaddingTxIndex(0)
 
 	gasLimit := gasLimit * 10000000000
-	block := createBlock(1, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
+	block := CreateBlock(1, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
 
 	processor, err := CreateProcessorAndInitAccount(err, t, addressSlice)
 
@@ -378,7 +378,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 	assert.NoError(t, err)
 	signCallTxTransfer.PaddingTxIndex(0)
-	block3 := createBlock(3, common.Hash{}, []*model.Transaction{signCallTxTransfer}, gasLimit)
+	block3 := CreateBlock(3, common.Hash{}, []*model.Transaction{signCallTxTransfer}, gasLimit)
 	log.Info("callTxTransfer info", "callTxTransfer", callTxTransfer)
 
 	txConfig3 := &TxProcessConfig{
@@ -411,7 +411,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 	assert.NoError(t, err)
 	signCallTxApprove.PaddingTxIndex(0)
-	block5 := createBlock(5, common.Hash{}, []*model.Transaction{signCallTxApprove}, gasLimit)
+	block5 := CreateBlock(5, common.Hash{}, []*model.Transaction{signCallTxApprove}, gasLimit)
 	log.Info("signCallTxApprove info", "signCallTxApprove", signCallTxApprove)
 
 	txConfig5 := &TxProcessConfig{
@@ -446,7 +446,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	signCallTxTransferFrom, err := swBrother.SignTx(accountBrother, callTxTransferFrom, nil)
 	assert.NoError(t, err)
 	signCallTxTransferFrom.PaddingTxIndex(0)
-	block7 := createBlock(7, common.Hash{}, []*model.Transaction{signCallTxTransferFrom}, gasLimit)
+	block7 := CreateBlock(7, common.Hash{}, []*model.Transaction{signCallTxTransferFrom}, gasLimit)
 	log.Info("signCallTxTransferFrom info", "signCallTxTransferFrom", signCallTxTransferFrom)
 
 	txConfig7 := &TxProcessConfig{
@@ -509,7 +509,7 @@ func processContractCall(t *testing.T,contractAddress common.Address, code []byt
 	signCallTx, err := sw.SignTx(accountOwn, callTx, nil)
 	assert.NoError(t, err)
 	callTx.PaddingTxIndex(0)
-	block := createBlock(blockNum, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
+	block := CreateBlock(blockNum, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
 	log.Info("callTx info", "callTx", callTx)
 	txConfig := &TxProcessConfig{
 		Tx:       signCallTx,
@@ -530,7 +530,7 @@ func processContractCall(t *testing.T,contractAddress common.Address, code []byt
 }
 
 func CreateProcessorAndInitAccount(err error, t *testing.T, addressSlice []common.Address) (*AccountStateDB, error) {
-	db, root := createTestStateDB()
+	db, root := CreateTestStateDB()
 	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
 	assert.NoError(t, err)
 	processor.NewAccountState(addressSlice[0])

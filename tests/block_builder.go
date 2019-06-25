@@ -388,7 +388,7 @@ func (builder *BlockBuilder) commitTransaction(conf *state_processor.TxProcessCo
 	}
 
 	//updating tx fee
-	conf.Tx.(*model.Transaction).PaddingTxFee(conf.TxFee)
+	conf.Tx.(*model.Transaction).PaddingContractTxFee(conf.TxFee)
 	return nil
 }
 
