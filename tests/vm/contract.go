@@ -12,20 +12,8 @@ import (
 	"testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/ethereum/go-ethereum/rlp"
-	"path/filepath"
-	"github.com/dipperin/dipperin-core/common/util"
 	"time"
 	"fmt"
-)
-
-var (
-	AbiPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/event.cpp.abi.json")
-	WASMPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/event.wasm")
-)
-
-var (
-	AbiTokenPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/tokenConstant/token.cpp.abi.json")
-	WASMTokenPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/tokenConstant/token.wasm")
 )
 
 func LogTestPrint(function, msg string, ctx ...interface{}) {

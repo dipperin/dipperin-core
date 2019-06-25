@@ -1850,6 +1850,10 @@ func (service *MercuryFullChainService) estimateGas(args CallArgs) (hexutil.Uint
 }
 
 func (service *MercuryFullChainService) GetBlockHashByNumber(number uint64) common.Hash {
+	if number > service.CurrentBlock().Number() {
+		log.Info("GetBlockHashByNumber failed, can't get future block")
+		return common.Hash{}
+	}
 	block, _ := service.GetBlockByNumber(number)
 	return block.Hash()
 }

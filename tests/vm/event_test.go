@@ -4,19 +4,28 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
+	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
+	"path/filepath"
+	"github.com/dipperin/dipperin-core/common/util"
 )
 
-func Test_TokenContractCall(t *testing.T) {
+var (
+	AbiPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/event.cpp.abi.json")
+	WASMPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/event.wasm")
+)
+
+func Test_EventContractCall(t *testing.T) {
 	cluster, err := node_cluster.CreateNodeCluster()
 	assert.NoError(t, err)
 
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
-	txHashList := CreateTokenContract(t, cluster, nodeName, 1)
+	txHashList := CreateContract(t, cluster, nodeName, 1)
 	checkTransactionOnChain(client, txHashList)
 
 	// 根据交易ID获取合约地址
@@ -26,19 +35,11 @@ func Test_TokenContractCall(t *testing.T) {
 		addrList = append(addrList, addr)
 	}
 
-	// Transfer money
-	aliceAddr := "0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9"
-	txHashList = CallTokenContract(t, cluster, nodeName, "transfer", fmt.Sprintf("%s,1000", aliceAddr), addrList)
+	txHashList = CallContract(t, cluster, nodeName, addrList)
 	checkTransactionOnChain(client, txHashList)
-
-	// Get Balance
-	from, err := cluster.GetNodeMainAddress(nodeName)
-	input := getCallExtraData(t, "getBalance", aliceAddr)
-	err = Call(client, from, addrList[0], input)
-	assert.NoError(t, err)
 }
 
-func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, times int) []common.Hash {
+func CreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, times int) []common.Hash {
 	client := cluster.NodeClient[nodeName]
 	from, err := cluster.GetNodeMainAddress(nodeName)
 	LogTestPrint("Test", "From", "addr", from.Hex())
@@ -47,21 +48,24 @@ func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNa
 	to := common.HexToAddress(common.AddressContractCreate)
 	value := big.NewInt(100)
 	gasLimit := big.NewInt(2 * consts.DIP)
-	gasPrice := big.NewInt(3)
+	gasPrice := big.NewInt(2)
+	//txFee := big.NewInt(0).Mul(gasLimit, gasPrice)
 
-	params := "dipp,DIPP,1000000"
-	data := getCreateExtraData(t, WASMTokenPath, AbiTokenPath, params)
-
+	data := getCreateExtraData(t, WASMPath, AbiPath, "")
 	var txHashList []common.Hash
 	for i := 0; i < times; i++ {
 		txHash, innerErr := SendTransactionContract(client, from, to, value, gasLimit, gasPrice, data)
 		assert.NoError(t, innerErr)
 		txHashList = append(txHashList, txHash)
+
+		/*		txHash, innerErr = SendTransaction(client, from, factory.AliceAddrV, value, txFee, nil)
+				assert.NoError(t, innerErr)
+				txHashList = append(txHashList, txHash)*/
 	}
 	return txHashList
 }
 
-func CallTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName, funcName, params string, addrList []common.Address) []common.Hash {
+func CallContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, addrList []common.Address) []common.Hash {
 	client := cluster.NodeClient[nodeName]
 	from, err := cluster.GetNodeMainAddress(nodeName)
 	LogTestPrint("Test", "From", "addr", from.Hex())
@@ -69,14 +73,22 @@ func CallTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName
 
 	value := big.NewInt(100)
 	gasLimit := big.NewInt(2 * consts.DIP)
-	gasPrice := big.NewInt(1)
+	gasPrice := big.NewInt(2)
 
 	var txHashList []common.Hash
 	for i := 0; i < len(addrList); i++ {
-		input := getCallExtraData(t, funcName, params)
+		input := getCallExtraData(t, "hello", fmt.Sprintf("Event,%v", 100*i))
 		txHash, innerErr := SendTransactionContract(client, from, addrList[i], value, gasLimit, gasPrice, input)
 		assert.NoError(t, innerErr)
 		txHashList = append(txHashList, txHash)
 	}
 	return txHashList
+}
+
+func GetContractReceipt(t *testing.T,client *rpc.Client,txId common.Hash) *model.Receipt{
+	receipt := model.Receipt{}
+	err := client.Call(&receipt, GetRpcTXMethod("GetConvertReceiptByTxHash"), txId)
+	assert.NoError(t,err)
+
+	return &receipt
 }

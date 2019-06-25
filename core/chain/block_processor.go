@@ -65,6 +65,10 @@ func NewBlockProcessor(fullChain AccountDBChainReader, preStateRoot common.Hash,
 }
 
 func (state *BlockProcessor) GetBlockHashByNumber(number uint64) common.Hash {
+	if number > state.fullChain.CurrentBlock().Number() {
+		log.Info("GetBlockHashByNumber failed, can't get future block")
+		return common.Hash{}
+	}
 	return state.fullChain.GetBlockByNumber(number).Hash()
 }
 

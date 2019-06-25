@@ -53,7 +53,6 @@ type resolverNeedExternalService struct {
 
 func (service *resolverNeedExternalService) GetCallerNonce() int64 {
 	addr := service.Caller()
-
 	return int64(service.StateDBService.GetNonce(addr))
 }
 

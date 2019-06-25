@@ -50,14 +50,20 @@ func ParseCallContractData(abi []byte, rlpInput []byte) (extraData []byte, err e
 		}
 	}
 
-	var paramStr string
+	var (
+		paramStr string
+		params []string
+	)
 	if v, ok := inRlpList[1].([]byte); ok {
 		paramStr = string(v)
 	}
 
-	params := strings.Split(paramStr, ",")
+	if paramStr != "" {
+		params = strings.Split(paramStr, ",")
+	}
+
 	if len(args) != len(params) {
-		log.Debug("ParseCallContractData failed", "err", fmt.Sprintf("rlpInput:%v, abi:%v", len(params), len(args)))
+		log.Error("ParseCallContractData failed", "err", fmt.Sprintf("rlpInput:%v, abi:%v", len(params), len(args)))
 		return nil, errLengthInputAbiNotMatch
 	}
 
@@ -127,14 +133,20 @@ func ParseCreateContractData(rlpData []byte) (extraData []byte, err error) {
 		}
 	}
 
-	var paramStr string
+	var (
+		paramStr string
+		params []string
+	)
 	if v, ok := iRlpList[2].([]byte); ok {
 		paramStr = string(v)
 	}
 
-	params := strings.Split(paramStr, ",")
+	if paramStr != "" {
+		params = strings.Split(paramStr, ",")
+	}
+
 	if len(args) != len(params) {
-		log.Debug("ParseCreateContractData failed", "err", fmt.Sprintf("input:%v, abi:%v", len(params), len(args)))
+		log.Error("ParseCreateContractData failed", "err", fmt.Sprintf("input:%v, abi:%v", len(params), len(args)))
 		return nil, errLengthInputAbiNotMatch
 	}
 

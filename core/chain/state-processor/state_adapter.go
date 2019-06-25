@@ -6,6 +6,7 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"fmt"
 )
 
 type Fullstate struct {
@@ -33,6 +34,7 @@ func (f *Fullstate) GetBalance(addr common.Address) *big.Int {
 func (f *Fullstate) GetNonce(addr common.Address) uint64 {
 	nonce, err := f.state.GetNonce(addr)
 	if err != nil {
+		log.Error("GetNonce failed", "err", err)
 		return uint64(0)
 	}
 	return nonce
@@ -137,7 +139,8 @@ func (f *Fullstate) AddLog(addedLog *model2.Log) {
 	addedLog.Index = uint(len(contractLogs))
 	f.state.logs[txHash] = append(contractLogs, addedLog)
 
-	log.Info("Log Added", "txHash", txHash, "logs", f.state.logs[txHash])
+	log.Info("Log Added", "txHash", txHash)
+	fmt.Println(f.state.logs[txHash])
 }
 
 func (f *Fullstate) GetLogs(txHash common.Hash) []*model2.Log {

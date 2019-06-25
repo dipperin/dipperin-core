@@ -338,7 +338,7 @@ func NewVMContext(tx model.AbstractTransaction, header model.AbstractHeader, Get
 	return Context{
 		Origin:       sender,
 		GasPrice:     tx.GetGasPrice(),
-		GasLimit:     tx.Fee().Uint64(),
+		GasLimit:     tx.GetGasLimit(),
 		BlockNumber:  new(big.Int).SetUint64(header.GetNumber()),
 		callGasTemp:  tx.Fee().Uint64(),
 		CurBlockHash: header.Hash(),

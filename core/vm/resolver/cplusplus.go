@@ -77,8 +77,6 @@ func (r *Resolver) envPrints(vm *exec.VirtualMachine) int64 {
 	}
 	vm_log.Debug(string(vm.Memory.Memory[start:end]))
 	log.Info("prints envPrints", "prints", string(vm.Memory.Memory[start:end]))
-
-	//fmt.Printf("%s", string(vmcommon.Memory.Memory[start:end]))
 	return 0
 }
 
@@ -229,7 +227,6 @@ func envCalloc(vm *exec.VirtualMachine) int64 {
 	total := num * size
 
 	pos := mem.Malloc(total)
-
 	return int64(pos)
 }
 
@@ -242,7 +239,6 @@ func envCallocGasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 func envRealloc(vm *exec.VirtualMachine) int64 {
 	mem := vm.Memory
-	//ptr := int(int32(vmcommon.GetCurrentFrame().Locals[0]))
 	size := int(int32(vm.GetCurrentFrame().Locals[1]))
 
 	if size == 0 {
@@ -270,6 +266,7 @@ func envAbortGasCost(vm *exec.VirtualMachine) (uint64, error) {
 // define: int64_t gasPrice();
 func (r *Resolver) envGasPrice(vm *exec.VirtualMachine) int64 {
 	gasPrice := r.Service.GetGasPrice()
+	log.Info("envGasPrice", "price", gasPrice)
 	return gasPrice
 }
 
@@ -278,31 +275,35 @@ func (r *Resolver) envBlockHash(vm *exec.VirtualMachine) int64 {
 	num := int(int32(vm.GetCurrentFrame().Locals[0]))
 	offset := int(int32(vm.GetCurrentFrame().Locals[1]))
 	blockHash := r.Service.GetBlockHash(uint64(num))
-	//fmt.Printf("Number:%v ,Num:%v ,0:%v, 1:%v, (-2):%v, (-1):%v. \n", num, blockHash.Hex(), " -> ", blockHash[0], blockHash[1], blockHash[len(blockHash)-2], blockHash[len(blockHash)-1])
 	copy(vm.Memory.Memory[offset:], blockHash.Bytes())
 	return 0
 }
 
 // define: int64_t number();
 func (r *Resolver) envNumber(vm *exec.VirtualMachine) int64 {
-	return int64(r.Service.GetBlockNumber().Uint64())
+	num := int64(r.Service.GetBlockNumber().Uint64())
+	log.Info("envNumber", "num", num)
+	return num
 }
 
 // define: int64_t gasLimit();
 func (r *Resolver) envGasLimit(vm *exec.VirtualMachine) int64 {
-	return int64(r.Service.GetGasLimit())
+	gasLimit := int64(r.Service.GetGasLimit())
+	log.Info("envGasLimit", "gasLimit", gasLimit)
+	return gasLimit
 }
 
 // define: int64_t timestamp();
 func (r *Resolver) envTimestamp(vm *exec.VirtualMachine) int64 {
-	return r.Service.GetTime().Int64()
+	time := r.Service.GetTime().Int64()
+	log.Info("envTimestamp", "time", time)
+	return time
 }
 
 // define: void coinbase(char addr[20]);
 func (r *Resolver) envCoinbase(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
 	coinBase := r.Service.GetCoinBase()
-	//fmt.Println("CoinBase:", coinBase.Hex(), " -> ", coinBase[0], coinBase[1], coinBase[len(coinBase)-2], coinBase[len(coinBase)-1])
 	copy(vm.Memory.Memory[offset:], coinBase.Bytes())
 	return 0
 }
@@ -329,7 +330,6 @@ func (r *Resolver) envBalance(vm *exec.VirtualMachine) int64 {
 func (r *Resolver) envOrigin(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
 	address := r.Service.GetOrigin()
-	//fmt.Println("Origin:", address.Hex(), " -> ", address[0], address[1], address[len(address)-2], address[len(address)-1])
 	copy(vm.Memory.Memory[offset:], address.Bytes())
 	return 0
 }
@@ -338,7 +338,6 @@ func (r *Resolver) envOrigin(vm *exec.VirtualMachine) int64 {
 func (r *Resolver) envCaller(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
 	caller := r.Service.Caller()
-	//fmt.Println("Caller:", caller.Hex(), " -> ", caller[0], caller[1], caller[len(caller)-2], caller[len(caller)-1])
 	copy(vm.Memory.Memory[offset:], caller.Bytes())
 	return 0
 }
@@ -364,7 +363,6 @@ func (r *Resolver) envCallValue(vm *exec.VirtualMachine) int64 {
 func (r *Resolver) envAddress(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
 	address := r.Service.Address()
-	//fmt.Println("Address:", address.Hex(), " -> ", address[0], address[1], address[len(address)-2], address[len(address)-1])
 	copy(vm.Memory.Memory[offset:], address.Bytes())
 	return 0
 }
@@ -414,7 +412,9 @@ func envGetStateSizeGasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 // define: int64_t getNonce();
 func (r *Resolver) envGetCallerNonce(vm *exec.VirtualMachine) int64 {
-	return r.Service.GetCallerNonce()
+	nonce := r.Service.GetCallerNonce()
+	log.Info("envGetCallerNonce", "nonce", nonce)
+	return nonce
 }
 
 func (r *Resolver) envCallTransfer(vm *exec.VirtualMachine) int64 {

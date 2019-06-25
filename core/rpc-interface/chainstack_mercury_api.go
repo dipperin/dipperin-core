@@ -31,12 +31,12 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
-	"github.com/pkg/errors"
 	"math/big"
 	"github.com/dipperin/dipperin-core/common/address-util"
 	"encoding/json"
 	"github.com/dipperin/dipperin-core/core/dipperin/service"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"errors"
 )
 
 type DipperinMercuryApi struct {

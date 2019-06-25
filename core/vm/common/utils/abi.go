@@ -54,7 +54,7 @@ func ConvertInputs(src []byte, abiInput []InputParam) ([]byte, error) {
 
 	inputList := rlpList.([]interface{})
 	if len(inputList) != len(abiInput) {
-		log.Debug("ConvertInputs failed", "err", fmt.Sprintf("input:%v, abi:%v", len(inputList), len(abiInput)))
+		log.Error("ConvertInputs failed", "err", fmt.Sprintf("input:%v, abi:%v", len(inputList), len(abiInput)))
 		return nil, errLengthInputAbiNotMatch
 	}
 

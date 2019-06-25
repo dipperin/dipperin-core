@@ -6,6 +6,7 @@ import (
 	"errors"
 	"math"
 	"strconv"
+	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 const (
@@ -179,6 +180,7 @@ func Align32BytesConverter(source []byte, t string) (interface{}, error) {
 	}
 }
 
+// receipt used
 func BytesConverter(source []byte, t string) interface{} {
 	switch t {
 	case "int16":
@@ -190,8 +192,10 @@ func BytesConverter(source []byte, t string) interface{} {
 	case "uint32", "uint":
 		return BytesToUint32(source)
 	case "int64":
+		log.Info("BytesConverter int64", "source", source, "int64", BytesToInt64(source))
 		return BytesToInt64(source)
 	case "uint64":
+		log.Info("BytesConverter uint64", "source", source, "uint64", BytesToUint64(source))
 		return BytesToUint64(source)
 	case "float32":
 		return BytesToFloat32(source)
