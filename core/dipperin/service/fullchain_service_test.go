@@ -19,6 +19,7 @@ package service
 import (
 	"context"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
@@ -28,15 +29,17 @@ import (
 	contract2 "github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	"math/big"
 	"os"
 	"testing"
 	"time"
-	"github.com/dipperin/dipperin-core/common/g-error"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 )
 
 var testFee = economy_model.GetMinimumTxFee(1000)
@@ -926,6 +929,11 @@ func TestMercuryFullChainService_signTxAndSend_Error(t *testing.T) {
 	assert.Nil(t, result)
 	assert.Equal(t, accounts.ErrInvalidAddress, err)
 
+	// SignTx
+	//tx2 := createSignedTx2(0, sk, aliceAddr, big.NewInt(1000))
+	//result,err = service.signTxAndSend(manager.Wallets[0], aliceAddr, tx2, 0)
+	//assert.NoError(t, err)
+
 	// AddRemotes error
 	result, err = service.signTxAndSend(manager.Wallets[0], account[0].Address, tx, 0)
 	assert.Nil(t, result)
@@ -1053,7 +1061,11 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 
 	nonce = uint64(6)
 	to := common.HexToAddress(common.AddressContractCreate)
-	hash, err = service.SendTransactionContract(address, to, value, txFee, txFee, []byte{}, &nonce)
+	abiPath := "../../vm/event/token/token.cpp.abi.json"
+	wasmPath := "../../vm/event/token/token-wh.wasm"
+	err, data := getCreateExtraData(abiPath, wasmPath, "dipp,DIPP,100000000")
+	assert.NoError(t,err)
+	hash, err = service.SendTransactionContract(address, to, value, new(big.Int).Mul(txFee, new(big.Int).SetInt64(int64(30))), new(big.Int).SetInt64(int64(1)), data, &nonce)
 	assert.NoError(t, err)
 
 	nonce = uint64(7)
@@ -1067,6 +1079,35 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	hash, err = service.NewTransaction(*signedTx)
 	assert.Equal(t, "this transaction already in tx pool", err.Error())
 	assert.Equal(t, common.Hash{}, hash)
+}
+
+
+func getCreateExtraData(abiPath, wasmPath string, params string) (err error, extraData []byte) {
+	// GetContractExtraData
+	abiBytes, err := ioutil.ReadFile(abiPath)
+	if err != nil {
+		return
+	}
+	var wasmAbi utils.WasmAbi
+	err = wasmAbi.FromJson(abiBytes)
+	if err != nil {
+		return
+	}
+
+	//params := []string{"dipp", "DIPP", "100000000"}
+	wasmBytes, err := ioutil.ReadFile(wasmPath)
+	if err != nil {
+		return
+	}
+	rlpParams := []interface{}{
+		wasmBytes, abiBytes,params,
+	}
+
+	data, err := rlp.EncodeToBytes(rlpParams)
+	if err != nil {
+		return err, nil
+	}
+	return err, data
 }
 
 /*func TestGetTxData(t *testing.T)  {

@@ -332,7 +332,7 @@ func (r *Resolver) envBalance(vm *exec.VirtualMachine) int64 {
 	if len(balance.Bytes()) > 32 {
 		panic(fmt.Sprintf("balance overflow(%d>32)", len(balance.Bytes())))
 	}
-	// bigendian
+	// bigendiangasLimit
 	offset := 32 - len(balance.Bytes())
 	if offset > 0 {
 		empty := make([]byte, offset)

@@ -166,7 +166,7 @@ func ValidTxSender(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 	}else{
 		// valid tx fee
 		if tx.Fee().Cmp(economy_model.GetMinimumTxFee(tx.Size())) == -1 {
-			log.Info("the tx fee is:", "fee", tx.Fee(),"needFee",economy_model.GetMinimumTxFee(tx.Size()))
+			log.Error("the tx fee is:", "fee", tx.Fee(),"needFee",economy_model.GetMinimumTxFee(tx.Size()))
 			return g_error.ErrTxFeeTooLow
 		}
 	}

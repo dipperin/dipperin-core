@@ -1,11 +1,11 @@
 package state_processor
 
 import (
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/dipperin/dipperin-core/common"
 	"math/big"
-	"github.com/dipperin/dipperin-core/common/vmcommon"
 	"fmt"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 )
@@ -31,7 +31,7 @@ func TestApplyMessage(t *testing.T) {
 	fmt.Println("----------------------------------")
 
 	name := []byte("ApplyMsg")
-	num := vmcommon.Int64ToBytes(234)
+	num := utils.Int64ToBytes(234)
 	params := [][]byte{name, num}
 	to := cs_crypto.CreateContractAddress(aliceAddr, 0)
 	tx = callContractTx(t, &to, "hello", params, 0)

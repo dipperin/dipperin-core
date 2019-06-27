@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"math"
 	"strconv"
 	"github.com/dipperin/dipperin-core/common"
 )
 
 const (
-	ALIGN_LENGTH = 32
+	ALIGN_LENGTH   = 32
+	ALIGN_LENGTH_8 = 8
 )
 
 func Int16ToBytes(n int16) []byte {
@@ -21,7 +23,7 @@ func Int16ToBytes(n int16) []byte {
 }
 
 func Uint16ToBytes(n uint16) []byte {
-	buf := make([]byte, 8)
+	buf := make([]byte, 2)
 	binary.BigEndian.PutUint16(buf, n)
 	return buf
 }
@@ -74,6 +76,17 @@ func Align32Bytes(b []byte) []byte {
 	return tmp
 }
 
+func Align8Bytes(b []byte) []byte {
+	tmp := make([]byte, ALIGN_LENGTH_8)
+	if len(b) > ALIGN_LENGTH_8 {
+		b = b[len(b)-ALIGN_LENGTH_8:]
+	}
+	copy(tmp[ALIGN_LENGTH_8-len(b):], b)
+	return tmp
+}
+
+
+
 func BytesCombine(pBytes ...[]byte) []byte {
 	return bytes.Join(pBytes, []byte(""))
 }
@@ -88,7 +101,10 @@ func Int64ToBytes(n int64) []byte {
 func BytesToInt64(b []byte) int64 {
 	bytesBuffer := bytes.NewBuffer(b)
 	var tmp int64
-	binary.Read(bytesBuffer, binary.BigEndian, &tmp)
+	err := binary.Read(bytesBuffer, binary.BigEndian, &tmp)
+	if err != nil {
+		log.Error("BytesToInt64", "err", err)
+	}
 	return int64(tmp)
 }
 
@@ -185,6 +201,8 @@ func MakeUpBytes(source []byte, t string) []byte {
 	case "int8", "int16", "int32", "int64":
 		return Align32Bytes(source)
 	case "uint8", "uint16", "uint32", "uint64":
+		return Align32Bytes(source)
+	case "float32", "float64", "bool":
 		return Align32Bytes(source)
 	case "string":
 		strHash := common.BytesToHash(Int32ToBytes(32))

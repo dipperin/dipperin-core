@@ -139,7 +139,7 @@ func Test_argumentsCompleter(t *testing.T) {
 	assert.Equal(t, argumentsCompleter([]string{"rpc", "a"}), []prompt.Suggest{})
 	assert.Equal(t, argumentsCompleter([]string{"rpc", "a", "b"}), nilSuggest)
 	fmt.Println(argumentsCompleter([]string{"rpc", "-a", "b"}))
-	assert.Equal(t, argumentsCompleter([]string{"rpc", "-a"}), nilSuggest)
+	assert.Equal(t, argumentsCompleter([]string{"rpc", "-m"}), []prompt.Suggest{})
 }
 
 func Test_excludeOptions(t *testing.T) {

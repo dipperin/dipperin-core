@@ -33,16 +33,21 @@ func TestValidateVotes(t *testing.T) {
 	})())
 
 	a := NewAccount()
-	v := a.getVoteMsg(1, 1, common.Hash{}, model.VoteMessage)
-	passChain.verifiers = []common.Address{a.Address()}
-	assert.Error(t, ValidateVotes(&BftBlockContext{
-		BlockContext: BlockContext{ Chain: passChain, Block: &fakeBlock{ vs: []model.AbstractVerification{v} } },
-		Votes: []model.AbstractVerification{v},
+	b := NewAccount()
+	va := a.getVoteMsg(1, 1, common.Hash{}, model.VoteMessage)
+	vb := b.getVoteMsg(1,1,common.Hash{}, model.VoteMessage)
+	passChain.verifiers = []common.Address{a.Address(), b.Address()}
+	//passChain.VerificationRoot =
+	fb := fakeBlock{vs: []model.AbstractVerification{va, vb} }
+	fb.SetVerifications(fb.vs)
+	assert.NoError(t, ValidateVotes(&BftBlockContext{
+		BlockContext: BlockContext{ Chain: passChain, Block:&fb },
+		Votes: []model.AbstractVerification{va, vb},
 	})())
 
 	assert.Error(t, ValidateVotes(&BftBlockContext{
-		BlockContext: BlockContext{ Chain: passChain, Block: &fakeBlock{ vs: []model.AbstractVerification{v}, hash: common.Hash{0x12} } },
-		Votes: []model.AbstractVerification{v},
+		BlockContext: BlockContext{ Chain: passChain, Block: &fakeBlock{ vs: []model.AbstractVerification{va}, hash: common.Hash{0x12} } },
+		Votes: []model.AbstractVerification{va},
 	})())
 }
 

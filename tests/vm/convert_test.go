@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"testing"
 	"path/filepath"
 	"github.com/dipperin/dipperin-core/common/util"
@@ -15,6 +16,8 @@ var (
 )
 
 func Test_ConvertContractCall(t *testing.T) {
+	//log.InitLogger(log.LvlDebug)
+	log.Info("start")
 	cluster, err := node_cluster.CreateNodeCluster()
 	assert.NoError(t, err)
 
