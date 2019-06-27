@@ -165,6 +165,8 @@ func sameVote(votes []model.AbstractVerification) bool {
 	for i := 0; i < len(votes); i++ {
 		address := addressList[0]
 		addressList = addressList[1:]
+		//fmt.Println(address, i)
+		//fmt.Println(addressList, i)
 		if address.InSlice(addressList) {
 			return true
 		}

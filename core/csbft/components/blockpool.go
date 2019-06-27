@@ -110,7 +110,7 @@ func (p *BlockPool) IsEmpty() bool {
 	return len(p.blocks) == 0
 }
 
-func (p *BlockPool) loop() {
+func (p *BlockPool)  loop() {
 	for {
 		select {
 		case h := <-p.newHeightChan:

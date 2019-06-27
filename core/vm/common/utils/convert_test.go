@@ -2,11 +2,11 @@ package utils
 
 import (
 	"fmt"
+	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/dipperin/dipperin-core/common/hexutil"
 )
 
 func TestInt64ToBytes(t *testing.T) {
@@ -26,27 +26,74 @@ func TestInt64ToBytes(t *testing.T) {
 
 func TestIntConvertBytes(t *testing.T) {
 	a := "123"
-	byte, err := StringConverter(a, "int64")
-	log.Info("the byte is:","byte",byte)
+	bytes, err := StringConverter(a, "int64")
+	log.Info("the bytes is:","bytes", bytes)
 	assert.NoError(t, err)
-	v := BytesConverter(byte, "int64")
+	v := BytesConverter(bytes, "int64")
 	fmt.Println(v.(int64))
 
-	byte, err = StringConverter(a, "uint64")
+
+	uint64Num := uint64(128)
+	fmt.Println("uint64Num", Uint64ToBytes(uint64Num))
+	fmt.Println("int64Num", Int64ToBytes(int64(128)))
+	fmt.Println("bytesToUint64", BytesToUint64([]byte{128}))
+	fmt.Println("bytesToInt64", BytesToInt64([]byte{128}))
+	fmt.Println("bytesToUint64", BytesToUint64([]byte{0,0,0,0,0,0,0,128}))
+	fmt.Println("bytesToInt64", BytesToInt64([]byte{0,0,0,0,0,0,0,128}))
+	vi := int64(uint64Num)
+	b := make([]byte, 8)
+	//fmt.Println(v >> 56)
+
+	_ = b[7] // early bounds check to guarantee safety of writes below
+	b[0] = byte(vi >> 56)
+	b[1] = byte(vi >> 48)
+	b[2] = byte(vi >> 40)
+	b[3] = byte(vi >> 32)
+	b[4] = byte(vi >> 24)
+	b[5] = byte(vi >> 16)
+	b[6] = byte(vi >> 8)
+	b[7] = byte(vi)
+	//binary.BigEndian.PutUint64(buf, int64Num)
+	fmt.Println("int64Num", b)
+	fmt.Println(vi)
+	fmt.Println(Int64ToBytes(vi))
+	fmt.Println(BytesToInt64(Int64ToBytes(vi)))
+
+	vin := int64(128)
+	b[0] = byte(vin >> 56)
+	b[1] = byte(vin >> 48)
+	b[2] = byte(vin >> 40)
+	b[3] = byte(vin >> 32)
+	b[4] = byte(vin >> 24)
+	b[5] = byte(vin >> 16)
+	b[6] = byte(vin >> 8)
+	b[7] = byte(vin)
+	fmt.Println("vin", b)
+
+
+	v = BytesConverter([]byte{18}, "int64")
+	fmt.Println("byte8", v.(int64))
+
+	bytes, err = StringConverter(a, "uint64")
 	assert.NoError(t, err)
-	v = BytesConverter(byte, "uint64")
+	v = BytesConverter(bytes, "uint64")
 	fmt.Println(v.(uint64))
 
 	a = "12345"
-	byte, err = StringConverter(a, "uint16")
+	bytes, err = StringConverter(a, "uint16")
 	assert.NoError(t, err)
 
-	fmt.Println(BytesToUint16(byte))
+	fmt.Println(BytesToUint16(bytes))
 
-	byte, err = StringConverter(a, "int16")
+	bytes, err = StringConverter(a, "int16")
 	assert.NoError(t, err)
-	fmt.Println(BytesToInt16(byte))
+	fmt.Println(BytesToInt16(bytes))
 
+}
+
+func TestInt64ConvertBytes(t *testing.T)  {
+	fmt.Println("bytesToUint64", BytesToUint64([]byte{128}))
+	fmt.Println("bytesToInt64", BytesToInt64([]byte{128}))
 }
 
 func TestFloat32ToBytes(t *testing.T) {
