@@ -22,11 +22,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/config"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/g-event"
 	"github.com/dipperin/dipperin-core/common/g-metrics"
 	"github.com/dipperin/dipperin-core/common/g-timer"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/core/chain-communication"
@@ -39,6 +41,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/mine/mineworker"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
@@ -47,11 +50,8 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"math/big"
 	"os"
-	"time"
-	"github.com/dipperin/dipperin-core/common/math"
-	"github.com/dipperin/dipperin-core/common/config"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"strings"
+	"time"
 )
 
 type NodeConf interface {
@@ -588,7 +588,7 @@ func (service *MercuryFullChainService) SendTransactions(from common.Address, rp
 
 	txs := make([]model.AbstractTransaction, 0)
 	for _, item := range rpcTxs {
-		tx := model.NewTransaction(item.Nonce, item.To, item.Value, item.TransactionFee, item.Data)
+		tx := model.NewTransaction(item.Nonce, item.To, item.Value, item.GasPrice, item.GasLimit, item.Data)
 		signedTx, err := tmpWallet.SignTx(fromAccount, tx, service.ChainConfig.ChainId)
 		if err != nil {
 			log.Info("send Transactions SignTx:", "err", err)
@@ -600,7 +600,6 @@ func (service *MercuryFullChainService) SendTransactions(from common.Address, rp
 			return 0, err
 		}
 		log.Info("the SendTransaction txId is: ", "txId", tx.CalTxId().Hex(), "txSize", tx.Size())
-		log.Info("the SendTransaction txFee is: ", "txFee", tx.Fee(), "needFee", economy_model.GetMinimumTxFee(tx.Size()))
 		txs = append(txs, tx)
 	}
 	errs := service.TxPool.AddLocals(txs)
@@ -631,7 +630,7 @@ func (service *MercuryFullChainService) NewSendTransactions(txs []model.Transact
 }
 
 //send a normal transaction
-func (service *MercuryFullChainService) SendTransaction(from, to common.Address, value, transactionFee *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
+func (service *MercuryFullChainService) SendTransaction(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (common.Hash, error) {
 	//start:=time.Now()
 	// automatic transfer need this
 	if from.IsEqual(common.Address{}) {
@@ -648,7 +647,7 @@ func (service *MercuryFullChainService) SendTransaction(from, to common.Address,
 		return common.Hash{}, err
 	}
 
-	tx := model.NewTransaction(usedNonce, to, value, transactionFee, data)
+	tx := model.NewTransaction(usedNonce, to, value, gasPrice, gasLimit, data)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
 		pbft_log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
@@ -662,7 +661,7 @@ func (service *MercuryFullChainService) SendTransaction(from, to common.Address,
 }
 
 //send a register transaction
-func (service *MercuryFullChainService) SendRegisterTransaction(from common.Address, stake, fee *big.Int, nonce *uint64) (common.Hash, error) {
+func (service *MercuryFullChainService) SendRegisterTransaction(from common.Address, stake, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
 	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfVerifier {
 		return common.Hash{}, errors.New("the node isn't verifier")
 	}
@@ -672,7 +671,7 @@ func (service *MercuryFullChainService) SendRegisterTransaction(from common.Addr
 		return common.Hash{}, err
 	}
 
-	tx := model.NewRegisterTransaction(usedNonce, stake, fee)
+	tx := model.NewRegisterTransaction(usedNonce, stake, gasPrice, gasLimit)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
 		return common.Hash{}, err
@@ -764,7 +763,7 @@ func (service *MercuryFullChainService) MineTxCount() int {
 }
 
 //send a evidence transaction
-func (service *MercuryFullChainService) SendEvidenceTransaction(from, target common.Address, fee *big.Int, voteA *model.VoteMsg, voteB *model.VoteMsg, nonce *uint64) (common.Hash, error) {
+func (service *MercuryFullChainService) SendEvidenceTransaction(from, target common.Address, gasPrice *big.Int, gasLimit uint64, voteA *model.VoteMsg, voteB *model.VoteMsg, nonce *uint64) (common.Hash, error) {
 	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfVerifier {
 		return common.Hash{}, errors.New("the node isn't verifier")
 	}
@@ -774,7 +773,7 @@ func (service *MercuryFullChainService) SendEvidenceTransaction(from, target com
 		return common.Hash{}, err
 	}
 
-	tx := model.NewEvidenceTransaction(usedNonce, fee, &target, voteA, voteB)
+	tx := model.NewEvidenceTransaction(usedNonce, gasPrice, gasLimit, &target, voteA, voteB)
 	//log.Debug("SendEvidenceTransaction size", "tx size", tx.Size().String())
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
@@ -787,7 +786,7 @@ func (service *MercuryFullChainService) SendEvidenceTransaction(from, target com
 }
 
 //Send redemption transaction
-func (service *MercuryFullChainService) SendUnStakeTransaction(from common.Address, fee *big.Int, nonce *uint64) (common.Hash, error) {
+func (service *MercuryFullChainService) SendUnStakeTransaction(from common.Address, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
 	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfVerifier {
 		return common.Hash{}, errors.New("the node isn't verifier")
 	}
@@ -797,7 +796,7 @@ func (service *MercuryFullChainService) SendUnStakeTransaction(from common.Addre
 		return common.Hash{}, err
 	}
 
-	tx := model.NewUnStakeTransaction(usedNonce, fee)
+	tx := model.NewUnStakeTransaction(usedNonce, gasPrice, gasLimit)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
 		return common.Hash{}, err
@@ -809,7 +808,7 @@ func (service *MercuryFullChainService) SendUnStakeTransaction(from common.Addre
 }
 
 //send a cancellation transaction
-func (service *MercuryFullChainService) SendCancelTransaction(from common.Address, fee *big.Int, nonce *uint64) (common.Hash, error) {
+func (service *MercuryFullChainService) SendCancelTransaction(from common.Address, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
 	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfVerifier {
 		return common.Hash{}, errors.New("the node isn't verifier")
 	}
@@ -819,7 +818,7 @@ func (service *MercuryFullChainService) SendCancelTransaction(from common.Addres
 		return common.Hash{}, err
 	}
 
-	tx := model.NewCancelTransaction(usedNonce, fee)
+	tx := model.NewCancelTransaction(usedNonce, gasPrice, gasLimit)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
 		return common.Hash{}, err
@@ -1453,7 +1452,6 @@ func (service *MercuryFullChainService) SubscribeBlock(ctx context.Context) (*rp
 						AccountNonce: transaction.Nonce(),
 						Recipient:    transaction.To(),
 						Amount:       transaction.Amount(),
-						Fee:          transaction.Fee(),
 						ExtraData:    transaction.ExtraData(),
 						ExtraDataStr: hexutil.Encode(transaction.ExtraData()),
 					})

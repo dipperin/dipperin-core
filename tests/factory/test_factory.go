@@ -20,6 +20,7 @@ package factory
 import (
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-testData"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/model"
 	"math/big"
@@ -47,9 +48,9 @@ func CreateTestTx() (*model.Transaction, *model.Transaction) {
 	//bob := crypto.GetNormalAddress(key2.PublicKey)
 	//hashkey := []byte("123")
 	//hashlock := cs_crypto.Keccak256Hash(hashkey)
-	testtx1 := model.NewTransaction(10, common.HexToAddress("0121321432423534534534"), big.NewInt(10000), big.NewInt(10), []byte{})
+	testtx1 := model.NewTransaction(10, common.HexToAddress("0121321432423534534534"), big.NewInt(10000),g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
 	testtx1.SignTx(key1, fs1)
-	testtx2 := model.NewTransaction(10, common.HexToAddress("0121321432423534534535"), big.NewInt(20000), big.NewInt(10), []byte{})
+	testtx2 := model.NewTransaction(10, common.HexToAddress("0121321432423534534535"), big.NewInt(20000),g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
 	//testtx2 := model.CreateRawLockTx(1, hashlock, big.NewInt(34564), big.NewInt(10000), big.NewInt(100), alice, bob)
 	testtx2.SignTx(key2, fs2)
 	return testtx1, testtx2

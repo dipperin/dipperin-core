@@ -137,12 +137,12 @@ func ValidateBlockTxs(c *BlockContext) Middleware {
 //	}
 //}
 
-func ValidTxSize(tx model.AbstractTransaction) error {
+/*func ValidTxSize(tx model.AbstractTransaction) error {
 	if tx.Size() > chain_config.MaxTxSize {
 		return g_error.ErrTxOverSize
 	}
 	return nil
-}
+}*/
 
 // valid sender and amount
 func ValidTxSender(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
@@ -153,29 +153,15 @@ func ValidTxSender(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 		return err
 	}
 
-	if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContractCall {
-		gas, err := model.IntrinsicGas(tx.ExtraData(), tx.GetType() == common.AddressTypeContractCreate , true)
-		if err !=nil{
-			return err
-		}
-
-		if gas > tx.GetGasLimit() {
-			return fmt.Errorf("gas limit is to low, need:%v got:%v",gas,tx.GetGasLimit())
-		}
-
-	}else{
-		// valid tx fee
-		if tx.Fee().Cmp(economy_model.GetMinimumTxFee(tx.Size())) == -1 {
-			log.Info("the tx fee is:", "fee", tx.Fee(),"needFee",economy_model.GetMinimumTxFee(tx.Size()))
-			return g_error.ErrTxFeeTooLow
-		}
+	//check minimal gasUsed
+	gas, err := model.IntrinsicGas(tx.ExtraData(), tx.GetType() == common.AddressTypeContractCreate , true)
+	if err !=nil{
+		return err
 	}
 
-	// valid tx fee
-/*	if tx.Fee().Cmp(economy_model.GetMinimumTxFee(tx.Size())) == -1 {
-		log.Info("the tx fee is:", "fee", tx.Fee(),"needFee",economy_model.GetMinimumTxFee(tx.Size()))
-		return g_error.ErrTxFeeTooLow
-	}*/
+	if gas > tx.GetGasLimit() {
+		return fmt.Errorf("gas limit is to low, need:%v got:%v",gas,tx.GetGasLimit())
+	}
 
 	// log.Info("ValidTxSender the blockHeight is:","blockHeight",blockHeight)
 	state, err := getPreStateForHeight(blockHeight, chain)
@@ -193,7 +179,9 @@ func ValidTxSender(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 	if err != nil {
 		return err
 	}
-	usage := big.NewInt(0).Add(tx.Amount(), tx.Fee())
+
+	gasFee := big.NewInt(0).Mul(big.NewInt(int64(tx.GetGasLimit())),tx.GetGasPrice())
+	usage := big.NewInt(0).Add(tx.Amount(), gasFee)
 	usage.Add(usage, lockValue)
 
 
@@ -231,9 +219,9 @@ func validTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uin
 		return err
 	}
 
-	if err := ValidTxSize(tx); err != nil {
+/*	if err := ValidTxSize(tx); err != nil {
 		return err
-	}
+	}*/
 
 	validator := txValidators[tx.GetType()]
 	if validator == nil {

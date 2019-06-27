@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-testData"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
@@ -68,9 +69,9 @@ func createTestTx() (*model.Transaction, *model.Transaction) {
 	key1, key2 := createKey()
 	fs1 := model.NewMercurySigner(big.NewInt(1))
 	fs2 := model.NewMercurySigner(big.NewInt(3))
-	testTx1 := model.NewTransaction(0, bobAddr, big.NewInt(200), big.NewInt(10), []byte{})
+	testTx1 := model.NewTransaction(0, bobAddr, big.NewInt(200), g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
 	testTx1.SignTx(key1, fs1)
-	testTx2 := model.NewTransaction(0, aliceAddr, big.NewInt(10), big.NewInt(10), []byte{})
+	testTx2 := model.NewTransaction(0, aliceAddr, big.NewInt(10), g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
 	testTx2.SignTx(key2, fs2)
 	return testTx1, testTx2
 }
@@ -195,28 +196,28 @@ func getContractInput(t *testing.T, funcName string, param [][]byte) []byte {
 
 //Get a test transaction
 func getTestRegisterTransaction(nonce uint64, key *ecdsa.PrivateKey, amount *big.Int) *model.Transaction {
-	trans := model.NewRegisterTransaction(nonce, amount, big.NewInt(40))
+	trans := model.NewRegisterTransaction(nonce, amount, g_testData.TestGasPrice,g_testData.TestGasLimit)
 	fs := model.NewMercurySigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(key, fs)
 	return signedTx
 }
 
 func getTestCancelTransaction(nonce uint64, key *ecdsa.PrivateKey) *model.Transaction {
-	trans := model.NewCancelTransaction(nonce, big.NewInt(40))
+	trans := model.NewCancelTransaction(nonce, g_testData.TestGasPrice,g_testData.TestGasLimit)
 	fs := model.NewMercurySigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(key, fs)
 	return signedTx
 }
 
 func getTestUnStakeTransaction(nonce uint64, key *ecdsa.PrivateKey) *model.Transaction {
-	trans := model.NewUnStakeTransaction(nonce, big.NewInt(40))
+	trans := model.NewUnStakeTransaction(nonce,g_testData.TestGasPrice,g_testData.TestGasLimit)
 	fs := model.NewMercurySigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(key, fs)
 	return signedTx
 }
 
 func getTestEvidenceTransaction(nonce uint64, key *ecdsa.PrivateKey, target common.Address, voteA, voteB *model.VoteMsg) *model.Transaction {
-	trans := model.NewEvidenceTransaction(nonce, big.NewInt(40), &target, voteA, voteB)
+	trans := model.NewEvidenceTransaction(nonce,g_testData.TestGasPrice,g_testData.TestGasLimit, &target, voteA, voteB)
 	fs := model.NewMercurySigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(key, fs)
 	return signedTx
@@ -325,7 +326,7 @@ func (tx fakeTransaction) PaddingReceipt(parameters model.ReceiptPara) (*model2.
 }
 
 func (tx fakeTransaction) GetGasLimit() uint64 {
-	panic("implement me")
+	return g_testData.TestGasLimit
 }
 func (tx fakeTransaction) GetReceipt() (*model2.Receipt, error) {
 	panic("implement me")
@@ -348,7 +349,7 @@ func (tx fakeTransaction) Size() common.StorageSize {
 }
 
 func (tx fakeTransaction) GetGasPrice() *big.Int {
-	panic("implement me")
+	return g_testData.TestGasPrice
 }
 
 func (tx fakeTransaction) Amount() *big.Int {

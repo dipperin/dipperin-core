@@ -64,8 +64,6 @@ func TestNewTxValidatorForRpcService(t *testing.T) {
 }
 
 func TestTxValidatorForRpcService_Valid(t *testing.T) {
-	assert.Error(t, ValidTxSize(&fakeTx{size: chain_config.MaxTxSize + 1}))
-	assert.NoError(t, ValidTxSize(&fakeTx{}))
 
 	assert.Error(t, ValidTxSender(&fakeTx{
 		sender: common.Address{0x11},
@@ -125,8 +123,6 @@ func TestValidTxByType(t *testing.T) {
 func Test_validTx(t *testing.T) {
 	_, _, passTx, passChain := getTxTestEnv(t)
 	assert.NoError(t, validTx(passTx, passChain, 0))
-	passTx.size = chain_config.MaxTxSize + 1
-	assert.Error(t, validTx(passTx, passChain, 0))
 	passTx.size = 1
 	passTx.txType = 0x9999
 	assert.Error(t, validTx(passTx, passChain, 0))
@@ -499,6 +495,15 @@ func (ci *fakeChainInterface) GetEconomyModel() economy_model.EconomyModel {
 
 func (ci *fakeChainInterface) GetChainDB() chaindb.Database {
 	return chaindb.NewChainDB(ethdb.NewMemDatabase(), model.MakeDefaultBlockDecoder())
+}
+
+func (ci *fakeChainInterface) AccountStateDB(root common.Hash) (*state_processor.AccountStateDB, error) {
+	aDB, err := state_processor.NewAccountStateDB(root, ci.storage)
+	if err != nil {
+		return nil, err
+	}
+
+	return aDB,nil
 }
 
 type fakeEconomyModel struct {

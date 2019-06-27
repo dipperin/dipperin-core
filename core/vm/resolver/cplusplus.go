@@ -12,15 +12,11 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/dipperin/dipperin-core/common"
-	math2 "github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/vm_log"
 	"math"
-	"math/big"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 )
 
 func envMemcpyGasCost(vm *exec.VirtualMachine) (uint64, error) {
@@ -417,7 +413,7 @@ func (r *Resolver) envGetCallerNonce(vm *exec.VirtualMachine) int64 {
 	return nonce
 }
 
-func (r *Resolver) envCallTransfer(vm *exec.VirtualMachine) int64 {
+/*func (r *Resolver) envCallTransfer(vm *exec.VirtualMachine) int64 {
 	key := int(int32(vm.GetCurrentFrame().Locals[0]))
 	keyLen := int(int32(vm.GetCurrentFrame().Locals[1]))
 	value := int(vm.GetCurrentFrame().Locals[2])
@@ -513,7 +509,7 @@ func (r *Resolver) envDipperDelegateCallString(vmValue *exec.VirtualMachine) int
 		return 0
 	}
 	return MallocString(vmValue, string(ret))
-}
+}*/
 
 func envDipperCallGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil

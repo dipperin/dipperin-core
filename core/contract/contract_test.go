@@ -19,6 +19,7 @@ package contract
 
 import (
 	"github.com/dipperin/dipperin-core/common/address-util"
+	"github.com/dipperin/dipperin-core/common/g-testData"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/third-party/log"
@@ -100,7 +101,7 @@ func TestGetContractMethodArgs(t *testing.T) {
 
 func TestProcessor_Process(t *testing.T) {
 	processor := &Processor{}
-	tx := model.NewTransaction(0, common.HexToAddress("1234"), big.NewInt(10), big.NewInt(10), []byte("test"))
+	tx := model.NewTransaction(0, common.HexToAddress("1234"), big.NewInt(10), g_testData.TestGasPrice,g_testData.TestGasLimit, []byte("test"))
 	err := processor.Process(tx)
 	assert.Error(t, err, CanNotParseContractErr)
 }
@@ -226,7 +227,7 @@ func TestGetERC20TxSize(t *testing.T){
 	log.Info("the extraData is:","extraData",hexutil.Encode(extraData))
 	log.Info("the extraData Len is:","len",len(extraData))
 
-	tx := model.NewTransaction(0,contractAdr,big.NewInt(0),big.NewInt(10),extraData)
+	tx := model.NewTransaction(0,contractAdr,big.NewInt(0), g_testData.TestGasPrice,g_testData.TestGasLimit,extraData)
 	key1, _ := model.CreateKey()
 	fs := model.NewMercurySigner(big.NewInt(1))
 	tx.SignTx(key1,fs)
@@ -235,7 +236,7 @@ func TestGetERC20TxSize(t *testing.T){
 	log.Info("the tx size is:","size",tx.Size(),"txFee",economy_model.GetMinimumTxFee(tx.Size()))
 	log.Info("the tx hash is:","hash",tx.CalTxId().Hex())
 
-	normalTx := model.NewTransaction(0,common.HexToAddress("0x00009865E43BEebad5fB771259F1660cD2aC4fD82557"),big.NewInt(10),big.NewInt(10),[]byte{})
+	normalTx := model.NewTransaction(0,common.HexToAddress("0x00009865E43BEebad5fB771259F1660cD2aC4fD82557"),big.NewInt(10),g_testData.TestGasPrice,g_testData.TestGasLimit,[]byte{})
 	normalTx.SignTx(key1,fs)
 
 

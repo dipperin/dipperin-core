@@ -23,7 +23,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/vm/common/params"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
@@ -225,9 +225,9 @@ func ValidateGasLimit(c *BlockContext) Middleware{
 		if diff < 0 {
 			diff *= -1
 		}
-		limit := parentGasLimit / params.GasLimitBoundDivisor
+		limit := parentGasLimit / model2.GasLimitBoundDivisor
 
-		if uint64(diff) >= limit || currentGasLimit < params.MinGasLimit {
+		if uint64(diff) >= limit || currentGasLimit < model2.MinGasLimit {
 			return errors.New(fmt.Sprintf("invalid gas limit: have %d, want %d += %d", currentGasLimit, parentGasLimit, limit))
 		}
 

@@ -272,7 +272,7 @@ type Context struct {
 	// callGasTemp holds the gas available for the current call. This is needed because the
 	// available gas is calculated in gasCall* according to the 63/64 rule and later
 	// applied in opCall*.
-	callGasTemp uint64
+	//callGasTemp uint64
 
 	// CanTransfer returns whether the account contains
 	// sufficient ether to transfer the value
@@ -292,10 +292,10 @@ func (context *Context) GetTxIdx() uint64 {
 	return context.TxIndex
 }
 
-func (context *Context) GetCallGasTemp() uint64 {
+/*func (context *Context) GetCallGasTemp() uint64 {
 	return context.callGasTemp
 }
-
+*/
 func (context *Context) GetGasPrice() int64 {
 	return context.GasPrice.Int64()
 }
@@ -340,7 +340,7 @@ func NewVMContext(tx model.AbstractTransaction, header model.AbstractHeader, Get
 		GasPrice:     tx.GetGasPrice(),
 		GasLimit:     tx.GetGasLimit(),
 		BlockNumber:  new(big.Int).SetUint64(header.GetNumber()),
-		callGasTemp:  tx.Fee().Uint64(),
+		//callGasTemp:  tx.Fee().Uint64(),
 		CurBlockHash: header.Hash(),
 		TxHash:       tx.CalTxId(),
 		TxIndex:      uint64(txIndex),

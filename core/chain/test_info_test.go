@@ -20,6 +20,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"errors"
@@ -95,7 +96,7 @@ func createTestStateDB(t *testing.T) (ethdb.Database, common.Hash) {
 func createUnNormalTx() *model.Transaction {
 	key1, _ := crypto.HexToECDSA(testPriv1)
 	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewUnNormalTransaction(0, big.NewInt(1000), big.NewInt(10000))
+	tx := model.NewUnNormalTransaction(0, big.NewInt(1000), big.NewInt(1),model2.TxGas)
 	signedTx, _ := tx.SignTx(key1, fs1)
 	return signedTx
 }

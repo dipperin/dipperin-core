@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package tx_pool
 
 import (
-	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/model"
 	"crypto/ecdsa"
-	"github.com/stretchr/testify/assert"
-	"math/big"
-	"testing"
-	"strconv"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-testData"
+	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/stretchr/testify/assert"
+	"math/big"
+	"strconv"
+	"testing"
 )
 
 var testPriv1 = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232031"
@@ -51,13 +51,13 @@ func createKeyBatch(num int) (keys []*ecdsa.PrivateKey) {
 
 	pat := []byte{}
 	patLen := len([]byte(strconv.Itoa(num)))
-	for i:=0; i<patLen; i++ {
+	for i := 0; i < patLen; i++ {
 		pat = append(pat, '0')
 	}
 
 	keyBase = append(keyBase[:baseLen-patLen], pat...)
 
-	for i:=0; i<num; i++ {
+	for i := 0; i < num; i++ {
 		s := []byte(strconv.Itoa(i))
 		slice := append(keyBase[:baseLen-len(s)], s...)
 		//fmt.Println(i, "=", string(slice))
@@ -79,8 +79,7 @@ func createTxList(n int) []*model.Transaction {
 
 	var res []*model.Transaction
 	for i := 0; i < n; i++ {
-		temptx := model.NewTransaction(uint64(i+1), bob, big.NewInt(int64(i)), big.NewInt(int64(i)), []byte{})
-
+		temptx := model.NewTransaction(uint64(i+1), bob, big.NewInt(int64(i)), big.NewInt(0).Mul(big.NewInt(int64(i)), g_testData.TestGasPrice), g_testData.TestGasLimit, []byte{})
 		temptx.SignTx(keyAlice, ms)
 		res = append(res, temptx)
 	}
@@ -95,7 +94,7 @@ func createTxListWithFee(n int) []*model.Transaction {
 
 	var res []*model.Transaction
 	for i := 0; i < n; i++ {
-		temptx := model.NewTransaction(uint64(i+1), bob, big.NewInt(int64(i)), big.NewInt(int64(11000)), []byte{})
+		temptx := model.NewTransaction(uint64(i+1), bob, big.NewInt(int64(i)), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 
 		temptx.SignTx(keyAlice, ms)
 		res = append(res, temptx)
@@ -144,16 +143,16 @@ func TestTxList_Add(t *testing.T) {
 	l := newTxList(true)
 
 	bob := cs_crypto.GetNormalAddress(keyBob.PublicKey)
-	tx1 := model.NewTransaction(1, bob, big.NewInt(1), big.NewInt(10), []byte{})
+	tx1 := model.NewTransaction(1, bob, big.NewInt(1), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	tx1.SignTx(keyAlice, ms)
 
-	tx2 := model.NewTransaction(2, bob, big.NewInt(2), big.NewInt(20), []byte{})
+	tx2 := model.NewTransaction(2, bob, big.NewInt(2), big.NewInt(2), g_testData.TestGasLimit, []byte{})
 	tx2.SignTx(keyAlice, ms)
 
-	tx3 := model.NewTransaction(2, bob, big.NewInt(3), big.NewInt(40), []byte{})
+	tx3 := model.NewTransaction(2, bob, big.NewInt(3), big.NewInt(3), g_testData.TestGasLimit, []byte{})
 	tx3.SignTx(keyAlice, ms)
 
-	tx4 := model.NewTransaction(1, bob, big.NewInt(3), big.NewInt(5), []byte{})
+	tx4 := model.NewTransaction(1, bob, big.NewInt(3), big.NewInt(0), g_testData.TestGasLimit, []byte{})
 	tx4.SignTx(keyAlice, ms)
 
 	assert.True(t, l.Empty())
@@ -184,7 +183,7 @@ func TestTxList_Add(t *testing.T) {
 
 	// lowers down the feeBump, in real application, fee bump
 	// is a configurable param consistent through program
-	ok, replace = l.Add(tx3, 100)
+	ok, replace = l.Add(tx3, 1)
 	assert.True(t, ok)
 	assert.EqualValues(t, replace, tx2)
 
@@ -262,7 +261,7 @@ func TestTxList_Filter(t *testing.T) {
 
 	// filter removes and returns all the txs that the cost is higher but not equal
 	// to the given threshold
-	removed, invalids := l.Filter(big.NewInt(9))
+	removed, invalids := l.Filter(big.NewInt(0).Mul(big.NewInt(5),big.NewInt(int64(g_testData.TestGasLimit))))
 
 	assert.Len(t, removed, 5)
 
@@ -294,14 +293,13 @@ func TestTxList_Remove(t *testing.T) {
 	l := newTxList(true)
 
 	txs := createTxList(10)
-	for i:=0; i<5; i++ {
+	for i := 0; i < 5; i++ {
 		l.Add(txs[i], 10)
 	}
 
 	e, rem := l.Remove(txs[5])
 	assert.Nil(t, rem)
 	assert.Equal(t, e, false)
-
 
 	//strict mode
 	l.strict = true
@@ -352,7 +350,7 @@ func TestTxList_Pop(t *testing.T) {
 	tfl.Put(tx)
 	tfl.Cap(big.NewInt(1), &accountSet{
 		accounts: map[common.Address]struct{}{},
-		signer: model.NewMercurySigner(big.NewInt(1)),
+		signer:   model.NewMercurySigner(big.NewInt(1)),
 	})
 
 	tfl = newTxFeeList(&txLookup{all: map[common.Hash]model.AbstractTransaction{
@@ -361,21 +359,21 @@ func TestTxList_Pop(t *testing.T) {
 	tfl.Put(tx)
 	tfl.Cap(big.NewInt(1), &accountSet{
 		accounts: map[common.Address]struct{}{},
-		signer: model.NewMercurySigner(big.NewInt(1)),
+		signer:   model.NewMercurySigner(big.NewInt(1)),
 	})
 
 	tfl = newTxFeeList(&txLookup{all: map[common.Hash]model.AbstractTransaction{}})
 	tfl.Put(tx)
 	tfl.UnderPriced(tx, &accountSet{
 		accounts: map[common.Address]struct{}{},
-		signer: model.NewMercurySigner(big.NewInt(1)),
+		signer:   model.NewMercurySigner(big.NewInt(1)),
 	})
 
 	tfl = newTxFeeList(&txLookup{all: map[common.Hash]model.AbstractTransaction{}})
 	tfl.Put(tx)
 	tfl.Discard(1, &accountSet{
 		accounts: map[common.Address]struct{}{},
-		signer: model.NewMercurySigner(big.NewInt(1)),
+		signer:   model.NewMercurySigner(big.NewInt(1)),
 	})
 
 	tfl = newTxFeeList(&txLookup{all: map[common.Hash]model.AbstractTransaction{
@@ -384,6 +382,6 @@ func TestTxList_Pop(t *testing.T) {
 	tfl.Put(tx)
 	tfl.Discard(1, &accountSet{
 		accounts: map[common.Address]struct{}{},
-		signer: model.NewMercurySigner(big.NewInt(1)),
+		signer:   model.NewMercurySigner(big.NewInt(1)),
 	})
 }

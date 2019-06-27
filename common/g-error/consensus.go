@@ -19,7 +19,6 @@ package g_error
 import "errors"
 
 var (
-	ErrTxFeeTooLow                          = errors.New("the tx fee is too low")
 	ErrNotCurrentVerifier                   = errors.New("vote signer is not current verifier")
 	ErrSameVoteSingerInVotes                = errors.New("same vote signer in votes")
 	ErrBlockVotesNotEnough                  = errors.New("block votes not enough")
@@ -30,4 +29,5 @@ var (
 	ErrTxOverSize                           = errors.New("tx over size")
 	ErrEmptyVoteList                        = errors.New("empty vote list")
 	ErrTxNonceNotMatch                      = errors.New("tx nonce not match")
+	ErrTxGasUsedIsOverGasLimit				= errors.New("the tx gasUsed is over the gasLimit")
 )

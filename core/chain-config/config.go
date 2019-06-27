@@ -50,7 +50,7 @@ const (
 
 	// 100M
 	MaxBlockSize = 100 * 1024 * 1024
-	MaxTxSize    = 512 * 1024
+	//MaxTxSize    = 512 * 1024
 
 	//使用gasLimit限制block容量,但区块容量可调节上限依然由MaxBlockSize控制
 	BlockGasLimit = 3360000000 //160000 normal tx

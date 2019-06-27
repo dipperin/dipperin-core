@@ -110,7 +110,7 @@ type AbstractTransaction interface {
 	Size() common.StorageSize
 	Amount() *big.Int
 	CalTxId() common.Hash
-	Fee() *big.Int
+	//Fee() *big.Int
 	Nonce() uint64
 	To() *common.Address
 	Sender(singer Signer) (common.Address, error)

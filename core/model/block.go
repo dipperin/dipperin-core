@@ -504,15 +504,11 @@ func (b Block) GetTransactionFees() *big.Int {
 	tempfee := big.NewInt(0)
 	for _, tx := range b.body.Txs {
 		var addFee *big.Int
-		if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContractCall {
-			if fee := tx.contractTxFee.Load(); fee == nil {
-				log.Error("the transaction fee cache is nil")
-				return tempfee
-			} else {
-				addFee = fee.(*big.Int)
-			}
+		if fee := tx.actualTxFee.Load(); fee == nil {
+			panic("the transaction fee cache is nil")
+			return tempfee
 		} else {
-			addFee = tx.Fee()
+			addFee = fee.(*big.Int)
 		}
 		tempfee.Add(tempfee, addFee)
 	}

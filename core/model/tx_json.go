@@ -61,7 +61,6 @@ func (t txData) MarshalJSON() ([]byte, error) {
 		HashLock  *common.Hash    `json:"hashlock" rlp:"nil"`
 		TimeLock  *hexutil.Big    `json:"timelock" gencodec:"required"`
 		Amount    *hexutil.Big    `json:"value"    gencodec:"required"`
-		Fee       *hexutil.Big    `json:"fee"      gencodec:"required"`
 		Price     *hexutil.Big    `json:"gasPrice" gencodec:"required"`
 		GasLimit  hexutil.Uint64 `json:"gas"      gencodec:"required"`
 		ExtraData hexutil.Bytes   `json:"input"    gencodec:"required"`
@@ -73,7 +72,6 @@ func (t txData) MarshalJSON() ([]byte, error) {
 	enc.HashLock = t.HashLock
 	enc.TimeLock = (*hexutil.Big)(t.TimeLock)
 	enc.Amount = (*hexutil.Big)(t.Amount)
-	enc.Fee = (*hexutil.Big)(t.Fee)
 	enc.ExtraData = t.ExtraData
 	enc.GasLimit = hexutil.Uint64(t.GasLimit)
 	enc.Price    = (*hexutil.Big)(t.Price)
@@ -89,7 +87,6 @@ func (t *txData) UnmarshalJSON(input []byte) error {
 		HashLock  *common.Hash    `json:"hashlock" rlp:"nil"`
 		TimeLock  *hexutil.Big    `json:"timelock" gencodec:"required"`
 		Amount    *hexutil.Big    `json:"value"    gencodec:"required"`
-		Fee       *hexutil.Big    `json:"fee"      gencodec:"required"`
 		Price     *hexutil.Big    `json:"gasPrice" gencodec:"required"`
 		GasLimit  *hexutil.Uint64 `json:"gas"      gencodec:"required"`
 		ExtraData *hexutil.Bytes  `json:"input"    gencodec:"required"`
@@ -121,10 +118,6 @@ func (t *txData) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'amount' for txData")
 	}
 	t.Amount = (*big.Int)(dec.Amount)
-	if dec.Fee == nil {
-		return errors.New("missing required field 'fee' for txData")
-	}
-	t.Fee = (*big.Int)(dec.Fee)
 	if dec.ExtraData == nil {
 		return errors.New("missing required field 'extradata' for txData")
 	}

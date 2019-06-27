@@ -148,7 +148,7 @@ func TestWASMContactMiniTxFee(t *testing.T){
 	assert.NoError(t,err)
 
 	log.Info("the contract tx gasUsed is:","gasUsed",receipt.GasUsed)
-	log.Info("the contract tx used TxFee is:","txFee",txConfigCreate.Tx.(*model.Transaction).GetContractTxFee())
+	log.Info("the contract tx used TxFee is:","txFee",txConfigCreate.Tx.(*model.Transaction).GetActualTxFee())
 
 	log.Info("the contract tx size is: ","size",txConfigCreate.Tx.Size())
 }
