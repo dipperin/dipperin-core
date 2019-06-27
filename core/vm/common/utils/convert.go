@@ -6,7 +6,7 @@ import (
 	"errors"
 	"math"
 	"strconv"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common"
 )
 
 const (
@@ -132,7 +132,7 @@ func BoolToBytes(b bool) []byte {
 	return buf.Bytes()
 }
 
-// used for output
+// used for output, receipt
 func Align32BytesConverter(source []byte, t string) (interface{}, error) {
 	if len(source) < ALIGN_LENGTH {
 		return nil, errors.New("input source isn't align")
@@ -180,34 +180,29 @@ func Align32BytesConverter(source []byte, t string) (interface{}, error) {
 	}
 }
 
-// receipt used
-func BytesConverter(source []byte, t string) interface{} {
+func MakeUpBytes(source []byte, t string) []byte {
 	switch t {
-	case "int16":
-		return BytesToInt16(source)
-	case "uint16":
-		return BytesToUint16(source)
-	case "int32", "int":
-		return BytesToInt32(source)
-	case "uint32", "uint":
-		return BytesToUint32(source)
-	case "int64":
-		log.Info("BytesConverter int64", "source", source, "int64", BytesToInt64(source))
-		return BytesToInt64(source)
-	case "uint64":
-		log.Info("BytesConverter uint64", "source", source, "uint64", BytesToUint64(source))
-		return BytesToUint64(source)
-	case "float32":
-		return BytesToFloat32(source)
-	case "float64":
-		return BytesToFloat64(source)
+	case "int8", "int16", "int32", "int64":
+		return Align32Bytes(source)
+	case "uint8", "uint16", "uint32", "uint64":
+		return Align32Bytes(source)
 	case "string":
-		return string(source[:])
-	case "bool":
-		return bytes.Equal(source, []byte{1})
-	default:
-		return source
+		strHash := common.BytesToHash(Int32ToBytes(32))
+		sizeHash := common.BytesToHash(Int64ToBytes(int64(len(source))))
+		var dataRealSize = len(source)
+		if (dataRealSize % 32) != 0 {
+			dataRealSize = dataRealSize + (32 - (dataRealSize % 32))
+		}
+		dataByt := make([]byte, dataRealSize)
+		copy(dataByt[0:], source)
+
+		finalData := make([]byte, 0)
+		finalData = append(finalData, strHash.Bytes()...)
+		finalData = append(finalData, sizeHash.Bytes()...)
+		finalData = append(finalData, dataByt...)
+		return finalData
 	}
+	return nil
 }
 
 func StringConverter(source string, t string) ([]byte, error) {

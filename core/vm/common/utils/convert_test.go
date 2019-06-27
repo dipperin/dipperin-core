@@ -24,31 +24,6 @@ func TestInt64ToBytes(t *testing.T) {
 	fmt.Println(c)
 }
 
-func TestIntConvertBytes(t *testing.T) {
-	a := "123"
-	byte, err := StringConverter(a, "int64")
-	log.Info("the byte is:","byte",byte)
-	assert.NoError(t, err)
-	v := BytesConverter(byte, "int64")
-	fmt.Println(v.(int64))
-
-	byte, err = StringConverter(a, "uint64")
-	assert.NoError(t, err)
-	v = BytesConverter(byte, "uint64")
-	fmt.Println(v.(uint64))
-
-	a = "12345"
-	byte, err = StringConverter(a, "uint16")
-	assert.NoError(t, err)
-
-	fmt.Println(BytesToUint16(byte))
-
-	byte, err = StringConverter(a, "int16")
-	assert.NoError(t, err)
-	fmt.Println(BytesToInt16(byte))
-
-}
-
 func TestFloat32ToBytes(t *testing.T) {
 	var a float32
 	a = 1.1

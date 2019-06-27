@@ -26,7 +26,7 @@ func (f *Fullstate) CreateAccount(address common.Address) {
 func (f *Fullstate) GetBalance(addr common.Address) *big.Int {
 	balance, err := f.state.GetBalance(addr)
 	if err != nil {
-		return big.NewInt(0)
+		return nil
 	}
 	return balance
 }

@@ -86,7 +86,7 @@ func defaultChainConfig() *ChainConfig {
 		SlotMargin: uint64(2),
 		// number of verifier
 		//VerifierNumber: 4,
-		VerifierNumber:22,
+		VerifierNumber:4,
 
 		// angel verifier priority
 		SystemVerifierPriority: 0,
