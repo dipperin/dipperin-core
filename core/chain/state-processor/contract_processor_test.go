@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"math/big"
-	"strings"
 	"testing"
 )
 
@@ -64,22 +63,23 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	receipt, err := processor.ProcessContract(txConfigCreate, true)
 	assert.NoError(t, err)
 	log.Info("result", "receipt", receipt)
-	assert.Equal(t, true, receipt.HandlerResult)
+	assert.Equal(t, false, receipt.HandlerResult)
 	tx.PaddingReceipt(receipt)
 	receiptResult, err := tx.GetReceipt()
 	assert.NoError(t, err)
 	contractNonce, err := processor.GetNonce(receiptResult.ContractAddress)
 	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce, "receiptResult", receiptResult)
 	code, err := processor.GetCode(receiptResult.ContractAddress)
+	abi, err := processor.GetAbi(receiptResult.ContractAddress)
 	log.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
 	assert.NoError(t, err)
-	assert.Equal(t, code, tx.ExtraData())
+	//assert.Equal(t, code, tx.ExtraData())
 
 	sw, err := soft_wallet.NewSoftWallet()
 	err = sw.Open(util.HomeDir()+"/go/src/github.com/dipperin/dipperin-core/core/vm/event/CSWallet", "CSWallet", "123")
 	assert.NoError(t, err)
 
-	callTx, err := newContractCallTx(nil, &receiptResult.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "hello", "name", nonce+1, code)
+	callTx, err := newContractCallTx(nil, &receiptResult.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "hello", "name", nonce+1, abi)
 	account := accounts.Account{ownAddress}
 	signCallTx, err := sw.SignTx(account, callTx, nil)
 
@@ -177,106 +177,6 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	assert.Equal(t, uint64(1), log1.BlockNumber)
 }
 
-func TestAccountStateDB_ProcessContract3(t *testing.T) {
-	ownAddress := common.HexToAddress("0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41")
-
-	//abiPath := "../../vm/event/token/token.cpp.abi.json"
-	//wasmPath := "../../vm/event/token/token4.wasm"
-	abiPath := "../../vm/event/token/StringMap.cpp.abi.json"
-	wasmPath := "../../vm/event/token/map2.wasm"
-	//params := []string{"dipp", "DIPP", "100000000"}
-	err, data := getExtraData(t, abiPath, wasmPath, []string{})
-
-	addr := common.HexToAddress(common.AddressContractCreate)
-
-	tx := model.NewTransactionSc(0, &addr, new(big.Int).SetUint64(uint64(10)), new(big.Int).SetUint64(uint64(1)), 26427000, data)
-
-	signCreateTx := getSignedTx(t, "/go/src/github.com/dipperin/dipperin-core/core/vm/event/CSWallet", ownAddress, tx)
-
-	signCreateTx.PaddingTxIndex(0)
-
-	gasLimit := gasLimit * 10000000000
-	block := CreateBlock(1, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
-
-	db, root := CreateTestStateDB()
-	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
-	assert.NoError(t, err)
-
-	processor.NewAccountState(ownAddress)
-	err = processor.AddNonce(ownAddress, 0)
-	processor.AddBalance(ownAddress, new(big.Int).SetInt64(int64(1000000000000000000)))
-
-	tmpGasLimit := block.GasLimit()
-	gasUsed := block.GasUsed()
-	config := &TxProcessConfig{
-		Tx:       tx,
-		Header:   block.Header(),
-		GetHash:  getTestHashFunc(),
-		GasLimit: &tmpGasLimit,
-		GasUsed:  &gasUsed,
-		TxFee:    big.NewInt(0),
-	}
-	err = processor.ProcessTxNew(config)
-	assert.NoError(t, err)
-
-	receipt, err := tx.GetReceipt()
-
-	assert.NoError(t, err)
-
-	contractNonce, err := processor.GetNonce(receipt.ContractAddress)
-	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce, "receiptResult", receipt)
-	code, err := processor.GetCode(receipt.ContractAddress)
-	log.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
-	assert.NoError(t, err)
-	assert.Equal(t, code, tx.ExtraData())
-
-	sw, err := soft_wallet.NewSoftWallet()
-	err = sw.Open(util.HomeDir()+"/go/src/github.com/dipperin/dipperin-core/core/vm/event/CSWallet", "CSWallet", "123")
-	assert.NoError(t, err)
-
-	callTx, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "setBalance", "alice,100", contractNonce+1, code)
-	account := accounts.Account{ownAddress}
-	signCallTx, err := sw.SignTx(account, callTx, nil)
-
-	assert.NoError(t, err)
-	callTx.PaddingTxIndex(0)
-	block2 := CreateBlock(2, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
-	log.Info("callTx info", "callTx", callTx)
-
-	gasUsed2 := uint64(0)
-	txConfig := &TxProcessConfig{
-		Tx:       signCallTx,
-		Header:   block2.Header().(*model.Header),
-		GetHash:  fakeGetBlockHash,
-		GasLimit: &gasLimit,
-		GasUsed:  &gasUsed2,
-	}
-
-	callRecipt, err := processor.ProcessContract(txConfig, false)
-
-	// call contract processContractCall
-	callTxGet, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "processContractCall", "", contractNonce+1, code)
-	//account := accounts.Account{ownAddress}
-	signCallTxGet, err := sw.SignTx(account, callTxGet, nil)
-
-	assert.NoError(t, err)
-	signCallTxGet.PaddingTxIndex(0)
-	block3 := CreateBlock(2, common.Hash{}, []*model.Transaction{signCallTxGet}, gasLimit)
-	log.Info("callTx info", "callTx", callTx)
-
-	txConfigGet := &TxProcessConfig{
-		Tx:       signCallTx,
-		Header:   block3.Header().(*model.Header),
-		GetHash:  fakeGetBlockHash,
-		GasLimit: &gasLimit,
-		GasUsed:  &gasUsed2,
-	}
-
-	_, err = processor.ProcessContract(txConfigGet, false)
-	assert.NoError(t, err)
-	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", callRecipt, "err", err)
-}
-
 func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	aliceStr := "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333"
 	brotherStr := "0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978"
@@ -293,7 +193,8 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	abiPath := "../../vm/event/token/token.cpp.abi.json"
 	wasmPath := "../../vm/event/token/token-wh.wasm"
 	//params := []string{"dipp", "DIPP", "100000000"}
-	err, data := getExtraData(t, abiPath, wasmPath, []string{"dipp", "DIPP", "100000000"})
+	err, data := utils.GetExtraData(abiPath, wasmPath, []string{"dipp", "DIPP", "100000000"})
+	assert.NoError(t, err)
 
 	addr := common.HexToAddress(common.AddressContractCreate)
 
@@ -334,6 +235,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	contractNonce, err := processor.GetNonce(receipt.ContractAddress)
 	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce, "receiptResult", receipt)
 	code, err := processor.GetCode(receipt.ContractAddress)
+	abi,err := processor.GetAbi(receipt.ContractAddress)
 	log.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
 	assert.NoError(t, err)
 	//assert.Equal(t, code, tx.ExtraData())
@@ -357,20 +259,21 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	//key.X
 	//key.
 
-	//  合约调用getBalance方法  获取合约原始账户balance
 	accountOwn := accounts.Account{ownAddress}
-	err = processContractCall(t, receipt.ContractAddress, code, sw,  processor, accountOwn, 1, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 2)
-	assert.NoError(t, err)
-
+	//  合约调用getBalance方法  获取合约原始账户balance
 	ownTransferNonce, err := processor.GetNonce(ownAddress)
 	assert.NoError(t, err)
+	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 2)
+	assert.NoError(t, err)
+
 
 
 
 
 	gasUsed2 := uint64(0)
 	//  合约调用  transfer方法 转账给alice
-	err = processContractCall(t, receipt.ContractAddress, code, sw,  processor, accountOwn, ownTransferNonce, "transfer", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333,20", 3)
+	ownTransferNonce++
+	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "transfer", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333,20", 3)
 	assert.NoError(t, err)
 
 	//合约调用  transfer方法  Transfer
@@ -396,17 +299,14 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 
 	//  合约调用getBalance方法  获取alice账户balance
-	err = processContractCall(t, receipt.ContractAddress, code, sw,  processor, accountOwn, 3, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333", 4)
+	ownTransferNonce++
+	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333", 4)
 	assert.NoError(t, err)
-
-
-
-
-
 
 	//  合约调用approve方法
 	log.Info("==========================================")
-	callTxApprove, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "approve", "0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,50", ownTransferNonce+2, code)
+	ownTransferNonce++
+	callTxApprove, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "approve", "0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,50", ownTransferNonce, abi)
 	//accountAlice := accounts.Account{aliceAddress}
 	signCallTxApprove, err := sw.SignTx(accountOwn, callTxApprove, nil)
 
@@ -429,15 +329,15 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 
 	//  合约调用getApproveBalance方法  获取own授权给brother账户balance
-	err = processContractCall(t, receipt.ContractAddress, code, sw,  processor, accountOwn, 5, "getApproveBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978", 6)
-	assert.NoError(t, err)
+	/*err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, 5, "getApproveBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978", 6)
+	assert.NoError(t, err)*/
 
 
 
 
 	//  合约调用transferFrom方法
 	log.Info("==========================================")
-	callTxTransferFrom, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "transferFrom", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333,5", 0, code)
+	callTxTransferFrom, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "transferFrom", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333,5", 0, abi)
 	assert.NoError(t, err)
 	accountBrother := accounts.Account{Address: brotherAddress}
 	swBrother, err := soft_wallet.NewSoftWallet()
@@ -464,34 +364,40 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 
 	//  合约调用getBalance方法  获取alice账户获得转账授权后的balance
-	err = processContractCall(t, receipt.ContractAddress, code, sw,  processor, accountOwn, 6, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333", 8)
+	ownTransferNonce++
+	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333", 8)
 	assert.NoError(t, err)
 
 	//  合约调用getBalance方法  获取own账户最终的balance
-	err = processContractCall(t, receipt.ContractAddress, code, sw,  processor, accountOwn, 7, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 9)
+	ownTransferNonce++
+	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 9)
 	assert.NoError(t, err)
 
 	// 合约调用  transfer方法  转账给brother
-	err = processContractCall(t, receipt.ContractAddress, code, sw,  processor, accountOwn, 8, "transfer", "0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,28", 10)
+	ownTransferNonce++
+	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "transfer", "0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,28", 10)
 	assert.NoError(t, err)
 
 	//  合约调用getBalance方法  获取own账户最终的balance
-	err = processContractCall(t, receipt.ContractAddress, code, sw,  processor, accountOwn, 9, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 11)
+	ownTransferNonce++
+	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 11)
 	assert.NoError(t, err)
 
     // 合约调用burn方法,将账户余额返还给own
-	err = processContractCall(t, receipt.ContractAddress, code, swBrother,  processor, accountBrother, 1, "burn", "15", 12)
+	err = processContractCall(t, receipt.ContractAddress, abi, swBrother,  processor, accountBrother, 1, "burn", "15", 12)
 	assert.NoError(t, err)
 
 
 
 	// 合约调用getBalance方法,获取own的余额
-	err = processContractCall(t, receipt.ContractAddress, code, sw,  processor, accountOwn, 10, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 13)
+	ownTransferNonce++
+	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 13)
 	assert.NoError(t, err)
 
 
 	// 合约调用setName方法，设置合约名
-	err = processContractCall(t, receipt.ContractAddress, code, sw,  processor, accountOwn, 11, "setName", "wujinhai", 14)
+	ownTransferNonce++
+	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "setName", "wujinhai", 14)
 	assert.NoError(t, err)
 
 
@@ -564,36 +470,3 @@ func getSignedTx(t *testing.T, walletPath string, ownAddress common.Address, tx 
 	return signCreateTx
 }
 
-// 获取合约数据
-func getExtraData(t *testing.T, abiPath, wasmPath string, params []string) (error, []byte) {
-	// GetContractExtraData
-	abiBytes, err := ioutil.ReadFile(abiPath)
-	assert.NoError(t, err)
-	var wasmAbi utils.WasmAbi
-	err = wasmAbi.FromJson(abiBytes)
-	assert.NoError(t, err)
-	var args []utils.InputParam
-	for _, v := range wasmAbi.AbiArr {
-		if strings.EqualFold("init", v.Name) && strings.EqualFold(v.Type, "function") {
-			args = v.Inputs
-		}
-	}
-	//params := []string{"dipp", "DIPP", "100000000"}
-	wasmBytes, err := ioutil.ReadFile(wasmPath)
-	assert.NoError(t, err)
-	rlpParams := []interface{}{
-		wasmBytes, abiBytes,
-	}
-	assert.Equal(t, len(params), len(args))
-	for i, v := range args {
-		bts := params[i]
-		re, err := utils.StringConverter(bts, v.Type)
-		assert.NoError(t, err)
-		rlpParams = append(rlpParams, re)
-		//inputParams = append(inputParams, re)
-	}
-	data, err := rlp.EncodeToBytes(rlpParams)
-	//input, err := rlp.EncodeToBytes(inputParams)
-	assert.NoError(t, err)
-	return err, data
-}

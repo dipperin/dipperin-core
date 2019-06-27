@@ -316,6 +316,11 @@ type fakeChainInterface struct {
 	slot      uint64
 	verifiers []common.Address
 	cf        *chain_config.ChainConfig
+
+}
+
+func (ci *fakeChainInterface) AccountStateDB(root common.Hash) (*state_processor.AccountStateDB, error) {
+	panic("implement me")
 }
 
 func (ci *fakeChainInterface) GetReceipts(hash common.Hash, number uint64) model2.Receipts {
@@ -837,7 +842,7 @@ func (fb *fakeBlock) VerificationRoot() common.Hash {
 }
 
 func (fb *fakeBlock) SetVerifications(vs []model.AbstractVerification) {
-	panic("implement me")
+	fb.vRoot = model.DeriveSha(model.Verifications(vs))
 }
 
 func (fb *fakeBlock) VersIterator(func(int, model.AbstractVerification, model.AbstractBlock) error) error {

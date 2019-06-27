@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"testing"
 	"path/filepath"
 	"github.com/dipperin/dipperin-core/common/util"
@@ -14,11 +15,13 @@ import (
 )
 
 var (
-	WASMConvertPath = filepath.Join(util.HomeDir(), "go/src/dipperin-c/dipc/build/bin/convert/convert.wasm")
-	ABIConvertPath  = filepath.Join(util.HomeDir(), "go/src/dipperin-c/dipc/build/bin/convert/convert.cpp.abi.json")
+	WASMConvertPath = filepath.Join(util.HomeDir(), "workspace/chain/dipperin/dipc/testcontract/convert/convert4.wasm")
+	ABIConvertPath  = filepath.Join(util.HomeDir(), "/workspace/chain/dipperin/dipc/testcontract/convert/convert.cpp.abi.json")
 )
 
 func Test_ConvertContractCall(t *testing.T) {
+	//log.InitLogger(log.LvlDebug)
+	log.Info("start")
 	cluster, err := node_cluster.CreateNodeCluster()
 	assert.NoError(t, err)
 
@@ -44,7 +47,7 @@ func CreateConvertContract(t *testing.T, cluster *node_cluster.NodeCluster, node
 	gasLimit := big.NewInt(2 * consts.DIP)
 	gasPrice := big.NewInt(2)
 
-	data := getCreateExtraData(t, WASMConvertPath, ABIConvertPath, "")
+	data := GetCreateExtraData(t, WASMConvertPath, ABIConvertPath, "")
 	txHash, innerErr := SendTransactionContract(client, from, to, value, gasLimit, gasPrice, data)
 	assert.NoError(t, innerErr)
 	return txHash

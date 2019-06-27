@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"math"
 	"strconv"
-	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 const (
-	ALIGN_LENGTH = 32
+	ALIGN_LENGTH   = 32
+	ALIGN_LENGTH_8 = 8
 )
 
 func Int16ToBytes(n int16) []byte {
@@ -74,6 +75,17 @@ func Align32Bytes(b []byte) []byte {
 	return tmp
 }
 
+func Align8Bytes(b []byte) []byte {
+	tmp := make([]byte, ALIGN_LENGTH_8)
+	if len(b) > ALIGN_LENGTH_8 {
+		b = b[len(b)-ALIGN_LENGTH_8:]
+	}
+	copy(tmp[ALIGN_LENGTH_8-len(b):], b)
+	return tmp
+}
+
+
+
 func BytesCombine(pBytes ...[]byte) []byte {
 	return bytes.Join(pBytes, []byte(""))
 }
@@ -88,7 +100,10 @@ func Int64ToBytes(n int64) []byte {
 func BytesToInt64(b []byte) int64 {
 	bytesBuffer := bytes.NewBuffer(b)
 	var tmp int64
-	binary.Read(bytesBuffer, binary.BigEndian, &tmp)
+	err := binary.Read(bytesBuffer, binary.BigEndian, &tmp)
+	if err != nil {
+		log.Error("BytesToInt64", "err", err)
+	}
 	return int64(tmp)
 }
 
@@ -192,6 +207,7 @@ func BytesConverter(source []byte, t string) interface{} {
 	case "uint32", "uint":
 		return BytesToUint32(source)
 	case "int64":
+		source = Align8Bytes(source)
 		log.Info("BytesConverter int64", "source", source, "int64", BytesToInt64(source))
 		return BytesToInt64(source)
 	case "uint64":
