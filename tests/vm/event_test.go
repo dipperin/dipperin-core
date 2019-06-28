@@ -42,7 +42,7 @@ func CreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName st
 	assert.NoError(t, err)
 
 	to := common.HexToAddress(common.AddressContractCreate)
-	data := GetCreateExtraData(t, WASMPath, AbiPath, "")
+	data := getCreateExtraData(t, WASMPath, AbiPath, "")
 	var txHashList []common.Hash
 	for i := 0; i < times; i++ {
 		txHash, innerErr := SendTransactionContract(client, from, to, value, gasLimit, gasPrice, data)

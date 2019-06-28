@@ -149,35 +149,36 @@ func BoolToBytes(b bool) []byte {
 }
 
 // used for output, receipt
-func Align32BytesConverter(source []byte, t string) (interface{}, error) {
+// makeUpBytes before
+func Align32BytesConverter(source []byte, t string) interface{} {
 	if len(source) < ALIGN_LENGTH {
-		return nil, errors.New("input source isn't align")
+		source = MakeUpBytes(source, t)
 	}
 	switch t {
 	case "int16":
 		source = source[ALIGN_LENGTH-2:]
-		return BytesToInt16(source), nil
+		return BytesToInt16(source)
 	case "uint16":
 		source = source[ALIGN_LENGTH-2:]
-		return BytesToUint16(source), nil
+		return BytesToUint16(source)
 	case "int32", "int":
 		source = source[ALIGN_LENGTH-4:]
-		return BytesToInt32(source), nil
+		return BytesToInt32(source)
 	case "uint32", "uint":
 		source = source[ALIGN_LENGTH-4:]
-		return BytesToUint32(source), nil
+		return BytesToUint32(source)
 	case "int64":
 		source = source[ALIGN_LENGTH-8:]
-		return BytesToInt64(source), nil
+		return BytesToInt64(source)
 	case "uint64":
 		source = source[ALIGN_LENGTH-8:]
-		return BytesToUint64(source), nil
+		return BytesToUint64(source)
 	case "float32":
 		source = source[ALIGN_LENGTH-4:]
-		return BytesToFloat32(source), nil
+		return BytesToFloat32(source)
 	case "float64":
 		source = source[ALIGN_LENGTH-8:]
-		return BytesToFloat64(source), nil
+		return BytesToFloat64(source)
 	case "string":
 		source = source[64:]
 		returnBytes := make([]byte, 0)
@@ -187,12 +188,12 @@ func Align32BytesConverter(source []byte, t string) (interface{}, error) {
 			}
 			returnBytes = append(returnBytes, v)
 		}
-		return string(returnBytes), nil
+		return string(returnBytes)
 	case "bool":
 		source = source[ALIGN_LENGTH-1:]
-		return bytes.Equal(source, []byte{1}), nil
+		return bytes.Equal(source, []byte{1})
 	default:
-		return source, nil
+		return source
 	}
 }
 

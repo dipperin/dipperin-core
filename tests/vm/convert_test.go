@@ -43,7 +43,7 @@ func CreateConvertContract(t *testing.T, cluster *node_cluster.NodeCluster, node
 	assert.NoError(t, err)
 
 	to := common.HexToAddress(common.AddressContractCreate)
-	data := GetCreateExtraData(t, WASMConvertPath, ABIConvertPath, "")
+	data := getCreateExtraData(t, WASMConvertPath, ABIConvertPath, "")
 	txHash, innerErr := SendTransactionContract(client, from, to, value, gasLimit, gasPrice, data)
 	assert.NoError(t, innerErr)
 	return txHash

@@ -61,10 +61,7 @@ func ConvertInputs(src []byte, abiInput []InputParam) ([]byte, error) {
 	var data []byte
 	for i, v := range abiInput {
 		input := inputList[i].([]byte)
-		convert, innerErr := Align32BytesConverter(MakeUpBytes(input, v.Type), v.Type)
-		if innerErr != nil {
-			return nil, innerErr
-		}
+		convert := Align32BytesConverter(MakeUpBytes(input, v.Type), v.Type)
 		result := fmt.Sprintf("%v,", convert)
 		data = append(data, []byte(result)...)
 	}

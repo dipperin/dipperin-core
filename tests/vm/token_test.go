@@ -44,7 +44,7 @@ func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNa
 
 	to := common.HexToAddress(common.AddressContractCreate)
 	params := "dipp,DIPP,1000000"
-	data := GetCreateExtraData(t, WASMTokenPath, AbiTokenPath, params)
+	data := getCreateExtraData(t, WASMTokenPath, AbiTokenPath, params)
 
 	var txHashList []common.Hash
 	for i := 0; i < times; i++ {
