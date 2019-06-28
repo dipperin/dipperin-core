@@ -12,8 +12,8 @@ import (
 
 
 var (
-	WASMBuildInsPath = filepath.Join(util.HomeDir(), "go/src/dipperin-c/dipc/testcontract/buildins/buildins.wasm")
-	ABIBuildInsPath  = filepath.Join(util.HomeDir(), "go/src/dipperin-c/dipc/testcontract/buildins/buildins.cpp.abi.json")
+	WASMBuildPath   = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/test-data/buildins/buildins.wasm")
+	ABIBuildInsPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/test-data/buildins/buildins.cpp.abi.json")
 )
 
 func Test_BuildInsContractCall(t *testing.T) {
@@ -39,7 +39,7 @@ func CreateBuildInsContract(t *testing.T, cluster *node_cluster.NodeCluster, nod
 	assert.NoError(t, err)
 
 	to := common.HexToAddress(common.AddressContractCreate)
-	data := getCreateExtraData(t, WASMBuildInsPath, ABIBuildInsPath, "")
+	data := getCreateExtraData(t, WASMBuildPath, ABIBuildInsPath, "")
 	txHash, innerErr := SendTransactionContract(client, from, to, value, gasLimit, gasPrice, data)
 	assert.NoError(t, innerErr)
 	return txHash
