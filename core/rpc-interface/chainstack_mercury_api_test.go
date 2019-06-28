@@ -23,6 +23,8 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/economy-model"
+	"github.com/dipperin/dipperin-core/tests/g-mockFile"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -40,7 +42,7 @@ func TestDipperinMercuryApi(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
 	mp := NewMockPeerManager(controller)
-	mc := NewMockChainInterface(controller)
+	mc := g_mockFile.NewMockChainInterface(controller)
 	mb := NewMockAbstractBlock(controller)
 	mn := NewMockNodeConf(controller)
 	mpeer := NewMockPmAbstractPeer(controller)
@@ -105,7 +107,7 @@ func TestDipperinMercuryApi(t *testing.T) {
 	_, err = api.NewTransaction([]byte{})
 	assert.Error(t, err)
 
-	tx := model.NewTransaction(0, common.Address{}, big.NewInt(1), big.NewInt(1), nil)
+	tx := model.NewTransaction(0, common.Address{}, big.NewInt(1),  g_testData.TestGasPrice,g_testData.TestGasLimit, nil)
 	tb, err := rlp.EncodeToBytes(tx)
 	assert.NoError(t, err)
 	_, err = api.NewTransaction(tb)
@@ -140,13 +142,13 @@ func TestDipperinMercuryApi(t *testing.T) {
 	assert.Error(t, err)
 	_, err = api.ERC20Allowance(common.Address{}, common.Address{}, common.Address{})
 	assert.Error(t, err)
-	_, err = api.ERC20Transfer(common.Address{}, common.Address{}, common.Address{}, big.NewInt(1), big.NewInt(1))
+	_, err = api.ERC20Transfer(common.Address{}, common.Address{}, common.Address{}, big.NewInt(1),  g_testData.TestGasPrice,g_testData.TestGasLimit)
 	assert.Error(t, err)
-	_, err = api.ERC20TransferFrom(common.Address{}, common.Address{}, common.Address{}, common.Address{}, big.NewInt(1), big.NewInt(1))
+	_, err = api.ERC20TransferFrom(common.Address{}, common.Address{}, common.Address{}, common.Address{}, big.NewInt(1), g_testData.TestGasPrice,g_testData.TestGasLimit)
 	assert.Error(t, err)
-	_, err = api.ERC20Approve(common.Address{}, common.Address{}, common.Address{}, big.NewInt(1), big.NewInt(1))
+	_, err = api.ERC20Approve(common.Address{}, common.Address{}, common.Address{}, big.NewInt(1), g_testData.TestGasPrice,g_testData.TestGasLimit)
 	assert.Error(t, err)
-	_, err = api.CreateERC20(common.Address{}, "", "", big.NewInt(1), 2, big.NewInt(1))
+	_, err = api.CreateERC20(common.Address{}, "", "", big.NewInt(1), 2,  g_testData.TestGasPrice,g_testData.TestGasLimit)
 	assert.Error(t, err)
 
 	n, _ := enode.ParseV4(fmt.Sprintf("enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@%v:%v", "127.0.0.1", 10003))
@@ -162,7 +164,7 @@ func TestDipperinMercuryApi(t *testing.T) {
 	assert.Error(t, err)
 
 	nonce := uint64(1)
-	_, err = api.SendTransaction(common.Address{}, common.Address{}, big.NewInt(1), big.NewInt(1), []byte{}, &nonce)
+	_, err = api.SendTransaction(common.Address{}, common.Address{}, big.NewInt(1),  g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{}, &nonce)
 	assert.Error(t, err)
 	_, err = api.SendTransactions(common.Address{}, []model.RpcTransaction{})
 	assert.Error(t, err)
@@ -172,14 +174,14 @@ func TestDipperinMercuryApi(t *testing.T) {
 	mpeer.EXPECT().GetHead().Return(common.Hash{}, uint64(1)).AnyTimes()
 	api.RemoteHeight()
 
-	_, err = api.SendRegisterTransaction(common.Address{}, big.NewInt(1), big.NewInt(1), &nonce)
+	_, err = api.SendRegisterTransaction(common.Address{}, big.NewInt(1),  g_testData.TestGasPrice,g_testData.TestGasLimit, &nonce)
 	assert.Error(t, err)
-	_, err = api.SendUnStakeTransaction(common.Address{}, big.NewInt(1), &nonce)
+	_, err = api.SendUnStakeTransaction(common.Address{},  g_testData.TestGasPrice,g_testData.TestGasLimit, &nonce)
 	assert.Error(t, err)
 
-	_, err = api.SendEvidenceTransaction(common.Address{}, common.Address{}, big.NewInt(1), nil, nil, &nonce)
+	_, err = api.SendEvidenceTransaction(common.Address{}, common.Address{},  g_testData.TestGasPrice,g_testData.TestGasLimit, nil, nil, &nonce)
 	assert.Error(t, err)
-	_, err = api.SendCancelTransaction(common.Address{}, big.NewInt(1), &nonce)
+	_, err = api.SendCancelTransaction(common.Address{},  g_testData.TestGasPrice,g_testData.TestGasLimit, &nonce)
 	assert.Error(t, err)
 
 	mc.EXPECT().GetVerifiers(gomock.Any()).Return([]common.Address{{}}).AnyTimes()

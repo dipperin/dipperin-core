@@ -25,6 +25,10 @@ import (
 	"github.com/urfave/cli"
 )
 
+func TestMain(m *testing.M) {
+	//m.Run()
+}
+
 func wrapRpcArgs(c *cli.Context, m string, p string) {
 	err := c.Set("m", m)
 	if err != nil {

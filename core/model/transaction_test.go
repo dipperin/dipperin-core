@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-testData"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
@@ -92,8 +92,8 @@ func TestTransaction(t *testing.T) {
 	tx := CreateSignedTx(0, txAmount)
 	assert.Equal(t, txAmount, tx.Amount())
 	assert.Equal(t, big.NewInt(1), tx.ChainId())
-	assert.Equal(t, big.NewInt(220000), tx.Cost())
-	assert.Equal(t, big.NewInt(111), tx.EstimateFee())
+	assert.Equal(t, big.NewInt(52000), tx.Cost())
+	assert.Equal(t, big.NewInt(107), tx.EstimateFee())
 	assert.Equal(t, []byte{}, tx.ExtraData())
 	assert.Equal(t, uint64(0), tx.Nonce())
 	assert.Equal(t, big.NewInt(0), tx.TimeLock())
@@ -103,8 +103,8 @@ func TestTransaction(t *testing.T) {
 	assert.NotNil(t, tx.String())
 
 	// read from cache
-	assert.Equal(t, common.StorageSize(111), tx.Size())
-	assert.Equal(t, common.StorageSize(111), tx.Size())
+	assert.Equal(t, common.StorageSize(107), tx.Size())
+	assert.Equal(t, common.StorageSize(107), tx.Size())
 
 	signer := NewMercurySigner(big.NewInt(1))
 	assert.Equal(t, signer, tx.GetSigner())
@@ -139,7 +139,7 @@ func TestTransactions(t *testing.T) {
 	tx2 := CreateSignedTx(1, txAmount)
 	txs := Transactions{tx1, tx2}
 
-	assert.True(t, txs.Less(0, 1))
+	assert.False(t, txs.Less(0, 1))
 	assert.NotNil(t, txs.GetRlp(0))
 	assert.NotNil(t, txs.String())
 

@@ -19,7 +19,7 @@ package contract
 
 import (
 	"github.com/dipperin/dipperin-core/common/address-util"
-	"github.com/dipperin/dipperin-core/common/g-testData"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/third-party/log"
@@ -240,6 +240,5 @@ func TestGetERC20TxSize(t *testing.T){
 	normalTx.SignTx(key1,fs)
 
 
-	log.Info("the tx is:","tx",normalTx)
 	log.Info("the normal tx size is:","size",normalTx.Size(),"txFee",economy_model.GetMinimumTxFee(normalTx.Size()))
 }

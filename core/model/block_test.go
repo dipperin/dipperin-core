@@ -25,6 +25,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -37,7 +38,7 @@ import (
 func TestBlock_GetTransactionFees(t *testing.T) {
 	block := CreateBlock(1, common.Hash{}, 10)
 	fee := block.GetTransactionFees()
-	assert.Equal(t, fee, big.NewInt(0).Mul(big.NewInt(int64(10)), big.NewInt(10000)))
+	assert.Equal(t, fee, big.NewInt(0).Mul(big.NewInt(int64(10)), big.NewInt(210000)))
 }
 
 func TestBlock_EncodeToIBLT(t *testing.T) {
@@ -126,7 +127,7 @@ func Test_RlpHash(t *testing.T) {
 	log.Info("the transactionFee is:", "transactionFee", hexutil.Encode(transactionFee.Bytes()))
 
 	data := make([]byte, 0)
-	tx := NewTransaction(uint64(testNonce), to, value, transactionFee, data)
+	tx := NewTransaction(uint64(testNonce), to, value,  g_testData.TestGasPrice,g_testData.TestGasLimit, data)
 	txId, err := rlpHash([]interface{}{tx.data, from})
 	assert.NoError(t, err)
 	log.Debug("the txId is :", "txId", txId.Hex())
@@ -738,7 +739,7 @@ func creatBlockWithAllTx(n int,t *testing.T) *Block{
 
 	keyAlice, _ := CreateKey()
 	ms := NewMercurySigner(big.NewInt(1))
-	tempTx := NewTransaction(uint64(0), bobAddr, big.NewInt(1000), big.NewInt(10000), []byte{})
+	tempTx := NewTransaction(uint64(0), bobAddr, big.NewInt(1000),  g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
 	tempTx.SignTx(keyAlice, ms)
 	var res []*Transaction
 	for i := 0; i < n; i++ {

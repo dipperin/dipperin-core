@@ -29,6 +29,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/ethereum/go-ethereum/ethdb"
@@ -41,9 +42,8 @@ import (
 func TestNewTxValidatorForRpcService(t *testing.T) {
 	v := NewTxValidatorForRpcService(&fakeChainInterface{})
 	assert.NotNil(t, v)
-	assert.Panics(t, func() {
-		v.Valid(&fakeTx{sender: common.Address{0x11}})
-	})
+	err:=v.Valid(&fakeTx{sender: common.Address{0x11}})
+	assert.Error(t,err)
 
 	assert.Error(t, ValidateBlockTxs(&BlockContext{Block: &fakeBlock{}, Chain: &fakeChainInterface{}})())
 	assert.NoError(t, ValidateBlockTxs(&BlockContext{Block: &fakeBlock{
@@ -319,10 +319,6 @@ type fakeChainInterface struct {
 
 }
 
-func (ci *fakeChainInterface) AccountStateDB(root common.Hash) (*state_processor.AccountStateDB, error) {
-	panic("implement me")
-}
-
 func (ci *fakeChainInterface) GetReceipts(hash common.Hash, number uint64) model2.Receipts {
 	panic("implement me")
 }
@@ -581,7 +577,7 @@ func (ft *fakeTx) PaddingReceipt(parameters model.ReceiptPara) (*model2.Receipt,
 }
 
 func (ft *fakeTx) GetGasLimit() uint64 {
-	panic("implement me")
+	return g_testData.TestGasLimit
 }
 
 func (ft *fakeTx) GetReceipt() (*model2.Receipt, error) {
@@ -604,7 +600,7 @@ func (ft *fakeTx) Size() common.StorageSize {
 	return ft.size
 }
 func (ft *fakeTx) GetGasPrice() *big.Int {
-	panic("implement me")
+	return g_testData.TestGasPrice
 }
 
 func (ft *fakeTx) Amount() *big.Int {

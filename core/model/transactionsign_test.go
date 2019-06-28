@@ -17,6 +17,7 @@
 package model
 
 import (
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"testing"
 	"math/big"
 	"github.com/stretchr/testify/assert"
@@ -102,7 +103,7 @@ func TestDeriveChainId(t *testing.T) {
 func TestTransaction_SignTx(t *testing.T) {
 	key1, _ := CreateKey()
 	fs1 := NewMercurySigner(big.NewInt(1))
-	tx := NewTransaction(10, bobAddr, big.NewInt(10000), big.NewInt(10), []byte{})
+	tx := NewTransaction(10, bobAddr, big.NewInt(10000),  g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
 
 	result, err := tx.SignTx(key1, fs1)
 	assert.NoError(t, err)

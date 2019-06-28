@@ -174,13 +174,13 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 
 	log1 := receipt2.Logs[0]
 	assert.Equal(t, tx2.CalTxId(), log1.TxHash)
-	assert.Equal(t, common.Hash{}, log1.BlockHash)
+	assert.Equal(t, block.Header().Hash(), log1.BlockHash)
 	assert.Equal(t, receipt2.ContractAddress, log1.Address)
 	assert.Equal(t, uint64(1), log1.BlockNumber)
 }
 
-func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
+func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	singer := model.NewMercurySigner(new(big.Int).SetInt64(int64(1)))
 
 	ownSK, _ := crypto.GenerateKey()
@@ -194,6 +194,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	brotherSK, _ := crypto.GenerateKey()
 	brotherPk := brotherSK.PublicKey
 	brotherAddress := cs_crypto.GetNormalAddress(brotherPk)
+
 
 	addressSlice := []common.Address{
 		ownAddress,

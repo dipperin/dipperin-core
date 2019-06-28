@@ -23,9 +23,12 @@ import (
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/tests/wallet"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/ethereum/go-ethereum/event"
 	"github.com/stretchr/testify/assert"
 	"os"
+	"sync/atomic"
 	"testing"
+	"time"
 )
 
 //test new wallet manager
@@ -149,4 +152,40 @@ func Test_WalletManagerBackend(t *testing.T) {
 	os.Remove(testWallet2.Identifier.Path)
 
 	log.Info("Test_WalletManagerBackend end")
+}
+
+func Test_ChannelTransport(t *testing.T) {
+	type testAtomic struct {
+		value atomic.Value
+	}
+
+	testData := testAtomic{
+		value: atomic.Value{},
+	}
+
+	testData.value.Store(32)
+
+	log.Info("the atomic value is:", "value", testData.value.Load().(int))
+
+	testChan := make(chan testAtomic)
+	var feed event.Feed
+
+	go func() {
+		sub := feed.Subscribe(testChan)
+		defer sub.Unsubscribe()
+		log.Info("subscribe success")
+		for {
+			select {
+			case readData := <-testChan:
+				log.Info("the read atomic value is:", "value", readData.value.Load().(int))
+				return
+			}
+		}
+	}()
+
+	time.Sleep(2)
+	ret := feed.Send(testData)
+	log.Info("the ret is:","ret",ret)
+	time.Sleep(2)
+	//testChan <- testData
 }

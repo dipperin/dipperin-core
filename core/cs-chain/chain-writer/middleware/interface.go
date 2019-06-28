@@ -30,6 +30,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain"
 )
 
+//go:generate mockgen -destination=../../../../tests/g-mockFile/chainInterface_mock.go -package=g_mockFile github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware ChainInterface
 type ChainInterface interface {
 	StateReader
 	StateWriter

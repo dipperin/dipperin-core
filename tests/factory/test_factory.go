@@ -20,12 +20,12 @@ package factory
 import (
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-testData"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"math/big"
 	"time"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 )
 
 var testPriv1 = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232031"
@@ -44,16 +44,16 @@ func CreateTestTx() (*model.Transaction, *model.Transaction) {
 	key1, key2 := CreateKey()
 	fs1 := model.NewMercurySigner(big.NewInt(1))
 	fs2 := model.NewMercurySigner(big.NewInt(3))
-	//alice := crypto.GetNormalAddress(key1.PublicKey)
-	//bob := crypto.GetNormalAddress(key2.PublicKey)
-	//hashkey := []byte("123")
-	//hashlock := cs_crypto.Keccak256Hash(hashkey)
-	testtx1 := model.NewTransaction(10, common.HexToAddress("0121321432423534534534"), big.NewInt(10000),g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
-	testtx1.SignTx(key1, fs1)
-	testtx2 := model.NewTransaction(10, common.HexToAddress("0121321432423534534535"), big.NewInt(20000),g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
-	//testtx2 := model.CreateRawLockTx(1, hashlock, big.NewInt(34564), big.NewInt(10000), big.NewInt(100), alice, bob)
-	testtx2.SignTx(key2, fs2)
-	return testtx1, testtx2
+	testTx1 := model.NewTransaction(10, common.HexToAddress("0121321432423534534534"), big.NewInt(10000),g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
+	gasUsed,_ := model.IntrinsicGas(testTx1.ExtraData(),false,false)
+	testTx1.PaddingActualTxFee(big.NewInt(0).Mul(big.NewInt(int64(gasUsed)), testTx1.GetGasPrice()))
+	testTx1.SignTx(key1, fs1)
+
+	testTx2 := model.NewTransaction(10, common.HexToAddress("0121321432423534534535"), big.NewInt(20000),g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
+	gasUsed,_ = model.IntrinsicGas(testTx2.ExtraData(),false,false)
+	testTx2.PaddingActualTxFee(big.NewInt(0).Mul(big.NewInt(int64(gasUsed)), testTx2.GetGasPrice()))
+	testTx2.SignTx(key2, fs2)
+	return testTx1, testTx2
 }
 
 func CreateSpecialBlock(number uint64) *model.Block {
@@ -82,6 +82,7 @@ func CreateBlock2(diff common.Difficulty,number uint64) *model.Block {
 	header := &model.Header{Number: number, PreHash: common.HexToHash("0x12312fa0929348"),Diff:diff, Bloom: iblt.NewBloom(model.DefaultBlockBloomConfig)}
 
 	tx1, tx2 := CreateTestTx()
+
 	txs := []*model.Transaction{tx1, tx2}
 	vfy := []model.AbstractVerification{}
 

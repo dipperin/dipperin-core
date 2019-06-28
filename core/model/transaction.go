@@ -220,7 +220,6 @@ func (tx Transaction) String() string {
 	Hashlock: %v
 	Timelock: %#x
 	Value:    %d CSC
-	Fee:      %d CSC
 	Data:     0x%x
 	V:        %#x
 	R:        %#x
@@ -237,7 +236,6 @@ func (tx Transaction) String() string {
 		tx.data.HashLock,
 		tx.data.TimeLock,
 		tx.data.Amount,
-		//tx.data.Fee,
 		tx.data.ExtraData,
 		tx.wit.V,
 		tx.wit.R,
@@ -252,7 +250,6 @@ type txData struct {
 	HashLock     *common.Hash    `json:"hashLock" rlp:"nil"`
 	TimeLock     *big.Int        `json:"timeLock22" gencodec:"required"`
 	Amount       *big.Int        `json:"Value"    gencodec:"required"`
-	//Fee          *big.Int        `json:"fee"      gencodec:"required"`
 	Price     *big.Int `json:"gasPrice" gencodec:"required"`
 	GasLimit  uint64   `json:"gas"      gencodec:"required"`
 	ExtraData []byte   `json:"input"    gencodec:"required"`
@@ -489,10 +486,6 @@ func (tx *Transaction) PaddingActualTxFee(fee *big.Int) error {
 }
 
 func (tx *Transaction) GetActualTxFee() (fee *big.Int) {
-	if tx.GetType() != common.AddressTypeContractCreate && tx.GetType() != common.AddressTypeContractCall {
-		log.Info("the tx isn't contract transaction")
-		return big.NewInt(0)
-	}
 
 	if fee := tx.actualTxFee.Load(); fee != nil {
 		return fee.(*big.Int)
@@ -624,13 +617,18 @@ func NewTransactionsByFeeAndNonce(signer Signer, txs map[common.Address][]Abstra
 				if from != acc {
 					delete(txs, from)
 				}*/
-		acc, _ := accTxs[0].Sender(signer)
-		if from != acc {
-			log.Warn("the tx sender and from is different")
+		if len(accTxs) == 0{
+			log.Warn("theaccTxs is nil")
 			delete(txs, from)
-		} else {
-			heads = append(heads, accTxs[0])
-			txs[acc] = accTxs[1:]
+		}else {
+			acc, _ := accTxs[0].Sender(signer)
+			if from != acc {
+				log.Warn("the tx sender and from is different")
+				delete(txs, from)
+			} else {
+				heads = append(heads, accTxs[0])
+				txs[acc] = accTxs[1:]
+			}
 		}
 	}
 	heap.Init(&heads)

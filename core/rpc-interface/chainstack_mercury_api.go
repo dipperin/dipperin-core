@@ -152,13 +152,8 @@ func (api *DipperinMercuryApi) GetBlockByHash(hash common.Hash) (*BlockResp, err
 		return nil, errors.New(fmt.Sprintf("no block hash is %s", hash))
 	}
 
-	log.Info("the current block is: ", "current block", *curBlock.(*model.Block))
-
 	blockResp.Header = *curBlock.Header().(*model.Header)
 	blockResp.Body = *curBlock.Body().(*model.Body)
-
-	//	log.Debug("the blockResp header is: ","header",blockResp.Header)
-	log.Debug("the blockResp body is: ", "body", blockResp.Body)
 
 	return blockResp, nil
 }
