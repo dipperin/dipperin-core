@@ -126,7 +126,7 @@ func newContractCallTx(from *common.Address, to *common.Address, gasPrice *big.I
 }
 
 func TestAccountStateDB_ProcessContract2(t *testing.T) {
-	var testPath = "../../vm/event"
+	var testPath = "../../vm/test-data/event"
 	tx1 := createContractTx(t, testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
 	contractAddr := cs_crypto.CreateContractAddress(aliceAddr, 0)
 	name := []byte("ProcessContract")
@@ -200,8 +200,8 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 		brotherAddress,
 	}
 
-	abiPath := "../../vm/event/token/token.cpp.abi.json"
-	wasmPath := "../../vm/event/token/token-wh.wasm"
+	abiPath := "../../vm/test-data/token/token.cpp.abi.json"
+	wasmPath := "../../vm/test-data/token/token-wh.wasm"
 	err, data := utils.GetExtraData(abiPath, wasmPath, []string{"dipp", "DIPP", "100000000"})
 	assert.NoError(t, err)
 
