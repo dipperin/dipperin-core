@@ -47,7 +47,7 @@ func TestWASMInterpreter_Run_map_string(t *testing.T) {
 
 func TestWASMInterpreter_Run_event(t *testing.T) {
 	//var testPath = "/home/qydev/go/src/github.com/PlatONnetwork/PlatON-CDT/build/bin/event"
-	var testPath = "./event"
+	var testPath = "./test-data/event"
 	testVm := getTestVm()
 	interpreter := testVm.Interpreter
 

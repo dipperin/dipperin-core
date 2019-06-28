@@ -1063,8 +1063,8 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 
 	nonce = uint64(6)
 	to := common.HexToAddress(common.AddressContractCreate)
-	abiPath := "../../vm/event/token/token.cpp.abi.json"
-	wasmPath := "../../vm/event/token/token-wh.wasm"
+	abiPath := "../../vm/test-data/token/token.cpp.abi.json"
+	wasmPath := "../../vm/test-data/token/token-wh.wasm"
 	err, data := getCreateExtraData(abiPath, wasmPath, "dipp,DIPP,100000000")
 	assert.NoError(t, err)
 	hash, err = service.SendTransactionContract(address, to, value, new(big.Int).Mul(txFee, new(big.Int).SetInt64(int64(30))), new(big.Int).SetInt64(int64(1)), data, &nonce)

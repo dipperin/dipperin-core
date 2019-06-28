@@ -1,0 +1,16 @@
+[
+    {
+        "name": "init",
+        "inputs": [],
+        "outputs": [],
+        "constant": "false",
+        "type": "function"
+    },
+    {
+        "name": "arithmeticTest",
+        "inputs": [],
+        "outputs": [],
+        "constant": "false",
+        "type": "function"
+    }
+]
