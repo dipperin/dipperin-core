@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
-	errors2 "github.com/pkg/errors"
 	"io/ioutil"
 	"reflect"
 	"strings"
@@ -197,7 +196,7 @@ func GetExtraData(abiPath, wasmPath string, params []string) (err error, extraDa
 		wasmBytes, abiBytes,
 	}
 	if len(params) != len(args) {
-		return errors2.New("params length and args length not equal"), nil
+		return errors.New("params length and args length not equal"), nil
 	}
 	for i, v := range args {
 		bts := params[i]

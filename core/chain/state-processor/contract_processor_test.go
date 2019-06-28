@@ -1,6 +1,7 @@
 package state_processor
 
 import (
+	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
@@ -9,6 +10,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -178,11 +180,20 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 }
 
 func TestAccountStateDB_ProcessContractToken(t *testing.T) {
-	aliceStr := "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333"
-	brotherStr := "0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978"
-	ownAddress := common.HexToAddress("0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41")
-	aliceAddress := common.HexToAddress(aliceStr)
-	brotherAddress := common.HexToAddress(brotherStr)
+
+	singer := model.NewMercurySigner(new(big.Int).SetInt64(int64(1)))
+
+	ownSK, _ := crypto.GenerateKey()
+	ownPk := ownSK.PublicKey
+	ownAddress := cs_crypto.GetNormalAddress(ownPk)
+
+	aliceSK, _ := crypto.GenerateKey()
+	alicePk := aliceSK.PublicKey
+	aliceAddress := cs_crypto.GetNormalAddress(alicePk)
+
+	brotherSK, _ := crypto.GenerateKey()
+	brotherPk := brotherSK.PublicKey
+	brotherAddress := cs_crypto.GetNormalAddress(brotherPk)
 
 	addressSlice := []common.Address{
 		ownAddress,
@@ -192,7 +203,6 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 	abiPath := "../../vm/event/token/token.cpp.abi.json"
 	wasmPath := "../../vm/event/token/token-wh.wasm"
-	//params := []string{"dipp", "DIPP", "100000000"}
 	err, data := utils.GetExtraData(abiPath, wasmPath, []string{"dipp", "DIPP", "100000000"})
 	assert.NoError(t, err)
 
@@ -200,7 +210,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 	tx := model.NewTransactionSc(0, &addr, new(big.Int).SetUint64(uint64(10)), new(big.Int).SetUint64(uint64(1)), 26427000, data)
 
-	signCreateTx := getSignedTx(t, "/go/src/github.com/dipperin/dipperin-core/core/vm/event/CSWallet", ownAddress, tx)
+	signCreateTx := getSignedTx(t, ownSK, tx, singer)
 
 	signCreateTx.PaddingTxIndex(0)
 
@@ -241,74 +251,30 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	//assert.Equal(t, code, tx.ExtraData())
 	processor.Commit()
 
-	//baData = processor.GetData(receipt.ContractAddress, string(byteBalance))
-	//fmt.Println("&&&&&", receipt.ContractAddress, baData, processor.smartContractData[common.HexToAddress("0x0014006082600c6461E48429cb467Ef33c4bA99cfF25")][string(byteBalance)])
-
-	sw, err := soft_wallet.NewSoftWallet()
-	err = sw.Open(util.HomeDir()+"/go/src/github.com/dipperin/dipperin-core/core/vm/event/CSWallet", "CSWallet", "123")
-	assert.NoError(t, err)
-	// 获取私钥
-	//sk, _ := sw.GetSKFromAddress(ownAddress)
-	//fmt.Println("============================")
-	//fmt.Println(sk.D.Bytes())
-	//fmt.Println(sk.X.Bytes())
-	//fmt.Println(sk.Y.Bytes())
-
-	//key:=ecdsa.PrivateKey{}
-	//key.D
-	//key.X
-	//key.
-
 	accountOwn := accounts.Account{ownAddress}
 	//  合约调用getBalance方法  获取合约原始账户balance
 	ownTransferNonce, err := processor.GetNonce(ownAddress)
 	assert.NoError(t, err)
-	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 2)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 2, singer)
 	assert.NoError(t, err)
-
-
-
-
 
 	gasUsed2 := uint64(0)
 	//  合约调用  transfer方法 转账给alice
 	ownTransferNonce++
-	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "transfer", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333,20", 3)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "transfer", aliceAddress.Hex()+",20", 3, singer)
 	assert.NoError(t, err)
-
-	//合约调用  transfer方法  Transfer
-	/*callTxTransfer, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "transfer", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333,20", ownTransferNonce, code)
-	signCallTxTransfer, err := sw.SignTx(accountOwn, callTxTransfer, nil)
-
-	assert.NoError(t, err)
-	signCallTxTransfer.PaddingTxIndex(0)
-	block3 := CreateBlock(3, common.Hash{}, []*model.Transaction{signCallTxTransfer}, gasLimit)
-	log.Info("callTxTransfer info", "callTxTransfer", callTxTransfer)
-
-	txConfig3 := &TxProcessConfig{
-		Tx:       signCallTxTransfer,
-		Header:   block3.Header().(*model.Header),
-		GetHash:  fakeGetBlockHash,
-		GasLimit: &gasLimit,
-		GasUsed:  &gasUsed2,
-	}
-
-	err = processor.ProcessTxNew(txConfig3)
-	assert.NoError(t, err)
-	processor.Commit()*/
-
 
 	//  合约调用getBalance方法  获取alice账户balance
 	ownTransferNonce++
-	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333", 4)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 4, singer)
 	assert.NoError(t, err)
 
 	//  合约调用approve方法
 	log.Info("==========================================")
 	ownTransferNonce++
-	callTxApprove, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "approve", "0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,50", ownTransferNonce, abi)
+	callTxApprove, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "approve", brotherAddress.Hex()+",50", ownTransferNonce, abi)
 	//accountAlice := accounts.Account{aliceAddress}
-	signCallTxApprove, err := sw.SignTx(accountOwn, callTxApprove, nil)
+	signCallTxApprove, err := callTxApprove.SignTx(ownSK, singer)
 
 	assert.NoError(t, err)
 	signCallTxApprove.PaddingTxIndex(0)
@@ -329,7 +295,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 
 	//  合约调用getApproveBalance方法  获取own授权给brother账户balance
-	/*err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, 5, "getApproveBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978", 6)
+	/*err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, 5, "getApproveBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978", 6)
 	assert.NoError(t, err)*/
 
 
@@ -337,14 +303,12 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 	//  合约调用transferFrom方法
 	log.Info("==========================================")
-	callTxTransferFrom, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "transferFrom", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333,5", 0, abi)
+	callTxTransferFrom, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "transferFrom", ownAddress.Hex()+","+aliceAddress.Hex() + ",5", 0, abi)
 	assert.NoError(t, err)
 	accountBrother := accounts.Account{Address: brotherAddress}
-	swBrother, err := soft_wallet.NewSoftWallet()
-	err = swBrother.Open(util.HomeDir()+"/go/src/github.com/dipperin/dipperin-core/core/vm/event/CSWalletBrother", "CSWallet", "123")
 	assert.NoError(t, err)
 
-	signCallTxTransferFrom, err := swBrother.SignTx(accountBrother, callTxTransferFrom, nil)
+	signCallTxTransferFrom, err := callTxTransferFrom.SignTx(brotherSK, singer)
 	assert.NoError(t, err)
 	signCallTxTransferFrom.PaddingTxIndex(0)
 	block7 := CreateBlock(7, common.Hash{}, []*model.Transaction{signCallTxTransferFrom}, gasLimit)
@@ -365,39 +329,39 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 	//  合约调用getBalance方法  获取alice账户获得转账授权后的balance
 	ownTransferNonce++
-	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6333333", 8)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 8, singer)
 	assert.NoError(t, err)
 
 	//  合约调用getBalance方法  获取own账户最终的balance
 	ownTransferNonce++
-	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 9)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 9, singer)
 	assert.NoError(t, err)
 
 	// 合约调用  transfer方法  转账给brother
 	ownTransferNonce++
-	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "transfer", "0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,28", 10)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "transfer", brotherAddress.Hex()+",28", 10, singer)
 	assert.NoError(t, err)
 
 	//  合约调用getBalance方法  获取own账户最终的balance
 	ownTransferNonce++
-	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 11)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 11, singer)
 	assert.NoError(t, err)
 
     // 合约调用burn方法,将账户余额返还给own
-	err = processContractCall(t, receipt.ContractAddress, abi, swBrother,  processor, accountBrother, 1, "burn", "15", 12)
+	err = processContractCall(t, receipt.ContractAddress, abi, brotherSK,  processor, accountBrother, 1, "burn", "15", 12, singer)
 	assert.NoError(t, err)
 
 
 
 	// 合约调用getBalance方法,获取own的余额
 	ownTransferNonce++
-	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "getBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41", 13)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 13, singer)
 	assert.NoError(t, err)
 
 
 	// 合约调用setName方法，设置合约名
 	ownTransferNonce++
-	err = processContractCall(t, receipt.ContractAddress, abi, sw,  processor, accountOwn, ownTransferNonce, "setName", "wujinhai", 14)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "setName", "wujinhai", 14, singer)
 	assert.NoError(t, err)
 
 
@@ -407,13 +371,14 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 
 //  合约调用getBalance方法
-func processContractCall(t *testing.T,contractAddress common.Address, code []byte, sw *soft_wallet.SoftWallet, processor *AccountStateDB, accountOwn accounts.Account, nonce uint64, funcName string, params string, blockNum uint64) ( error) {
+func processContractCall(t *testing.T,contractAddress common.Address, code []byte, priKey *ecdsa.PrivateKey, processor *AccountStateDB, accountOwn accounts.Account, nonce uint64, funcName string, params string, blockNum uint64, singer model.Signer) ( error) {
 	gasUsed2 := uint64(0)
 	gasLimit := gasLimit * 10000000000
 	log.Info("processContractCall=================================================")
 	callTx, err := newContractCallTx(nil, &contractAddress, new(big.Int).SetUint64(1), uint64(1500000), funcName, params, nonce, code)
 	assert.NoError(t,err)
-	signCallTx, err := sw.SignTx(accountOwn, callTx, nil)
+	signCallTx, err := callTx.SignTx(priKey, singer)
+	//sw.SignTx(accountOwn, callTx, nil)
 	assert.NoError(t, err)
 	callTx.PaddingTxIndex(0)
 	block := CreateBlock(blockNum, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
@@ -459,14 +424,9 @@ func TestGetByteFromAbiFile(t *testing.T) {
 	fmt.Println(bytes)
 }
 
-func getSignedTx(t *testing.T, walletPath string, ownAddress common.Address, tx *model.Transaction) *model.Transaction {
-	sw, err := soft_wallet.NewSoftWallet()
-	err = sw.Open(util.HomeDir()+walletPath, "CSWallet", "123")
+func getSignedTx(t *testing.T,priKey *ecdsa.PrivateKey, tx *model.Transaction, singer model.Signer) *model.Transaction {
+	signCreateTx, err := tx.SignTx(priKey, singer)
 	assert.NoError(t, err)
-	account := accounts.Account{ownAddress}
-	signCreateTx, err := sw.SignTx(account, tx, nil)
-	defer sw.Close()
-
 	return signCreateTx
 }
 

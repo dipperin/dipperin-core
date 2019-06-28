@@ -107,7 +107,10 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 				evm.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
 			}()
 		}*/
-	ret, err = run(vm, contract, false)
+	if to.Address().GetAddressType() == common.AddressTypeContractCall {
+		ret, err = run(vm, contract, false)
+	}
+
 	// When an error was returned by the EVM or when setting the creation code
 	// above we revert to the snapshot and consume any gas remaining. Additionally
 	// when we're in homestead this also counts for code storage gas errors.

@@ -14,6 +14,13 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"time"
 	"fmt"
+	"path/filepath"
+	"github.com/dipperin/dipperin-core/common/util"
+)
+
+var (
+	AbiTokenPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/tokenConstant/token.cpp.abi.json")
+	WASMTokenPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/tokenConstant/token.wasm")
 )
 
 func LogTestPrint(function, msg string, ctx ...interface{}) {
@@ -122,7 +129,7 @@ func getCallExtraData(t *testing.T, funcName, param string) []byte {
 	return result
 }
 
-func GetCreateExtraData(t *testing.T, wasmPath, abiPath string, init string) []byte {
+func getCreateExtraData(t *testing.T, wasmPath, abiPath string, init string) []byte {
 	// GetContractExtraData
 	wasmBytes, err := ioutil.ReadFile(wasmPath)
 	assert.NoError(t, err)

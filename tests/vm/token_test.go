@@ -3,18 +3,9 @@ package vm
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/stretchr/testify/assert"
-	"math/big"
 	"testing"
-	"path/filepath"
-	"github.com/dipperin/dipperin-core/common/util"
-)
-
-var (
-	AbiTokenPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/tokenConstant/token.cpp.abi.json")
-	WASMTokenPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/tokenConstant/token.wasm")
 )
 
 func Test_TokenContractCall(t *testing.T) {
@@ -52,12 +43,8 @@ func CreateTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNa
 	assert.NoError(t, err)
 
 	to := common.HexToAddress(common.AddressContractCreate)
-	value := big.NewInt(100)
-	gasLimit := big.NewInt(2 * consts.DIP)
-	gasPrice := big.NewInt(4)
-
 	params := "dipp,DIPP,1000000"
-	data := GetCreateExtraData(t, WASMTokenPath, AbiTokenPath, params)
+	data := getCreateExtraData(t, WASMTokenPath, AbiTokenPath, params)
 
 	var txHashList []common.Hash
 	for i := 0; i < times; i++ {
@@ -73,10 +60,6 @@ func CallTokenContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName
 	from, err := cluster.GetNodeMainAddress(nodeName)
 	LogTestPrint("Test", "From", "addr", from.Hex())
 	assert.NoError(t, err)
-
-	value := big.NewInt(100)
-	gasLimit := big.NewInt(2 * consts.DIP)
-	gasPrice := big.NewInt(1)
 
 	var txHashList []common.Hash
 	for i := 0; i < len(addrList); i++ {

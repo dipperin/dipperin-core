@@ -1753,10 +1753,7 @@ func (service *MercuryFullChainService) callContract(args CallArgs, blockNum uin
 	for _, v := range abi.AbiArr {
 		if strings.EqualFold(v.Name, funcName) && strings.EqualFold(v.Type, "function") {
 			if len(v.Outputs) != 0 {
-				convertResult, innerErr := utils.Align32BytesConverter(result, v.Outputs[0].Type)
-				if innerErr != nil {
-					return "", innerErr
-				}
+				convertResult := utils.Align32BytesConverter(result, v.Outputs[0].Type)
 				resp = fmt.Sprintf("%v", convertResult)
 			} else {
 				resp = "void"

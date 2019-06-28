@@ -6,6 +6,14 @@ import (
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/dipperin/dipperin-core/common"
 	"fmt"
+	"math/big"
+	"github.com/dipperin/dipperin-core/common/consts"
+)
+
+var (
+	value = big.NewInt(100)
+	gasLimit = big.NewInt(2 * consts.DIP)
+	gasPrice = big.NewInt(1)
 )
 
 func TestGetReceiptsByBlockNum(t *testing.T) {

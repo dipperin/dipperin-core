@@ -3,12 +3,8 @@ package vm
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/consts"
-	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
-	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/stretchr/testify/assert"
-	"math/big"
 	"testing"
 	"path/filepath"
 	"github.com/dipperin/dipperin-core/common/util"
@@ -46,21 +42,12 @@ func CreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName st
 	assert.NoError(t, err)
 
 	to := common.HexToAddress(common.AddressContractCreate)
-	value := big.NewInt(100)
-	gasLimit := big.NewInt(2 * consts.DIP)
-	gasPrice := big.NewInt(2)
-	//txFee := big.NewInt(0).Mul(gasLimit, gasPrice)
-
-	data := GetCreateExtraData(t, WASMPath, AbiPath, "")
+	data := getCreateExtraData(t, WASMPath, AbiPath, "")
 	var txHashList []common.Hash
 	for i := 0; i < times; i++ {
 		txHash, innerErr := SendTransactionContract(client, from, to, value, gasLimit, gasPrice, data)
 		assert.NoError(t, innerErr)
 		txHashList = append(txHashList, txHash)
-
-		/*		txHash, innerErr = SendTransaction(client, from, factory.AliceAddrV, value, txFee, nil)
-				assert.NoError(t, innerErr)
-				txHashList = append(txHashList, txHash)*/
 	}
 	return txHashList
 }
@@ -71,10 +58,6 @@ func CallContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName stri
 	LogTestPrint("Test", "From", "addr", from.Hex())
 	assert.NoError(t, err)
 
-	value := big.NewInt(100)
-	gasLimit := big.NewInt(2 * consts.DIP)
-	gasPrice := big.NewInt(2)
-
 	var txHashList []common.Hash
 	for i := 0; i < len(addrList); i++ {
 		input := getCallExtraData(t, "hello", fmt.Sprintf("Event,%v", 100*i))
@@ -83,12 +66,4 @@ func CallContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName stri
 		txHashList = append(txHashList, txHash)
 	}
 	return txHashList
-}
-
-func GetContractReceipt(t *testing.T,client *rpc.Client,txId common.Hash) *model.Receipt{
-	receipt := model.Receipt{}
-	err := client.Call(&receipt, GetRpcTXMethod("GetConvertReceiptByTxHash"), txId)
-	assert.NoError(t,err)
-
-	return &receipt
 }
