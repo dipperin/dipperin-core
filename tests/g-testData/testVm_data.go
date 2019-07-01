@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 )
 
-var AbiTokenPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/tokenConstant/token.cpp.abi.json")
-var WASMTokenPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/event/tokenConstant/token.wasm")
+var AbiTokenPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/test-data/token-const/token.cpp.abi.json")
+var WASMTokenPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/test-data/token-const/token.wasm")
 
 

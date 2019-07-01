@@ -10,6 +10,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
@@ -419,7 +420,7 @@ func CreateProcessorAndInitAccount(err error, t *testing.T, addressSlice []commo
 }
 
 func TestGetByteFromAbiFile(t *testing.T) {
-	bytes, err := ioutil.ReadFile("../../vm/event/example.cpp.abi.json")
+	bytes, err := ioutil.ReadFile(g_testData.AbiTokenPath)
 	assert.NoError(t, err)
 	fmt.Println(bytes)
 }
