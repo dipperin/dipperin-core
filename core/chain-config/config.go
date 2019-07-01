@@ -84,6 +84,7 @@ func defaultChainConfig() *ChainConfig {
 		StakeLockSlot: uint64(4),
 		// the interval of the Verify section from the election section
 		SlotMargin: uint64(2),
+
 		// number of verifier
 		//VerifierNumber: 4,
 		VerifierNumber:22,
