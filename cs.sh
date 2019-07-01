@@ -120,7 +120,6 @@ build_ci() {
 
 build_install() {
     echo 'build dipperin'
-
     cd ${root}/cmd/dipperin; go install
 
     echo 'build dipperincli'
