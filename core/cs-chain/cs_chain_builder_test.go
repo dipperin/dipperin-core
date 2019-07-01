@@ -19,6 +19,7 @@ package cs_chain_test
 
 import (
 	"github.com/dipperin/dipperin-core/core/economy-model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
@@ -114,14 +115,14 @@ func CreateVerBootVote(block model.AbstractBlock) model.AbstractVerification {
 
 func CreateSignedTx(nonce uint64, to common.Address, amount *big.Int, account tests.Account) model.AbstractTransaction {
 	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewTransaction(nonce, to, amount, testFee, []byte{})
+	tx := model.NewTransaction(nonce, to, amount, g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
 	signedTx, _ := tx.SignTx(account.Pk, fs1)
 	return signedTx
 }
 
 func CreateSignedRegisterTx(nonce uint64, amount *big.Int, account tests.Account) model.AbstractTransaction {
 	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewRegisterTransaction(nonce, amount, big.NewInt(10000))
+	tx := model.NewRegisterTransaction(nonce, amount, g_testData.TestGasPrice,g_testData.TestGasLimit)
 	signedTx, _ := tx.SignTx(account.Pk, fs1)
 	return signedTx
 }

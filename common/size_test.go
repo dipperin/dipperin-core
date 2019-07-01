@@ -27,8 +27,8 @@ func TestStorageSize_String(t *testing.T) {
 		s    StorageSize
 		want string
 	}{
-		{name: "MB", s: 2381273, want: "2.38 mB"},
-		{name: "kB", s: 2192, want: "2.19 kB"},
+		{name: "MB", s: 2381273, want: "2.27 MiB"},
+		{name: "kB", s: 2192, want: "2.14 KiB"},
 		{name: "B", s: 12, want: "12.00 B"},
 	}
 	for _, tt := range tests {
@@ -46,8 +46,8 @@ func TestStorageSize_TerminalString(t *testing.T) {
 		s    StorageSize
 		want string
 	}{
-		{name: "MB", s: 2381273, want: "2.38mB"},
-		{name: "kB", s: 2192, want: "2.19kB"},
+		{name: "MB", s: 2381273, want: "2.27MiB"},
+		{name: "kB", s: 2192, want: "2.14KiB"},
 		{name: "B", s: 12, want: "12.00B"},
 	}
 	for _, tt := range tests {

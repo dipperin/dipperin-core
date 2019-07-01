@@ -18,6 +18,7 @@
 package tx_pool
 
 import (
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"testing"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/common"
@@ -106,7 +107,7 @@ func addTxPool(n int) *testPool {
 
 func getTx() model.AbstractTransaction {
 	pk, _ := crypto.GenerateKey()
-	return transaction(1, common.HexToAddress("0x123"), big.NewInt(123), big.NewInt(321), pk)
+	return transaction(1, common.HexToAddress("0x123"), big.NewInt(123), big.NewInt(321),g_testData.TestGasLimit, pk)
 }
 
 func getBloom(n int) *iblt.Bloom {
@@ -115,7 +116,7 @@ func getBloom(n int) *iblt.Bloom {
 	bloom := iblt.NewBloom(iblt.DeriveBloomConfig(n))
 
 	for i := uint64(0); i < uint64(n); i++ {
-		tx := transaction(i, common.HexToAddress("0x123"), big.NewInt(123), big.NewInt(321), pk)
+		tx := transaction(i, common.HexToAddress("0x123"), big.NewInt(123), big.NewInt(321),g_testData.TestGasLimit, pk)
 		bloom.Digest(tx.CalTxId().Bytes())
 	}
 

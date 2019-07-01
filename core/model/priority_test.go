@@ -345,7 +345,7 @@ func CreateMultiAccountAddress(count uint) (ta []*TestAccount) {
 		account.performance = BasePerformance
 		account.stake = big.NewInt(0).Add(big.NewInt(int64(GenerateRand(StakeMax))), big.NewInt(100))
 		ta[i] = account
-		log.Info("CreateMultiAccountAddress  accounts info", "accounts", fmt.Sprintf("%v", ta[i]), "stake", ta[i].stake)
+		//log.Info("CreateMultiAccountAddress  accounts info", "accounts", fmt.Sprintf("%v", ta[i]), "stake", ta[i].stake)
 	}
 	return
 }
@@ -373,7 +373,7 @@ func CreateMultiAccount(baseName string, count uint, generateNonce func(nonceMax
 		account.stake = generateStake(stakeMax)
 		stakeCount.Add(stakeCount, account.stake)
 		ta[i] = account
-		log.Info("CreateMultiAccountAddress  accounts info", "accounts", fmt.Sprintf("%v", ta[i]), "stake", ta[i].stake)
+		//log.Info("CreateMultiAccountAddress  accounts info", "accounts", fmt.Sprintf("%v", ta[i]), "stake", ta[i].stake)
 	}
 	return
 }

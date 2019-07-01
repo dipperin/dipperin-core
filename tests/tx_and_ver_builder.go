@@ -19,6 +19,7 @@ package tests
 
 import (
 	"crypto/ecdsa"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"math/big"
 	"github.com/dipperin/dipperin-core/common"
@@ -45,7 +46,7 @@ func (b *TxBuilder) From() common.Address {
 }
 
 func (b *TxBuilder) Build() *model.Transaction {
-	tx := model.NewTransaction(b.Nonce, b.To, b.Amount, b.Fee, b.Data)
+	tx := model.NewTransaction(b.Nonce, b.To, b.Amount,g_testData.TestGasPrice,g_testData.TestGasLimit, b.Data)
 	tx.SignTx(b.Pk, txSigner)
 	return tx
 }

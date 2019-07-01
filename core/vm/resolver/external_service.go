@@ -1,12 +1,9 @@
 package resolver
 
 import (
-	"encoding/hex"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/vm/common/params"
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"math/big"
-	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 type ContractRef interface {
@@ -23,7 +20,7 @@ type VmContextService interface {
 	GetCoinBase() common.Address
 	GetOrigin() common.Address
 	Call(caller ContractRef, addr common.Address, input []byte,gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error)
-	GetCallGasTemp() uint64
+	//GetCallGasTemp() uint64
 	DelegateCall(caller ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error)
 	GetTxHash() common.Hash
 	GetTxIdx() uint64
@@ -64,10 +61,10 @@ func (service *resolverNeedExternalService) ReSolverGetState(key []byte) []byte 
 	return service.StateDBService.GetState(service.Address(), key)
 }
 
-func (service *resolverNeedExternalService) Transfer(toAddr common.Address, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
+/*func (service *resolverNeedExternalService) Transfer(toAddr common.Address, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
 	gas := service.GetCallGasTemp()
 	if value.Sign() != 0 {
-		gas += params.CallStipend
+		gas += model.CallStipend
 	}
 	log.Info("Call Transfer", "Transfer to:", toAddr.String(), "Transfer caller:", service.Address().Hex())
 	ret, returnGas, err := service.VmContextService.Call(service.ContractService, toAddr, nil, gas, value)
@@ -82,5 +79,5 @@ func (service *resolverNeedExternalService) ResolverCall(addr, param []byte) ([]
 func (service *resolverNeedExternalService) ResolverDelegateCall(addr, param []byte) ([]byte, error) {
 	ret, _, err := service.VmContextService.DelegateCall(service.ContractService, common.HexToAddress(hex.EncodeToString(addr)), param,service.ContractService.GetGas())
 	return ret, err
-}
+}*/
 

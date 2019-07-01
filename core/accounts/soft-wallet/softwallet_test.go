@@ -23,6 +23,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -258,7 +259,7 @@ func TestSoftWallet_SignTx(t *testing.T) {
 	assert.NoError(t, err)
 
 	//signed transaction information
-	testTx := model.NewTransaction(10, common.HexToAddress("0121321432423534534534"), big.NewInt(10000), big.NewInt(10), []byte{})
+	testTx := model.NewTransaction(10, common.HexToAddress("0121321432423534534534"), big.NewInt(10000), g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
 
 	testWallet.Close()
 	_, err = testWallet.SignTx(testWallet.walletInfo.Accounts[0], testTx, nil)
@@ -309,7 +310,7 @@ type TestTx struct {
 func Test_TX(t *testing.T) {
 	//testTx := TestTx{}
 
-	testTx := model.NewTransaction(10, common.HexToAddress("0121321432423534534534"), big.NewInt(10000), big.NewInt(10), []byte{})
+	testTx := model.NewTransaction(10, common.HexToAddress("0121321432423534534534"), big.NewInt(10000),g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
 
 	log.Debug("Test_tx is:", "testTx", testTx)
 }

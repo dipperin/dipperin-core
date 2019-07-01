@@ -19,6 +19,7 @@ package model
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"testing"
 	"math/big"
 	"github.com/stretchr/testify/assert"
@@ -27,30 +28,30 @@ import (
 
 func TestNewRegisterTransaction(t *testing.T) {
 	k1, _ := CreateKey()
-	trans := NewRegisterTransaction(1, big.NewInt(50), big.NewInt(40))
+	trans := NewRegisterTransaction(1, big.NewInt(50),  g_testData.TestGasPrice,g_testData.TestGasLimit)
 	fs := NewMercurySigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(k1, fs)
 	assert.EqualValues(t, signedTx.GetType(), common.AddressTypeStake)
 }
 
 func TestNewUnStakeTransaction(t *testing.T) {
-	trans := NewUnStakeTransaction(3, big.NewInt(30))
+	trans := NewUnStakeTransaction(3,  g_testData.TestGasPrice,g_testData.TestGasLimit)
 	assert.EqualValues(t, trans.GetType(), common.AddressTypeUnStake)
 }
 
 func TestNewCancelTransaction(t *testing.T) {
-	trans := NewCancelTransaction(3, big.NewInt(30))
+	trans := NewCancelTransaction(3,  g_testData.TestGasPrice,g_testData.TestGasLimit)
 	assert.EqualValues(t, trans.GetType(), common.AddressTypeCancel)
 }
 
 func TestNewEvidenceTransaction(t *testing.T) {
 	target := common.HexToAddress("target")
 	voteA := CreateSignedVote(1, 2, common.HexToHash("0x123456"), VoteMessage)
-	trans := NewEvidenceTransaction(3, big.NewInt(5), &target, voteA, voteA)
+	trans := NewEvidenceTransaction(3,  g_testData.TestGasPrice,g_testData.TestGasLimit, &target, voteA, voteA)
 	assert.EqualValues(t, trans.GetType(), common.AddressTypeEvidence)
 }
 
 func TestNewUnNormalTransaction(t *testing.T) {
-	trans := NewUnNormalTransaction(3, big.NewInt(5), big.NewInt(30))
+	trans := NewUnNormalTransaction(3, big.NewInt(5), g_testData.TestGasPrice,g_testData.TestGasLimit)
 	assert.EqualValues(t, trans.GetType(), common.TxType(9))
 }

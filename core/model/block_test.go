@@ -25,6 +25,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -37,7 +38,7 @@ import (
 func TestBlock_GetTransactionFees(t *testing.T) {
 	block := CreateBlock(1, common.Hash{}, 10)
 	fee := block.GetTransactionFees()
-	assert.Equal(t, fee, big.NewInt(0).Mul(big.NewInt(int64(10)), big.NewInt(10000)))
+	assert.Equal(t, big.NewInt(210000), fee)
 }
 
 func TestBlock_EncodeToIBLT(t *testing.T) {
@@ -71,7 +72,7 @@ func TestBlock_BloomFilter(t *testing.T) {
 	)
 	txs := CreateSignedTxList(aliceTxs + bobTxs + commonTxs)
 	aTxs := txs[:aliceTxs]
-	bTxs := txs[aliceTxs: bobTxs+aliceTxs]
+	bTxs := txs[aliceTxs : bobTxs+aliceTxs]
 	cTxs := txs[bobTxs+aliceTxs:]
 
 	// alice pool
@@ -126,7 +127,7 @@ func Test_RlpHash(t *testing.T) {
 	log.Info("the transactionFee is:", "transactionFee", hexutil.Encode(transactionFee.Bytes()))
 
 	data := make([]byte, 0)
-	tx := NewTransaction(uint64(testNonce), to, value, transactionFee, data)
+	tx := NewTransaction(uint64(testNonce), to, value, g_testData.TestGasPrice, g_testData.TestGasLimit, data)
 	txId, err := rlpHash([]interface{}{tx.data, from})
 	assert.NoError(t, err)
 	log.Debug("the txId is :", "txId", txId.Hex())
@@ -733,12 +734,12 @@ func Test_blockSorter_Less(t *testing.T) {
 	assert.Equal(t, true, result)
 }
 
-func creatBlockWithAllTx(n int,t *testing.T) *Block{
+func creatBlockWithAllTx(n int, t *testing.T) *Block {
 	header := NewHeader(1, 0, common.Hash{}, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), aliceAddr, common.BlockNonce{})
 
 	keyAlice, _ := CreateKey()
 	ms := NewMercurySigner(big.NewInt(1))
-	tempTx := NewTransaction(uint64(0), bobAddr, big.NewInt(1000), big.NewInt(10000), []byte{})
+	tempTx := NewTransaction(uint64(0), bobAddr, big.NewInt(1000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	tempTx.SignTx(keyAlice, ms)
 	var res []*Transaction
 	for i := 0; i < n; i++ {
@@ -746,24 +747,24 @@ func creatBlockWithAllTx(n int,t *testing.T) *Block{
 	}
 
 	var voteList []AbstractVerification
-	voteMsg := CreateSignedVote(0,0,common.Hash{},VoteMessage)
-	for i:=0;i<(chain_config.GetChainConfig().VerifierNumber*2/3 + 1);i++{
-		voteList=append(voteList,voteMsg)
+	voteMsg := CreateSignedVote(0, 0, common.Hash{}, VoteMessage)
+	for i := 0; i < (chain_config.GetChainConfig().VerifierNumber*2/3 + 1); i++ {
+		voteList = append(voteList, voteMsg)
 	}
 
 	return NewBlock(header, res, voteList)
 }
 
-func Test_BlockTxNumber(t *testing.T){
+func Test_BlockTxNumber(t *testing.T) {
 	//t.Skip()
-	maxNormalTxNumber := chain_config.BlockGasLimit/model.TxGas
-	assert.Equal(t,160000,int(maxNormalTxNumber))
+	maxNormalTxNumber := chain_config.BlockGasLimit / model.TxGas
+	assert.Equal(t, 160000, int(maxNormalTxNumber))
 
-	tmpBlock := creatBlockWithAllTx(int(maxNormalTxNumber),t)
-	blockByte ,err:= tmpBlock.EncodeRlpToBytes()
-	log.Info("the block size is:","size",len(blockByte))
-	log.Info("the max block size is","MaxBlockSize",chain_config.MaxBlockSize)
-	log.Info("the tx number is:","txNumber",tmpBlock.Body().GetTxsSize())
-	assert.NoError(t,err)
-	assert.Equal(t,true,len(blockByte)<chain_config.MaxBlockSize)
+	tmpBlock := creatBlockWithAllTx(int(maxNormalTxNumber), t)
+	blockByte, err := tmpBlock.EncodeRlpToBytes()
+	log.Info("the block size is:", "size", len(blockByte))
+	log.Info("the max block size is", "MaxBlockSize", chain_config.MaxBlockSize)
+	log.Info("the tx number is:", "txNumber", tmpBlock.Body().GetTxsSize())
+	assert.NoError(t, err)
+	assert.Equal(t, true, len(blockByte) < chain_config.MaxBlockSize)
 }

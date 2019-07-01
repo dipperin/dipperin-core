@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package tx_pool
 
 import (
@@ -22,7 +21,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/chain-config"
@@ -81,9 +80,9 @@ func (bc *testBlockChain) StateAtByStateRoot(root common.Hash) (*state_processor
 	return bc.statedb, nil
 }
 
-func transaction(nonce uint64, to common.Address, amount *big.Int, fee *big.Int, key *ecdsa.PrivateKey) model.AbstractTransaction {
+func transaction(nonce uint64, to common.Address, amount *big.Int, gasPrice *big.Int, gasLimit uint64, key *ecdsa.PrivateKey) model.AbstractTransaction {
 
-	uTx := model.NewTransaction(nonce, to, amount, fee, nil)
+	uTx := model.NewTransaction(nonce, to, amount, gasPrice, gasLimit, nil)
 	tx, _ := uTx.SignTx(key, ms)
 	return tx
 }
@@ -114,9 +113,9 @@ func createTestStateDB() (ethdb.Database, common.Hash) {
 	teststatedb.SetNonce(aliceAddr, uint64(20))
 	teststatedb.SetNonce(bobAddr, uint64(30))
 	teststatedb.SetNonce(chalieAddr, uint64(30))
-	teststatedb.SetBalance(aliceAddr, big.NewInt(1000000))
-	teststatedb.SetBalance(bobAddr, big.NewInt(1000000))
-	teststatedb.SetBalance(chalieAddr, big.NewInt(1000000))
+	teststatedb.SetBalance(aliceAddr, big.NewInt(8400003000))
+	teststatedb.SetBalance(bobAddr, big.NewInt(8400003000))
+	teststatedb.SetBalance(chalieAddr, big.NewInt(8400003000))
 	root, _ := teststatedb.Commit()
 	tdb.TrieDB().Commit(root, false)
 	return db, root
@@ -219,13 +218,13 @@ func TestEnqueueTx(t *testing.T) {
 	bobAddr := cs_crypto.GetNormalAddress(key2.PublicKey)
 
 	//enqueueTx add tx1 in pool queue list
-	tx1 := transaction(1, bobAddr, big.NewInt(5000), testTxFee, key1)
+	tx1 := transaction(1, bobAddr, big.NewInt(5000), testTxFee, g_testData.TestGasLimit, key1)
 	pool.enqueueTx(tx1.CalTxId(), tx1)
 	tx1Get := pool.Get(tx1.CalTxId())
 	assert.Equal(t, tx1Get.CalTxId(), tx1.CalTxId())
 
 	//enqueueTx try add tx2 in pool queue list but the fee does not exceed the feeBump ,so enqueueTx failed
-	tx2 := transaction(1, bobAddr, big.NewInt(4000), big.NewInt(0).Add(testTxFee,big.NewInt(9)), key1)
+	tx2 := transaction(1, bobAddr, big.NewInt(4000), big.NewInt(0).Add(testTxFee, big.NewInt(9)), g_testData.TestGasLimit, key1)
 	ok, err := pool.enqueueTx(tx1.CalTxId(), tx2)
 	assert.Equal(t, ok, false)
 	assert.Error(t, err)
@@ -235,7 +234,7 @@ func TestEnqueueTx(t *testing.T) {
 	assert.Equal(t, tx3Get, nil)
 
 	//enqueueTx try add tx3 in pool queue list and the fee exceeds the feeBump, so the enqueueTx success.
-	tx3 := transaction(1, bobAddr, big.NewInt(4000), big.NewInt(0).Add(testTxFee,testTxFee), key1)
+	tx3 := transaction(1, bobAddr, big.NewInt(4000), big.NewInt(0).Add(testTxFee, testTxFee), g_testData.TestGasLimit, key1)
 	ok, err = pool.enqueueTx(tx1.CalTxId(), tx3)
 	assert.Equal(t, ok, true)
 	assert.NoError(t, err)
@@ -252,34 +251,31 @@ func TestTxPool_validateTx(t *testing.T) {
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
 	bobAddr := cs_crypto.GetNormalAddress(key2.PublicKey)
 
-	overLoad := make([]byte, chain_config.MaxTxSize*2)
-	for i:=0; i<chain_config.MaxTxSize*2; i++ {
+	overLoad := make([]byte, 512 * 1024*2)
+	for i := 0; i < 512 * 1024*2; i++ {
 		overLoad[i] = byte(i)
 	}
-	unsignedTx1 := model.NewTransaction(1, bobAddr, big.NewInt(5000), testTxFee, overLoad)
+	unsignedTx1 := model.NewTransaction(1, bobAddr, big.NewInt(5000), g_testData.TestGasPrice, g_testData.TestGasLimit, overLoad)
 	signedTx1, err := unsignedTx1.SignTx(key1, ms)
 	assert.NoError(t, err)
 	err = pool.validateTx(signedTx1, false)
-	assert.EqualError(t, err, g_error.ErrTxOverSize.Error())
+	assert.Error(t, err)
 
-	signedTx2 := transaction(1, bobAddr, big.NewInt(5000), testTxFee, key1)
+	signedTx2 := transaction(1, bobAddr, big.NewInt(5000), testTxFee, g_testData.TestGasLimit, key1)
 	err = pool.validateTx(signedTx2, false)
 	assert.EqualError(t, err, "tx nonce is invalid")
 
-	unsignedTx3 := model.NewTransaction(1, bobAddr, big.NewInt(5000), testTxFee, nil)
+	unsignedTx3 := model.NewTransaction(1, bobAddr, big.NewInt(5000), g_testData.TestGasPrice, g_testData.TestGasLimit, nil)
 	signedTx3, err := unsignedTx3.SignTx(key1, model.NewMercurySigner(big.NewInt(2)))
 	assert.NoError(t, err)
 	err = pool.validateTx(signedTx3, false)
 	assert.EqualError(t, err, "invalid sender")
 
-	signedTx4 := transaction(1, bobAddr, big.NewInt(5000), big.NewInt(1), key1)
-	err = pool.validateTx(signedTx4, false)
-	assert.EqualError(t, err, "tx fee is too low, need: <nil> got: 1")
+	signedTx4 := transaction(1, bobAddr, big.NewInt(5000), big.NewInt(1), g_testData.TestGasLimit, key1)
 	err = pool.validateTx(signedTx4, true)
 	assert.EqualError(t, err, "tx nonce is invalid")
 
-
-	signedTx5 := transaction(40, bobAddr, big.NewInt(1000000), testTxFee, key1)
+	signedTx5 := transaction(40, bobAddr, big.NewInt(1000000), big.NewInt(0).Mul(testTxFee,big.NewInt(10000)), g_testData.TestGasLimit, key1)
 	curBalance, e := pool.currentState.GetBalance(aliceAddr)
 	err = pool.validateTx(signedTx5, false)
 	assert.EqualError(t, err, fmt.Sprintf("tx exceed balance limit, from:%v, cur balance:%v, cost:%v, err:%v", aliceAddr.Hex(), curBalance.String(), signedTx5.Cost().String(), e))
@@ -296,13 +292,13 @@ func TestTxPool_TxDifference(t *testing.T) {
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
 	bobAddr := cs_crypto.GetNormalAddress(key2.PublicKey)
 
-	alicetx1 := transaction(1, bobAddr, big.NewInt(5000), testTxFee, key1)
-	alicetx2 := transaction(2, bobAddr, big.NewInt(4000),  big.NewInt(0).Add(testTxFee,big.NewInt(9)), key1)
-	alicetx3 := transaction(3, bobAddr, big.NewInt(6000),  big.NewInt(0).Add(testTxFee,big.NewInt(10)), key1)
+	alicetx1 := transaction(1, bobAddr, big.NewInt(5000), testTxFee,g_testData.TestGasLimit, key1)
+	alicetx2 := transaction(2, bobAddr, big.NewInt(4000), big.NewInt(0).Add(testTxFee, big.NewInt(9)), g_testData.TestGasLimit,key1)
+	alicetx3 := transaction(3, bobAddr, big.NewInt(6000), big.NewInt(0).Add(testTxFee, big.NewInt(10)),g_testData.TestGasLimit, key1)
 
-	bobtx1 := transaction(4, aliceAddr, big.NewInt(5000), testTxFee, key2)
-	bobtx2 := transaction(5, aliceAddr, big.NewInt(4000),  big.NewInt(0).Add(testTxFee,big.NewInt(9)), key2)
-	bobtx3 := transaction(6, aliceAddr, big.NewInt(6000),  big.NewInt(0).Add(testTxFee,big.NewInt(10)), key2)
+	bobtx1 := transaction(4, aliceAddr, big.NewInt(5000), testTxFee, g_testData.TestGasLimit,key2)
+	bobtx2 := transaction(5, aliceAddr, big.NewInt(4000), big.NewInt(0).Add(testTxFee, big.NewInt(9)), g_testData.TestGasLimit,key2)
+	bobtx3 := transaction(6, aliceAddr, big.NewInt(6000), big.NewInt(0).Add(testTxFee, big.NewInt(10)),g_testData.TestGasLimit, key2)
 
 	txListA := []model.AbstractTransaction{alicetx1, alicetx2, alicetx3, bobtx1, bobtx2}
 	txListB := []model.AbstractTransaction{alicetx2, alicetx3, bobtx1, bobtx2, bobtx3}
@@ -324,9 +320,9 @@ func TestPromoteTx(t *testing.T) {
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
 	bobAddr := cs_crypto.GetNormalAddress(key2.PublicKey)
 
-	alicetx1 := transaction(0, bobAddr, big.NewInt(5000), testTxFee, key1)
-	alicetx2 := transaction(0, bobAddr, big.NewInt(4000),  big.NewInt(0).Add(testTxFee,big.NewInt(9)), key1)
-	alicetx3 := transaction(0, bobAddr, big.NewInt(6000),  big.NewInt(0).Add(testTxFee,testTxFee), key1)
+	alicetx1 := transaction(0, bobAddr, big.NewInt(5000), testTxFee,g_testData.TestGasLimit, key1)
+	alicetx2 := transaction(0, bobAddr, big.NewInt(4000), big.NewInt(0).Add(testTxFee, big.NewInt(9)),g_testData.TestGasLimit, key1)
+	alicetx3 := transaction(0, bobAddr, big.NewInt(6000), big.NewInt(0).Add(testTxFee, testTxFee), g_testData.TestGasLimit,key1)
 
 	ok := pool.promoteTx(aliceAddr, alicetx1.CalTxId(), alicetx1)
 	assert.Equal(t, ok, true)
@@ -356,11 +352,11 @@ func TestTxPool_Add(t *testing.T) {
 	fmt.Println(pool.currentState.GetNonce(aliceAddr))
 	fmt.Println(pool.currentState.GetNonce(bobAddr))
 
-	alicetx1 := transaction(19, bobAddr, big.NewInt(100000), testTxFee, key1)
-	alicetx2 := transaction(20, bobAddr, big.NewInt(4000), testTxFee, key1)
-	bobtx1 := transaction(30, aliceAddr, big.NewInt(3000), testTxFee, key2)
-	bobtx2 := transaction(31, aliceAddr, big.NewInt(3000), testTxFee, key2)
-	bobtx3 := transaction(33, aliceAddr, big.NewInt(3000), testTxFee, key2)
+	alicetx1 := transaction(19, bobAddr, big.NewInt(100000), testTxFee,g_testData.TestGasLimit, key1)
+	alicetx2 := transaction(20, bobAddr, big.NewInt(4000), testTxFee,g_testData.TestGasLimit, key1)
+	bobtx1 := transaction(30, aliceAddr, big.NewInt(3000), testTxFee,g_testData.TestGasLimit, key2)
+	bobtx2 := transaction(31, aliceAddr, big.NewInt(3000), testTxFee, g_testData.TestGasLimit,key2)
+	bobtx3 := transaction(33, aliceAddr, big.NewInt(3000), testTxFee, g_testData.TestGasLimit,key2)
 
 	//pool.add(alicetx1,false)
 	//pool.add(alicetx2,false)
@@ -394,16 +390,16 @@ func TestTxPool_removeTx(t *testing.T) {
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
 	bobAddr := cs_crypto.GetNormalAddress(key2.PublicKey)
 
-	bobtx1 := transaction(30, aliceAddr, big.NewInt(3000), testTxFee, key2)
-	bobtx2 := transaction(31, aliceAddr, big.NewInt(3000), testTxFee, key2)
-	bobtx3 := transaction(32, aliceAddr, big.NewInt(3000), testTxFee, key2)
+	bobtx1 := transaction(30, aliceAddr, big.NewInt(3000), testTxFee,g_testData.TestGasLimit, key2)
+	bobtx2 := transaction(31, aliceAddr, big.NewInt(3000), testTxFee,g_testData.TestGasLimit, key2)
+	bobtx3 := transaction(32, aliceAddr, big.NewInt(3000), testTxFee, g_testData.TestGasLimit,key2)
 
 	err := pool.AddRemote(bobtx1)
-	assert.NoError(t,err)
+	assert.NoError(t, err)
 	err = pool.AddRemote(bobtx2)
-	assert.NoError(t,err)
+	assert.NoError(t, err)
 	err = pool.AddRemote(bobtx3)
-	assert.NoError(t,err)
+	assert.NoError(t, err)
 	pend, queue := pool.stats()
 	assert.Equal(t, 3, pend)
 	assert.Equal(t, 0, queue)
@@ -423,9 +419,9 @@ func TestTxPool_RemoveTx(t *testing.T) {
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
 
-	bobtx1 := transaction(30, aliceAddr, big.NewInt(3000), testTxFee, key2)
-	bobtx2 := transaction(31, aliceAddr, big.NewInt(3000), testTxFee, key2)
-	bobtx3 := transaction(32, aliceAddr, big.NewInt(3000), testTxFee, key2)
+	bobtx1 := transaction(30, aliceAddr, big.NewInt(3000), testTxFee,g_testData.TestGasLimit, key2)
+	bobtx2 := transaction(31, aliceAddr, big.NewInt(3000), testTxFee,g_testData.TestGasLimit, key2)
+	bobtx3 := transaction(32, aliceAddr, big.NewInt(3000), testTxFee, g_testData.TestGasLimit,key2)
 
 	pool.AddRemote(bobtx1)
 	pool.AddRemote(bobtx2)
@@ -435,7 +431,7 @@ func TestTxPool_RemoveTx(t *testing.T) {
 	assert.Equal(t, 0, queue)
 
 	header := model.NewHeader(0, 0, common.Hash{}, common.Hash{}, common.Difficulty{}, big.NewInt(0), common.Address{}, common.BlockNonce{})
-	trans := make([]*model.Transaction,3)
+	trans := make([]*model.Transaction, 3)
 	util.InterfaceSliceCopy(trans, []model.AbstractTransaction{bobtx1, bobtx2, bobtx3})
 	block := model.NewBlock(header, trans, []model.AbstractVerification{})
 
@@ -449,12 +445,12 @@ func TestTxPool_RemoveTxsBatch(t *testing.T) {
 	pool := setupTxPool()
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
-	txs:=[]model.AbstractTransaction{}
-	txIds := make([]common.Hash,0)
-	for i:=0; i<400; i++ {
-		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, key2)
-		txs=append(txs,tx)
-		txIds = append(txIds,tx.CalTxId())
+	txs := []model.AbstractTransaction{}
+	txIds := make([]common.Hash, 0)
+	for i := 0; i < 400; i++ {
+		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit,key2)
+		txs = append(txs, tx)
+		txIds = append(txIds, tx.CalTxId())
 	}
 	pool.AddRemotes(txs)
 	pend, queue := pool.stats()
@@ -485,11 +481,11 @@ func TestTxPoolAdd(t *testing.T) {
 	fmt.Println(pool.currentState.GetNonce(aliceAddr))
 	fmt.Println(pool.currentState.GetNonce(bobAddr))
 
-	alicetx1 := transaction(19, bobAddr, big.NewInt(100000), testTxFee, key1)
-	alicetx2 := transaction(20, bobAddr, big.NewInt(4000), testTxFee, key1)
-	bobtx1 := transaction(30, aliceAddr, big.NewInt(3000), testTxFee, key2)
-	bobtx2 := transaction(31, aliceAddr, big.NewInt(3000), testTxFee, key2)
-	bobtx3 := transaction(33, aliceAddr, big.NewInt(3000), testTxFee, key2)
+	alicetx1 := transaction(19, bobAddr, big.NewInt(100000), testTxFee,g_testData.TestGasLimit, key1)
+	alicetx2 := transaction(20, bobAddr, big.NewInt(4000), testTxFee, g_testData.TestGasLimit,key1)
+	bobtx1 := transaction(30, aliceAddr, big.NewInt(3000), testTxFee,g_testData.TestGasLimit, key2)
+	bobtx2 := transaction(31, aliceAddr, big.NewInt(3000), testTxFee,g_testData.TestGasLimit, key2)
+	bobtx3 := transaction(33, aliceAddr, big.NewInt(3000), testTxFee, g_testData.TestGasLimit,key2)
 
 	//pool.add(alicetx1,false)
 	//pool.add(alicetx2,false)
@@ -515,9 +511,9 @@ func TestStatus(t *testing.T) {
 	pool := setupTxPool()
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
-	bobtx1 := transaction(30, aliceAddr, big.NewInt(3000), testTxFee, key2)
-	bobtx2 := transaction(31, aliceAddr, big.NewInt(3000), testTxFee, key2)
-	bobtx3 := transaction(33, aliceAddr, big.NewInt(3000), testTxFee, key2)
+	bobtx1 := transaction(30, aliceAddr, big.NewInt(3000), testTxFee,g_testData.TestGasLimit, key2)
+	bobtx2 := transaction(31, aliceAddr, big.NewInt(3000), testTxFee,g_testData.TestGasLimit, key2)
+	bobtx3 := transaction(33, aliceAddr, big.NewInt(3000), testTxFee,g_testData.TestGasLimit, key2)
 	pool.AddRemote(bobtx1)
 	pool.AddRemote(bobtx3)
 	bobTxHashes := []common.Hash{bobtx2.CalTxId(), bobtx1.CalTxId(), bobtx3.CalTxId()}
@@ -532,7 +528,7 @@ func TestTxPool_AddLocal(t *testing.T) {
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
 
-	tx := transaction(uint64(30), aliceAddr, big.NewInt(1), testTxFee, key2)
+	tx := transaction(uint64(30), aliceAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key2)
 	err := pool.AddLocal(tx)
 	assert.NoError(t, err)
 }
@@ -544,7 +540,7 @@ func TestTxPool_LocalAdd(t *testing.T) {
 
 	//test nonce < record nonce
 	for i := 0; i < 10; i++ {
-		tx := transaction(uint64(20+i), aliceAddr, big.NewInt(1), testTxFee, key2)
+		tx := transaction(uint64(20+i), aliceAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit,key2)
 		_, err := pool.add(tx, false)
 		//assert.True(t, ok)
 		assert.Error(t, err)
@@ -552,7 +548,7 @@ func TestTxPool_LocalAdd(t *testing.T) {
 
 	//make pool full
 	for i := 0; i < 5120; i++ {
-		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, key2)
+		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key2)
 		_, err := pool.add(tx, false)
 		//assert.True(t, ok)
 		assert.NoError(t, err)
@@ -562,7 +558,7 @@ func TestTxPool_LocalAdd(t *testing.T) {
 	assert.Equal(t, 5120, queueN)
 
 	//add one more transaction
-	txMore := transaction(uint64(30+5120), aliceAddr, big.NewInt(1), testTxFee, key2)
+	txMore := transaction(uint64(30+5120), aliceAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key2)
 	_, err := pool.add(txMore, false)
 	assert.NoError(t, err)
 }
@@ -575,7 +571,7 @@ func TestTxPool_promptExecutables_2addr(t *testing.T) {
 	chalieAddr := cs_crypto.GetNormalAddress(key3.PublicKey)
 
 	for i := 0; i < 30; i++ {
-		bobtx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, key2)
+		bobtx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key2)
 		//fmt.Println(bobtx.Sender(pool.signer))
 		_, err := pool.add(bobtx, false)
 		//assert.True(t, ok)
@@ -583,7 +579,7 @@ func TestTxPool_promptExecutables_2addr(t *testing.T) {
 	}
 
 	for i := 0; i < 33; i++ {
-		alicetx := transaction(uint64(20+i), chalieAddr, big.NewInt(1), testTxFee, key1)
+		alicetx := transaction(uint64(20+i), chalieAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key1)
 		//fmt.Println(bobtx.Sender(pool.signer))
 		_, err := pool.add(alicetx, false)
 		//assert.True(t, ok)
@@ -591,7 +587,7 @@ func TestTxPool_promptExecutables_2addr(t *testing.T) {
 	}
 
 	for i := 0; i < 33; i++ {
-		chalietx := transaction(uint64(30+i), bobAddr, big.NewInt(1), testTxFee, key3)
+		chalietx := transaction(uint64(30+i), bobAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key3)
 		//fmt.Println(bobtx.Sender(pool.signer))
 		_, err := pool.add(chalietx, false)
 		//assert.True(t, ok)
@@ -612,7 +608,7 @@ func TestTxPool_promptExecutables(t *testing.T) {
 
 	//transaction enqueue first
 	for i := 0; i < 10; i++ {
-		bobtx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, key2)
+		bobtx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key2)
 		//fmt.Println(bobtx.Sender(pool.signer))
 		_, err := pool.add(bobtx, false)
 		//assert.True(t, ok)
@@ -629,7 +625,7 @@ func TestTxPool_promptExecutables(t *testing.T) {
 
 	//add 4096 more tx
 	for i := 0; i < 4096; i++ {
-		bobtx := transaction(uint64(40+i), aliceAddr, big.NewInt(1), testTxFee, key2)
+		bobtx := transaction(uint64(40+i), aliceAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit,key2)
 		//fmt.Println(bobtx.Sender(pool.signer))
 		_, err := pool.add(bobtx, false)
 		//assert.True(t, ok)
@@ -642,7 +638,7 @@ func TestTxPool_promptExecutables(t *testing.T) {
 
 	//add 1024 more tx
 	for i := 0; i < 1024; i++ {
-		bobtx := transaction(uint64(4136+i), aliceAddr, big.NewInt(1), testTxFee, key2)
+		bobtx := transaction(uint64(4136+i), aliceAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key2)
 		//fmt.Println(bobtx.Sender(pool.signer))
 		_, err := pool.add(bobtx, false)
 		//assert.True(t, ok)
@@ -663,7 +659,7 @@ func TestTxPool_AddWithLocal(t *testing.T) {
 
 	//transaction enqueue first
 	for i := 0; i < 10; i++ {
-		bobtx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, key2)
+		bobtx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key2)
 		//fmt.Println(bobtx.Sender(pool.signer))
 		//add bob address to local too
 		_, err := pool.add(bobtx, true)
@@ -674,7 +670,7 @@ func TestTxPool_AddWithLocal(t *testing.T) {
 
 	//add 4096 more tx
 	for i := 0; i < 4096; i++ {
-		bobtx := transaction(uint64(40+i), aliceAddr, big.NewInt(1), testTxFee, key2)
+		bobtx := transaction(uint64(40+i), aliceAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key2)
 		//fmt.Println(bobtx.Sender(pool.signer))
 		_, err := pool.add(bobtx, false)
 		//assert.True(t, ok)
@@ -693,7 +689,7 @@ func TestTxPool_demoteUnExecutables(t *testing.T) {
 
 	//transaction enqueue first
 	for i := 0; i < 20; i++ {
-		bobtx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, key2)
+		bobtx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), g_testData.TestGasPrice, g_testData.TestGasLimit,key2)
 		//fmt.Println(bobtx.Sender(pool.signer))
 		pool.add(bobtx, false)
 		//assert.True(t, ok)
@@ -709,7 +705,7 @@ func TestTxPool_demoteUnExecutables(t *testing.T) {
 	assert.Equal(t, 0, queueN)
 
 	for addr, _ := range pool.pending {
-		pool.currentState.SetBalance(addr, big.NewInt(0).Add(testTxFee,big.NewInt(1)))
+		pool.currentState.SetBalance(addr, big.NewInt(0).Mul(testTxFee, big.NewInt(int64(g_testData.TestGasLimit))))
 	}
 	pool.demoteUnexecutables()
 	pendN, queueN = pool.stats()
@@ -732,62 +728,60 @@ func TestTxPool_ValidateTx(t *testing.T) {
 
 	//tx size > 32k
 	extraData := make([]byte, 32*1024+1)
-	FatTx := model.NewTransaction(30, aliceAddr, big.NewInt(3000), testTxFee, extraData)
+	FatTx := model.NewTransaction(30, aliceAddr, big.NewInt(3000), g_testData.TestGasPrice, g_testData.TestGasLimit, extraData)
 	err := pool.AddRemote(FatTx)
 	assert.Error(t, err)
 
 	//error nonce < current nonce
-	bobtx := transaction(29, aliceAddr, big.NewInt(3000), testTxFee, key2)
+	bobtx := transaction(29, aliceAddr, big.NewInt(3000), testTxFee,g_testData.TestGasLimit, key2)
 	//assert.NotNil(t, bobtx)
 	err = pool.AddRemote(bobtx)
 	//assert.NoError(t, err)
 	assert.Error(t, err)
 
-	//error fee < setting min fee
-	bobtx = transaction(30, aliceAddr, big.NewInt(3000), big.NewInt(1), key2)
+	bobtx = transaction(30, aliceAddr, big.NewInt(3000), big.NewInt(1), g_testData.TestGasLimit,key2)
 	err = pool.AddRemote(bobtx)
-	//assert.NoError(t, err)
-	assert.Error(t, err)
+	assert.NoError(t, err)
 
 	//error amount > balance
-	bobtx = transaction(30, aliceAddr, big.NewInt(3000000), testTxFee, key2)
+	bobtx = transaction(30, aliceAddr, big.NewInt(3000000), big.NewInt(0).Mul(testTxFee,big.NewInt(10000)), g_testData.TestGasLimit,key2)
 	err = pool.AddRemote(bobtx)
 	//assert.NoError(t, err)
 	assert.Error(t, err)
 
 	//for pending
 	//same nonce for the 2nd tx, fee < 1st tx
-	bobtx = transaction(30, aliceAddr, big.NewInt(300), testTxFee, key2)
+	bobtx = transaction(30, aliceAddr, big.NewInt(300), testTxFee,g_testData.TestGasLimit, key2)
 	err = pool.AddRemote(bobtx)
-	bobtx = transaction(30, aliceAddr, big.NewInt(200),big.NewInt(0).Sub(testTxFee,big.NewInt(10)), key2)
+	bobtx = transaction(30, aliceAddr, big.NewInt(200), big.NewInt(0).Sub(testTxFee, big.NewInt(10)), g_testData.TestGasLimit,key2)
 	err = pool.AddRemote(bobtx)
 	//assert.NoError(t, err)
 	assert.Error(t, err)
 	// fee = 1st tx
-	bobtx = transaction(30, aliceAddr, big.NewInt(210), testTxFee, key2)
+	bobtx = transaction(30, aliceAddr, big.NewInt(210), testTxFee,g_testData.TestGasLimit, key2)
 	err = pool.AddRemote(bobtx)
 	//assert.NoError(t, err)
 	assert.Error(t, err)
 	//fee > 1st tx
-	bobtx = transaction(30, aliceAddr, big.NewInt(220), threshold, key2)
+	bobtx = transaction(30, aliceAddr, big.NewInt(220), threshold,g_testData.TestGasLimit, key2)
 	err = pool.AddRemote(bobtx)
 	assert.NoError(t, err)
 
 	//for future queue
 	//same nonce for the 2nd tx, fee < 1st tx
-	bobtx = transaction(33, aliceAddr, big.NewInt(300), testTxFee, key2)
+	bobtx = transaction(33, aliceAddr, big.NewInt(300), testTxFee,g_testData.TestGasLimit, key2)
 	err = pool.AddRemote(bobtx)
-	bobtx = transaction(33, aliceAddr, big.NewInt(200),  big.NewInt(0).Sub(testTxFee,big.NewInt(10)), key2)
+	bobtx = transaction(33, aliceAddr, big.NewInt(200), big.NewInt(0).Sub(testTxFee, big.NewInt(10)), g_testData.TestGasLimit,key2)
 	err = pool.AddRemote(bobtx)
 	//assert.NoError(t, err)
 	assert.Error(t, err)
 	// fee = 1st tx
-	bobtx = transaction(33, aliceAddr, big.NewInt(210), testTxFee, key2)
+	bobtx = transaction(33, aliceAddr, big.NewInt(210), testTxFee,g_testData.TestGasLimit, key2)
 	err = pool.AddRemote(bobtx)
 	//assert.NoError(t, err)
 	assert.Error(t, err)
 	//fee > 1st tx
-	bobtx = transaction(33, aliceAddr, big.NewInt(220), threshold, key2)
+	bobtx = transaction(33, aliceAddr, big.NewInt(220), threshold,g_testData.TestGasLimit, key2)
 	err = pool.AddRemote(bobtx)
 	assert.NoError(t, err)
 	pendN, queueN := pool.stats()
@@ -805,8 +799,8 @@ func TestTxPool_AddTxPerf(t *testing.T) {
 	txs := make([]model.AbstractTransaction, TXNUM)
 	txs1 := make([]model.AbstractTransaction, TXNUM)
 	for i := 0; i < TXNUM; i++ {
-		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, key2)
-		tx1 := transaction(uint64(30+i), bobAddr, big.NewInt(1), testTxFee, key1)
+		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key2)
+		tx1 := transaction(uint64(30+i), bobAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key1)
 		txs[i] = tx
 		txs1[i] = tx1
 	}
@@ -841,15 +835,15 @@ func TestTxPool_AddRemote(t *testing.T) {
 
 	//make pool full
 	for i := 0; i < 4096; i++ {
-		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, key2)
+		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit,key2)
 		err := pool.AddRemote(tx)
 		//assert.True(t, ok)
 		assert.NoError(t, err)
 	}
-	txMore := transaction(uint64(30+4096), aliceAddr, big.NewInt(1), testTxFee, key2)
+	txMore := transaction(uint64(30+4096), aliceAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key2)
 	pool.AddRemote(txMore)
 
-	txMore = transaction(uint64(30+4097), aliceAddr, big.NewInt(1), testTxFee, key2)
+	txMore = transaction(uint64(30+4097), aliceAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key2)
 	pool.AddRemote(txMore)
 	pendN, queueN := pool.stats()
 
@@ -881,13 +875,13 @@ func TestTxFee_Pop(t *testing.T) {
 	txlA := make([]model.AbstractTransaction, 0)
 	for i := 0; i < 6; i++ {
 		//bob->alice
-		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, key2)
+		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit,key2)
 		txlB = append(txlB, tx)
 	}
 
 	for i := 0; i < 6; i++ {
 		//alice->bob
-		tx := transaction(uint64(30+i), bobAddr, big.NewInt(1), testTxFee, key1)
+		tx := transaction(uint64(30+i), bobAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit,key1)
 		txlA = append(txlA, tx)
 	}
 	txs[aliceAddr] = txlA
@@ -908,7 +902,7 @@ func TestAddressesByHeartbeat_Len(t *testing.T) {
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
 	txs := []model.AbstractTransaction{}
 	for i := 0; i < 5000; i++ {
-		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, key2)
+		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit,key2)
 		txs = append(txs, tx)
 	}
 
@@ -926,7 +920,7 @@ func TestTxBatch(t *testing.T) {
 	txs := []model.AbstractTransaction{}
 	for i := 0; i < accountNum; i++ {
 		for j := 0; j < 13; j++ {
-			tx := transaction(uint64(20+j), addrs[i], big.NewInt(1), testTxFee, keys[i])
+			tx := transaction(uint64(20+j), addrs[i], big.NewInt(1), testTxFee, g_testData.TestGasLimit,keys[i])
 			txs = append(txs, tx)
 		}
 	}
@@ -943,20 +937,19 @@ func TestTxCalId(t *testing.T) {
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
 	txs := []model.AbstractTransaction{}
 	for i := 0; i < 10000; i++ {
-		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, key2)
+		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key2)
 		txs = append(txs, tx)
 	}
 
 	coreNum := runtime.NumCPU()
-	count := 10000/coreNum
+	count := 10000 / coreNum
 	fmt.Println("core num = ", coreNum)
 
 	st := time.Now()
 
 	var wg sync.WaitGroup
 
-	for j:=0; j<coreNum; j++ {
-
+	for j := 0; j < coreNum; j++ {
 
 		wg.Add(1)
 
@@ -977,8 +970,9 @@ func TestTxCalId(t *testing.T) {
 
 type txHelper struct {
 	cacher *model.TxCacher
-	wg sync.WaitGroup
+	wg     sync.WaitGroup
 }
+
 func (th *txHelper) help_TxRecover(txs []model.AbstractTransaction) {
 	th.cacher.TxRecover(txs)
 	th.wg.Done()
@@ -988,12 +982,12 @@ func dummy() {
 	i := 0
 	j := 1
 	for {
-		if j==0 {
+		if j == 0 {
 			j++
 		}
-		i = 65*34
+		i = 65 * 34
 		i += 21
-		i = i/j
+		i = i / j
 		j++
 		time.Sleep(time.Microsecond)
 	}
@@ -1004,17 +998,17 @@ func TestTxCacher_TxRecover(t *testing.T) {
 
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
-	txs:=[]model.AbstractTransaction{}
-	for i:=0; i<10000; i++ {
-		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, key2)
-		txs=append(txs,tx)
+	txs := []model.AbstractTransaction{}
+	for i := 0; i < 10000; i++ {
+		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit,key2)
+		txs = append(txs, tx)
 	}
 
-	txsCmp:=[]model.AbstractTransaction{}
+	txsCmp := []model.AbstractTransaction{}
 	bobAddr := cs_crypto.GetNormalAddress(key2.PublicKey)
-	for i:=0; i<10000; i++ {
-		tx := transaction(uint64(20+i), bobAddr, big.NewInt(1), testTxFee, key1)
-		txsCmp=append(txsCmp,tx)
+	for i := 0; i < 10000; i++ {
+		tx := transaction(uint64(20+i), bobAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit,key1)
+		txsCmp = append(txsCmp, tx)
 	}
 
 	cacher := model.NewTxCacher(runtime.NumCPU())
@@ -1040,7 +1034,6 @@ func TestTxCacher_TxRecover(t *testing.T) {
 	helper.wg.Wait()
 	fmt.Printf("---%v\n", time.Now().Sub(st))
 
-
 }
 
 func TestTxPool_TxsCaching(t *testing.T) {
@@ -1048,10 +1041,10 @@ func TestTxPool_TxsCaching(t *testing.T) {
 
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
-	txs:=[]model.AbstractTransaction{}
-	for i:=0; i<10000; i++ {
-		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, key2)
-		txs=append(txs,tx)
+	txs := []model.AbstractTransaction{}
+	for i := 0; i < 10000; i++ {
+		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key2)
+		txs = append(txs, tx)
 	}
 	pool := setupTxPool()
 
@@ -1061,13 +1054,13 @@ func TestTxPool_TxsCaching(t *testing.T) {
 	fmt.Printf("---%v\n", time.Now().Sub(st))
 
 	st = time.Now()
-	for i:=0; i<10000; i++ {
+	for i := 0; i < 10000; i++ {
 		txs[i].Sender(nil)
 	}
 	fmt.Printf("---%v\n", time.Now().Sub(st))
 
 	st = time.Now()
-	for i:=0; i<10000; i++ {
+	for i := 0; i < 10000; i++ {
 		txs[i].Sender(nil)
 	}
 	fmt.Printf("---%v\n", time.Now().Sub(st))
@@ -1079,10 +1072,10 @@ func TestTxPool_TxCacheAfterCopy(t *testing.T) {
 	pool := setupTxPool()
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
-	txs:=[]model.AbstractTransaction{}
-	for i:=0; i<4096; i++ {
-		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, key2)
-		txs=append(txs,tx)
+	txs := []model.AbstractTransaction{}
+	for i := 0; i < 4096; i++ {
+		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key2)
+		txs = append(txs, tx)
 	}
 	pool.AddRemotes(txs)
 	fmt.Println(pool.Stats())
@@ -1103,14 +1096,14 @@ func TestTxPool_TxCacheAfterCopy(t *testing.T) {
 	fmt.Printf("---%v\n", time.Now().Sub(st))
 	fmt.Println("comparing...")
 
-	txsCmp:=[]model.AbstractTransaction{}
+	txsCmp := []model.AbstractTransaction{}
 	bobAddr := cs_crypto.GetNormalAddress(key2.PublicKey)
-	for i:=0; i<4096; i++ {
-		tx := transaction(uint64(20+i), bobAddr, big.NewInt(1), testTxFee, key1)
-		txsCmp=append(txsCmp,tx)
+	for i := 0; i < 4096; i++ {
+		tx := transaction(uint64(20+i), bobAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key1)
+		txsCmp = append(txsCmp, tx)
 	}
 	st = time.Now()
-	for i:=0; i<4096; i++ {
+	for i := 0; i < 4096; i++ {
 		txsCmp[i].Sender(nil)
 	}
 	fmt.Printf("---%v\n", time.Now().Sub(st))
@@ -1121,10 +1114,10 @@ func TestTxPool_TxsInBlockCache(t *testing.T) {
 
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
-	txs:=[]model.AbstractTransaction{}
-	for i:=0; i<4096; i++ {
-		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, key2)
-		txs=append(txs,tx)
+	txs := []model.AbstractTransaction{}
+	for i := 0; i < 4096; i++ {
+		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key2)
+		txs = append(txs, tx)
 	}
 
 	st := time.Now()
@@ -1145,7 +1138,6 @@ func TestTxPool_TxsInBlockCache(t *testing.T) {
 
 	fmt.Println(len(block.GetAbsTransactions()))
 
-
 	st = time.Now()
 	//pool.AbstractTxsCaching(block.GetAbsTransactions())
 	//
@@ -1153,7 +1145,7 @@ func TestTxPool_TxsInBlockCache(t *testing.T) {
 
 	txCmp := block.GetAbsTransactions()
 	st = time.Now()
-	for i:=0; i<4096; i++ {
+	for i := 0; i < 4096; i++ {
 		txCmp[i].Sender(nil)
 	}
 	fmt.Printf("---%v\n", time.Now().Sub(st))
@@ -1186,34 +1178,33 @@ func TestTxPool_PoolSetup(t *testing.T) {
 
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
-	txs:=[]model.AbstractTransaction{}
-	for i:=0; i<10000; i++ {
-		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, key2)
-		txs=append(txs,tx)
+	txs := []model.AbstractTransaction{}
+	for i := 0; i < 10000; i++ {
+		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee,g_testData.TestGasLimit, key2)
+		txs = append(txs, tx)
 	}
 	tx_rlps := [][]byte{}
 
 	st := time.Now()
-	for i:=0; i<10000; i++ {
+	for i := 0; i < 10000; i++ {
 		ret, _ := txs[i].EncodeRlpToBytes()
 		tx_rlps = append(tx_rlps, ret)
 	}
 	fmt.Printf("---%v\n", time.Now().Sub(st))
 
 	st = time.Now()
-	for i:=0; i<10000; i++ {
+	for i := 0; i < 10000; i++ {
 		rlpHash(txs[i])
 	}
 	fmt.Printf("---%v\n", time.Now().Sub(st))
 
-
 	nonce := make([]byte, 64)
-	for i:=0; i<64; i++ {
+	for i := 0; i < 64; i++ {
 		nonce[i] = byte(i)
 	}
 	hw := sha3.NewLegacyKeccak256()
 	st = time.Now()
-	for i:=0; i<10000; i++ {
+	for i := 0; i < 10000; i++ {
 		splice := append(tx_rlps[i], nonce...)
 		rlpHashNew(hw, splice)
 	}
@@ -1254,7 +1245,7 @@ func TestTxPool(t *testing.T) {
 	pool.TxsCaching(txs)
 	assert.NotEmpty(t, pool.ConvertPoolToMap())
 	assert.NotNil(t, pool.GetTxsEstimator(iblt.NewBloom(model.DefaultBlockBloomConfig)))
-	pool.locals.accounts = map[common.Address]struct{}{ sender0: {}, }
+	pool.locals.accounts = map[common.Address]struct{}{sender0: {},}
 	assert.NotEmpty(t, pool.local())
 
 	pool.config.Rejournal = time.Millisecond

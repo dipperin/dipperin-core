@@ -1,13 +1,11 @@
 package state_processor
 
 import (
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/common"
-	"math/big"
 	"fmt"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestApplyMessage(t *testing.T) {
@@ -16,17 +14,13 @@ func TestApplyMessage(t *testing.T) {
 	msg, err := tx.AsMessage()
 	assert.NoError(t, err)
 
-	a := make(map[common.Address]*big.Int)
-	c := make(map[common.Address][]byte)
-	testVm := getTestVm(a, c)
+	testVm := getTestVm()
 
 	gasPool := uint64(5*gasLimit)
 	result, usedGas, failed,_, err := ApplyMessage(testVm, msg, &gasPool)
 	assert.NoError(t, err)
 	assert.False(t, failed)
 	assert.NotNil(t, usedGas)
-	data := getContractCode(t, testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
-	assert.Equal(t, data, result)
 
 	fmt.Println("----------------------------------")
 

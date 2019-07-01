@@ -69,7 +69,6 @@ type RpcClient interface {
 func init() {
 	l = log.New()
 	l.SetHandler(log.MultiHandler(log.CliOutHandler))
-
 }
 
 func InitRpcClient(port int) {

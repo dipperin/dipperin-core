@@ -50,12 +50,6 @@ func NewBftBlockContextWithoutVotes(b model.AbstractBlock, chain ChainInterface)
 	return bc
 }
 
-
-
-
-
-
-
 func NewBftBlockValidator(chain ChainInterface) *BftBlockValidator {
 	return &BftBlockValidator{ Chain: chain }
 }

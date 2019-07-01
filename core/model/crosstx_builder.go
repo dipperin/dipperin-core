@@ -24,7 +24,7 @@ import (
 )
 
 //
-func CreateRawLockTx(nonce uint64, lock common.Hash, time *big.Int, amount *big.Int, fee *big.Int, alice common.Address, bob common.Address) *Transaction {
+func CreateRawLockTx(nonce uint64, lock common.Hash, time *big.Int, amount *big.Int, gasPrice *big.Int, gasLimit uint64, alice common.Address, bob common.Address) *Transaction {
 	to := cs_crypto.GetLockAddress(alice, bob)
 	data := bob.Bytes()
 	tempLock := common.CopyHash(&lock)
@@ -34,7 +34,6 @@ func CreateRawLockTx(nonce uint64, lock common.Hash, time *big.Int, amount *big.
 		HashLock:     tempLock,
 		TimeLock:     time,
 		Amount:       new(big.Int).Set(amount),
-		Fee:          new(big.Int).Set(fee),
 		ExtraData:    data,
 	}
 	wit := witness{
@@ -46,7 +45,7 @@ func CreateRawLockTx(nonce uint64, lock common.Hash, time *big.Int, amount *big.
 	return &Transaction{data: txdata, wit: wit}
 }
 
-func CreateRawRefundTx(nonce uint64, amount *big.Int, fee *big.Int, alice common.Address, bob common.Address) *Transaction {
+func CreateRawRefundTx(nonce uint64, amount *big.Int, gasPrice *big.Int, gasLimit uint64, alice common.Address, bob common.Address) *Transaction {
 	to := cs_crypto.GetLockAddress(alice, bob)
 	data := bob.Bytes()
 	txdata := txData{
@@ -55,7 +54,6 @@ func CreateRawRefundTx(nonce uint64, amount *big.Int, fee *big.Int, alice common
 		HashLock:     nil,
 		TimeLock:     new(big.Int),
 		Amount:       new(big.Int).Set(amount),
-		Fee:          new(big.Int).Set(fee),
 		ExtraData:    data,
 	}
 	wit := witness{
@@ -67,7 +65,7 @@ func CreateRawRefundTx(nonce uint64, amount *big.Int, fee *big.Int, alice common
 	return &Transaction{data: txdata, wit: wit}
 }
 
-func CreateRawClaimTx(nonce uint64, key []byte, amount *big.Int, fee *big.Int, alice common.Address, bob common.Address) *Transaction {
+func CreateRawClaimTx(nonce uint64, key []byte, amount *big.Int, gasPrice *big.Int, gasLimit uint64, alice common.Address, bob common.Address) *Transaction {
 	to := cs_crypto.GetLockAddress(alice, bob)
 	data := alice.Bytes()
 	tempkey := common.CopyBytes(key)
@@ -77,7 +75,6 @@ func CreateRawClaimTx(nonce uint64, key []byte, amount *big.Int, fee *big.Int, a
 		HashLock:     nil,
 		TimeLock:     new(big.Int),
 		Amount:       new(big.Int).Set(amount),
-		Fee:          new(big.Int).Set(fee),
 		ExtraData:    data,
 	}
 	wit := witness{

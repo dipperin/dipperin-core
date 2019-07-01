@@ -49,15 +49,16 @@ type Transaction struct {
 	//add txIndex cache
 	txIndex atomic.Value
 	//add contract tx usedFee
-	contractTxFee atomic.Value
+	actualTxFee atomic.Value
 }
 
 type RpcTransaction struct {
-	To             common.Address
-	Value          *big.Int
-	TransactionFee *big.Int
-	Data           []byte
-	Nonce          uint64
+	To       common.Address
+	Value    *big.Int
+	GasPrice *big.Int
+	GasLimit uint64
+	Data     []byte
+	Nonce    uint64
 }
 
 // IntrinsicGas computes the 'intrinsic gas' for a message with the given data.
@@ -105,27 +106,26 @@ func ConvertFeeToGasPriceAndGasLimit(fee *big.Int, txExtraData []byte) (gasPrice
 	return
 }
 
-func NewTransaction(nonce uint64, to common.Address, amount, fee *big.Int, data []byte) *Transaction {
+func NewTransaction(nonce uint64, to common.Address, amount, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
 	//return newTransaction(nonce, &to, amount, fee, nil, 0, data)
-	gasPrice, gasLimit, err := ConvertFeeToGasPriceAndGasLimit(fee, data)
-	if err != nil {
-		log.Info("NewTransaction error", "err", err)
-		return nil
-	}
-	return newTransaction(nonce, &to, amount, fee, gasPrice, gasLimit, data)
+	/*	gasPrice, gasLimit, err := ConvertFeeToGasPriceAndGasLimit(fee, data)
+		if err != nil {
+			log.Info("NewTransaction error", "err", err)
+			return nil
+		}*/
+	return newTransaction(nonce, &to, amount, gasPrice, gasLimit, data)
 }
 
 func NewTransactionSc(nonce uint64, to *common.Address, amount, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
-	tx := newTransaction(nonce, to, amount, nil, gasPrice, gasLimit, data)
-	tx.data.Fee = new(big.Int).Mul(gasPrice, new(big.Int).SetUint64(gasLimit))
+	tx := newTransaction(nonce, to, amount, gasPrice, gasLimit, data)
 	return tx
 }
 
 func NewContractCreation(nonce uint64, amount *big.Int, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
-	return newTransaction(nonce, nil, amount, nil, gasPrice, gasLimit, data)
+	return newTransaction(nonce, nil, amount, gasPrice, gasLimit, data)
 }
 
-func newTransaction(nonce uint64, to *common.Address, amount, fee, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
+func newTransaction(nonce uint64, to *common.Address, amount, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
 	if len(data) > 0 {
 		data = common.CopyBytes(data)
 	}
@@ -135,10 +135,10 @@ func newTransaction(nonce uint64, to *common.Address, amount, fee, gasPrice *big
 		HashLock:     nil,
 		TimeLock:     new(big.Int),
 		Amount:       new(big.Int),
-		Fee:          new(big.Int),
-		Price:        gasPrice,
-		GasLimit:     gasLimit,
-		ExtraData:    data,
+		//Fee:          new(big.Int),
+		Price:     gasPrice,
+		GasLimit:  gasLimit,
+		ExtraData: data,
 	}
 	wit := witness{
 		R:       new(big.Int),
@@ -149,9 +149,7 @@ func newTransaction(nonce uint64, to *common.Address, amount, fee, gasPrice *big
 	if amount != nil {
 		txdata.Amount.Set(amount)
 	}
-	if fee != nil {
-		txdata.Fee.Set(fee)
-	}
+
 	return &Transaction{data: txdata, wit: wit}
 }
 
@@ -222,7 +220,6 @@ func (tx Transaction) String() string {
 	Hashlock: %v
 	Timelock: %#x
 	Value:    %d CSC
-	Fee:      %d CSC
 	Data:     0x%x
 	V:        %#x
 	R:        %#x
@@ -239,7 +236,6 @@ func (tx Transaction) String() string {
 		tx.data.HashLock,
 		tx.data.TimeLock,
 		tx.data.Amount,
-		tx.data.Fee,
 		tx.data.ExtraData,
 		tx.wit.V,
 		tx.wit.R,
@@ -254,10 +250,9 @@ type txData struct {
 	HashLock     *common.Hash    `json:"hashLock" rlp:"nil"`
 	TimeLock     *big.Int        `json:"timeLock22" gencodec:"required"`
 	Amount       *big.Int        `json:"Value"    gencodec:"required"`
-	Fee          *big.Int        `json:"fee"      gencodec:"required"`
-	Price        *big.Int        `json:"gasPrice" gencodec:"required"`
-	GasLimit     uint64          `json:"gas"      gencodec:"required"`
-	ExtraData    []byte          `json:"input"    gencodec:"required"`
+	Price     *big.Int `json:"gasPrice" gencodec:"required"`
+	GasLimit  uint64   `json:"gas"      gencodec:"required"`
+	ExtraData []byte   `json:"input"    gencodec:"required"`
 }
 
 type witness struct {
@@ -316,7 +311,8 @@ func (tx *Transaction) HashLock() *common.Hash { return tx.data.HashLock }
 func (tx *Transaction) TimeLock() *big.Int     { return new(big.Int).Set(tx.data.TimeLock) }
 func (tx *Transaction) ExtraData() []byte      { return tx.data.ExtraData }
 func (tx *Transaction) Amount() *big.Int       { return new(big.Int).Set(tx.data.Amount) }
-func (tx *Transaction) Fee() *big.Int          { return new(big.Int).Set(tx.data.Fee) }
+
+//func (tx *Transaction) Fee() *big.Int          { return new(big.Int).Set(tx.data.Fee) }
 func (tx *Transaction) RawSignatureValues() (*big.Int, *big.Int, *big.Int) {
 	return new(big.Int).Set(tx.wit.V), new(big.Int).Set(tx.wit.R), new(big.Int).Set(tx.wit.S)
 }
@@ -421,7 +417,9 @@ func (tx Transaction) GetSigner() Signer {
 
 // Cost returns amount + fee
 func (tx *Transaction) Cost() *big.Int {
-	return new(big.Int).Add(tx.data.Fee, tx.data.Amount)
+	total := new(big.Int).Mul(tx.data.Price, new(big.Int).SetUint64(tx.data.GasLimit))
+	total.Add(total, tx.data.Amount)
+	return total
 }
 
 func (tx *Transaction) EstimateFee() *big.Int {
@@ -482,23 +480,14 @@ func (tx *Transaction) PaddingReceipt(parameters ReceiptPara) (*model.Receipt, e
 	return receipt, nil
 }
 
-func (tx *Transaction) PaddingContractTxFee(fee *big.Int) error {
-	if tx.GetType() != common.AddressTypeContractCreate && tx.GetType() != common.AddressTypeContractCall {
-		log.Info("the tx isn't contract transaction")
-		return nil
-	}
-
-	tx.contractTxFee.Store(fee)
+func (tx *Transaction) PaddingActualTxFee(fee *big.Int) error {
+	tx.actualTxFee.Store(fee)
 	return nil
 }
 
-func (tx *Transaction) GetContractTxFee()(fee *big.Int){
-	if tx.GetType() != common.AddressTypeContractCreate && tx.GetType() != common.AddressTypeContractCall {
-		log.Info("the tx isn't contract transaction")
-		return big.NewInt(0)
-	}
+func (tx *Transaction) GetActualTxFee() (fee *big.Int) {
 
-	if fee := tx.contractTxFee.Load(); fee != nil {
+	if fee := tx.actualTxFee.Load(); fee != nil {
 		return fee.(*big.Int)
 	}
 
@@ -594,7 +583,7 @@ func (s *TxByFee) Pop() interface{} {
 	old := *s
 	n := len(old)
 	x := old[n-1]
-	*s = old[0: n-1]
+	*s = old[0 : n-1]
 	return x
 }
 
@@ -628,13 +617,18 @@ func NewTransactionsByFeeAndNonce(signer Signer, txs map[common.Address][]Abstra
 				if from != acc {
 					delete(txs, from)
 				}*/
-		acc, _ := accTxs[0].Sender(signer)
-		if from != acc {
-			log.Warn("the tx sender and from is different")
+		if len(accTxs) == 0{
+			log.Warn("theaccTxs is nil")
 			delete(txs, from)
-		} else {
-			heads = append(heads, accTxs[0])
-			txs[acc] = accTxs[1:]
+		}else {
+			acc, _ := accTxs[0].Sender(signer)
+			if from != acc {
+				log.Warn("the tx sender and from is different")
+				delete(txs, from)
+			} else {
+				heads = append(heads, accTxs[0])
+				txs[acc] = accTxs[1:]
+			}
 		}
 	}
 	heap.Init(&heads)

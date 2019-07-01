@@ -10,6 +10,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
@@ -21,6 +22,7 @@ import (
 )
 
 func TestAccountStateDB_ProcessContract(t *testing.T) {
+	t.Skip()
 	ownAddress := common.HexToAddress("0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41")
 	log.InitLogger(log.LvlDebug)
 	transactionJson := "{\"TxData\":{\"nonce\":\"0x0\",\"to\":\"0x00120000000000000000000000000000000000000000\",\"hashlock\":null,\"timelock\":\"0x0\",\"value\":\"0x2540be400\",\"fee\":\"0x69db9c0\",\"gasPrice\":\"0xa\",\"gas\":\"0x1027127dc00\",\"input\":\"0xf9026db8eb0061736d01000000010d0360017f0060027f7f00600000021d0203656e76067072696e7473000003656e76087072696e74735f6c00010304030202000405017001010105030100020615037f01419088040b7f00419088040b7f004186080b073405066d656d6f727902000b5f5f686561705f6261736503010a5f5f646174615f656e64030204696e697400030568656c6c6f00040a450302000b02000b3d01017f230041106b220124004180081000200141203a000f2001410f6a41011001200010002001410a3a000e2001410e6a41011001200141106a24000b0b0d01004180080b0668656c6c6f00b9017d5b0a202020207b0a2020202020202020226e616d65223a2022696e6974222c0a202020202020202022696e70757473223a205b5d2c0a2020202020202020226f757470757473223a205b5d2c0a202020202020202022636f6e7374616e74223a202266616c7365222c0a20202020202020202274797065223a202266756e6374696f6e220a202020207d2c0a202020207b0a2020202020202020226e616d65223a202268656c6c6f222c0a202020202020202022696e70757473223a205b0a2020202020202020202020207b0a20202020202020202020202020202020226e616d65223a20226e616d65222c0a202020202020202020202020202020202274797065223a2022737472696e67220a2020202020202020202020207d0a20202020202020205d2c0a2020202020202020226f757470757473223a205b5d2c0a202020202020202022636f6e7374616e74223a202274727565222c0a20202020202020202274797065223a202266756e6374696f6e220a202020207d0a5d0a\"},\"Wit\":{\"r\":\"0xa1509f3efb1e632643c9972b9183234445c539a1b483ad0ea4b36a4edabf8d04\",\"s\":\"0xa7a16d72b826aea44e8f56247abbad367cf7e300d564949e66ac97098b9f234\",\"v\":\"0x39\",\"hashkey\":\"0x\"}}"
@@ -173,13 +175,13 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 
 	log1 := receipt2.Logs[0]
 	assert.Equal(t, tx2.CalTxId(), log1.TxHash)
-	assert.Equal(t, common.Hash{}, log1.BlockHash)
+	assert.Equal(t, block.Header().Hash(), log1.BlockHash)
 	assert.Equal(t, receipt2.ContractAddress, log1.Address)
 	assert.Equal(t, uint64(1), log1.BlockNumber)
 }
 
-func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
+func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	singer := model.NewMercurySigner(new(big.Int).SetInt64(int64(1)))
 
 	ownSK, _ := crypto.GenerateKey()
@@ -418,7 +420,7 @@ func CreateProcessorAndInitAccount(err error, t *testing.T, addressSlice []commo
 }
 
 func TestGetByteFromAbiFile(t *testing.T) {
-	bytes, err := ioutil.ReadFile("../../vm/event/example.cpp.abi.json")
+	bytes, err := ioutil.ReadFile(g_testData.AbiTokenPath)
 	assert.NoError(t, err)
 	fmt.Println(bytes)
 }

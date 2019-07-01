@@ -31,6 +31,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -965,10 +966,11 @@ func TestMercuryFullChainService_SendTransactions(t *testing.T) {
 	}
 
 	tx := model.RpcTransaction{
-		To:             aliceAddr,
-		Value:          big.NewInt(100),
-		TransactionFee: testFee,
-		Nonce:          uint64(0),
+		To:       aliceAddr,
+		Value:    big.NewInt(100),
+		Nonce:    uint64(0),
+		GasPrice: g_testData.TestGasPrice,
+		GasLimit: g_testData.TestGasLimit,
 	}
 
 	// No error
@@ -1029,33 +1031,33 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	nonce := uint64(0)
 	value := big.NewInt(100)
 	txFee := testFee
-	hash, err := service.SendRegisterTransaction(address, value, txFee, &nonce)
+	hash, err := service.SendRegisterTransaction(address, value, g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.NoError(t, err)
 	assert.NotNil(t, hash)
 
 	nonce = uint64(1)
-	hash, err = service.SendCancelTransaction(address, txFee, &nonce)
+	hash, err = service.SendCancelTransaction(address, g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.NoError(t, err)
 	assert.NotNil(t, hash)
 
 	nonce = uint64(2)
-	hash, err = service.SendUnStakeTransaction(address, txFee, &nonce)
+	hash, err = service.SendUnStakeTransaction(address, g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.NoError(t, err)
 	assert.NotNil(t, hash)
 
 	nonce = uint64(3)
 	vote := &model.VoteMsg{}
-	hash, err = service.SendEvidenceTransaction(address, aliceAddr, testFee, vote, vote, &nonce)
+	hash, err = service.SendEvidenceTransaction(address, aliceAddr, g_testData.TestGasPrice, g_testData.TestGasLimit, vote, vote, &nonce)
 	assert.NoError(t, err)
 	assert.NotNil(t, hash)
 
 	nonce = uint64(4)
-	hash, err = service.SendTransaction(address, aliceAddr, value, txFee, []byte{}, &nonce)
+	hash, err = service.SendTransaction(address, aliceAddr, value, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{}, &nonce)
 	assert.NoError(t, err)
 	assert.NotNil(t, hash)
 
 	nonce = uint64(5)
-	hash, err = service.SendTransaction(common.Address{}, aliceAddr, value, txFee, []byte{}, &nonce)
+	hash, err = service.SendTransaction(common.Address{}, aliceAddr, value, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{}, &nonce)
 	assert.Equal(t, "no default account in this node", err.Error())
 	assert.Equal(t, common.Hash{}, hash)
 
@@ -1064,13 +1066,13 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	abiPath := "../../vm/test-data/token/token.cpp.abi.json"
 	wasmPath := "../../vm/test-data/token/token-wh.wasm"
 	err, data := getCreateExtraData(abiPath, wasmPath, "dipp,DIPP,100000000")
-	assert.NoError(t,err)
+	assert.NoError(t, err)
 	hash, err = service.SendTransactionContract(address, to, value, new(big.Int).Mul(txFee, new(big.Int).SetInt64(int64(30))), new(big.Int).SetInt64(int64(1)), data, &nonce)
 	assert.NoError(t, err)
 
 	nonce = uint64(7)
 	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewTransaction(nonce, aliceAddr, value, txFee, []byte{})
+	tx := model.NewTransaction(nonce, aliceAddr, value, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	signedTx, _ := tx.SignTx(pk, fs1)
 	hash, err = service.NewTransaction(*signedTx)
 	assert.NoError(t, err)
@@ -1080,7 +1082,6 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	assert.Equal(t, "this transaction already in tx pool", err.Error())
 	assert.Equal(t, common.Hash{}, hash)
 }
-
 
 func getCreateExtraData(abiPath, wasmPath string, params string) (err error, extraData []byte) {
 	// GetContractExtraData
@@ -1100,7 +1101,7 @@ func getCreateExtraData(abiPath, wasmPath string, params string) (err error, ext
 		return
 	}
 	rlpParams := []interface{}{
-		wasmBytes, abiBytes,params,
+		wasmBytes, abiBytes, params,
 	}
 
 	data, err := rlp.EncodeToBytes(rlpParams)
@@ -1151,25 +1152,24 @@ func TestMercuryFullChainService_SendTransaction_Error(t *testing.T) {
 	// signTxAndSend-valid error
 	nonce := uint64(0)
 	value := big.NewInt(100)
-	txFee := testFee
-	hash, err := service.SendRegisterTransaction(address, value, txFee, &nonce)
+	hash, err := service.SendRegisterTransaction(address, value, g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.Equal(t, testErr, err)
 	assert.Equal(t, common.Hash{}, hash)
 
-	hash, err = service.SendCancelTransaction(address, txFee, &nonce)
+	hash, err = service.SendCancelTransaction(address, g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.Equal(t, testErr, err)
 	assert.Equal(t, common.Hash{}, hash)
 
-	hash, err = service.SendUnStakeTransaction(address, txFee, &nonce)
+	hash, err = service.SendUnStakeTransaction(address, g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.Equal(t, testErr, err)
 	assert.Equal(t, common.Hash{}, hash)
 
 	vote := &model.VoteMsg{}
-	hash, err = service.SendEvidenceTransaction(address, aliceAddr, testFee, vote, vote, &nonce)
+	hash, err = service.SendEvidenceTransaction(address, aliceAddr, g_testData.TestGasPrice, g_testData.TestGasLimit, vote, vote, &nonce)
 	assert.Equal(t, testErr, err)
 	assert.Equal(t, common.Hash{}, hash)
 
-	hash, err = service.SendTransaction(address, aliceAddr, value, txFee, []byte{}, &nonce)
+	hash, err = service.SendTransaction(address, aliceAddr, value, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{}, &nonce)
 	assert.Equal(t, testErr, err)
 	assert.Equal(t, common.Hash{}, hash)
 
@@ -1179,42 +1179,42 @@ func TestMercuryFullChainService_SendTransaction_Error(t *testing.T) {
 
 	// getSendTxInfo error
 	fakeAddr := common.HexToAddress("123")
-	hash, err = service.SendRegisterTransaction(fakeAddr, value, txFee, &nonce)
+	hash, err = service.SendRegisterTransaction(fakeAddr, value, g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.Equal(t, accounts.ErrNotFindWallet, err)
 	assert.Equal(t, common.Hash{}, hash)
 
-	hash, err = service.SendCancelTransaction(fakeAddr, txFee, &nonce)
+	hash, err = service.SendCancelTransaction(fakeAddr, g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.Equal(t, accounts.ErrNotFindWallet, err)
 	assert.Equal(t, common.Hash{}, hash)
 
-	hash, err = service.SendUnStakeTransaction(fakeAddr, txFee, &nonce)
+	hash, err = service.SendUnStakeTransaction(fakeAddr, g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.Equal(t, accounts.ErrNotFindWallet, err)
 	assert.Equal(t, common.Hash{}, hash)
 
-	hash, err = service.SendEvidenceTransaction(fakeAddr, aliceAddr, testFee, vote, vote, &nonce)
+	hash, err = service.SendEvidenceTransaction(fakeAddr, aliceAddr, g_testData.TestGasPrice, g_testData.TestGasLimit, vote, vote, &nonce)
 	assert.Equal(t, accounts.ErrNotFindWallet, err)
 	assert.Equal(t, common.Hash{}, hash)
 
-	hash, err = service.SendTransaction(fakeAddr, aliceAddr, value, txFee, []byte{}, &nonce)
+	hash, err = service.SendTransaction(fakeAddr, aliceAddr, value, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{}, &nonce)
 	assert.Equal(t, accounts.ErrNotFindWallet, err)
 	assert.Equal(t, common.Hash{}, hash)
 
 	// Type error
 	config.NodeConf = fakeNodeConfig{nodeType: chain_config.NodeTypeOfMineMaster}
 	service.DipperinConfig = config
-	hash, err = service.SendRegisterTransaction(address, value, txFee, &nonce)
+	hash, err = service.SendRegisterTransaction(address, value, g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.Equal(t, "the node isn't verifier", err.Error())
 	assert.Equal(t, common.Hash{}, hash)
 
-	hash, err = service.SendCancelTransaction(address, txFee, &nonce)
+	hash, err = service.SendCancelTransaction(address, g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.Equal(t, "the node isn't verifier", err.Error())
 	assert.Equal(t, common.Hash{}, hash)
 
-	hash, err = service.SendUnStakeTransaction(address, txFee, &nonce)
+	hash, err = service.SendUnStakeTransaction(address, g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.Equal(t, "the node isn't verifier", err.Error())
 	assert.Equal(t, common.Hash{}, hash)
 
-	hash, err = service.SendEvidenceTransaction(address, aliceAddr, testFee, vote, vote, &nonce)
+	hash, err = service.SendEvidenceTransaction(address, aliceAddr, g_testData.TestGasPrice, g_testData.TestGasLimit, vote, vote, &nonce)
 	assert.Equal(t, "the node isn't verifier", err.Error())
 	assert.Equal(t, common.Hash{}, hash)
 }

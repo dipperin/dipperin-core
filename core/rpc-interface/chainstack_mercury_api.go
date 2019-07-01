@@ -17,26 +17,26 @@
 package rpc_interface
 
 import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/address-util"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/contract"
+	"github.com/dipperin/dipperin-core/core/dipperin/service"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/common/util"
-	"context"
-	"fmt"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"math/big"
-	"github.com/dipperin/dipperin-core/common/address-util"
-	"encoding/json"
-	"github.com/dipperin/dipperin-core/core/dipperin/service"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	"errors"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 type DipperinMercuryApi struct {
@@ -152,13 +152,8 @@ func (api *DipperinMercuryApi) GetBlockByHash(hash common.Hash) (*BlockResp, err
 		return nil, errors.New(fmt.Sprintf("no block hash is %s", hash))
 	}
 
-	log.Info("the current block is: ","current block",*curBlock.(*model.Block))
-
 	blockResp.Header = *curBlock.Header().(*model.Header)
 	blockResp.Body = *curBlock.Body().(*model.Body)
-
-	//	log.Debug("the blockResp header is: ","header",blockResp.Header)
-	log.Debug("the blockResp body is: ", "body", blockResp.Body)
 
 	return blockResp, nil
 }
@@ -620,7 +615,7 @@ func (api *DipperinMercuryApi) ERC20Allowance(contractAddr, owner, spender commo
 	return api.service.GetContractInfo(&extraData)
 }
 
-func (api *DipperinMercuryApi) ERC20Transfer(contractAddr, from, to common.Address, amount, txFee *big.Int) (common.Hash, error) {
+func (api *DipperinMercuryApi) ERC20Transfer(contractAddr, from, to common.Address, amount, gasPrice *big.Int, gasLimit uint64) (common.Hash, error) {
 
 	destStr := fmt.Sprintf("%v", to)
 	vStr := fmt.Sprintf("0x%x", amount)
@@ -628,10 +623,10 @@ func (api *DipperinMercuryApi) ERC20Transfer(contractAddr, from, to common.Addre
 	extraData := BuildContractExtraData("Transfer", contractAddr, params)
 
 	//send transaction
-	return api.service.SendTransaction(from, contractAddr, big.NewInt(int64(0)), txFee, extraData, nil)
+	return api.service.SendTransaction(from, contractAddr, big.NewInt(int64(0)), gasPrice, gasLimit, extraData, nil)
 }
 
-func (api *DipperinMercuryApi) ERC20TransferFrom(contractAdr, owner, from, to common.Address, amount, txFee *big.Int) (common.Hash, error) {
+func (api *DipperinMercuryApi) ERC20TransferFrom(contractAdr, owner, from, to common.Address, amount, gasPrice *big.Int, gasLimit uint64) (common.Hash, error) {
 
 	srcStr := fmt.Sprintf("%v", owner)
 	destStr := fmt.Sprintf("%v", to)
@@ -640,10 +635,10 @@ func (api *DipperinMercuryApi) ERC20TransferFrom(contractAdr, owner, from, to co
 	extraData := BuildContractExtraData("TransferFrom", contractAdr, params)
 
 	//send transaction
-	return api.service.SendTransaction(from, contractAdr, big.NewInt(int64(0)), txFee, extraData, nil)
+	return api.service.SendTransaction(from, contractAdr, big.NewInt(int64(0)), gasPrice, gasLimit, extraData, nil)
 }
 
-func (api *DipperinMercuryApi) ERC20Approve(contractAdr, from, to common.Address, amount, txFee *big.Int) (common.Hash, error) {
+func (api *DipperinMercuryApi) ERC20Approve(contractAdr, from, to common.Address, amount, gasPrice *big.Int, gasLimit uint64) (common.Hash, error) {
 
 	adrStr := fmt.Sprintf("%v", to)
 	vStr := fmt.Sprintf("0x%x", amount)
@@ -651,10 +646,10 @@ func (api *DipperinMercuryApi) ERC20Approve(contractAdr, from, to common.Address
 	extraData := BuildContractExtraData("Approve", contractAdr, params)
 
 	//send transaction
-	return api.service.SendTransaction(from, contractAdr, big.NewInt(int64(0)), txFee, extraData, nil)
+	return api.service.SendTransaction(from, contractAdr, big.NewInt(int64(0)), gasPrice, gasLimit, extraData, nil)
 }
 
-func (api *DipperinMercuryApi) CreateERC20(from common.Address, tokenName, tokenSymbol string, amount *big.Int, decimal int, fee *big.Int) (ERC20Resp, error) {
+func (api *DipperinMercuryApi) CreateERC20(from common.Address, tokenName, tokenSymbol string, amount *big.Int, decimal int, gasPrice *big.Int, gasLimit uint64) (ERC20Resp, error) {
 	erc20 := contract.BuiltInERC20Token{}
 	erc20.Owner = from
 	erc20.TokenDecimals = decimal
@@ -670,7 +665,7 @@ func (api *DipperinMercuryApi) CreateERC20(from common.Address, tokenName, token
 	contractAdr, _ := address_util.GenERC20Address()
 	extra.ContractAddress = contractAdr
 
-	txId, err := api.service.SendTransaction(from, contractAdr, big.NewInt(int64(0)), fee, []byte(util.StringifyJson(extra)), nil)
+	txId, err := api.service.SendTransaction(from, contractAdr, big.NewInt(int64(0)), gasPrice, gasLimit, []byte(util.StringifyJson(extra)), nil)
 	var resp ERC20Resp
 	if err == nil {
 		resp.TxId = txId
@@ -796,8 +791,8 @@ func (api *DipperinMercuryApi) AddAccount(derivationPath string, walletIdentifie
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinMercuryApi) SendTransaction(from, to common.Address, value, transactionFee *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
-	return api.service.SendTransaction(from, to, value, transactionFee, data, nonce)
+func (api *DipperinMercuryApi) SendTransaction(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (common.Hash, error) {
+	return api.service.SendTransaction(from, to, value, gasPrice, gasLimit, data, nonce)
 }
 
 func (api *DipperinMercuryApi) SendTransactionContract(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
@@ -846,8 +841,8 @@ func (api *DipperinMercuryApi) RemoteHeight() uint64 {
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinMercuryApi) SendRegisterTransaction(from common.Address, stake, fee *big.Int, nonce *uint64) (common.Hash, error) {
-	return api.service.SendRegisterTransaction(from, stake, fee, nonce)
+func (api *DipperinMercuryApi) SendRegisterTransaction(from common.Address, stake, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
+	return api.service.SendRegisterTransaction(from, stake, gasPrice, gasLimit, nonce)
 }
 
 // send unstake transaction
@@ -871,8 +866,8 @@ func (api *DipperinMercuryApi) SendRegisterTransaction(from common.Address, stak
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinMercuryApi) SendUnStakeTransaction(from common.Address, fee *big.Int, nonce *uint64) (common.Hash, error) {
-	return api.service.SendUnStakeTransaction(from, fee, nonce)
+func (api *DipperinMercuryApi) SendUnStakeTransaction(from common.Address, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
+	return api.service.SendUnStakeTransaction(from, gasPrice, gasLimit, nonce)
 }
 
 // send evidence transaction
@@ -911,8 +906,8 @@ func (api *DipperinMercuryApi) SendUnStakeTransaction(from common.Address, fee *
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinMercuryApi) SendEvidenceTransaction(from, target common.Address, fee *big.Int, voteA *model.VoteMsg, voteB *model.VoteMsg, nonce *uint64) (common.Hash, error) {
-	return api.service.SendEvidenceTransaction(from, target, fee, voteA, voteB, nonce)
+func (api *DipperinMercuryApi) SendEvidenceTransaction(from, target common.Address, gasPrice *big.Int, gasLimit uint64, voteA *model.VoteMsg, voteB *model.VoteMsg, nonce *uint64) (common.Hash, error) {
+	return api.service.SendEvidenceTransaction(from, target,gasPrice, gasLimit, voteA, voteB, nonce)
 }
 
 // send cancel transaction
@@ -936,8 +931,8 @@ func (api *DipperinMercuryApi) SendEvidenceTransaction(from, target common.Addre
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinMercuryApi) SendCancelTransaction(from common.Address, fee *big.Int, nonce *uint64) (common.Hash, error) {
-	return api.service.SendCancelTransaction(from, fee, nonce)
+func (api *DipperinMercuryApi) SendCancelTransaction(from common.Address, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
+	return api.service.SendCancelTransaction(from, gasPrice, gasLimit, nonce)
 }
 
 // get verifiers info by round

@@ -231,6 +231,7 @@ func (ms *master) OnNewBlock(block model.AbstractBlock) {
 //
 func (ms *master) doOnNewBlock(block model.AbstractBlock) {
 	log.Info("on new block chan", "new block", block.Number(), "cur block height", ms.curNewBlockHeight)
+
 	if block.Number() <= ms.curNewBlockHeight {
 		return
 	}

@@ -23,8 +23,8 @@ import (
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/vm/common/params"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
@@ -331,10 +331,10 @@ func (builder *BftBlockBuilder) GetDifficulty() common.Difficulty {
 //  共识处需要对gas limit进行检查，查看其修改量是否超出上一个limit的1/1024.并且其介于系统设置最大最小值之间．
 func CalcGasLimit(parent *model.Block, gasFloor, gasCeil uint64) uint64 {
 	// contrib = (parentGasUsed * 3 / 2) / 1024
-	contrib := (parent.GasUsed() + parent.GasUsed()/2) / params.GasLimitBoundDivisor
+	contrib := (parent.GasUsed() + parent.GasUsed()/2) / model2.GasLimitBoundDivisor
 
 	// decay = parentGasLimit / 1024 -1
-	decay := parent.GasLimit()/params.GasLimitBoundDivisor - 1
+	decay := parent.GasLimit()/model2.GasLimitBoundDivisor - 1
 
 	log.Info("the contrib and decay is:", "contrib", contrib, "decay", decay)
 	/*
@@ -345,8 +345,8 @@ func CalcGasLimit(parent *model.Block, gasFloor, gasCeil uint64) uint64 {
 		from parentGasLimit * (2/3) parentGasUsed is.
 	*/
 	limit := parent.GasLimit() - decay + contrib
-	if limit < params.MinGasLimit {
-		limit = params.MinGasLimit
+	if limit < model2.MinGasLimit {
+		limit = model2.MinGasLimit
 	}
 
 	log.Info("the limit after change is:", "limit", limit)

@@ -20,14 +20,10 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/consts"
-	"github.com/dipperin/dipperin-core/common/hexutil"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
-	"github.com/dipperin/dipperin-core/tests/vm"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -37,7 +33,7 @@ import (
 var txAmount = big.NewInt(10000)
 
 func TestNewTransaction(t *testing.T) {
-	result := NewTransaction(1, common.HexToAddress("123"), big.NewInt(100), big.NewInt(10), []byte{123})
+	result := NewTransaction(1, common.HexToAddress("123"), big.NewInt(100), g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{123})
 	assert.NotNil(t, result)
 }
 
@@ -96,10 +92,9 @@ func TestTransaction(t *testing.T) {
 	tx := CreateSignedTx(0, txAmount)
 	assert.Equal(t, txAmount, tx.Amount())
 	assert.Equal(t, big.NewInt(1), tx.ChainId())
-	assert.Equal(t, big.NewInt(220000), tx.Cost())
-	assert.Equal(t, big.NewInt(111), tx.EstimateFee())
+	assert.Equal(t, big.NewInt(52000), tx.Cost())
+	assert.Equal(t, big.NewInt(107), tx.EstimateFee())
 	assert.Equal(t, []byte{}, tx.ExtraData())
-	assert.Equal(t, big.NewInt(210000), tx.Fee())
 	assert.Equal(t, uint64(0), tx.Nonce())
 	assert.Equal(t, big.NewInt(0), tx.TimeLock())
 	assert.Equal(t, &bobAddr, tx.To())
@@ -108,8 +103,8 @@ func TestTransaction(t *testing.T) {
 	assert.NotNil(t, tx.String())
 
 	// read from cache
-	assert.Equal(t, common.StorageSize(111), tx.Size())
-	assert.Equal(t, common.StorageSize(111), tx.Size())
+	assert.Equal(t, common.StorageSize(107), tx.Size())
+	assert.Equal(t, common.StorageSize(107), tx.Size())
 
 	signer := NewMercurySigner(big.NewInt(1))
 	assert.Equal(t, signer, tx.GetSigner())
@@ -144,7 +139,7 @@ func TestTransactions(t *testing.T) {
 	tx2 := CreateSignedTx(1, txAmount)
 	txs := Transactions{tx1, tx2}
 
-	assert.True(t, txs.Less(0, 1))
+	assert.False(t, txs.Less(0, 1))
 	assert.NotNil(t, txs.GetRlp(0))
 	assert.NotNil(t, txs.String())
 
@@ -190,20 +185,20 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 	for start, key := range keys {
 		addr := cs_crypto.GetNormalAddress(key.PublicKey)
 		for i := 0; i < 2; i++ {
-			tx:=NewTransaction(uint64(start+i), common.Address{}, big.NewInt(100), big.NewInt(100), nil)
+			tx:=NewTransaction(uint64(start+i), common.Address{}, big.NewInt(100), g_testData.TestGasPrice,g_testData.TestGasLimit, nil)
 			tx.SignTx(key,signer)
 			tx.PaddingTxIndex(i)
 			groups[addr] = append(groups[addr], tx)
 		}
 	}
 
-	log.Info("the group txs is:")
+/*	log.Info("the group txs is:")
 	for addr,txs:=range groups{
 		log.Info("the addr is:","addr",addr.Hex())
 		for _,tx := range txs{
 			log.Info("the tx is:","txId",tx.CalTxId().Hex())
 		}
-	}
+	}*/
 
 	// Sort the transactions and cross check the nonce ordering
 	txset := NewTransactionsByFeeAndNonce(signer, groups)

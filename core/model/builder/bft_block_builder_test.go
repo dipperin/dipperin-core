@@ -62,7 +62,7 @@ func TestMakeBftBlockBuilder(t *testing.T) {
 	mps.EXPECT().Evaluate(gomock.Any(), gomock.Any()).Return(seed, proof, nil).AnyTimes()
 	mtpool.EXPECT().Pending().Return(map[common.Address][]model.AbstractTransaction{
 		tb.From(): {tb.Build()},
-	}, nil)
+	}, nil).AnyTimes()
 	mts.EXPECT().GetSender(gomock.Any()).Return(tb.From(), nil).AnyTimes()
 	mts.EXPECT().Equal(gomock.Any()).Return(true).AnyTimes()
 	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}, 1e1, 1e1))
@@ -70,13 +70,9 @@ func TestMakeBftBlockBuilder(t *testing.T) {
 	tb.Nonce = 99
 	mtpool.EXPECT().Pending().Return(map[common.Address][]model.AbstractTransaction{
 		tb.From(): {tb.Build()},
-	}, nil)
+	}, nil).AnyTimes()
 	mtpool.EXPECT().RemoveTxs(gomock.Any()).AnyTimes()
 	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}, 1e1, 1e1))
-
-	assert.Panics(t, func() {
-		builder.BuildWaitPackBlock(common.Address{0x12}, 1e1, 1e1)
-	})
 
 	builder.ChainReader = &fakeChainReader{}
 	assert.Panics(t, func() {

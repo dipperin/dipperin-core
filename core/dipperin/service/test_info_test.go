@@ -19,6 +19,7 @@ package service
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/address-util"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
@@ -191,14 +192,14 @@ func createTxPool(csChain *chain_state.ChainState) *tx_pool.TxPool {
 func createSignedTx(nonce uint64, to common.Address, amount *big.Int, extraData []byte) *model.Transaction {
 	verifiers, _ := tests.ChangeVerifierAddress(nil)
 	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewTransaction(nonce, to, amount, testFee, extraData)
+	tx := model.NewTransaction(nonce, to, amount, testFee,g_testData.TestGasLimit, extraData)
 	signedTx, _ := tx.SignTx(verifiers[0].Pk, fs1)
 	return signedTx
 }
 
 func createSignedTx2(nonce uint64, from *ecdsa.PrivateKey, to common.Address, amount *big.Int) *model.Transaction {
 	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewTransaction(nonce, to, amount, testFee, []byte{})
+	tx := model.NewTransaction(nonce, to, amount, testFee,g_testData.TestGasLimit, []byte{})
 	signedTx, _ := tx.SignTx(from, fs1)
 	return signedTx
 }

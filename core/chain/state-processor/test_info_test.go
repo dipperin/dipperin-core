@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
@@ -68,9 +69,9 @@ func createTestTx() (*model.Transaction, *model.Transaction) {
 	key1, key2 := createKey()
 	fs1 := model.NewMercurySigner(big.NewInt(1))
 	fs2 := model.NewMercurySigner(big.NewInt(3))
-	testTx1 := model.NewTransaction(0, bobAddr, big.NewInt(200), big.NewInt(10), []byte{})
+	testTx1 := model.NewTransaction(0, bobAddr, big.NewInt(200), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	testTx1.SignTx(key1, fs1)
-	testTx2 := model.NewTransaction(0, aliceAddr, big.NewInt(10), big.NewInt(10), []byte{})
+	testTx2 := model.NewTransaction(0, aliceAddr, big.NewInt(10), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	testTx2.SignTx(key2, fs2)
 	return testTx1, testTx2
 }
@@ -135,20 +136,24 @@ func createSignedVote(num uint64, blockId common.Hash, voteType model.VoteMsgTyp
 	return voteA
 }
 
-func getTestVm(account map[common.Address]*big.Int, code map[common.Address][]byte) *vm.VM {
+func getTestVm() *vm.VM {
 	testCanTransfer := func(vm.StateDB, common.Address, *big.Int) bool {
 		return true
 	}
 	testTransfer := func(vm.StateDB, common.Address, common.Address, *big.Int) {
 		return
 	}
+
+	a := make(map[common.Address]*big.Int)
+	c := make(map[common.Address][]byte)
+	abi := make(map[common.Address][]byte)
 	return vm.NewVM(vm.Context{
 		BlockNumber: big.NewInt(1),
 		CanTransfer: testCanTransfer,
 		Transfer:    testTransfer,
 		GasLimit:    model2.TxGas,
 		GetHash:     getTestHashFunc(),
-	}, fakeStateDB{account: account, code: code}, vm.DEFAULT_VM_CONFIG)
+	}, fakeStateDB{account: a, code: c, abi:abi}, vm.DEFAULT_VM_CONFIG)
 }
 
 func getTestHashFunc() func(num uint64) common.Hash {
@@ -195,28 +200,28 @@ func getContractInput(t *testing.T, funcName string, param [][]byte) []byte {
 
 //Get a test transaction
 func getTestRegisterTransaction(nonce uint64, key *ecdsa.PrivateKey, amount *big.Int) *model.Transaction {
-	trans := model.NewRegisterTransaction(nonce, amount, big.NewInt(40))
+	trans := model.NewRegisterTransaction(nonce, amount, g_testData.TestGasPrice, g_testData.TestGasLimit)
 	fs := model.NewMercurySigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(key, fs)
 	return signedTx
 }
 
 func getTestCancelTransaction(nonce uint64, key *ecdsa.PrivateKey) *model.Transaction {
-	trans := model.NewCancelTransaction(nonce, big.NewInt(40))
+	trans := model.NewCancelTransaction(nonce, g_testData.TestGasPrice, g_testData.TestGasLimit)
 	fs := model.NewMercurySigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(key, fs)
 	return signedTx
 }
 
 func getTestUnStakeTransaction(nonce uint64, key *ecdsa.PrivateKey) *model.Transaction {
-	trans := model.NewUnStakeTransaction(nonce, big.NewInt(40))
+	trans := model.NewUnStakeTransaction(nonce, g_testData.TestGasPrice, g_testData.TestGasLimit)
 	fs := model.NewMercurySigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(key, fs)
 	return signedTx
 }
 
 func getTestEvidenceTransaction(nonce uint64, key *ecdsa.PrivateKey, target common.Address, voteA, voteB *model.VoteMsg) *model.Transaction {
-	trans := model.NewEvidenceTransaction(nonce, big.NewInt(40), &target, voteA, voteB)
+	trans := model.NewEvidenceTransaction(nonce, g_testData.TestGasPrice, g_testData.TestGasLimit, &target, voteA, voteB)
 	fs := model.NewMercurySigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(key, fs)
 	return signedTx
@@ -325,7 +330,7 @@ func (tx fakeTransaction) PaddingReceipt(parameters model.ReceiptPara) (*model2.
 }
 
 func (tx fakeTransaction) GetGasLimit() uint64 {
-	panic("implement me")
+	return g_testData.TestGasLimit
 }
 func (tx fakeTransaction) GetReceipt() (*model2.Receipt, error) {
 	panic("implement me")
@@ -348,7 +353,7 @@ func (tx fakeTransaction) Size() common.StorageSize {
 }
 
 func (tx fakeTransaction) GetGasPrice() *big.Int {
-	panic("implement me")
+	return g_testData.TestGasPrice
 }
 
 func (tx fakeTransaction) Amount() *big.Int {
@@ -407,6 +412,7 @@ func (tx fakeTransaction) EstimateFee() *big.Int {
 type fakeStateDB struct {
 	account map[common.Address]*big.Int
 	code    map[common.Address][]byte
+	abi     map[common.Address][]byte
 }
 
 func (state fakeStateDB) GetLogs(txHash common.Hash) []*model2.Log {
@@ -468,16 +474,16 @@ func (state fakeStateDB) GetCodeSize(common.Address) int {
 	panic("implement me")
 }
 
-func (state fakeStateDB) GetAbiHash(common.Address) common.Hash {
-	panic("implement me")
+func (state fakeStateDB) GetAbiHash(addr common.Address) common.Hash {
+	return common.RlpHashKeccak256(state.GetAbi(addr))
 }
 
-func (state fakeStateDB) GetAbi(common.Address) []byte {
-	panic("implement me")
+func (state fakeStateDB) GetAbi(addr common.Address) []byte {
+	return state.abi[addr]
 }
 
-func (state fakeStateDB) SetAbi(common.Address, []byte) {
-	panic("implement me")
+func (state fakeStateDB) SetAbi(addr common.Address, abi []byte) {
+	state.abi[addr] = abi
 }
 
 func (state fakeStateDB) GetCommittedState(common.Address, []byte) []byte {

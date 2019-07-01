@@ -9,7 +9,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests/factory"
-	"github.com/dipperin/dipperin-core/tests/vm"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
@@ -21,9 +21,8 @@ import (
 )
 
 func TestDebugTxRlp(t *testing.T){
-	txData ,err:= hexutil.Decode("0xf902def90295019600120000000000000000000000000000000000000000808080806483989680b90271f9026eb8eb0061736d01000000010d0360017f0060027f7f00600000021d0203656e76067072696e7473000003656e76087072696e74735f6c00010304030202000405017001010105030100020615037f01419088040b7f00419088040b7f004186080b073405066d656d6f727902000b5f5f686561705f6261736503010a5f5f646174615f656e64030204696e697400030568656c6c6f00040a450302000b02000b3d01017f230041106b220124004180081000200141203a000f2001410f6a41011001200010002001410a3a000e2001410e6a41011001200141106a24000b0b0d01004180080b0668656c6c6f00b9017d5b0a202020207b0a2020202020202020226e616d65223a2022696e6974222c0a202020202020202022696e70757473223a205b5d2c0a2020202020202020226f757470757473223a205b5d2c0a202020202020202022636f6e7374616e74223a202266616c7365222c0a20202020202020202274797065223a202266756e6374696f6e220a202020207d2c0a202020207b0a2020202020202020226e616d65223a202268656c6c6f222c0a202020202020202022696e70757473223a205b0a2020202020202020202020207b0a20202020202020202020202020202020226e616d65223a20226e616d65222c0a202020202020202020202020202020202274797065223a2022737472696e67220a2020202020202020202020207d0a20202020202020205d2c0a2020202020202020226f757470757473223a205b5d2c0a202020202020202022636f6e7374616e74223a202274727565222c0a20202020202020202274797065223a202266756e6374696f6e220a202020207d0a5d0a80f844a094fdf6afa4600fcd86ceee9cb86c7edf3a70c6de61ccd100e7728d2c7f3a00d0a013062e19e9b265ad6ea25923f008d931b8c3df2f41d2d852a90cec30483d230b3980")
+	txData,err := hexutil.Decode("0xf869e280960000970e8128ab834e8eac17ab8e3812f010678cf79180808203e80182a41080f844a04a6a9d72b370b8f3f7ff04a8224ee11aea5c993eb08e2851094c1aaf48d68527a07e1505cbdd7c7d25481065620a1288a2f6dc76e0aa156da970617caa148cc2c93880")
 	assert.NoError(t,err)
-
 	var transaction model.Transaction
 
 	err = rlp.DecodeBytes(txData, &transaction)
@@ -37,7 +36,7 @@ func TestDebugTxRlp(t *testing.T){
 func TestTxSize(t *testing.T){
 	keyAlice, _ := model.CreateKey()
 	ms := model.NewMercurySigner(big.NewInt(1))
-	tempTx := model.NewTransaction(uint64(0), factory.BobAddrV, big.NewInt(1000), big.NewInt(10000), []byte{})
+	tempTx := model.NewTransaction(uint64(0), factory.BobAddrV, big.NewInt(1000),g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
 	tempTx.SignTx(keyAlice, ms)
 	log.Info("the tx size is:","size",tempTx.Size())
 
@@ -55,7 +54,7 @@ func TestCalculateMiniTxFee(t *testing.T){
 	}
 
 	log.Info("the extra data is:","extraData",hexutil.Encode(extraData))
-	tempTx := model.NewTransaction(uint64(0), factory.BobAddrV, big.NewInt(1000), big.NewInt(10000), extraData)
+	tempTx := model.NewTransaction(uint64(0), factory.BobAddrV, big.NewInt(1000),g_testData.TestGasPrice,g_testData.TestGasLimit, extraData)
 	keyAlice, _ := model.CreateKey()
 	ms := model.NewMercurySigner(big.NewInt(1))
 	tempTx.SignTx(keyAlice, ms)
@@ -103,7 +102,7 @@ func createBlock(num uint64, preHash common.Hash, txList []*model.Transaction, l
 
 func TestWASMContactMiniTxFee(t *testing.T){
 	params := "dipp,DIPP,1000000"
-	extraData := vm.getCreateExtraData(t, vm.WASMTokenPath, vm.AbiTokenPath, params)
+	extraData := g_testData.GetCreateExtraData(t,g_testData.WASMTokenPath,g_testData.AbiTokenPath, params)
 
 	extraData, err := utils.ParseCreateContractData(extraData)
 	assert.NoError(t,err)
@@ -148,7 +147,7 @@ func TestWASMContactMiniTxFee(t *testing.T){
 	assert.NoError(t,err)
 
 	log.Info("the contract tx gasUsed is:","gasUsed",receipt.GasUsed)
-	log.Info("the contract tx used TxFee is:","txFee",txConfigCreate.Tx.(*model.Transaction).GetContractTxFee())
+	log.Info("the contract tx used TxFee is:","txFee",txConfigCreate.Tx.(*model.Transaction).GetActualTxFee())
 
 	log.Info("the contract tx size is: ","size",txConfigCreate.Tx.Size())
 }

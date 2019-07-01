@@ -17,6 +17,7 @@
 package model
 
 import (
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"testing"
 
 	"github.com/dipperin/dipperin-core/common"
@@ -34,7 +35,7 @@ func createBlock(number uint64, txs []*model.Transaction) *model.Block {
 
 func createRegisterTX(nonce uint64, amount *big.Int) *model.Transaction {
 	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewRegisterTransaction(nonce, amount, big.NewInt(10000))
+	tx := model.NewRegisterTransaction(nonce, amount, g_testData.TestGasPrice,g_testData.TestGasLimit)
 	alicePriv := "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232031"
 	key, _ := crypto.HexToECDSA(alicePriv)
 	signedTx, _ := tx.SignTx(key, fs1)
@@ -43,7 +44,7 @@ func createRegisterTX(nonce uint64, amount *big.Int) *model.Transaction {
 
 func createCannelTX(nonce uint64) *model.Transaction {
 	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewCancelTransaction(nonce, big.NewInt(10000))
+	tx := model.NewCancelTransaction(nonce, g_testData.TestGasPrice,g_testData.TestGasLimit)
 	alicePriv := "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232031"
 	key, _ := crypto.HexToECDSA(alicePriv)
 	signedTx, _ := tx.SignTx(key, fs1)

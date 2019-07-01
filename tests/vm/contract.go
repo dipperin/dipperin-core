@@ -118,40 +118,7 @@ func GetBlockByNumber(client *rpc.Client, num uint64) rpc_interface.BlockResp {
 	return respBlock
 }
 
-func getCallExtraData(t *testing.T, funcName, param string) []byte {
-	input := []interface{}{
-		funcName,
-		param,
-	}
 
-	result, err := rlp.EncodeToBytes(input)
-	assert.NoError(t, err)
-	return result
-}
-
-func getCreateExtraData(t *testing.T, wasmPath, abiPath string, init string) []byte {
-	// GetContractExtraData
-	wasmBytes, err := ioutil.ReadFile(wasmPath)
-	assert.NoError(t, err)
-
-	abiBytes, err := ioutil.ReadFile(abiPath)
-	assert.NoError(t, err)
-
-	var rlpParams []interface{}
-	if init == "" {
-		rlpParams = []interface{}{
-			wasmBytes, abiBytes,
-		}
-	} else {
-		rlpParams = []interface{}{
-			wasmBytes, abiBytes, init,
-		}
-	}
-
-	data, err := rlp.EncodeToBytes(rlpParams)
-	assert.NoError(t, err)
-	return data
-}
 
 func checkTransactionOnChain(client *rpc.Client, txHashList []common.Hash) {
 	for i := 0; i < len(txHashList); i++ {

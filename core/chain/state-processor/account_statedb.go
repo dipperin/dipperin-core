@@ -24,6 +24,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/common/util/json-kv"
 	"github.com/dipperin/dipperin-core/core/contract"
+
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
@@ -1187,7 +1188,7 @@ func (state *AccountStateDB) IntermediateRoot() (result common.Hash, err error) 
 
 //todo these processes are removed afterwards。
 // todo Write a unit test for each transaction to cover all situations
-func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint64) (err error) {
+/*func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint64) (err error) {
 	// All transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
 	err = state.processBasicTx(tx)
 	if err != nil {
@@ -1216,7 +1217,7 @@ func (state *AccountStateDB) ProcessTx(tx model.AbstractTransaction, height uint
 		err = g_error.UnknownTxTypeErr
 	}
 	return
-}
+}*/
 
 func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *model.ReceiptPara, blockGasUsed *uint64) error {
 	if tx.GetType() == common.AddressTypeContractCreate || tx.GetType() == common.AddressTypeContractCall {
@@ -1257,7 +1258,7 @@ type TxProcessConfig struct {
 func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
 	// All transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
 	if conf.Tx.GetType() != common.AddressTypeContractCall && conf.Tx.GetType() != common.AddressTypeContractCreate {
-		err = state.processBasicTx(conf.Tx)
+		err = state.processBasicTx(conf)
 		if err != nil {
 			log.Debug("processBasicTx failed", "err", err)
 			return
@@ -1299,20 +1300,20 @@ func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
 	}
 
 	//updating tx fee
-	conf.Tx.(*model.Transaction).PaddingContractTxFee(conf.TxFee)
+	conf.Tx.(*model.Transaction).PaddingActualTxFee(conf.TxFee)
 	_, err = conf.Tx.PaddingReceipt(par)
 	return
 }
 
-func (state *AccountStateDB) processBasicTx(tx model.AbstractTransaction) (err error) {
-	sender, err := tx.Sender(nil)
-	receiver := *(tx.To())
+func (state *AccountStateDB) processBasicTx(conf *TxProcessConfig) (err error) {
+	sender, err := conf.Tx.Sender(nil)
+	receiver := *(conf.Tx.To())
 	if err != nil {
 		log.Debug("get Tx sender failed", "err", err)
 		return
 	}
 	if sender.IsEmpty() || receiver.IsEmpty() {
-		log.Warn("Tx ("+tx.CalTxId().Hex()+") but sender or receiver is empty", "sender", sender, "receiver", receiver)
+		log.Warn("Tx ("+conf.Tx.CalTxId().Hex()+") but sender or receiver is empty", "sender", sender, "receiver", receiver)
 		return SenderOrReceiverIsEmptyErr
 	}
 	if empty := state.IsEmptyAccount(sender); empty {
@@ -1320,14 +1321,25 @@ func (state *AccountStateDB) processBasicTx(tx model.AbstractTransaction) (err e
 	}
 
 	curNonce, _ := state.GetNonce(sender)
-	if tx.Nonce() != curNonce {
-		log.Info("Tx nonce not match", "Tx n", tx.Nonce(), "cur account nonce", curNonce)
+	if conf.Tx.Nonce() != curNonce {
+		log.Info("Tx nonce not match", "Tx n", conf.Tx.Nonce(), "cur account nonce", curNonce)
 		return g_error.ErrTxNonceNotMatch
 	}
 	/*	if empty := state.IsEmptyAccount(receiver); empty {
 			return ReceiverNotExistErr
 		}*/
-	err = state.SubBalance(sender, tx.Fee())
+	//calculated gasUsed and sub the fee
+	gasUsed,err := model.IntrinsicGas(conf.Tx.ExtraData(),false,false)
+	if err != nil{
+		return err
+	}
+
+	if gasUsed > conf.Tx.GetGasLimit(){
+		return g_error.ErrTxGasUsedIsOverGasLimit
+	}
+
+	conf.TxFee = big.NewInt(0).Mul(big.NewInt(int64(gasUsed)),conf.Tx.GetGasPrice())
+	err = state.SubBalance(sender, conf.TxFee)
 	if err != nil {
 		return
 	}
@@ -1335,6 +1347,7 @@ func (state *AccountStateDB) processBasicTx(tx model.AbstractTransaction) (err e
 	if err != nil {
 		return
 	}
+
 	return
 }
 
