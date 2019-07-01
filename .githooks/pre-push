@@ -31,7 +31,7 @@
 #
 echo "run dipperin-core tests"
 
-git reset HEAD .
+#git reset HEAD .
 count=`git diff|wc -l`
 
 if [ ${count} != 0 ];then

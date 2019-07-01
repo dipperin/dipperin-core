@@ -195,7 +195,6 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	brotherPk := brotherSK.PublicKey
 	brotherAddress := cs_crypto.GetNormalAddress(brotherPk)
 
-
 	addressSlice := []common.Address{
 		ownAddress,
 		aliceAddress,
