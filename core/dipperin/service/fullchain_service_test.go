@@ -29,14 +29,11 @@ import (
 	contract2 "github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"math/big"
 	"os"
 	"testing"
@@ -1063,10 +1060,9 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 
 	nonce = uint64(6)
 	to := common.HexToAddress(common.AddressContractCreate)
-	abiPath := "../../vm/test-data/token/token.cpp.abi.json"
-	wasmPath := "../../vm/test-data/token/token-wh.wasm"
-	err, data := getCreateExtraData(abiPath, wasmPath, "dipp,DIPP,100000000")
-	assert.NoError(t, err)
+	WASMPath := g_testData.GetWasmPath("token")
+	abiPath := g_testData.GetAbiPath("token")
+	data := g_testData.GetCreateExtraData(t, WASMPath, abiPath, "dipp,DIPP,100000000")
 	hash, err = service.SendTransactionContract(address, to, value, new(big.Int).Mul(txFee, new(big.Int).SetInt64(int64(30))), new(big.Int).SetInt64(int64(1)), data, &nonce)
 	assert.NoError(t, err)
 
@@ -1082,47 +1078,6 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	assert.Equal(t, "this transaction already in tx pool", err.Error())
 	assert.Equal(t, common.Hash{}, hash)
 }
-
-func getCreateExtraData(abiPath, wasmPath string, params string) (err error, extraData []byte) {
-	// GetContractExtraData
-	abiBytes, err := ioutil.ReadFile(abiPath)
-	if err != nil {
-		return
-	}
-	var wasmAbi utils.WasmAbi
-	err = wasmAbi.FromJson(abiBytes)
-	if err != nil {
-		return
-	}
-
-	//params := []string{"dipp", "DIPP", "100000000"}
-	wasmBytes, err := ioutil.ReadFile(wasmPath)
-	if err != nil {
-		return
-	}
-	rlpParams := []interface{}{
-		wasmBytes, abiBytes, params,
-	}
-
-	data, err := rlp.EncodeToBytes(rlpParams)
-	if err != nil {
-		return err, nil
-	}
-	return err, data
-}
-
-/*func TestGetTxData(t *testing.T)  {
-	ownAddress := common.HexToAddress("0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41")
-	to := common.HexToAddress(common.AddressContractCreate)
-	sw, err := soft_wallet.NewSoftWallet()
-	assert.NoError(t, err)
-	sw.Open("/Users/konggan/tmp/dipperin_apps/node/CSWallet", "CSWallet","123")
-
-	tx := model.NewTransactionSc(0, &to, new(big.Int).SetInt64(10), new(big.Int).SetInt64(1110), 10, extraData)
-
-	account := accounts.Account{ownAddress}
-	signCallTx, err := sw.SignTx(account, callTx, nil )
-}*/
 
 func TestMercuryFullChainService_SendTransaction_Error(t *testing.T) {
 	manager := createWalletManager(t)

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
-	"io/ioutil"
 	"reflect"
 	"strings"
 )
@@ -169,47 +168,3 @@ func ParseCreateContractData(rlpData []byte) (extraData []byte, err error) {
 	return rlp.EncodeToBytes(rlpParams)
 }
 
-// get Contract data
-func GetExtraData(abiPath, wasmPath string, params []string) (err error, extraData []byte) {
-	// GetContractExtraData
-	abiBytes, err := ioutil.ReadFile(abiPath)
-	if err != nil {
-		return
-	}
-	var wasmAbi WasmAbi
-	err = wasmAbi.FromJson(abiBytes)
-	if err != nil {
-		return
-	}
-	var args []InputParam
-	for _, v := range wasmAbi.AbiArr {
-		if strings.EqualFold("init", v.Name) && strings.EqualFold(v.Type, "function") {
-			args = v.Inputs
-		}
-	}
-	//params := []string{"dipp", "DIPP", "100000000"}
-	wasmBytes, err := ioutil.ReadFile(wasmPath)
-	if err != nil {
-		return
-	}
-	rlpParams := []interface{}{
-		wasmBytes, abiBytes,
-	}
-	if len(params) != len(args) {
-		return errors.New("params length and args length not equal"), nil
-	}
-	for i, v := range args {
-		bts := params[i]
-		re, err := StringConverter(bts, v.Type)
-		if err != nil {
-			return err, nil
-		}
-		rlpParams = append(rlpParams, re)
-		//inputParams = append(inputParams, re)
-	}
-	data, err := rlp.EncodeToBytes(rlpParams)
-	if err != nil {
-		return err, nil
-	}
-	return err, data
-}

@@ -175,20 +175,18 @@ func genInput(t *testing.T, funcName string, param [][]byte) []byte {
 	return buffer.Bytes()
 }
 
-
 func getContract(t *testing.T, addr common.Address, code, abi string, input []byte) *Contract {
 	fileCode, err := ioutil.ReadFile(code)
 	assert.NoError(t, err)
 
 	fileABI, err := ioutil.ReadFile(abi)
 	assert.NoError(t, err)
-
 	return &Contract{
-		self: fakeContractRef{addr: addr},
-		Code: fileCode,
-		Gas:  model.TxGas,
-		Input:input,
-		ABI:fileABI,
+		self:  fakeContractRef{addr: addr},
+		Code:  fileCode,
+		ABI:   fileABI,
+		Gas:   model.TxGas,
+		Input: input,
 	}
 }
 

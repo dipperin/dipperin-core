@@ -12,10 +12,11 @@ import (
 	"io/ioutil"
 	"math/big"
 	"testing"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 )
 
 // Test cannot revert after commit
-func TestAccountStateDB_RevertToSnapshot1(t *testing.T){
+func TestAccountStateDB_RevertToSnapshot1(t *testing.T) {
 	db := ethdb.NewMemDatabase()
 	tdb := NewStateStorageWithCache(db)
 
@@ -34,13 +35,13 @@ func TestAccountStateDB_RevertToSnapshot1(t *testing.T){
 	err = processor.AddNonce(aliceAddr, 10)
 	assert.NoError(t, err)
 
-	before,_:= processor.GetBalance(aliceAddr)
+	before, _ := processor.GetBalance(aliceAddr)
 	assert.Equal(t, big.NewInt(2000), before)
 
 	processor.RevertToSnapshot(snapshot)
-	ba,_ := processor.GetBalance(aliceAddr)
+	ba, _ := processor.GetBalance(aliceAddr)
 	var nilBigInt *big.Int
-	assert.Equal(t,nilBigInt,ba)
+	assert.Equal(t, nilBigInt, ba)
 
 	fRoot, err := processor.Finalise()
 	assert.NoError(t, err)
@@ -50,7 +51,7 @@ func TestAccountStateDB_RevertToSnapshot1(t *testing.T){
 }
 
 // Test modification of code and abi
-func TestAccountStateDB_RevertToSnapshot2(t *testing.T){
+func TestAccountStateDB_RevertToSnapshot2(t *testing.T) {
 	db := ethdb.NewMemDatabase()
 	tdb := NewStateStorageWithCache(db)
 
@@ -69,43 +70,43 @@ func TestAccountStateDB_RevertToSnapshot2(t *testing.T){
 	err = processor.AddNonce(aliceAddr, 10)
 	assert.NoError(t, err)
 
-	err = processor.SetCode(aliceAddr,[]byte("coooode"))
-	code,err := processor.GetCode(aliceAddr)
-	assert.Equal(t,[]byte("coooode"),code)
+	err = processor.SetCode(aliceAddr, []byte("coooode"))
+	code, err := processor.GetCode(aliceAddr)
+	assert.Equal(t, []byte("coooode"), code)
 
-	err = processor.SetAbi(aliceAddr,[]byte("{input:int}"))
-	abi,err := processor.GetAbi(aliceAddr)
-	assert.Equal(t,[]byte("{input:int}"),abi)
+	err = processor.SetAbi(aliceAddr, []byte("{input:int}"))
+	abi, err := processor.GetAbi(aliceAddr)
+	assert.Equal(t, []byte("{input:int}"), abi)
 
-	root,err =processor.GetDataRoot(aliceAddr)
-	assert.NoError(t,err)
+	root, err = processor.GetDataRoot(aliceAddr)
+	assert.NoError(t, err)
 	assert.Equal(t, common.Hash{}, root)
 
-	processor.SetData(aliceAddr,"tkey",[]byte("value"))
+	processor.SetData(aliceAddr, "tkey", []byte("value"))
 
-	assert.Equal(t,[]byte("value"),processor.smartContractData[aliceAddr]["tkey"])
+	assert.Equal(t, []byte("value"), processor.smartContractData[aliceAddr]["tkey"])
 
-	formerRoot,_ := processor.GetDataRoot(aliceAddr)
+	formerRoot, _ := processor.GetDataRoot(aliceAddr)
 	err = processor.finalSmartData()
-	root,err =processor.GetDataRoot(aliceAddr)
+	root, err = processor.GetDataRoot(aliceAddr)
 
-	assert.NotEqual(t,formerRoot,root)
+	assert.NotEqual(t, formerRoot, root)
 
 	processor.RevertToSnapshot(snapshot)
-	reverted,_:=processor.GetDataRoot(aliceAddr)
+	reverted, _ := processor.GetDataRoot(aliceAddr)
 
-	assert.Equal(t,formerRoot,reverted)
-	assert.NotEqual(t,reverted,root)
+	assert.Equal(t, formerRoot, reverted)
+	assert.NotEqual(t, reverted, root)
 
-	abi,err = processor.GetAbi(aliceAddr)
-	assert.NotEqual(t,[]byte("{input:int}"),abi)
+	abi, err = processor.GetAbi(aliceAddr)
+	assert.NotEqual(t, []byte("{input:int}"), abi)
 
-	code,err = processor.GetCode(aliceAddr)
-	assert.NotEqual(t,[]byte("coooode"),code)
+	code, err = processor.GetCode(aliceAddr)
+	assert.NotEqual(t, []byte("coooode"), code)
 }
 
 // Test the modification of contract data
-func TestAccountStateDB_RevertToSnapshot3(t *testing.T){
+func TestAccountStateDB_RevertToSnapshot3(t *testing.T) {
 	db := ethdb.NewMemDatabase()
 	tdb := NewStateStorageWithCache(db)
 
@@ -123,21 +124,21 @@ func TestAccountStateDB_RevertToSnapshot3(t *testing.T){
 	err = processor.AddNonce(aliceAddr, 10)
 	assert.NoError(t, err)
 
-	err = processor.SetCode(aliceAddr,[]byte("coooode"))
-	err = processor.SetAbi(aliceAddr,[]byte("{input:int}"))
-	processor.SetData(aliceAddr,"tkey",[]byte("value"))
+	err = processor.SetCode(aliceAddr, []byte("coooode"))
+	err = processor.SetAbi(aliceAddr, []byte("{input:int}"))
+	processor.SetData(aliceAddr, "tkey", []byte("value"))
 
-	assert.Equal(t,[]byte("value"),processor.smartContractData[aliceAddr]["tkey"])
+	assert.Equal(t, []byte("value"), processor.smartContractData[aliceAddr]["tkey"])
 
 	err = processor.finalSmartData()
-	root,err =processor.GetDataRoot(aliceAddr)
+	root, err = processor.GetDataRoot(aliceAddr)
 
-	tr,err:= processor.getContractTrie(aliceAddr)
-	v,err:=tr.TryGet(GetContractFieldKey(aliceAddr,"tkey"))
-	assert.Equal(t,v,[]byte("value"))
+	tr, err := processor.getContractTrie(aliceAddr)
+	v, err := tr.TryGet(GetContractFieldKey(aliceAddr, "tkey"))
+	assert.Equal(t, v, []byte("value"))
 }
 
-func TestAccountStateDB_RevertToSnapshot4(t *testing.T){
+func TestAccountStateDB_RevertToSnapshot4(t *testing.T) {
 	db := ethdb.NewMemDatabase()
 	tdb := NewStateStorageWithCache(db)
 
@@ -149,58 +150,58 @@ func TestAccountStateDB_RevertToSnapshot4(t *testing.T){
 	processor.AddBalance(aliceAddr, big.NewInt(2000))
 	processor.AddNonce(aliceAddr, 10)
 
-	processor.SetCode(aliceAddr,[]byte("coooode"))
-	processor.SetAbi(aliceAddr,[]byte("{input:int}"))
+	processor.SetCode(aliceAddr, []byte("coooode"))
+	processor.SetAbi(aliceAddr, []byte("{input:int}"))
 
-	processor.SetData(aliceAddr,"tkey",[]byte("value"))
-	processor.SetData(aliceAddr,"taaa",[]byte("vaaaa"))
+	processor.SetData(aliceAddr, "tkey", []byte("value"))
+	processor.SetData(aliceAddr, "taaa", []byte("vaaaa"))
 
-	assert.Equal(t,[]byte("value"),processor.smartContractData[aliceAddr]["tkey"])
-	assert.Equal(t,[]byte("vaaaa"),processor.smartContractData[aliceAddr]["taaa"])
+	assert.Equal(t, []byte("value"), processor.smartContractData[aliceAddr]["tkey"])
+	assert.Equal(t, []byte("vaaaa"), processor.smartContractData[aliceAddr]["taaa"])
 
 	processor.RevertToSnapshot(snapshot)
-	assert.Equal(t,true,processor.smartContractData[aliceAddr]==nil)
+	assert.Equal(t, true, processor.smartContractData[aliceAddr] == nil)
 }
 
-func fakeGetBlockHash(number uint64) common.Hash{
+func fakeGetBlockHash(number uint64) common.Hash {
 	return common.Hash{}
 }
-func TestContractCreate(t *testing.T){
+func TestContractCreate(t *testing.T) {
 	db := ethdb.NewMemDatabase()
 	tdb := NewStateStorageWithCache(db)
 
-	processor, _:= NewAccountStateDB(common.Hash{}, tdb)
+	processor, _ := NewAccountStateDB(common.Hash{}, tdb)
 	processor.NewAccountState(aliceAddr)
 	processor.AddBalance(aliceAddr, big.NewInt(200000000))
 	processor.AddNonce(aliceAddr, 11)
 
-	nonce,_:=processor.GetNonce(aliceAddr)
+	nonce, _ := processor.GetNonce(aliceAddr)
 	fmt.Println(nonce)
 	tx := FakeContract(t)
-	assert.Equal(t,common.AddressTypeContractCreate,int(tx.GetType()))
+	assert.Equal(t, common.AddressTypeContractCreate, int(tx.GetType()))
 
 	//blockGas := uint64(100000000)
-	block := model.NewBlock(model.NewHeader(1, 10, common.Hash{}, common.HexToHash("1111"), common.HexToDiff("0x20ffffff"), big.NewInt(324234), common.Address{}, common.BlockNonceFromInt(432423)),nil,nil)
+	block := model.NewBlock(model.NewHeader(1, 10, common.Hash{}, common.HexToHash("1111"), common.HexToDiff("0x20ffffff"), big.NewInt(324234), common.Address{}, common.BlockNonceFromInt(432423)), nil, nil)
 	gasLimit := block.GasLimit()
 	gasUsed := block.GasUsed()
 	conf := TxProcessConfig{
-		Tx:tx,
-		TxIndex:0,
-		Header:block.Header().(*model.Header),
-		GetHash:fakeGetBlockHash,
+		Tx:       tx,
+		TxIndex:  0,
+		Header:   block.Header().(*model.Header),
+		GetHash:  fakeGetBlockHash,
 		GasLimit: &gasLimit,
-		GasUsed: &gasUsed,
-		TxFee: big.NewInt(0),
+		GasUsed:  &gasUsed,
+		TxFee:    big.NewInt(0),
 	}
 
 	tx.PaddingTxIndex(0)
-	err:=processor.ProcessTxNew(&conf)
-	assert.NoError(t,err)
+	err := processor.ProcessTxNew(&conf)
+	assert.NoError(t, err)
 }
 
-func FakeContract(t *testing.T) *model.Transaction{
-	codePath := "./../../vm/test-data/map-string/map2.wasm"
-	abiPath := "./../../vm/test-data/map-string/StringMap.cpp.abi.json"
+func FakeContract(t *testing.T) *model.Transaction {
+	codePath := g_testData.GetWasmPath("map-string")
+	abiPath := g_testData.GetAbiPath("map-string")
 	fileCode, err := ioutil.ReadFile(codePath)
 	assert.NoError(t, err)
 
@@ -218,10 +219,10 @@ func FakeContract(t *testing.T) *model.Transaction{
 
 	fs := model.NewMercurySigner(big.NewInt(1))
 	to := common.HexToAddress("0x00120000000000000000000000000000000000000000")
-	tx := model.NewTransactionSc(uint64(11),&to,big.NewInt(0),big.NewInt(1),uint64(20000000),buffer.Bytes())
+	tx := model.NewTransactionSc(uint64(11), &to, big.NewInt(0), big.NewInt(1), uint64(20000000), buffer.Bytes())
 	key, _ := createKey()
 
-	log.Info("the tx receipt is:","to",tx.To().Hex())
+	log.Info("the tx receipt is:", "to", tx.To().Hex())
 	tx.SignTx(key, fs)
 	return tx
 }

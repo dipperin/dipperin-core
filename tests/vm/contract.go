@@ -8,19 +8,12 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/core/vm/model"
-	"io/ioutil"
 	"testing"
 	"github.com/stretchr/testify/assert"
-	"github.com/ethereum/go-ethereum/rlp"
 	"time"
 	"fmt"
-	"path/filepath"
-	"github.com/dipperin/dipperin-core/common/util"
-)
-
-var (
-	AbiTokenPath  = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/test-data/token-const/token.cpp.abi.json")
-	WASMTokenPath = filepath.Join(util.HomeDir(), "go/src/github.com/dipperin/dipperin-core/core/vm/test-data/token-const/token.wasm")
+	"github.com/dipperin/dipperin-core/tests/node-cluster"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 )
 
 func LogTestPrint(function, msg string, ctx ...interface{}) {
@@ -54,11 +47,11 @@ func SendTransactionContract(client *rpc.Client, from, to common.Address, value,
 
 func Call(client *rpc.Client, from, to common.Address, data []byte) error {
 	var resp string
-	if err := client.Call(&resp, GetRpcTXMethod("CallContract"), from, to, data, uint64(0)); err != nil {
-		LogTestPrint("Test", "CallContract failed", "err", err)
+	if err := client.Call(&resp, GetRpcTXMethod("SendCallContract"), from, to, data, uint64(0)); err != nil {
+		LogTestPrint("Test", "SendCallContract failed", "err", err)
 		return err
 	}
-	LogTestPrint("Test", "CallContract Successful", "resp", resp)
+	LogTestPrint("Test", "SendCallContract Successful", "resp", resp)
 	return nil
 }
 
@@ -118,7 +111,32 @@ func GetBlockByNumber(client *rpc.Client, num uint64) rpc_interface.BlockResp {
 	return respBlock
 }
 
+func SendCreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName, wasmPath, abiPath string) common.Hash {
+	client := cluster.NodeClient[nodeName]
+	from, err := cluster.GetNodeMainAddress(nodeName)
+	LogTestPrint("Test", "From", "addr", from.Hex())
+	assert.NoError(t, err)
 
+	to := common.HexToAddress(common.AddressContractCreate)
+	data := g_testData.GetCreateExtraData(t, wasmPath, abiPath, "")
+	gasLimit := big.NewInt(0).SetUint64(g_testData.TestGasLimit)
+	txHash, innerErr := SendTransactionContract(client, from, to, g_testData.TestValue, gasLimit, g_testData.TestGasPrice, data)
+	assert.NoError(t, innerErr)
+	return txHash
+}
+
+func SendCallContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName string, txHash common.Hash, input []byte) common.Hash {
+	client := cluster.NodeClient[nodeName]
+	from, err := cluster.GetNodeMainAddress(nodeName)
+	LogTestPrint("Test", "From", "addr", from.Hex())
+	assert.NoError(t, err)
+
+	to := GetContractAddressByTxHash(client, txHash)
+	gasLimit := big.NewInt(0).SetUint64(g_testData.TestGasLimit)
+	txHash, innerErr := SendTransactionContract(client, from, to, g_testData.TestValue, gasLimit, g_testData.TestGasPrice, input)
+	assert.NoError(t, innerErr)
+	return txHash
+}
 
 func checkTransactionOnChain(client *rpc.Client, txHashList []common.Hash) {
 	for i := 0; i < len(txHashList); i++ {

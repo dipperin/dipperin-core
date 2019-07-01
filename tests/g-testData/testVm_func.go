@@ -20,7 +20,7 @@ func GetCallExtraData(t *testing.T, funcName, param string) []byte {
 
 func GetCreateExtraData(t *testing.T, wasmPath, abiPath string, init string) []byte {
 	// GetContractExtraData
-	wasmBytes, err := ioutil.ReadFile(wasmPath)
+	WASMBytes, err := ioutil.ReadFile(wasmPath)
 	assert.NoError(t, err)
 
 	abiBytes, err := ioutil.ReadFile(abiPath)
@@ -29,11 +29,11 @@ func GetCreateExtraData(t *testing.T, wasmPath, abiPath string, init string) []b
 	var rlpParams []interface{}
 	if init == "" {
 		rlpParams = []interface{}{
-			wasmBytes, abiBytes,
+			WASMBytes, abiBytes,
 		}
 	} else {
 		rlpParams = []interface{}{
-			wasmBytes, abiBytes, init,
+			WASMBytes, abiBytes, init,
 		}
 	}
 

@@ -65,7 +65,7 @@ func (st *StateTransition) useGas(amount uint64) error {
 }
 
 func (st *StateTransition) buyGas() error {
-	log.Info("the tx GasLimit and GasPrice is:", "gasLimit", st.msg.Gas(), "gasPrice", st.gasPrice)
+	log.Info("the tx GasLimit and GasPrice is:", "testGasLimit", st.msg.Gas(), "testGasPrice", st.gasPrice)
 	msgVal := new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Gas()), st.gasPrice)
 	log.Info("Call buyGas", "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()), "value", msgVal)
 	if st.lifeVm.GetStateDB().GetBalance(st.msg.From()).Cmp(msgVal) < 0 {
@@ -157,7 +157,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 	st.refundGas()
 	//add coinBase reward in ProcessExceptTxs
 	fee = new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice)
-	//st.state.AddBalance(st.lifeVm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
+	//st.state.AddBalance(st.lifeVm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.testGasPrice))
 	log.Info("TransitionDb successful", "failed", vmerr != nil, "gasUsed Total", st.gasUsed())
 	return ret, st.gasUsed(), vmerr != nil, fee, err
 }

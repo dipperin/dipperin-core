@@ -39,6 +39,8 @@ import (
 	"math/big"
 	"testing"
 	"time"
+	"strings"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 )
 
 var (
@@ -50,10 +52,9 @@ var (
 	charlieAddr = common.HexToAddress("0x00007dbbf084F4a6CcC070568f7674d4c2CE8CD2709E")
 
 	TrieError = errors.New("trie error")
-	TxError   = errors.New("Tx error")
 
-	gasPrice = big.NewInt(2)
-	gasLimit = uint64(2100000)
+	testGasPrice = big.NewInt(2)
+	testGasLimit = uint64(2100000)
 )
 
 func createKey() (*ecdsa.PrivateKey, *ecdsa.PrivateKey) {
@@ -81,7 +82,7 @@ func createContractTx(t *testing.T, code, abi string) *model.Transaction {
 	fs := model.NewMercurySigner(big.NewInt(1))
 	data := getContractCode(t, code, abi)
 	to := common.HexToAddress(common.AddressContractCreate)
-	tx := model.NewTransactionSc(0, &to, big.NewInt(200), gasPrice, gasLimit, data)
+	tx := model.NewTransactionSc(0, &to, big.NewInt(200), testGasPrice, testGasLimit, data)
 	tx.SignTx(key, fs)
 	tx.PaddingTxIndex(0)
 	return tx
@@ -91,7 +92,7 @@ func callContractTx(t *testing.T, to *common.Address, funcName string, param [][
 	key, _ := createKey()
 	fs := model.NewMercurySigner(big.NewInt(1))
 	data := getContractInput(t, funcName, param)
-	tx := model.NewTransactionSc(nonce, to, big.NewInt(200), gasPrice, gasLimit, data)
+	tx := model.NewTransactionSc(nonce, to, big.NewInt(200), testGasPrice, testGasLimit, data)
 	tx.SignTx(key, fs)
 	tx.PaddingTxIndex(0)
 	return tx
@@ -153,7 +154,7 @@ func getTestVm() *vm.VM {
 		Transfer:    testTransfer,
 		GasLimit:    model2.TxGas,
 		GetHash:     getTestHashFunc(),
-	}, fakeStateDB{account: a, code: c, abi:abi}, vm.DEFAULT_VM_CONFIG)
+	}, fakeStateDB{account: a, code: c, abi: abi}, vm.DEFAULT_VM_CONFIG)
 }
 
 func getTestHashFunc() func(num uint64) common.Hash {
@@ -196,6 +197,46 @@ func getContractInput(t *testing.T, funcName string, param [][]byte) []byte {
 	err := rlp.Encode(buffer, input)
 	assert.NoError(t, err)
 	return buffer.Bytes()
+}
+
+// get Contract data
+func getCreateExtraData(wasmPath, abiPath string, params []string) (extraData []byte, err error) {
+	// GetContractExtraData
+	abiBytes, err := ioutil.ReadFile(abiPath)
+	if err != nil {
+		return
+	}
+	var wasmAbi utils.WasmAbi
+	err = wasmAbi.FromJson(abiBytes)
+	if err != nil {
+		return
+	}
+	var args []utils.InputParam
+	for _, v := range wasmAbi.AbiArr {
+		if strings.EqualFold("init", v.Name) && strings.EqualFold(v.Type, "function") {
+			args = v.Inputs
+		}
+	}
+	//params := []string{"dipp", "DIPP", "100000000"}
+	wasmBytes, err := ioutil.ReadFile(wasmPath)
+	if err != nil {
+		return
+	}
+	rlpParams := []interface{}{
+		wasmBytes, abiBytes,
+	}
+	if len(params) != len(args) {
+		return nil, errors.New("vm_utils: length of input and abi not match")
+	}
+	for i, v := range args {
+		bts := params[i]
+		re, innerErr := utils.StringConverter(bts, v.Type)
+		if innerErr != nil {
+			return nil, innerErr
+		}
+		rlpParams = append(rlpParams, re)
+	}
+	return rlp.EncodeToBytes(rlpParams)
 }
 
 //Get a test transaction
