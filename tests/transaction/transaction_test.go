@@ -3,6 +3,7 @@ package transaction
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/common/g-testData"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
@@ -102,7 +103,11 @@ func createBlock(num uint64, preHash common.Hash, txList []*model.Transaction, l
 
 func TestWASMContactMiniTxFee(t *testing.T){
 	params := "dipp,DIPP,1000000"
+<<<<<<< Updated upstream
 	extraData := g_testData.GetCreateExtraData(t,g_testData.WASMTokenPath,g_testData.AbiTokenPath, params)
+=======
+	extraData := vm.GetCreateExtraData(t, g_testData.WASMTokenPath, g_testData.AbiTokenPath, params)
+>>>>>>> Stashed changes
 
 	extraData, err := utils.ParseCreateContractData(extraData)
 	assert.NoError(t,err)
