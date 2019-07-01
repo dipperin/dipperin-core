@@ -40,7 +40,7 @@ if [ ${count} != 0 ];then
     echo "Running tests"
 fi
 
-#./cs.sh
+./cs.sh
 #
 # $? stores exit value of the last command
 FAIL=$?
