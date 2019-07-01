@@ -2,29 +2,30 @@ package g_testData
 
 import (
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
-	"testing"
 )
 
-func GetCallExtraData(t *testing.T, funcName, param string) []byte {
+func GetCallExtraData(funcName, param string) ([]byte,error) {
 	input := []interface{}{
 		funcName,
 		param,
 	}
 
 	result, err := rlp.EncodeToBytes(input)
-	assert.NoError(t, err)
-	return result
+	return result,err
 }
 
-func GetCreateExtraData(t *testing.T, wasmPath, abiPath string, init string) []byte {
+func GetCreateExtraData( wasmPath, abiPath string, init string) ([]byte,error) {
 	// GetContractExtraData
 	WASMBytes, err := ioutil.ReadFile(wasmPath)
-	assert.NoError(t, err)
+	if err !=nil {
+		return WASMBytes,err
+	}
 
 	abiBytes, err := ioutil.ReadFile(abiPath)
-	assert.NoError(t, err)
+	if err !=nil{
+		return abiBytes,err
+	}
 
 	var rlpParams []interface{}
 	if init == "" {
@@ -38,6 +39,5 @@ func GetCreateExtraData(t *testing.T, wasmPath, abiPath string, init string) []b
 	}
 
 	data, err := rlp.EncodeToBytes(rlpParams)
-	assert.NoError(t, err)
-	return data
+	return data,err
 }

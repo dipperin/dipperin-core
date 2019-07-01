@@ -118,7 +118,8 @@ func SendCreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNam
 	assert.NoError(t, err)
 
 	to := common.HexToAddress(common.AddressContractCreate)
-	data := g_testData.GetCreateExtraData(t, wasmPath, abiPath, "")
+	data,err := g_testData.GetCreateExtraData(wasmPath, abiPath, "")
+	assert.NoError(t,err)
 	gasLimit := big.NewInt(0).SetUint64(g_testData.TestGasLimit)
 	txHash, innerErr := SendTransactionContract(client, from, to, g_testData.TestValue, gasLimit, g_testData.TestGasPrice, data)
 	assert.NoError(t, innerErr)

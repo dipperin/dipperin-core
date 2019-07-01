@@ -18,11 +18,11 @@ package model
 
 import (
 	"crypto/ecdsa"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
-	"math/big"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"math/big"
 	"time"
 	"errors"
 )
