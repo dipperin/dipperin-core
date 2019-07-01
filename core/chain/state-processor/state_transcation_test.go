@@ -6,18 +6,19 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 )
 
 func TestApplyMessage(t *testing.T) {
-	var testPath = "/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/test-data/event"
-	tx := createContractTx(t, testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
+	WASMPath := g_testData.GetWasmPath("event")
+	AbiPath := g_testData.GetAbiPath("event")
+	tx := createContractTx(t, WASMPath, AbiPath)
 	msg, err := tx.AsMessage()
 	assert.NoError(t, err)
 
 	testVm := getTestVm()
-
-	gasPool := uint64(5*gasLimit)
-	result, usedGas, failed,_, err := ApplyMessage(testVm, msg, &gasPool)
+	gasPool := uint64(5 * testGasLimit)
+	result, usedGas, failed, _, err := ApplyMessage(testVm, msg, &gasPool)
 	assert.NoError(t, err)
 	assert.False(t, failed)
 	assert.NotNil(t, usedGas)
@@ -32,7 +33,7 @@ func TestApplyMessage(t *testing.T) {
 	msg, err = tx.AsMessage()
 	assert.NoError(t, err)
 
-	result, usedGas, failed,_, err = ApplyMessage(testVm, msg, &gasPool)
+	result, usedGas, failed, _, err = ApplyMessage(testVm, msg, &gasPool)
 	assert.NoError(t, err)
 	assert.False(t, failed)
 	assert.NotNil(t, usedGas)

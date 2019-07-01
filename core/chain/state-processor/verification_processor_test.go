@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package state_processor
 
 import (
@@ -41,7 +40,7 @@ func TestAccountStateDB_ProcessVerification(t *testing.T) {
 	assert.EqualValues(t, uint64(30), aliceOriginalPerformance)
 
 	// Valid
-	err = processor.ProcessVerification(verify,0)
+	err = processor.ProcessVerification(verify, 0)
 	assert.NoError(t, err)
 	err = processor.ProcessVerifierNumber(aliceAddr)
 	assert.NoError(t, err)
@@ -49,14 +48,14 @@ func TestAccountStateDB_ProcessVerification(t *testing.T) {
 	assert.NoError(t, err)
 	aliceNewVerifyNum, err := processor.GetVerifyNum(aliceAddr)
 	assert.NoError(t, err)
-	assert.EqualValues(t, aliceOriginalVerifyNum + 1, aliceNewVerifyNum)
-	assert.EqualValues(t, aliceOriginalCommitNum + 1, aliceNewCommitNum)
+	assert.EqualValues(t, aliceOriginalVerifyNum+1, aliceNewVerifyNum)
+	assert.EqualValues(t, aliceOriginalCommitNum+1, aliceNewCommitNum)
 
 	// Invalid
-	processor, err = NewAccountStateDB(common.Hash{}, fakeStateStorage{getErr:TrieError})
+	processor, err = NewAccountStateDB(common.Hash{}, fakeStateStorage{getErr: TrieError})
 	assert.NoError(t, err)
 
-	err = processor.ProcessVerification(verify,0)
+	err = processor.ProcessVerification(verify, 0)
 	assert.Equal(t, g_error.AccountNotExist, err)
 	err = processor.ProcessVerifierNumber(common.HexToAddress("234"))
 	assert.Equal(t, g_error.AccountNotExist, err)

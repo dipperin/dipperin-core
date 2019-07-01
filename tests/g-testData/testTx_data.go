@@ -5,8 +5,8 @@ import (
 	"math/big"
 )
 
-var TestGasPrice = big.NewInt(1)
-
-var TestGasLimit = 2*model.TxGas
-
-
+var (
+	TestGasPrice = big.NewInt(1)
+	TestGasLimit = 2 * model.TxGas
+	TestValue    = big.NewInt(100)
+)

@@ -5,40 +5,44 @@ import (
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 )
 
 func TestWASMInterpreter_Run_map_string(t *testing.T) {
-/*	var testPath = "./map-string"
-	testVm := getTestVm()
-	interpreter := testVm.Interpreter
+/*	WASMPath := g_testData.GetWasmPath("map-string")
+	AbiPath := g_testData.GetAbiPath("map-string")*/
+	/*	WASMPath := "/home/qydev/go/src/dipperin-c/dipc/testcontract/mapString/mapString.wasm"
+		AbiPath := "/home/qydev/go/src/dipperin-c/dipc/testcontract/mapString/mapString.cpp.abi.json"
+		testVm := getTestVm()
+		interpreter := testVm.Interpreter
 
-	key := []byte("balance")
-	value := vmcommon.Int32ToBytes(255)
+		key := []byte("balance")
+		value := utils.Int32ToBytes(255)
 
-	expect := make([]byte, 32)
-	param := [][]byte{key, value}
+		expect := make([]byte, 32)
+		param := [][]byte{key, value}
 
-	inputs := genInput(t, "setBalance", param)
-	contract := getContract(t, contractAddr, testPath+"/map2.wasm", testPath+"/StringMap.cpp.abi.json", inputs)
-	result, err := interpreter.Run(testVm, contract, false)
-	assert.Equal(t, expect, result)
-	assert.NoError(t, err)
+		inputs := genInput(t, "setBalance", param)
+		contract := getContract(t, contractAddr, WASMPath, AbiPath, inputs)
+		result, err := interpreter.Run(testVm, contract, false)
+		assert.Equal(t, expect, result)
+		assert.NoError(t, err)
 
-	fmt.Println("-----------------------------------------")
-
+		fmt.Println("-----------------------------------------")*/
+/*
 	key1 := []byte("bbb")
-	value1 := vmcommon.Int32ToBytes(222)
+	value1 := utils.Int32ToBytes(222)
 	param1 := [][]byte{key1, value1}
 
 	inputs = genInput(t, "setBalance", param1)
-	contract = getContract(t, contractAddr, testPath+"/map2.wasm", testPath+"/StringMap.cpp.abi.json", inputs)
+	contract = getContract(t, contractAddr, WASMPath, AbiPath, inputs)
 	result, err = interpreter.Run(testVm, contract, false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
 
 	fmt.Println("-----------------------------------------")
 	inputs = genInput(t, "getBalance", [][]byte{key})
-	contract = getContract(t, contractAddr, testPath+"/map2.wasm", testPath+"/StringMap.cpp.abi.json", inputs)
+	contract = getContract(t, contractAddr, WASMPath, AbiPath, inputs)
 	result, err = interpreter.Run(testVm, contract, false)
 	expect = append(expect[:28], value...)
 	assert.Equal(t, expect, result)
@@ -46,8 +50,8 @@ func TestWASMInterpreter_Run_map_string(t *testing.T) {
 }
 
 func TestWASMInterpreter_Run_event(t *testing.T) {
-	//var testPath = "/home/qydev/go/src/github.com/PlatONnetwork/PlatON-CDT/build/bin/event"
-	var testPath = "./test-data/event"
+	WASMPath := g_testData.GetWasmPath("event")
+	AbiPath := g_testData.GetAbiPath("event")
 	testVm := getTestVm()
 	interpreter := testVm.Interpreter
 
@@ -59,7 +63,7 @@ func TestWASMInterpreter_Run_event(t *testing.T) {
 	param := [][]byte{name, num}
 
 	inputs := genInput(t, "hello", param)
-	contract := getContract(t, contractAddr, testPath+"/event.wasm", testPath+"/event.cpp.abi.json", inputs)
+	contract := getContract(t, contractAddr, WASMPath, AbiPath, inputs)
 	result, err := interpreter.Run(testVm, contract, false)
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)

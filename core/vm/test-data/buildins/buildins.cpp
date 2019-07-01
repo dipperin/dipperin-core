@@ -355,4 +355,145 @@ void buildins::arithmeticTest() {
     __multi3(res, 1, 0, uint64_t(rhs_b), uint64_t(rhs_b >> 64));
     DipcAssert(res == -30, "__multi3 result should be -30");    
   }
+
+  {
+    long double res = 0;
+    __int128 lhs_a = -30;
+    __int128 rhs_a = 100;
+    __int128 lhs_b = 100;
+    __int128 rhs_b = -30;
+
+    __addtf3(res, uint64_t(lhs_a), uint64_t(lhs_a >> 64), uint64_t(rhs_a),
+            uint64_t(rhs_a >> 64));
+    DipcAssert(res == 70, "__addtf3 result should be 70");
+
+    __addtf3(res, uint64_t(lhs_b), uint64_t(lhs_b >> 64), uint64_t(rhs_b),
+            uint64_t(rhs_b >> 64));
+    DipcAssert(res == 70, "__addtf3 result should be 70");
+
+    __addtf3(res, uint64_t(lhs_a), uint64_t(lhs_a >> 64), uint64_t(rhs_b),
+            uint64_t(rhs_b >> 64));
+    DipcAssert(res == -60, "__addtf3 result should be -60");
+
+    __addtf3(res, uint64_t(lhs_b), uint64_t(lhs_b >> 64), uint64_t(rhs_a),
+            uint64_t(rhs_a >> 64));
+    DipcAssert(res == 200, "__addtf3 result should be 200");
+  }
+
+  {
+    long double res = 0;
+    __int128 lhs_a = -30;
+    __int128 rhs_a = 100;
+    __int128 lhs_b = 100;
+    __int128 rhs_b = -30;
+
+    __subtf3(res, uint64_t(lhs_a), uint64_t(lhs_a >> 64), uint64_t(rhs_a),
+            uint64_t(rhs_a >> 64));
+    DipcAssert(res == -130, "__subtf3 result should be -130");
+
+    __subtf3(res, uint64_t(lhs_b), uint64_t(lhs_b >> 64), uint64_t(rhs_b),
+            uint64_t(rhs_b >> 64));
+    DipcAssert(res == 130, "__subtf3 result should be 130");
+
+    __subtf3(res, uint64_t(lhs_a), uint64_t(lhs_a >> 64), uint64_t(rhs_b),
+            uint64_t(rhs_b >> 64));
+    DipcAssert(res == 0, "__subtf3 result should be 0");
+    
+    __subtf3(res, uint64_t(lhs_b), uint64_t(lhs_b >> 64), uint64_t(rhs_a),
+            uint64_t(rhs_a >> 64));
+    DipcAssert(res == 0, "__subtf3 result should be 0");
+  }
+
+  {
+    /*
+    * tests for negative values
+    */
+    long double res = 0;
+    __int128 lhs_a = -30;
+    __int128 rhs_a = 100;
+    __int128 lhs_b = 100;
+    __int128 rhs_b = -30;
+
+    __multf3(res, uint64_t(lhs_a), uint64_t(lhs_a >> 64), uint64_t(rhs_a),
+            uint64_t(rhs_a >> 64));
+    DipcAssert(res == -3000, "__multf3 result should be -3000");
+
+    __multf3(res, uint64_t(lhs_b), uint64_t(lhs_b >> 64), uint64_t(rhs_b),
+            uint64_t(rhs_b >> 64));
+    DipcAssert(res == -3000, "__multf3 result should be -3000");
+
+    __multf3(res, uint64_t(lhs_a), uint64_t(lhs_a >> 64), uint64_t(rhs_b),
+            uint64_t(rhs_b >> 64));
+    DipcAssert(res == 900, "__multf3 result should be 900");
+
+    /*
+    * test for positive values
+    */
+    __multf3(res, uint64_t(lhs_b), uint64_t(lhs_b >> 64), uint64_t(rhs_a),
+            uint64_t(rhs_a >> 64));
+    DipcAssert(res == 10000, "__multf3 result should be 10000");
+
+    /*
+    * test identity
+    */
+    __multf3(res, 1, 0, uint64_t(rhs_a), uint64_t(rhs_a >> 64));
+    DipcAssert(res == 100, "__multf3 result should be 100");
+
+    __multf3(res, 1, 0, uint64_t(rhs_b), uint64_t(rhs_b >> 64));
+    DipcAssert(res == -30, "__multf3 result should be -30");    
+  }
+
+    {
+    __int128 a = 1;
+    long double ret = 0;
+    __divtf3(ret, uint64_t(a), uint64_t(a >> 64), uint64_t(a), uint64_t(a >> 64));
+
+    /*
+    * test for negative values
+    */
+    long double res = 0;
+    __int128 lhs_a = -30;
+    __int128 rhs_a = 100;
+    __int128 lhs_b = 100;
+    __int128 rhs_b = -30;
+
+    __divtf3(res, uint64_t(lhs_a), uint64_t(lhs_a >> 64), uint64_t(rhs_a),
+            uint64_t(rhs_a >> 64));
+    DipcAssert(res == 0, "__divtf3 result should be 0");
+
+    __divtf3(res, uint64_t(lhs_b), uint64_t(lhs_b >> 64), uint64_t(rhs_b),
+            uint64_t(rhs_b >> 64));
+    DipcAssert(res == -3, "__divtf3 result should be -3");
+
+    __divtf3(res, uint64_t(lhs_a), uint64_t(lhs_a >> 64), uint64_t(rhs_b),
+            uint64_t(rhs_b >> 64));
+    DipcAssert(res == 1, "__divtf3 result should be 1");
+
+    /*
+    * test for positive values
+    */
+    __int128 lhs_c = 3333;
+    __int128 rhs_c = 3333;
+
+    __divtf3(res, uint64_t(lhs_b), uint64_t(lhs_b >> 64), uint64_t(rhs_a),
+            uint64_t(rhs_a >> 64));
+    DipcAssert(res == 1, "__divtf3 result should be 1");
+
+    __divtf3(res, uint64_t(lhs_b), uint64_t(lhs_b >> 64), uint64_t(rhs_c),
+            uint64_t(rhs_c >> 64));
+    DipcAssert(res == 0, "__divtf3 result should be 0");
+
+    __divtf3(res, uint64_t(lhs_c), uint64_t(lhs_c >> 64), uint64_t(rhs_a),
+            uint64_t(rhs_a >> 64));
+    DipcAssert(res == 33, "__divtf3 result should be 33");
+
+    /*
+    * test identity
+    */
+    __divtf3(res, uint64_t(lhs_b), uint64_t(lhs_b >> 64), 1, 0);
+    DipcAssert(res == 100, "__divtf3 result should be 100");
+
+    __divtf3(res, uint64_t(lhs_a), uint64_t(lhs_a >> 64), 1, 0);
+    DipcAssert(res == -30, "__divtf3 result should be -30");
+  }
 }

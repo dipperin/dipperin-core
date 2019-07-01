@@ -57,7 +57,7 @@ func TestAccountStateDB_GetAccountState(t *testing.T) {
 
 	alice, _ := processor.GetAccountState(aliceAddr)
 	assert.Equal(t, alice.Nonce, uint64(0))
-	assert.Equal(t, big.NewInt(9e6),alice.Balance)
+	assert.Equal(t, big.NewInt(9e6), alice.Balance)
 }
 
 func TestAccountStateDB_PutContract(t *testing.T) {
@@ -191,7 +191,6 @@ func TestMakeGenesisAccountStateProcessor(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, processor)
 }
-
 
 //Test verifier transaction process
 //AddPeerSet, Elect, Evidence, Cancel
@@ -360,13 +359,13 @@ func TestAccountStateDB_processBasicTx_Error(t *testing.T) {
 
 	tx := fakeTransaction{}
 	conf := &TxProcessConfig{
-		Tx: &tx,
-		TxFee:big.NewInt(0),
+		Tx:    &tx,
+		TxFee: big.NewInt(0),
 	}
 	err = processor.processBasicTx(conf)
 	assert.Equal(t, SenderOrReceiverIsEmptyErr, err)
 
-	tx = fakeTransaction{sender:aliceAddr}
+	tx = fakeTransaction{sender: aliceAddr}
 	conf.Tx = &tx
 	err = processor.processBasicTx(conf)
 	assert.Equal(t, SenderNotExistErr, err)
@@ -379,14 +378,14 @@ func TestAccountStateDB_processBasicTx_Error(t *testing.T) {
 	err = processor.NewAccountState(aliceAddr)
 	assert.NoError(t, err)
 	tx = fakeTransaction{
-		sender:aliceAddr,
-		nonce:1,
+		sender: aliceAddr,
+		nonce:  1,
 	}
 	conf.Tx = &tx
 	err = processor.processBasicTx(conf)
 	assert.Equal(t, g_error.ErrTxNonceNotMatch, err)
 
-	tx = fakeTransaction{sender:aliceAddr}
+	tx = fakeTransaction{sender: aliceAddr}
 	conf.Tx = &tx
 	err = processor.processBasicTx(conf)
 	assert.Equal(t, g_error.BalanceNegErr, err)
@@ -402,13 +401,13 @@ func TestAccountStateDB_processNormalTx_Error(t *testing.T) {
 	err = processor.blockStateTrie.TryUpdate(GetNonceKey(aliceAddr), []byte{})
 	assert.NoError(t, err)
 
-	tx := fakeTransaction{sender:aliceAddr}
+	tx := fakeTransaction{sender: aliceAddr}
 	err = processor.processNormalTx(tx)
 	assert.Equal(t, g_error.AccountNotExist, err)
 }
 
 func TestAccountStateDB_Commit_Error(t *testing.T) {
-	processor, err := NewAccountStateDB(common.Hash{}, fakeStateStorage{getErr:TrieError})
+	processor, err := NewAccountStateDB(common.Hash{}, fakeStateStorage{getErr: TrieError})
 	assert.NoError(t, err)
 
 	value := 0
@@ -445,13 +444,13 @@ func TestAccountStateDB_SetError(t *testing.T) {
 	//processor.setContractRoot(aliceAddr, common.HexToHash("123"))
 	assert.Equal(t, g_error.AccountNotExist, processor.SetTimeLock(aliceAddr, big.NewInt(10)))
 
-	processor, err = NewAccountStateDB(common.Hash{}, fakeStateStorage{setErr:TrieError})
+	processor, err = NewAccountStateDB(common.Hash{}, fakeStateStorage{setErr: TrieError})
 	assert.Equal(t, TrieError, processor.NewAccountState(aliceAddr))
 	assert.Equal(t, TrieError, processor.DeleteAccountState(aliceAddr))
 }
 
 func TestAccountStateDB_SetError2(t *testing.T) {
-	processor, err := NewAccountStateDB(common.Hash{}, fakeStateStorage{setErr:TrieError})
+	processor, err := NewAccountStateDB(common.Hash{}, fakeStateStorage{setErr: TrieError})
 	assert.NoError(t, err)
 
 	assert.Equal(t, TrieError, processor.AddBalance(aliceAddr, big.NewInt(1000)))
@@ -469,13 +468,13 @@ func TestAccountStateDB_SetError2(t *testing.T) {
 }
 
 func TestAccountStateDB_GetError(t *testing.T) {
-	processor, err := NewAccountStateDB(common.Hash{}, fakeStateStorage{getErr:TrieError})
+	processor, err := NewAccountStateDB(common.Hash{}, fakeStateStorage{getErr: TrieError})
 	assert.NoError(t, err)
 
 	_, err = processor.GetNonce(aliceAddr)
 	assert.Equal(t, TrieError, err)
 
-	processor, err = NewAccountStateDB(common.Hash{}, fakeStateStorage{getErr:TrieError, passKey:nonceKeySuffix})
+	processor, err = NewAccountStateDB(common.Hash{}, fakeStateStorage{getErr: TrieError, passKey: nonceKeySuffix})
 	assert.NoError(t, err)
 
 	_, err = processor.GetBalance(aliceAddr)
@@ -498,13 +497,13 @@ func TestAccountStateDB_GetError(t *testing.T) {
 	assert.Equal(t, TrieError, err)
 	//contractRoot, _ := processor.GetContractRoot(aliceAddr)
 
-	processor, err = NewAccountStateDB(common.Hash{}, fakeStateStorage{decodeErr:true})
+	processor, err = NewAccountStateDB(common.Hash{}, fakeStateStorage{decodeErr: true})
 	assert.NoError(t, err)
 
 	_, err = processor.GetNonce(aliceAddr)
 	assert.Error(t, err)
 
-	processor, err = NewAccountStateDB(common.Hash{}, fakeStateStorage{passKey: nonceKeySuffix, decodeErr:true})
+	processor, err = NewAccountStateDB(common.Hash{}, fakeStateStorage{passKey: nonceKeySuffix, decodeErr: true})
 	assert.NoError(t, err)
 
 	_, err = processor.GetBalance(aliceAddr)

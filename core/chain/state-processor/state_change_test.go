@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package state_processor
 
 import (
@@ -51,7 +50,6 @@ func TestStateChange(t *testing.T) {
 	bobnonce, err := processor.GetNonce(bobAddr)
 	assert.NoError(t, err)
 	assert.Equal(t, bobnonce, uint64(4950))
-
 }
 
 func TestStateChangeList_DecodeRLP(t *testing.T) {
@@ -89,5 +87,4 @@ func TestStateChangeList_DecodeRLP(t *testing.T) {
 	bobnonce, err := processor2.GetNonce(bobAddr)
 	assert.NoError(t, err)
 	assert.Equal(t, bobnonce, uint64(4950))
-
 }

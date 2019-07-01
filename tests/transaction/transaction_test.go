@@ -20,66 +20,66 @@ import (
 	"time"
 )
 
-func TestDebugTxRlp(t *testing.T){
-	txData,err := hexutil.Decode("0xf869e280960000970e8128ab834e8eac17ab8e3812f010678cf79180808203e80182a41080f844a04a6a9d72b370b8f3f7ff04a8224ee11aea5c993eb08e2851094c1aaf48d68527a07e1505cbdd7c7d25481065620a1288a2f6dc76e0aa156da970617caa148cc2c93880")
-	assert.NoError(t,err)
+func TestDebugTxRlp(t *testing.T) {
+	txData, err := hexutil.Decode("0xf869e280960000970e8128ab834e8eac17ab8e3812f010678cf79180808203e80182a41080f844a04a6a9d72b370b8f3f7ff04a8224ee11aea5c993eb08e2851094c1aaf48d68527a07e1505cbdd7c7d25481065620a1288a2f6dc76e0aa156da970617caa148cc2c93880")
+	assert.NoError(t, err)
 	var transaction model.Transaction
 
 	err = rlp.DecodeBytes(txData, &transaction)
-	assert.NoError(t,err)
+	assert.NoError(t, err)
 
-	log.Info("the tx is:","transaction",transaction)
+	log.Info("the tx is:", "transaction", transaction)
 
-	log.Info("the tx extraData is:","extraData",hexutil.Encode(transaction.ExtraData()))
+	log.Info("the tx extraData is:", "extraData", hexutil.Encode(transaction.ExtraData()))
 }
 
-func TestTxSize(t *testing.T){
+func TestTxSize(t *testing.T) {
 	keyAlice, _ := model.CreateKey()
 	ms := model.NewMercurySigner(big.NewInt(1))
-	tempTx := model.NewTransaction(uint64(0), factory.BobAddrV, big.NewInt(1000),g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
+	tempTx := model.NewTransaction(uint64(0), factory.BobAddrV, big.NewInt(1000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	tempTx.SignTx(keyAlice, ms)
-	log.Info("the tx size is:","size",tempTx.Size())
+	log.Info("the tx size is:", "size", tempTx.Size())
 
-	bytes,err := tempTx.EncodeRlpToBytes()
-	assert.NoError(t,err)
+	bytes, err := tempTx.EncodeRlpToBytes()
+	assert.NoError(t, err)
 
-	log.Info("the tx rlpBytes len is:","len",len(bytes))
+	log.Info("the tx rlpBytes len is:", "len", len(bytes))
 }
 
-func TestCalculateMiniTxFee(t *testing.T){
+func TestCalculateMiniTxFee(t *testing.T) {
 	//normal tx fee
-	extraData := make([]byte,0)
-	for i:=0;i<50*1024;i++{
-		extraData = append(extraData,byte(i%2))
+	extraData := make([]byte, 0)
+	for i := 0; i < 50*1024; i++ {
+		extraData = append(extraData, byte(i%2))
 	}
 
-	log.Info("the extra data is:","extraData",hexutil.Encode(extraData))
-	tempTx := model.NewTransaction(uint64(0), factory.BobAddrV, big.NewInt(1000),g_testData.TestGasPrice,g_testData.TestGasLimit, extraData)
+	log.Info("the extra data is:", "extraData", hexutil.Encode(extraData))
+	tempTx := model.NewTransaction(uint64(0), factory.BobAddrV, big.NewInt(1000), g_testData.TestGasPrice, g_testData.TestGasLimit, extraData)
 	keyAlice, _ := model.CreateKey()
 	ms := model.NewMercurySigner(big.NewInt(1))
 	tempTx.SignTx(keyAlice, ms)
 
-	txData,err := tempTx.EncodeRlpToBytes()
-	assert.NoError(t,err)
+	txData, err := tempTx.EncodeRlpToBytes()
+	assert.NoError(t, err)
 
-	log.Info("the txSize is:","txSize",tempTx.Size(),"txRlpLen",len(txData))
+	log.Info("the txSize is:", "txSize", tempTx.Size(), "txRlpLen", len(txData))
 
-	gasUsed,err := model.IntrinsicGas(extraData,false,false)
-	assert.NoError(t,err)
-	log.Info("the gasUsed is:","gasUsed",gasUsed)
+	gasUsed, err := model.IntrinsicGas(extraData, false, false)
+	assert.NoError(t, err)
+	log.Info("the gasUsed is:", "gasUsed", gasUsed)
 }
 
-func createTestStateDB(addrInfo map[common.Address]*big.Int) (ethdb.Database, common.Hash){
+func createTestStateDB(addrInfo map[common.Address]*big.Int) (ethdb.Database, common.Hash) {
 	db := ethdb.NewMemDatabase()
 
 	//todo The new method does not take the tree from the underlying database
 	tdb := state_processor.NewStateStorageWithCache(db)
 	processor, _ := state_processor.NewAccountStateDB(common.Hash{}, tdb)
 
-	for addr,balance := range addrInfo{
+	for addr, balance := range addrInfo {
 		processor.NewAccountState(addr)
-		processor.AddBalance(addr,balance)
-		processor.AddNonce(addr,0)
+		processor.AddBalance(addr, balance)
+		processor.AddNonce(addr, 0)
 	}
 	root, _ := processor.Commit()
 	tdb.TrieDB().Commit(root, false)
@@ -100,12 +100,14 @@ func createBlock(num uint64, preHash common.Hash, txList []*model.Transaction, l
 	return block
 }
 
-func TestWASMContactMiniTxFee(t *testing.T){
+func TestWASMContactMiniTxFee(t *testing.T) {
 	params := "dipp,DIPP,1000000"
-	extraData := g_testData.GetCreateExtraData(t,g_testData.WASMTokenPath,g_testData.AbiTokenPath, params)
 
+	WASMTokenPath := g_testData.GetWasmPath("token-const")
+	AbiTokenPath := g_testData.GetAbiPath("token-const")
+	extraData := g_testData.GetCreateExtraData(t, WASMTokenPath, AbiTokenPath, params)
 	extraData, err := utils.ParseCreateContractData(extraData)
-	assert.NoError(t,err)
+	assert.NoError(t, err)
 
 	to := common.HexToAddress(common.AddressContractCreate)
 	value := big.NewInt(0)
@@ -117,46 +119,37 @@ func TestWASMContactMiniTxFee(t *testing.T){
 	ms := model.NewMercurySigner(big.NewInt(1))
 	tempTx.SignTx(keyAlice, ms)
 
-	log.Info("the tx extra data size is:","extraData size",len(tempTx.ExtraData()))
+	log.Info("the tx extra data size is:", "extraData size", len(tempTx.ExtraData()))
 
 	//creat test stateDB
-	sender :=  cs_crypto.GetNormalAddress(keyAlice.PublicKey)
-	db, root := createTestStateDB(map[common.Address]*big.Int{sender:big.NewInt(100*consts.DIP)})
+	sender := cs_crypto.GetNormalAddress(keyAlice.PublicKey)
+	db, root := createTestStateDB(map[common.Address]*big.Int{sender: big.NewInt(100 * consts.DIP)})
 	processor, err := state_processor.NewAccountStateDB(root, state_processor.NewStateStorageWithCache(db))
 	assert.NoError(t, err)
 
 	//creat process config
-	block := createBlock(1, common.Hash{}, []*model.Transaction{tempTx},chain_config.MaxGasLimit)
+	block := createBlock(1, common.Hash{}, []*model.Transaction{tempTx}, chain_config.MaxGasLimit)
 	tempTx.PaddingTxIndex(0)
 	gasUsed := uint64(0)
 	confGasLimit := gasLimit.Uint64()
 	txConfigCreate := &state_processor.TxProcessConfig{
-		Tx:       tempTx,
-		GetHash:  func (number uint64) common.Hash{
+		Tx: tempTx,
+		GetHash: func(number uint64) common.Hash {
 			return common.Hash{}
 		},
-		Header:block.Header(),
+		Header:   block.Header(),
 		GasLimit: &confGasLimit,
 		GasUsed:  &gasUsed,
 	}
 
 	err = processor.ProcessTxNew(txConfigCreate)
-	assert.NoError(t,err)
+	assert.NoError(t, err)
 
-	receipt ,err:= txConfigCreate.Tx.GetReceipt()
-	assert.NoError(t,err)
+	receipt, err := txConfigCreate.Tx.GetReceipt()
+	assert.NoError(t, err)
 
-	log.Info("the contract tx gasUsed is:","gasUsed",receipt.GasUsed)
-	log.Info("the contract tx used TxFee is:","txFee",txConfigCreate.Tx.(*model.Transaction).GetActualTxFee())
+	log.Info("the contract tx gasUsed is:", "gasUsed", receipt.GasUsed)
+	log.Info("the contract tx used TxFee is:", "txFee", txConfigCreate.Tx.(*model.Transaction).GetActualTxFee())
 
-	log.Info("the contract tx size is: ","size",txConfigCreate.Tx.Size())
+	log.Info("the contract tx size is: ", "size", txConfigCreate.Tx.Size())
 }
-
-
-
-
-
-
-
-
-

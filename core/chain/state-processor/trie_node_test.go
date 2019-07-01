@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package state_processor
 
 import (
@@ -40,7 +39,6 @@ func TestNewNodeSet(t *testing.T) {
 	result, err = nodeSet.Get([]byte{3})
 	assert.Error(t, err)
 	assert.Nil(t, result)
-
 
 	has, err := nodeSet.Has(key)
 	assert.NoError(t, err)

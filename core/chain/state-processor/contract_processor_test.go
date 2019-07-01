@@ -25,7 +25,7 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	t.Skip()
 	ownAddress := common.HexToAddress("0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41")
 	log.InitLogger(log.LvlDebug)
-	transactionJson := "{\"TxData\":{\"nonce\":\"0x0\",\"to\":\"0x00120000000000000000000000000000000000000000\",\"hashlock\":null,\"timelock\":\"0x0\",\"value\":\"0x2540be400\",\"fee\":\"0x69db9c0\",\"gasPrice\":\"0xa\",\"gas\":\"0x1027127dc00\",\"input\":\"0xf9026db8eb0061736d01000000010d0360017f0060027f7f00600000021d0203656e76067072696e7473000003656e76087072696e74735f6c00010304030202000405017001010105030100020615037f01419088040b7f00419088040b7f004186080b073405066d656d6f727902000b5f5f686561705f6261736503010a5f5f646174615f656e64030204696e697400030568656c6c6f00040a450302000b02000b3d01017f230041106b220124004180081000200141203a000f2001410f6a41011001200010002001410a3a000e2001410e6a41011001200141106a24000b0b0d01004180080b0668656c6c6f00b9017d5b0a202020207b0a2020202020202020226e616d65223a2022696e6974222c0a202020202020202022696e70757473223a205b5d2c0a2020202020202020226f757470757473223a205b5d2c0a202020202020202022636f6e7374616e74223a202266616c7365222c0a20202020202020202274797065223a202266756e6374696f6e220a202020207d2c0a202020207b0a2020202020202020226e616d65223a202268656c6c6f222c0a202020202020202022696e70757473223a205b0a2020202020202020202020207b0a20202020202020202020202020202020226e616d65223a20226e616d65222c0a202020202020202020202020202020202274797065223a2022737472696e67220a2020202020202020202020207d0a20202020202020205d2c0a2020202020202020226f757470757473223a205b5d2c0a202020202020202022636f6e7374616e74223a202274727565222c0a20202020202020202274797065223a202266756e6374696f6e220a202020207d0a5d0a\"},\"Wit\":{\"r\":\"0xa1509f3efb1e632643c9972b9183234445c539a1b483ad0ea4b36a4edabf8d04\",\"s\":\"0xa7a16d72b826aea44e8f56247abbad367cf7e300d564949e66ac97098b9f234\",\"v\":\"0x39\",\"hashkey\":\"0x\"}}"
+	transactionJson := "{\"TxData\":{\"nonce\":\"0x0\",\"to\":\"0x00120000000000000000000000000000000000000000\",\"hashlock\":null,\"timelock\":\"0x0\",\"value\":\"0x2540be400\",\"fee\":\"0x69db9c0\",\"testGasPrice\":\"0xa\",\"gas\":\"0x1027127dc00\",\"input\":\"0xf9026db8eb0061736d01000000010d0360017f0060027f7f00600000021d0203656e76067072696e7473000003656e76087072696e74735f6c00010304030202000405017001010105030100020615037f01419088040b7f00419088040b7f004186080b073405066d656d6f727902000b5f5f686561705f6261736503010a5f5f646174615f656e64030204696e697400030568656c6c6f00040a450302000b02000b3d01017f230041106b220124004180081000200141203a000f2001410f6a41011001200010002001410a3a000e2001410e6a41011001200141106a24000b0b0d01004180080b0668656c6c6f00b9017d5b0a202020207b0a2020202020202020226e616d65223a2022696e6974222c0a202020202020202022696e70757473223a205b5d2c0a2020202020202020226f757470757473223a205b5d2c0a202020202020202022636f6e7374616e74223a202266616c7365222c0a20202020202020202274797065223a202266756e6374696f6e220a202020207d2c0a202020207b0a2020202020202020226e616d65223a202268656c6c6f222c0a202020202020202022696e70757473223a205b0a2020202020202020202020207b0a20202020202020202020202020202020226e616d65223a20226e616d65222c0a202020202020202020202020202020202274797065223a2022737472696e67220a2020202020202020202020207d0a20202020202020205d2c0a2020202020202020226f757470757473223a205b5d2c0a202020202020202022636f6e7374616e74223a202274727565222c0a20202020202020202274797065223a202266756e6374696f6e220a202020207d0a5d0a\"},\"Wit\":{\"r\":\"0xa1509f3efb1e632643c9972b9183234445c539a1b483ad0ea4b36a4edabf8d04\",\"s\":\"0xa7a16d72b826aea44e8f56247abbad367cf7e300d564949e66ac97098b9f234\",\"v\":\"0x39\",\"hashkey\":\"0x\"}}"
 
 	var tx model.Transaction
 	err := json.Unmarshal([]byte(transactionJson), &tx)
@@ -35,7 +35,7 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	log.Info("processContract", "Tx", tx)
 
 	tx.PaddingTxIndex(0)
-	gasLimit := gasLimit * 10000000000
+	gasLimit := testGasLimit * 10000000000
 	block := CreateBlock(1, common.Hash{}, []*model.Transaction{&tx}, gasLimit)
 
 	db, root := CreateTestStateDB()
@@ -52,7 +52,7 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	log.Info("balance", "balance", balance.String())
 	//log.Info("nonce", "nonce", nonce, "tx.nonce", tx.Nonce())
 
-	log.Info("gasLimit", "gasLimit", gasLimit)
+	log.Info("testGasLimit", "testGasLimit", gasLimit)
 
 	gasUsed := uint64(0)
 	txConfigCreate := &TxProcessConfig{
@@ -141,7 +141,7 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	processor, err := NewAccountStateDB(root, tdb)
 	assert.NoError(t, err)
 
-	block := CreateBlock(1, common.Hash{}, []*model.Transaction{tx1, tx2}, 5*gasLimit)
+	block := CreateBlock(1, common.Hash{}, []*model.Transaction{tx1, tx2}, 5*testGasLimit)
 	tmpGasLimit := block.GasLimit()
 	gasUsed := block.GasUsed()
 	config := &TxProcessConfig{
@@ -180,7 +180,6 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	assert.Equal(t, uint64(1), log1.BlockNumber)
 }
 
-
 func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	singer := model.NewMercurySigner(new(big.Int).SetInt64(int64(1)))
 
@@ -202,23 +201,20 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 		brotherAddress,
 	}
 
-	abiPath := "../../vm/test-data/token/token.cpp.abi.json"
-	wasmPath := "../../vm/test-data/token/token-wh.wasm"
-	err, data := utils.GetExtraData(abiPath, wasmPath, []string{"dipp", "DIPP", "100000000"})
+	WASMPath := g_testData.GetWasmPath("token")
+	abiPath := g_testData.GetAbiPath("token")
+	input := []string{"dipp", "DIPP", "1000000"}
+	data, err := getCreateExtraData(WASMPath, abiPath, input)
 	assert.NoError(t, err)
 
 	addr := common.HexToAddress(common.AddressContractCreate)
-
-	tx := model.NewTransactionSc(0, &addr, new(big.Int).SetUint64(uint64(10)), new(big.Int).SetUint64(uint64(1)), 26427000, data)
-
+	tx := model.NewTransactionSc(0, &addr, big.NewInt(10), big.NewInt(1), 26427000, data)
 	signCreateTx := getSignedTx(t, ownSK, tx, singer)
-
 	signCreateTx.PaddingTxIndex(0)
 
-	gasLimit := gasLimit * 10000000000
+	gasLimit := testGasLimit * 10000000000
 	block := CreateBlock(1, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
-
-	processor, err := CreateProcessorAndInitAccount(err, t, addressSlice)
+	processor, err := CreateProcessorAndInitAccount(t, addressSlice)
 
 	tmpGasLimit := block.GasLimit()
 	gasUsed := block.GasUsed()
@@ -246,7 +242,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	contractNonce, err := processor.GetNonce(receipt.ContractAddress)
 	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce, "receiptResult", receipt)
 	code, err := processor.GetCode(receipt.ContractAddress)
-	abi,err := processor.GetAbi(receipt.ContractAddress)
+	abi, err := processor.GetAbi(receipt.ContractAddress)
 	log.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
 	assert.NoError(t, err)
 	//assert.Equal(t, code, tx.ExtraData())
@@ -256,18 +252,18 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	//  合约调用getBalance方法  获取合约原始账户balance
 	ownTransferNonce, err := processor.GetNonce(ownAddress)
 	assert.NoError(t, err)
-	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 2, singer)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 2, singer)
 	assert.NoError(t, err)
 
 	gasUsed2 := uint64(0)
 	//  合约调用  transfer方法 转账给alice
 	ownTransferNonce++
-	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "transfer", aliceAddress.Hex()+",20", 3, singer)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK, processor, accountOwn, ownTransferNonce, "transfer", aliceAddress.Hex()+",20", 3, singer)
 	assert.NoError(t, err)
 
 	//  合约调用getBalance方法  获取alice账户balance
 	ownTransferNonce++
-	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 4, singer)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 4, singer)
 	assert.NoError(t, err)
 
 	//  合约调用approve方法
@@ -294,17 +290,13 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	assert.NoError(t, err)
 	processor.Commit()
 
-
 	//  合约调用getApproveBalance方法  获取own授权给brother账户balance
 	/*err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, 5, "getApproveBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978", 6)
 	assert.NoError(t, err)*/
 
-
-
-
 	//  合约调用transferFrom方法
 	log.Info("==========================================")
-	callTxTransferFrom, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "transferFrom", ownAddress.Hex()+","+aliceAddress.Hex() + ",5", 0, abi)
+	callTxTransferFrom, err := newContractCallTx(nil, &receipt.ContractAddress, new(big.Int).SetUint64(1), uint64(1500000), "transferFrom", ownAddress.Hex()+","+aliceAddress.Hex()+",5", 0, abi)
 	assert.NoError(t, err)
 	accountBrother := accounts.Account{Address: brotherAddress}
 	assert.NoError(t, err)
@@ -327,57 +319,50 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	assert.NoError(t, err)
 	processor.Commit()
 
-
 	//  合约调用getBalance方法  获取alice账户获得转账授权后的balance
 	ownTransferNonce++
-	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 8, singer)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 8, singer)
 	assert.NoError(t, err)
 
 	//  合约调用getBalance方法  获取own账户最终的balance
 	ownTransferNonce++
-	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 9, singer)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 9, singer)
 	assert.NoError(t, err)
 
 	// 合约调用  transfer方法  转账给brother
 	ownTransferNonce++
-	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "transfer", brotherAddress.Hex()+",28", 10, singer)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK, processor, accountOwn, ownTransferNonce, "transfer", brotherAddress.Hex()+",28", 10, singer)
 	assert.NoError(t, err)
 
 	//  合约调用getBalance方法  获取own账户最终的balance
 	ownTransferNonce++
-	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 11, singer)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 11, singer)
 	assert.NoError(t, err)
 
-    // 合约调用burn方法,将账户余额返还给own
-	err = processContractCall(t, receipt.ContractAddress, abi, brotherSK,  processor, accountBrother, 1, "burn", "15", 12, singer)
+	// 合约调用burn方法,将账户余额返还给own
+	err = processContractCall(t, receipt.ContractAddress, abi, brotherSK, processor, accountBrother, 1, "burn", "15", 12, singer)
 	assert.NoError(t, err)
-
-
 
 	// 合约调用getBalance方法,获取own的余额
 	ownTransferNonce++
-	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 13, singer)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 13, singer)
 	assert.NoError(t, err)
-
 
 	// 合约调用setName方法，设置合约名
 	ownTransferNonce++
-	err = processContractCall(t, receipt.ContractAddress, abi, ownSK,  processor, accountOwn, ownTransferNonce, "setName", "wujinhai", 14, singer)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK, processor, accountOwn, ownTransferNonce, "setName", "wujinhai", 14, singer)
 	assert.NoError(t, err)
-
-
 
 	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", "", "err", err)
 }
 
-
 //  合约调用getBalance方法
-func processContractCall(t *testing.T,contractAddress common.Address, code []byte, priKey *ecdsa.PrivateKey, processor *AccountStateDB, accountOwn accounts.Account, nonce uint64, funcName string, params string, blockNum uint64, singer model.Signer) ( error) {
+func processContractCall(t *testing.T, contractAddress common.Address, code []byte, priKey *ecdsa.PrivateKey, processor *AccountStateDB, accountOwn accounts.Account, nonce uint64, funcName string, params string, blockNum uint64, singer model.Signer) (error) {
 	gasUsed2 := uint64(0)
-	gasLimit := gasLimit * 10000000000
+	gasLimit := testGasLimit * 10000000000
 	log.Info("processContractCall=================================================")
 	callTx, err := newContractCallTx(nil, &contractAddress, new(big.Int).SetUint64(1), uint64(1500000), funcName, params, nonce, code)
-	assert.NoError(t,err)
+	assert.NoError(t, err)
 	signCallTx, err := callTx.SignTx(priKey, singer)
 	//sw.SignTx(accountOwn, callTx, nil)
 	assert.NoError(t, err)
@@ -393,8 +378,8 @@ func processContractCall(t *testing.T,contractAddress common.Address, code []byt
 	}
 	err = processor.ProcessTxNew(txConfig)
 	if funcName == "getBalance" {
-		receipt,err := callTx.GetReceipt()
-		assert.NoError(t,err)
+		receipt, err := callTx.GetReceipt()
+		assert.NoError(t, err)
 		log.Info("receipt  log", "receipt log", receipt.Logs)
 	}
 	assert.NoError(t, err)
@@ -402,7 +387,7 @@ func processContractCall(t *testing.T,contractAddress common.Address, code []byt
 	return err
 }
 
-func CreateProcessorAndInitAccount(err error, t *testing.T, addressSlice []common.Address) (*AccountStateDB, error) {
+func CreateProcessorAndInitAccount(t *testing.T, addressSlice []common.Address) (*AccountStateDB, error) {
 	db, root := CreateTestStateDB()
 	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
 	assert.NoError(t, err)
@@ -420,14 +405,14 @@ func CreateProcessorAndInitAccount(err error, t *testing.T, addressSlice []commo
 }
 
 func TestGetByteFromAbiFile(t *testing.T) {
-	bytes, err := ioutil.ReadFile(g_testData.AbiTokenPath)
+	abiTokenPath := g_testData.GetAbiPath("token-const")
+	bytes, err := ioutil.ReadFile(abiTokenPath)
 	assert.NoError(t, err)
 	fmt.Println(bytes)
 }
 
-func getSignedTx(t *testing.T,priKey *ecdsa.PrivateKey, tx *model.Transaction, singer model.Signer) *model.Transaction {
+func getSignedTx(t *testing.T, priKey *ecdsa.PrivateKey, tx *model.Transaction, singer model.Signer) *model.Transaction {
 	signCreateTx, err := tx.SignTx(priKey, singer)
 	assert.NoError(t, err)
 	return signCreateTx
 }
-
