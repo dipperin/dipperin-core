@@ -54,7 +54,7 @@ type AbstractBody interface {
 	GetInterLinks() InterLink
 }
 
-//go:generate mockgen -destination=./../cs-chain/chain-writer/block_mock_test.go -package=economy_model github.com/dipperin/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=./../cs-chain/chain-writer/block_mock_test.go -package=chain_writer github.com/dipperin/dipperin-core/core/model AbstractBlock
 //go:generate mockgen -destination=./../economy-model/block_mock_test.go -package=economy_model github.com/dipperin/dipperin-core/core/model AbstractBlock
 //go:generate mockgen -destination=./../../cmd/utils/ver-halt-check/block_mock_test.go -package=ver_halt_check github.com/dipperin/dipperin-core/core/model AbstractBlock
 type AbstractBlock interface {

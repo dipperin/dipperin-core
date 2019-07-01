@@ -42,7 +42,7 @@ github.com/fjl/memsize
 github.com/go-stack/stack
 # github.com/golang/lint v0.0.0-20181026193005-c67002cb31c3
 github.com/golang/lint/golint
-# github.com/golang/mock v1.2.0
+# github.com/golang/mock v1.3.1
 github.com/golang/mock/gomock
 # github.com/golang/protobuf v1.2.0
 github.com/golang/protobuf/proto
@@ -105,6 +105,8 @@ github.com/nicksnyder/go-i18n/i18n/language
 github.com/nicksnyder/go-i18n/i18n/translation
 # github.com/pelletier/go-toml v1.2.0
 github.com/pelletier/go-toml
+# github.com/pkg/errors v0.8.1
+github.com/pkg/errors
 # github.com/pkg/term v0.0.0-20190109203006-aa71e9d9e942
 github.com/pkg/term/termios
 # github.com/pmezard/go-difflib v1.0.0
@@ -151,22 +153,22 @@ github.com/tidwall/match
 github.com/tsenart/deadcode
 # github.com/urfave/cli v1.20.0
 github.com/urfave/cli
-# golang.org/x/crypto v0.0.0-20190122013713-64072686203f
+# golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 golang.org/x/crypto/ripemd160
 golang.org/x/crypto/scrypt
 golang.org/x/crypto/sha3
 golang.org/x/crypto/pbkdf2
 # golang.org/x/lint v0.0.0-20181026193005-c67002cb31c3
 golang.org/x/lint
-# golang.org/x/net v0.0.0-20181201002055-351d144fa1fc
+# golang.org/x/net v0.0.0-20190603091049-60506f45cf65
 golang.org/x/net/websocket
 golang.org/x/net/html/charset
 golang.org/x/net/html
 golang.org/x/net/html/atom
-# golang.org/x/sys v0.0.0-20190121090251-770c60269bf0
+# golang.org/x/sys v0.0.0-20190602015325-4c4f7f33c9ed
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
-# golang.org/x/text v0.3.0
+# golang.org/x/text v0.3.2
 golang.org/x/text/encoding
 golang.org/x/text/encoding/charmap
 golang.org/x/text/encoding/htmlindex
@@ -181,8 +183,10 @@ golang.org/x/text/encoding/unicode
 golang.org/x/text/language
 golang.org/x/text/internal/utf8internal
 golang.org/x/text/runes
+golang.org/x/text/internal/language
+golang.org/x/text/internal/language/compact
 golang.org/x/text/internal/tag
-# golang.org/x/tools v0.0.0-20181122213734-04b5d21e00f1
+# golang.org/x/tools v0.0.0-20190606050223-4d9ae51c2468
 golang.org/x/tools/go/ast/astutil
 golang.org/x/tools/go/gcexportdata
 golang.org/x/tools/go/internal/gcimporter
