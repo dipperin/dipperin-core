@@ -88,7 +88,6 @@ func defaultChainConfig() *ChainConfig {
 		//VerifierNumber: 4,
 		VerifierNumber: 22,
 
-
 		// angel verifier priority
 		SystemVerifierPriority: 0,
 

@@ -111,16 +111,16 @@ func GetBlockByNumber(client *rpc.Client, num uint64) rpc_interface.BlockResp {
 	return respBlock
 }
 
-func SendCreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName, wasmPath, abiPath ,params string) common.Hash {
+func SendCreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName, wasmPath, abiPath, params string) common.Hash {
 	client := cluster.NodeClient[nodeName]
 	from, err := cluster.GetNodeMainAddress(nodeName)
 	LogTestPrint("Test", "From", "addr", from.Hex())
 	assert.NoError(t, err)
 
 	to := common.HexToAddress(common.AddressContractCreate)
-	data,err := g_testData.GetCreateExtraData(wasmPath, abiPath, params)
-	assert.NoError(t,err)
-	gasLimit := big.NewInt(0).SetUint64(g_testData.TestGasLimit*100)
+	data, err := g_testData.GetCreateExtraData(wasmPath, abiPath, params)
+	assert.NoError(t, err)
+	gasLimit := big.NewInt(0).SetUint64(g_testData.TestGasLimit * 100)
 	txHash, innerErr := SendTransactionContract(client, from, to, g_testData.TestValue, gasLimit, g_testData.TestGasPrice, data)
 	assert.NoError(t, innerErr)
 	return txHash
@@ -133,7 +133,7 @@ func SendCallContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName 
 	assert.NoError(t, err)
 
 	to := GetContractAddressByTxHash(client, txHash)
-	gasLimit := big.NewInt(0).SetUint64(g_testData.TestGasLimit*100)
+	gasLimit := big.NewInt(0).SetUint64(g_testData.TestGasLimit * 100)
 	txHash, innerErr := SendTransactionContract(client, from, to, g_testData.TestValue, gasLimit, g_testData.TestGasPrice, input)
 	assert.NoError(t, innerErr)
 	return txHash

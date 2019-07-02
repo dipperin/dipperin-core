@@ -37,9 +37,9 @@ type StateDBService interface {
 	GetBalance(addr common.Address) *big.Int
 	AddLog(addedLog *model.Log)
 	//AddLog(address common.Address, topics []common.Hash, data []byte, bn uint64)
-	SetState(addr common.Address,key []byte, value []byte)
-	GetState(addr common.Address,key []byte) (data []byte)
-	GetNonce(common.Address) (uint64,error)
+	SetState(addr common.Address, key []byte, value []byte)
+	GetState(addr common.Address, key []byte) (data []byte)
+	GetNonce(common.Address) (uint64, error)
 }
 
 type resolverNeedExternalService struct {
@@ -50,7 +50,7 @@ type resolverNeedExternalService struct {
 
 func (service *resolverNeedExternalService) GetCallerNonce() int64 {
 	addr := service.Caller()
-	nonce,_ :=service.StateDBService.GetNonce(addr)
+	nonce, _ := service.StateDBService.GetNonce(addr)
 	return int64(nonce)
 }
 
