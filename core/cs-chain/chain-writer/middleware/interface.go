@@ -29,7 +29,6 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-
 //go:generate mockgen -destination=./chain_interface_mock.go -package=middleware github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware ChainInterface
 //go:generate mockgen -destination=../../../../tests/g-mockFile/chainInterface_mock.go -package=g_mockFile github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware ChainInterface
 type ChainInterface interface {

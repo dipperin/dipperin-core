@@ -53,7 +53,6 @@ func NewBftBlockValidator(chain ChainInterface) *BftBlockValidator {
 	return &BftBlockValidator{Chain: chain}
 }
 
-
 type BftBlockValidator struct {
 	Chain ChainInterface
 }

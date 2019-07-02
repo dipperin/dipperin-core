@@ -66,7 +66,7 @@ func Test_rpcCaller_AnnounceERC20(t *testing.T) {
 			c.AnnounceERC20(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0], "AnnounceERC20" }))
+	assert.NoError(t, app.Run([]string{os.Args[0], "AnnounceERC20"}))
 
 }
 
@@ -79,7 +79,7 @@ func Test_rpcCaller_ERC20TotalSupply(t *testing.T) {
 		wrapRpcArgs(context, "1", "")
 		c.ERC20TotalSupply(context)
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0], "ERC20TotalSupply" }))
+	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20TotalSupply"}))
 }
 
 func Test_rpcCaller_ERC20Transfer(t *testing.T) {
@@ -110,7 +110,7 @@ func Test_rpcCaller_ERC20Transfer(t *testing.T) {
 		//wrapRpcArgs(context, "1", "0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4,4,0.00001")
 		//c.ERC20Transfer(context)
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0], "ERC20Transfer" }))
+	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20Transfer"}))
 }
 
 func Test_rpcCaller_ERC20TransferFrom(t *testing.T) {
@@ -139,7 +139,7 @@ func Test_rpcCaller_ERC20TransferFrom(t *testing.T) {
 			c.ERC20TransferFrom(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0], "ERC20TransferFrom" }))
+	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20TransferFrom"}))
 }
 
 func Test_rpcCaller_ERC20TokenName(t *testing.T) {
@@ -159,7 +159,7 @@ func Test_rpcCaller_ERC20TokenName(t *testing.T) {
 			c.ERC20TokenName(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0], "ERC20TokenName" }))
+	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20TokenName"}))
 }
 
 func Test_rpcCaller_ERC20TokenSymbol(t *testing.T) {
@@ -179,7 +179,7 @@ func Test_rpcCaller_ERC20TokenSymbol(t *testing.T) {
 			c.ERC20TokenSymbol(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0], "ERC20TokenSymbol" }))
+	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20TokenSymbol"}))
 }
 
 func Test_getERC20Symbol(t *testing.T) {
@@ -229,7 +229,7 @@ func Test_rpcCaller_ERC20TokenDecimals(t *testing.T) {
 			c.ERC20TokenDecimals(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0] , "ERC20TokenDecimals"}))
+	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20TokenDecimals"}))
 }
 
 func Test_convert(t *testing.T) {
@@ -254,7 +254,7 @@ func Test_rpcCaller_ERC20GetInfo(t *testing.T) {
 			c.ERC20GetInfo(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0], "ERC20GetInfo" }))
+	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20GetInfo"}))
 }
 
 func Test_rpcCaller_ERC20Allowance(t *testing.T) {
@@ -280,7 +280,7 @@ func Test_rpcCaller_ERC20Allowance(t *testing.T) {
 			c.ERC20Allowance(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0], "ERC20Allowance" }))
+	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20Allowance"}))
 }
 
 func Test_rpcCaller_ERC20Approve(t *testing.T) {
@@ -306,7 +306,7 @@ func Test_rpcCaller_ERC20Approve(t *testing.T) {
 			c.ERC20Approve(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0], "ERC20Approve" }))
+	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20Approve"}))
 }
 
 func Test_rpcCaller_ERC20Balance(t *testing.T) {
@@ -330,7 +330,7 @@ func Test_rpcCaller_ERC20Balance(t *testing.T) {
 		})
 	}
 
-	assert.NoError(t, app.Run([]string{ os.Args[0], "ERC20Balance" }))
+	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20Balance"}))
 }
 
 func Test_ERC20Size(t *testing.T) {

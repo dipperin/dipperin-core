@@ -58,7 +58,7 @@ func TestDipperinCliCompleter(t *testing.T) {
 
 	d = *b.Document()
 
-	assert.Equal(t, DipperinCliCompleterNew(d), []prompt.Suggest{prompt.Suggest{Text:"SetMineGasConfig", Description:""}, prompt.Suggest{Text:"SetMineCoinBase", Description:""}, prompt.Suggest{Text:"StartMine", Description:""}, prompt.Suggest{Text:"StopMine", Description:""}})
+	assert.Equal(t, DipperinCliCompleterNew(d), []prompt.Suggest{prompt.Suggest{Text: "SetMineGasConfig", Description: ""}, prompt.Suggest{Text: "SetMineCoinBase", Description: ""}, prompt.Suggest{Text: "StartMine", Description: ""}, prompt.Suggest{Text: "StopMine", Description: ""}})
 }
 
 func TestDipperinCliCompleterNew(t *testing.T) {

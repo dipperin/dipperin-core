@@ -665,7 +665,7 @@ func TestRpcCaller_SendTransactionContract(t *testing.T) {
 		cli.StringFlag{Name: "abi", Usage: "abi path"},
 		cli.StringFlag{Name: "wasm", Usage: "wasm path"},
 		cli.StringFlag{Name: "input", Usage: "contract params"},
-		cli.BoolFlag{Name:   "is-create", Usage: "create contract or not"},
+		cli.BoolFlag{Name: "is-create", Usage: "create contract or not"},
 		cli.StringFlag{Name: "func-name", Usage: "call function name"},
 	}
 
@@ -673,7 +673,7 @@ func TestRpcCaller_SendTransactionContract(t *testing.T) {
 		client = NewMockRpcClient(ctrl)
 		caller := &rpcCaller{}
 		SyncStatus.Store(true)
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(),gomock.Any(),gomock.Any(),gomock.Any(),gomock.Any(),gomock.Any(),gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 		//client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 		caller.SendTransactionContract(c)
 
@@ -681,10 +681,10 @@ func TestRpcCaller_SendTransactionContract(t *testing.T) {
 		//	caller.SendTransactionContract(c)
 
 		c.Set("p", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,0x00144179D57e45Cb3b54D6FAEF69e746bf240E287978,11122,10")
-		c.Set("abi", util.HomeDir() + "go/src/github.com/dipperin/dipperin-core/core/vm/test-data/event/example/example.cpp.abi.json")
-		c.Set("input","test,123,456")
-		c.Set("func-name","fake")
-		c.Set("is-create","false")
+		c.Set("abi", util.HomeDir()+"go/src/github.com/dipperin/dipperin-core/core/vm/test-data/event/example/example.cpp.abi.json")
+		c.Set("input", "test,123,456")
+		c.Set("func-name", "fake")
+		c.Set("is-create", "false")
 		//c.Set("abi", "Users/konggan/workspace/chain/dipperin/dipc/cmake-build-debug/example/example.cpp.abi.json")
 		caller.SendTransactionContract(c)
 

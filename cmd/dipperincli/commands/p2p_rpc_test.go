@@ -88,10 +88,10 @@ func Test_rpcCaller_Peers(t *testing.T) {
 		caller := &rpcCaller{}
 		//caller.Peers(c)
 
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), ).Return(errors.New("test"))
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(errors.New("test"))
 		caller.Peers(c)
 
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any() ).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
 			*result.(*[]*p2p.PeerInfo) = []*p2p.PeerInfo{{}}
 			return nil
 		})
