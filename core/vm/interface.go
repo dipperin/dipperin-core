@@ -10,7 +10,7 @@ type StateDB interface {
 	GetBalance(common.Address) *big.Int
 	CreateAccount(common.Address)
 
-	GetNonce(common.Address) uint64
+	GetNonce(common.Address) (uint64,error)
 	AddNonce(common.Address, uint64)
 
 	GetCodeHash(common.Address) common.Hash

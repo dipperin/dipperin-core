@@ -19,7 +19,7 @@ func Test_BuildInsContractCall(t *testing.T) {
 
 	WASMBuildPath := g_testData.GetWasmPath("buildins")
 	ABIBuildPath := g_testData.GetAbiPath("buildins")
-	contractHash := SendCreateContract(t, cluster, nodeName, WASMBuildPath, ABIBuildPath)
+	contractHash := SendCreateContract(t, cluster, nodeName, WASMBuildPath, ABIBuildPath,"")
 	checkTransactionOnChain(client, []common.Hash{contractHash})
 
 	data, err := g_testData.GetCallExtraData("arithmeticTest", "")

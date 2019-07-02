@@ -157,5 +157,4 @@ func TestByzantine(t *testing.T) {
 	assert.Equal(t, model2.RoundStepPreCommit, sh1.bs.Step)
 	assert.Equal(t, model2.RoundStepPreCommit, sh2.bs.Step)
 	assert.Equal(t, model2.RoundStepPreCommit, sh3.bs.Step)
-
 }

@@ -56,3 +56,6 @@ if [ $FAIL != 0 ]; then
 fi
 
 echo "diff count: ${count}"
+
+
+echo "1223234"

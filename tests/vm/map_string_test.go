@@ -17,7 +17,7 @@ func Test_MapContractCall(t *testing.T) {
 
 	WASMMapPath := g_testData.GetWasmPath("map-string")
 	ABIMapPath := g_testData.GetAbiPath("map-string")
-	contractHash := SendCreateContract(t, cluster, nodeName, WASMMapPath, ABIMapPath)
+	contractHash := SendCreateContract(t, cluster, nodeName, WASMMapPath, ABIMapPath,"")
 	checkTransactionOnChain(client, []common.Hash{contractHash})
 
 	data, err := g_testData.GetCallExtraData("setBalance", "balance,100")
