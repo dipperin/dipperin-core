@@ -320,5 +320,4 @@ func LoadNodesFromFile(fileP string) (bootNodes []*enode.Node) {
 	log.Debug("load boot nodes from file", "nodes len", len(bootNodes))
 	return
 
-
 }
