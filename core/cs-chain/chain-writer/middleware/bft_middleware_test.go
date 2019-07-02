@@ -20,10 +20,13 @@ package middleware
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
+	chain_true "github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -71,21 +74,15 @@ func TestBftMiddleware2(t *testing.T) {
 			Proof:       []byte{},
 			MinerPubKey: crypto.FromECDSAPub(&pkCur),
 	}
-	//headerCur := model.NewHeader(1, 9, common.Hash{}, common.HexToHash("1111"), minDiff, big.NewInt(324234), coinbaseCur, common.BlockNonceFromInt(432423))
+
 	blockCur := model.NewBlock(&headerCur, nil, nil)
-	//gomock.InOrder(
-	//	chain.EXPECT().CurrentBlock().Return(blockCur),
-	//	chain.EXPECT().GetBlockByNumber(gomock.Any()).Return(blockCur).AnyTimes(),
-	//	chain.EXPECT().GetLatestNormalBlock().Return(blockCur),
-	//	chain.EXPECT().GetChainConfig().Return(&chain_config.ChainConfig{
-	//		Version:1,
-	//	}),
-	//	chain.EXPECT().GetBlockByNumber(gomock.Any()).Return(blockCur).AnyTimes(),
-	//)
-	verifies := model.Verifications{
-		model.VoteMsg{},
-		model.VoteMsg{},
+
+	verifies := []common.Address{
+		common.Address{},
 	}
+
+
+
 	chain.EXPECT().CurrentBlock().Return(blockCur)
 	chain.EXPECT().GetBlockByNumber(gomock.Any()).Return(blockCur).AnyTimes()
 	chain.EXPECT().GetLatestNormalBlock().Return(blockCur).AnyTimes()
@@ -95,11 +92,12 @@ func TestBftMiddleware2(t *testing.T) {
 	}).AnyTimes()
 	slot := uint64(0)
 	chain.EXPECT().GetSlot(blockCur).Return(&slot)
-	chain.EXPECT().GetVerifiers(slot).Return(nil)
-		//chain.EXPECT().GetBlockByNumber(gomock.Any()).Return(blockCur).AnyTimes()
-	//gomock.Any(
-	//	chain.EXPECT().GetBlockByNumber().Return(blockCur),
-	//)
+	chain.EXPECT().GetVerifiers(slot).Return(verifies)
+	processor,_ := chain_true.NewBlockProcessor(nil, blockCur.StateRoot(),state_processor.NewStateStorageWithCache(ethdb.NewMemDatabase()))
+	chain.EXPECT().BlockProcessor(blockCur.StateRoot()).Return(processor, nil).AnyTimes()
+	chain.EXPECT().GetEconomyModel().Return(nil)
+
+
 	sk, err := crypto.GenerateKey()
 	pk := sk.PublicKey
 	coinbase := cs_crypto.PubkeyToAddress(pk)
@@ -118,17 +116,20 @@ func TestBftMiddleware2(t *testing.T) {
 		Proof:       proof,
 		MinerPubKey: crypto.FromECDSAPub(&pk),
 	}
-	//header := model.NewHeader(1, 10, blockCur.Hash(), common.HexToHash("1111"), minDiff, big.NewInt(324234), coinbase, common.BlockNonceFromInt(432423))
 
-	//tx := createUnNormalTx()
-	block := model.NewBlock(&header, nil, nil)
-	//model.NewBlock(model.NewHeader())
+
+	ver1 := NewMockAbstractVerification(ctl)
+	ver1.EXPECT().GetAddress().Return(common.Address{}).AnyTimes()
+	ver1.EXPECT().Valid().Return(nil)
+	ver1.EXPECT().GetBlockHash().Return(blockCur.Hash().Hex())
+	blockVerifier := model.Verifications{
+		ver1,
+	}
+	block := model.NewBlock(&header, nil, blockVerifier)
 	err = validator.FullValid(block)
-	assert.NoError(t, err)
 
-	//x := NewBftBlockValidator(nil)
-	//assert.NotNil(t, x)
-	//assert.Error(t, x.FullValid(nil))
 
-	assert.NotNil(t, NewBftBlockContextWithoutVotes(nil, nil))
+	assert.Equal(t, err.Error(), "contract 0x00110000000000000000000000000000000000000000 not exist")
+
+
 }

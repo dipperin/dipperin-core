@@ -25,16 +25,17 @@ import (
 	"github.com/urfave/cli"
 )
 
-func TestMain(m *testing.M) {
-	//m.Run()
-}
+//func TestMain(m *testing.M) {
+//	//m.Run()
+//}
 
 func wrapRpcArgs(c *cli.Context, m string, p string) {
-	err := c.Set("m", m)
-	if err != nil {
-		panic(err)
-	}
-	err = c.Set("p", p)
+
+	//err := c.Set(m)
+	//if err != nil {
+	//	panic(err)
+	//}
+	err := c.Set("p", p)
 	if err != nil {
 		panic(err)
 	}
@@ -42,7 +43,7 @@ func wrapRpcArgs(c *cli.Context, m string, p string) {
 
 func addRpcFlags(app *cli.App) {
 	app.Flags = []cli.Flag{
-		cli.StringFlag{ Name: "m" },
+		//cli.StringFlag{ Name: "m" },
 		cli.StringFlag{ Name: "p" },
 	}
 }
@@ -76,7 +77,7 @@ func Test_rpcCaller_TransferEDIPToDIP(t *testing.T) {
 			c.TransferEDIPToDIP(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0] }))
+	assert.NoError(t, app.Run([]string{ os.Args[0], "TransferEDIPToDIP" }))
 }
 
 func Test_rpcCaller_SetExchangeRate(t *testing.T) {
@@ -100,5 +101,5 @@ func Test_rpcCaller_SetExchangeRate(t *testing.T) {
 			c.SetExchangeRate(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0] }))
+	assert.NoError(t, app.Run([]string{ os.Args[0], "SetExchangeRate" }))
 }

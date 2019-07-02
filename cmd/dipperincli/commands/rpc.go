@@ -216,7 +216,7 @@ func getRpcParamFromString(cParam string) []string {
 }
 
 func getRpcMethodAndParam(c *cli.Context) (mName string, cParams []string, err error) {
-	mName = c.Args()[0]
+	mName = c.Args().First()
 	l.Info("the method name is:", "mName", mName)
 	if mName == "" {
 		return "", []string{}, errors.New("the method name is nil")
@@ -261,6 +261,7 @@ func (caller *rpcCaller) GetDefaultAccountBalance(c *cli.Context) {
 		return
 	}
 
+	l.Info("GetDefaultAccountBalance", "resp", resp)
 	balance, err := CSCoinToMoneyValue(resp.Balance)
 	if err != nil {
 		l.Error("the address isn't on the block chain balance=0")

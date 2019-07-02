@@ -70,7 +70,7 @@ func Test_rpcCaller_AddPeer(t *testing.T) {
 		caller.AddPeer(c)
 	}
 
-	app.Run([]string{"xxx"})
+	app.Run([]string{"xxx", "AddPeer"})
 	client = nil
 }
 
@@ -81,27 +81,25 @@ func Test_rpcCaller_Peers(t *testing.T) {
 	app := cli.NewApp()
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{Name: "m", Usage: "operation"},
 		cli.StringFlag{Name: "p", Usage: "parameters"},
 	}
 
 	app.Action = func(c *cli.Context) {
 		client = NewMockRpcClient(ctrl)
 		caller := &rpcCaller{}
+		//caller.Peers(c)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), ).Return(errors.New("test"))
 		caller.Peers(c)
 
-		c.Set("m", "test")
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test"))
-		caller.Peers(c)
-
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any() ).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
 			*result.(*[]*p2p.PeerInfo) = []*p2p.PeerInfo{{}}
 			return nil
 		})
 		caller.Peers(c)
 	}
 
-	app.Run([]string{"xxx"})
+	app.Run([]string{"xxx", "Peers"})
 	client = nil
 }
 

@@ -35,7 +35,6 @@ func Test_rpcCaller_GetBlockDiffVerifierInfo(t *testing.T) {
 	app := cli.NewApp()
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{Name: "m", Usage: "operation"},
 		cli.StringFlag{Name: "p", Usage: "parameters"},
 	}
 
@@ -54,7 +53,6 @@ func Test_rpcCaller_GetBlockDiffVerifierInfo(t *testing.T) {
 		SyncStatus.Store(true)
 		caller.GetBlockDiffVerifierInfo(c)
 
-		c.Set("m", "test")
 		c.Set("p", "")
 		caller.GetBlockDiffVerifierInfo(c)
 
@@ -73,7 +71,7 @@ func Test_rpcCaller_GetBlockDiffVerifierInfo(t *testing.T) {
 
 	}
 
-	app.Run([]string{"xxx"})
+	app.Run([]string{"xxx", "GetBlockDiffVerifierInfo"})
 	client = nil
 }
 
@@ -88,7 +86,6 @@ func Test_rpcCaller_CheckVerifierType(t *testing.T) {
 	app := cli.NewApp()
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{Name: "m", Usage: "operation"},
 		cli.StringFlag{Name: "p", Usage: "parameters"},
 	}
 
@@ -107,7 +104,6 @@ func Test_rpcCaller_CheckVerifierType(t *testing.T) {
 		SyncStatus.Store(true)
 		caller.CheckVerifierType(c)
 
-		c.Set("m", "test")
 		c.Set("p", "")
 		caller.CheckVerifierType(c)
 
@@ -148,6 +144,6 @@ func Test_rpcCaller_CheckVerifierType(t *testing.T) {
 		caller.CheckVerifierType(c)
 	}
 
-	app.Run([]string{"xxx"})
+	app.Run([]string{"xxx", "CheckVerifierType"})
 	client = nil
 }
