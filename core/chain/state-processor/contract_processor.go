@@ -23,6 +23,7 @@ func (state *AccountStateDB) ProcessContract(conf *TxProcessConfig, create bool)
 	}
 	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
 	_, usedGas, failed, fee, err := ApplyMessage(dvm, msg, conf.GasLimit)
+
 	if err != nil {
 		log.Error("AccountStateDB#ProcessContract", "ApplyMessage err", err)
 		return model.ReceiptPara{}, err

@@ -135,11 +135,12 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		// error.
 		vmerr error
 	)
+	var addrs common.Address
 	if contractCreation {
 		// data = rlp
-		var addrs common.Address
 		ret, addrs, st.gas, vmerr = lifeVm.Create(sender, st.data, st.gas, st.value)
-		log.Debug("Called create", "data", st.state.GetState(addrs, []byte{7, 98, 97, 108, 97, 110, 99, 101}), "err", vmerr)
+		log.Debug("Called create","data",st.state.GetState(addrs,[]byte{7, 98, 97, 108, 97, 110 ,99, 101}),"err",vmerr, "addrs", addrs)
+
 	} else {
 		// Increment the nonce for the next transaction
 		st.lifeVm.GetStateDB().AddNonce(msg.From(), uint64(1))

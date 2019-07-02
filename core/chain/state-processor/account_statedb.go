@@ -1432,8 +1432,12 @@ func (state *AccountStateDB) SetData(addr common.Address, key string, value []by
 //fixme can not roll back
 func (state *AccountStateDB) GetData(addr common.Address, key string) (data []byte) {
 	if state.smartContractData[addr] != nil {
+		log.Debug("AccountStateDB#GetData", "addr", addr)
 		if state.smartContractData[addr][key] != nil {
-			return state.smartContractData[addr][key]
+			log.Debug("AccountStateDB#GetData", "key", key)
+			result :=  state.smartContractData[addr][key]
+			log.Debug("AccountStateDB#GetData", "result", result)
+			return result
 		}
 	}
 	tier, err := state.getContractTrie(addr)
