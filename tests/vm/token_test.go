@@ -18,7 +18,7 @@ func Test_TokenContractCall(t *testing.T) {
 
 	WASMTokenPath := g_testData.GetWasmPath("token-const")
 	AbiTokenPath := g_testData.GetAbiPath("token-const")
-	contractHash := SendCreateContract(t, cluster, nodeName, WASMTokenPath, AbiTokenPath)
+	contractHash := SendCreateContract(t, cluster, nodeName, WASMTokenPath, AbiTokenPath, "dipp,DIPP,1000000")
 	checkTransactionOnChain(client, []common.Hash{contractHash})
 
 	// Transfer money

@@ -154,7 +154,12 @@ func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, inp
 }
 
 func (vm *VM) Create(caller resolver.ContractRef, data []byte, gas uint64, value *big.Int) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
-	contractAddr = cs_crypto.CreateContractAddress(caller.Address(), vm.state.GetNonce(caller.Address()))
+	nonce, err := vm.state.GetNonce(caller.Address())
+	if err != nil {
+		log.Error("can't get the caller nonce")
+		return nil, common.Address{}, 0, err
+	}
+	contractAddr = cs_crypto.CreateContractAddress(caller.Address(), nonce)
 	return vm.create(caller, data, gas, value, contractAddr)
 }
 
@@ -172,7 +177,8 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 
 	// Ensure there's no existing contract already at the designated address
 	contractHash := vm.state.GetCodeHash(address)
-	if vm.state.GetNonce(address) != 0 || (contractHash != common.Hash{} && contractHash != emptyCodeHash) {
+	nonce, _ := vm.state.GetNonce(address)
+	if nonce != uint64(0) || (contractHash != common.Hash{} && contractHash != emptyCodeHash) {
 		return nil, common.Address{}, 0, g_error.ErrContractAddressCollision
 	}
 

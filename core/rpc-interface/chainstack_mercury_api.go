@@ -1222,6 +1222,10 @@ func (api *DipperinMercuryApi) GetConvertReceiptByTxHash(txHash common.Hash) (*m
 	return api.service.GetConvertReceiptByTxHash(txHash)
 }
 
+func (api *DipperinMercuryApi) GetTxActualFee(txHash common.Hash) (*big.Int, error) {
+	return api.service.GetTxActualFee(txHash)
+}
+
 func (api *DipperinMercuryApi) GetReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
 	return api.service.GetReceiptByTxHash(txHash)
 }

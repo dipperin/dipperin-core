@@ -47,11 +47,11 @@ func SendTransactionContract(client *rpc.Client, from, to common.Address, value,
 
 func Call(client *rpc.Client, from, to common.Address, data []byte) error {
 	var resp string
-	if err := client.Call(&resp, GetRpcTXMethod("SendCallContract"), from, to, data, uint64(0)); err != nil {
-		LogTestPrint("Test", "SendCallContract failed", "err", err)
+	if err := client.Call(&resp, GetRpcTXMethod("CallContract"), from, to, data, uint64(0)); err != nil {
+		LogTestPrint("Test", "CallContract failed", "err", err)
 		return err
 	}
-	LogTestPrint("Test", "SendCallContract Successful", "resp", resp)
+	LogTestPrint("Test", "CallContract Successful", "resp", resp)
 	return nil
 }
 
@@ -111,16 +111,16 @@ func GetBlockByNumber(client *rpc.Client, num uint64) rpc_interface.BlockResp {
 	return respBlock
 }
 
-func SendCreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName, wasmPath, abiPath string) common.Hash {
+func SendCreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName, wasmPath, abiPath, params string) common.Hash {
 	client := cluster.NodeClient[nodeName]
 	from, err := cluster.GetNodeMainAddress(nodeName)
 	LogTestPrint("Test", "From", "addr", from.Hex())
 	assert.NoError(t, err)
 
 	to := common.HexToAddress(common.AddressContractCreate)
-	data, err := g_testData.GetCreateExtraData(wasmPath, abiPath, "")
+	data, err := g_testData.GetCreateExtraData(wasmPath, abiPath, params)
 	assert.NoError(t, err)
-	gasLimit := big.NewInt(0).SetUint64(g_testData.TestGasLimit)
+	gasLimit := big.NewInt(0).SetUint64(g_testData.TestGasLimit * 100)
 	txHash, innerErr := SendTransactionContract(client, from, to, g_testData.TestValue, gasLimit, g_testData.TestGasPrice, data)
 	assert.NoError(t, innerErr)
 	return txHash
@@ -133,7 +133,7 @@ func SendCallContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName 
 	assert.NoError(t, err)
 
 	to := GetContractAddressByTxHash(client, txHash)
-	gasLimit := big.NewInt(0).SetUint64(g_testData.TestGasLimit)
+	gasLimit := big.NewInt(0).SetUint64(g_testData.TestGasLimit * 100)
 	txHash, innerErr := SendTransactionContract(client, from, to, g_testData.TestValue, gasLimit, g_testData.TestGasPrice, input)
 	assert.NoError(t, innerErr)
 	return txHash

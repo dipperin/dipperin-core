@@ -17,7 +17,7 @@ func Test_ConvertContractCall(t *testing.T) {
 
 	WASMConvertPath := g_testData.GetWasmPath("convert")
 	ABIConvertPath := g_testData.GetAbiPath("convert")
-	contractHash := SendCreateContract(t, cluster, nodeName, WASMConvertPath, ABIConvertPath)
+	contractHash := SendCreateContract(t, cluster, nodeName, WASMConvertPath, ABIConvertPath, "")
 	checkTransactionOnChain(client, []common.Hash{contractHash})
 
 	data, err := g_testData.GetCallExtraData("getBlockInfo", "")

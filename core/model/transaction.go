@@ -48,7 +48,7 @@ type Transaction struct {
 	receipt atomic.Value
 	//add txIndex cache
 	txIndex atomic.Value
-	//add contract tx usedFee
+	//add actual tx usedFee
 	actualTxFee atomic.Value
 }
 
@@ -94,25 +94,7 @@ func IntrinsicGas(data []byte, contractCreation, homestead bool) (uint64, error)
 	return gas, nil
 }
 
-//convert transaction fee to gasPrice and gasLimit
-func ConvertFeeToGasPriceAndGasLimit(fee *big.Int, txExtraData []byte) (gasPrice *big.Int, gasLimit uint64, err error) {
-	needGas, err := IntrinsicGas(txExtraData, false, false)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	gasPrice = big.NewInt(0).Div(fee, big.NewInt(int64(needGas)))
-	gasLimit = needGas
-	return
-}
-
 func NewTransaction(nonce uint64, to common.Address, amount, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
-	//return newTransaction(nonce, &to, amount, fee, nil, 0, data)
-	/*	gasPrice, gasLimit, err := ConvertFeeToGasPriceAndGasLimit(fee, data)
-		if err != nil {
-			log.Info("NewTransaction error", "err", err)
-			return nil
-		}*/
 	return newTransaction(nonce, &to, amount, gasPrice, gasLimit, data)
 }
 

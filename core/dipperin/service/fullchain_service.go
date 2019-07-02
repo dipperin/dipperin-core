@@ -1572,6 +1572,21 @@ func (service *MercuryFullChainService) GetConvertReceiptByTxHash(txHash common.
 	return nil, g_error.ErrReceiptNotFound
 }
 
+func (service *MercuryFullChainService) GetTxActualFee(txHash common.Hash) (*big.Int, error) {
+	receipt, err := service.GetConvertReceiptByTxHash(txHash)
+	if err != nil {
+		return nil, err
+	}
+
+	tx, _, _, _, err := service.Transaction(txHash)
+	if err != nil {
+		return nil, err
+	}
+
+	actualFee := big.NewInt(0).Mul(big.NewInt(int64(receipt.GasUsed)), tx.GetGasPrice())
+	return actualFee, nil
+}
+
 func (service *MercuryFullChainService) GetReceiptsByBlockNum(num uint64) (model2.Receipts, error) {
 	block, err := service.GetBlockByNumber(num)
 	if err != nil {

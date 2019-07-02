@@ -511,6 +511,8 @@ func (vm *VirtualMachine) Ignite(functionID int, params ...int64) {
 	}
 
 	code := vm.FunctionCode[functionID]
+	log.Info("the NumParams is:", "NumParams", code.NumParams)
+	log.Info("the params number is:", "param-len", len(params))
 	if code.NumParams != len(params) {
 		panic("param count mismatch")
 	}

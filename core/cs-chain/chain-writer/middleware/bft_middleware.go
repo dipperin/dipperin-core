@@ -66,7 +66,7 @@ func (v *BftBlockValidator) Valid(b model.AbstractBlock) error {
 		c.Use(ValidateBlockDifficulty(c))
 	}
 	c.Use(ValidateBlockVersion(c))
-	c.Use(ValidateBlockSize(c))
+	//c.Use(ValidateBlockSize(c))
 	c.Use(ValidateBlockHash(c))
 	c.Use(ValidateBlockCoinBase(c))
 	c.Use(ValidateSeed(c))
