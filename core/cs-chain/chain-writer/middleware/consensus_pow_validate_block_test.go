@@ -21,6 +21,8 @@ import (
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -160,6 +162,60 @@ func TestValidateBlockVersion(t *testing.T) {
 		Block: &fakeBlock{ts: big.NewInt(tn.Add(chain_config.GetChainConfig().BlockTimeRestriction + time.Second*30).UnixNano())},
 		Chain: &fakeChainInterface{block: &fakeBlock{}},
 	})())
+}
+
+func TestValidateGasLimit(t *testing.T) {
+	gasLimit := chain_config.BlockGasLimit
+
+	nextGasLimit := gasLimit + gasLimit/1024 - 1
+	assert.NoError(t, ValidateGasLimit(&BlockContext{
+		Block: &fakeBlock{GasLimit: uint64(nextGasLimit),},
+		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit),}},
+	})())
+
+	nextGasLimit = gasLimit + gasLimit/1024
+	assert.Error(t, ValidateGasLimit(&BlockContext{
+		Block: &fakeBlock{GasLimit: uint64(nextGasLimit),},
+		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit),}},
+	})())
+
+	nextGasLimit = gasLimit - gasLimit/1024 + 1
+	assert.NoError(t, ValidateGasLimit(&BlockContext{
+		Block: &fakeBlock{GasLimit: uint64(nextGasLimit),},
+		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit),}},
+	})())
+
+	nextGasLimit = gasLimit - gasLimit/1024
+	assert.Error(t, ValidateGasLimit(&BlockContext{
+		Block: &fakeBlock{GasLimit: uint64(nextGasLimit),},
+		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit),}},
+	})())
+}
+
+func TestValidGasUsedAndReceipts(t *testing.T) {
+	gasLimit := chain_config.BlockGasLimit
+
+	receipt := &model2.Receipt{GasUsed:model2.TxGas}
+	receipts:= model2.Receipts{receipt,receipt,receipt}
+	txs:= []model.AbstractTransaction{
+		&fakeTx{GasLimit:g_testData.TestGasLimit,Receipt:receipt},
+		&fakeTx{GasLimit:g_testData.TestGasLimit,Receipt:receipt},
+		&fakeTx{GasLimit:g_testData.TestGasLimit,Receipt:receipt},
+	}
+
+	testBlock := &fakeBlock{
+		GasLimit:chain_config.BlockGasLimit,
+		ReceiptHash: model.DeriveSha(receipts),
+		GasUsed:receipt.GasUsed*uint64(len(receipts)),
+		txs:txs,
+	}
+
+	assert.NoError(t,ValidGasUsedAndReceipts(&BlockContext{
+		Block: testBlock,
+		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit),}},
+	})())
+
+	
 }
 
 type fakeWrongBlock struct {
