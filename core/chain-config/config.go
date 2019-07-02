@@ -89,7 +89,6 @@ func defaultChainConfig() *ChainConfig {
 		VerifierNumber: 4,
 		// angel verifier priority
 		SystemVerifierPriority: 0,
-
 		//mine conf
 		//mining maximum difficulty value
 		MainPowLimit: new(big.Int).Sub(new(big.Int).Lsh(bigOne, 253), bigOne),
