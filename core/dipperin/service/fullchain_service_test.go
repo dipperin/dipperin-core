@@ -1071,9 +1071,8 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	to = common.BytesToAddress(hash[:])
 	WASMPath = g_testData.GetWasmPath("token")
 	abiPath = g_testData.GetAbiPath("token")
-    data, err =	g_testData.GetCallExtraData("getBalance", address.String())
-    assert.NoError(t, err)
-
+	data, err = g_testData.GetCallExtraData("getBalance", address.String())
+	assert.NoError(t, err)
 
 	nonce = uint64(8)
 	fs1 := model.NewMercurySigner(big.NewInt(1))

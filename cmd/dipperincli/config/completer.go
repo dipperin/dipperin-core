@@ -58,7 +58,6 @@ var commands = []prompt.Suggest{
 }
 */
 
-
 func DipperinCliCompleterNew(d prompt.Document) []prompt.Suggest {
 	if d.TextBeforeCursor() == "" {
 		return nilSuggest

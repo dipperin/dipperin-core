@@ -49,6 +49,7 @@ func TestBftMiddleware(t *testing.T) {
 }
 
 var minDiff = common.HexToDiff("0x20ffffff")
+
 func TestBftMiddleware2(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
@@ -60,18 +61,18 @@ func TestBftMiddleware2(t *testing.T) {
 	coinbaseCur := cs_crypto.PubkeyToAddress(pkCur)
 	timeStamp := time.Now().Nanosecond()
 	headerCur := model.Header{
-			Version:     1,
-			Number:      9,
-			PreHash:     common.Hash{},
-			Seed:        common.Hash{},
-			Diff:        minDiff,
-			TimeStamp:   new(big.Int).SetInt64(int64(timeStamp)),
-			CoinBase:    coinbaseCur,
-			Nonce:       common.BlockNonceFromInt(432423),
-			Bloom:       iblt.NewBloom(model.DefaultBlockBloomConfig),
-			GasLimit:    model.DefaultGasLimit,
-			Proof:       []byte{},
-			MinerPubKey: crypto.FromECDSAPub(&pkCur),
+		Version:     1,
+		Number:      9,
+		PreHash:     common.Hash{},
+		Seed:        common.Hash{},
+		Diff:        minDiff,
+		TimeStamp:   new(big.Int).SetInt64(int64(timeStamp)),
+		CoinBase:    coinbaseCur,
+		Nonce:       common.BlockNonceFromInt(432423),
+		Bloom:       iblt.NewBloom(model.DefaultBlockBloomConfig),
+		GasLimit:    model.DefaultGasLimit,
+		Proof:       []byte{},
+		MinerPubKey: crypto.FromECDSAPub(&pkCur),
 	}
 
 	blockCur := model.NewBlock(&headerCur, nil, nil)
@@ -80,27 +81,24 @@ func TestBftMiddleware2(t *testing.T) {
 		common.Address{},
 	}
 
-
-
 	chain.EXPECT().CurrentBlock().Return(blockCur)
 	chain.EXPECT().GetBlockByNumber(gomock.Any()).Return(blockCur).AnyTimes()
 	chain.EXPECT().GetLatestNormalBlock().Return(blockCur).AnyTimes()
 	chain.EXPECT().GetChainConfig().Return(&chain_config.ChainConfig{
-		Version:1,
-		BlockTimeRestriction:blockCacheLimit,
+		Version:              1,
+		BlockTimeRestriction: blockCacheLimit,
 	}).AnyTimes()
 	slot := uint64(0)
 	chain.EXPECT().GetSlot(blockCur).Return(&slot)
 	chain.EXPECT().GetVerifiers(slot).Return(verifies)
-	processor,_ := chain_true.NewBlockProcessor(nil, blockCur.StateRoot(),state_processor.NewStateStorageWithCache(ethdb.NewMemDatabase()))
+	processor, _ := chain_true.NewBlockProcessor(nil, blockCur.StateRoot(), state_processor.NewStateStorageWithCache(ethdb.NewMemDatabase()))
 	chain.EXPECT().BlockProcessor(blockCur.StateRoot()).Return(processor, nil).AnyTimes()
 	chain.EXPECT().GetEconomyModel().Return(nil)
-
 
 	sk, err := crypto.GenerateKey()
 	pk := sk.PublicKey
 	coinbase := cs_crypto.PubkeyToAddress(pk)
-	seed, proof := crypto.Evaluate(sk,headerCur.Seed.Bytes())
+	seed, proof := crypto.Evaluate(sk, headerCur.Seed.Bytes())
 	header := model.Header{
 		Version:     1,
 		Number:      10,
@@ -116,7 +114,6 @@ func TestBftMiddleware2(t *testing.T) {
 		MinerPubKey: crypto.FromECDSAPub(&pk),
 	}
 
-
 	ver1 := NewMockAbstractVerification(ctl)
 	ver1.EXPECT().GetAddress().Return(common.Address{}).AnyTimes()
 	ver1.EXPECT().Valid().Return(nil)
@@ -126,7 +123,6 @@ func TestBftMiddleware2(t *testing.T) {
 	}
 	block := model.NewBlock(&header, nil, blockVerifier)
 	err = validator.FullValid(block)
-
 
 	assert.Equal(t, err.Error(), "contract 0x00110000000000000000000000000000000000000000 not exist")
 
