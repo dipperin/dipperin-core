@@ -286,7 +286,6 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 		GasUsed:  &gasUsed2,
 	}
 
-
 	err = processor.ProcessTxNew(txConfig5)
 	assert.NoError(t, err)
 	processor.Commit()
@@ -324,7 +323,6 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	ownTransferNonce++
 	err = processContractCall(t, receipt.ContractAddress, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 8, singer)
 	assert.NoError(t, err)
-
 
 	//  合约调用getBalance方法  获取own账户最终的balance
 	ownTransferNonce++

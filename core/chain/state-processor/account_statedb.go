@@ -1435,7 +1435,7 @@ func (state *AccountStateDB) GetData(addr common.Address, key string) (data []by
 		log.Debug("AccountStateDB#GetData", "addr", addr)
 		if state.smartContractData[addr][key] != nil {
 			log.Debug("AccountStateDB#GetData", "key", key)
-			result :=  state.smartContractData[addr][key]
+			result := state.smartContractData[addr][key]
 			log.Debug("AccountStateDB#GetData", "result", result)
 			return result
 		}
