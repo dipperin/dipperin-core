@@ -1,16 +1,16 @@
 package vm
 
 import (
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
 )
 
 func TestWASMInterpreter_Run_map_string(t *testing.T) {
-/*	WASMPath := g_testData.GetWasmPath("map-string")
-	AbiPath := g_testData.GetAbiPath("map-string")*/
+	/*	WASMPath := g_testData.GetWasmPath("map-string")
+		AbiPath := g_testData.GetAbiPath("map-string")*/
 	/*	WASMPath := "/home/qydev/go/src/dipperin-c/dipc/testcontract/mapString/mapString.wasm"
 		AbiPath := "/home/qydev/go/src/dipperin-c/dipc/testcontract/mapString/mapString.cpp.abi.json"
 		testVm := getTestVm()
@@ -29,24 +29,24 @@ func TestWASMInterpreter_Run_map_string(t *testing.T) {
 		assert.NoError(t, err)
 
 		fmt.Println("-----------------------------------------")*/
-/*
-	key1 := []byte("bbb")
-	value1 := utils.Int32ToBytes(222)
-	param1 := [][]byte{key1, value1}
+	/*
+		key1 := []byte("bbb")
+		value1 := utils.Int32ToBytes(222)
+		param1 := [][]byte{key1, value1}
 
-	inputs = genInput(t, "setBalance", param1)
-	contract = getContract(t, contractAddr, WASMPath, AbiPath, inputs)
-	result, err = interpreter.Run(testVm, contract, false)
-	assert.Equal(t, expect, result)
-	assert.NoError(t, err)
+		inputs = genInput(t, "setBalance", param1)
+		contract = getContract(t, contractAddr, WASMPath, AbiPath, inputs)
+		result, err = interpreter.Run(testVm, contract, false)
+		assert.Equal(t, expect, result)
+		assert.NoError(t, err)
 
-	fmt.Println("-----------------------------------------")
-	inputs = genInput(t, "getBalance", [][]byte{key})
-	contract = getContract(t, contractAddr, WASMPath, AbiPath, inputs)
-	result, err = interpreter.Run(testVm, contract, false)
-	expect = append(expect[:28], value...)
-	assert.Equal(t, expect, result)
-	assert.NoError(t, err)*/
+		fmt.Println("-----------------------------------------")
+		inputs = genInput(t, "getBalance", [][]byte{key})
+		contract = getContract(t, contractAddr, WASMPath, AbiPath, inputs)
+		result, err = interpreter.Run(testVm, contract, false)
+		expect = append(expect[:28], value...)
+		assert.Equal(t, expect, result)
+		assert.NoError(t, err)*/
 }
 
 func TestWASMInterpreter_Run_event(t *testing.T) {

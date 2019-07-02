@@ -18,17 +18,17 @@ package chain_config
 
 import (
 	"fmt"
-	"net"
-	"os"
-	"testing"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain-config/env-conf"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/stretchr/testify/assert"
-	"path/filepath"
 	"io/ioutil"
+	"net"
+	"os"
+	"path/filepath"
+	"testing"
 )
 
 func TestLoadDefaultBootID(t *testing.T) {

@@ -23,7 +23,7 @@ import (
 )
 
 type OnlyOneGo struct {
-	entered int32
+	entered   int32
 	lastStack []byte
 }
 

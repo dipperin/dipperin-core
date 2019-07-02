@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package iblt
 
 import (
@@ -154,7 +153,6 @@ func TestGrapheneRLP_graphene(t *testing.T) {
 	assert.Equal(t, bloomRlp.Bloom, bloom.bloom.BloomRLP())
 	assert.Equal(t, bloomRlp.InvBloom, bloom.invBloom.invBloomRLP())
 }
-
 
 func TestGraphene_EncodeRLP(t *testing.T) {
 

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_communication
 
 import (
@@ -32,26 +31,26 @@ const (
 
 func NewBroadcastDelegate(txPool TxPool, nodeConfig NodeConf, peerManager PeerManager, chain Chain, pbftNode PbftNode) *BroadcastDelegate {
 	txConfig := NewTxBroadcasterConfig{
-		P2PMsgDecoder:MakeDefaultMsgDecoder(),
-		TxPool:txPool,
-		NodeConf:nodeConfig,
-		Pm: peerManager,
+		P2PMsgDecoder: MakeDefaultMsgDecoder(),
+		TxPool:        txPool,
+		NodeConf:      nodeConfig,
+		Pm:            peerManager,
 	}
 
 	broadConfig := NewBlockBroadcasterConfig{
-		Chain:chain,
-		Pm:peerManager,
-		PbftNode:pbftNode,
+		Chain:    chain,
+		Pm:       peerManager,
+		PbftNode: pbftNode,
 	}
 
 	bftConfig := NewBftOuterConfig{
-		Chain:chain,
-		Pm:peerManager,
+		Chain: chain,
+		Pm:    peerManager,
 	}
 	return &BroadcastDelegate{
-		newTxBroadcaster:makeNewTxBroadcaster(&txConfig),
-		blockBroadcaster:makeNewBlockBroadcaster(&broadConfig),
-		bftOut:NewBftOuter(&bftConfig),
+		newTxBroadcaster: makeNewTxBroadcaster(&txConfig),
+		blockBroadcaster: makeNewBlockBroadcaster(&broadConfig),
+		bftOut:           NewBftOuter(&bftConfig),
 	}
 }
 
@@ -63,7 +62,6 @@ type BroadcastDelegate struct {
 	blockBroadcaster *NewBlockBroadcaster
 	bftOut           *BftOuter
 }
-
 
 func (delegate *BroadcastDelegate) BroadcastMinedBlock(block model.AbstractBlock) {
 	pbft_log.Debug("BroadcastBlock", "block id", block.Hash().Hex(), "txs", block.TxCount())

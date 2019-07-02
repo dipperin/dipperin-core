@@ -23,8 +23,8 @@ type account struct {
 	//ContractRoot common.Hash `rlp:"nil"`
 	// merkle root of the triple-layered smart contraction data storage trie
 	DataRoot common.Hash `rlp:"nil"`
-	Code []byte
-	Abi []byte
+	Code     []byte
+	Abi      []byte
 }
 
 var (
@@ -32,10 +32,10 @@ var (
 )
 
 const (
-	nonceKeySuffix     = "_nonce"
-	balanceKeySuffix   = "_balance"
-	hashLockKeySuffix  = "_hashLock"
-	timeLockKeySuffix  = "_timeLock"
+	nonceKeySuffix    = "_nonce"
+	balanceKeySuffix  = "_balance"
+	hashLockKeySuffix = "_hashLock"
+	timeLockKeySuffix = "_timeLock"
 	//contractRootSuffix = "_contract_root"
 	dataRootSuffix     = "_data_root"
 	stakeKeySuffix     = "_stake"
@@ -43,8 +43,8 @@ const (
 	verifyNumKeySuffix = "_verify_num"
 	lastElectKeySuffix = "_last_elect"
 	performanceSuffix  = "_performance"
-	abiSuffix = "_abi"
-	codeSuffix = "_code"
+	abiSuffix          = "_abi"
+	codeSuffix         = "_code"
 )
 
 func GetContractFieldKey(address common.Address, key string) []byte {
@@ -104,8 +104,8 @@ func GetAbiKey(address common.Address) []byte {
 	return append(address[:], []byte(abiSuffix)...)
 }
 
-func GetCodeKey(address common.Address)[]byte{
-	return append(address[:],[]byte(codeSuffix)...)
+func GetCodeKey(address common.Address) []byte {
+	return append(address[:], []byte(codeSuffix)...)
 }
 
 func (a *account) getNonce() uint64 {

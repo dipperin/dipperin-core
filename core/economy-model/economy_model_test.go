@@ -47,7 +47,6 @@ func (*testService) GetSlot(block model.AbstractBlock) *uint64 {
 
 var testEconomyService = &testService{}
 
-
 func TestDipperinEconomyModel_MapMerge(t *testing.T) {
 	src := map[common.Address]*big.Int{}
 	des := map[common.Address]*big.Int{}
@@ -94,7 +93,6 @@ func TestDipperinEconomyModel_GetMinimumTxFee(t *testing.T) {
 	assert.NotNil(t, fee)
 }
 
-
 // test address type
 func TestDipperinEconomyModel_CheckAddressType(t *testing.T) {
 	economyModel := economy_model.MakeDipperinEconomyModel(testEconomyService, economy_model.DIPProportion)
@@ -116,21 +114,21 @@ func TestDipperinEconomyModel_CheckAddressType(t *testing.T) {
 func TestDipperinEconomyModel_GetAddressLockMoney(t *testing.T) {
 	economyModel := economy_model.MakeDipperinEconomyModel(testEconomyService, economy_model.DIPProportion)
 
-	testData := make([]map[common.Address]*big.Int,0)
+	testData := make([]map[common.Address]*big.Int, 0)
 	infoInvest := economyModel.GetInvestorInitBalance()
-	testData = append(testData,infoInvest)
+	testData = append(testData, infoInvest)
 	infoDev := economyModel.GetDeveloperInitBalance()
-	testData = append(testData,infoDev)
+	testData = append(testData, infoDev)
 	infoMaintenance := economyModel.GetFoundationInfo(economy_model.Maintenance)
-	testData = append(testData,infoMaintenance)
+	testData = append(testData, infoMaintenance)
 	infoEarlyToken := economyModel.GetFoundationInfo(economy_model.EarlyToken)
-	testData = append(testData,infoEarlyToken)
+	testData = append(testData, infoEarlyToken)
 	infoRemainReward := economyModel.GetFoundationInfo(economy_model.RemainReward)
-	testData = append(testData,infoRemainReward)
+	testData = append(testData, infoRemainReward)
 
-	for i ,info:= range testData{
-		for k := range info{
-			if i < 2{
+	for i, info := range testData {
+		for k := range info {
+			if i < 2 {
 				//test investor and developer
 				_, err := economyModel.GetAddressLockMoney(k, 0)
 				assert.Error(t, err, economy_model.ErrBlockNumberIs0.Error())
@@ -168,15 +166,16 @@ func TestDipperinEconomyModel_GetMineMasterDIPReward(t *testing.T) {
 	assert.NoError(t, err)
 	assert.EqualValues(t, big.NewInt(8700000000), reward)
 
-	testBlock.EXPECT().Number().Return(uint64(11 * economy_model.HeightAfterOneYear)+1)
+	testBlock.EXPECT().Number().Return(uint64(11*economy_model.HeightAfterOneYear) + 1)
 	reward, err = economyModel.GetMineMasterDIPReward(testBlock)
 	assert.NoError(t, err)
 	assert.EqualValues(t, big.NewInt(12441000000), reward)
 
 	testBlock.EXPECT().Number().Return(uint64(0))
 	_, err = economyModel.GetMineMasterDIPReward(testBlock)
-	assert.Equal(t,economy_model.ErrBlockNumberIs0,err)
+	assert.Equal(t, economy_model.ErrBlockNumberIs0, err)
 }
+
 // test the reward for verifiers
 func TestDipperinEconomyModel_GetVerifierDIPReward(t *testing.T) {
 	economyModel := economy_model.MakeDipperinEconomyModel(testEconomyService, economy_model.DIPProportion)
@@ -191,7 +190,6 @@ func TestDipperinEconomyModel_GetVerifierDIPReward(t *testing.T) {
 	assert.EqualValues(t, big.NewInt(150724637), reward[economy_model.CommitVerifier])
 	assert.EqualValues(t, big.NewInt(37681159), reward[economy_model.NotCommitVerifier])
 
-
 	mockBlock2 := economy_model.NewMockAbstractBlock(controller)
 	mockBlock2.EXPECT().Number().Return(uint64(economy_model.HeightAfterTenYear + 1)).AnyTimes()
 	reward, err = economyModel.GetVerifierDIPReward(mockBlock2)
@@ -200,11 +198,10 @@ func TestDipperinEconomyModel_GetVerifierDIPReward(t *testing.T) {
 	assert.EqualValues(t, big.NewInt(75362318), reward[economy_model.CommitVerifier])
 	assert.EqualValues(t, big.NewInt(18840579), reward[economy_model.NotCommitVerifier])
 
-
 	mockBlock3 := economy_model.NewMockAbstractBlock(controller)
 	mockBlock3.EXPECT().Number().Return(uint64(0)).AnyTimes()
 	_, err = economyModel.GetVerifierDIPReward(mockBlock3)
-	assert.Equal(t,economy_model.ErrBlockNumberIs0,err)
+	assert.Equal(t, economy_model.ErrBlockNumberIs0, err)
 }
 
 // test investors
@@ -220,6 +217,7 @@ func TestDipperinEconomyModel_GetDeveloperInitBalance(t *testing.T) {
 	info := economyModel.GetDeveloperInitBalance()
 	assert.EqualValues(t, big.NewInt(87600000000000000), info[economy_model.DeveloperAddresses[0]])
 }
+
 // test investor unlocking mechanism
 func TestDipperinEconomyModel_GetInvestorLockDIP(t *testing.T) {
 	economyModel := economy_model.MakeDipperinEconomyModel(testEconomyService, economy_model.DIPProportion)
@@ -241,7 +239,7 @@ func TestDipperinEconomyModel_GetInvestorLockDIP(t *testing.T) {
 	}
 
 	_, err := economyModel.GetInvestorLockDIP(common.Address{}, 2)
-	assert.Equal(t,economy_model.ErrAddress,err)
+	assert.Equal(t, economy_model.ErrAddress, err)
 }
 
 // test developer unlocking mechanism
@@ -264,9 +262,8 @@ func TestDipperinEconomyModel_GetDeveloperLockDIP(t *testing.T) {
 	}
 
 	_, err := economyModel.GetDeveloperLockDIP(common.Address{}, 2)
-	assert.Equal(t,economy_model.ErrAddress,err)
+	assert.Equal(t, economy_model.ErrAddress, err)
 }
-
 
 func TestGenerateAddress(t *testing.T) {
 	addressNumber := 5
@@ -277,7 +274,6 @@ func TestGenerateAddress(t *testing.T) {
 		log.Info("the address is:", "address", address.Hex())
 	}
 }
-
 
 func TestCalcDIPTotalCirculation(t *testing.T) {
 	value := economy_model.CalcDIPTotalCirculation(0)
@@ -303,8 +299,8 @@ func TestDipperinEconomyModel_GetDiffVerifierAddress(t *testing.T) {
 
 	economyModel := economy_model.MakeDipperinEconomyModel(testEconomyService, economy_model.DIPProportion)
 
-	_,err :=economyModel.GetDiffVerifierAddress(mockPreBlock,mockBlock)
-	assert.Equal(t,economy_model.ErrBlockNumberIs0Ore1,err)
+	_, err := economyModel.GetDiffVerifierAddress(mockPreBlock, mockBlock)
+	assert.Equal(t, economy_model.ErrBlockNumberIs0Ore1, err)
 
 	mockPreBlock.EXPECT().Number().Return(uint64(2))
 	mockBlock.EXPECT().Number().Return(uint64(3))
@@ -315,8 +311,8 @@ func TestDipperinEconomyModel_GetDiffVerifierAddress(t *testing.T) {
 
 	mockBlock.EXPECT().GetVerifications().Return(model.Verifications{mockVerifier})
 
-	verAddr,err :=economyModel.GetDiffVerifierAddress(mockPreBlock,mockBlock)
-	assert.NoError(t,err)
-	log.Info("the verAddr is:","verAddr",verAddr)
+	verAddr, err := economyModel.GetDiffVerifierAddress(mockPreBlock, mockBlock)
+	assert.NoError(t, err)
+	log.Info("the verAddr is:", "verAddr", verAddr)
 	//assert.Equal(t,map[economy_model.VerifierType][]common.Address{},verAddr)
 }

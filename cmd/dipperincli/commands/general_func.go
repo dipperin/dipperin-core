@@ -14,27 +14,26 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package commands
 
 import (
-	"github.com/dipperin/dipperin-core/third-party/log"
-	"path/filepath"
-	"math/big"
 	"fmt"
-	"strconv"
 	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"math/big"
+	"path/filepath"
+	"strconv"
 
-	"github.com/dipperin/dipperin-core/common"
 	"errors"
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 )
 
 //check address format
 func CheckAndChangeHexToAddress(address string) (common.Address, error) {
 	// Ignore 0x
-	if len(address) - 2 != common.AddressLength * 2 {
-		log.Error("the address is:","len",len(address),"addr",address)
+	if len(address)-2 != common.AddressLength*2 {
+		log.Error("the address is:", "len", len(address), "addr", address)
 		return common.Address{}, errors.New("address length is invalid")
 	}
 
@@ -58,7 +57,7 @@ func ParseWalletPathAndName(inputPath string) (path, name string) {
 
 func DecimalToInter(src string, unitBit int) (*big.Int, error) {
 	length := len(src)
-	if (length == 0) {
+	if length == 0 {
 		return nil, errors.New("missing number")
 	}
 	scalingPos := 0
@@ -67,7 +66,7 @@ func DecimalToInter(src string, unitBit int) (*big.Int, error) {
 	}
 
 	unit := 1
-	for i:=0;i<unitBit;i++{
+	for i := 0; i < unitBit; i++ {
 		unit *= 10
 	}
 
@@ -144,7 +143,6 @@ func InterToDecimal(csCoinValue *hexutil.Big, unitBit int) (string, error) {
 	}
 
 	//log.Info("the coinValue is:","coinValue",coinValue,"coinValueLen",coinValueLen,"zeroNumber",zeroNumber)
-
 
 	coinValue = coinValue[:coinValueLen-zeroNumber]
 	if coinValueLen <= unitBit {

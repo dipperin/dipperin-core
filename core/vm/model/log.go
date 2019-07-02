@@ -17,11 +17,11 @@
 package model
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
-	"fmt"
 )
 
 //go:generate gencodec -type Log -field-override logMarshaling -out gen_log_json.go
@@ -36,7 +36,7 @@ type Log struct {
 	Topics []common.Hash `json:"topics" gencodec:"required"`
 
 	//add topic Name
-	TopicName string  `json:"topicName" gencodec:"required"`
+	TopicName string `json:"topicName" gencodec:"required"`
 
 	// supplied by the contract, usually ABI-encoded
 	Data []byte `json:"data" gencodec:"required"`

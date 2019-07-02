@@ -14,30 +14,28 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package contract
 
 import (
+	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"reflect"
-	"errors"
-	"path/filepath"
 	"io/ioutil"
+	"path/filepath"
+	"reflect"
 )
 
-
 var contracts = map[string]*InfoOfContract{
-	consts.ERC20TypeName: newInfoOfContract(BuiltInERC20Token{}),
+	consts.ERC20TypeName:      newInfoOfContract(BuiltInERC20Token{}),
 	consts.EarlyTokenTypeName: newInfoOfContract(EarlyRewardContract{}),
 }
 
 // contract infomation
 type InfoOfContract struct {
 	TypeOfContract reflect.Type
-	MethodArgs map[string][]reflect.Type
+	MethodArgs     map[string][]reflect.Type
 }
 
 // analyse contract information the parameter cannot be point
@@ -113,7 +111,7 @@ func GetContractId(path, node string) (cAdr []common.Address, err error) {
 		err = errors.New("non-exsisted contract record")
 	}
 
-	for i:=0; i<len(ctId); i++ {
+	for i := 0; i < len(ctId); i++ {
 		cAdr = append(cAdr, common.HexToAddress(ctId[i]))
 	}
 	return

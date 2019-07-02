@@ -14,28 +14,27 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package contract
 
 import (
+	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/number"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
-	"errors"
 )
 
 type BaseERC20 struct {
 	ContractBase
 
-	Owner            common.Address `json:"owner"`
-	TokenName        string `json:"token_name"`
-	TokenDecimals    int `json:"token_decimals"`
-	TokenSymbol      string `json:"token_symbol"`
-	TokenTotalSupply *big.Int `json:"token_total_supply"`
-	Balances         map[string]*big.Int `json:"balances"`
+	Owner            common.Address                 `json:"owner"`
+	TokenName        string                         `json:"token_name"`
+	TokenDecimals    int                            `json:"token_decimals"`
+	TokenSymbol      string                         `json:"token_symbol"`
+	TokenTotalSupply *big.Int                       `json:"token_total_supply"`
+	Balances         map[string]*big.Int            `json:"balances"`
 	Allowed          map[string]map[string]*big.Int `json:"allowed"`
 }
 
@@ -48,33 +47,33 @@ type BuiltInERC20Token struct {
 	BaseERC20
 }
 type builtInERC20TokenForMarshaling struct {
-	Owner            common.Address `json:"owner"`
-	TokenName        string `json:"token_name"`
-	TokenDecimals    int `json:"token_decimals"`
-	TokenSymbol      string `json:"token_symbol"`
-	TokenTotalSupply *hexutil.Big `json:"token_total_supply"`
+	Owner            common.Address          `json:"owner"`
+	TokenName        string                  `json:"token_name"`
+	TokenDecimals    int                     `json:"token_decimals"`
+	TokenSymbol      string                  `json:"token_symbol"`
+	TokenTotalSupply *hexutil.Big            `json:"token_total_supply"`
 	Balances         map[string]*hexutil.Big `json:"balances"`
 	// TODO:Allowed need json serialization?
-	Allowed          map[string]map[string]*hexutil.Big `json:"allowed"`
+	Allowed map[string]map[string]*hexutil.Big `json:"allowed"`
 }
 
 var (
-	ContractOwnerNilErr = errors.New("contract owner empty")
-	ContractNameNilErr = errors.New("contract name empty")
-	ContractNumErr = errors.New("contract decimal minus")
-	ContractSupplyNilErr = errors.New("contract TokenTotalSupply empty")
+	ContractOwnerNilErr    = errors.New("contract owner empty")
+	ContractNameNilErr     = errors.New("contract name empty")
+	ContractNumErr         = errors.New("contract decimal minus")
+	ContractSupplyNilErr   = errors.New("contract TokenTotalSupply empty")
 	ContractSupplyLess0Err = errors.New("contract TokenTotalSupply must more than 0")
 )
 
 func (token BuiltInERC20Token) MarshalJSON() ([]byte, error) {
 	bm := &builtInERC20TokenForMarshaling{
-		Owner: token.Owner,
-		TokenName: token.TokenName,
-		TokenDecimals: token.TokenDecimals,
-		TokenSymbol: token.TokenSymbol,
+		Owner:            token.Owner,
+		TokenName:        token.TokenName,
+		TokenDecimals:    token.TokenDecimals,
+		TokenSymbol:      token.TokenSymbol,
 		TokenTotalSupply: (*hexutil.Big)(token.TokenTotalSupply),
-		Balances: map[string]*hexutil.Big{},
-		Allowed: map[string]map[string]*hexutil.Big{},
+		Balances:         map[string]*hexutil.Big{},
+		Allowed:          map[string]map[string]*hexutil.Big{},
 	}
 	for k, b := range token.Balances {
 		bm.Balances[k] = (*hexutil.Big)(b)
@@ -203,7 +202,7 @@ func GetContractConfig() *ContractInfo {
 		// description
 		Description: "for ICO",
 		// initial parameters
-		InitArgs: []*ContractArg {
+		InitArgs: []*ContractArg{
 			{Name: "owner", Description: "owner", ArgType: "common.Address"},
 			{Name: "token_name", Description: "name", ArgType: "string"},
 			{Name: "token_decimals", Description: "decimal", ArgType: "[]byte"},
@@ -213,16 +212,12 @@ func GetContractConfig() *ContractInfo {
 			//{Name: "allowed", Description: "", ArgType: "map[string]map[string]*big.Int"},
 		},
 		// the contract method
-		Methods: []*ContractMethod {
+		Methods: []*ContractMethod{
 			// configuration infomation
-			{Name: "Name", Description: "get contract name", Args: []*ContractArg{
-			}, Return: &ContractArg{Name: "name", Description: "contract name", ArgType: "string"}},
-			{Name: "Symbol", Description: "get contract symbol", Args: []*ContractArg{
-			}, Return: &ContractArg{Name: "symbol", Description: "contract symbol", ArgType: "string"}},
-			{Name: "Decimals", Description: "get decimal", Args: []*ContractArg{
-			}, Return: &ContractArg{Name: "decimals", Description: "decimal", ArgType: "*big.Int"}},
-			{Name: "TotalSupply", Description: "get total supply", Args: []*ContractArg{
-			}, Return: &ContractArg{Name: "totalSupply", Description: "total supply", ArgType: "*big.Int"}},
+			{Name: "Name", Description: "get contract name", Args: []*ContractArg{}, Return: &ContractArg{Name: "name", Description: "contract name", ArgType: "string"}},
+			{Name: "Symbol", Description: "get contract symbol", Args: []*ContractArg{}, Return: &ContractArg{Name: "symbol", Description: "contract symbol", ArgType: "string"}},
+			{Name: "Decimals", Description: "get decimal", Args: []*ContractArg{}, Return: &ContractArg{Name: "decimals", Description: "decimal", ArgType: "*big.Int"}},
+			{Name: "TotalSupply", Description: "get total supply", Args: []*ContractArg{}, Return: &ContractArg{Name: "totalSupply", Description: "total supply", ArgType: "*big.Int"}},
 			// readonly infomation
 			{Name: "BalanceOf", Description: "check account token balance", Args: []*ContractArg{
 				{Name: "address", Description: "account address", ArgType: "common.Address"},
@@ -245,7 +240,6 @@ func GetContractConfig() *ContractInfo {
 				{Name: "spenderAddress", Description: "supplier address", ArgType: "common.Address"},
 				{Name: "value", Description: "allowance amount", ArgType: "*big.Int"},
 			}, Return: &ContractArg{Name: "err", Description: "result", ArgType: "error"}, TxMethod: true},
-
 		},
 	}
 

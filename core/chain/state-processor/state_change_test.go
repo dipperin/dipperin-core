@@ -18,12 +18,12 @@ package state_processor
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
-	"testing"
-	"math/big"
 	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"math/big"
+	"testing"
 )
 
 func TestStateChange(t *testing.T) {

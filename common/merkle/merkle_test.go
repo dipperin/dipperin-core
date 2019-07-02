@@ -124,13 +124,13 @@ func TestComputeMerkleBranch(t *testing.T) {
 	pr, _ = MerkleComputation([]common.Hash{}, index, &mutated)
 	assert.True(t, pr.IsEmpty())
 	var testH []common.Hash
-	for i := 0; i < MaxRouteNumber + 2; i++ {
+	for i := 0; i < MaxRouteNumber+2; i++ {
 		testH = append(testH, common.Hash{})
 	}
 	pr, _ = MerkleComputation(testH, index, &mutated)
 	assert.True(t, pr.IsEmpty())
 
-	pr, _ = MerkleComputation(TxData, uint32(len(TxData) + 2), &mutated)
+	pr, _ = MerkleComputation(TxData, uint32(len(TxData)+2), &mutated)
 	assert.True(t, pr.IsEmpty())
 }
 

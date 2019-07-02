@@ -19,11 +19,11 @@ package g_error
 import "errors"
 
 var (
-	ErrNoBestPeerFound = errors.New("no best peer found")
-	ErrCurHeightTooLow = errors.New("cur height too low")
+	ErrNoBestPeerFound        = errors.New("no best peer found")
+	ErrCurHeightTooLow        = errors.New("cur height too low")
 	ErrIsChangePointDoNotFind = errors.New("is change point, do not find")
 
-	ErrNotInIsVerifierCache = errors.New("not in is verifier cache")
+	ErrNotInIsVerifierCache     = errors.New("not in is verifier cache")
 	ErrNotCurrentOrNextVerifier = errors.New("not current or next verifier")
-	ErrAlreadyStarted = errors.New("already started")
+	ErrAlreadyStarted           = errors.New("already started")
 )

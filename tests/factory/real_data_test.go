@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package factory
 
 import (
@@ -64,7 +63,6 @@ func TestFactoryGenPrk(t *testing.T) {
 
 func TestNewFAddress(t *testing.T) {
 	fa := NewFAddress(50)
-
 
 	println(fa.GetAddress(49).Hex())
 }

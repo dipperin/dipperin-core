@@ -369,7 +369,7 @@ type randTestStep struct {
 }
 
 const (
-	opUpdate              = iota
+	opUpdate = iota
 	opDelete
 	opGet
 	opCommit
@@ -377,7 +377,7 @@ const (
 	opReset
 	opItercheckhash
 	opCheckCacheInvariant
-	opMax                  // boundary value, not an actual op
+	opMax // boundary value, not an actual op
 )
 
 func (randTest) Generate(r *rand.Rand, size int) reflect.Value {
@@ -673,6 +673,3 @@ func TestNew(t *testing.T) {
 	}
 
 }
-
-
-

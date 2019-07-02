@@ -17,8 +17,8 @@
 package chain
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestMakeVerifiersReader(t *testing.T) {

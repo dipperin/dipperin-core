@@ -1062,7 +1062,8 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	to := common.HexToAddress(common.AddressContractCreate)
 	WASMPath := g_testData.GetWasmPath("token")
 	abiPath := g_testData.GetAbiPath("token")
-	data := g_testData.GetCreateExtraData(t, WASMPath, abiPath, "dipp,DIPP,100000000")
+	data, err := g_testData.GetCreateExtraData(WASMPath, abiPath, "dipp,DIPP,100000000")
+	assert.NoError(t, err)
 	hash, err = service.SendTransactionContract(address, to, value, new(big.Int).Mul(txFee, new(big.Int).SetInt64(int64(30))), new(big.Int).SetInt64(int64(1)), data, &nonce)
 	assert.NoError(t, err)
 

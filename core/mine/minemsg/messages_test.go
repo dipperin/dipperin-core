@@ -62,6 +62,6 @@ func TestDefaultWork_CalHash(t *testing.T) {
 	assert.Error(t, err)
 
 	w.CalBlockRlpWithoutNonce()
-	_,err = w.CalHash()
+	_, err = w.CalHash()
 	assert.NoError(t, err)
 }

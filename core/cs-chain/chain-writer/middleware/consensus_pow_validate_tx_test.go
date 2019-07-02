@@ -42,8 +42,8 @@ import (
 func TestNewTxValidatorForRpcService(t *testing.T) {
 	v := NewTxValidatorForRpcService(&fakeChainInterface{})
 	assert.NotNil(t, v)
-	err:=v.Valid(&fakeTx{sender: common.Address{0x11}})
-	assert.Error(t,err)
+	err := v.Valid(&fakeTx{sender: common.Address{0x11}})
+	assert.Error(t, err)
 
 	assert.Error(t, ValidateBlockTxs(&BlockContext{Block: &fakeBlock{}, Chain: &fakeChainInterface{}})())
 	assert.NoError(t, ValidateBlockTxs(&BlockContext{Block: &fakeBlock{
@@ -316,7 +316,6 @@ type fakeChainInterface struct {
 	slot      uint64
 	verifiers []common.Address
 	cf        *chain_config.ChainConfig
-
 }
 
 func (ci *fakeChainInterface) GetReceipts(hash common.Hash, number uint64) model2.Receipts {
@@ -504,7 +503,7 @@ func (ci *fakeChainInterface) AccountStateDB(root common.Hash) (*state_processor
 		return nil, err
 	}
 
-	return aDB,nil
+	return aDB, nil
 }
 
 type fakeEconomyModel struct {

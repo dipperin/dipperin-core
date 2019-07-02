@@ -56,7 +56,7 @@ func (cs *ChainState) AccountStateDB(root common.Hash) (*state_processor.Account
 		return nil, err
 	}
 
-	return aDB,nil
+	return aDB, nil
 }
 
 // create a new BlockProcessor according to the root hash

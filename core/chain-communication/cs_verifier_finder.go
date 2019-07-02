@@ -58,21 +58,21 @@ type GetVerifiersReq struct {
 type GetVerifiersResp struct {
 	ReqID uint64
 
-	Cur []string
-	Next []string
+	Cur     []string
+	Next    []string
 	ErrInfo string
 }
 
 type fetchReq struct {
-	ReqID uint64
+	ReqID    uint64
 	RespChan chan *GetVerifiersResp
 }
 
 func NewVfFetcher() *vfFetcher {
 	return &vfFetcher{
-		reqs: make(map[uint64]chan *GetVerifiersResp),
+		reqs:       make(map[uint64]chan *GetVerifiersResp),
 		addReqChan: make(chan fetchReq),
-		respChan: make(chan GetVerifiersResp),
+		respChan:   make(chan GetVerifiersResp),
 	}
 }
 
@@ -81,22 +81,22 @@ type vfFetcher struct {
 	reqs map[uint64]chan *GetVerifiersResp
 
 	addReqChan chan fetchReq
-	respChan chan GetVerifiersResp
+	respChan   chan GetVerifiersResp
 }
 
 func (f *vfFetcher) loop() {
 	for {
 		select {
-		case req := <- f.addReqChan:
+		case req := <-f.addReqChan:
 			if f.reqs[req.ReqID] != nil {
 				log.Error("dup get conn req", "req", req)
 			}
 			f.reqs[req.ReqID] = req.RespChan
-		case resp := <- f.respChan:
+		case resp := <-f.respChan:
 			if f.reqs[resp.ReqID] != nil {
 				select {
 				case f.reqs[resp.ReqID] <- &resp:
-				case <- time.After(100 * time.Millisecond):
+				case <-time.After(100 * time.Millisecond):
 				}
 				delete(f.reqs, resp.ReqID)
 			}
@@ -112,7 +112,7 @@ func (f *vfFetcher) OnGetVerifiersResp(msg p2p.Msg, p PmAbstractPeer) error {
 
 	select {
 	case f.respChan <- resp:
-	case <- time.After(100 * time.Millisecond):
+	case <-time.After(100 * time.Millisecond):
 		log.Warn("can't write to fetcher.respChan, maybe fetcher not started")
 	}
 	return nil
@@ -127,12 +127,12 @@ func (f *vfFetcher) getVerifiersFromBoot(req GetVerifiersReq, peer PmAbstractPee
 		return nil
 	}
 
-	f.addReqChan <- fetchReq{ ReqID: req.ID, RespChan: respChan }
+	f.addReqChan <- fetchReq{ReqID: req.ID, RespChan: respChan}
 
 	select {
-	case resp = <- respChan:
+	case resp = <-respChan:
 		return resp
-	case <- time.After(fetchConnTimeout):
+	case <-time.After(fetchConnTimeout):
 		log.Warn("fetch v conn from v boot timeout")
 		return nil
 	}
@@ -140,21 +140,21 @@ func (f *vfFetcher) getVerifiersFromBoot(req GetVerifiersReq, peer PmAbstractPee
 
 func NewVFinder(chain Chain, peerManager AbsPeerManager, chainCfg chain_config.ChainConfig) *VFinder {
 	return &VFinder{
-		chain: chain,
+		chain:       chain,
 		peerManager: peerManager,
-		chainCfg: chainCfg,
-		fetcher: NewVfFetcher(),
+		chainCfg:    chainCfg,
+		fetcher:     NewVfFetcher(),
 	}
 }
 
 type VFinder struct {
-	chain Chain
+	chain       Chain
 	peerManager AbsPeerManager
-	chainCfg chain_config.ChainConfig
-	fetcher *vfFetcher
+	chainCfg    chain_config.ChainConfig
+	fetcher     *vfFetcher
 
 	findingVerifiers uint32
-	started uint32
+	started          uint32
 }
 
 func (vf *VFinder) MsgHandlers() map[uint64]func(msg p2p.Msg, p PmAbstractPeer) error {
@@ -294,13 +294,13 @@ func (vf *VFinder) checkAndConnectNode(selfID string, connStr string, ps Abstrac
 func NewVFinderBoot(peerManager AbsPeerManager, chain Chain) *VFinderBoot {
 	return &VFinderBoot{
 		peerManager: peerManager,
-		chain: chain,
+		chain:       chain,
 	}
 }
 
 type VFinderBoot struct {
 	peerManager AbsPeerManager
-	chain Chain
+	chain       Chain
 }
 
 func (vfb *VFinderBoot) MsgHandlers() map[uint64]func(msg p2p.Msg, p PmAbstractPeer) error {
@@ -373,7 +373,7 @@ func canFind(pm AbsPeerManager, chain Chain) error {
 	curB := chain.CurrentBlock()
 
 	// valid height
-	if curB.Number() + 2 < rHeight {
+	if curB.Number()+2 < rHeight {
 		log.Info("height too low, do not find verifiers", "cur h", curB.Number(), "remote h", rHeight)
 		return g_error.ErrCurHeightTooLow
 	}
@@ -403,13 +403,13 @@ func (pm *CsProtocolManager) handleInsertEventForBft() error {
 			select {
 			case newBlock := <-newBlockChan:
 
-				pbft_log.Debug("[Insert Event]","blockNumber",newBlock.Number(),"is change point", pm.Chain.IsChangePoint(&newBlock,false),"is current",pm.SelfIsCurrentVerifier(),"is next", pm.SelfIsNextVerifier())
+				pbft_log.Debug("[Insert Event]", "blockNumber", newBlock.Number(), "is change point", pm.Chain.IsChangePoint(&newBlock, false), "is current", pm.SelfIsCurrentVerifier(), "is next", pm.SelfIsNextVerifier())
 
 				slot := pm.Chain.GetSlot(&newBlock)
-				pbft_log.Debug("the current slot is:","slot",*slot)
+				pbft_log.Debug("the current slot is:", "slot", *slot)
 
 				// should change verifier
-				if pm.Chain.IsChangePoint(&newBlock,false) && *slot > 0 {
+				if pm.Chain.IsChangePoint(&newBlock, false) && *slot > 0 {
 					pbft_log.Debug("[Insert Event] IsChangePoint CallChangeVerifier")
 					pm.ChangeVerifiers()
 				} else {

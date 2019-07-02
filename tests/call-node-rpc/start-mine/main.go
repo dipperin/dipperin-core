@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package main
 
 import (
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/third-party/rpc"
 )
 
 func main() {

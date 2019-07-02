@@ -21,7 +21,6 @@ import (
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"math/big"
-
 )
 
 type bytesBacked interface {

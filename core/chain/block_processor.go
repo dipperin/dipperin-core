@@ -48,7 +48,7 @@ type AccountDBChainReader interface {
 
 // process chain state before insert a block
 type BlockProcessor struct {
-	fullChain    AccountDBChainReader
+	fullChain AccountDBChainReader
 	*state_processor.AccountStateDB
 	economyModel economy_model.EconomyModel
 }
@@ -81,7 +81,7 @@ func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel eco
 	gasLimit := blockHeader.GasLimit
 	// special block doesn't process txs
 	if !block.IsSpecial() {
-		if err = block.TxIterator(func(i int, tx model.AbstractTransaction) (error) {
+		if err = block.TxIterator(func(i int, tx model.AbstractTransaction) error {
 			tx.PaddingTxIndex(i)
 			conf := state_processor.TxProcessConfig{
 				Tx:       tx,

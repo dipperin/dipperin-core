@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_state
 
 import (
@@ -35,7 +34,7 @@ type BaseChainSuite struct {
 	env          *tests.GenesisEnv
 	txBuilder    *tests.TxBuilder
 	blockBuilder *tests.BlockBuilder
-	bootNode 	 []tests.Account
+	bootNode     []tests.Account
 }
 
 func (suite *BaseChainSuite) SetUpTest(c *check.C) {
@@ -60,7 +59,7 @@ func (suite *BaseChainSuite) SetUpTest(c *check.C) {
 		To:     common.HexToAddress(fmt.Sprintf("0x123a%v", 1)),
 		Amount: big.NewInt(1),
 		Pk:     suite.env.DefaultVerifiers()[0].Pk,
-		Fee:	testFee,
+		Fee:    testFee,
 	}
 	suite.blockBuilder = &tests.BlockBuilder{
 		ChainState: suite.chainState,

@@ -44,7 +44,7 @@ func TestWalletSigner_Evaluate(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, _, err = testSigner.Evaluate(accounts.Account{Address: wallet.TestAddress}, wallet.TestSeed)
-	assert.Equal(t,accounts.ErrNotFindWallet, err)
+	assert.Equal(t, accounts.ErrNotFindWallet, err)
 
 	os.Remove(wallet.Path)
 }
@@ -53,11 +53,11 @@ func TestWalletSigner_GetAddress(t *testing.T) {
 	testSigner, err := wallet.GetTestWalletSigner()
 	assert.NoError(t, err)
 	addr := testSigner.GetAddress()
-	assert.NotEqual(t,common.Address{},addr)
+	assert.NotEqual(t, common.Address{}, addr)
 
-	testSigner=&accounts.WalletSigner{}
+	testSigner = &accounts.WalletSigner{}
 	addr = testSigner.GetAddress()
-	assert.Equal(t,common.Address{},addr)
+	assert.Equal(t, common.Address{}, addr)
 
 	os.Remove(wallet.Path)
 }
@@ -66,9 +66,9 @@ func TestWalletSigner_PublicKey(t *testing.T) {
 	testSigner, err := wallet.GetTestWalletSigner()
 	assert.NoError(t, err)
 
-	pk:=testSigner.PublicKey()
+	pk := testSigner.PublicKey()
 	addr := cs_crypto.GetNormalAddress(*pk)
-	assert.Equal(t,testSigner.GetAddress(),addr)
+	assert.Equal(t, testSigner.GetAddress(), addr)
 	os.Remove(wallet.Path)
 }
 
@@ -77,7 +77,7 @@ func TestWalletSigner_SetBaseAddress(t *testing.T) {
 	assert.NoError(t, err)
 
 	testSigner.SetBaseAddress(wallet.TestAddress)
-	assert.Equal(t,wallet.TestAddress,testSigner.GetAddress())
+	assert.Equal(t, wallet.TestAddress, testSigner.GetAddress())
 	os.Remove(wallet.Path)
 }
 
@@ -85,8 +85,8 @@ func TestWalletSigner_SignHash(t *testing.T) {
 	testSigner, err := wallet.GetTestWalletSigner()
 	assert.NoError(t, err)
 
-	_,err=testSigner.SignHash(wallet.TestHashData[:])
-	assert.NoError(t,err)
+	_, err = testSigner.SignHash(wallet.TestHashData[:])
+	assert.NoError(t, err)
 	os.Remove(wallet.Path)
 }
 
@@ -97,18 +97,18 @@ func TestWalletSigner_ValidSign(t *testing.T) {
 	//test travis
 	//assert.Error(t,err)
 
-	signature,err:=testSigner.SignHash(wallet.TestHashData[:])
-	assert.NoError(t,err)
+	signature, err := testSigner.SignHash(wallet.TestHashData[:])
+	assert.NoError(t, err)
 
 	pk := crypto.FromECDSAPub(testSigner.PublicKey())
 
-	err = testSigner.ValidSign(wallet.TestHashData[:],pk,[]byte{})
-	assert.Equal(t,accounts.ErrEmptySign,err)
+	err = testSigner.ValidSign(wallet.TestHashData[:], pk, []byte{})
+	assert.Equal(t, accounts.ErrEmptySign, err)
 
-	err = testSigner.ValidSign(wallet.TestHashData[:],pk,signature[:10])
-	assert.Equal(t,accounts.ErrSignatureInvalid,err)
+	err = testSigner.ValidSign(wallet.TestHashData[:], pk, signature[:10])
+	assert.Equal(t, accounts.ErrSignatureInvalid, err)
 
-	err = testSigner.ValidSign(wallet.TestHashData[:],pk,signature)
-	assert.NoError(t,err)
+	err = testSigner.ValidSign(wallet.TestHashData[:], pk, signature)
+	assert.NoError(t, err)
 	os.Remove(wallet.Path)
 }

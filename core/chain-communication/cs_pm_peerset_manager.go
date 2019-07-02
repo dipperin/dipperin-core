@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_communication
 
 import (
@@ -154,7 +153,7 @@ func (ps *CsPmPeerSetManager) removePeer(peerID string) {
 		return
 	}
 
-	pm_log.Info("Removing Dipperin peer", "peer", peerID,"peerName",peer.NodeName())
+	pm_log.Info("Removing Dipperin peer", "peer", peerID, "peerName", peer.NodeName())
 
 	if err := ps.basePeers.RemovePeer(peerID); err != nil {
 		pm_log.Error("Peer removal failed", "peer", peerID, "err", err)
@@ -173,7 +172,7 @@ func (ps *CsPmPeerSetManager) removeCurrentVerifierPeers(peerID string) {
 		return
 	}
 
-	pm_log.Info("Removing Dipperin nextVerifierPeers", "peer", peerID,"peerName",peer.NodeName())
+	pm_log.Info("Removing Dipperin nextVerifierPeers", "peer", peerID, "peerName", peer.NodeName())
 
 	if err := ps.currentVerifierPeers.RemovePeer(peerID); err != nil {
 		pm_log.Error("Peer removal failed", "peer", peerID, "err", err)
@@ -192,7 +191,7 @@ func (ps *CsPmPeerSetManager) removeNextVerifierPeers(peerID string) {
 		return
 	}
 
-	pm_log.Info("Removing Dipperin nextVerifierPeers", "peer", peerID,"peerName",peer.NodeName())
+	pm_log.Info("Removing Dipperin nextVerifierPeers", "peer", peerID, "peerName", peer.NodeName())
 
 	if err := ps.nextVerifierPeers.RemovePeer(peerID); err != nil {
 		pm_log.Error("Peer removal failed", "peer", peerID, "err", err)
@@ -211,7 +210,7 @@ func (ps *CsPmPeerSetManager) removeVerifierBootNodePeers(peerID string) {
 		return
 	}
 
-	pm_log.Info("Removing Dipperin verifierBootNode", "peer", peerID,"peerName",peer.NodeName())
+	pm_log.Info("Removing Dipperin verifierBootNode", "peer", peerID, "peerName", peer.NodeName())
 
 	if err := ps.verifierBootNode.RemovePeer(peerID); err != nil {
 		pm_log.Error("Peer removal failed", "peer", peerID, "err", err)
@@ -254,7 +253,7 @@ func (ps *CsPmPeerSetManager) verifierAddPeer(p PmAbstractPeer) error {
 	case chain_config.NodeTypeOfVerifierBoot:
 		// the remote peer is verifier boot node ?
 		if ps.isVerifierBootNode(p) {
-			pm_log.Info("verifier add verifier boot node","nodeName",p.NodeName())
+			pm_log.Info("verifier add verifier boot node", "nodeName", p.NodeName())
 			return ps.verifierBootNode.AddPeer(p)
 		}
 
@@ -283,7 +282,7 @@ func (ps *CsPmPeerSetManager) verifierBootAddPeer(p PmAbstractPeer) error {
 				return p2p.DiscTooManyPeers
 			}
 
-			pm_log.Info("verifier boot node add current verifier peer","peerName",p.NodeName())
+			pm_log.Info("verifier boot node add current verifier peer", "peerName", p.NodeName())
 			if err := ps.currentVerifierPeers.AddPeer(p); err != nil {
 				return err
 			}
@@ -297,7 +296,7 @@ func (ps *CsPmPeerSetManager) verifierBootAddPeer(p PmAbstractPeer) error {
 				return p2p.DiscTooManyPeers
 			}
 
-			pm_log.Info("verifier boot node add next verifier peer","peerName",p.NodeName())
+			pm_log.Info("verifier boot node add next verifier peer", "peerName", p.NodeName())
 			if err := ps.nextVerifierPeers.AddPeer(p); err != nil {
 				return err
 			}
@@ -314,7 +313,7 @@ func (ps *CsPmPeerSetManager) verifierBootAddPeer(p PmAbstractPeer) error {
 	case chain_config.NodeTypeOfVerifierBoot:
 		// the remote peer is verifier boot node ?
 		if ps.isVerifierBootNode(p) {
-			pm_log.Info("verifier boot node add verifier boot node peer","peerName",p.NodeName())
+			pm_log.Info("verifier boot node add verifier boot node peer", "peerName", p.NodeName())
 			return ps.verifierBootNode.AddPeer(p)
 		}
 
@@ -355,7 +354,7 @@ func (ps *CsPmPeerSetManager) verifierAddVerifierSet(p PmAbstractPeer) error {
 			return p2p.DiscTooManyPeers
 		}
 
-		pm_log.Info("verifier add current verifier peer","peerName",p.NodeName())
+		pm_log.Info("verifier add current verifier peer", "peerName", p.NodeName())
 		if err := ps.currentVerifierPeers.AddPeer(p); err != nil {
 			return err
 		}
@@ -370,7 +369,7 @@ func (ps *CsPmPeerSetManager) verifierAddVerifierSet(p PmAbstractPeer) error {
 			return p2p.DiscTooManyPeers
 		}
 
-		pm_log.Info("verifier add next verifier peer","peerName",p.NodeName())
+		pm_log.Info("verifier add next verifier peer", "peerName", p.NodeName())
 		if err := ps.nextVerifierPeers.AddPeer(p); err != nil {
 			return err
 		}
@@ -414,7 +413,7 @@ func (ps *CsPmPeerSetManager) OrganizeVerifiersSet(curs []common.Address, nexts 
 	//}
 }
 
-func (ps *CsPmPeerSetManager)  collectAllPeers() map[string]PmAbstractPeer {
+func (ps *CsPmPeerSetManager) collectAllPeers() map[string]PmAbstractPeer {
 	peers := make(map[string]PmAbstractPeer)
 	mergePeers(peers, ps.basePeers.GetPeers())
 	mergePeers(peers, ps.currentVerifierPeers.GetPeers())

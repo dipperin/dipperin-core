@@ -1,12 +1,12 @@
 package ver_halt_check_log
 
 import (
-"github.com/dipperin/dipperin-core/third-party/log"
-"github.com/mattn/go-colorable"
-"github.com/mattn/go-isatty"
-"os"
-"path/filepath"
-"os/user"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/mattn/go-colorable"
+	"github.com/mattn/go-isatty"
+	"os"
+	"os/user"
+	"path/filepath"
 )
 
 // Predefined handlers
@@ -84,7 +84,7 @@ func InitHaltLogger(logLevel log.Lvl, nodeName string, removeOld bool) {
 	}
 
 	var handlers []log.Handler
-	logFilePath := filepath.Join(targetDir, nodeName + ".log")
+	logFilePath := filepath.Join(targetDir, nodeName+".log")
 
 	if removeOld {
 		_ = os.RemoveAll(logFilePath)
@@ -99,4 +99,3 @@ func InitHaltLogger(logLevel log.Lvl, nodeName string, removeOld bool) {
 
 	Root().SetHandler(log.MultiHandler(handlers...))
 }
-

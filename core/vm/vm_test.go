@@ -1,4 +1,5 @@
 package vm
+
 /*
 import (
 	"github.com/dipperin/dipperin-core/common"

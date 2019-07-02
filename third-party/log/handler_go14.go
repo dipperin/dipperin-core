@@ -20,7 +20,6 @@ func (h *swapHandler) Swap(newHandler Handler) {
 	h.handler.Store(&newHandler)
 }
 
-
 func (h *swapHandler) Get() Handler {
 	return *h.handler.Load().(*Handler)
 }

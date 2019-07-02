@@ -118,6 +118,7 @@ func (pool *TxPool) Reset(oldHead, newHead *model.Header) {
 	defer pool.mu.Unlock()
 	pool.reset(oldHead, newHead)
 }
+
 // TODO
 func (pool *TxPool) reset(oldHead, newHead *model.Header) {
 	// If we're reorging an old state, reinject all dropped transactions
@@ -354,7 +355,7 @@ func (pool *TxPool) enqueueTx(hash common.Hash, tx model.AbstractTransaction) (b
 func (pool *TxPool) validateTx(tx model.AbstractTransaction, local bool) error {
 
 	// Heuristic limit, reject transactions over 32KB to prevent DOS attacks
-/*	if err := middleware.ValidTxSize(tx); err != nil {
+	/*	if err := middleware.ValidTxSize(tx); err != nil {
 		return g_error.ErrTxOverSize
 	}*/
 	// Transactions can't be negative. This may never happen using RLP decoded
@@ -374,13 +375,13 @@ func (pool *TxPool) validateTx(tx model.AbstractTransaction, local bool) error {
 	//log.Info("[validateTx] the pool.config.MinFee is: ", "mineFee", pool.config.MinFee)
 	//log.Info("[validateTx] the tx.fee is: ", "txFee", tx.Fee())
 
-	gas, err := model.IntrinsicGas(tx.ExtraData(), tx.GetType() == common.AddressTypeContractCreate , true)
-	if err !=nil{
+	gas, err := model.IntrinsicGas(tx.ExtraData(), tx.GetType() == common.AddressTypeContractCreate, true)
+	if err != nil {
 		return err
 	}
 
 	if gas > tx.GetGasLimit() {
-		return fmt.Errorf("gas limit is to low, need:%v got:%v",gas,tx.GetGasLimit())
+		return fmt.Errorf("gas limit is to low, need:%v got:%v", gas, tx.GetGasLimit())
 	}
 
 	// Ensure the transaction adheres to nonce ordering

@@ -1,19 +1,19 @@
 package state_processor
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"fmt"
 )
 
 type Fullstate struct {
 	state *AccountStateDB
 }
 
-func NewFullState(state  *AccountStateDB) *Fullstate{
+func NewFullState(state *AccountStateDB) *Fullstate {
 	return &Fullstate{
 		state: state,
 	}
@@ -125,7 +125,7 @@ func (f *Fullstate) GetState(addr common.Address, key []byte) (data []byte) {
 }
 
 func (f *Fullstate) SetState(addr common.Address, key []byte, value []byte) {
-	err := f.state.SetData(addr, string(key),value)
+	err := f.state.SetData(addr, string(key), value)
 	if err != nil {
 		panic("can not update contract field")
 	}
@@ -163,7 +163,7 @@ func (f *Fullstate) Empty(addr common.Address) bool {
 }
 
 func (f *Fullstate) RevertToSnapshot(id int) {
-	log.Debug("State Reverted","id",id)
+	log.Debug("State Reverted", "id", id)
 	f.state.RevertToSnapshot(id)
 }
 

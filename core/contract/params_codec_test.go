@@ -14,18 +14,17 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package contract
 
 import (
-	"testing"
 	"bufio"
 	"bytes"
-	"reflect"
-	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/common"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/stretchr/testify/assert"
+	"reflect"
+	"testing"
 )
 
 type RWC struct {
@@ -66,7 +65,7 @@ func TestParamsCodec_ParseRequestArguments(t *testing.T) {
 	fmt.Println(pErr)
 
 	destStr := fmt.Sprintf("%v", common.HexToAddress("0x0000918c773880B462929ACE4F975CcfED9Be2d8Efc9"))
-	params = util.StringifyJson([]interface{}{ destStr, 5678 })
+	params = util.StringifyJson([]interface{}{destStr, 5678})
 	fmt.Println(params)
 	req = bytes.NewBufferString(params)
 	codec = NewParamsCodec(bufio.NewReader(req))
@@ -103,6 +102,5 @@ func TestParamsCodec_ParseRequestArguments(t *testing.T) {
 	rValue, pErr = codece.ParseRequestArguments([]reflect.Type{reflect.TypeOf(1)})
 	assert.Error(t, pErr)
 	assert.Nil(t, rValue)
-
 
 }

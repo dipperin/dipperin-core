@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package cs_chain_spec
 
 import (
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
+	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests/chain-test-spec/spec-util"
 	"github.com/stretchr/testify/suite"
 	"testing"
-	"github.com/dipperin/dipperin-core/core/model"
 )
 
 type chainServiceTestSuite struct {

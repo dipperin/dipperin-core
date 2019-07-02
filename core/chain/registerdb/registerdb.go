@@ -17,16 +17,16 @@
 package registerdb
 
 import (
+	"bytes"
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/rlp"
-	"bytes"
-	"github.com/dipperin/dipperin-core/core/chain-config"
 )
 
 var (
@@ -126,7 +126,7 @@ func (register RegisterDB) GetRegisterData() []common.Address {
 func (register RegisterDB) Process(block model.AbstractBlock) (err error) {
 	log.Debug("r db process", "tx len", block.TxCount(), "block num", block.Number())
 	//　get all register data
-	if err := block.TxIterator(func(index int, tx model.AbstractTransaction) (error) {
+	if err := block.TxIterator(func(index int, tx model.AbstractTransaction) error {
 		switch tx.GetType() {
 		case common.AddressTypeCancel:
 			sender, innerError := tx.Sender(tx.GetSigner())

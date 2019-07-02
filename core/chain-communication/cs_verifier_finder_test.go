@@ -233,8 +233,8 @@ func TestVFinder_findVerifiers(t *testing.T) {
 	//mPs := NewMockAbstractPeerSet(ctrl)
 	vf := &VFinder{
 		peerManager: mPm,
-		chain: mChain,
-		fetcher: NewVfFetcher(),
+		chain:       mChain,
+		fetcher:     NewVfFetcher(),
 	}
 	mPm.EXPECT().BestPeer().Return(nil)
 	vf.findingVerifiers = 1
@@ -279,8 +279,8 @@ func TestVFinder_shouldFindVerifiers(t *testing.T) {
 	//mPs := NewMockAbstractPeerSet(ctrl)
 	vf := &VFinder{
 		peerManager: mPm,
-		chain: mChain,
-		fetcher: NewVfFetcher(),
+		chain:       mChain,
+		fetcher:     NewVfFetcher(),
 	}
 
 	mPm.EXPECT().BestPeer().Return(mPeer).AnyTimes()
@@ -305,8 +305,8 @@ func TestVFinder_getVerifiers(t *testing.T) {
 	//mPs := NewMockAbstractPeerSet(ctrl)
 	vf := &VFinder{
 		peerManager: mPm,
-		chain: mChain,
-		fetcher: NewVfFetcher(),
+		chain:       mChain,
+		fetcher:     NewVfFetcher(),
 	}
 
 	mChain.EXPECT().CurrentBlock().Return(model.NewBlock(&model.Header{Number: 1}, nil, nil)).AnyTimes()
@@ -326,8 +326,8 @@ func TestVFinder_getVerifiersFromBoot(t *testing.T) {
 	mPs := NewMockAbstractPeerSet(ctrl)
 	vf := &VFinder{
 		peerManager: mPm,
-		chain: mChain,
-		fetcher: NewVfFetcher(),
+		chain:       mChain,
+		fetcher:     NewVfFetcher(),
 	}
 
 	mPeer.EXPECT().SendMsg(gomock.Any(), gomock.Any()).Return(nil)
@@ -337,9 +337,9 @@ func TestVFinder_getVerifiersFromBoot(t *testing.T) {
 		assert.NoError(t, vf.Start())
 		vf.fetcher.addReqChan <- req
 		vf.fetcher.respChan <- GetVerifiersResp{
-			ReqID: req.ReqID,
-			Cur: []string{"enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@127.0.0.1:10003"},
-			Next: []string{"enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@127.0.0.1:10003"},
+			ReqID:   req.ReqID,
+			Cur:     []string{"enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@127.0.0.1:10003"},
+			Next:    []string{"enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@127.0.0.1:10003"},
 			ErrInfo: "",
 		}
 	}()

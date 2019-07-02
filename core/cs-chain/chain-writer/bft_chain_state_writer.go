@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_writer
 
 import (
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 type BftChainWriter struct {

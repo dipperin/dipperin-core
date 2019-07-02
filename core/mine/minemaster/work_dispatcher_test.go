@@ -43,7 +43,6 @@ func Test_newWorkDispatcher(t *testing.T) {
 }
 
 type fakeBlockBuilder struct {
-
 }
 
 func (b *fakeBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, gasFloor, gasCeil uint64) model.AbstractBlock {
@@ -53,9 +52,9 @@ func (b *fakeBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, gasFl
 func Test_workDispatcher_onNewBlock(t *testing.T) {
 	testMineConfig = MineConfig{
 		CoinbaseAddress: &atomic.Value{},
-		BlockBuilder: &fakeBlockBuilder{},
-		GasFloor: &atomic.Value{},
-		GasCeil:&atomic.Value{},
+		BlockBuilder:    &fakeBlockBuilder{},
+		GasFloor:        &atomic.Value{},
+		GasCeil:         &atomic.Value{},
 	}
 
 	gasFloor := chain_config.BlockGasLimit

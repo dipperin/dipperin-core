@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_communication
 
 import "io"
 
-var ProtocolBrokenError = []error{ io.EOF }
+var ProtocolBrokenError = []error{io.EOF}
 
 func InPmBrokenError(err error) bool {
 	for _, e := range ProtocolBrokenError {

@@ -1,8 +1,8 @@
 package model
 
 import (
-	"math/big"
 	"github.com/dipperin/dipperin-core/common"
+	"math/big"
 )
 
 type Message struct {

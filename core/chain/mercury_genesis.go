@@ -58,6 +58,7 @@ func init() {
 }
 
 var errGenesisNoConfig = errors.New("genesis has no chain configuration")
+
 // GenesisMismatchError is raised when trying to overwrite an existing
 // genesis block with an incompatible one.
 type GenesisMismatchError struct {
@@ -377,8 +378,8 @@ func (g *Genesis) SetEarlyTokenContract() error {
 func (g *Genesis) Prepare() (model.AbstractBlock, error) {
 	block := g.ToBlock()
 	/*	if block.Number() != 0 {
-			return nil, fmt.Errorf("can't commit genesis block with number > 0")
-		}*/
+		return nil, fmt.Errorf("can't commit genesis block with number > 0")
+	}*/
 
 	//write verifier state
 	for _, v := range g.Verifiers {
@@ -473,7 +474,7 @@ func DefaultGenesisBlock(chainDB chaindb.Database, accountStateProcessor state_p
 		Timestamp:  big.NewInt(gTime.UnixNano()),
 		ExtraData:  []byte("dipperin Genesis"),
 		Difficulty: chain_config.GenesisDifficulty,
-		Alloc: map[common.Address]*big.Int{
+		Alloc:      map[common.Address]*big.Int{
 			// corresponding private key:289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232032
 			/*			common.HexToAddress("0x0000970e8128aB834E8EAC17aB8E3812f010678CF791"): big.NewInt(100 * consts.DIP),
 						common.HexToAddress("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9"): big.NewInt(100 * consts.DIP),

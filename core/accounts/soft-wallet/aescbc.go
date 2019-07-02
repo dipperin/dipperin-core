@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package soft_wallet
 
 import (
@@ -24,42 +23,42 @@ import (
 )
 
 //AES CBC encryption
-func AesEncryptCBC(iv []byte, key []byte,plaintext []byte) (cipherText []byte,err error){
+func AesEncryptCBC(iv []byte, key []byte, plaintext []byte) (cipherText []byte, err error) {
 
-	tmpCipher := make([]byte,len(plaintext))
+	tmpCipher := make([]byte, len(plaintext))
 
 	c, err := aes.NewCipher(key)
-	if err != nil  {
-		return nil,err
+	if err != nil {
+		return nil, err
 	}
 
 	encrypt := cipher.NewCBCEncrypter(c, iv)
 
-	encrypt.CryptBlocks(tmpCipher,plaintext)
+	encrypt.CryptBlocks(tmpCipher, plaintext)
 
 	cipherText = tmpCipher
 
-	return cipherText,nil
+	return cipherText, nil
 }
 
 //AES CBC decryption
-func AesDecryptCBC(iv []byte, key []byte,cipherText []byte) (plaintext []byte,err error){
+func AesDecryptCBC(iv []byte, key []byte, cipherText []byte) (plaintext []byte, err error) {
 
-	if len(cipherText)%16 !=0{
-		return nil,accounts.ErrAESInvalidParameter
+	if len(cipherText)%16 != 0 {
+		return nil, accounts.ErrAESInvalidParameter
 	}
 
-	tmpPlaintext := make([]byte,len(cipherText))
+	tmpPlaintext := make([]byte, len(cipherText))
 	c, err := aes.NewCipher(key)
-	if err != nil  {
-		return nil,err
+	if err != nil {
+		return nil, err
 	}
 
 	decrypt := cipher.NewCBCDecrypter(c, iv)
 
-	decrypt.CryptBlocks(tmpPlaintext,cipherText)
+	decrypt.CryptBlocks(tmpPlaintext, cipherText)
 
 	plaintext = tmpPlaintext
 
-	return plaintext,nil
+	return plaintext, nil
 }

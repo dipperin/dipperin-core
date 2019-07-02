@@ -1,8 +1,8 @@
 package model
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func TestReceipt_String(t *testing.T) {

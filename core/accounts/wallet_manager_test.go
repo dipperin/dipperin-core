@@ -72,7 +72,6 @@ func Test_FindWalletFromName(t *testing.T) {
 	wallet, err := walletManager.FindWalletFromIdentifier(testWallet.Identifier)
 	assert.NoError(t, err)
 
-
 	assert.EqualValues(t, testWallet, wallet.(*soft_wallet.SoftWallet))
 
 	err = testWallet.Close()
@@ -185,7 +184,7 @@ func Test_ChannelTransport(t *testing.T) {
 
 	time.Sleep(2)
 	ret := feed.Send(testData)
-	log.Info("the ret is:","ret",ret)
+	log.Info("the ret is:", "ret", ret)
 	time.Sleep(2)
 	//testChan <- testData
 }

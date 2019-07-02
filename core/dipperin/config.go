@@ -14,18 +14,17 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package dipperin
 
 import (
-	"path/filepath"
 	"fmt"
-	"strings"
-	"os"
-	"runtime"
-	"strconv"
 	"github.com/dipperin/dipperin-core/core/dipperin/service"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strconv"
+	"strings"
 )
 
 type ExtraServiceFunc func(c ExtraServiceFuncConfig) (apis []rpc.API, services []NodeService)
@@ -71,9 +70,8 @@ type NodeConfig struct {
 
 	SoftWalletPassword   string
 	SoftWalletPassPhrase string
-	SoftWalletPath		 string
-	IsStartMine			 bool
-
+	SoftWalletPath       string
+	IsStartMine          bool
 
 	//used to set the default account of pbft
 	DefaultAccountKey string
@@ -89,7 +87,7 @@ type NodeConfig struct {
 	UploadURL string
 
 	NoDiscovery int
-	Nat string
+	Nat         string
 
 	AllowHosts []string
 
@@ -119,7 +117,7 @@ func (conf NodeConfig) GetUploadURL() string {
 	//case "test":
 	//	log.Agent("use test upload url for monitor")
 	//	return fmt.Sprintf("http://%v:8887/api/Dipperin_nodes", chain_config.TestServer)
-		// Mercury is configured directly through the startup parameters
+	// Mercury is configured directly through the startup parameters
 	//case "mercury":
 	//	log.Agent("use mercury upload url for monitor")
 	//	return fmt.Sprintf("http://%v:8887/api/dipperin_nodes", chain_config.TestServer)
@@ -152,9 +150,9 @@ func (conf NodeConfig) SoftWalletDir() string {
 }
 
 func (conf NodeConfig) SoftWalletFile() string {
-	if conf.SoftWalletPath == ""{
+	if conf.SoftWalletPath == "" {
 		return filepath.Join(conf.SoftWalletDir(), conf.SoftWalletName())
-	}else{
+	} else {
 		return conf.SoftWalletPath
 	}
 }

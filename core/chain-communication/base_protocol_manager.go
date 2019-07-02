@@ -14,20 +14,19 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_communication
 
 import (
 	"errors"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/pm_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
-	"sync"
-	"fmt"
 	"math/big"
-	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"sync"
 )
 
 //go:generate mockgen -destination=./node_conf_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication NodeConf

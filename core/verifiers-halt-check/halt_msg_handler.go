@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package verifiers_halt_check
 
 import (
@@ -55,7 +54,7 @@ func (handler *VBHaltHandler) ProposeEmptyBlock() (pm ProposalMsg, err error) {
 	ver_halt_check_log.Info("VBHaltHandler ProposeEmptyBlock start~~~~~~")
 	handler.proposalMsg, err = GenProposalMsg(handler.pgConfig)
 	if err != nil {
-		ver_halt_check_log.Info("VBHaltHandler GenProposalMsg error","err",err)
+		ver_halt_check_log.Info("VBHaltHandler GenProposalMsg error", "err", err)
 		return ProposalMsg{}, err
 	}
 	pm = *handler.proposalMsg
@@ -136,14 +135,14 @@ func (handler *VBHaltHandler) HandlerAliveVerVotes(vote model.VoteMsg, currentVe
 		return err
 	}
 
-	ver_halt_check_log.Info("the vote is:","vote",vote.GetAddress().Hex())
+	ver_halt_check_log.Info("the vote is:", "vote", vote.GetAddress().Hex())
 	//ver_halt_check_log.Info("the own proposal is:","ownProposal",*handler.proposalMsg)
 	if vote.BlockID != handler.proposalMsg.EmptyBlock.Hash() {
 		ver_halt_check_log.Error("the vote block hash error")
 		return g_error.AliveVoteBlockHashError
 	}
 
-	ver_halt_check_log.Info("the vote witness address is:","address",vote.Witness.Address)
+	ver_halt_check_log.Info("the vote witness address is:", "address", vote.Witness.Address)
 	if _, ok := handler.aliveVerVotes[vote.Witness.Address]; !ok {
 		handler.aliveVerVotes[vote.Witness.Address] = vote
 	}

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 // This is a duplicated and slightly modified version of "gopkg.in/karalabe/cookiejar.v2/collections/prque".
 
 package prque

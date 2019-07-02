@@ -5,13 +5,13 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/log"
-	"math/big"
 	"github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
+	"math/big"
 	"testing"
-	"github.com/ethereum/go-ethereum/rlp"
 )
 
 var contractAddr = common.HexToAddress("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
@@ -165,7 +165,7 @@ func genInput(t *testing.T, funcName string, param [][]byte) []byte {
 	// func name
 	input = append(input, []byte(funcName))
 	// func parameter
-	for _, v := range (param) {
+	for _, v := range param {
 		input = append(input, v)
 	}
 

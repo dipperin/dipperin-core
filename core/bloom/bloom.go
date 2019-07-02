@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package iblt
 
 import (
@@ -26,7 +25,7 @@ import (
 // Struct of bloom comprises a bloom of byte slice and a config
 type Bloom struct {
 	// The data of bloom stored in byte slice
-	bloom  []byte
+	bloom []byte
 	// Configuration of bloom
 	config BloomConfig
 }
@@ -36,14 +35,14 @@ type BloomConfig struct {
 	// Length of bloom on byte (not en bit)
 	BloomByteLength uint
 	// Number of Hash functions
-	BloomBits       uint
+	BloomBits uint
 }
 
 // Create a new BloomConfig where the input len is the log2 of the
 // length of bloom on bit
 func NewBloomConfig(len, bits uint) BloomConfig {
 	return BloomConfig{
-		BloomBits:       bits,
+		BloomBits: bits,
 		// Conversion from bits to bytes
 		BloomByteLength: 1 << (len - 3),
 	}

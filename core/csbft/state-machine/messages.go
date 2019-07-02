@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package state_machine
 
 import (
@@ -25,8 +24,6 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"sync"
 )
-
-
 
 /*
 
@@ -48,20 +45,20 @@ type NewRoundSet struct {
 func NewNRoundSet(height uint64, vers []common.Address) *NewRoundSet {
 	return &NewRoundSet{
 		RoundMessages: make(map[uint64]map[common.Address]*model2.NewRoundMsg),
-		Height: height,
-		maj32: 0,
-		verifiers:vers}
+		Height:        height,
+		maj32:         0,
+		verifiers:     vers}
 }
 
-func (rs *NewRoundSet) MissingAtRound(round uint64) *model2.BitArray{
+func (rs *NewRoundSet) MissingAtRound(round uint64) *model2.BitArray {
 	rs.lock.Lock()
 	defer rs.lock.Unlock()
 	byteArray := model2.NewBitArray(len(rs.verifiers))
-	if rs.RoundMessages[round] == nil{
+	if rs.RoundMessages[round] == nil {
 		return byteArray
 	}
-	for index,add := range rs.verifiers{
-		if rs.RoundMessages[round][add]!=nil{
+	for index, add := range rs.verifiers {
+		if rs.RoundMessages[round][add] != nil {
 			byteArray.SetIndex(index, true)
 		}
 	}
@@ -80,7 +77,7 @@ func (rs *NewRoundSet) EnoughAtRound(round uint64) bool {
 	count := len(rs.RoundMessages[round])
 	need := vLen * 2 / 3
 	// should be more than need
-	pbft_log.Info("NewRoundSet#EnoughAtRound   check round msg enough",  "round", round, "height", rs.Height, "count", count, "need", need+1, "vLen", vLen)
+	pbft_log.Info("NewRoundSet#EnoughAtRound   check round msg enough", "round", round, "height", rs.Height, "count", count, "need", need+1, "vLen", vLen)
 	// more than 2/3
 	if count > need {
 		return true
@@ -99,7 +96,7 @@ func (rs *NewRoundSet) enoughAtRound(round uint64) bool {
 	count := len(rs.RoundMessages[round])
 	need := vLen * 2 / 3
 	// should be more than need
-	pbft_log.Info("NewRoundSet#EnoughAtRound   check round msg enough",  "round", round, "height", rs.Height, "count", count, "need", need+1, "vLen", vLen)
+	pbft_log.Info("NewRoundSet#EnoughAtRound   check round msg enough", "round", round, "height", rs.Height, "count", count, "need", need+1, "vLen", vLen)
 	// more than 2/3
 	if count > need {
 		return true
@@ -116,8 +113,8 @@ func (rs *NewRoundSet) Add(nr *model2.NewRoundMsg) error {
 	rs.lock.Lock()
 	defer rs.lock.Unlock()
 
-	if nr.Height != rs.Height{
-		pbft_log.Info("the Height is:","nr",nr.Height,"rs",rs.Height)
+	if nr.Height != rs.Height {
+		pbft_log.Info("the Height is:", "nr", nr.Height, "rs", rs.Height)
 		return errors.New("new round msg height not match")
 	}
 
@@ -210,19 +207,19 @@ func (bs *BlockSet) GetBlockByHash(h common.Hash) model.AbstractBlock {
 
 type VoteSet struct {
 	// key is round
-	Height     uint64
-	Votes      map[uint64]map[common.Address]*model.VoteMsg
-	blockVote  map[uint64]map[common.Hash]int
-	verifiers  []common.Address
-	lock       sync.Mutex
+	Height    uint64
+	Votes     map[uint64]map[common.Address]*model.VoteMsg
+	blockVote map[uint64]map[common.Hash]int
+	verifiers []common.Address
+	lock      sync.Mutex
 }
 
 func NewVoteSet(height uint64, vers []common.Address) *VoteSet {
 	return &VoteSet{
-		Height:     height,
-		Votes:      make(map[uint64]map[common.Address]*model.VoteMsg),
-		blockVote:  make(map[uint64]map[common.Hash]int),
-		verifiers:  vers,
+		Height:    height,
+		Votes:     make(map[uint64]map[common.Address]*model.VoteMsg),
+		blockVote: make(map[uint64]map[common.Hash]int),
+		verifiers: vers,
 	}
 }
 
@@ -236,7 +233,7 @@ func (vs *VoteSet) FinalVerifications(round uint64) []model.AbstractVerification
 
 	var resultVotes []model.AbstractVerification
 	for _, tmpV := range votes {
-		if tmpV.GetBlockId().IsEqual(hash){
+		if tmpV.GetBlockId().IsEqual(hash) {
 			resultVotes = append(resultVotes, tmpV)
 		}
 	}
@@ -250,8 +247,8 @@ func (vs *VoteSet) VotesEnough(round uint64) common.Hash {
 
 	blockVotes := vs.roundBlockVotes(round)
 	verifier := vs.verifiers
-	for index,count := range blockVotes{
-		if count > len(verifier) * 2/3 {
+	for index, count := range blockVotes {
+		if count > len(verifier)*2/3 {
 			return index
 		}
 	}
@@ -267,7 +264,7 @@ func (vs *VoteSet) roundVotes(round uint64) map[common.Address]*model.VoteMsg {
 	return vm
 }
 
-func (vs *VoteSet) roundBlockVotes (round uint64) map[common.Hash]int {
+func (vs *VoteSet) roundBlockVotes(round uint64) map[common.Hash]int {
 	vm := vs.blockVote[round]
 	if vm == nil {
 		vs.blockVote[round] = make(map[common.Hash]int)
@@ -313,19 +310,19 @@ func (vs *VoteSet) AddVote(v *model.VoteMsg) error {
 	vs.lock.Lock()
 	defer vs.lock.Unlock()
 
-	if v.Height != vs.Height{
-		pbft_log.Debug("[AddVote] vote not valid","height","not valid")
+	if v.Height != vs.Height {
+		pbft_log.Debug("[AddVote] vote not valid", "height", "not valid")
 		return errors.New("vote height not match")
 	}
 	if err := vs.validVote(v); err != nil {
-		pbft_log.Debug("[AddVote] vote not valid","error",err)
+		pbft_log.Debug("[AddVote] vote not valid", "error", err)
 		return err
 	}
 	//vs.Votes[v.Round] = make(map[common.Address]*VoteMsg)
 	vs.roundVotes(v.Round)[v.Witness.Address] = v
 	if vs.roundBlockVotes(v.Round)[v.BlockID] == 0 {
 		vs.roundBlockVotes(v.Round)[v.BlockID] = 1
-	}else{
+	} else {
 		vs.roundBlockVotes(v.Round)[v.BlockID]++
 	}
 	pbft_log.Debug("[AddVote] success add vote")

@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package components
 
 import (
 	"time"
 
 	cmn "github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/core/csbft/model"
+	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 )
 
 var (
@@ -31,8 +30,8 @@ var (
 
 type TimeoutInfo struct {
 	Duration time.Duration       `json:"duration"`
-	Height   uint64               `json:"height"`
-	Round    uint64                 `json:"round"`
+	Height   uint64              `json:"height"`
+	Round    uint64              `json:"round"`
 	Step     model.RoundStepType `json:"step"`
 }
 
@@ -96,7 +95,7 @@ func (t *timeoutTicker) Chan() <-chan TimeoutInfo {
 // The timeoutRoutine is always available to read from tickChan, so this won't block.
 // The scheduling may fail if the timeoutRoutine has already scheduled a timeout for a later height/round/step.
 func (t *timeoutTicker) ScheduleTimeout(ti TimeoutInfo) {
-	pbft_log.Debug("Schedule Timeout","timeout info",ti,"is running",t.BaseService.IsRunning())
+	pbft_log.Debug("Schedule Timeout", "timeout info", ti, "is running", t.BaseService.IsRunning())
 	t.tickChan <- ti
 }
 

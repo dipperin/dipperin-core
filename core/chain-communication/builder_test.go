@@ -108,7 +108,7 @@ func TestBroadcastDelegate_BroadcastTx(t *testing.T) {
 	mockPeerManager.EXPECT().GetPeers().Return(nil)
 
 	tx := model.NewTransaction(11, common.StringToAddress("dsad"), big.NewInt(11),
-		g_testData.TestGasPrice,g_testData.TestGasLimit, nil)
+		g_testData.TestGasPrice, g_testData.TestGasLimit, nil)
 
 	bd.BroadcastTx([]model.AbstractTransaction{tx})
 

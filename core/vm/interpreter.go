@@ -15,8 +15,8 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 	"reflect"
-	"strings"
 	"runtime"
+	"strings"
 )
 
 var (

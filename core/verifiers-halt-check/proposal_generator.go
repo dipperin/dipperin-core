@@ -14,18 +14,17 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package verifiers_halt_check
 
 import (
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/ver_halt_check_log"
 	"math/big"
-	"github.com/dipperin/dipperin-core/core/bloom"
-	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/common"
 	"time"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 )
 
 // generate ProposalMsg
@@ -64,7 +63,7 @@ type ProposalGenerator struct {
 func (g *ProposalGenerator) GenProposal() (*ProposalMsg, error) {
 	emptyBlock, err := g.GenEmptyBlock()
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	vm, err := GenVoteMsg(emptyBlock, g.SignHashFunc, g.getAddress(), g.VoteType)
 	if err != nil {
@@ -112,7 +111,7 @@ func (g *ProposalGenerator) GenEmptyBlock() (*model.Block, error) {
 	//avoid hash error
 	block.RefreshHashCache()
 
-	ver_halt_check_log.Info("the GenEmptyBlock block hash is:","hash",block.Hash().Hex())
+	ver_halt_check_log.Info("the GenEmptyBlock block hash is:", "hash", block.Hash().Hex())
 	return block, nil
 }
 

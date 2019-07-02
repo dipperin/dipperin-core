@@ -38,7 +38,7 @@ type AbstractHeader interface {
 	GetProof() []byte
 	GetGasLimit() uint64
 	GetGasUsed() uint64
-	GetMinerPubKey() (*ecdsa.PublicKey)
+	GetMinerPubKey() *ecdsa.PublicKey
 	GetTimeStamp() *big.Int
 	GetInterLinkRoot() common.Hash
 	GetDifficulty() common.Difficulty
@@ -67,7 +67,7 @@ type AbstractBlock interface {
 	RefreshHashCache() common.Hash
 	Hash() common.Hash
 	EncodeRlpToBytes() ([]byte, error)
-	TxIterator(cb func(int, AbstractTransaction) (error)) (error)
+	TxIterator(cb func(int, AbstractTransaction) error) error
 	TxRoot() common.Hash
 	Timestamp() *big.Int
 	Nonce() common.BlockNonce
@@ -94,8 +94,8 @@ type AbstractBlock interface {
 	GetBlockTxsBloom() *iblt.Bloom
 	VerificationRoot() common.Hash
 	SetVerifications(vs []AbstractVerification)
-	VersIterator(func(int, AbstractVerification, AbstractBlock) error) (error)
-	GetVerifications() ([]AbstractVerification)
+	VersIterator(func(int, AbstractVerification, AbstractBlock) error) error
+	GetVerifications() []AbstractVerification
 	SetReceiptHash(receiptHash common.Hash)
 	GetReceiptHash() common.Hash
 	//GasLimit() uint64

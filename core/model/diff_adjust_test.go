@@ -17,12 +17,12 @@
 package model
 
 import (
-	"github.com/dipperin/dipperin-core/common"
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"time"
-	"math/big"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
+	"time"
 )
 
 func TestGetTarget(t *testing.T) {

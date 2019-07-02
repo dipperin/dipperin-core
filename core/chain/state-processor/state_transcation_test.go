@@ -3,10 +3,10 @@ package state_processor
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
 )
 
 func TestApplyMessage(t *testing.T) {

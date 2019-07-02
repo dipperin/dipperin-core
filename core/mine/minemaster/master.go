@@ -17,14 +17,14 @@
 package minemaster
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-event"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 	"time"
-	"fmt"
-	"github.com/dipperin/dipperin-core/common/g-event"
 )
 
 var waitTimeout = 20 * time.Second

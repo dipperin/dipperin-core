@@ -14,24 +14,23 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"os"
-	"io/ioutil"
-	"path/filepath"
-	"github.com/dipperin/dipperin-core/common/util"
-	"math/big"
-	"github.com/dipperin/dipperin-core/common/consts"
-	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
-	"github.com/dipperin/dipperin-core/core/chain/registerdb"
-	"github.com/dipperin/dipperin-core/common/g-error"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"encoding/json"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/core/chain/registerdb"
+	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"math/big"
+	"os"
+	"path/filepath"
+	"testing"
 )
 
 func TestSetupGenesisBlock(t *testing.T) {
@@ -118,9 +117,9 @@ func TestDefaultGenesisBlock(t *testing.T) {
 	accounts := make(map[string]int64)
 	accounts[aliceAddr.String()] = 10
 	cfg := genesisCfgFile{
-		Nonce:defaultGenesis.Nonce,
-		Accounts:accounts,
-		Verifiers:[]string{bobAddr.String()},
+		Nonce:     defaultGenesis.Nonce,
+		Accounts:  accounts,
+		Verifiers: []string{bobAddr.String()},
 	}
 	bytes, err := json.Marshal(cfg)
 	assert.NoError(t, err)
@@ -131,7 +130,7 @@ func TestDefaultGenesisBlock(t *testing.T) {
 	// get info from genesis.json
 	defaultGenesis = createGenesis()
 	assert.Equal(t, cfg.Nonce, defaultGenesis.Nonce)
-	assert.Equal(t, big.NewInt(10 * consts.DIP), defaultGenesis.Alloc[aliceAddr])
+	assert.Equal(t, big.NewInt(10*consts.DIP), defaultGenesis.Alloc[aliceAddr])
 	assert.Equal(t, bobAddr, defaultGenesis.Verifiers[0])
 
 	err = os.Remove(gFPath)
@@ -184,14 +183,14 @@ func TestGenesis_Prepare_Error(t *testing.T) {
 	defaultGenesis := createGenesis()
 
 	// prepare registerDB error
-	rProcessor, err := registerdb.MakeGenesisRegisterProcessor(fakeStateStorage{setErr:TrieError})
+	rProcessor, err := registerdb.MakeGenesisRegisterProcessor(fakeStateStorage{setErr: TrieError})
 	assert.NoError(t, err)
 	defaultGenesis.RegisterProcessor = rProcessor
 	block, err := defaultGenesis.Prepare()
 	assert.Equal(t, TrieError, err)
 
 	// set balance error
-	sProcessor, err := state_processor.MakeGenesisAccountStateProcessor(fakeStateStorage{errKey:"_nonce"})
+	sProcessor, err := state_processor.MakeGenesisAccountStateProcessor(fakeStateStorage{errKey: "_nonce"})
 	assert.NoError(t, err)
 	defaultGenesis.AccountStateProcessor = sProcessor
 	block, err = defaultGenesis.Prepare()
@@ -207,7 +206,7 @@ func TestGenesis_Prepare_Error(t *testing.T) {
 	assert.Nil(t, block)
 
 	// set balance error
-	sProcessor, err = state_processor.MakeGenesisAccountStateProcessor(fakeStateStorage{setErr:TrieError})
+	sProcessor, err = state_processor.MakeGenesisAccountStateProcessor(fakeStateStorage{setErr: TrieError})
 	assert.NoError(t, err)
 	defaultGenesis.AccountStateProcessor = sProcessor
 	block, err = defaultGenesis.Prepare()
@@ -218,7 +217,7 @@ func TestGenesis_Prepare_Error(t *testing.T) {
 func TestSetupGenesisBlock_Error(t *testing.T) {
 	defaultGenesis := createGenesis()
 
-	rProcessor, err := registerdb.MakeGenesisRegisterProcessor(fakeStateStorage{setErr:TrieError})
+	rProcessor, err := registerdb.MakeGenesisRegisterProcessor(fakeStateStorage{setErr: TrieError})
 	assert.NoError(t, err)
 	defaultGenesis.RegisterProcessor = rProcessor
 
@@ -231,7 +230,7 @@ func TestGenesis_SetEarlyTokenContract_Error(t *testing.T) {
 	defaultGenesis := createGenesis()
 
 	// get balance error
-	sProcessor, err := state_processor.MakeGenesisAccountStateProcessor(fakeStateStorage{getErr:TrieError})
+	sProcessor, err := state_processor.MakeGenesisAccountStateProcessor(fakeStateStorage{getErr: TrieError})
 	assert.NoError(t, err)
 	defaultGenesis.AccountStateProcessor = sProcessor
 
@@ -240,8 +239,8 @@ func TestGenesis_SetEarlyTokenContract_Error(t *testing.T) {
 
 	// set balance error
 	sProcessor, err = state_processor.MakeGenesisAccountStateProcessor(fakeStateStorage{
-		setErr:TrieError,
-		contractBalance:int64(43693128000000000),
+		setErr:          TrieError,
+		contractBalance: int64(43693128000000000),
 	})
 	assert.NoError(t, err)
 	defaultGenesis.AccountStateProcessor = sProcessor

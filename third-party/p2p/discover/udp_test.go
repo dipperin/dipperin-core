@@ -35,9 +35,9 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 )
 
 func init() {

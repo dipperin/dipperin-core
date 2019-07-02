@@ -14,25 +14,24 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package contract
 
 import (
-	"github.com/dipperin/dipperin-core/common/address-util"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
-	"github.com/dipperin/dipperin-core/common/hexutil"
-	"github.com/dipperin/dipperin-core/core/economy-model"
-	"github.com/dipperin/dipperin-core/third-party/log"
-	"testing"
-	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/model"
-	"fmt"
-	"github.com/stretchr/testify/assert"
 	"errors"
-	"math/big"
+	"fmt"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/address-util"
+	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/core/economy-model"
+	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"math/big"
 	"reflect"
+	"testing"
 )
 
 func TestGetContractConf(t *testing.T) {
@@ -69,7 +68,7 @@ func Test_newInfoOfContract(t *testing.T) {
 }
 
 func TestParseExtraDataForContract(t *testing.T) {
-	dataStruct := &ExtraDataForContract{Action:"test"}
+	dataStruct := &ExtraDataForContract{Action: "test"}
 	data := util.StringifyJsonToBytes(dataStruct)
 	result := ParseExtraDataForContract(data)
 	assert.NotNil(t, result)
@@ -101,7 +100,7 @@ func TestGetContractMethodArgs(t *testing.T) {
 
 func TestProcessor_Process(t *testing.T) {
 	processor := &Processor{}
-	tx := model.NewTransaction(0, common.HexToAddress("1234"), big.NewInt(10), g_testData.TestGasPrice,g_testData.TestGasLimit, []byte("test"))
+	tx := model.NewTransaction(0, common.HexToAddress("1234"), big.NewInt(10), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte("test"))
 	err := processor.Process(tx)
 	assert.Error(t, err, CanNotParseContractErr)
 }
@@ -110,7 +109,7 @@ func TestProcessor_DoCreate(t *testing.T) {
 	mockCtl := gomock.NewController(t)
 	mockConractDB := NewMockContractDB(mockCtl)
 	mockAccountDB := NewMockAccountDB(mockCtl)
-	processor := &Processor{contractDB:mockConractDB, accountDB:mockAccountDB}
+	processor := &Processor{contractDB: mockConractDB, accountDB: mockAccountDB}
 
 	exData := &ExtraDataForContract{}
 	_, err := processor.DoCreate(exData)
@@ -150,7 +149,7 @@ func TestProcessor_Run(t *testing.T) {
 	mockCtl := gomock.NewController(t)
 	mockConractDB := NewMockContractDB(mockCtl)
 	mockAccountDB := NewMockAccountDB(mockCtl)
-	processor := &Processor{contractDB:mockConractDB, accountDB:mockAccountDB}
+	processor := &Processor{contractDB: mockConractDB, accountDB: mockAccountDB}
 
 	exData := &ExtraDataForContract{}
 	exData.ContractAddress = common.HexToAddress("1234")
@@ -182,7 +181,7 @@ func TestProcessor_GetContractReadOnlyInfo(t *testing.T) {
 	mockCtl := gomock.NewController(t)
 	mockConractDB := NewMockContractDB(mockCtl)
 	mockAccountDB := NewMockAccountDB(mockCtl)
-	processor := &Processor{contractDB:mockConractDB, accountDB:mockAccountDB}
+	processor := &Processor{contractDB: mockConractDB, accountDB: mockAccountDB}
 
 	exData := &ExtraDataForContract{}
 	exData.ContractAddress = common.HexToAddress("1234")
@@ -210,7 +209,7 @@ func TestProcessor_GetContractReadOnlyInfo(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestGetERC20TxSize(t *testing.T){
+func TestGetERC20TxSize(t *testing.T) {
 	testContract := newTestToken()
 
 	es := util.StringifyJson(testContract)
@@ -220,25 +219,24 @@ func TestGetERC20TxSize(t *testing.T){
 	contractAdr, _ := address_util.GenERC20Address()
 	extra.ContractAddress = contractAdr
 
-	log.Info("the es is:","es",es)
-	log.Info("the contractAdr is:","contractAdr",contractAdr.Hex())
+	log.Info("the es is:", "es", es)
+	log.Info("the contractAdr is:", "contractAdr", contractAdr.Hex())
 
 	extraData := []byte(util.StringifyJson(extra))
-	log.Info("the extraData is:","extraData",hexutil.Encode(extraData))
-	log.Info("the extraData Len is:","len",len(extraData))
+	log.Info("the extraData is:", "extraData", hexutil.Encode(extraData))
+	log.Info("the extraData Len is:", "len", len(extraData))
 
-	tx := model.NewTransaction(0,contractAdr,big.NewInt(0), g_testData.TestGasPrice,g_testData.TestGasLimit,extraData)
+	tx := model.NewTransaction(0, contractAdr, big.NewInt(0), g_testData.TestGasPrice, g_testData.TestGasLimit, extraData)
 	key1, _ := model.CreateKey()
 	fs := model.NewMercurySigner(big.NewInt(1))
-	tx.SignTx(key1,fs)
+	tx.SignTx(key1, fs)
 
 	tx.RawSignatureValues()
-	log.Info("the tx size is:","size",tx.Size(),"txFee",economy_model.GetMinimumTxFee(tx.Size()))
-	log.Info("the tx hash is:","hash",tx.CalTxId().Hex())
+	log.Info("the tx size is:", "size", tx.Size(), "txFee", economy_model.GetMinimumTxFee(tx.Size()))
+	log.Info("the tx hash is:", "hash", tx.CalTxId().Hex())
 
-	normalTx := model.NewTransaction(0,common.HexToAddress("0x00009865E43BEebad5fB771259F1660cD2aC4fD82557"),big.NewInt(10),g_testData.TestGasPrice,g_testData.TestGasLimit,[]byte{})
-	normalTx.SignTx(key1,fs)
+	normalTx := model.NewTransaction(0, common.HexToAddress("0x00009865E43BEebad5fB771259F1660cD2aC4fD82557"), big.NewInt(10), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
+	normalTx.SignTx(key1, fs)
 
-
-	log.Info("the normal tx size is:","size",normalTx.Size(),"txFee",economy_model.GetMinimumTxFee(normalTx.Size()))
+	log.Info("the normal tx size is:", "size", normalTx.Size(), "txFee", economy_model.GetMinimumTxFee(normalTx.Size()))
 }

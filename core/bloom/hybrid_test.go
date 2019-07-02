@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package iblt
 
 import (
@@ -108,5 +107,5 @@ func TestHybridEstimator_EncodeByte(t *testing.T) {
 func TestHybridEstimator_DeriveConfig(t *testing.T) {
 	e1 := NewHybridEstimator(defaultHybridEstimatorConfig)
 	e2 := NewHybridEstimator(defaultHybridEstimatorConfig)
-	assert.Equal(t, e1.DeriveConfig(e2), InvBloomConfig(InvBloomConfig{BktConfig:BucketConfig{DataLen:0x7e, HashLen:0x4}, BucketNum:0xc8, BucketUsed:0x4, KeyLen:0x4, ValLen:0x78, SerNumLen:0x2}))
+	assert.Equal(t, e1.DeriveConfig(e2), InvBloomConfig(InvBloomConfig{BktConfig: BucketConfig{DataLen: 0x7e, HashLen: 0x4}, BucketNum: 0xc8, BucketUsed: 0x4, KeyLen: 0x4, ValLen: 0x78, SerNumLen: 0x2}))
 }

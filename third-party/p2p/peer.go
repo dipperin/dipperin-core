@@ -29,8 +29,8 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enr"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 var (
@@ -474,7 +474,6 @@ func (p *Peer) Info() *PeerInfo {
 	}
 	return info
 }
-
 
 type CsPeerInfo struct {
 	ID              string `json:"id"`

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package verifiers_halt_check
 
 import (
@@ -34,7 +33,7 @@ func GenVoteMsg(emptyBlock *model.Block, signFunc SignHashFunc, addr common.Addr
 		Timestamp: time.Now(),
 	}
 
-	ver_halt_check_log.Info("the voteMsg blockID is","BlockID",vote.BlockID.Hex(),"height",vote.Height)
+	ver_halt_check_log.Info("the voteMsg blockID is", "BlockID", vote.BlockID.Hex(), "height", vote.Height)
 	// sign msg
 	ver_halt_check_log.Info("generate empty vote", "address", addr)
 	sign, err := signFunc(vote.Hash().Bytes())
@@ -53,7 +52,7 @@ func GenVoteMsg(emptyBlock *model.Block, signFunc SignHashFunc, addr common.Addr
 func checkProposalValid(proposal ProposalMsg) error {
 
 	if proposal.EmptyBlock.Hash() != proposal.VoteMsg.BlockID {
-		ver_halt_check_log.Warn("the proposal empty block hash is different from VoteMsg","blockHash",proposal.EmptyBlock.Hash().Hex(),"voteMsgBlockId",proposal.VoteMsg.BlockID.Hex())
+		ver_halt_check_log.Warn("the proposal empty block hash is different from VoteMsg", "blockHash", proposal.EmptyBlock.Hash().Hex(), "voteMsgBlockId", proposal.VoteMsg.BlockID.Hex())
 		return g_error.VoteMsgBlockHashNotMatchError
 	}
 

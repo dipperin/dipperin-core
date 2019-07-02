@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain
 
 import (
@@ -29,7 +28,6 @@ import (
 	"reflect"
 	"testing"
 )
-
 
 /*
 
@@ -53,10 +51,9 @@ func TestProcessEarlyContract(t *testing.T) {
 	err = aStateDB.Process(tmpB, eModel)
 	assert.NoError(t, err)
 
-	hash, err:=aStateDB.Finalise()
-	assert.NoError(t,err)
+	hash, err := aStateDB.Finalise()
+	assert.NoError(t, err)
 	fmt.Println(hash.Hex())
-
 
 	//the root of finalise and commit
 	fHash, err := aStateDB.Finalise()
@@ -78,7 +75,6 @@ func TestProcessEarlyContract(t *testing.T) {
 	trDB = state_processor.NewStateStorageWithCache(kvDB)
 	aStateDB, err = NewBlockProcessor(cReader, cHash, trDB)
 	assert.NoError(t, err)
-
 
 	earlyTCV, err := aStateDB.GetContract(contract.EarlyContractAddress, reflect.TypeOf(contract.EarlyRewardContract{}))
 	assert.NoError(t, err)

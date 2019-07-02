@@ -1,16 +1,16 @@
 package node_cluster
 
 import (
-	"fmt"
-	"path/filepath"
-	"io/ioutil"
-	"strconv"
-	"github.com/dipperin/dipperin-core/third-party/rpc"
-	"github.com/dipperin/dipperin-core/common/util"
 	"errors"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"math/big"
+	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
+	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"io/ioutil"
+	"math/big"
+	"path/filepath"
+	"strconv"
 )
 
 const (

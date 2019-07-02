@@ -74,27 +74,26 @@ func TestStateHandler_SaveFinalEmptyBlock(t *testing.T) {
 
 	stateHandler := MakeHaltCheckStateHandler(mockChainReader, mockWalletSigner, mockEconomyModel)
 
-	proposal ,err:= MakeTestProposalMsg(0)
-	assert.NoError(t,err)
+	proposal, err := MakeTestProposalMsg(0)
+	assert.NoError(t, err)
 
-	vote1 := model.NewVoteMsg(proposal.VoteMsg.Height,0,proposal.VoteMsg.BlockID,model.AliveVerifierVoteMessage)
+	vote1 := model.NewVoteMsg(proposal.VoteMsg.Height, 0, proposal.VoteMsg.BlockID, model.AliveVerifierVoteMessage)
 	vote1.Witness.Address = chain_config.MercuryVerifierAddress[0]
 	vote1.Timestamp = proposal.VoteMsg.Timestamp
 
 	//map random so just test one vote
-/*	vote2 := model.NewVoteMsg(proposal.VoteMsg.Height,0,proposal.VoteMsg.BlockID,model.AliveVerifierVoteMessage)
-	vote2.Witness.Address = chain_config.MercuryVerifierAddress[1]
-	vote2.Timestamp = proposal.VoteMsg.Timestamp*/
+	/*	vote2 := model.NewVoteMsg(proposal.VoteMsg.Height,0,proposal.VoteMsg.BlockID,model.AliveVerifierVoteMessage)
+		vote2.Witness.Address = chain_config.MercuryVerifierAddress[1]
+		vote2.Timestamp = proposal.VoteMsg.Timestamp*/
 
-	votes := make(map[common.Address]model.VoteMsg,0)
-	votes[vote1.GetAddress()]=*vote1
+	votes := make(map[common.Address]model.VoteMsg, 0)
+	votes[vote1.GetAddress()] = *vote1
 	//votes[vote2.GetAddress()]=*vote2
 
-
 	//verifications := []model.AbstractVerification{&proposal.VoteMsg,vote1,vote2}
-	verifications := []model.AbstractVerification{&proposal.VoteMsg,vote1}
-	mockChainReader.EXPECT().SaveBlock(&proposal.EmptyBlock,verifications).Return(nil)
+	verifications := []model.AbstractVerification{&proposal.VoteMsg, vote1}
+	mockChainReader.EXPECT().SaveBlock(&proposal.EmptyBlock, verifications).Return(nil)
 
-	err = stateHandler.SaveFinalEmptyBlock(*proposal,votes)
+	err = stateHandler.SaveFinalEmptyBlock(*proposal, votes)
 	assert.NoError(t, err)
 }

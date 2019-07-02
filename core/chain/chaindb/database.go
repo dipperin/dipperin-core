@@ -68,6 +68,6 @@ type Database interface {
 
 	InsertBlock(block model.AbstractBlock) error
 
-	SaveReceipts(hash common.Hash, number uint64,receipts model2.Receipts) error
-	GetReceipts(hash common.Hash, number uint64)model2.Receipts
+	SaveReceipts(hash common.Hash, number uint64, receipts model2.Receipts) error
+	GetReceipts(hash common.Hash, number uint64) model2.Receipts
 }

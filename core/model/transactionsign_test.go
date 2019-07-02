@@ -17,12 +17,12 @@
 package model
 
 import (
-	"github.com/dipperin/dipperin-core/tests/g-testData"
-	"testing"
-	"math/big"
-	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
 )
 
 func TestMercurySigner_Sender(t *testing.T) {
@@ -103,7 +103,7 @@ func TestDeriveChainId(t *testing.T) {
 func TestTransaction_SignTx(t *testing.T) {
 	key1, _ := CreateKey()
 	fs1 := NewMercurySigner(big.NewInt(1))
-	tx := NewTransaction(10, bobAddr, big.NewInt(10000),  g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
+	tx := NewTransaction(10, bobAddr, big.NewInt(10000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 
 	result, err := tx.SignTx(key1, fs1)
 	assert.NoError(t, err)

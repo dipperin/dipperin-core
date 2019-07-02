@@ -27,7 +27,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/cachedb"
-	"github.com/dipperin/dipperin-core/core/dipperin/service"
 	"github.com/dipperin/dipperin-core/core/cs-chain"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
@@ -35,6 +34,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/csbft/components"
 	"github.com/dipperin/dipperin-core/core/csbft/csbftnode"
 	"github.com/dipperin/dipperin-core/core/csbft/state-machine"
+	"github.com/dipperin/dipperin-core/core/dipperin/service"
 	"github.com/dipperin/dipperin-core/core/mine/minemaster"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/model/builder"
@@ -60,8 +60,8 @@ import (
 )
 
 type BlockValidator interface {
-	Valid(block model.AbstractBlock) (error)
-	FullValid(block model.AbstractBlock) (error)
+	Valid(block model.AbstractBlock) error
+	FullValid(block model.AbstractBlock) error
 }
 
 type BaseComponent struct {

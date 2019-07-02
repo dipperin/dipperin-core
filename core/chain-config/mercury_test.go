@@ -17,10 +17,10 @@
 package chain_config
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"fmt"
 	"encoding/hex"
+	"fmt"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestNewMercuryVBoots(t *testing.T) {

@@ -42,19 +42,19 @@ func TestOriginLifeMap(t *testing.T){
 	fmt.Printf("the data is: %d",data)
 }*/
 
-func TestIOByteReader(t *testing.T){
+func TestIOByteReader(t *testing.T) {
 	testData := []byte{
-		0x00,0x01,0x02,0x03,0x04,0x05,
+		0x00, 0x01, 0x02, 0x03, 0x04, 0x05,
 	}
 
-	r:=bytes.NewReader(testData)
-	byte0,err :=r.ReadByte()
-	assert.NoError(t,err)
-	assert.Equal(t,byte(0x00),byte0)
+	r := bytes.NewReader(testData)
+	byte0, err := r.ReadByte()
+	assert.NoError(t, err)
+	assert.Equal(t, byte(0x00), byte0)
 
-	readByte := make([]byte,len(testData)-1)
-	n,err :=io.ReadFull(r,readByte)
-	assert.NoError(t,err)
-	assert.Equal(t,len(testData)-1,n)
-	assert.Equal(t,[]byte{0x01,0x02,0x03,0x04,0x05,},readByte)
+	readByte := make([]byte, len(testData)-1)
+	n, err := io.ReadFull(r, readByte)
+	assert.NoError(t, err)
+	assert.Equal(t, len(testData)-1, n)
+	assert.Equal(t, []byte{0x01, 0x02, 0x03, 0x04, 0x05}, readByte)
 }

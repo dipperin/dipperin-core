@@ -5,8 +5,8 @@ import (
 	"github.com/mattn/go-colorable"
 	"github.com/mattn/go-isatty"
 	"os"
-	"path/filepath"
 	"os/user"
+	"path/filepath"
 )
 
 // Predefined handlers
@@ -74,6 +74,7 @@ func homeDir() string {
 	}
 	return ""
 }
+
 // 输出节点关键情况
 func InitHealthLogger(logLevel log.Lvl, nodeName string, removeOld bool) {
 	targetDir := filepath.Join(homeDir(), "tmp", "cs_debug", "health_info")
@@ -83,7 +84,7 @@ func InitHealthLogger(logLevel log.Lvl, nodeName string, removeOld bool) {
 	}
 
 	var handlers []log.Handler
-	logFilePath := filepath.Join(targetDir, nodeName + ".log")
+	logFilePath := filepath.Join(targetDir, nodeName+".log")
 
 	if removeOld {
 		os.RemoveAll(logFilePath)

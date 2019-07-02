@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_state
 
 import (
@@ -229,13 +228,13 @@ func (cs *ChainState) CalVerifiers(block model.AbstractBlock) []common.Address {
 	//pbft_log.Debug("CalVerifiers", "num", block.Number())
 
 	root := block.GetRegisterRoot()
-	log.Info("the register root is:","root",root.Hex())
+	log.Info("the register root is:", "root", root.Hex())
 	register, err := cs.BuildRegisterProcessor(root)
 	if err != nil {
 		pbft_log.Debug("BuildRegisterProcessor failed", "err", err)
 	}
 	list := register.GetRegisterData()
-	log.Info("the register list len is:","len",len(list))
+	log.Info("the register list len is:", "len", len(list))
 	//pbft_log.Debug("GetRegisterData", "register data", list, "root", root)
 	//log.Info("GetRegisterData", "register data", list, "root", root)
 

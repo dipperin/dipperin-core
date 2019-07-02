@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package contract
 
 import (
 	"fmt"
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/common"
-	"math/big"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
 )
 
 var createERC20ConfigJsonStr = `{"token_name":"EOS","token_decimals":18,"token_symbol":"EOS","token_total_supply":"0x33b2e3c9fd0803ce8000000","balances":{},"allowed":{}}
@@ -34,7 +33,7 @@ var address = common.HexToAddress("0x0224FA42f7315cD04D6774E58B54e92603e96d84")
 var address1 = common.HexToAddress("0x0224FA42f7315cD04D6774E58B54e92603e96d85")
 var address2 = common.HexToAddress("0x0224FA42f7315cD04D6774E58B54e92603e96d86")
 
-func newTestToken() (*BuiltInERC20Token) {
+func newTestToken() *BuiltInERC20Token {
 	var token BuiltInERC20Token
 	if err := util.ParseJson(createERC20ConfigJsonStr, &token); err != nil {
 		panic(err.Error())
@@ -153,4 +152,3 @@ func TestBuiltInERC20Token_require(t *testing.T) {
 
 	assert.Equal(t, true, token.require(common.HexToAddress("1234"), big.NewInt(3)))
 }
-

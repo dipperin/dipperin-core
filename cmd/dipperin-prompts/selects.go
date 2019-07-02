@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package dipperin_prompts
 
 import (
-	"github.com/manifoldco/promptui"
 	"fmt"
+	"github.com/manifoldco/promptui"
 )
 
 type nodeType struct {
-	Name    string
-	Value 	int
+	Name  string
+	Value int
 }
 
 func NodeType() (int, error) {
@@ -50,4 +49,3 @@ func NodeType() (int, error) {
 
 	return nodeTypes[i].Value, err
 }
-

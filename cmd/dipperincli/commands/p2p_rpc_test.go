@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package commands
 
 import (
@@ -126,7 +125,7 @@ func Test_rpcCaller_Debug(t *testing.T) {
 			m, _ := model.NewVoteMsgWithSign(uint64(1), uint64(1), common.HexToHash("0x1234"), model.PreVoteMessage, func(hash []byte) ([]byte, error) {
 				return nil, nil
 			}, common.HexToAddress("0x1234"))
-			*result.(*rpc_interface.BlockResp)  = rpc_interface.BlockResp{
+			*result.(*rpc_interface.BlockResp) = rpc_interface.BlockResp{
 				Body: model.Body{Txs: []*model.Transaction{tx}, Vers: []model.AbstractVerification{m}},
 				Header: model.Header{
 					Bloom: iblt.NewBloom(iblt.NewBloomConfig(8, 4)),
@@ -142,7 +141,7 @@ func Test_rpcCaller_Debug(t *testing.T) {
 			m, _ := model.NewVoteMsgWithSign(uint64(1), uint64(1), common.HexToHash("0x1234"), model.PreVoteMessage, func(hash []byte) ([]byte, error) {
 				return nil, nil
 			}, common.HexToAddress("0x1234"))
-			*result.(*rpc_interface.BlockResp)  = rpc_interface.BlockResp{
+			*result.(*rpc_interface.BlockResp) = rpc_interface.BlockResp{
 				Body: model.Body{Txs: []*model.Transaction{tx}, Vers: []model.AbstractVerification{m}},
 				Header: model.Header{
 					Bloom: iblt.NewBloom(iblt.NewBloomConfig(8, 4)),

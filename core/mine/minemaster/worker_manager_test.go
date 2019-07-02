@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package minemaster
 
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/model"
-	"testing"
-	"math/big"
 	"github.com/stretchr/testify/assert"
+	"math/big"
 	"sync/atomic"
+	"testing"
 )
 
 func TestDefaultPerformance_GetPerformance(t *testing.T) {
@@ -80,11 +79,11 @@ func (fakeCalculableBlock) SetVerifications(vs []model.AbstractVerification) {
 	panic("implement me")
 }
 
-func (fakeCalculableBlock) VersIterator(func(int, model.AbstractVerification, model.AbstractBlock) error) (error) {
+func (fakeCalculableBlock) VersIterator(func(int, model.AbstractVerification, model.AbstractBlock) error) error {
 	panic("implement me")
 }
 
-func (fakeCalculableBlock) GetVerifications() ([]model.AbstractVerification) {
+func (fakeCalculableBlock) GetVerifications() []model.AbstractVerification {
 	panic("implement me")
 }
 
@@ -163,7 +162,7 @@ func (fakeCalculableBlock) EncodeRlpToBytes() ([]byte, error) {
 	panic("implement me")
 }
 
-func (fakeCalculableBlock) TxIterator(func(index int, tx model.AbstractTransaction) ( error)) (error){
+func (fakeCalculableBlock) TxIterator(func(index int, tx model.AbstractTransaction) error) error {
 	panic("implement me")
 }
 
@@ -215,12 +214,11 @@ func (fakeCalculableBlock) GetTransactionFees() *big.Int {
 	return big.NewInt(15e9)
 }
 
-func (fakeCalculableBlock) Seed() common.Hash{
+func (fakeCalculableBlock) Seed() common.Hash {
 	return common.Hash{}
 }
 
 type fakeBlockBroadcaster struct {
-
 }
 
 func (fakeBlockBroadcaster) BroadcastMinedBlock(block model.AbstractBlock) {
@@ -232,7 +230,7 @@ func fakeMineConfig() MineConfig {
 	av := &atomic.Value{}
 	av.Store(addr)
 	return MineConfig{
-		CoinbaseAddress: av,
+		CoinbaseAddress:  av,
 		BlockBroadcaster: &fakeBlockBroadcaster{},
 	}
 }
@@ -315,8 +313,8 @@ type fakeContext struct {
 }
 
 func TestChangeCoinbase(t *testing.T) {
-	fc := &fakeContext{ coinbase: &atomic.Value{} }
-	conf := MineConfig{ CoinbaseAddress: fc.coinbase }
+	fc := &fakeContext{coinbase: &atomic.Value{}}
+	conf := MineConfig{CoinbaseAddress: fc.coinbase}
 	m, _ := MakeMineMaster(conf)
 	fc.coinbase.Store(common.HexToAddress("0x123"))
 	assert.Equal(t, common.HexToAddress("0x123"), m.CurrentCoinbaseAddress())

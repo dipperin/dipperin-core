@@ -79,12 +79,12 @@ func ValidateBlockTxs(c *BlockContext) Middleware {
 	return func() error {
 		txs := c.Block.GetAbsTransactions()
 		targetRoot := model.DeriveSha(model.AbsTransactions(txs))
-/*		pbft_log.Info("the header tx root is:","root",c.Block.TxRoot().Hex())
-		pbft_log.Info("the calculated tx root is:","root",targetRoot.Hex())
-		pbft_log.Info("the block txs is:","len",len(txs))
-		for _,tx := range txs{
-			pbft_log.Info("the tx is:","tx",tx)
-		}*/
+		/*		pbft_log.Info("the header tx root is:","root",c.Block.TxRoot().Hex())
+				pbft_log.Info("the calculated tx root is:","root",targetRoot.Hex())
+				pbft_log.Info("the block txs is:","len",len(txs))
+				for _,tx := range txs{
+					pbft_log.Info("the tx is:","tx",tx)
+				}*/
 		if !targetRoot.IsEqual(c.Block.TxRoot()) {
 			return errors.New(fmt.Sprintf("tx root not match, target: %v, root in block: %v", targetRoot.Hex(), c.Block.TxRoot().Hex()))
 		}
@@ -153,13 +153,13 @@ func ValidTxSender(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 	}
 
 	//check minimal gasUsed
-	gas, err := model.IntrinsicGas(tx.ExtraData(), tx.GetType() == common.AddressTypeContractCreate , true)
-	if err !=nil{
+	gas, err := model.IntrinsicGas(tx.ExtraData(), tx.GetType() == common.AddressTypeContractCreate, true)
+	if err != nil {
 		return err
 	}
 
 	if gas > tx.GetGasLimit() {
-		return fmt.Errorf("gas limit is to low, need:%v got:%v",gas,tx.GetGasLimit())
+		return fmt.Errorf("gas limit is to low, need:%v got:%v", gas, tx.GetGasLimit())
 	}
 
 	// log.Info("ValidTxSender the blockHeight is:","blockHeight",blockHeight)
@@ -168,7 +168,7 @@ func ValidTxSender(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 		return err
 	}
 	credit, err := state.GetBalance(sender)
-	log.Info("ValidTxSender#credit", "credit",  credit)
+	log.Info("ValidTxSender#credit", "credit", credit)
 	if err != nil {
 		return err
 	}
@@ -179,12 +179,11 @@ func ValidTxSender(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 		return err
 	}
 
-	gasFee := big.NewInt(0).Mul(big.NewInt(int64(tx.GetGasLimit())),tx.GetGasPrice())
+	gasFee := big.NewInt(0).Mul(big.NewInt(int64(tx.GetGasLimit())), tx.GetGasPrice())
 	usage := big.NewInt(0).Add(tx.Amount(), gasFee)
 	usage.Add(usage, lockValue)
 
-
-	log.Info("the credit and the usage is:","credit",credit,"usage",usage)
+	log.Info("the credit and the usage is:", "credit", credit, "usage", usage)
 	if credit.Cmp(usage) < 0 {
 		return state_processor.NotEnoughBalanceError
 	}
@@ -218,7 +217,7 @@ func validTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uin
 		return err
 	}
 
-/*	if err := ValidTxSize(tx); err != nil {
+	/*	if err := ValidTxSize(tx); err != nil {
 		return err
 	}*/
 
@@ -235,11 +234,11 @@ func validTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uin
 }
 
 func validRegisterTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
-	if tx == nil || chain == nil{
-		log.Error("the tx and chain:","tx",tx,"chain",chain)
+	if tx == nil || chain == nil {
+		log.Error("the tx and chain:", "tx", tx, "chain", chain)
 		return errors.New("the tx or chain is nil")
 	}
-	if tx.Amount().Cmp(economy_model.MiniPledgeValue) == -1{
+	if tx.Amount().Cmp(economy_model.MiniPledgeValue) == -1 {
 		return errors.New("the register tx delegate is lower than MiniPledgeValue")
 	}
 	return nil
@@ -454,7 +453,7 @@ func haveStack(tx model.AbstractTransaction, chain ChainInterface, blockHeight u
 TxTargetStakeValidator is to validate the target has stake or is a validator candidate.
 It consider to be valid, the target's stake more than 0.
 It implemented TransactionValidator interface.
- */
+*/
 func validTargetStake(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
 	to := tx.To()
 	target := cs_crypto.GetNormalAddressFromEvidence(*to)

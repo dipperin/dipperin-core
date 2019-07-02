@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package iblt
 
 import (
-	"github.com/dipperin/dipperin-core/common"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"testing"

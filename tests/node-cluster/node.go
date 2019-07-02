@@ -1,9 +1,9 @@
 package node_cluster
 
 import (
-	"github.com/dipperin/dipperin-core/third-party/rpc"
-	"github.com/dipperin/dipperin-core/common"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"strings"
 )
 

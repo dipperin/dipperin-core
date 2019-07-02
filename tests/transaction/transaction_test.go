@@ -105,8 +105,8 @@ func TestWASMContactMiniTxFee(t *testing.T) {
 
 	WASMTokenPath := g_testData.GetWasmPath("token-const")
 	AbiTokenPath := g_testData.GetAbiPath("token-const")
-	extraData := g_testData.GetCreateExtraData(t, WASMTokenPath, AbiTokenPath, params)
-	extraData, err := utils.ParseCreateContractData(extraData)
+	extraData, err := g_testData.GetCreateExtraData(WASMTokenPath, AbiTokenPath, params)
+	extraData, err = utils.ParseCreateContractData(extraData)
 	assert.NoError(t, err)
 
 	to := common.HexToAddress(common.AddressContractCreate)

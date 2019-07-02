@@ -29,5 +29,5 @@ var (
 	ErrTxOverSize                           = errors.New("tx over size")
 	ErrEmptyVoteList                        = errors.New("empty vote list")
 	ErrTxNonceNotMatch                      = errors.New("tx nonce not match")
-	ErrTxGasUsedIsOverGasLimit				= errors.New("the tx gasUsed is over the gasLimit")
+	ErrTxGasUsedIsOverGasLimit              = errors.New("the tx gasUsed is over the gasLimit")
 )

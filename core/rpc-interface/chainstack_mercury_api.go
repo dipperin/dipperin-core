@@ -35,8 +35,8 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
-	"math/big"
 	"github.com/ethereum/go-ethereum/rlp"
+	"math/big"
 )
 
 type DipperinMercuryApi struct {
@@ -704,8 +704,8 @@ func (api *DipperinMercuryApi) ListWalletAccount(walletIdentifier accounts.Walle
 	tmpAccounts, err := api.service.ListWalletAccount(walletIdentifier)
 
 	/*	for _,account := range tmpAccounts{
-			log.Info("the accounts is: ","accounts.Address",account.Address.Hex())
-		}*/
+		log.Info("the accounts is: ","accounts.Address",account.Address.Hex())
+	}*/
 
 	if err != nil {
 		return []accounts.Account{}, err
@@ -907,7 +907,7 @@ func (api *DipperinMercuryApi) SendUnStakeTransaction(from common.Address, gasPr
 //   "200":
 //        description: return operation result
 func (api *DipperinMercuryApi) SendEvidenceTransaction(from, target common.Address, gasPrice *big.Int, gasLimit uint64, voteA *model.VoteMsg, voteB *model.VoteMsg, nonce *uint64) (common.Hash, error) {
-	return api.service.SendEvidenceTransaction(from, target,gasPrice, gasLimit, voteA, voteB, nonce)
+	return api.service.SendEvidenceTransaction(from, target, gasPrice, gasLimit, voteA, voteB, nonce)
 }
 
 // send cancel transaction
@@ -969,7 +969,7 @@ func (api *DipperinMercuryApi) GetSlot(block model.AbstractBlock) *uint64 {
 // responses:
 //   "200":
 //        description: return verifier address list and the operation result
-func (api *DipperinMercuryApi) GetCurVerifiers() ([]common.Address) {
+func (api *DipperinMercuryApi) GetCurVerifiers() []common.Address {
 	return api.service.GetCurVerifiers()
 }
 
@@ -983,7 +983,7 @@ func (api *DipperinMercuryApi) GetCurVerifiers() ([]common.Address) {
 // responses:
 //   "200":
 //        description: return verifier address list and the operation result
-func (api *DipperinMercuryApi) GetNextVerifiers() ([]common.Address) {
+func (api *DipperinMercuryApi) GetNextVerifiers() []common.Address {
 	return api.service.GetNextVerifiers()
 }
 

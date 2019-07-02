@@ -14,19 +14,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package state_machine
 
 import (
-	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/model"
 )
 
 type ChainReader interface {
 	GetSeenCommit(height uint64) []model.AbstractVerification
 	SaveBlock(block model.AbstractBlock, seenCommits []model.AbstractVerification) error
 	CurrentBlock() model.AbstractBlock
-	IsChangePoint(block model.AbstractBlock,isProcessPackageBlock bool) bool
+	IsChangePoint(block model.AbstractBlock, isProcessPackageBlock bool) bool
 	GetNextVerifiers() []common.Address
 	GetCurrVerifiers() []common.Address
 }

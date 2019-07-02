@@ -30,9 +30,10 @@ import (
 
 const (
 	DecimalUnits = 3
-	tokenName = "EarlyToken"
-	tokenSymbol = "EarlyReward"
+	tokenName    = "EarlyToken"
+	tokenSymbol  = "EarlyReward"
 )
+
 var EarlyContractAddress = common.HexToAddress("0x00110000000000000000000000000000000000000000")
 
 var ProhibitFunction = []string{"create", "RewardMineMaster", "RewardVerifier"}
@@ -64,14 +65,14 @@ type EarlyRewardContractForMarshaling struct {
 
 var EarlyRewardContractStr string
 
-func init(){
+func init() {
 	foundation := economy_model.MakeDipperinFoundation(economy_model.DIPProportion)
 	owner := economy_model.EarlyTokenAddresses[0]
 	decimalBase := big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(DecimalUnits)), nil)
 	initAmount := big.NewInt(0).Mul(economy_model.EarlyTokenAmount, decimalBase)
 
-	contract,err := MakeEarlyRewardContract(foundation, initAmount, economy_model.InitExchangeRate, tokenName, DecimalUnits, tokenSymbol, owner)
-	if err !=nil{
+	contract, err := MakeEarlyRewardContract(foundation, initAmount, economy_model.InitExchangeRate, tokenName, DecimalUnits, tokenSymbol, owner)
+	if err != nil {
 		panic("early_token init panic")
 	}
 

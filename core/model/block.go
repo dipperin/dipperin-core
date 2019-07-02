@@ -532,11 +532,11 @@ func NewBlock(header *Header, txs []*Transaction, msgs []AbstractVerification) *
 		copy(b.body.Txs, txs)
 	}
 
-/*	pbft_log.Info("the calculated tx root is:", "root", b.header.TransactionRoot.Hex())
-	pbft_log.Info("the block txs is:", "len", len(txs))
-	for _, tx := range txs {
-		pbft_log.Info("the tx is:", "tx", tx)
-	}*/
+	/*	pbft_log.Info("the calculated tx root is:", "root", b.header.TransactionRoot.Hex())
+		pbft_log.Info("the block txs is:", "len", len(txs))
+		for _, tx := range txs {
+			pbft_log.Info("the tx is:", "tx", tx)
+		}*/
 
 	// calculate verification Root
 	if len(msgs) == 0 {

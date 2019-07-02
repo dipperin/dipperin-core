@@ -17,24 +17,24 @@
 package tests
 
 import (
-	"github.com/dipperin/dipperin-core/core/model"
-	"math/big"
-	"github.com/dipperin/dipperin-core/common"
 	"crypto/ecdsa"
+	"fmt"
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"time"
+	"github.com/dipperin/dipperin-core/core/chain"
+	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chain/chaindb"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
-	"github.com/dipperin/dipperin-core/third-party/log"
-	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/economy-model"
-	"github.com/dipperin/dipperin-core/core/chain/chaindb"
-	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/dipperin/dipperin-core/core/chain"
+	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/ethereum/go-ethereum/rlp"
+	"math/big"
+	"time"
 )
 
 type BftChainState interface {
@@ -376,11 +376,11 @@ func (builder *BlockBuilder) commitTransaction(conf *state_processor.TxProcessCo
 	snap := state.Snapshot()
 	//err := state.ProcessTx(tx, height)
 	/*	conf := state_processor.TxProcessConfig{
-			Tx:      tx,
-			TxIndex: txIndex,
-			Header:  header,
-			GetHash: state.GetBlockHashByNumber,
-		}*/
+		Tx:      tx,
+		TxIndex: txIndex,
+		Header:  header,
+		GetHash: state.GetBlockHashByNumber,
+	}*/
 	err := state.ProcessTxNew(conf)
 	if err != nil {
 		state.RevertToSnapshot(snap)
@@ -415,8 +415,6 @@ func (builder *BlockBuilder) getDiff() common.Difficulty {
 	}
 	return builder.PreBlock.Difficulty()
 }
-
-
 
 func (builder *BlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndNonce, state *chain.BlockProcessor, header *model.Header, vers []model.AbstractVerification) (txBuf []model.AbstractTransaction, receipts model2.Receipts) {
 	var invalidList []*model.Transaction

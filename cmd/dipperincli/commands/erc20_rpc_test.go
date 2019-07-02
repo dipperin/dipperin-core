@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package commands
 
 import (
@@ -68,6 +67,7 @@ func Test_rpcCaller_AnnounceERC20(t *testing.T) {
 		})
 	}
 	assert.NoError(t, app.Run([]string{ os.Args[0], "AnnounceERC20" }))
+
 }
 
 func Test_rpcCaller_ERC20TotalSupply(t *testing.T) {
@@ -329,9 +329,9 @@ func Test_rpcCaller_ERC20Balance(t *testing.T) {
 			c.ERC20Balance(context)
 		})
 	}
+
 	assert.NoError(t, app.Run([]string{ os.Args[0], "ERC20Balance" }))
 }
-
 
 func Test_ERC20Size(t *testing.T) {
 

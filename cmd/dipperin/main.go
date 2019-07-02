@@ -14,18 +14,17 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package main
 
 import (
 	"github.com/dipperin/dipperin-core/cmd/base"
-	"github.com/dipperin/dipperin-core/cmd/utils/debug"
-	"github.com/ethereum/go-ethereum/metrics"
-	"os"
-	"github.com/urfave/cli"
 	"github.com/dipperin/dipperin-core/cmd/dipperin/config"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/cmd/dipperin/service"
+	"github.com/dipperin/dipperin-core/cmd/utils/debug"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/ethereum/go-ethereum/metrics"
+	"github.com/urfave/cli"
+	"os"
 	"time"
 )
 

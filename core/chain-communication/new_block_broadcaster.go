@@ -131,7 +131,6 @@ func (broadcaster *NewBlockBroadcaster) getTransferPeers(peers []PmAbstractPeer)
 	return peers[:transferLen]
 }
 
-
 func (broadcaster *NewBlockBroadcaster) broadcastBlock(block model.AbstractBlock, peers []PmAbstractPeer) {
 	for i := range peers {
 		receiver := broadcaster.getReceiver(peers[i])

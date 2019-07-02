@@ -55,7 +55,7 @@ func ParseCallContractData(abi []byte, rlpInput []byte) (extraData []byte, err e
 
 	var (
 		paramStr string
-		params []string
+		params   []string
 	)
 	if v, ok := inRlpList[1].([]byte); ok {
 		paramStr = string(v)
@@ -138,7 +138,7 @@ func ParseCreateContractData(rlpData []byte) (extraData []byte, err error) {
 
 	var (
 		paramStr string
-		params []string
+		params   []string
 	)
 	if v, ok := iRlpList[2].([]byte); ok {
 		paramStr = string(v)
@@ -167,4 +167,3 @@ func ParseCreateContractData(rlpData []byte) (extraData []byte, err error) {
 	}
 	return rlp.EncodeToBytes(rlpParams)
 }
-

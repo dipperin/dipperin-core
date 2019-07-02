@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package g_error
 
 import "errors"
 
 var (
 	ErrIsNotCurVerifierCannotStartBft = errors.New("is not current verifier, can't start bft")
-	ErrCannotLoadSeenCommit = errors.New("can't load seen commit")
+	ErrCannotLoadSeenCommit           = errors.New("can't load seen commit")
 )

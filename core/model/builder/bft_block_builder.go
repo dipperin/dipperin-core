@@ -50,11 +50,11 @@ func (builder *BftBlockBuilder) commitTransaction(conf *state_processor.TxProces
 	snap := state.Snapshot()
 	//err := state.ProcessTx(tx, height)
 	/*	conf := state_processor.TxProcessConfig{
-			Tx:      tx,
-			TxIndex: txIndex,
-			Header:  header,
-			GetHash: state.GetBlockHashByNumber,
-		}*/
+		Tx:      tx,
+		TxIndex: txIndex,
+		Header:  header,
+		GetHash: state.GetBlockHashByNumber,
+	}*/
 	err := state.ProcessTxNew(conf)
 	if err != nil {
 		state.RevertToSnapshot(snap)

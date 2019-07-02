@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_writer
 
 import (
@@ -36,7 +35,7 @@ func TestNewBftChainWriter(t *testing.T) {
 	mc.EXPECT().GetChainConfig().Return(chain_config.GetChainConfig()).AnyTimes()
 
 	assert.Error(t, NewBftChainWriter(&middleware.BftBlockContext{
-		BlockContext: middleware.BlockContext{ Block: mb, Chain: mc},
+		BlockContext: middleware.BlockContext{Block: mb, Chain: mc},
 	}, mc).SaveBlock())
 
 }
@@ -51,6 +50,6 @@ func TestBftChainWriter_SaveBlock(t *testing.T) {
 	mc.EXPECT().GetChainConfig().Return(chain_config.GetChainConfig()).AnyTimes()
 
 	assert.Error(t, NewBftChainWriterWithoutVotes(&middleware.BftBlockContextWithoutVotes{
-		BlockContext: middleware.BlockContext{ Block: mb, Chain: mc },
+		BlockContext: middleware.BlockContext{Block: mb, Chain: mc},
 	}, mc).SaveBlock())
 }

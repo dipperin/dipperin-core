@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package util
 
 import (
@@ -23,7 +22,6 @@ import (
 	"path/filepath"
 	"runtime"
 )
-
 
 func WriteDebugStack(toFile string) error {
 	// prepare dir
@@ -35,7 +33,7 @@ func WriteDebugStack(toFile string) error {
 	}
 
 	// write stack
-	buf := make([]byte, 5 * 1024 * 1024)
+	buf := make([]byte, 5*1024*1024)
 	buf = buf[:runtime.Stack(buf, true)]
 	return ioutil.WriteFile(toFile, buf, 0755)
 }

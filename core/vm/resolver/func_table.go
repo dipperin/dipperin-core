@@ -24,7 +24,7 @@ type Resolver struct {
 
 func NewResolver(vmValue VmContextService, contract ContractService, state StateDBService) exec.ImportResolver {
 	return &Resolver{
-		Service:resolverNeedExternalService{
+		Service: resolverNeedExternalService{
 			ContractService:  contract,
 			VmContextService: vmValue,
 			StateDBService:   state,
@@ -33,9 +33,7 @@ func NewResolver(vmValue VmContextService, contract ContractService, state State
 }
 
 func newCfcSet() map[string]map[string]*exec.FunctionImport {
-	return map[string]map[string]*exec.FunctionImport{
-
-	}
+	return map[string]map[string]*exec.FunctionImport{}
 }
 
 func newGlobalSet() map[string]map[string]int64 {
@@ -78,27 +76,27 @@ func (r *Resolver) ResolveGlobal(module, field string) int64 {
 func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
 	return map[string]map[string]*exec.FunctionImport{
 		"env": {
-			"malloc":  &exec.FunctionImport{Execute:envMalloc, GasCost: envMallocGasCost},
-			"free":    &exec.FunctionImport{Execute:envFree, GasCost: envFreeGasCost},
-			"calloc":  &exec.FunctionImport{Execute:envCalloc, GasCost: envCallocGasCost},
-			"realloc": &exec.FunctionImport{Execute:envRealloc, GasCost: envReallocGasCost},
+			"malloc":  &exec.FunctionImport{Execute: envMalloc, GasCost: envMallocGasCost},
+			"free":    &exec.FunctionImport{Execute: envFree, GasCost: envFreeGasCost},
+			"calloc":  &exec.FunctionImport{Execute: envCalloc, GasCost: envCallocGasCost},
+			"realloc": &exec.FunctionImport{Execute: envRealloc, GasCost: envReallocGasCost},
 
-			"memcpy":  &exec.FunctionImport{Execute:envMemcpy, GasCost: envMemcpyGasCost},
-			"memmove": &exec.FunctionImport{Execute:envMemmove, GasCost: envMemmoveGasCost},
-			"memcmp":  &exec.FunctionImport{Execute:envMemcpy, GasCost: envMemmoveGasCost},
-			"memset":  &exec.FunctionImport{Execute:envMemset, GasCost: envMemsetGasCost},
+			"memcpy":  &exec.FunctionImport{Execute: envMemcpy, GasCost: envMemcpyGasCost},
+			"memmove": &exec.FunctionImport{Execute: envMemmove, GasCost: envMemmoveGasCost},
+			"memcmp":  &exec.FunctionImport{Execute: envMemcpy, GasCost: envMemmoveGasCost},
+			"memset":  &exec.FunctionImport{Execute: envMemset, GasCost: envMemsetGasCost},
 
-			"prints":     &exec.FunctionImport{Execute:r.envPrints, GasCost: envPrintsGasCost},
-			"prints_l":   &exec.FunctionImport{Execute:envPrintsl, GasCost: envPrintslGasCost},
-			"printi":     &exec.FunctionImport{Execute:envPrinti, GasCost: envPrintiGasCost},
-			"printui":    &exec.FunctionImport{Execute:envPrintui, GasCost: envPrintuiGasCost},
-			"printi128":  &exec.FunctionImport{Execute:envPrinti128, GasCost: envPrinti128GasCost},
-			"printui128": &exec.FunctionImport{Execute:envPrintui128, GasCost: envPrintui128GasCost},
-			"printsf":    &exec.FunctionImport{Execute:envPrintsf, GasCost: envPrintsfGasCost},
-			"printdf":    &exec.FunctionImport{Execute:envPrintdf, GasCost: envPrintdfGasCost},
-			"printqf":    &exec.FunctionImport{Execute:envPrintqf, GasCost: envPrintqfGasCost},
-			"printn":     &exec.FunctionImport{Execute:envPrintn, GasCost: envPrintnGasCost},
-			"printhex":   &exec.FunctionImport{Execute:envPrinthex, GasCost: envPrinthexGasCost},
+			"prints":     &exec.FunctionImport{Execute: r.envPrints, GasCost: envPrintsGasCost},
+			"prints_l":   &exec.FunctionImport{Execute: envPrintsl, GasCost: envPrintslGasCost},
+			"printi":     &exec.FunctionImport{Execute: envPrinti, GasCost: envPrintiGasCost},
+			"printui":    &exec.FunctionImport{Execute: envPrintui, GasCost: envPrintuiGasCost},
+			"printi128":  &exec.FunctionImport{Execute: envPrinti128, GasCost: envPrinti128GasCost},
+			"printui128": &exec.FunctionImport{Execute: envPrintui128, GasCost: envPrintui128GasCost},
+			"printsf":    &exec.FunctionImport{Execute: envPrintsf, GasCost: envPrintsfGasCost},
+			"printdf":    &exec.FunctionImport{Execute: envPrintdf, GasCost: envPrintdfGasCost},
+			"printqf":    &exec.FunctionImport{Execute: envPrintqf, GasCost: envPrintqfGasCost},
+			"printn":     &exec.FunctionImport{Execute: envPrintn, GasCost: envPrintnGasCost},
+			"printhex":   &exec.FunctionImport{Execute: envPrinthex, GasCost: envPrinthexGasCost},
 
 			"abort": &exec.FunctionImport{Execute: envAbort, GasCost: envAbortGasCost},
 
@@ -169,14 +167,14 @@ func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
 
 			// supplement
 			"getCallerNonce": &exec.FunctionImport{Execute: r.envGetCallerNonce, GasCost: constGasFunc(GasQuickStep)},
-/*			"callTransfer":   &exec.FunctionImport{Execute: r.envCallTransfer, GasCost: constGasFunc(GasQuickStep)},
+			/*			"callTransfer":   &exec.FunctionImport{Execute: r.envCallTransfer, GasCost: constGasFunc(GasQuickStep)},
 
-			"dipcCall":               &exec.FunctionImport{Execute: r.envDipperCall, GasCost: envDipperCallGasCost},
-			"dipcCallInt64":          &exec.FunctionImport{Execute: r.envDipperCallInt64, GasCost: envDipperCallInt64GasCost},
-			"dipcCallString":         &exec.FunctionImport{Execute: r.envDipperCallString, GasCost: envDipperCallStringGasCost},
-			"dipcDelegateCall":       &exec.FunctionImport{Execute: r.envDipperDelegateCall, GasCost: envDipperCallStringGasCost},
-			"dipcDelegateCallInt64":  &exec.FunctionImport{Execute: r.envDipperDelegateCallInt64, GasCost: envDipperCallStringGasCost},
-			"dipcDelegateCallString": &exec.FunctionImport{Execute: r.envDipperDelegateCallString, GasCost: envDipperCallStringGasCost},*/
+						"dipcCall":               &exec.FunctionImport{Execute: r.envDipperCall, GasCost: envDipperCallGasCost},
+						"dipcCallInt64":          &exec.FunctionImport{Execute: r.envDipperCallInt64, GasCost: envDipperCallInt64GasCost},
+						"dipcCallString":         &exec.FunctionImport{Execute: r.envDipperCallString, GasCost: envDipperCallStringGasCost},
+						"dipcDelegateCall":       &exec.FunctionImport{Execute: r.envDipperDelegateCall, GasCost: envDipperCallStringGasCost},
+						"dipcDelegateCallInt64":  &exec.FunctionImport{Execute: r.envDipperDelegateCallInt64, GasCost: envDipperCallStringGasCost},
+						"dipcDelegateCallString": &exec.FunctionImport{Execute: r.envDipperDelegateCallString, GasCost: envDipperCallStringGasCost},*/
 		},
 	}
 }

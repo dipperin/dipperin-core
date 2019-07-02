@@ -1,9 +1,9 @@
 package g_testData
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common/util"
 	"path/filepath"
-	"fmt"
 )
 
 func GetWasmPath(fileName string) string {

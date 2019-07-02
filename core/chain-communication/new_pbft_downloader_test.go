@@ -457,7 +457,7 @@ func TestNewPbftDownloader_importBlockResults(t *testing.T) {
 func Test_catchup_DecodeRLP(t *testing.T) {
 	c := &catchup{}
 
-	size, reader,  _ := rlp.EncodeToReader([]byte{})
+	size, reader, _ := rlp.EncodeToReader([]byte{})
 
 	stream := rlp.NewStream(reader, uint64(size))
 

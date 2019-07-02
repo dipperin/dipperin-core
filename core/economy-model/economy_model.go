@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package economy_model
 
 import (
@@ -27,46 +26,44 @@ import (
 	"math/big"
 )
 
-
 // use outside mercury
 // the proportion of each account while pre-mining
 var NotMercuryDIPProportion = AddressDIPProportion{
 	BaseNumber: 100,
 	InvestorProportion: map[string]int{
-	"0x000017cD9dB648440102E85371AB17871f62809FD183": 100,
+		"0x000017cD9dB648440102E85371AB17871f62809FD183": 100,
 	},
 	DeveloperProportion: map[string]int{
-	"0x00001305de8cfDa24E6aa2d5386D428E276A0785aF70": 100,
+		"0x00001305de8cfDa24E6aa2d5386D428E276A0785aF70": 100,
 	},
 	MaintenanceProportion: map[string]int{
-	"0x00007737f9432D99fA9c5a052Dcb2D0b7217aA24cc17": 100,
+		"0x00007737f9432D99fA9c5a052Dcb2D0b7217aA24cc17": 100,
 	},
 	EarlyTokenProportion: map[string]int{
-	"0x0000D21AF412898F2F0A646d3686Adce8dAFBAfD045B": 100,
+		"0x0000D21AF412898F2F0A646d3686Adce8dAFBAfD045B": 100,
 	},
 	ReMainRewardProportion: map[string]int{
-	"0x000016D54544B1eBCa3343847f6b0eE26509643F0Fd5": 100,
+		"0x000016D54544B1eBCa3343847f6b0eE26509643F0Fd5": 100,
 	},
 }
-
 
 // use inside mercury
 var MercuryDIPProportion = AddressDIPProportion{
 	BaseNumber: 100,
 	InvestorProportion: map[string]int{
-	"0x00000aa9bD540140d5c4E9c68685c360a091E46F4c27": 100,
+		"0x00000aa9bD540140d5c4E9c68685c360a091E46F4c27": 100,
 	},
 	DeveloperProportion: map[string]int{
-	"0x0000125f454Cbf30F4354cD343f5cfb4C100D0ccCB34": 100,
+		"0x0000125f454Cbf30F4354cD343f5cfb4C100D0ccCB34": 100,
 	},
 	MaintenanceProportion: map[string]int{
-	"0x00005E3f1964Fad70Da7377BD53a76846E3bEFb734eA": 100,
+		"0x00005E3f1964Fad70Da7377BD53a76846E3bEFb734eA": 100,
 	},
 	EarlyTokenProportion: map[string]int{
-	"0x0000960854D56506697b387463DB1C601eAb14be763E": 100,
+		"0x0000960854D56506697b387463DB1C601eAb14be763E": 100,
 	},
 	ReMainRewardProportion: map[string]int{
-	"0x0000c2FCE2Cf78953BAd21890215d4e2Ae823b56A73e": 100,
+		"0x0000c2FCE2Cf78953BAd21890215d4e2Ae823b56A73e": 100,
 	},
 }
 
@@ -86,7 +83,6 @@ var (
 	// to be adjusted in 10 years
 	ChangeIssuingYear = uint64(10)
 
-
 	// the issuing rate 10 years after,
 	// the issuance amount during the nth year = the issuance amount * 3%
 	IssuingRate = 3
@@ -95,7 +91,7 @@ var (
 	GenerateBlockDuration = 8
 
 	// set the minimal deposit to register as a verifier
-	MiniPledgeValue = big.NewInt(1000*consts.DIP)
+	MiniPledgeValue = big.NewInt(1000 * consts.DIP)
 
 	// the total supply of pre-mining
 	PreMineDIP = big.NewInt(525600000 * consts.DIP)
@@ -141,7 +137,7 @@ var (
 	UnlockTimeOneYear = uint64(4)
 
 	// proportion of pre-mining for each address
-	DIPProportion  AddressDIPProportion
+	DIPProportion AddressDIPProportion
 
 	// the total early token supply measured by token unit
 	EarlyTokenAmount = big.NewInt(1340280000)
@@ -179,9 +175,9 @@ var InitExchangeRate int64
 
 func init() {
 
-	if chain_config.GetCurBootsEnv() != "mercury"{
+	if chain_config.GetCurBootsEnv() != "mercury" {
 		DIPProportion = NotMercuryDIPProportion
-	} else{
+	} else {
 		DIPProportion = MercuryDIPProportion
 	}
 
@@ -215,14 +211,14 @@ func init() {
 type PreMineMainType int
 
 const (
-	Investor  PreMineMainType = iota
+	Investor PreMineMainType = iota
 	Developer
 )
 
 type EconomyModelAddress int
 
 const (
-	InvestorAddress        EconomyModelAddress = iota
+	InvestorAddress EconomyModelAddress = iota
 	DeveloperAddress
 	NotEconomyModelAddress
 )
@@ -421,9 +417,9 @@ func (economyModel *DipperinEconomyModel) GetDiffVerifierAddress(preBlock, block
 	config := chain_config.GetChainConfig()
 	//log.Info("get address", "economyModel", economyModel)
 	slot := economyModel.Service.GetSlot(preBlock)
-	log.Debug("the slot is:","slot",*slot)
+	log.Debug("the slot is:", "slot", *slot)
 	verifiers := economyModel.Service.GetVerifiers(*slot)
-	log.Debug("get verifiers is:","verifier",verifiers)
+	log.Debug("get verifiers is:", "verifier", verifiers)
 
 	verifierAddress := make(map[VerifierType][]common.Address, 0)
 	commitVerifier := make([]common.Address, 0)
@@ -455,7 +451,7 @@ func (economyModel *DipperinEconomyModel) GetDiffVerifierAddress(preBlock, block
 // get the minimum tracsaction fee according to the size of the transaction
 // minimumTxFee = txSize * 0.0000001 * const.DIP
 func GetMinimumTxFee(txSize common.StorageSize) *big.Int {
-	return big.NewInt(0).Mul(big.NewInt(int64(txSize)),big.NewInt(100))
+	return big.NewInt(0).Mul(big.NewInt(int64(txSize)), big.NewInt(100))
 }
 
 // get the pre-mining DIP amount for each address of investors

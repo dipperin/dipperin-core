@@ -20,7 +20,6 @@ import (
 	"testing"
 )
 
-
 func TestStorageSize_String(t *testing.T) {
 	tests := []struct {
 		name string

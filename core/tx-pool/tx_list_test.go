@@ -19,8 +19,8 @@ package tx_pool
 import (
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/stretchr/testify/assert"
@@ -261,7 +261,7 @@ func TestTxList_Filter(t *testing.T) {
 
 	// filter removes and returns all the txs that the cost is higher but not equal
 	// to the given threshold
-	removed, invalids := l.Filter(big.NewInt(0).Mul(big.NewInt(5),big.NewInt(int64(g_testData.TestGasLimit))))
+	removed, invalids := l.Filter(big.NewInt(0).Mul(big.NewInt(5), big.NewInt(int64(g_testData.TestGasLimit))))
 
 	assert.Len(t, removed, 5)
 

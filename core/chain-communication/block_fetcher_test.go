@@ -378,7 +378,7 @@ func TestBlockFetcher_handleNotify(t *testing.T) {
 
 	notification := &vrMsg{hash: common.HexToHash("aaa"), number: 64, peerID: "test1"}
 
-	for i := 0; i < hashLimit; i ++ {
+	for i := 0; i < hashLimit; i++ {
 		fetcher.notifyCount[notification.peerID] = fetcher.notifyCount[notification.peerID] + 1
 	}
 
@@ -570,7 +570,7 @@ func TestBlockFetcher_enqueue(t *testing.T) {
 	fetcher := getFetcher()
 	assert.NotNil(t, fetcher)
 
-	for i := 0; i < blockLimit; i ++ {
+	for i := 0; i < blockLimit; i++ {
 		fetcher.queues["test"] = fetcher.queues["test"] + 1
 	}
 

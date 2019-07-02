@@ -39,6 +39,7 @@ import (
 //)
 //
 type vrFunc func(hash common.Hash) error
+
 //
 //type chainHeightFunc func() model.AbstractBlock
 //
@@ -271,13 +272,13 @@ func (f *BlockFetcher) loop() {
 
 func (f *BlockFetcher) handleInsert() {
 	height := f.chainHeight().Number()
-	pbft_log.Debug("fetch chain height number","height",height)
+	pbft_log.Debug("fetch chain height number", "height", height)
 	for !f.queue.Empty() {
 
 		op := f.queue.PopItem().(*inject)
 		hash := op.catchup.Block.Hash()
 		number := op.catchup.Block.Number()
-		pbft_log.Debug("to insert block","block number",number,"height",height)
+		pbft_log.Debug("to insert block", "block number", number, "height", height)
 		if number > height+1 {
 			f.queue.Push(op, -int64(number))
 			break
@@ -471,7 +472,7 @@ func (f *BlockFetcher) enqueue(peerID string, catchup *catchup) {
 
 func (f *BlockFetcher) insert(peerID string, catchup *catchup) {
 	block := catchup.Block
-	pbft_log.Debug("Insert a block","block",block.Number(),"height",f.chainHeight().Number())
+	pbft_log.Debug("Insert a block", "block", block.Number(), "height", f.chainHeight().Number())
 	go func() {
 		defer func() {
 			f.done <- block.Hash()
@@ -479,19 +480,17 @@ func (f *BlockFetcher) insert(peerID string, catchup *catchup) {
 
 		parent := f.getBlock(block.PreHash())
 		if parent == nil {
-			pbft_log.Debug("Insert a block","block",block.Number(),"height",f.chainHeight().Number(),"err","Unknown parent of propagated block")
+			pbft_log.Debug("Insert a block", "block", block.Number(), "height", f.chainHeight().Number(), "err", "Unknown parent of propagated block")
 			log.Error("Unknown parent of propagated block", "peer", peerID, "number", block.Number(), "hash", block.Hash(), "parent", block.PreHash())
 			return
 		}
 
-
-
 		if err := f.saveBlock(catchup.Block, catchup.SeenCommit); err != nil {
-			pbft_log.Debug("Save a block","block",block.Number(),"height",f.chainHeight().Number(),"err",err)
+			pbft_log.Debug("Save a block", "block", block.Number(), "height", f.chainHeight().Number(), "err", err)
 			log.Error("Propagated block import failed", "peer", peerID, "number", block.Number(), "hash", block.Hash(), "err", err)
 			return
 		}
-	  pbft_log.Debug("Saved a block","block",block.Number(),"height",f.chainHeight().Number())
+		pbft_log.Debug("Saved a block", "block", block.Number(), "height", f.chainHeight().Number())
 		log.Info("fetcher save block vr", "hash", block.Hash(), "number", block.Number())
 
 		go f.blockBroadcaster(&model2.VerifyResult{Block: catchup.Block, SeenCommits: catchup.SeenCommit})

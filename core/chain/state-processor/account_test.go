@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -12,7 +13,6 @@ import (
 	"io/ioutil"
 	"math/big"
 	"testing"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
 )
 
 // Test cannot revert after commit

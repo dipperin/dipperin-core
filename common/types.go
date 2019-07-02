@@ -99,7 +99,7 @@ func (h Hash) String() string {
 }
 
 // Returns an exact copy of the provided bytes
-func CopyHash(h *Hash) (*Hash) {
+func CopyHash(h *Hash) *Hash {
 	copied := Hash{}
 	if len(h) == 0 {
 		return &copied

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
@@ -107,7 +106,7 @@ func NewVoteMsgWithSign(height, round uint64, blockID common.Hash, voteType Vote
 	if err != nil {
 		return nil, err
 	}
-	vote.Witness = &WitMsg {
+	vote.Witness = &WitMsg{
 		Address: signAddress,
 		Sign:    sign,
 	}

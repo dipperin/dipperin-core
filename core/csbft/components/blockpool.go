@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package components
 
 import (
-	"github.com/dipperin/dipperin-core/core/model"
+	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
-	"errors"
 )
 
 type poolEventNotifier interface {
@@ -54,7 +53,7 @@ type BlockPool struct {
 }
 
 type newBlockWithResultErr struct {
-	block model.AbstractBlock
+	block      model.AbstractBlock
 	resultChan chan error
 }
 
@@ -63,7 +62,7 @@ func NewBlockPool(height uint64, eventNotifier poolEventNotifier) *BlockPool {
 		height:            height,
 		blocks:            []model.AbstractBlock{},
 		poolEventNotifier: eventNotifier,
-		Blockpoolconfig: nil,
+		Blockpoolconfig:   nil,
 
 		newHeightChan: make(chan uint64, 5),
 		newBlockChan:  make(chan newBlockWithResultErr, 5),
@@ -79,6 +78,7 @@ func NewBlockPool(height uint64, eventNotifier poolEventNotifier) *BlockPool {
 func (p *BlockPool) SetNodeConfig(config Blockpoolconfig) {
 	p.Blockpoolconfig = config
 }
+
 // only init will call here, do not need lock
 func (p *BlockPool) SetPoolEventNotifier(eventNotifier poolEventNotifier) {
 	p.poolEventNotifier = eventNotifier
@@ -91,7 +91,7 @@ func (p *BlockPool) Start() error {
 
 	if p.Blockpoolconfig != nil {
 		//p.height = p.Blockpoolconfig.ChainReader.CurrentBlock().Number() + 1
-		p.height =p.Blockpoolconfig.CurrentBlock().Number()+1
+		p.height = p.Blockpoolconfig.CurrentBlock().Number() + 1
 	}
 	p.stopChan = make(chan struct{})
 	go p.loop()
@@ -110,7 +110,7 @@ func (p *BlockPool) IsEmpty() bool {
 	return len(p.blocks) == 0
 }
 
-func (p *BlockPool)  loop() {
+func (p *BlockPool) loop() {
 	for {
 		select {
 		case h := <-p.newHeightChan:
@@ -154,7 +154,7 @@ func (p *BlockPool) NewHeight(h uint64) {
 
 // modify the height and empty blocks
 func (p *BlockPool) doNewHeight(h uint64) {
-	pbft_log.Info("Update pool height","original height",p.height,"new height",h)
+	pbft_log.Info("Update pool height", "original height", p.height, "new height", h)
 	if h < p.height {
 		log.Warn("call block pool change to new height, but new height is lower than cur block pool height", "pool height", p.height, "new h", h)
 		return
@@ -162,13 +162,13 @@ func (p *BlockPool) doNewHeight(h uint64) {
 
 	p.height = h
 	p.blocks = []model.AbstractBlock{}
-	pbft_log.Debug("block pool","len",len(p.blocks))
+	pbft_log.Debug("block pool", "len", len(p.blocks))
 }
 
 func (p *BlockPool) AddBlock(b model.AbstractBlock) error {
 	if p.IsRunning() {
 		resultChan := make(chan error)
-		p.newBlockChan <- newBlockWithResultErr{ block: b, resultChan: resultChan }
+		p.newBlockChan <- newBlockWithResultErr{block: b, resultChan: resultChan}
 		return <-resultChan
 	}
 	return errors.New("block pool not running")
@@ -193,7 +193,7 @@ Exclude duplicate blocks based on hashExclude duplicate blocks based on hash.
 func (p *BlockPool) doAddBlock(nb newBlockWithResultErr) {
 	b := nb.block
 
-	pbft_log.Debug("Pool received a block of height","height",b.Number(),"pool height", p.height)
+	pbft_log.Debug("Pool received a block of height", "height", b.Number(), "pool height", p.height)
 	if b.Number() != p.height {
 		pbft_log.Debug("receive invalid height block", "b", b.Number(), "p", p.height)
 
@@ -208,12 +208,11 @@ func (p *BlockPool) doAddBlock(nb newBlockWithResultErr) {
 			nb.resultChan <- errors.New("dul block")
 			return
 		}
-		pbft_log.Info("the oldB in block pool","blockHash",oldB.Hash().Hex())
+		pbft_log.Info("the oldB in block pool", "blockHash", oldB.Hash().Hex())
 	}
-	pbft_log.Info("the add block in block pool","blockHash",b.Hash().Hex())
+	pbft_log.Info("the add block in block pool", "blockHash", b.Hash().Hex())
 	p.blocks = append(p.blocks, b)
-	pbft_log.Debug("pool length","height",p.height,"len",len(p.blocks))
-
+	pbft_log.Debug("pool length", "height", p.height, "len", len(p.blocks))
 
 	// send result
 	nb.resultChan <- nil
@@ -231,8 +230,8 @@ func (p *BlockPool) GetProposalBlock() model.AbstractBlock {
 		resultChan: resultC,
 	})
 	select {
-	case block :=  <-resultC:
-		if block != nil{
+	case block := <-resultC:
+		if block != nil {
 			p.RemoveBlock(block.Hash())
 		}
 		return block
@@ -255,19 +254,19 @@ If the hash is passed, it means that the block matching the master is obtained.
 func (p *BlockPool) doGetBlock(getter *blockPoolGetter) {
 	var result model.AbstractBlock = nil
 	pbft_log.Info("~~~~~~~~~~~~~~~~~~~~~~~~~~get Block From blockPool~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-	pbft_log.Info("doGetBlock the blockPool len is:","len",len(p.blocks))
-	pbft_log.Info("want get block hash is:","id",getter.blockHash.Hex())
+	pbft_log.Info("doGetBlock the blockPool len is:", "len", len(p.blocks))
+	pbft_log.Info("want get block hash is:", "id", getter.blockHash.Hex())
 	// proposer get first block
 	if getter.blockHash.IsEqual(common.Hash{}) {
-		if len(p.blocks) == 0{
+		if len(p.blocks) == 0 {
 			result = nil
-		}else{
+		} else {
 			result = p.blocks[0]
 		}
 		// get match hash block
 	} else {
 		for _, b := range p.blocks {
-			pbft_log.Info("block in block Pool","id",b.Hash().Hex())
+			pbft_log.Info("block in block Pool", "id", b.Hash().Hex())
 			if b.Hash().IsEqual(getter.blockHash) {
 				result = b
 				break
@@ -276,7 +275,6 @@ func (p *BlockPool) doGetBlock(getter *blockPoolGetter) {
 	}
 	getter.resultChan <- result
 }
-
 
 type blockPoolGetter struct {
 	blockHash  common.Hash

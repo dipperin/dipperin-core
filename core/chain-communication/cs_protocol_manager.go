@@ -970,7 +970,7 @@ func (pm *CsProtocolManager) chainHeightTooLow() bool {
 	}
 	_, h := bp.GetHead()
 	curB := pm.Chain.CurrentBlock()
-	if curB.Number() + 2 < h {
+	if curB.Number()+2 < h {
 		return true
 	}
 	return false
@@ -983,7 +983,7 @@ func (pm *CsProtocolManager) bootVerifierConnCheck() {
 		return
 	}
 
-	tw := g_timer.SetPeriodAndRun(pm.checkAndHandleVerBootNodes, 8 * time.Second)
+	tw := g_timer.SetPeriodAndRun(pm.checkAndHandleVerBootNodes, 8*time.Second)
 	defer g_timer.StopWork(tw)
 
 	<-pm.stop

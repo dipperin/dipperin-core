@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package soft_wallet
 
 import (
@@ -70,7 +69,6 @@ func NewSoftWallet() (*SoftWallet, error) {
 
 	return wallet, nil
 }
-
 
 //Generate relevant wallet information according to mnemonics, passwords, mnemonic passwords, wallet file storage paths, and KDF key-derived parameters
 func (w *SoftWallet) paddingWalletInfo(mnemonic, password, passPhrase string, kdfPara *KDFParameter) (err error) {
@@ -170,9 +168,9 @@ func (w *SoftWallet) encryptWalletAndWriteFile(operation int) (err error) {
 		if exist == true {
 			//file already exists when creating a new wallet
 			return accounts.ErrWalletFileExist
-		}else{
+		} else {
 			path := filepath.Dir(walletPath)
-			os.MkdirAll(path,0766)
+			os.MkdirAll(path, 0766)
 		}
 	}
 	log.Debug("write walletPath", "walletPath", walletPath)
@@ -192,7 +190,7 @@ func (w *SoftWallet) decryptWallet(password string) (passwordValid bool, walletP
 	//Read wallet cipher and encryption parameter data according to wallet path
 	walletJsonData, err := ioutil.ReadFile(walletPath)
 	if err != nil {
-		log.Info("the err is:","err",err)
+		log.Info("the err is:", "err", err)
 		return
 	}
 
@@ -254,11 +252,11 @@ func (w *SoftWallet) Establish(path, name, password, passPhrase string) (string,
 
 	err := CheckWalletPath(path)
 	if err != nil {
-		return "",err
+		return "", err
 	}
 
 	err = CheckPassword(password)
-	if  err != nil {
+	if err != nil {
 		return "", err
 	}
 	w.Identifier.WalletName = name
@@ -291,7 +289,7 @@ func (w *SoftWallet) Establish(path, name, password, passPhrase string) (string,
 }
 
 //recover wallet based on mnemonic
-func (w *SoftWallet) RestoreWallet(path, name, password, passPhrase, mnemonic string,GetAddressRelatedInfo accounts.AddressInfoReader) (err error) {
+func (w *SoftWallet) RestoreWallet(path, name, password, passPhrase, mnemonic string, GetAddressRelatedInfo accounts.AddressInfoReader) (err error) {
 
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -318,7 +316,7 @@ func (w *SoftWallet) RestoreWallet(path, name, password, passPhrase, mnemonic st
 	}
 
 	err = w.walletInfo.paddingUsedAccount(GetAddressRelatedInfo)
-	if err !=nil{
+	if err != nil {
 		return err
 	}
 
@@ -471,7 +469,7 @@ func (w *SoftWallet) Derive(path accounts.DerivationPath, save bool) (accounts.A
 		return accounts.Account{}, err
 	}
 
-	log.Info("Derive tmpPath is:","tmpPath",tmpPath)
+	log.Info("Derive tmpPath is:", "tmpPath", tmpPath)
 	//Generate derived keys based on path parameters and master key
 	for _, value := range tmpPath {
 		var err error
@@ -509,7 +507,7 @@ func (w *SoftWallet) Derive(path accounts.DerivationPath, save bool) (accounts.A
 	}
 	err = w.encryptWalletAndWriteFile(CloseWallet)
 	if err != nil {
-		return accounts.Account{},err
+		return accounts.Account{}, err
 	}
 
 	ClearSensitiveData(extKey)
@@ -620,32 +618,30 @@ func (w *SoftWallet) GetSKFromAddress(address common.Address) (*ecdsa.PrivateKey
 
 	if sk, ok := w.walletInfo.ExtendKeys[address]; ok {
 		//generate pk according to the sk
-		privateKey,err := sk.ECPrivKey()
-		if err !=nil{
-			return nil,err
+		privateKey, err := sk.ECPrivKey()
+		if err != nil {
+			return nil, err
 		}
 
 		result := ecdsa.PrivateKey{
-			PublicKey:privateKey.PublicKey,
-			D:privateKey.D,
+			PublicKey: privateKey.PublicKey,
+			D:         privateKey.D,
 		}
-		return &result,nil
+		return &result, nil
 	} else {
 		return nil, accounts.ErrInvalidAddress
 	}
 }
 
-func (w *SoftWallet)PaddingAddressNonce(GetAddressRelatedInfo accounts.AddressInfoReader)(err error){
+func (w *SoftWallet) PaddingAddressNonce(GetAddressRelatedInfo accounts.AddressInfoReader) (err error) {
 	return w.walletInfo.PaddingAddressNonce(GetAddressRelatedInfo)
 }
 
-func (w *SoftWallet)GetAddressNonce(address common.Address)(nonce uint64,err error){
+func (w *SoftWallet) GetAddressNonce(address common.Address) (nonce uint64, err error) {
 	return w.walletInfo.GetAddressNonce(address)
 }
 
 //add nonce when send transaction
-func (w *SoftWallet)SetAddressNonce(address common.Address,nonce uint64)(err error){
-	return w.walletInfo.SetAddressNonce(address,nonce)
+func (w *SoftWallet) SetAddressNonce(address common.Address, nonce uint64) (err error) {
+	return w.walletInfo.SetAddressNonce(address, nonce)
 }
-
-

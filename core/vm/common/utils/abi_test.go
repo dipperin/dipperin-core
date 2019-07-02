@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestConvertInputs(t *testing.T) {

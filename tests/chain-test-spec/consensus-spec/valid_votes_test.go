@@ -14,26 +14,24 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package consensus_spec
 
 import (
-	"github.com/stretchr/testify/suite"
-	"github.com/dipperin/dipperin-core/tests/chain-test-spec/spec-util"
-	"testing"
-	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
-	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests"
+	"github.com/dipperin/dipperin-core/tests/chain-test-spec/spec-util"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/stretchr/testify/suite"
+	"testing"
 )
 
 var (
-	alicePriv            = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232031"
-	aliceAddr            = common.HexToAddress("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
+	alicePriv = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232031"
+	aliceAddr = common.HexToAddress("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
 )
-
 
 type votesTestSuite struct {
 	suite.Suite
@@ -89,7 +87,7 @@ func (suite *votesTestSuite) Test_ValidateVotesForBFT_ErrSameVoteSingerInVotes()
 	suite.EqualError(context.Process(), g_error.ErrSameVoteSingerInVotes.Error())
 }
 
-func (suite *votesTestSuite)Test_ValidateVotesForBFT_ErrBlockVotesNotEnough() {
+func (suite *votesTestSuite) Test_ValidateVotesForBFT_ErrBlockVotesNotEnough() {
 	suite.insertFirstBlock()
 
 	// create only one vote
@@ -103,7 +101,7 @@ func (suite *votesTestSuite)Test_ValidateVotesForBFT_ErrBlockVotesNotEnough() {
 	suite.EqualError(context.Process(), g_error.ErrBlockVotesNotEnough.Error())
 }
 
-func (suite *votesTestSuite)Test_ValidateVotesForBFT_ErrNotCurrentVerifier() {
+func (suite *votesTestSuite) Test_ValidateVotesForBFT_ErrNotCurrentVerifier() {
 	suite.insertFirstBlock()
 	config := suite.ChainState.GetChainConfig()
 	b0 := suite.ChainState.CurrentBlock()
@@ -122,7 +120,7 @@ func (suite *votesTestSuite)Test_ValidateVotesForBFT_ErrNotCurrentVerifier() {
 	suite.EqualError(context.Process(), g_error.ErrNotCurrentVerifier.Error())
 }
 
-func (suite *votesTestSuite)Test_ValidateVotes_ErrInvalidFirstVoteInSpecialBlock() {
+func (suite *votesTestSuite) Test_ValidateVotes_ErrInvalidFirstVoteInSpecialBlock() {
 	bootNode, _ := tests.ChangeVerBootNodeAddress()
 	suite.insertFirstBlock()
 	b0 := suite.ChainState.CurrentBlock()

@@ -24,10 +24,10 @@ import (
 	"time"
 
 	"github.com/dipperin/dipperin-core/common/math"
-	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/crypto/secp256k1"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/crypto/secp256k1"
+	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 )
 
 // node represents a host on the network.

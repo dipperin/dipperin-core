@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
@@ -63,7 +62,6 @@ func (verf Verifications) GetRlp(i int) []byte {
 
 // Len returns the length of s.
 func (verf Verifications) Len() int { return len(verf) }
-
 
 // merkle Root for AbstractTransaction
 type AbsTransactions []AbstractTransaction

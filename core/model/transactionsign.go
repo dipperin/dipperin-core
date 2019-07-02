@@ -17,14 +17,14 @@
 package model
 
 import (
-	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"math/big"
-	"fmt"
 	"crypto/ecdsa"
 	"errors"
+	"fmt"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"math/big"
 )
 
 var (
