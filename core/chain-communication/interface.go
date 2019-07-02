@@ -27,7 +27,7 @@ import (
 	"net"
 )
 
-//go:generate mockgen -destination=./peer_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication PmAbstractPeer
+//go:generate mockgen -destination=./peer_mock_test.go -package=chain_communication -self_package=github.com/dipperin/dipperin-core/core/chain-communication github.com/dipperin/dipperin-core/core/chain-communication PmAbstractPeer
 // is responsible for sending and receiving messages
 type PmAbstractPeer interface {
 	// add node name
@@ -64,7 +64,7 @@ type PmAbstractPeer interface {
 	GetCsPeerInfo() *p2p.CsPeerInfo
 }
 
-//go:generate mockgen -destination=./peer_set_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication AbstractPeerSet
+//go:generate mockgen -destination=./peer_set_mock_test.go -self_package=github.com/dipperin/dipperin-core/core/chain-communication -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication AbstractPeerSet
 type AbstractPeerSet interface {
 	BestPeer() PmAbstractPeer
 
@@ -111,7 +111,7 @@ type TxPool interface {
 	Queueing() (map[common.Address][]model.AbstractTransaction, error)
 }
 
-//go:generate mockgen -destination=./pbft_node_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication PbftNode
+//go:generate mockgen -destination=./pbft_node_mock_test.go -package=chain_communication  -self_package=github.com/dipperin/dipperin-core/core/chain-communication github.com/dipperin/dipperin-core/core/chain-communication PbftNode
 type PbftNode interface {
 	OnNewWaitVerifyBlock(block model.AbstractBlock, id string)
 	OnNewMsg(msg interface{}) error
@@ -165,7 +165,7 @@ type VerifiersReader interface {
 	ShouldChangeVerifier() bool
 }
 
-//go:generate mockgen -destination=./peer_manager_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication PeerManager
+//go:generate mockgen -destination=./peer_manager_mock_test.go -package=chain_communication -self_package=github.com/dipperin/dipperin-core/core/chain-communication github.com/dipperin/dipperin-core/core/chain-communication PeerManager
 type PeerManager interface {
 	GetPeers() map[string]PmAbstractPeer
 	BestPeer() PmAbstractPeer

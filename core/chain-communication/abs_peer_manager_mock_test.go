@@ -5,7 +5,7 @@
 package chain_communication
 
 import (
-	chain_communication "github.com/dipperin/dipperin-core/core/chain-communication"
+	//chain_communication "github.com/dipperin/dipperin-core/core/chain-communication"
 	enode "github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
@@ -35,10 +35,10 @@ func (m *MockAbsPeerManager) EXPECT() *MockAbsPeerManagerMockRecorder {
 }
 
 // BestPeer mocks base method
-func (m *MockAbsPeerManager) BestPeer() chain_communication.PmAbstractPeer {
+func (m *MockAbsPeerManager) BestPeer() PmAbstractPeer {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BestPeer")
-	ret0, _ := ret[0].(chain_communication.PmAbstractPeer)
+	ret0, _ := ret[0].(PmAbstractPeer)
 	return ret0
 }
 
@@ -61,10 +61,10 @@ func (mr *MockAbsPeerManagerMockRecorder) ConnectPeer(arg0 interface{}) *gomock.
 }
 
 // CurrentVerifierPeersSet mocks base method
-func (m *MockAbsPeerManager) CurrentVerifierPeersSet() chain_communication.AbstractPeerSet {
+func (m *MockAbsPeerManager) CurrentVerifierPeersSet() AbstractPeerSet {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CurrentVerifierPeersSet")
-	ret0, _ := ret[0].(chain_communication.AbstractPeerSet)
+	ret0, _ := ret[0].(AbstractPeerSet)
 	return ret0
 }
 
@@ -89,10 +89,10 @@ func (mr *MockAbsPeerManagerMockRecorder) GetSelfNode() *gomock.Call {
 }
 
 // GetVerifierBootNode mocks base method
-func (m *MockAbsPeerManager) GetVerifierBootNode() map[string]chain_communication.PmAbstractPeer {
+func (m *MockAbsPeerManager) GetVerifierBootNode() map[string]PmAbstractPeer {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetVerifierBootNode")
-	ret0, _ := ret[0].(map[string]chain_communication.PmAbstractPeer)
+	ret0, _ := ret[0].(map[string]PmAbstractPeer)
 	return ret0
 }
 
@@ -118,10 +118,10 @@ func (mr *MockAbsPeerManagerMockRecorder) HaveEnoughVerifiers(arg0 interface{}) 
 }
 
 // NextVerifierPeersSet mocks base method
-func (m *MockAbsPeerManager) NextVerifierPeersSet() chain_communication.AbstractPeerSet {
+func (m *MockAbsPeerManager) NextVerifierPeersSet() AbstractPeerSet {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NextVerifierPeersSet")
-	ret0, _ := ret[0].(chain_communication.AbstractPeerSet)
+	ret0, _ := ret[0].(AbstractPeerSet)
 	return ret0
 }
 

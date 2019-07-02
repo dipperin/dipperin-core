@@ -5,7 +5,7 @@
 package chain_communication
 
 import (
-	chain_communication "github.com/dipperin/dipperin-core/core/chain-communication"
+	//chain_communication "github.com/dipperin/dipperin-core/core/chain-communication"
 	model "github.com/dipperin/dipperin-core/core/model"
 	p2p "github.com/dipperin/dipperin-core/third-party/p2p"
 	gomock "github.com/golang/mock/gomock"
@@ -36,7 +36,7 @@ func (m *MockPbftNode) EXPECT() *MockPbftNodeMockRecorder {
 }
 
 // AddPeer mocks base method
-func (m *MockPbftNode) AddPeer(arg0 chain_communication.PmAbstractPeer) error {
+func (m *MockPbftNode) AddPeer(arg0 PmAbstractPeer) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddPeer", arg0)
 	ret0, _ := ret[0].(error)
@@ -88,7 +88,7 @@ func (mr *MockPbftNodeMockRecorder) OnNewMsg(arg0 interface{}) *gomock.Call {
 }
 
 // OnNewP2PMsg mocks base method
-func (m *MockPbftNode) OnNewP2PMsg(arg0 p2p.Msg, arg1 chain_communication.PmAbstractPeer) error {
+func (m *MockPbftNode) OnNewP2PMsg(arg0 p2p.Msg, arg1 PmAbstractPeer) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "OnNewP2PMsg", arg0, arg1)
 	ret0, _ := ret[0].(error)

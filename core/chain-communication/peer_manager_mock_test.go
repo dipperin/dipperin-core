@@ -5,7 +5,7 @@
 package chain_communication
 
 import (
-	chain_communication "github.com/dipperin/dipperin-core/core/chain-communication"
+	//chain_communication "github.com/dipperin/dipperin-core/core/chain-communication"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -34,10 +34,10 @@ func (m *MockPeerManager) EXPECT() *MockPeerManagerMockRecorder {
 }
 
 // BestPeer mocks base method
-func (m *MockPeerManager) BestPeer() chain_communication.PmAbstractPeer {
+func (m *MockPeerManager) BestPeer() PmAbstractPeer {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BestPeer")
-	ret0, _ := ret[0].(chain_communication.PmAbstractPeer)
+	ret0, _ := ret[0].(PmAbstractPeer)
 	return ret0
 }
 
@@ -48,10 +48,10 @@ func (mr *MockPeerManagerMockRecorder) BestPeer() *gomock.Call {
 }
 
 // GetPeer mocks base method
-func (m *MockPeerManager) GetPeer(arg0 string) chain_communication.PmAbstractPeer {
+func (m *MockPeerManager) GetPeer(arg0 string) PmAbstractPeer {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPeer", arg0)
-	ret0, _ := ret[0].(chain_communication.PmAbstractPeer)
+	ret0, _ := ret[0].(PmAbstractPeer)
 	return ret0
 }
 
@@ -62,10 +62,10 @@ func (mr *MockPeerManagerMockRecorder) GetPeer(arg0 interface{}) *gomock.Call {
 }
 
 // GetPeers mocks base method
-func (m *MockPeerManager) GetPeers() map[string]chain_communication.PmAbstractPeer {
+func (m *MockPeerManager) GetPeers() map[string]PmAbstractPeer {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPeers")
-	ret0, _ := ret[0].(map[string]chain_communication.PmAbstractPeer)
+	ret0, _ := ret[0].(map[string]PmAbstractPeer)
 	return ret0
 }
 

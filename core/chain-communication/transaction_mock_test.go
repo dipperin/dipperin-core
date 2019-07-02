@@ -137,20 +137,6 @@ func (mr *MockAbstractTransactionMockRecorder) ExtraData() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExtraData", reflect.TypeOf((*MockAbstractTransaction)(nil).ExtraData))
 }
 
-// Fee mocks base method
-func (m *MockAbstractTransaction) Fee() *big.Int {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Fee")
-	ret0, _ := ret[0].(*big.Int)
-	return ret0
-}
-
-// Fee indicates an expected call of Fee
-func (mr *MockAbstractTransactionMockRecorder) Fee() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Fee", reflect.TypeOf((*MockAbstractTransaction)(nil).Fee))
-}
-
 // GetGasLimit mocks base method
 func (m *MockAbstractTransaction) GetGasLimit() uint64 {
 	m.ctrl.T.Helper()
