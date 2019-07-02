@@ -146,7 +146,7 @@ func argumentsCompleterNew(args []string) []prompt.Suggest {
 	return nilSuggest
 }
 
-func argumentsCompleter(args []string) []prompt.Suggest {
+/*func argumentsCompleter(args []string) []prompt.Suggest {
 	l := len(args)
 
 	if l <= 1 {
@@ -166,7 +166,7 @@ func argumentsCompleter(args []string) []prompt.Suggest {
 
 	return nilSuggest
 }
-
+*/
 func excludeOptions(args []string) []string {
 	ret := make([]string, 0, len(args))
 	for i := range args {

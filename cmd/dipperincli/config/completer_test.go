@@ -127,11 +127,11 @@ func TestDipperinCliCompleterNew(t *testing.T) {
 }
 
 func Test_argumentsCompleter(t *testing.T) {
-	assert.Equal(t, argumentsCompleter([]string{"test"}), []prompt.Suggest{})
-	assert.Equal(t, argumentsCompleter([]string{"rpc", "a"}), []prompt.Suggest{})
-	assert.Equal(t, argumentsCompleter([]string{"rpc", "a", "b"}), nilSuggest)
-	fmt.Println(argumentsCompleter([]string{"rpc", "-a", "b"}))
-	assert.Equal(t, argumentsCompleter([]string{"rpc", "-m"}), []prompt.Suggest{})
+	assert.Equal(t, argumentsCompleterNew([]string{"test"}), []prompt.Suggest{})
+	assert.Equal(t, argumentsCompleterNew([]string{"miner", "a"}), []prompt.Suggest{})
+	assert.Equal(t, argumentsCompleterNew([]string{"miner", "a", "b"}), nilSuggest)
+	fmt.Println(argumentsCompleterNew([]string{"miner", "-a", "b"}))
+	assert.Equal(t, argumentsCompleterNew([]string{"tx", "-p"}), []prompt.Suggest{})
 }
 
 func Test_excludeOptions(t *testing.T) {
