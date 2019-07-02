@@ -273,7 +273,7 @@ func contractCall(c *cli.Context) (resp interface{}, err error) {
 }
 
 func getCalledFuncName(c *cli.Context) (funcName string, err error) {
-	funcName = c.String("funcName")
+	funcName = c.String("func-name")
 	if funcName == "" {
 		return "", errors.New("function name is need")
 	}

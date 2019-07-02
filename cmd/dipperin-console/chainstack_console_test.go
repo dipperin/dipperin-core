@@ -65,7 +65,7 @@ func TestNewConsole1(t *testing.T) {
 	historyFilePath = "/tmp/aaa/cs_command_history.txt"
 	os.RemoveAll(filepath.Dir(historyFilePath))
 	assert.Panics(t, func() {
-		NewConsole(func(command string) {}, config.DipperinCliCompleter)
+		NewConsole(func(command string) {}, config.DipperinCliCompleterNew)
 	})
 }
 

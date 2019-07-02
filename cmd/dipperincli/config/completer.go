@@ -18,9 +18,7 @@ package config
 
 import (
 	"github.com/c-bata/go-prompt"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"strings"
-	"unicode"
 )
 
 var nilSuggest []prompt.Suggest
@@ -35,7 +33,7 @@ var commands = []prompt.Suggest{
 }
 
 // DipperinCliCompleter
-func DipperinCliCompleter(d prompt.Document) []prompt.Suggest {
+/*func DipperinCliCompleter(d prompt.Document) []prompt.Suggest {
 	if d.TextBeforeCursor() == "" {
 		return nilSuggest
 	}
@@ -58,6 +56,8 @@ func DipperinCliCompleter(d prompt.Document) []prompt.Suggest {
 
 	return argumentsCompleter(excludeOptions(args))
 }
+*/
+
 
 func DipperinCliCompleterNew(d prompt.Document) []prompt.Suggest {
 	if d.TextBeforeCursor() == "" {
@@ -146,7 +146,7 @@ func argumentsCompleterNew(args []string) []prompt.Suggest {
 	return nilSuggest
 }
 
-func argumentsCompleter(args []string) []prompt.Suggest {
+/*func argumentsCompleter(args []string) []prompt.Suggest {
 	l := len(args)
 
 	if l <= 1 {
@@ -166,7 +166,7 @@ func argumentsCompleter(args []string) []prompt.Suggest {
 
 	return nilSuggest
 }
-
+*/
 func excludeOptions(args []string) []string {
 	ret := make([]string, 0, len(args))
 	for i := range args {

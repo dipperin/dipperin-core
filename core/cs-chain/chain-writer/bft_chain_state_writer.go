@@ -41,7 +41,7 @@ func (cw *BftChainWriter) SaveBlock() error {
 		c.Use(middleware.ValidateBlockDifficulty(&c.BlockContext))
 	}
 	c.Use(middleware.ValidateBlockVersion(&c.BlockContext))
-	c.Use(middleware.ValidateBlockSize(&c.BlockContext))
+	//c.Use(middleware.ValidateBlockSize(&c.BlockContext))
 	c.Use(middleware.ValidateBlockHash(&c.BlockContext))
 	c.Use(middleware.ValidateBlockCoinBase(&c.BlockContext))
 	c.Use(middleware.ValidateSeed(&c.BlockContext))
@@ -90,7 +90,7 @@ func (cw *BftChainWriterWithoutVotes) SaveBlock() error {
 		c.Use(middleware.ValidateBlockDifficulty(&c.BlockContext))
 	}
 	c.Use(middleware.ValidateBlockVersion(&c.BlockContext))
-	c.Use(middleware.ValidateBlockSize(&c.BlockContext))
+	//c.Use(middleware.ValidateBlockSize(&c.BlockContext))
 	c.Use(middleware.ValidateBlockHash(&c.BlockContext))
 	c.Use(middleware.ValidateBlockCoinBase(&c.BlockContext))
 	c.Use(middleware.ValidateSeed(&c.BlockContext))

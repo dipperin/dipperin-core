@@ -22,7 +22,7 @@ import (
 	"strings"
 )
 
-func optionCompleter(args []string, long bool) []prompt.Suggest {
+/*func optionCompleter(args []string, long bool) []prompt.Suggest {
 	l := len(args)
 	if l <= 1 {
 		if long {
@@ -47,7 +47,7 @@ func optionCompleter(args []string, long bool) []prompt.Suggest {
 	}
 	return prompt.FilterContains(suggests, strings.TrimLeft(args[l-1], "-"), true)
 }
-
+*/
 func optionCompleterNew(args []string, long bool) []prompt.Suggest {
 	l := len(args)
 	if l <= 1 {
@@ -109,7 +109,7 @@ var txPromptFlags = []prompt.Suggest{
 	{Text: "--func-name", Description: "the function to call"},
 }
 
-func callMethod(args []string, long bool) []prompt.Suggest {
+/*func callMethod(args []string, long bool) []prompt.Suggest {
 	l := len(args)
 	if l <= 2 {
 		if long {
@@ -130,7 +130,7 @@ func callMethod(args []string, long bool) []prompt.Suggest {
 	}
 	return prompt.FilterContains(suggests, strings.TrimLeft(args[l-1], "-"), true)
 }
-
+*/
 var personalMethods = []prompt.Suggest{
 	// personal
 	{Text: "CurrentBalance", Description: ""},
@@ -207,7 +207,7 @@ var verifierMethods = []prompt.Suggest{
 	{Text: "CheckVerifierType", Description: ""},
 }
 
-var methodFlags = []prompt.Suggest{
+/*var methodFlags = []prompt.Suggest{
 	// personal
 	{Text: "CurrentBalance", Description: ""},
 	{Text: "CloseWallet", Description: ""},
@@ -276,4 +276,4 @@ var methodFlags = []prompt.Suggest{
 	{Text: "VerifierStatus", Description: ""},
 	{Text: "GetBlockDiffVerifierInfo", Description: ""},
 	{Text: "CheckVerifierType", Description: ""},
-}
+}*/

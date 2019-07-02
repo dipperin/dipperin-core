@@ -26,7 +26,6 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 	"reflect"
 	"time"
@@ -95,7 +94,7 @@ func ValidateBlockHash(c *BlockContext) Middleware {
 	}
 }
 
-func ValidateBlockSize(c *BlockContext) Middleware {
+/*func ValidateBlockSize(c *BlockContext) Middleware {
 	return func() error {
 		bb, err := rlp.EncodeToBytes(c.Block)
 		if err != nil {
@@ -106,7 +105,7 @@ func ValidateBlockSize(c *BlockContext) Middleware {
 		}
 		return c.Next()
 	}
-}
+}*/
 
 func ValidateBlockDifficulty(c *BlockContext) Middleware {
 	return func() error {
@@ -162,6 +161,7 @@ func ValidateSeed(c *BlockContext) Middleware {
 		block := c.Block
 		preBlockHeight := block.Number() - 1
 		preBlock := c.Chain.GetBlockByNumber(preBlockHeight)
+		log.Info("ValidateSeed#preBlock", "preBlock", preBlock)
 
 		seed := preBlock.Header().GetSeed().Bytes()
 		proof := block.Header().GetProof()

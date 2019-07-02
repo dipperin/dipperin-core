@@ -29,24 +29,24 @@ func TestDipperinCliCompleter(t *testing.T) {
 	log.InitLogger(log.LvlDebug)
 	d := prompt.Document{}
 
-	assert.Equal(t, DipperinCliCompleter(d), nilSuggest)
+	assert.Equal(t, DipperinCliCompleterNew(d), nilSuggest)
 
 	b := prompt.NewBuffer()
 	b.InsertText("test", false, true)
 
 	d = *b.Document()
 
-	assert.Equal(t, DipperinCliCompleter(d), []prompt.Suggest{})
+	assert.Equal(t, DipperinCliCompleterNew(d), []prompt.Suggest{})
 
 	b = prompt.NewBuffer()
-	b.InsertText("rpc -test", false, true)
+	b.InsertText("miner -test", false, true)
 
 	d = *b.Document()
 
-	assert.Equal(t, DipperinCliCompleter(d), []prompt.Suggest{})
+	assert.Equal(t, DipperinCliCompleterNew(d), []prompt.Suggest{})
 
 	b = prompt.NewBuffer()
-	b.InsertText("rpc.A -A -F", false, true)
+	b.InsertText("miner.A -A -F", false, true)
 
 	d = *b.Document()
 
@@ -54,11 +54,11 @@ func TestDipperinCliCompleter(t *testing.T) {
 	//assert.Equal(t, DipperinCliCompleterNew(d), []prompt.Suggest{})
 
 	b = prompt.NewBuffer()
-	b.InsertText("RPC", false, true)
+	b.InsertText("miner ", false, true)
 
 	d = *b.Document()
 
-	assert.Equal(t, DipperinCliCompleter(d), []prompt.Suggest{{Text: "-h", Description: ""}, {Text: "--help", Description: ""}})
+	assert.Equal(t, DipperinCliCompleterNew(d), []prompt.Suggest{prompt.Suggest{Text:"SetMineGasConfig", Description:""}, prompt.Suggest{Text:"SetMineCoinBase", Description:""}, prompt.Suggest{Text:"StartMine", Description:""}, prompt.Suggest{Text:"StopMine", Description:""}})
 }
 
 func TestDipperinCliCompleterNew(t *testing.T) {
@@ -127,12 +127,11 @@ func TestDipperinCliCompleterNew(t *testing.T) {
 }
 
 func Test_argumentsCompleter(t *testing.T) {
-	t.Skip()
-	assert.Equal(t, argumentsCompleter([]string{"test"}), []prompt.Suggest{})
-	assert.Equal(t, argumentsCompleter([]string{"rpc", "a"}), []prompt.Suggest{})
-	assert.Equal(t, argumentsCompleter([]string{"rpc", "a", "b"}), nilSuggest)
-	fmt.Println(argumentsCompleter([]string{"rpc", "-a", "b"}))
-	assert.Equal(t, argumentsCompleter([]string{"rpc", "-m"}), []prompt.Suggest{})
+	assert.Equal(t, argumentsCompleterNew([]string{"test"}), []prompt.Suggest{})
+	assert.Equal(t, argumentsCompleterNew([]string{"miner", "a"}), []prompt.Suggest{})
+	assert.Equal(t, argumentsCompleterNew([]string{"miner", "a", "b"}), nilSuggest)
+	fmt.Println(argumentsCompleterNew([]string{"miner", "-a", "b"}))
+	assert.Equal(t, argumentsCompleterNew([]string{"tx", "-p"}), []prompt.Suggest{})
 }
 
 func Test_excludeOptions(t *testing.T) {

@@ -763,8 +763,6 @@ func Test_BlockTxNumber(t *testing.T) {
 	tmpBlock := creatBlockWithAllTx(int(maxNormalTxNumber), t)
 	blockByte, err := tmpBlock.EncodeRlpToBytes()
 	log.Info("the block size is:", "size", len(blockByte))
-	log.Info("the max block size is", "MaxBlockSize", chain_config.MaxBlockSize)
 	log.Info("the tx number is:", "txNumber", tmpBlock.Body().GetTxsSize())
 	assert.NoError(t, err)
-	assert.Equal(t, true, len(blockByte) < chain_config.MaxBlockSize)
 }

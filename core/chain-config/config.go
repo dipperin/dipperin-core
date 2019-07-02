@@ -48,7 +48,7 @@ const (
 	TestIPWhiteList          = "127.0.0.0/16,172.0.0.0/8,192.0.0.0/8,10.0.0.0/8"
 
 	// 100M
-	MaxBlockSize = 100 * 1024 * 1024
+	//MaxBlockSize = 100 * 1024 * 1024
 	//MaxTxSize    = 512 * 1024
 
 	//使用gasLimit限制block容量,但区块容量可调节上限依然由MaxBlockSize控制
