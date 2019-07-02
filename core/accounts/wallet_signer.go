@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package accounts
 
 import (
@@ -24,18 +23,17 @@ import (
 	"sync"
 )
 
-
 func MakeWalletSigner(addr common.Address, wm *WalletManager) *WalletSigner {
 	return &WalletSigner{
-		account: Account{ Address: addr },
+		account:       Account{Address: addr},
 		walletManager: wm,
 	}
 }
 
 type WalletSigner struct {
-	account Account
+	account       Account
 	walletManager *WalletManager
-	lock sync.Mutex
+	lock          sync.Mutex
 }
 
 func (signer *WalletSigner) GetAddress() common.Address {
@@ -68,16 +66,16 @@ func (signer *WalletSigner) PublicKey() *ecdsa.PublicKey {
 	if err != nil {
 		return nil
 	}
-	return  pk
+	return pk
 }
 
-func (signer *WalletSigner) ValidSign(hash []byte, pubKey []byte, sign []byte) (error) {
+func (signer *WalletSigner) ValidSign(hash []byte, pubKey []byte, sign []byte) error {
 	if len(sign) == 0 {
 		return ErrEmptySign
 	}
-	if crypto2.VerifySignature(pubKey,hash,sign[:len(sign)-1]) == true{
+	if crypto2.VerifySignature(pubKey, hash, sign[:len(sign)-1]) == true {
 		return nil
-	}else{
+	} else {
 		return ErrSignatureInvalid
 	}
 }

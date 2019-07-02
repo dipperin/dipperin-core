@@ -18,10 +18,10 @@ package state_processor
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/model"
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestAccountStateDB_ProcessVerification(t *testing.T) {

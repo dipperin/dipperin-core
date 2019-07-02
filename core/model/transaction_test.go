@@ -33,7 +33,7 @@ import (
 var txAmount = big.NewInt(10000)
 
 func TestNewTransaction(t *testing.T) {
-	result := NewTransaction(1, common.HexToAddress("123"), big.NewInt(100), g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{123})
+	result := NewTransaction(1, common.HexToAddress("123"), big.NewInt(100), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{123})
 	assert.NotNil(t, result)
 }
 
@@ -185,30 +185,30 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 	for start, key := range keys {
 		addr := cs_crypto.GetNormalAddress(key.PublicKey)
 		for i := 0; i < 2; i++ {
-			tx:=NewTransaction(uint64(start+i), common.Address{}, big.NewInt(100), g_testData.TestGasPrice,g_testData.TestGasLimit, nil)
-			tx.SignTx(key,signer)
+			tx := NewTransaction(uint64(start+i), common.Address{}, big.NewInt(100), g_testData.TestGasPrice, g_testData.TestGasLimit, nil)
+			tx.SignTx(key, signer)
 			tx.PaddingTxIndex(i)
 			groups[addr] = append(groups[addr], tx)
 		}
 	}
 
-/*	log.Info("the group txs is:")
-	for addr,txs:=range groups{
-		log.Info("the addr is:","addr",addr.Hex())
-		for _,tx := range txs{
-			log.Info("the tx is:","txId",tx.CalTxId().Hex())
-		}
-	}*/
+	/*	log.Info("the group txs is:")
+		for addr,txs:=range groups{
+			log.Info("the addr is:","addr",addr.Hex())
+			for _,tx := range txs{
+				log.Info("the tx is:","txId",tx.CalTxId().Hex())
+			}
+		}*/
 
 	// Sort the transactions and cross check the nonce ordering
 	txset := NewTransactionsByFeeAndNonce(signer, groups)
 
 	log.Info("the txset head is:")
-	for _,tx := range txset.heads{
-		log.Info("the head tx is:","txId",tx.CalTxId().Hex())
+	for _, tx := range txset.heads {
+		log.Info("the head tx is:", "txId", tx.CalTxId().Hex())
 	}
 
-	txs := make([]AbstractTransaction,0)
+	txs := make([]AbstractTransaction, 0)
 	for tx := txset.Peek(); tx != nil; tx = txset.Peek() {
 		txs = append(txs, tx)
 		txset.Shift()
@@ -278,5 +278,3 @@ func TestTxDifference(t *testing.T) {
 	result := TxDifference([]AbstractTransaction{tx1}, []AbstractTransaction{tx2})
 	assert.NotNil(t, result)
 }
-
-

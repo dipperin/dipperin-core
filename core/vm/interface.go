@@ -7,7 +7,6 @@ import (
 )
 
 type StateDB interface {
-
 	GetBalance(common.Address) *big.Int
 	CreateAccount(common.Address)
 
@@ -57,8 +56,8 @@ type StateDB interface {
 	ForEachStorage(common.Address, func(common.Hash, common.Hash) bool)*/
 
 	//ppos add
-/*	TxHash() common.Hash
-	TxIdx() uint32*/
+	/*	TxHash() common.Hash
+		TxIdx() uint32*/
 }
 
 /*type AccountDB interface {

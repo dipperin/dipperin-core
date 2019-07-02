@@ -29,7 +29,6 @@ func TestMakeDipperinMercuryApi(t *testing.T) {
 }
 
 type fakeNConf struct {
-
 }
 
 func (f *fakeNConf) IpcEndpoint() string {

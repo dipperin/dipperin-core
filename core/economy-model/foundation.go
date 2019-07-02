@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package economy_model
 
 import (
@@ -37,7 +36,7 @@ type Foundation interface {
 type FoundationDIPUsage int
 
 const (
-	EarlyToken   FoundationDIPUsage = iota
+	EarlyToken FoundationDIPUsage = iota
 	Maintenance
 	RemainReward
 )
@@ -45,7 +44,7 @@ const (
 type FoundationAddressType int
 
 const (
-	EarlyTokenAddress    FoundationAddressType = iota
+	EarlyTokenAddress FoundationAddressType = iota
 	MaintenanceAddress
 	RemainRewardAddress
 	NotFoundationAddress

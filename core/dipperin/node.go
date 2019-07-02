@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package dipperin
 
 import (
-	"sync"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"reflect"
+	"sync"
 	"sync/atomic"
 	"time"
-	"reflect"
 )
 
 var (
@@ -43,7 +42,7 @@ func NewCsNode(services []NodeService) *CsNode {
 type CsNode struct {
 	services []NodeService
 
-	wg sync.WaitGroup
+	wg         sync.WaitGroup
 	chokePoint uint32
 }
 
@@ -66,7 +65,7 @@ func (n *CsNode) Start() (err error) {
 
 		// if start err, stop all services and return the err
 		if err = s.Start(); err != nil {
-			log.Info("the err service is: ","service",s)
+			log.Info("the err service is: ", "service", s)
 			log.Error("start node service failed", "err", err)
 			startSuccess = false
 			n.Stop()
@@ -84,7 +83,7 @@ func (n *CsNode) Stop() {
 	// check service stop choked
 	go func() {
 		select {
-		case <- t.C:
+		case <-t.C:
 			panic("node stop choked by service:" + reflect.TypeOf(n.services[x]).String())
 		}
 	}()

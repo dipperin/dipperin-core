@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/dipperin/dipperin-core/common"
 )
 
 func TestHeader_JSON(t *testing.T) {
@@ -51,20 +50,20 @@ func TestBody_UnmarshalJSON(t *testing.T) {
 	b := CreateBlock(0, common.Hash{}, 1)
 	enc, err := b.MarshalJSON()
 	assert.NoError(t, err)
-	err=b.body.UnmarshalJSON(enc)
-	assert.NoError(t,err)
+	err = b.body.UnmarshalJSON(enc)
+	assert.NoError(t, err)
 }
 
 func TestPBFTBlockJsonHandler_DecodeBody(t *testing.T) {
-	pb:=PBFTBlockJsonHandler{}
+	pb := PBFTBlockJsonHandler{}
 	b := CreateBlock(0, common.Hash{}, 1)
 	enc, err := b.MarshalJSON()
 	assert.NoError(t, err)
-	err=pb.DecodeBody(b.body,enc)
-	assert.NoError(t,err)
+	err = pb.DecodeBody(b.body, enc)
+	assert.NoError(t, err)
 }
 
 func TestSetBlockJsonHandler(t *testing.T) {
-	bjh:=blockJsonHandler
+	bjh := blockJsonHandler
 	SetBlockJsonHandler(bjh)
 }

@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package dipperin_prompts
 
 import (
-	"github.com/stretchr/testify/assert"
-	"testing"
-	"path/filepath"
 	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/stretchr/testify/assert"
+	"path/filepath"
+	"testing"
 )
 
 func TestNodeName(t *testing.T) {
@@ -84,7 +83,7 @@ func Test_filepathValidate(t *testing.T) {
 	assert.Error(t, err)
 
 	homeDir := util.HomeDir()
-	err = filepathValidate(filepath.FromSlash(homeDir+"/tmp/ok"))
+	err = filepathValidate(filepath.FromSlash(homeDir + "/tmp/ok"))
 	assert.NoError(t, err)
 
 	err = filepathValidate("")

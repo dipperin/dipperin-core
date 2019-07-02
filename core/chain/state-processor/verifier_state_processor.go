@@ -17,13 +17,13 @@
 package state_processor
 
 import (
+	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"math/big"
-	"errors"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 )
 
 var (
@@ -124,7 +124,7 @@ func (state *AccountStateDB) MoveStakeToAddress(fromAdd common.Address, toAdd co
 
 * Process register Tx
 * Stake some money
-  */
+ */
 func (state *AccountStateDB) processStakeTx(tx model.AbstractTransaction) (err error) {
 
 	//Check
@@ -158,7 +158,7 @@ func (state *AccountStateDB) processStakeTx(tx model.AbstractTransaction) (err e
 
 /*
 Process cancel Tx, num is processing block num
- */
+*/
 func (state *AccountStateDB) processCancelTx(tx model.AbstractTransaction, num uint64) (err error) {
 	//Check
 	sender, _ := tx.Sender(nil)
@@ -199,7 +199,7 @@ func (state *AccountStateDB) processCancelTx(tx model.AbstractTransaction, num u
 /*
 Process UnStake Tx
 Un stake money
- */
+*/
 func (state *AccountStateDB) processUnStakeTx(tx model.AbstractTransaction) (err error) {
 
 	//Check

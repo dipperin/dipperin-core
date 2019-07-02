@@ -357,7 +357,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 }
 
 //  合约调用getBalance方法
-func processContractCall(t *testing.T, contractAddress common.Address, code []byte, priKey *ecdsa.PrivateKey, processor *AccountStateDB, accountOwn accounts.Account, nonce uint64, funcName string, params string, blockNum uint64, singer model.Signer) (error) {
+func processContractCall(t *testing.T, contractAddress common.Address, code []byte, priKey *ecdsa.PrivateKey, processor *AccountStateDB, accountOwn accounts.Account, nonce uint64, funcName string, params string, blockNum uint64, singer model.Signer) error {
 	gasUsed2 := uint64(0)
 	gasLimit := testGasLimit * 10000000000
 	log.Info("processContractCall=================================================")

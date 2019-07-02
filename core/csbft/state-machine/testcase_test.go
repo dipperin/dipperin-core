@@ -17,17 +17,17 @@
 package state_machine
 
 import (
-	"math/big"
-	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/bloom"
-	"fmt"
-	"time"
-	"github.com/dipperin/dipperin-core/core/csbft/components"
 	"crypto/ecdsa"
+	"errors"
+	"fmt"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/bloom"
+	"github.com/dipperin/dipperin-core/core/csbft/components"
+	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"errors"
+	"math/big"
+	"time"
 )
 
 //-----------------------------------------
@@ -64,10 +64,11 @@ var TestConfig = Config{
 	PreVoteTimeout:     200 * time.Millisecond,
 	PreCommitTimeout:   200 * time.Millisecond,
 }
+
 func NewFakeStateHandle(id uint64) *StateHandler {
 	fc := NewFakeFullChain()
 	sks, _ := CreateKey()
-	config := &BftConfig{fc,&FakeFetcher{},newFackSigner(sks[id]),&FackMsgSender{}, &FakeValidtor{}}
+	config := &BftConfig{fc, &FakeFetcher{}, newFackSigner(sks[id]), &FackMsgSender{}, &FakeValidtor{}}
 	sh := NewStateHandler(config, TestConfig, components.NewBlockPool(fc.Height+1, nil))
 	sh.blockPool = components.NewBlockPool(fc.Height+1, sh)
 	fc.SetNewHeightNotifier(sh.NewHeight)
@@ -92,7 +93,7 @@ type FakeFullChain struct {
 	Validators []common.Address
 	Blocks     model.AbstractBlock
 	commits    []model.AbstractVerification
-	notify  func(height uint64)
+	notify     func(height uint64)
 	CannotSave bool
 }
 
@@ -104,11 +105,11 @@ func (fc *FakeFullChain) SaveBlock(block model.AbstractBlock, seenCommits []mode
 	if fc.CannotSave {
 		return errors.New("Cannot save")
 	}
-	fmt.Println("save block","height",block.Number())
+	fmt.Println("save block", "height", block.Number())
 	fc.Blocks = block
 	fc.Height++
 	fc.commits = seenCommits
-	fc.notify(fc.Height+1)
+	fc.notify(fc.Height + 1)
 	return nil
 }
 
@@ -125,7 +126,7 @@ func (fc *FakeFullChain) IsChangePoint(block model.AbstractBlock, isProcessPacka
 
 func (fc *FakeFullChain) GetNextVerifiers() []common.Address {
 	_, v := CreateKey()
-	if fc.Height==9{
+	if fc.Height == 9 {
 		return nil
 	}
 	return v
@@ -136,7 +137,7 @@ func (fc *FakeFullChain) GetCurrVerifiers() []common.Address {
 	return v
 }
 
-func (fc *FakeFullChain) SetNewHeightNotifier(nc func(height uint64)){
+func (fc *FakeFullChain) SetNewHeightNotifier(nc func(height uint64)) {
 	fc.notify = nc
 }
 
@@ -208,7 +209,7 @@ func (fb *FakeBlock) EncodeRlpToBytes() ([]byte, error) {
 	panic("implement me")
 }
 
-func (fb *FakeBlock) TxIterator(cb func(int, model.AbstractTransaction) (error)) (error) {
+func (fb *FakeBlock) TxIterator(cb func(int, model.AbstractTransaction) error) error {
 	panic("implement me")
 }
 
@@ -272,11 +273,11 @@ func (fb *FakeBlock) SetVerifications(vs []model.AbstractVerification) {
 	panic("implement me")
 }
 
-func (fb *FakeBlock) VersIterator(func(int, model.AbstractVerification, model.AbstractBlock) error) (error) {
+func (fb *FakeBlock) VersIterator(func(int, model.AbstractVerification, model.AbstractBlock) error) error {
 	panic("implement me")
 }
 
-func (fb *FakeBlock) GetVerifications() ([]model.AbstractVerification) {
+func (fb *FakeBlock) GetVerifications() []model.AbstractVerification {
 	panic("implement me")
 }
 
@@ -310,17 +311,17 @@ func (fb *FakeBlock) TxCount() int {
 
 //---------------------------------
 // Fake validator
-type FakeValidtor struct{	NotValid   bool}
+type FakeValidtor struct{ NotValid bool }
 
-func (fv *FakeValidtor) FullValid(block model.AbstractBlock) (error) {
-	if fv.NotValid{
+func (fv *FakeValidtor) FullValid(block model.AbstractBlock) error {
+	if fv.NotValid {
 		return errors.New("not valid")
 	}
 	return nil
 }
 
 func (fv *FakeValidtor) Valid(block model.AbstractBlock) error {
-	if fv.NotValid{
+	if fv.NotValid {
 		return errors.New("not valid")
 	}
 	return nil
@@ -328,8 +329,7 @@ func (fv *FakeValidtor) Valid(block model.AbstractBlock) error {
 
 //---------------------------------
 // Fake msg sender
-type FackMsgSender struct{
-
+type FackMsgSender struct {
 }
 
 func (fms *FackMsgSender) BroadcastMsg(msgCode uint64, msg interface{}) {

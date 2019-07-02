@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package middleware
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/chaindb"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
@@ -27,7 +27,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/dipperin/dipperin-core/core/chain"
 )
 
 //go:generate mockgen -destination=../../../../tests/g-mockFile/chainInterface_mock.go -package=g_mockFile github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware ChainInterface
@@ -60,7 +59,7 @@ type StateReader interface {
 	HasHeader(hash common.Hash, number uint64) bool
 	GetBlockNumber(hash common.Hash) *uint64
 	GetTransaction(txHash common.Hash) (model.AbstractTransaction, common.Hash, uint64, uint64)
-	GetReceipts(hash common.Hash, number uint64)model2.Receipts
+	GetReceipts(hash common.Hash, number uint64) model2.Receipts
 
 	GetLatestNormalBlock() model.AbstractBlock
 
@@ -72,7 +71,7 @@ type StateReader interface {
 
 type VerifierHelper interface {
 	CurrentSeed() (common.Hash, uint64)
-	IsChangePoint(block model.AbstractBlock,isProcessPackageBlock bool) bool
+	IsChangePoint(block model.AbstractBlock, isProcessPackageBlock bool) bool
 	GetLastChangePoint(block model.AbstractBlock) *uint64
 	GetSlotByNum(num uint64) *uint64
 	GetSlot(block model.AbstractBlock) *uint64

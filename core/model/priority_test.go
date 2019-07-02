@@ -17,17 +17,17 @@
 package model
 
 import (
-	"github.com/dipperin/dipperin-core/common"
-	"testing"
 	"fmt"
-	"math/big"
-	"math/rand"
-	"time"
-	"strconv"
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
+	"math/big"
+	"math/rand"
+	"strconv"
+	"testing"
+	"time"
 )
 
 func TestCalPriority(t *testing.T) {
@@ -378,7 +378,7 @@ func CreateMultiAccount(baseName string, count uint, generateNonce func(nonceMax
 	return
 }
 
-func GenerateNewStr(baseStr string) (string) {
+func GenerateNewStr(baseStr string) string {
 	rand.Seed(int64(time.Now().Nanosecond()))
 	randomStr := strconv.Itoa(int(rand.Int63n(2 ^ 30)))
 	//fmt.Println(randomStr)

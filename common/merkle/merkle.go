@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package merkle
 
 import (
@@ -62,8 +61,6 @@ import (
 const (
 	MaxRouteNumber = 32
 )
-
-
 
 // MerkleComputation Calculate RootHash and Hash path for specific leaf transactions based on the transaction hash list and leaf location.
 func MerkleComputation(TdHash []common.Hash, BranchPos uint32, pMutated *bool) (pRoot common.Hash, pBranch []common.Hash) {
@@ -152,12 +149,12 @@ func MerkleComputation(TdHash []common.Hash, BranchPos uint32, pMutated *bool) (
 	var tmplevel int = 0
 	//If the number of layer nodes is even, the uncalculated hash node value will not be retained in inner during the above calculation.
 	for count&(0x01<<uint(tmplevel)) == 0x0 {
-		tmplevel ++
+		tmplevel++
 	}
 
 	/*
-	cslog.Printf("the count is: %v",count)
-	cslog.Printf("the tmplevel is: %v",tmplevel)
+		cslog.Printf("the count is: %v",count)
+		cslog.Printf("the tmplevel is: %v",tmplevel)
 	*/
 
 	temph := inner[tmplevel]
@@ -179,7 +176,7 @@ func MerkleComputation(TdHash []common.Hash, BranchPos uint32, pMutated *bool) (
 		count += uint32(0x01) << uint(tmplevel)
 
 		//The node copy and calculates the hash and processing the next layer of tree after finished.
-		tmplevel ++
+		tmplevel++
 
 		//If it is an even layer, you need to calculate the hash value saved in the inner to get the hash data of the next layer.
 		for (count & (0x01 << uint(tmplevel))) == 0x0 {
@@ -192,7 +189,7 @@ func MerkleComputation(TdHash []common.Hash, BranchPos uint32, pMutated *bool) (
 			}
 
 			temph = cs_crypto.Keccak256Hash(inner[tmplevel][:], temph[:])
-			tmplevel ++
+			tmplevel++
 		}
 	}
 

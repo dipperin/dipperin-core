@@ -17,8 +17,8 @@
 package state_processor
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestNewNodeSet(t *testing.T) {

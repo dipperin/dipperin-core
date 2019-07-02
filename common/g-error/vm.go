@@ -13,5 +13,5 @@ var (
 	ErrInsufficientBalanceForGas = errors.New("insufficient balance to pay for gas")
 	ErrExecutionReverted         = errors.New("vm: execution reverted")
 	ErrMaxCodeSizeExceeded       = errors.New("vm: max code size exceeded")
-	ErrReturnInvalidRlpFormat	 = errors.New("vm: return invalid rlp format")
+	ErrReturnInvalidRlpFormat    = errors.New("vm: return invalid rlp format")
 )

@@ -27,12 +27,12 @@ import (
 func TestService(t *testing.T) {
 	s := &Service{}
 	s.AddApis([]rpc.API{
-		{ Namespace: "test", Version: "0.0.1", Service: &fakeAPI{}, Public: true },
+		{Namespace: "test", Version: "0.0.1", Service: &fakeAPI{}, Public: true},
 	})
 	assert.Error(t, s.Start())
 
 	s.apis = []rpc.API{
-		{ Namespace: "test", Version: "0.0.1", Service: &FakeAPI{}, Public: true },
+		{Namespace: "test", Version: "0.0.1", Service: &FakeAPI{}, Public: true},
 	}
 	assert.NoError(t, s.Start())
 
@@ -52,13 +52,13 @@ func TestService(t *testing.T) {
 	s.Stop()
 }
 
-type FakeAPI struct {}
+type FakeAPI struct{}
 
 func (f *FakeAPI) GetNum() uint64 {
 	return 1
 }
 
-type fakeAPI struct {}
+type fakeAPI struct{}
 
 func (f *fakeAPI) GetNum() uint64 {
 	return 1

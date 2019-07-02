@@ -29,12 +29,12 @@ func TestInsertBlock(t *testing.T) {
 	})())
 
 	assert.Error(t, InsertBlock(&BlockContext{
-		Block: &fakeBlock{ isSpecial: true },
+		Block: &fakeBlock{isSpecial: true},
 		Chain: passChain,
 	})())
 
 	assert.NoError(t, InsertBlock(&BlockContext{
-		Block: &fakeBlock{ num: 1 },
+		Block: &fakeBlock{num: 1},
 		Chain: passChain,
 	})())
 }

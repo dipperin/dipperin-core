@@ -37,8 +37,8 @@ func (h Header) MarshalJSON() ([]byte, error) {
 		Diff             common.Difficulty `json:"diff"  gencodec:"required"`
 		TimeStamp        *hexutil.Big      `json:"timestamp"  gencodec:"required"`
 		CoinBase         common.Address    `json:"coinbase"  gencodec:"required"`
-		GasLimit         hexutil.Uint64   `json:"gasLimit"         gencodec:"required"`
-		GasUsed          hexutil.Uint64   `json:"gasUsed"          gencodec:"required"`
+		GasLimit         hexutil.Uint64    `json:"gasLimit"         gencodec:"required"`
+		GasUsed          hexutil.Uint64    `json:"gasUsed"          gencodec:"required"`
 		Nonce            common.BlockNonce `json:"nonce"  gencodec:"required"`
 		Bloom            iblt.BloomRLP     `json:"Bloom"        gencodec:"required"`
 		TransactionRoot  common.Hash       `json:"txs_root"   gencodec:"required"`

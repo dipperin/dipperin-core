@@ -17,16 +17,16 @@
 package chain
 
 import (
-	"testing"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/core/model"
-	"math/big"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/common/g-error"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"reflect"
+	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/contract"
+	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/stretchr/testify/assert"
+	"math/big"
+	"reflect"
+	"testing"
 )
 
 var minDiff = common.HexToDiff("0x20ffffff")
@@ -36,7 +36,7 @@ func TestNewBlockProcessor(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, processor)
 
-	processor, err = NewBlockProcessor(fakeAccountDBChain{}, common.Hash{}, fakeStateStorage{storageErr:TrieError})
+	processor, err = NewBlockProcessor(fakeAccountDBChain{}, common.Hash{}, fakeStateStorage{storageErr: TrieError})
 	assert.Equal(t, TrieError, err)
 	assert.Nil(t, processor)
 }
@@ -46,7 +46,7 @@ func TestBlockProcessor_Process(t *testing.T) {
 	tdb := state_processor.NewStateStorageWithCache(db)
 	state, err := state_processor.NewAccountStateDB(root, tdb)
 	assert.NoError(t, err)
-	processor, err := NewBlockProcessor(fakeAccountDBChain{state:state}, root, tdb)
+	processor, err := NewBlockProcessor(fakeAccountDBChain{state: state}, root, tdb)
 	assert.NoError(t, err)
 
 	// block.Number() == 0 return
@@ -100,7 +100,7 @@ func TestBlockProcessor_processorCommitList_Error(t *testing.T) {
 	err = processor.processCommitList(block, false)
 	assert.Equal(t, g_error.AccountNotExist, err)
 
-	for i:=0; i<len(VerifierAddress); i++ {
+	for i := 0; i < len(VerifierAddress); i++ {
 		err = processor.NewAccountState(VerifierAddress[i])
 		assert.NoError(t, err)
 	}

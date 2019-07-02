@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package g_error
 
 import "errors"
@@ -31,8 +30,8 @@ var (
 	WaitEmptyBlockExpireError     = errors.New("wait empty block expire")
 	VoteMsgDecodeError            = errors.New("decode aliveVerifierVote message error")
 	AlreadyHaveVoteMsgError       = errors.New("already have this vote msg")
-	GenProposalConfigError		  = errors.New("generate proposal config error")
-	AliveVoteBlockHashError		  = errors.New("the alive verifier vote block hash error")
-	EmptyBlockIsNil				  = errors.New("the empty block is nil")
-	ProposeNotEnough			  = errors.New("the propose isn't enough")
+	GenProposalConfigError        = errors.New("generate proposal config error")
+	AliveVoteBlockHashError       = errors.New("the alive verifier vote block hash error")
+	EmptyBlockIsNil               = errors.New("the empty block is nil")
+	ProposeNotEnough              = errors.New("the propose isn't enough")
 )

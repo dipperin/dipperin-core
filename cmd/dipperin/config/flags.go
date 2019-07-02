@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package config
 
 import (
+	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/urfave/cli"
-	"github.com/dipperin/dipperin-core/core/chain-config"
 )
 
 // define flag names
@@ -28,21 +27,21 @@ const (
 	LogLevelFlagName = "log_level"
 	//LogTypeFlagName = "log_type"
 
-	DataDirFlagName = "data_dir"
+	DataDirFlagName  = "data_dir"
 	NodeTypeFlagName = "node_type"
 
 	P2PListenerFlagName = "p2p_listener"
-	HttpHostFlagName = "http_host"
-	HttpPortFlagName = "http_port"
-	WsHostFlagName = "ws_host"
-	WsPortFlagName = "ws_port"
-	IPCPathFlagName = "ipc_path"
-	DebugModeFlagName = "debug_mode"
+	HttpHostFlagName    = "http_host"
+	HttpPortFlagName    = "http_port"
+	WsHostFlagName      = "ws_host"
+	WsPortFlagName      = "ws_port"
+	IPCPathFlagName     = "ipc_path"
+	DebugModeFlagName   = "debug_mode"
 
-	UseStaticNodesFlagName = "use_static_nodes"
-	SoftWalletPasswordFlagName = "soft_wallet_pwd"
+	UseStaticNodesFlagName       = "use_static_nodes"
+	SoftWalletPasswordFlagName   = "soft_wallet_pwd"
 	SoftWalletPassPhraseFlagName = "soft_wallet_pass_phrase"
-	SoftWalletPath = "soft_wallet_path"
+	SoftWalletPath               = "soft_wallet_path"
 
 	IsScannerFlagName = "is_scanner"
 
@@ -52,11 +51,11 @@ const (
 
 	UploadURL = "upload_url"
 
-	NodeNameFlagName       = "node_name"
+	NodeNameFlagName = "node_name"
 
 	IsStartMine = "is_start_mine"
 	NoDiscovery = "no_discovery"
-	Nat = "nat"
+	Nat         = "nat"
 
 	AllowHostsFlagName = "allow_hosts"
 
@@ -64,7 +63,7 @@ const (
 )
 
 var (
-	Flags = []cli.Flag {
+	Flags = []cli.Flag{
 		MetricsPortFlag,
 		//LogTypeFlag,
 		LogLevelFlag,
@@ -103,9 +102,9 @@ var (
 		Value: 0,
 	}
 	AllowHostsFlag = cli.StringSliceFlag{
-		Name: AllowHostsFlagName,
+		Name:  AllowHostsFlagName,
 		Usage: "set rpc client allow hosts",
-		Value: &cli.StringSlice{ "localhost", "127.0.0.1" },
+		Value: &cli.StringSlice{"localhost", "127.0.0.1"},
 	}
 	UploadURLFlag = cli.StringFlag{
 		Name:  UploadURL,
@@ -128,36 +127,36 @@ var (
 	//	Value: 0,
 	//}
 	SoftWalletPasswordFlag = cli.StringFlag{
-		Name: SoftWalletPasswordFlagName,
+		Name:  SoftWalletPasswordFlagName,
 		Usage: "set whether needing password of creating or openning wallet",
 		Value: "",
 	}
 	SoftWalletPassPhraseFlag = cli.StringFlag{
-		Name: SoftWalletPassPhraseFlagName,
+		Name:  SoftWalletPassPhraseFlagName,
 		Usage: "set whether needing salt string for creating wallet",
 		Value: "",
 	}
 	SoftWalletPathFlag = cli.StringFlag{
-		Name: SoftWalletPath,
+		Name:  SoftWalletPath,
 		Usage: "set whether needing path for creating or openning wallet",
 		Value: "",
 	}
 	HttpHostFlag = cli.StringFlag{
-		Name: HttpHostFlagName,
+		Name:  HttpHostFlagName,
 		Usage: "set http host",
 		Value: "127.0.0.1",
 	}
 	WsHostFlag = cli.StringFlag{
-		Name: WsHostFlagName,
+		Name:  WsHostFlagName,
 		Usage: "set web socket host",
 		Value: "127.0.0.1",
 	}
 	UseStaticNodesFlag = cli.BoolFlag{
-		Name: UseStaticNodesFlagName,
+		Name:  UseStaticNodesFlagName,
 		Usage: "set whether using static node configuration",
 	}
 	IPCPathFlag = cli.StringFlag{
-		Name: IPCPathFlagName,
+		Name:  IPCPathFlagName,
 		Usage: "set ipc directory",
 		Value: "/tmp/dipperin.ipc",
 	}
@@ -167,41 +166,41 @@ var (
 	//	Value: 0,
 	//}
 	HttpPortFlag = cli.IntFlag{
-		Name: HttpPortFlagName,
+		Name:  HttpPortFlagName,
 		Usage: "set http port",
 		Value: 7001,
 	}
 	WsPortFlag = cli.IntFlag{
-		Name: WsPortFlagName,
+		Name:  WsPortFlagName,
 		Usage: "set web socket port",
 		Value: 7002,
 	}
 	P2PListenerFlag = cli.StringFlag{
-		Name: P2PListenerFlagName,
+		Name:  P2PListenerFlagName,
 		Usage: "set p2p port",
 		Value: ":22222",
 	}
 	NodeNameFlag = cli.StringFlag{
-		Name: NodeNameFlagName,
+		Name:  NodeNameFlagName,
 		Usage: "set node alias",
 	}
 	DataDirFlag = cli.StringFlag{
-		Name: DataDirFlagName,
+		Name:  DataDirFlagName,
 		Value: chain_config.DefaultDataDir(),
 		Usage: "set node data saving directory",
 	}
 	LogLevelFlag = cli.StringFlag{
-		Name: LogLevelFlagName,
+		Name:  LogLevelFlagName,
 		Value: "info",
 		Usage: "set log level: debug info warn error",
 	}
 	NodeTypeFlag = cli.IntFlag{
-		Name: NodeTypeFlagName,
+		Name:  NodeTypeFlagName,
 		Value: 0,
 		Usage: "set node type, normal: 0 mine master:1 verifier:2",
 	}
 	DebugModeFlag = cli.IntFlag{
-		Name: DebugModeFlagName,
+		Name:  DebugModeFlagName,
 		Value: 2,
 		Usage: "set debug mode，0 single node without broadcasting，1 multiple nodes with PBFT，2 multiple nodes with PBFT and election",
 	}
@@ -212,19 +211,19 @@ var (
 	}
 
 	IsStartMineFlag = cli.IntFlag{
-		Name: IsStartMine,
+		Name:  IsStartMine,
 		Value: 0,
 		Usage: "set whether mining，0 no，1 yes",
 	}
 
 	NoDiscoveryFlag = cli.IntFlag{
-		Name: NoDiscovery,
+		Name:  NoDiscovery,
 		Value: 0,
 		Usage: "whether closing node discovery",
 	}
 
 	NatFlag = cli.StringFlag{
-		Name: Nat,
+		Name:  Nat,
 		Value: "",
 		Usage: "nat mode",
 	}

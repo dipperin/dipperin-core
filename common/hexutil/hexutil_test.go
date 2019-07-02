@@ -137,9 +137,6 @@ var (
 	}
 )
 
-
-
-
 func TestEncode(t *testing.T) {
 	for _, test := range encodeBytesTests {
 		enc := Encode(test.input.([]byte))

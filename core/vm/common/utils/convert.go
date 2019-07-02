@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math"
 	"strconv"
-	"github.com/dipperin/dipperin-core/common"
 )
 
 const (
@@ -84,8 +84,6 @@ func Align8Bytes(b []byte) []byte {
 	copy(tmp[ALIGN_LENGTH_8-len(b):], b)
 	return tmp
 }
-
-
 
 func BytesCombine(pBytes ...[]byte) []byte {
 	return bytes.Join(pBytes, []byte(""))

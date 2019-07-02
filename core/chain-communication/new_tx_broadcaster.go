@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_communication
 
 import (
@@ -188,7 +187,6 @@ func (broadcaster *NewTxBroadcaster) send2MinerMaster(txs []model.AbstractTransa
 func (broadcaster *NewTxBroadcaster) getPeersWithoutTx(txHash common.Hash) []PmAbstractPeer {
 	// get peers
 	peers := broadcaster.Pm.GetPeers()
-
 
 	var list []PmAbstractPeer
 

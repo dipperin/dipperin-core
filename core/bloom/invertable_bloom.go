@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package iblt
 
 import (
@@ -56,10 +55,10 @@ type InvBloomConfig struct {
 	BucketUsed uint
 
 	// Number of bytes reserved to record the key
-	KeyLen    uint
+	KeyLen uint
 
 	// Number of bytes reserved to record the value
-	ValLen    uint
+	ValLen uint
 
 	// Number of bytes reserved to record the section number
 	SerNumLen uint

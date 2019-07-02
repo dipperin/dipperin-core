@@ -5,8 +5,8 @@ import (
 	"github.com/mattn/go-colorable"
 	"github.com/mattn/go-isatty"
 	"os"
-	"path/filepath"
 	"os/user"
+	"path/filepath"
 )
 
 // Predefined handlers
@@ -74,6 +74,7 @@ func homeDir() string {
 	}
 	return ""
 }
+
 // 外边可能要文件输出，可能要控制台输出，可能两个都需要
 func InitPMLogger(logLevel log.Lvl, nodeName string, removeOld bool) {
 	targetDir := filepath.Join(homeDir(), "tmp", "cs_debug", "pm")
@@ -83,7 +84,7 @@ func InitPMLogger(logLevel log.Lvl, nodeName string, removeOld bool) {
 	}
 
 	var handlers []log.Handler
-	logFilePath := filepath.Join(targetDir, nodeName + ".log")
+	logFilePath := filepath.Join(targetDir, nodeName+".log")
 
 	if removeOld {
 		os.RemoveAll(logFilePath)
@@ -109,4 +110,3 @@ func PathExists(path string) bool {
 	}
 	return false
 }
-

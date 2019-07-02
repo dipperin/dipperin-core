@@ -89,7 +89,6 @@ func TestRemoteConnector_OnNewMsg(t *testing.T) {
 	rc.receiver = &receiver
 	rc.SetMineMasterPeer(p)
 
-
 	err := rc.OnNewMsg(p2p.Msg{Code: minemsg.StartMineMsg}, p)
 	assert.NoError(t, err)
 

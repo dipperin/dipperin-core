@@ -19,9 +19,9 @@ package trie
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/ethereum/go-ethereum/rlp"
+	"golang.org/x/crypto/sha3"
 	"hash"
 	"sync"
-	"golang.org/x/crypto/sha3"
 )
 
 type hasher struct {

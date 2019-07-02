@@ -270,7 +270,7 @@ func (l *txList) Add(tx model.AbstractTransaction, feeBump uint64) (bool, model.
 		// Have to ensure that the new gas price is higher than the old gas
 		// price as well as checking the percentage threshold to ensure that
 		// this is accurate for low (Wei-level) gas price replacements
-		log.Info("the threshold is:","threshold",threshold,"old",old.GetGasPrice(),"new",tx.GetGasPrice())
+		log.Info("the threshold is:", "threshold", threshold, "old", old.GetGasPrice(), "new", tx.GetGasPrice())
 		if old.GetGasPrice().Cmp(tx.GetGasPrice()) >= 0 || threshold.Cmp(tx.GetGasPrice()) > 0 {
 			return false, nil
 		}

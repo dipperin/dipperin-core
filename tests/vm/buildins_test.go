@@ -1,12 +1,12 @@
 package vm
 
 import (
-	"github.com/dipperin/dipperin-core/third-party/log"
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/tests/node-cluster"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func Test_BuildInsContractCall(t *testing.T) {
@@ -22,8 +22,8 @@ func Test_BuildInsContractCall(t *testing.T) {
 	contractHash := SendCreateContract(t, cluster, nodeName, WASMBuildPath, ABIBuildPath)
 	checkTransactionOnChain(client, []common.Hash{contractHash})
 
-	data ,err:= g_testData.GetCallExtraData("arithmeticTest", "")
-	assert.NoError(t,err)
+	data, err := g_testData.GetCallExtraData("arithmeticTest", "")
+	assert.NoError(t, err)
 	txHash := SendCallContract(t, cluster, nodeName, contractHash, data)
 	checkTransactionOnChain(client, []common.Hash{txHash})
 }

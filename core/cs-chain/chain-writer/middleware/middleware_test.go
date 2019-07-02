@@ -14,45 +14,43 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package middleware
 
 import (
+	"errors"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"errors"
 )
 
-func f1(c *BlockContext) Middleware{
+func f1(c *BlockContext) Middleware {
 	return func() error {
 		println(" inside f1")
 		return c.Next()
 	}
 }
 
-func f3(c *BlockContext) Middleware{
+func f3(c *BlockContext) Middleware {
 	return func() error {
 		println(" inside f3")
 		return nil
 	}
 }
 
-func f4(c *BlockContext) Middleware{
+func f4(c *BlockContext) Middleware {
 	return func() error {
 		println(" inside f4")
 		return c.Next()
 	}
 }
 
-func f5(c *BlockContext) Middleware{
+func f5(c *BlockContext) Middleware {
 	return func() error {
 		println(" inside f5")
 		return c.Next()
 	}
 }
 
-
-func f6(c *BlockContext) Middleware{
+func f6(c *BlockContext) Middleware {
 	return func() error {
 		println(" inside f6")
 		return c.Next()
@@ -75,7 +73,7 @@ func TestProcWithMiddleware(t *testing.T) {
 	bc.Process(f5(bc), f6(bc))
 }
 
-func CheckBlock(c *BlockContext) Middleware{
+func CheckBlock(c *BlockContext) Middleware {
 	return func() error {
 		println(" inside checkBlock")
 		return errors.New("test error")

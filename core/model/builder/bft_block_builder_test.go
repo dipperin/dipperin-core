@@ -183,20 +183,20 @@ func TestGasLimitAdjust(t *testing.T) {
 	var blockNumber uint64
 	gasLimit := uint64(chain_config.BlockGasLimit)
 	gasUsed := uint64(0)
-	gasInfo := make(map[uint64]uint64,11)
+	gasInfo := make(map[uint64]uint64, 11)
 	for {
 		Block := creatBlockWithGasLimitAndGasUsed(gasUsed, gasLimit, blockNumber)
 		log.Info("the block gas info is:", "blockNumber", Block.Number(), "gasLimit", Block.GasLimit(), "blockGasUsed", Block.GasUsed())
 
-		if blockNumber%360 ==0{
+		if blockNumber%360 == 0 {
 			gasInfo[blockNumber] = Block.GasLimit()
 		}
 
-		blockNumber ++
-		gasLimit = CalcGasLimit(Block,0,20000000000)
+		blockNumber++
+		gasLimit = CalcGasLimit(Block, 0, 20000000000)
 		//gasLimit = CalcGasLimit(Block,Block.GasLimit(),Block.GasLimit())
-		log.Info("the actual gasLimit after change is:","gasLimit",gasLimit)
-		log.Info("the gasLimit change value is:","change",int64(gasLimit)-int64(Block.GasLimit()))
+		log.Info("the actual gasLimit after change is:", "gasLimit", gasLimit)
+		log.Info("the gasLimit change value is:", "change", int64(gasLimit)-int64(Block.GasLimit()))
 		gasUsed = 0
 
 		log.Info("")
@@ -204,23 +204,23 @@ func TestGasLimitAdjust(t *testing.T) {
 		log.Info("********************next block***********************")
 		log.Info("")
 
-		if blockNumber == 1{
+		if blockNumber == 1 {
 			break
 		}
 		//break
-/*		if gasLimit == 5000{
-			log.Info("the gasLimit is out of the MLimit")
-			break
-		}*/
+		/*		if gasLimit == 5000{
+				log.Info("the gasLimit is out of the MLimit")
+				break
+			}*/
 		if blockNumber == 20000 {
 			break
 		}
 	}
 
 	log.Info("the gasInfo sample is:")
-	for key,value := range gasInfo{
-		blockSize := value * 110 / (21000 *1024*1024)
-		log.Info("point:","key",key,"value",value,"blockSize",blockSize)
+	for key, value := range gasInfo {
+		blockSize := value * 110 / (21000 * 1024 * 1024)
+		log.Info("point:", "key", key, "value", value, "blockSize", blockSize)
 	}
 }
 

@@ -63,7 +63,7 @@ func CsChainServiceBuilder() *CsChainService {
 	conf.VerifierNumber = 3
 
 	homeDir := util.HomeDir()
-	dataDir := filepath.FromSlash(homeDir+"/tmp/cs_chain_service_test")
+	dataDir := filepath.FromSlash(homeDir + "/tmp/cs_chain_service_test")
 	csConfig := &chain_state.ChainStateConfig{
 		DataDir:       dataDir,
 		WriterFactory: f,
@@ -86,7 +86,7 @@ func TestNewCsChainService(t *testing.T) {
 	conf.VerifierNumber = 3
 
 	homeDir := util.HomeDir()
-	dataDir := filepath.FromSlash(homeDir+"/tmp/cs_chain_service_test")
+	dataDir := filepath.FromSlash(homeDir + "/tmp/cs_chain_service_test")
 	csConfig := &chain_state.ChainStateConfig{
 		DataDir:       "",
 		WriterFactory: f,

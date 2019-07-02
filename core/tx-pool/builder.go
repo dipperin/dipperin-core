@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package tx_pool
 
 import (
@@ -25,7 +24,6 @@ import (
 	"runtime"
 	"time"
 )
-
 
 func NewTxPool(config TxPoolConfig, chainConfig chain_config.ChainConfig, chain BlockChain) *TxPool {
 	//todo need rethink this new method.
@@ -59,9 +57,9 @@ func NewTxPool(config TxPoolConfig, chainConfig chain_config.ChainConfig, chain 
 		}
 	}
 
-    pool.loopStopCtrl = make(chan int)
+	pool.loopStopCtrl = make(chan int)
 
-    //transaction cacher
+	//transaction cacher
 	pool.senderCacher = model.NewTxCacher(runtime.NumCPU())
 	//pool.wg.Add(1)
 	//go pool.loop()

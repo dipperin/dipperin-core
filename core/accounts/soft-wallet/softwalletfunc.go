@@ -313,8 +313,8 @@ func CheckPassword(password string) (err error) {
 //judge the incoming wallet path
 func CheckWalletPath(path string) (err error) {
 	homeDir := util.HomeDir()
-	log.Info("the path is:","path",path)
-	log.Info("the home dir is","homeDir",homeDir)
+	log.Info("the path is:", "path", path)
+	log.Info("the home dir is", "homeDir", homeDir)
 	if len(path) < len(homeDir) {
 		return accounts.ErrWalletPathError
 	}

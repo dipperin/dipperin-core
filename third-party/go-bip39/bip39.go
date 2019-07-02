@@ -14,8 +14,8 @@ import (
 	"math/big"
 	"strings"
 
-	"golang.org/x/crypto/pbkdf2"
 	"github.com/dipperin/dipperin-core/third-party/go-bip39/wordlists"
+	"golang.org/x/crypto/pbkdf2"
 )
 
 var (

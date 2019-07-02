@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package iblt
 
 import (
@@ -29,7 +28,7 @@ type HashPoolConfig struct {
 
 	// K is the number of elements with smallest hash values
 	// chosen for the estimation of difference
-	K       uint
+	K uint
 }
 
 // Create a new hashpool
@@ -97,8 +96,8 @@ func (p HashPool) Comp(pp *HashPool) int {
 	cnt := 0
 
 	// TODO: two loops could be optimized
-	for i := 0; i < len(a); i ++ {
-		for j := 0; j < len(b); j ++ {
+	for i := 0; i < len(a); i++ {
+		for j := 0; j < len(b); j++ {
 			if a[i].IsEqual(b[j]) {
 				cnt++
 			}

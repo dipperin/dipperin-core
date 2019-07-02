@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
@@ -54,14 +53,14 @@ func getCalculator() PriofityCalculator {
 }
 
 func CalPriority(hash common.Hash, reputation uint64) (uint64, error) {
-	priority := uint64(float64(reputation) * math.Pow(float64(hash[31]) / 256, 3))
+	priority := uint64(float64(reputation) * math.Pow(float64(hash[31])/256, 3))
 	return priority, nil
 }
 
 func CalReputation(nonce uint64, stake *big.Int, performance uint64) (uint64, error) {
 	stakeVal := float64(stake.Int64())
 	if stakeVal < StakeValMin {
-		log.Info("the stakeVal is:","stakeVal",stakeVal)
+		log.Info("the stakeVal is:", "stakeVal", stakeVal)
 		return 0, errors.New("stake not sufficient")
 	}
 
@@ -79,13 +78,13 @@ func CalReputation(nonce uint64, stake *big.Int, performance uint64) (uint64, er
 	}
 
 	var R3 float64
-	performanceFloat := float64(performance)/100
+	performanceFloat := float64(performance) / 100
 	R3, err = Elem(performanceFloat, epsilon31, epsilon32, epsilon33)
 	if err != nil {
 		return uint64(0), err
 	}
 
-	return uint64(w1*R1 + w2*R2 +w3*R3), nil
+	return uint64(w1*R1 + w2*R2 + w3*R3), nil
 }
 
 func Elem(x float64, epsilon1 float64, epsilon2 float64, epsilon3 float64) (float64, error) {

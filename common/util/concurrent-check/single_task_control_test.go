@@ -29,4 +29,3 @@ func TestSingleTaskControl_TryDo(t *testing.T) {
 	st.Done()
 	st.Done()
 }
-

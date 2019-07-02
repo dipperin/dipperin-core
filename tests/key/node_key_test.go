@@ -14,21 +14,20 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package key
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"math/big"
+	"net"
 	"path/filepath"
 	"strings"
 	"testing"
-	"net"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 )
 
 func TestGetPubKey(t *testing.T) {
@@ -52,14 +51,13 @@ func TestReplaceIPAddr(t *testing.T) {
 	i2 := strings.LastIndex(str, ":")
 	i3 := strings.LastIndex(remote, ":")
 
-	str = str[:i1 + 1] + remote[:i3] + str[i2:]
+	str = str[:i1+1] + remote[:i3] + str[i2:]
 	assert.Equal(t, "enode://8b610c5400bfdb355c7a204beb65cb261fe5e89cc2c1837dc3cf752d16df65cfd95c6ee79be3720ef9dc6ba0b6876c63530a6352cb18298afb2b282b111ec7cf@192.168.122.102:40006", str)
 }
 
 func TestDivBig(t *testing.T) {
 	pub, _ := big.NewInt(0).SetString("e731657120688fd98488e97ea855333be46ae5ffe4a56a8a7285beae7243debf454c4419ddee0444806de7adba026daed02a022f996d215c2e5c17f750784de6", 16)
 	priv, _ := big.NewInt(0).SetString("9828f4c2e2844c7530ea5f41729186d6034cd08d0e72ec5614588d570f0305f9", 16)
-
 
 	fmt.Println(pub)
 	fmt.Println(pub.Div(pub, priv))

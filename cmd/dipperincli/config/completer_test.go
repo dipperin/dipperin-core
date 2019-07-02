@@ -45,7 +45,6 @@ func TestDipperinCliCompleter(t *testing.T) {
 
 	assert.Equal(t, DipperinCliCompleter(d), []prompt.Suggest{})
 
-
 	b = prompt.NewBuffer()
 	b.InsertText("rpc.A -A -F", false, true)
 
@@ -54,20 +53,17 @@ func TestDipperinCliCompleter(t *testing.T) {
 	DipperinCliCompleterNew(d)
 	//assert.Equal(t, DipperinCliCompleterNew(d), []prompt.Suggest{})
 
-
 	b = prompt.NewBuffer()
 	b.InsertText("RPC", false, true)
 
 	d = *b.Document()
 
-	assert.Equal(t, DipperinCliCompleter(d), []prompt.Suggest{{Text:"-h", Description:""}, {Text:"--help", Description:""}})
+	assert.Equal(t, DipperinCliCompleter(d), []prompt.Suggest{{Text: "-h", Description: ""}, {Text: "--help", Description: ""}})
 }
-
 
 func TestDipperinCliCompleterNew(t *testing.T) {
 	log.InitLogger(log.LvlDebug)
 	d := prompt.Document{}
-
 
 	args := strings.Split("tx ", " ")
 	fmt.Println(len(args))
@@ -78,7 +74,6 @@ func TestDipperinCliCompleterNew(t *testing.T) {
 
 	suggest := DipperinCliCompleterNew(d)
 	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
-
 
 	args = strings.Split("tx SendTx ", " ")
 	fmt.Println(len(args))
@@ -100,10 +95,9 @@ func TestDipperinCliCompleterNew(t *testing.T) {
 	suggest = DipperinCliCompleterNew(d)
 	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
 
-
 	args = strings.Split("tx SendTransactionContract --abi ", " ")
 	fmt.Println(len(args), strings.TrimLeft(args[len(args)-1], "--"))
-	for _,arg := range args{
+	for _, arg := range args {
 		fmt.Println(strings.TrimLeft(arg, "--"))
 	}
 	b = prompt.NewBuffer()
@@ -122,7 +116,6 @@ func TestDipperinCliCompleterNew(t *testing.T) {
 	suggest = DipperinCliCompleterNew(d)
 	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
 
-
 	b = prompt.NewBuffer()
 	b.InsertText("rp", false, true)
 
@@ -132,7 +125,6 @@ func TestDipperinCliCompleterNew(t *testing.T) {
 	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
 	//assert.Equal(t, DipperinCliCompleterNew(d), []prompt.Suggest{})
 }
-
 
 func Test_argumentsCompleter(t *testing.T) {
 	t.Skip()

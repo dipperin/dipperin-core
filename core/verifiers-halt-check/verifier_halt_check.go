@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package verifiers_halt_check
 
 import (
@@ -108,7 +107,7 @@ type SystemHaltedCheck struct {
 	heightInfo        chan heightResponseInfo
 	quit              chan bool
 
-	feed 			  event.Feed
+	feed event.Feed
 }
 
 type getHeightResponse struct {
@@ -363,9 +362,9 @@ func (systemHaltedCheck *SystemHaltedCheck) proposeEmptyBlock() (err error) {
 	// use the same handler to prevent different propose block hashes for the same height empty block.
 	// When all the boot nodes are out of sync, the empty block with the smallest hash cannot be picked out normally.
 	var proposal ProposalMsg
-	if systemHaltedCheck.haltHandler != nil && proposalConfig.CurBlock.Number() == systemHaltedCheck.haltHandler.pgConfig.CurBlock.Number(){
+	if systemHaltedCheck.haltHandler != nil && proposalConfig.CurBlock.Number() == systemHaltedCheck.haltHandler.pgConfig.CurBlock.Number() {
 		proposal = *systemHaltedCheck.haltHandler.proposalMsg
-	}else {
+	} else {
 		systemHaltedCheck.haltHandler = NewHaltHandler(proposalConfig)
 		proposal, err = systemHaltedCheck.haltHandler.ProposeEmptyBlock()
 		if err != nil {
@@ -389,7 +388,7 @@ func (systemHaltedCheck *SystemHaltedCheck) proposeEmptyBlock() (err error) {
 				return
 			}
 
-			ver_halt_check_log.Info("send empty block propose is:", "propose", proposal.EmptyBlock.Hash().Hex(), "height", proposal.EmptyBlock.Number(), "ToNodeName", node.NodeName(), )
+			ver_halt_check_log.Info("send empty block propose is:", "propose", proposal.EmptyBlock.Hash().Hex(), "height", proposal.EmptyBlock.Number(), "ToNodeName", node.NodeName())
 			err := node.SendMsg(chain_communication.ProposeEmptyBlockMsg, &proposal)
 			if err != nil {
 				ver_halt_check_log.Error("send propose empty block msg error", "err", err, "nodeName", node.NodeName())

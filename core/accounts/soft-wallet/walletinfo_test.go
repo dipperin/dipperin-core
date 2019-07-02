@@ -141,23 +141,21 @@ func TestWalletInfo_getSkFromAddress(t *testing.T) {
 func TestWalletInfo_PaddingAddressNonce(t *testing.T) {
 	testWalletInfo := NewHdWalletInfo()
 
-	testWalletInfo.Accounts = append(testWalletInfo.Accounts,accounts.Account{Address: testAddress})
+	testWalletInfo.Accounts = append(testWalletInfo.Accounts, accounts.Account{Address: testAddress})
 
-	err:=testWalletInfo.PaddingAddressNonce(&testAccountStatus{})
-	assert.NoError(t,err)
+	err := testWalletInfo.PaddingAddressNonce(&testAccountStatus{})
+	assert.NoError(t, err)
 
 	err = testWalletInfo.PaddingAddressNonce(&fakeAccountStatus{})
-	assert.NoError(t,err)
+	assert.NoError(t, err)
 }
 
 func TestWalletInfo_SetAndGetAddressNonce(t *testing.T) {
 	testWalletInfo := NewHdWalletInfo()
 
-	testWalletInfo.SetAddressNonce(testAddress,2)
+	testWalletInfo.SetAddressNonce(testAddress, 2)
 
-	nonce,_ := testWalletInfo.GetAddressNonce(testAddress)
-	assert.Equal(t,uint64(2),nonce)
+	nonce, _ := testWalletInfo.GetAddressNonce(testAddress)
+	assert.Equal(t, uint64(2), nonce)
 
 }
-
-

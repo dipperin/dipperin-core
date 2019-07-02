@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package utils
 
 import (
@@ -28,8 +27,8 @@ import (
 
 func SetupGenesis(dataDir string, cConfig *chain_config.ChainConfig) {
 	cs := chain_state.NewChainState(&chain_state.ChainStateConfig{
-		ChainConfig: cConfig,
-		DataDir: dataDir,
+		ChainConfig:   cConfig,
+		DataDir:       dataDir,
 		WriterFactory: chain_writer.NewChainWriterFactory(),
 	})
 	setupGenesis(cs)

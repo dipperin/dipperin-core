@@ -38,7 +38,7 @@ func testTempJSONFile(t *testing.T, content []byte) (string, func()) {
 func Test_LoadJSON(t *testing.T) {
 
 	type args struct {
-		val  interface{}
+		val interface{}
 	}
 
 	var res []string
@@ -50,7 +50,7 @@ func Test_LoadJSON(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "normal",
+			name:    "normal",
 			content: "[\"test\"]",
 			args: args{
 				val: &res,
@@ -58,7 +58,7 @@ func Test_LoadJSON(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "syntax error",
+			name:    "syntax error",
 			content: "",
 			args: args{
 				val: &res,
@@ -66,7 +66,7 @@ func Test_LoadJSON(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "unmarshal error",
+			name:    "unmarshal error",
 			content: "{\"test\": 1}",
 			args: args{
 				val: &res,
@@ -74,7 +74,7 @@ func Test_LoadJSON(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "read file error",
+			name:    "read file error",
 			content: "1",
 			args: args{
 				val: &res,
@@ -110,7 +110,7 @@ func Test_findLine(t *testing.T) {
 		{
 			name: "One line",
 			args: args{
-				data: []byte("213121"),
+				data:   []byte("213121"),
 				offset: 0,
 			},
 			wantLine: 1,
@@ -118,7 +118,7 @@ func Test_findLine(t *testing.T) {
 		{
 			name: "two line",
 			args: args{
-				data: []byte("213121\n34234"),
+				data:   []byte("213121\n34234"),
 				offset: 16,
 			},
 			wantLine: 2,

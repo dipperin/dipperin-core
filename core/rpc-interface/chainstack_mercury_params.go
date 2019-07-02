@@ -17,9 +17,9 @@
 package rpc_interface
 
 import (
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/common"
 )
 
 // swagger:response CurBalanceResp

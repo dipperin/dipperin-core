@@ -47,20 +47,20 @@ func TestDipperinMercuryApi(t *testing.T) {
 	mn := NewMockNodeConf(controller)
 	mpeer := NewMockPmAbstractPeer(controller)
 	mpm := NewMockAbstractPbftProtocolManager(controller)
-	api := &DipperinMercuryApi{ service: &service.MercuryFullChainService{
+	api := &DipperinMercuryApi{service: &service.MercuryFullChainService{
 		DipperinConfig: &service.DipperinConfig{
-			NormalPm: mp,
-			ChainReader: mc,
-			TxPool: &fakeTxPool{},
-			Broadcaster: &fakeBroadcaster{},
-			NodeConf: mn,
-			WalletManager: &accounts.WalletManager{},
-			MsgSigner: &fakeMsgSigner{},
+			NormalPm:           mp,
+			ChainReader:        mc,
+			TxPool:             &fakeTxPool{},
+			Broadcaster:        &fakeBroadcaster{},
+			NodeConf:           mn,
+			WalletManager:      &accounts.WalletManager{},
+			MsgSigner:          &fakeMsgSigner{},
 			PriorityCalculator: model.DefaultPriorityCalculator,
-			PbftPm: mpm,
+			PbftPm:             mpm,
 		},
 		TxValidator: &fakeTxV{},
-	} }
+	}}
 
 	mp.EXPECT().IsSync().Return(true)
 	assert.True(t, api.GetSyncStatus())
@@ -107,7 +107,7 @@ func TestDipperinMercuryApi(t *testing.T) {
 	_, err = api.NewTransaction([]byte{})
 	assert.Error(t, err)
 
-	tx := model.NewTransaction(0, common.Address{}, big.NewInt(1),  g_testData.TestGasPrice,g_testData.TestGasLimit, nil)
+	tx := model.NewTransaction(0, common.Address{}, big.NewInt(1), g_testData.TestGasPrice, g_testData.TestGasLimit, nil)
 	tb, err := rlp.EncodeToBytes(tx)
 	assert.NoError(t, err)
 	_, err = api.NewTransaction(tb)
@@ -142,13 +142,13 @@ func TestDipperinMercuryApi(t *testing.T) {
 	assert.Error(t, err)
 	_, err = api.ERC20Allowance(common.Address{}, common.Address{}, common.Address{})
 	assert.Error(t, err)
-	_, err = api.ERC20Transfer(common.Address{}, common.Address{}, common.Address{}, big.NewInt(1),  g_testData.TestGasPrice,g_testData.TestGasLimit)
+	_, err = api.ERC20Transfer(common.Address{}, common.Address{}, common.Address{}, big.NewInt(1), g_testData.TestGasPrice, g_testData.TestGasLimit)
 	assert.Error(t, err)
-	_, err = api.ERC20TransferFrom(common.Address{}, common.Address{}, common.Address{}, common.Address{}, big.NewInt(1), g_testData.TestGasPrice,g_testData.TestGasLimit)
+	_, err = api.ERC20TransferFrom(common.Address{}, common.Address{}, common.Address{}, common.Address{}, big.NewInt(1), g_testData.TestGasPrice, g_testData.TestGasLimit)
 	assert.Error(t, err)
-	_, err = api.ERC20Approve(common.Address{}, common.Address{}, common.Address{}, big.NewInt(1), g_testData.TestGasPrice,g_testData.TestGasLimit)
+	_, err = api.ERC20Approve(common.Address{}, common.Address{}, common.Address{}, big.NewInt(1), g_testData.TestGasPrice, g_testData.TestGasLimit)
 	assert.Error(t, err)
-	_, err = api.CreateERC20(common.Address{}, "", "", big.NewInt(1), 2,  g_testData.TestGasPrice,g_testData.TestGasLimit)
+	_, err = api.CreateERC20(common.Address{}, "", "", big.NewInt(1), 2, g_testData.TestGasPrice, g_testData.TestGasLimit)
 	assert.Error(t, err)
 
 	n, _ := enode.ParseV4(fmt.Sprintf("enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@%v:%v", "127.0.0.1", 10003))
@@ -164,7 +164,7 @@ func TestDipperinMercuryApi(t *testing.T) {
 	assert.Error(t, err)
 
 	nonce := uint64(1)
-	_, err = api.SendTransaction(common.Address{}, common.Address{}, big.NewInt(1),  g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{}, &nonce)
+	_, err = api.SendTransaction(common.Address{}, common.Address{}, big.NewInt(1), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{}, &nonce)
 	assert.Error(t, err)
 	_, err = api.SendTransactions(common.Address{}, []model.RpcTransaction{})
 	assert.Error(t, err)
@@ -174,14 +174,14 @@ func TestDipperinMercuryApi(t *testing.T) {
 	mpeer.EXPECT().GetHead().Return(common.Hash{}, uint64(1)).AnyTimes()
 	api.RemoteHeight()
 
-	_, err = api.SendRegisterTransaction(common.Address{}, big.NewInt(1),  g_testData.TestGasPrice,g_testData.TestGasLimit, &nonce)
+	_, err = api.SendRegisterTransaction(common.Address{}, big.NewInt(1), g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.Error(t, err)
-	_, err = api.SendUnStakeTransaction(common.Address{},  g_testData.TestGasPrice,g_testData.TestGasLimit, &nonce)
+	_, err = api.SendUnStakeTransaction(common.Address{}, g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.Error(t, err)
 
-	_, err = api.SendEvidenceTransaction(common.Address{}, common.Address{},  g_testData.TestGasPrice,g_testData.TestGasLimit, nil, nil, &nonce)
+	_, err = api.SendEvidenceTransaction(common.Address{}, common.Address{}, g_testData.TestGasPrice, g_testData.TestGasLimit, nil, nil, &nonce)
 	assert.Error(t, err)
-	_, err = api.SendCancelTransaction(common.Address{},  g_testData.TestGasPrice,g_testData.TestGasLimit, &nonce)
+	_, err = api.SendCancelTransaction(common.Address{}, g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.Error(t, err)
 
 	mc.EXPECT().GetVerifiers(gomock.Any()).Return([]common.Address{{}}).AnyTimes()
@@ -252,13 +252,13 @@ func NewEmptyAccountDB() (*state_processor.AccountStateDB, state_processor.State
 	return db, storage
 }
 
-type fakeTxV struct {}
+type fakeTxV struct{}
 
 func (f *fakeTxV) Valid(tx model.AbstractTransaction) error {
 	return nil
 }
 
-type fakeTxPool struct {}
+type fakeTxPool struct{}
 
 func (p *fakeTxPool) Stats() (int, int) {
 	panic("implement me")
@@ -276,11 +276,11 @@ func (p *fakeTxPool) AddRemote(tx model.AbstractTransaction) error {
 	return nil
 }
 
-type fakeBroadcaster struct {}
+type fakeBroadcaster struct{}
 
 func (f *fakeBroadcaster) BroadcastTx(txs []model.AbstractTransaction) {}
 
-type fakeMsgSigner struct {}
+type fakeMsgSigner struct{}
 
 func (f *fakeMsgSigner) SetBaseAddress(address common.Address) {}
 

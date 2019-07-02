@@ -101,12 +101,12 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 
 	// Capture the tracer start/end events in debug mode
 	/*	if evm.vmConfig.Debug && evm.depth == 0 {
-			evm.vmConfig.Tracer.CaptureStart(caller.Address(), addr, false, input, gas, value)
+		evm.vmConfig.Tracer.CaptureStart(caller.Address(), addr, false, input, gas, value)
 
-			defer func() { // Lazy evaluation of the parameters
-				evm.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
-			}()
-		}*/
+		defer func() { // Lazy evaluation of the parameters
+			evm.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
+		}()
+	}*/
 	if to.Address().GetAddressType() == common.AddressTypeContractCall {
 		ret, err = run(vm, contract, false)
 	}
@@ -197,8 +197,8 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 	}
 
 	/*	if api.vmConfig.Debug && api.depth == 0 {
-			api.vmConfig.Tracer.CaptureStart(caller.Address(), address, true, code, gas, value)
-		}*/
+		api.vmConfig.Tracer.CaptureStart(caller.Address(), address, true, code, gas, value)
+	}*/
 	//start := time.Now()
 
 	ret, err := run(vm, contract, true)
@@ -236,8 +236,8 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 	}
 
 	/*	if api.vmConfig.Debug && api.depth == 0 {
-			api.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
-		}*/
+		api.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
+	}*/
 	return ret, address, contract.Gas, err
 }
 
@@ -339,10 +339,10 @@ func NewVMContext(tx model.AbstractTransaction, header model.AbstractHeader, Get
 		panic("GetTxIndex failed")
 	}
 	return Context{
-		Origin:       sender,
-		GasPrice:     tx.GetGasPrice(),
-		GasLimit:     tx.GetGasLimit(),
-		BlockNumber:  new(big.Int).SetUint64(header.GetNumber()),
+		Origin:      sender,
+		GasPrice:    tx.GetGasPrice(),
+		GasLimit:    tx.GetGasLimit(),
+		BlockNumber: new(big.Int).SetUint64(header.GetNumber()),
 		//callGasTemp:  tx.Fee().Uint64(),
 		CurBlockHash: header.Hash(),
 		TxHash:       tx.CalTxId(),

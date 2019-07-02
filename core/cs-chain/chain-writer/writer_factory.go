@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_writer
 
 import (
-	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"fmt"
+	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"reflect"
 )
 

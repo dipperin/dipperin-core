@@ -321,9 +321,9 @@ func (fd *NewPbftDownloader) importBlockResults(list []*catchupRlp) error {
 
 		if err := fd.Chain.SaveBlock(b.Block, commits); err != nil {
 			//skip the block if the height is same as current block and it isn't the empty block
-			if err == g_error.ErrBlockHeightIsCurrentAndIsNotSpecial{
+			if err == g_error.ErrBlockHeightIsCurrentAndIsNotSpecial {
 				continue
-			}else{
+			} else {
 				return err
 			}
 		}

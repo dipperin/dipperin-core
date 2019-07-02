@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package verifiers_halt_check
 
 import (
@@ -105,7 +104,7 @@ func (haltCheckStateHandle *StateHandler) GenProposalConfig(voteType model.VoteM
 }
 
 func (haltCheckStateHandle *StateHandler) ProcessAccountAndRegisterState(block model.AbstractBlock, preStateRoot, preRegisterRoot common.Hash) (stateRoot, registerRoot common.Hash, err error) {
-	ver_halt_check_log.Info("the preStateRoot is:","preStateRoot",preStateRoot.Hex())
+	ver_halt_check_log.Info("the preStateRoot is:", "preStateRoot", preStateRoot.Hex())
 	accountDB, err := haltCheckStateHandle.chainReader.BlockProcessor(preStateRoot)
 	if err != nil {
 		return common.Hash{}, common.Hash{}, err
@@ -123,7 +122,7 @@ func (haltCheckStateHandle *StateHandler) ProcessAccountAndRegisterState(block m
 	}
 
 	//process register state
-	ver_halt_check_log.Info("the preRegisterRoot is:","preRegisterRoot",preRegisterRoot.Hex())
+	ver_halt_check_log.Info("the preRegisterRoot is:", "preRegisterRoot", preRegisterRoot.Hex())
 	registerDB, err := haltCheckStateHandle.chainReader.BuildRegisterProcessor(preRegisterRoot)
 	if err != nil {
 		return common.Hash{}, common.Hash{}, err
@@ -135,9 +134,9 @@ func (haltCheckStateHandle *StateHandler) ProcessAccountAndRegisterState(block m
 	}
 	registerRoot = registerDB.Finalise()
 
-	ver_halt_check_log.Info("the calculated empty block root is:","stateRoot",stateRoot.Hex(),"registerRoot",registerRoot.Hex())
+	ver_halt_check_log.Info("the calculated empty block root is:", "stateRoot", stateRoot.Hex(), "registerRoot", registerRoot.Hex())
 
-	return stateRoot,registerRoot,nil
+	return stateRoot, registerRoot, nil
 }
 
 func (haltCheckStateHandle *StateHandler) SaveFinalEmptyBlock(proposal ProposalMsg, votes map[common.Address]model.VoteMsg) error {

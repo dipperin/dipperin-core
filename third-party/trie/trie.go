@@ -21,8 +21,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 var (
@@ -34,8 +34,8 @@ var (
 )
 
 var (
-	//cacheMissCounter   = metrics.NewRegisteredCounter("trie/cachemiss", nil)
-	//cacheUnloadCounter = metrics.NewRegisteredCounter("trie/cacheunload", nil)
+//cacheMissCounter   = metrics.NewRegisteredCounter("trie/cachemiss", nil)
+//cacheUnloadCounter = metrics.NewRegisteredCounter("trie/cacheunload", nil)
 )
 
 // CacheMisses retrieves a global counter measuring the number of cache misses

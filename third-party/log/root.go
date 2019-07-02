@@ -5,8 +5,8 @@ import (
 
 	"github.com/mattn/go-colorable"
 	"github.com/mattn/go-isatty"
-	"path/filepath"
 	osUser "os/user"
+	"path/filepath"
 )
 
 // Predefined handlers
@@ -114,7 +114,6 @@ func InitCsLogger(logLevel Lvl, filePath string, withConsole bool, withFile bool
 	if withConsole {
 		handlers = append(handlers, LvlFilterHandler(logLevel, StdoutHandler))
 	}
-
 
 	Root().SetHandler(MultiHandler(handlers...))
 }

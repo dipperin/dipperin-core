@@ -14,23 +14,22 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_state
 
 import (
+	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
-	"github.com/dipperin/dipperin-core/core/chain-config"
 )
 
 func TestNewChainState(t *testing.T) {
 	writerF := chain_writer.NewChainWriterFactory()
 	cs := NewChainState(&ChainStateConfig{
-		DataDir: "",
+		DataDir:       "",
 		WriterFactory: writerF,
-		ChainConfig: chain_config.GetChainConfig(),
+		ChainConfig:   chain_config.GetChainConfig(),
 	})
 
 	_, err := cs.BlockProcessorByNumber(22)
@@ -45,7 +44,7 @@ func TestNewChainState(t *testing.T) {
 }
 
 func TestChainState_initConfigAndDB(t *testing.T) {
-	cs := &ChainState{ ChainStateConfig: &ChainStateConfig{} }
+	cs := &ChainState{ChainStateConfig: &ChainStateConfig{}}
 
 	assert.Nil(t, cs.GetDB())
 	assert.Nil(t, cs.ChainConfig)

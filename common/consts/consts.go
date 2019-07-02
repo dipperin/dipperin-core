@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package consts
 
 import (
@@ -22,34 +21,34 @@ import (
 )
 
 const (
-    MinAmount = 0
+	MinAmount = 0
 )
+
 var (
 	MaxAmount = big.NewInt(0).Mul(big.NewInt(1000000000000), big.NewInt(DIP))
 )
+
 // currency unit
 const (
 	// gray but other places to use
-	DIP_Units = 1
+	DIP_Units     = 1
 	DIP_Thousands = 1000
-	DIP_Millions = 1000 * 1000
-	DIP = 1000 * 1000 * 1000
+	DIP_Millions  = 1000 * 1000
+	DIP           = 1000 * 1000 * 1000
 )
 
 // coin digits
-const(
+const (
 	DIPDecimalBits = 9
 )
 
 // ninimum currency unit name
 const (
-	CoinDIPName 		 = " DIP"
+	CoinDIPName = " DIP"
 )
 
 // contract name configuration
 const (
-	ERC20TypeName = "ERC20"
+	ERC20TypeName      = "ERC20"
 	EarlyTokenTypeName = "EarlyReward"
 )
-
-

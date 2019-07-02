@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package state_machine
 
 import "time"
@@ -33,9 +32,9 @@ var DefaultConfig = Config{
 }
 
 type Config struct {
-	WaitNewRound        time.Duration
-	WaitProposeTimeout  time.Duration
-	ProposalTimeout     time.Duration
-	PreVoteTimeout      time.Duration
-	PreCommitTimeout    time.Duration
+	WaitNewRound       time.Duration
+	WaitProposeTimeout time.Duration
+	ProposalTimeout    time.Duration
+	PreVoteTimeout     time.Duration
+	PreCommitTimeout   time.Duration
 }

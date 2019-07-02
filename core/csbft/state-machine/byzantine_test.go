@@ -14,19 +14,17 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package state_machine
 
-
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
-	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
-	"fmt"
 )
 
 func TestByzantine(t *testing.T) {
@@ -50,18 +48,18 @@ func TestByzantine(t *testing.T) {
 	assert.Equal(t, model2.RoundStepNewRound, sh2.bs.Step)
 	assert.Equal(t, model2.RoundStepNewRound, sh3.bs.Step)
 
-	sh0.NewRound(MakeNewRound(1,1,1))
-	sh0.NewRound(MakeNewRound(1,1,2))
-	sh0.NewRound(MakeNewRound(1,1,3))
-	sh1.NewRound(MakeNewRound(1,1,0))
-	sh1.NewRound(MakeNewRound(1,1,2))
-	sh1.NewRound(MakeNewRound(1,1,3))
-	sh2.NewRound(MakeNewRound(1,1,0))
-	sh2.NewRound(MakeNewRound(1,1,1))
-	sh2.NewRound(MakeNewRound(1,1,3))
-	sh3.NewRound(MakeNewRound(1,1,0))
-	sh3.NewRound(MakeNewRound(1,1,1))
-	sh3.NewRound(MakeNewRound(1,1,2))
+	sh0.NewRound(MakeNewRound(1, 1, 1))
+	sh0.NewRound(MakeNewRound(1, 1, 2))
+	sh0.NewRound(MakeNewRound(1, 1, 3))
+	sh1.NewRound(MakeNewRound(1, 1, 0))
+	sh1.NewRound(MakeNewRound(1, 1, 2))
+	sh1.NewRound(MakeNewRound(1, 1, 3))
+	sh2.NewRound(MakeNewRound(1, 1, 0))
+	sh2.NewRound(MakeNewRound(1, 1, 1))
+	sh2.NewRound(MakeNewRound(1, 1, 3))
+	sh3.NewRound(MakeNewRound(1, 1, 0))
+	sh3.NewRound(MakeNewRound(1, 1, 1))
+	sh3.NewRound(MakeNewRound(1, 1, 2))
 
 	//Sh1 is proposed
 	time.Sleep(100 * time.Millisecond)
@@ -70,7 +68,7 @@ func TestByzantine(t *testing.T) {
 	assert.Equal(t, model2.RoundStepPropose, sh2.bs.Step)
 	assert.Equal(t, model2.RoundStepPropose, sh3.bs.Step)
 
-	fmt.Println("**********","fb",fakeblock.Hash())
+	fmt.Println("**********", "fb", fakeblock.Hash())
 
 	//Feed the proposal
 	msg := MakeNewProposal(1, 1, fakeblock, 1)
@@ -82,11 +80,11 @@ func TestByzantine(t *testing.T) {
 	//Sh0 is the byzantine node.
 	//Sh1,2 received vote from 1,2
 	//Sh3 received vote from 0,2,3
-	
-	sh1.PreVote(MakeNewProVote(1,1,fakeblock,2))
-	sh2.PreVote(MakeNewProVote(1,1,fakeblock,1))
-	sh3.PreVote(MakeNewProVote(1,1,fakeblock,0))
-	sh3.PreVote(MakeNewProVote(1,1,fakeblock,2))
+
+	sh1.PreVote(MakeNewProVote(1, 1, fakeblock, 2))
+	sh2.PreVote(MakeNewProVote(1, 1, fakeblock, 1))
+	sh3.PreVote(MakeNewProVote(1, 1, fakeblock, 0))
+	sh3.PreVote(MakeNewProVote(1, 1, fakeblock, 2))
 
 	//Sh3 locked at fackblock
 	//Sh1,Sh2 have no lock
@@ -110,15 +108,15 @@ func TestByzantine(t *testing.T) {
 	assert.Equal(t, model2.RoundStepNewRound, sh2.bs.Step)
 	assert.Equal(t, model2.RoundStepNewRound, sh3.bs.Step)
 	//enter a new round
-	sh1.NewRound(MakeNewRound(1,2,0))
-	sh1.NewRound(MakeNewRound(1,2,2))
-	sh1.NewRound(MakeNewRound(1,2,3))
-	sh2.NewRound(MakeNewRound(1,2,0))
-	sh2.NewRound(MakeNewRound(1,2,1))
-	sh2.NewRound(MakeNewRound(1,2,3))
-	sh3.NewRound(MakeNewRound(1,2,0))
-	sh3.NewRound(MakeNewRound(1,2,1))
-	sh3.NewRound(MakeNewRound(1,2,2))
+	sh1.NewRound(MakeNewRound(1, 2, 0))
+	sh1.NewRound(MakeNewRound(1, 2, 2))
+	sh1.NewRound(MakeNewRound(1, 2, 3))
+	sh2.NewRound(MakeNewRound(1, 2, 0))
+	sh2.NewRound(MakeNewRound(1, 2, 1))
+	sh2.NewRound(MakeNewRound(1, 2, 3))
+	sh3.NewRound(MakeNewRound(1, 2, 0))
+	sh3.NewRound(MakeNewRound(1, 2, 1))
+	sh3.NewRound(MakeNewRound(1, 2, 2))
 
 	//Sh2 is proposed
 	time.Sleep(100 * time.Millisecond)
@@ -140,19 +138,19 @@ func TestByzantine(t *testing.T) {
 
 	//Sh0 make a conflict vote, vote on fakeBlock2
 	//Sh3 locked on fakeblock, would not do vote
-	sh1.PreVote(MakeNewProVote(1,2,fakeblock2,0))
-	sh1.PreVote(MakeNewProVote(1,2,fakeblock2,2))
-	sh2.PreVote(MakeNewProVote(1,2,fakeblock2,0))
-	sh2.PreVote(MakeNewProVote(1,2,fakeblock2,1))
-	sh3.PreVote(MakeNewProVote(1,2,fakeblock2,0))
-	sh3.PreVote(MakeNewProVote(1,2,fakeblock2,1))
-	sh3.PreVote(MakeNewProVote(1,2,fakeblock2,2))
+	sh1.PreVote(MakeNewProVote(1, 2, fakeblock2, 0))
+	sh1.PreVote(MakeNewProVote(1, 2, fakeblock2, 2))
+	sh2.PreVote(MakeNewProVote(1, 2, fakeblock2, 0))
+	sh2.PreVote(MakeNewProVote(1, 2, fakeblock2, 1))
+	sh3.PreVote(MakeNewProVote(1, 2, fakeblock2, 0))
+	sh3.PreVote(MakeNewProVote(1, 2, fakeblock2, 1))
+	sh3.PreVote(MakeNewProVote(1, 2, fakeblock2, 2))
 
 	//Sh3 clear lock, and then locked on fakeBlock2
 	time.Sleep(20 * time.Millisecond)
-	assert.Equal(t, uint64(2),sh1.bs.Round)
-	assert.Equal(t, uint64(2),sh2.bs.Round)
-	assert.Equal(t, uint64(2),sh3.bs.Round)
+	assert.Equal(t, uint64(2), sh1.bs.Round)
+	assert.Equal(t, uint64(2), sh2.bs.Round)
+	assert.Equal(t, uint64(2), sh3.bs.Round)
 	assert.Equal(t, fakeblock2, sh1.bs.LockedBlock)
 	assert.Equal(t, fakeblock2, sh2.bs.LockedBlock)
 	assert.Equal(t, fakeblock2, sh3.bs.LockedBlock)
@@ -161,4 +159,3 @@ func TestByzantine(t *testing.T) {
 	assert.Equal(t, model2.RoundStepPreCommit, sh3.bs.Step)
 
 }
-

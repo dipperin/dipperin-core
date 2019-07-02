@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package middleware
 
 import (
@@ -42,7 +41,7 @@ import (
 	m.Use(UpdateState(bc))
 	m.Use(InsertBlock(bc))
 
- */
+*/
 func ValidateBlockNumber(c *BlockContext) Middleware {
 	return func() error {
 		if c.Chain == nil || c.Block == nil {
@@ -80,7 +79,7 @@ func ValidateBlockHash(c *BlockContext) Middleware {
 	return func() error {
 		preBlock := c.Chain.GetBlockByNumber(c.Block.Number() - 1)
 		preRv := reflect.ValueOf(preBlock)
-		if  !preRv.IsValid() || preRv.IsNil() {
+		if !preRv.IsValid() || preRv.IsNil() {
 			return g_error.ErrPreBlockIsNil
 		}
 
@@ -140,7 +139,7 @@ func ValidateBlockDifficulty(c *BlockContext) Middleware {
 		if !c.Block.RefreshHashCache().ValidHashForDifficulty(c.Block.Difficulty()) {
 			log.Error("ValidateBlockDifficulty failed")
 			fmt.Println(c.Block.Header().(*model.Header).String())
-			return g_error. ErrWrongHashDiff
+			return g_error.ErrWrongHashDiff
 		}
 		return c.Next()
 	}
@@ -196,7 +195,6 @@ func ValidateBlockVersion(c *BlockContext) Middleware {
 	}
 }
 
-
 func ValidateBlockTime(c *BlockContext) Middleware {
 	return func() error {
 		blockTime := c.Block.Timestamp().Int64()
@@ -208,7 +206,7 @@ func ValidateBlockTime(c *BlockContext) Middleware {
 }
 
 // valid gas limit
-func ValidateGasLimit(c *BlockContext) Middleware{
+func ValidateGasLimit(c *BlockContext) Middleware {
 	return func() error {
 		if c.Block.IsSpecial() {
 			return c.Next()
@@ -217,7 +215,7 @@ func ValidateGasLimit(c *BlockContext) Middleware{
 		currentGasLimit := c.Block.Header().GetGasLimit()
 		// Verify that the gas limit is <= 2^63-1
 		if currentGasLimit > chain_config.MaxGasLimit {
-			return errors.New(fmt.Sprintf("invalid gasLimit: have %v, max %v",currentGasLimit,chain_config.MaxGasLimit))
+			return errors.New(fmt.Sprintf("invalid gasLimit: have %v, max %v", currentGasLimit, chain_config.MaxGasLimit))
 		}
 		parentGasLimit := c.Chain.GetLatestNormalBlock().Header().GetGasLimit()
 		diff := int64(currentGasLimit) - int64(parentGasLimit)

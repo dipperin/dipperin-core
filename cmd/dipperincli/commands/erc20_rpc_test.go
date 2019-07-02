@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package commands
 
 import (
@@ -67,7 +66,7 @@ func Test_rpcCaller_AnnounceERC20(t *testing.T) {
 			c.AnnounceERC20(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0] }))
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 }
 
 func Test_rpcCaller_ERC20TotalSupply(t *testing.T) {
@@ -79,7 +78,7 @@ func Test_rpcCaller_ERC20TotalSupply(t *testing.T) {
 		wrapRpcArgs(context, "1", "")
 		c.ERC20TotalSupply(context)
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0] }))
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 }
 
 func Test_rpcCaller_ERC20Transfer(t *testing.T) {
@@ -110,7 +109,7 @@ func Test_rpcCaller_ERC20Transfer(t *testing.T) {
 		//wrapRpcArgs(context, "1", "0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4,4,0.00001")
 		//c.ERC20Transfer(context)
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0] }))
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 }
 
 func Test_rpcCaller_ERC20TransferFrom(t *testing.T) {
@@ -139,7 +138,7 @@ func Test_rpcCaller_ERC20TransferFrom(t *testing.T) {
 			c.ERC20TransferFrom(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0] }))
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 }
 
 func Test_rpcCaller_ERC20TokenName(t *testing.T) {
@@ -159,7 +158,7 @@ func Test_rpcCaller_ERC20TokenName(t *testing.T) {
 			c.ERC20TokenName(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0] }))
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 }
 
 func Test_rpcCaller_ERC20TokenSymbol(t *testing.T) {
@@ -179,7 +178,7 @@ func Test_rpcCaller_ERC20TokenSymbol(t *testing.T) {
 			c.ERC20TokenSymbol(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0] }))
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 }
 
 func Test_getERC20Symbol(t *testing.T) {
@@ -229,7 +228,7 @@ func Test_rpcCaller_ERC20TokenDecimals(t *testing.T) {
 			c.ERC20TokenDecimals(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0] }))
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 }
 
 func Test_convert(t *testing.T) {
@@ -254,7 +253,7 @@ func Test_rpcCaller_ERC20GetInfo(t *testing.T) {
 			c.ERC20GetInfo(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0] }))
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 }
 
 func Test_rpcCaller_ERC20Allowance(t *testing.T) {
@@ -280,7 +279,7 @@ func Test_rpcCaller_ERC20Allowance(t *testing.T) {
 			c.ERC20Allowance(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0] }))
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 }
 
 func Test_rpcCaller_ERC20Approve(t *testing.T) {
@@ -306,7 +305,7 @@ func Test_rpcCaller_ERC20Approve(t *testing.T) {
 			c.ERC20Approve(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0] }))
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 }
 
 func Test_rpcCaller_ERC20Balance(t *testing.T) {
@@ -329,9 +328,8 @@ func Test_rpcCaller_ERC20Balance(t *testing.T) {
 			c.ERC20Balance(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0] }))
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 }
-
 
 func Test_ERC20Size(t *testing.T) {
 

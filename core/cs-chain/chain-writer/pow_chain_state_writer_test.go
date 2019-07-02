@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_writer
 
 import (
@@ -36,6 +35,5 @@ func TestNewPowChainWriter(t *testing.T) {
 	mb.EXPECT().Number().Return(uint64(1))
 	mc.EXPECT().GetBlockByNumber(gomock.Any()).Return(nil).AnyTimes()
 
-	assert.Error(t, NewPowChainWriter(&middleware.BlockContext{ Block: mb, Chain: mc }, mc).SaveBlock())
+	assert.Error(t, NewPowChainWriter(&middleware.BlockContext{Block: mb, Chain: mc}, mc).SaveBlock())
 }
-

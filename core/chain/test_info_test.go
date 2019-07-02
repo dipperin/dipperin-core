@@ -17,30 +17,30 @@
 package chain
 
 import (
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"errors"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chain/chaindb"
+	"github.com/dipperin/dipperin-core/core/chain/registerdb"
+	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"github.com/dipperin/dipperin-core/core/contract"
+	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/tests/factory"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/ethdb"
-	"errors"
-	"math/big"
-	"github.com/dipperin/dipperin-core/core/economy-model"
-	"github.com/dipperin/dipperin-core/common/consts"
-	"reflect"
-	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/contract"
-	"github.com/stretchr/testify/assert"
-	"testing"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/tests/factory"
-	"github.com/dipperin/dipperin-core/core/chain/registerdb"
-	"github.com/dipperin/dipperin-core/core/chain/chaindb"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/stretchr/testify/assert"
+	"math/big"
 	"os"
-	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"reflect"
+	"testing"
 )
 
 var (
@@ -96,7 +96,7 @@ func createTestStateDB(t *testing.T) (ethdb.Database, common.Hash) {
 func createUnNormalTx() *model.Transaction {
 	key1, _ := crypto.HexToECDSA(testPriv1)
 	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewUnNormalTransaction(0, big.NewInt(1000), big.NewInt(1),model2.TxGas)
+	tx := model.NewUnNormalTransaction(0, big.NewInt(1000), big.NewInt(1), model2.TxGas)
 	signedTx, _ := tx.SignTx(key1, fs1)
 	return signedTx
 }
@@ -114,7 +114,6 @@ func createBlockWithoutCoinBase() *model.Block {
 	header := model.NewHeader(1, 0, common.Hash{}, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(0), common.Address{}, common.BlockNonce{})
 	return model.NewBlock(header, nil, nil)
 }
-
 
 func createSignedVote2(num uint64, blockId common.Hash, voteType model.VoteMsgType, testPriv string, address common.Address) *model.VoteMsg {
 	voteA := model.NewVoteMsg(num, num, blockId, voteType)
@@ -159,7 +158,7 @@ func pathIsExist(path string) bool {
 	return true
 }
 
-type fakeAccountDBChain struct{
+type fakeAccountDBChain struct {
 	state *state_processor.AccountStateDB
 }
 
@@ -225,11 +224,11 @@ type fakeStateStorage struct {
 
 func (storage fakeStateStorage) OpenTrie(root common.Hash) (state_processor.StateTrie, error) {
 	return fakeTrie{
-		getErr:          storage.getErr,
-		setErr:          storage.setErr,
-		errKey:          storage.errKey,
-		contractBalance: &storage.contractBalance,
-	},
+			getErr:          storage.getErr,
+			setErr:          storage.setErr,
+			errKey:          storage.errKey,
+			contractBalance: &storage.contractBalance,
+		},
 		storage.storageErr
 }
 

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
@@ -29,8 +28,8 @@ const (
 var txConcurrentCacher *TxCacher = nil
 
 type TxCacherRequest struct {
-	txs    []AbstractTransaction
-	inc    int
+	txs []AbstractTransaction
+	inc int
 }
 
 // txCacher is a helper structure to concurrently recover transaction
@@ -38,7 +37,7 @@ type TxCacherRequest struct {
 type TxCacher struct {
 	threads int
 	tasks   chan *TxCacherRequest
-	wg     sync.WaitGroup
+	wg      sync.WaitGroup
 }
 
 // NewTxCacher creates a new transaction id background cacher and starts
@@ -91,8 +90,8 @@ func (cacher *TxCacher) TxRecover(txs []AbstractTransaction) {
 	for i := 0; i < tasks; i++ {
 		cacher.wg.Add(1)
 		cacher.tasks <- &TxCacherRequest{
-			txs:    txs[i:],
-			inc:    tasks,
+			txs: txs[i:],
+			inc: tasks,
 		}
 	}
 

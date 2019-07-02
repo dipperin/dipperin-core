@@ -17,9 +17,10 @@
 package service
 
 import (
+	"crypto/ecdsa"
+	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/address-util"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
@@ -35,14 +36,13 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/tx-pool"
 	"github.com/dipperin/dipperin-core/tests"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"net"
 	"testing"
-	"crypto/ecdsa"
-	"errors"
 )
 
 const (
@@ -53,7 +53,7 @@ const (
 var (
 	alicePriv = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232031"
 	aliceAddr = common.HexToAddress("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
-	testErr = errors.New("test error")
+	testErr   = errors.New("test error")
 )
 
 func createBlock(chain *chain_state.ChainState, txs []*model.Transaction, votes []model.AbstractVerification) model.AbstractBlock {
@@ -153,7 +153,7 @@ func createCsChainService(accounts []tests.Account) *cs_chain.CsChainService {
 	tests.NewGenesisEnv(chainState.GetChainDB(), chainState.GetStateStorage(), accounts)
 
 	serviceConfig := &cs_chain.CsChainServiceConfig{
-		CacheDB:          cachedb.NewCacheDB(chainState.GetDB()),
+		CacheDB: cachedb.NewCacheDB(chainState.GetDB()),
 	}
 	return &cs_chain.CsChainService{
 		CsChainServiceConfig: serviceConfig,
@@ -192,19 +192,19 @@ func createTxPool(csChain *chain_state.ChainState) *tx_pool.TxPool {
 func createSignedTx(nonce uint64, to common.Address, amount *big.Int, extraData []byte) *model.Transaction {
 	verifiers, _ := tests.ChangeVerifierAddress(nil)
 	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewTransaction(nonce, to, amount, testFee,g_testData.TestGasLimit, extraData)
+	tx := model.NewTransaction(nonce, to, amount, testFee, g_testData.TestGasLimit, extraData)
 	signedTx, _ := tx.SignTx(verifiers[0].Pk, fs1)
 	return signedTx
 }
 
 func createSignedTx2(nonce uint64, from *ecdsa.PrivateKey, to common.Address, amount *big.Int) *model.Transaction {
 	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewTransaction(nonce, to, amount, testFee,g_testData.TestGasLimit, []byte{})
+	tx := model.NewTransaction(nonce, to, amount, testFee, g_testData.TestGasLimit, []byte{})
 	signedTx, _ := tx.SignTx(from, fs1)
 	return signedTx
 }
 
-type fakeValidator struct{
+type fakeValidator struct {
 	err error
 }
 
@@ -454,7 +454,7 @@ func (s fakeMasterServer) SetMineMasterPeer(peer chain_communication.PmAbstractP
 	panic("implement me")
 }
 
-type fakeNode struct {}
+type fakeNode struct{}
 
 func (fakeNode) Start() error {
 	panic("implement me")
@@ -470,7 +470,7 @@ type fakeTxPool struct {
 
 func (pool fakeTxPool) AddRemotes(txs []model.AbstractTransaction) []error {
 	var errs []error
-	for i:=0; i<len(txs); i++ {
+	for i := 0; i < len(txs); i++ {
 		errs = append(errs, pool.err)
 	}
 	return errs
@@ -478,7 +478,7 @@ func (pool fakeTxPool) AddRemotes(txs []model.AbstractTransaction) []error {
 
 func (pool fakeTxPool) AddLocals(txs []model.AbstractTransaction) []error {
 	var errs []error
-	for i:=0; i<len(txs); i++ {
+	for i := 0; i < len(txs); i++ {
 		errs = append(errs, pool.err)
 	}
 	return errs

@@ -17,11 +17,11 @@
 package chaindb
 
 import (
+	"crypto/ecdsa"
+	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/ethereum/go-ethereum/ethdb"
-	"errors"
-	"crypto/ecdsa"
 	"math/big"
 )
 
@@ -30,7 +30,7 @@ var (
 	DecoderErr  = errors.New("fakeDecoder test error")
 	BatchErr    = errors.New("fakeBatch test error")
 	BodyErr     = errors.New("fakeBody test error")
-	HeaderErr     = errors.New("fakeHeader test error")
+	HeaderErr   = errors.New("fakeHeader test error")
 )
 
 func createBlock(number uint64) *model.Block {
@@ -123,7 +123,7 @@ func (batch fakeBatch) Reset() {
 	panic("implement me")
 }
 
-type fakeBody struct {}
+type fakeBody struct{}
 
 func (body fakeBody) GetTxsSize() int {
 	panic("implement me")
@@ -141,7 +141,7 @@ func (body fakeBody) GetInterLinks() model.InterLink {
 	panic("implement me")
 }
 
-type fakeHeader struct {}
+type fakeHeader struct{}
 
 func (h fakeHeader) GetTimeStamp() *big.Int {
 	panic("implement me")
@@ -199,7 +199,7 @@ func (h fakeHeader) GetProof() []byte {
 	panic("implement me")
 }
 
-func (h fakeHeader) GetMinerPubKey() (*ecdsa.PublicKey) {
+func (h fakeHeader) GetMinerPubKey() *ecdsa.PublicKey {
 	panic("implement me")
 }
 

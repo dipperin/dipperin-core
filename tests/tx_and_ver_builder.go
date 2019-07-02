@@ -14,19 +14,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package tests
 
 import (
 	"crypto/ecdsa"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"math/big"
-	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"time"
-	"github.com/dipperin/dipperin-core/core/chain-config"
 )
 
 var txSigner = model.NewMercurySigner(chain_config.GetChainConfig().ChainId)
@@ -38,7 +37,7 @@ type TxBuilder struct {
 	Amount *big.Int
 	Fee    *big.Int
 	Data   []byte
-	Pk *ecdsa.PrivateKey
+	Pk     *ecdsa.PrivateKey
 }
 
 func (b *TxBuilder) From() common.Address {
@@ -46,7 +45,7 @@ func (b *TxBuilder) From() common.Address {
 }
 
 func (b *TxBuilder) Build() *model.Transaction {
-	tx := model.NewTransaction(b.Nonce, b.To, b.Amount,g_testData.TestGasPrice,g_testData.TestGasLimit, b.Data)
+	tx := model.NewTransaction(b.Nonce, b.To, b.Amount, g_testData.TestGasPrice, g_testData.TestGasLimit, b.Data)
 	tx.SignTx(b.Pk, txSigner)
 	return tx
 }
@@ -56,10 +55,10 @@ func (b *TxBuilder) BuildAbs() model.AbstractTransaction {
 }
 
 type VerBuilder struct {
-	Round uint64
+	Round    uint64
 	VoteType model.VoteMsgType
-	Block model.AbstractBlock
-	Pk *ecdsa.PrivateKey
+	Block    model.AbstractBlock
+	Pk       *ecdsa.PrivateKey
 }
 
 func (b *VerBuilder) Build() model.AbstractVerification {

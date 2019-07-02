@@ -36,7 +36,7 @@ Name
 CalledBy
 Parameters
 Return
- */
+*/
 func NewRegisterTransaction(nonce uint64, amount *big.Int, gasPrice *big.Int, gasLimit uint64) *Transaction {
 	target := common.HexToAddress(common.AddressStake)
 	extraData := txData{

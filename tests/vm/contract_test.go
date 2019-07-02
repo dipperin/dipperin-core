@@ -1,11 +1,11 @@
 package vm
 
 import (
+	"fmt"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/dipperin/dipperin-core/tests/node-cluster"
-	"github.com/dipperin/dipperin-core/common"
-	"fmt"
 )
 
 func TestGetReceiptsByBlockNum(t *testing.T) {

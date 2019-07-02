@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package config
 
 import (
@@ -60,7 +59,6 @@ func DipperinCliCompleter(d prompt.Document) []prompt.Suggest {
 	return argumentsCompleter(excludeOptions(args))
 }
 
-
 func DipperinCliCompleterNew(d prompt.Document) []prompt.Suggest {
 	if d.TextBeforeCursor() == "" {
 		return nilSuggest
@@ -82,7 +80,7 @@ func DipperinCliCompleterNew(d prompt.Document) []prompt.Suggest {
 	if len(args) == 2 {
 		return optionCompleterNew(args, true)
 	} else if strings.HasPrefix(w, "-") {
-		return optionCompleterNew(args,strings.HasPrefix(w, "--"))
+		return optionCompleterNew(args, strings.HasPrefix(w, "--"))
 	}
 	/*for i, r := range w {
 		log.Debug("range w ", "i", i, "r", string(r))
@@ -103,7 +101,7 @@ func CheckModuleMethodIsRight(moduleName, methodName string) bool {
 			return true
 		}
 	}
-	if methodName == "-h" || methodName == "--help"{
+	if methodName == "-h" || methodName == "--help" {
 		return true
 	}
 	return false
@@ -125,7 +123,6 @@ func getSuggestFromModuleName(moduleName string) []prompt.Suggest {
 	}
 	return suggest
 }
-
 
 func argumentsCompleterNew(args []string) []prompt.Suggest {
 	l := len(args)

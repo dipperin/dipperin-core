@@ -1326,19 +1326,19 @@ func (state *AccountStateDB) processBasicTx(conf *TxProcessConfig) (err error) {
 		return g_error.ErrTxNonceNotMatch
 	}
 	/*	if empty := state.IsEmptyAccount(receiver); empty {
-			return ReceiverNotExistErr
-		}*/
+		return ReceiverNotExistErr
+	}*/
 	//calculated gasUsed and sub the fee
-	gasUsed,err := model.IntrinsicGas(conf.Tx.ExtraData(),false,false)
-	if err != nil{
+	gasUsed, err := model.IntrinsicGas(conf.Tx.ExtraData(), false, false)
+	if err != nil {
 		return err
 	}
 
-	if gasUsed > conf.Tx.GetGasLimit(){
+	if gasUsed > conf.Tx.GetGasLimit() {
 		return g_error.ErrTxGasUsedIsOverGasLimit
 	}
 
-	conf.TxFee = big.NewInt(0).Mul(big.NewInt(int64(gasUsed)),conf.Tx.GetGasPrice())
+	conf.TxFee = big.NewInt(0).Mul(big.NewInt(int64(gasUsed)), conf.Tx.GetGasPrice())
 	err = state.SubBalance(sender, conf.TxFee)
 	if err != nil {
 		return
@@ -1410,7 +1410,7 @@ func (state *AccountStateDB) clearChangeList() {
 
 //fixme
 func (state *AccountStateDB) SetData(addr common.Address, key string, value []byte) (err error) {
-	log.Debug("SetData","addr",addr.String(),"key",key,"keybyte",[]byte(key),"value",value)
+	log.Debug("SetData", "addr", addr.String(), "key", key, "keybyte", []byte(key), "value", value)
 	var preValue []byte
 	if state.smartContractData[addr] == nil {
 		state.smartContractData[addr] = make(map[string][]byte)
@@ -1424,7 +1424,7 @@ func (state *AccountStateDB) SetData(addr common.Address, key string, value []by
 			delete(state.smartContractData, addr)
 		}
 	}
-	log.Debug("SetData result","key",key,"result",state.smartContractData[addr][key])
+	log.Debug("SetData result", "key", key, "result", state.smartContractData[addr][key])
 	state.stateChangeList.append(dataChange{Account: &addr, Key: key, Prev: preValue, Current: value, ChangeType: DataChange})
 	return
 }
@@ -1440,7 +1440,7 @@ func (state *AccountStateDB) GetData(addr common.Address, key string) (data []by
 	if err != nil {
 		return
 	}
-	data,err = tier.TryGet(GetContractFieldKey(addr, key))
+	data, err = tier.TryGet(GetContractFieldKey(addr, key))
 	if err != nil {
 		return
 	}

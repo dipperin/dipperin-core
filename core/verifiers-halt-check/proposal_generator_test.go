@@ -14,19 +14,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package verifiers_halt_check_test
 
 import (
-	"testing"
-	"github.com/dipperin/dipperin-core/tests/factory"
-	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/tests"
-	"github.com/stretchr/testify/assert"
+	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/verifiers-halt-check"
+	"github.com/dipperin/dipperin-core/tests"
+	"github.com/dipperin/dipperin-core/tests/factory"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 var bootNodeIndex int
@@ -62,7 +61,7 @@ func MakeTestProposalConfig(voteType model.VoteMsgType, verBootIndex int) verifi
 }
 
 func MakeTestProposalMsg(verBootIndex int) (*verifiers_halt_check.ProposalMsg, error) {
-	config := MakeTestProposalConfig(model.VerBootNodeVoteMessage,verBootIndex)
+	config := MakeTestProposalConfig(model.VerBootNodeVoteMessage, verBootIndex)
 	return verifiers_halt_check.GenProposalMsg(config)
 }
 

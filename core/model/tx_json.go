@@ -62,7 +62,7 @@ func (t txData) MarshalJSON() ([]byte, error) {
 		TimeLock  *hexutil.Big    `json:"timelock" gencodec:"required"`
 		Amount    *hexutil.Big    `json:"value"    gencodec:"required"`
 		Price     *hexutil.Big    `json:"gasPrice" gencodec:"required"`
-		GasLimit  hexutil.Uint64 `json:"gas"      gencodec:"required"`
+		GasLimit  hexutil.Uint64  `json:"gas"      gencodec:"required"`
 		ExtraData hexutil.Bytes   `json:"input"    gencodec:"required"`
 	}
 	var enc txdata
@@ -74,7 +74,7 @@ func (t txData) MarshalJSON() ([]byte, error) {
 	enc.Amount = (*hexutil.Big)(t.Amount)
 	enc.ExtraData = t.ExtraData
 	enc.GasLimit = hexutil.Uint64(t.GasLimit)
-	enc.Price    = (*hexutil.Big)(t.Price)
+	enc.Price = (*hexutil.Big)(t.Price)
 
 	return json.Marshal(&enc)
 }

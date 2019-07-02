@@ -17,11 +17,11 @@
 package model
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"math/big"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
 )
 
 func TestMakeDefaultBlockDecoder(t *testing.T) {

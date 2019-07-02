@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package cs_chain
 
 import (
@@ -47,7 +46,7 @@ const (
 
 var (
 	numLowBlockToReturnErr uint64 = 10
-	GenesisSetUp bool
+	GenesisSetUp           bool
 )
 
 func IsSetUpGenesis() bool {

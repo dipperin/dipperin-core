@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package economy_model
 
 import "errors"
@@ -22,11 +21,11 @@ import "errors"
 var (
 	ErrBlockNumberIs0Ore1 = errors.New("the block number is 0 or 1")
 
-    ErrBlockNumberIs0 = errors.New("the blockNumber is 0")
+	ErrBlockNumberIs0 = errors.New("the blockNumber is 0")
 
-    ErrLockTypeError = errors.New("the lockType error")
+	ErrLockTypeError = errors.New("the lockType error")
 
-    ErrAddress = errors.New("the address isn't investor or developer")
+	ErrAddress = errors.New("the address isn't investor or developer")
 
-    ErrAddressExist = errors.New("address exist")
+	ErrAddressExist = errors.New("address exist")
 )

@@ -31,14 +31,14 @@ import (
 )
 
 type NewBftOuterConfig struct {
-	Chain    Chain
-	Pm       PeerManager
+	Chain Chain
+	Pm    PeerManager
 }
 
 func NewBftOuter(config *NewBftOuterConfig) *BftOuter {
 	b := &BftOuter{
 		NewBftOuterConfig: config,
-		handlers:    make(map[uint64]func(msg p2p.Msg, p PmAbstractPeer) error),
+		handlers:          make(map[uint64]func(msg p2p.Msg, p PmAbstractPeer) error),
 	}
 	b.handlers[GetVerifyResultMsg] = b.onGetVerifiedResult
 	b.handlers[VerifyBlockHashResultMsg] = b.onVerifiedResultBlockHash
@@ -70,7 +70,7 @@ func (broadcaster *BftOuter) MsgHandlers() map[uint64]func(msg p2p.Msg, p PmAbst
 func (broadcaster *BftOuter) BroadcastVerifiedBlock(vr *model2.VerifyResult) {
 	peers := broadcaster.getPeersWithoutBlock(vr.Block.Hash())
 	log.Info("broadcast verified block", "p len", len(peers))
-	log.Info("broadcast verified block hash", "hash",vr.Block.Hash().Hex())
+	log.Info("broadcast verified block hash", "hash", vr.Block.Hash().Hex())
 
 	for i := range peers {
 		receiver := broadcaster.getReceiver(peers[i])

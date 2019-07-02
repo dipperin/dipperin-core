@@ -23,11 +23,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
@@ -37,10 +38,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"math/big"
+	"strings"
 	"testing"
 	"time"
-	"strings"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 )
 
 var (
@@ -189,7 +189,7 @@ func getContractInput(t *testing.T, funcName string, param [][]byte) []byte {
 	// func name
 	input = append(input, []byte(funcName))
 	// func parameter
-	for _, v := range (param) {
+	for _, v := range param {
 		input = append(input, v)
 	}
 

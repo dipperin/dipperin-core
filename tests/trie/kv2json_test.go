@@ -14,26 +14,25 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package trie
 
 import (
-	"testing"
-	"math/big"
-	"github.com/tidwall/gjson"
+	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/util"
-	"strconv"
-	"errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
+	"math/big"
 	"reflect"
+	"strconv"
+	"testing"
 )
 
 type erc20 struct {
-	Owners  []string `json:"owners"`
+	Owners  []string            `json:"owners"`
 	Balance map[string]*big.Int `json:"balance"`
-	Name    string `json:"name"`
-	Dis     uint64 `json:"dis"`
+	Name    string              `json:"name"`
+	Dis     uint64              `json:"dis"`
 }
 
 func TestJson2kv(t *testing.T) {
@@ -84,7 +83,7 @@ func json2KV2(key string, json gjson.Result, result map[string]string) {
 			} else {
 				json2KV2(key+arrSegS+strconv.Itoa(index), value, result)
 			}
-			index ++
+			index++
 			return true
 		})
 
@@ -96,7 +95,6 @@ func json2KV2(key string, json gjson.Result, result map[string]string) {
 		}
 	}
 }
-
 
 const (
 	dataTypeNormal = iota
@@ -112,9 +110,9 @@ const (
 )
 
 type jNode struct {
-	key string
-	nType int
-	value string
+	key      string
+	nType    int
+	value    string
 	children []absNode
 }
 
@@ -154,7 +152,7 @@ func (n *jNode) Children() []absNode {
 //
 func kv2JsonStr(kv map[string]string) (result string, err error) {
 	// children in root is parsed in kV
-	root := &jNode{ nType: dataTypeObj, children: []absNode{} }
+	root := &jNode{nType: dataTypeObj, children: []absNode{}}
 	if err = parseKVToJNode(root, kv); err != nil {
 		return
 	}
@@ -165,7 +163,7 @@ func kv2JsonStr(kv map[string]string) (result string, err error) {
 }
 
 type nodeInfoCache struct {
-	n absNode
+	n  absNode
 	kv map[string]string
 }
 
@@ -179,7 +177,7 @@ func parseKVToJNode(parent absNode, kv map[string]string) error {
 		oldC := parent.GetChild(k1)
 		rv := reflect.ValueOf(oldC)
 		if !rv.IsValid() || rv.IsNil() {
-			oldC = &jNode{ key: k1, nType: dt, children: []absNode{} }
+			oldC = &jNode{key: k1, nType: dt, children: []absNode{}}
 			parent.AddChild(oldC)
 		}
 		if oldC.NType() != dt {
@@ -193,7 +191,7 @@ func parseKVToJNode(parent absNode, kv map[string]string) error {
 		default:
 			cache := childrenInfoCaches[k1]
 			if cache == nil {
-				cache = &nodeInfoCache{ n: oldC, kv: map[string]string{} }
+				cache = &nodeInfoCache{n: oldC, kv: map[string]string{}}
 				childrenInfoCaches[k1] = cache
 			}
 			cache.kv[extKey] = v
@@ -217,7 +215,7 @@ func extractKey(k string) (x, extKey string, dataType int) {
 		if tmpC == objSegC {
 			return k[:i], k[i+1:], dataTypeObj
 		}
-		if  tmpC == arrSegC {
+		if tmpC == arrSegC {
 			return k[:i], k[i+1:], dataTypeArr
 		}
 	}
@@ -264,7 +262,7 @@ func extractObj(n absNode) (string, error) {
 	}
 
 	// remove the last comma
-	result = result[:len(result) - 1]
+	result = result[:len(result)-1]
 	result += "}"
 
 	return result, nil
@@ -316,7 +314,7 @@ func extractArr(n absNode) (string, error) {
 	}
 
 	// remove the last comma
-	result = result[:len(result) - 1]
+	result = result[:len(result)-1]
 	result += "]"
 
 	return result, nil

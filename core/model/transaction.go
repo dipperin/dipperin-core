@@ -250,9 +250,9 @@ type txData struct {
 	HashLock     *common.Hash    `json:"hashLock" rlp:"nil"`
 	TimeLock     *big.Int        `json:"timeLock22" gencodec:"required"`
 	Amount       *big.Int        `json:"Value"    gencodec:"required"`
-	Price     *big.Int `json:"gasPrice" gencodec:"required"`
-	GasLimit  uint64   `json:"gas"      gencodec:"required"`
-	ExtraData []byte   `json:"input"    gencodec:"required"`
+	Price        *big.Int        `json:"gasPrice" gencodec:"required"`
+	GasLimit     uint64          `json:"gas"      gencodec:"required"`
+	ExtraData    []byte          `json:"input"    gencodec:"required"`
 }
 
 type witness struct {
@@ -617,10 +617,10 @@ func NewTransactionsByFeeAndNonce(signer Signer, txs map[common.Address][]Abstra
 				if from != acc {
 					delete(txs, from)
 				}*/
-		if len(accTxs) == 0{
+		if len(accTxs) == 0 {
 			log.Warn("theaccTxs is nil")
 			delete(txs, from)
-		}else {
+		} else {
 			acc, _ := accTxs[0].Sender(signer)
 			if from != acc {
 				log.Warn("the tx sender and from is different")

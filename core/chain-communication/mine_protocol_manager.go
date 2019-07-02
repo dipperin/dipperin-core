@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_communication
 
 import (
@@ -34,15 +33,15 @@ type p2pMsgHandler interface {
 
 func NewMineProtocolManager(msgHandler p2pMsgHandler) *MineProtocolManager {
 	return &MineProtocolManager{
-		maxPeers: maxPeers,
-		peers: newPeerSet(),
+		maxPeers:   maxPeers,
+		peers:      newPeerSet(),
 		msgHandler: msgHandler,
 	}
 }
 
 type MineProtocolManager struct {
 	maxPeers int
-	peers AbstractPeerSet
+	peers    AbstractPeerSet
 
 	msgHandler p2pMsgHandler
 
@@ -51,7 +50,7 @@ type MineProtocolManager struct {
 
 func (pm *MineProtocolManager) handleMsg(p PmAbstractPeer) error {
 	msg, err := p.ReadMsg()
-	if err != nil{
+	if err != nil {
 		log.Info("mine read msg from peer failed", "err", err)
 		return err
 	}
@@ -70,7 +69,6 @@ func (pm *MineProtocolManager) handleMsg(p PmAbstractPeer) error {
 	return nil
 }
 
-
 func (pm *MineProtocolManager) GetProtocol() p2p.Protocol {
 	var version uint = chain_config.MineProtocolVersion
 	protocolName := chain_config.AppName + "_mine"
@@ -88,7 +86,6 @@ func (pm *MineProtocolManager) GetProtocol() p2p.Protocol {
 	}
 	return p
 }
-
 
 func (pm *MineProtocolManager) handle(p PmAbstractPeer) error {
 	if pm.peers.Len() >= pm.maxPeers {

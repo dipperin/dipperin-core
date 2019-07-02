@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package middleware
 
 import (
@@ -22,7 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
-func InsertBlock(c *BlockContext) Middleware{
+func InsertBlock(c *BlockContext) Middleware {
 	return func() error {
 		curBlock := c.Chain.CurrentBlock()
 
@@ -33,7 +32,7 @@ func InsertBlock(c *BlockContext) Middleware{
 			log.Info("chain roll back successful", "curNum", curBlock.Number())
 		}
 
-		log.Info("insert block","cur number",curBlock.Number(),"new number",c.Block.Number())
+		log.Info("insert block", "cur number", curBlock.Number(), "new number", c.Block.Number())
 		// check block number
 		if c.Chain.CurrentBlock().Number()+1 != c.Block.Number() {
 			return errors.New("wrong number")

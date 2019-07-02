@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package g_timer
 
 import (
@@ -23,14 +22,14 @@ import (
 )
 
 var (
-	//errExisted = errors.New("timer existed")
-	//errNotExisted = errors.New("timer not existed")
+//errExisted = errors.New("timer existed")
+//errNotExisted = errors.New("timer not existed")
 )
 
 type property struct {
 	ticker *time.Ticker
-	timer *time.Timer
-	stop chan struct{}
+	timer  *time.Timer
+	stop   chan struct{}
 }
 
 var recordID int
@@ -56,7 +55,7 @@ func SetPeriodAndRun(handle func(), interval time.Duration) int {
 			case <-ticker.C:
 				handle()
 
-			case <- quit:
+			case <-quit:
 				return
 			}
 		}
@@ -68,7 +67,7 @@ func SetPeriodAndRun(handle func(), interval time.Duration) int {
 /*
  * StopWork stop periodic timer
  */
-func StopWork(id int)  {
+func StopWork(id int) {
 	recordLock.Lock()
 	defer recordLock.Unlock()
 

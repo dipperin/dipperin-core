@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package economy_model
 
 import (
@@ -26,7 +25,7 @@ import (
 type VerifierType uint
 
 const (
-	MasterVerifier    VerifierType = iota
+	MasterVerifier VerifierType = iota
 	CommitVerifier
 	NotCommitVerifier
 )
@@ -44,10 +43,10 @@ type EconomyModel interface {
 	GetFoundation() Foundation
 	CheckAddressType(address common.Address) EconomyModelAddress
 
-	GetDiffVerifierAddress(preBlock,block model.AbstractBlock) (map[VerifierType][]common.Address, error)
+	GetDiffVerifierAddress(preBlock, block model.AbstractBlock) (map[VerifierType][]common.Address, error)
 
-	GetAddressLockMoney(address common.Address,blockNumber uint64) (*big.Int,error)
+	GetAddressLockMoney(address common.Address, blockNumber uint64) (*big.Int, error)
 
-	GetBlockYear(blockNumber uint64) (uint64,error)
+	GetBlockYear(blockNumber uint64) (uint64, error)
 	GetOneBlockTotalDIPReward(blockNumber uint64) (*big.Int, error)
 }

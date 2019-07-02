@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package util
 
 import (
@@ -82,7 +81,6 @@ func StringifyJsonToBytesWithErr(data interface{}) ([]byte, error) {
 //	}
 //	return nil
 //}
-
 
 // findLine returns the line number for the given offset into data.
 //func findLine(data []byte, offset int64) (line int) {
@@ -222,7 +220,7 @@ func StopChanClosed(stop chan struct{}) bool {
 		return true
 	}
 	select {
-	case _, ok := <- stop:
+	case _, ok := <-stop:
 		return !ok
 	default:
 		return false
@@ -239,10 +237,10 @@ func ExecuteFuncWithTimeout(f func(), t time.Duration) {
 	timer := time.NewTimer(t)
 	// The caller will block here until f is executed or the timer triggers timeout.
 	select {
-	case <- finish:
+	case <-finish:
 		timer.Stop()
 		return
-	case <- timer.C:
+	case <-timer.C:
 		panic("exec func timeout")
 	}
 }
@@ -255,10 +253,10 @@ func SetTimeout(timeoutFunc func(), dur time.Duration) (finishFunc func()) {
 	// This goroutine is a timer. If you don't do anything outside, it will also trigger at a fixed time.
 	go func() {
 		select {
-		case <- finishChan:
+		case <-finishChan:
 			timer.Stop()
 			return
-		case <- timer.C:
+		case <-timer.C:
 			timeoutFunc()
 		}
 	}()

@@ -19,7 +19,7 @@ type VmContextService interface {
 	GetTime() *big.Int
 	GetCoinBase() common.Address
 	GetOrigin() common.Address
-	Call(caller ContractRef, addr common.Address, input []byte,gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error)
+	Call(caller ContractRef, addr common.Address, input []byte, gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error)
 	//GetCallGasTemp() uint64
 	DelegateCall(caller ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error)
 	GetTxHash() common.Hash
@@ -37,8 +37,8 @@ type StateDBService interface {
 	GetBalance(addr common.Address) *big.Int
 	AddLog(addedLog *model.Log)
 	//AddLog(address common.Address, topics []common.Hash, data []byte, bn uint64)
-	SetState(addr common.Address,key []byte, value []byte)
-	GetState(addr common.Address,key []byte) (data []byte)
+	SetState(addr common.Address, key []byte, value []byte)
+	GetState(addr common.Address, key []byte) (data []byte)
 	GetNonce(common.Address) uint64
 }
 
@@ -53,7 +53,7 @@ func (service *resolverNeedExternalService) GetCallerNonce() int64 {
 	return int64(service.StateDBService.GetNonce(addr))
 }
 
-func (service *resolverNeedExternalService) ReSolverSetState(key []byte, value []byte)  {
+func (service *resolverNeedExternalService) ReSolverSetState(key []byte, value []byte) {
 	service.StateDBService.SetState(service.Address(), key, value)
 }
 
@@ -80,4 +80,3 @@ func (service *resolverNeedExternalService) ResolverDelegateCall(addr, param []b
 	ret, _, err := service.VmContextService.DelegateCall(service.ContractService, common.HexToAddress(hex.EncodeToString(addr)), param,service.ContractService.GetGas())
 	return ret, err
 }*/
-

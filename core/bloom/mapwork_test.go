@@ -14,28 +14,27 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package iblt
 
 import (
-	"testing"
-	"runtime"
 	"fmt"
+	"runtime"
+	"testing"
 	"time"
 )
 
 type addRet struct {
-	v int
+	v  int
 	ok bool
 }
 
-func (ret addRet)DoTask(i interface{})interface{} {
+func (ret addRet) DoTask(i interface{}) interface{} {
 	result := addInt(i.(int))
 	return result
 }
 
 func addInt(i int) addRet {
-	time.Sleep(time.Microsecond*1)
+	time.Sleep(time.Microsecond * 1)
 	return addRet{i, true}
 }
 
@@ -50,21 +49,19 @@ func Test_Map_Work(t *testing.T) {
 	raw := make([]interface{}, LENGTH)
 	after := make([]addRet, LENGTH)
 
-	for i:=0; i<LENGTH; i++ {
+	for i := 0; i < LENGTH; i++ {
 		raw[i] = i
 	}
 
-
 	retCh, err := mWorkMap.StartWorks(raw)
 
-	j:=0
-
+	j := 0
 
 	if err == nil {
-		pass:
+	pass:
 		for {
 			select {
-			case r := <- retCh:
+			case r := <-retCh:
 				after[j] = r.(addRet)
 				j++
 				//fmt.Println(r, j)
@@ -79,7 +76,7 @@ func Test_Map_Work(t *testing.T) {
 	fmt.Println(time.Now().Sub(st))
 
 	st = time.Now()
-	for i:=0; i<LENGTH; i++ {
+	for i := 0; i < LENGTH; i++ {
 		after[i] = addInt(i)
 	}
 	fmt.Println(time.Now().Sub(st))

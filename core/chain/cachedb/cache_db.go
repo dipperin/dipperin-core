@@ -88,7 +88,7 @@ func (cache *CacheDB) load(key []byte, result interface{}) error {
 }
 
 func seenCommitsKey(blockHeight uint64, blockHash common.Hash) []byte {
-	return append(append([]byte("seen_commits"), encodeNumber(blockHeight)...), blockHash.Bytes()..., )
+	return append(append([]byte("seen_commits"), encodeNumber(blockHeight)...), blockHash.Bytes()...)
 }
 
 func encodeNumber(number uint64) []byte {

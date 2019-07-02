@@ -1,13 +1,13 @@
 package state_processor
 
 import (
-	"github.com/dipperin/dipperin-core/core/model"
-	"math/big"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/vm"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/math"
+	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/core/vm"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"math/big"
 )
 
 type StateTransition struct {

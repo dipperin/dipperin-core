@@ -92,7 +92,7 @@ func envPrintsGasCost(vm *exec.VirtualMachine) (uint64, error) {
 func envPrintsl(vm *exec.VirtualMachine) int64 {
 	ptr := int(uint32(vm.GetCurrentFrame().Locals[0]))
 	msgLen := int(uint32(vm.GetCurrentFrame().Locals[1]))
-	msg := vm.Memory.Memory[ptr: ptr+msgLen]
+	msg := vm.Memory.Memory[ptr : ptr+msgLen]
 	vm_log.Debug(string(msg))
 	log.Info("envPrintsl called", "string", string(msg))
 	return 0
@@ -128,7 +128,7 @@ func envPrintuiGasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 func envPrinti128(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
-	buf := vm.Memory.Memory[pos: pos+16]
+	buf := vm.Memory.Memory[pos : pos+16]
 	lo := uint64(binary.LittleEndian.Uint64(buf[:8]))
 	ho := uint64(binary.LittleEndian.Uint64(buf[8:]))
 	ret := C.printi128(C.uint64_t(lo), C.uint64_t(ho))
@@ -145,7 +145,7 @@ func envPrinti128GasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 func envPrintui128(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
-	buf := vm.Memory.Memory[pos: pos+16]
+	buf := vm.Memory.Memory[pos : pos+16]
 	lo := uint64(binary.LittleEndian.Uint64(buf[:8]))
 	ho := uint64(binary.LittleEndian.Uint64(buf[8:]))
 	ret := C.printui128(C.uint64_t(lo), C.uint64_t(ho))
@@ -188,8 +188,8 @@ func envPrintqf(vm *exec.VirtualMachine) int64 {
 	frame := vm.GetCurrentFrame()
 	pos := frame.Locals[0]
 
-	low := C.uint64_t(binary.LittleEndian.Uint64(vm.Memory.Memory[pos: pos+8]))
-	high := C.uint64_t(binary.LittleEndian.Uint64(vm.Memory.Memory[pos+8: pos+16]))
+	low := C.uint64_t(binary.LittleEndian.Uint64(vm.Memory.Memory[pos : pos+8]))
+	high := C.uint64_t(binary.LittleEndian.Uint64(vm.Memory.Memory[pos+8 : pos+16]))
 
 	buf := C.GoString(C.__printqf(low, high))
 	vm_log.Debug(fmt.Sprintf("%s", buf))
@@ -213,7 +213,7 @@ func envPrintnGasCost(vm *exec.VirtualMachine) (uint64, error) {
 func envPrinthex(vm *exec.VirtualMachine) int64 {
 	data := int(uint32(vm.GetCurrentFrame().Locals[0]))
 	dataLen := int(uint32(vm.GetCurrentFrame().Locals[1]))
-	hex := vm.Memory.Memory[data:data+dataLen]
+	hex := vm.Memory.Memory[data : data+dataLen]
 	vm_log.Debug(fmt.Sprintf("%x", hex))
 	log.Info("envPrinthex called", "hex", fmt.Sprintf("%x", hex))
 	return 0
@@ -385,7 +385,7 @@ func envSha3(vm *exec.VirtualMachine) int64 {
 	size := int(int32(vm.GetCurrentFrame().Locals[1]))
 	destOffset := int(int32(vm.GetCurrentFrame().Locals[2]))
 	destSize := int(int32(vm.GetCurrentFrame().Locals[3]))
-	data := vm.Memory.Memory[offset: offset+size]
+	data := vm.Memory.Memory[offset : offset+size]
 	hash := crypto.Keccak256(data)
 	//fmt.Println(common.Bytes2Hex(hash))
 	if destSize < len(hash) {

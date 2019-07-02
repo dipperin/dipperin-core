@@ -1,11 +1,11 @@
 package resolver
 
 import (
-	"github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 // Sstore
@@ -51,7 +51,7 @@ func (r *Resolver) envGetStateSize(vm *exec.VirtualMachine) int64 {
 	log.Info("envGetStateSize Called")
 	key := int(int32(vm.GetCurrentFrame().Locals[0]))
 	keyLen := int(int32(vm.GetCurrentFrame().Locals[1]))
-	val := r.Service.ReSolverGetState(vm.Memory.Memory[key: key+keyLen])
+	val := r.Service.ReSolverGetState(vm.Memory.Memory[key : key+keyLen])
 	log.Info("Get valueLen", "valueLen", len(val))
 	return int64(len(val))
 }
@@ -103,8 +103,8 @@ func envMalloc(vm *exec.VirtualMachine) int64 {
 
 func envFree(vm *exec.VirtualMachine) int64 {
 	/*	if vmcommon.Config.DisableFree {
-			return 0
-		}*/
+		return 0
+	}*/
 	//log.Info("envFree Called")
 	mem := vm.Memory
 	offset := int(uint32(vm.GetCurrentFrame().Locals[0]))

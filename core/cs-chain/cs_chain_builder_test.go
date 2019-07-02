@@ -14,26 +14,25 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package cs_chain_test
 
 import (
-	"github.com/dipperin/dipperin-core/core/economy-model"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/core/model"
-	"math/big"
-	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/tests"
-	"github.com/dipperin/dipperin-core/core/cs-chain"
-	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
-	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/cs-chain"
+	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
+	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
+	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
+	"github.com/dipperin/dipperin-core/core/economy-model"
+	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/tests"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
 )
 
 var (
@@ -115,14 +114,14 @@ func CreateVerBootVote(block model.AbstractBlock) model.AbstractVerification {
 
 func CreateSignedTx(nonce uint64, to common.Address, amount *big.Int, account tests.Account) model.AbstractTransaction {
 	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewTransaction(nonce, to, amount, g_testData.TestGasPrice,g_testData.TestGasLimit, []byte{})
+	tx := model.NewTransaction(nonce, to, amount, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	signedTx, _ := tx.SignTx(account.Pk, fs1)
 	return signedTx
 }
 
 func CreateSignedRegisterTx(nonce uint64, amount *big.Int, account tests.Account) model.AbstractTransaction {
 	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewRegisterTransaction(nonce, amount, g_testData.TestGasPrice,g_testData.TestGasLimit)
+	tx := model.NewRegisterTransaction(nonce, amount, g_testData.TestGasPrice, g_testData.TestGasLimit)
 	signedTx, _ := tx.SignTx(account.Pk, fs1)
 	return signedTx
 }

@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package marshal
 
 import (
-	"github.com/ethereum/go-ethereum/rlp"
-	"testing"
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"reflect"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/core/bloom"
+	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/stretchr/testify/assert"
+	"reflect"
+	"testing"
 )
 
 type absHand interface {
@@ -32,12 +31,12 @@ type absHand interface {
 }
 
 type user struct {
-	Id uint
+	Id   uint
 	Hand []absHand
 }
 
 type userRlp1 struct {
-	Id uint
+	Id   uint
 	Hand []*hand1
 }
 
@@ -55,7 +54,7 @@ type userRlpHandler interface {
 
 var defaultUserRlpHandler userRlpHandler
 
-type hand1UserRlpHandler struct {}
+type hand1UserRlpHandler struct{}
 
 func (h *hand1UserRlpHandler) Decode(to *user, s *rlp.Stream) error {
 	var ru userRlp1
@@ -73,7 +72,7 @@ func (b *user) DecodeRLP(s *rlp.Stream) error {
 	return defaultUserRlpHandler.Decode(b, s)
 }
 
-func sliceCopy(to, from interface{})  {
+func sliceCopy(to, from interface{}) {
 	toV := reflect.ValueOf(to)
 	fromV := reflect.ValueOf(from)
 	fLen := fromV.Len()
@@ -85,7 +84,7 @@ func sliceCopy(to, from interface{})  {
 
 func BenchmarkSliceCopy(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		from := []absHand{ &hand1{X: 1} }
+		from := []absHand{&hand1{X: 1}}
 		to := make([]*hand1, len(from))
 		sliceCopy(to, from)
 		assert.Equal(b, uint(1), to[0].X)
@@ -94,7 +93,7 @@ func BenchmarkSliceCopy(b *testing.B) {
 
 func BenchmarkGetAbsHands(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		from := []absHand{ &hand1{X: 1} }
+		from := []absHand{&hand1{X: 1}}
 		fLen := len(from)
 		to := make([]*hand1, fLen)
 		for j, f := range from {
@@ -135,8 +134,8 @@ func TestMarshalRlp(t *testing.T) {
 	//x := append([]absHand{ }, []*hand1{ {X: 1} }...)
 
 	u := &user{
-		Id: 2,
-		Hand: []absHand{ &hand1{ X: 1 } },
+		Id:   2,
+		Hand: []absHand{&hand1{X: 1}},
 	}
 	ub, err := rlp.EncodeToBytes(u)
 	assert.NoError(t, err)
@@ -166,5 +165,5 @@ func TestBloomData(t *testing.T) {
 	tempGraphene := iblt.NewGraphene(bloomG.InvBloomConfig(), bloomG.BloomConfig())
 	alice, bob, err := tempGraphene.InvBloom().Subtract(bloomG.InvBloom(), invBloomG.InvBloom()).ListRLP()
 	assert.NoError(t, err)
-	fmt.Println("==========alice, bob==========",alice, bob)
+	fmt.Println("==========alice, bob==========", alice, bob)
 }

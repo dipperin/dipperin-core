@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package iblt
 
 import (
@@ -51,5 +50,5 @@ func TestHashPool_MinHash(t *testing.T) {
 	}
 
 	diff := e1.Decode(e2)
-	assert.True(t, int(float32(diff)*1.45) > (aSize + bSize))
+	assert.True(t, int(float32(diff)*1.45) > (aSize+bSize))
 }

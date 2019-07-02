@@ -17,10 +17,10 @@
 package state_processor
 
 import (
-	"testing"
-	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestManageState(t *testing.T) {

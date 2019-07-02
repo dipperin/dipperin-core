@@ -1,19 +1,19 @@
 package vm
 
 import (
-	"math/big"
-	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"strings"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/core/vm/model"
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"time"
-	"fmt"
-	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/tests/node-cluster"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"github.com/stretchr/testify/assert"
+	"math/big"
+	"strings"
+	"testing"
+	"time"
 )
 
 func LogTestPrint(function, msg string, ctx ...interface{}) {
@@ -118,8 +118,8 @@ func SendCreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNam
 	assert.NoError(t, err)
 
 	to := common.HexToAddress(common.AddressContractCreate)
-	data,err := g_testData.GetCreateExtraData(wasmPath, abiPath, "")
-	assert.NoError(t,err)
+	data, err := g_testData.GetCreateExtraData(wasmPath, abiPath, "")
+	assert.NoError(t, err)
 	gasLimit := big.NewInt(0).SetUint64(g_testData.TestGasLimit)
 	txHash, innerErr := SendTransactionContract(client, from, to, g_testData.TestValue, gasLimit, g_testData.TestGasPrice, data)
 	assert.NoError(t, innerErr)

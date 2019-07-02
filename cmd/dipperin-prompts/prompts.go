@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package dipperin_prompts
 
 import (
 	"fmt"
-	"github.com/manifoldco/promptui"
 	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
+	"github.com/manifoldco/promptui"
 	"path/filepath"
 	"regexp"
-	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 )
 
 const (
@@ -126,15 +125,15 @@ func WalletPath(nodePath string) (string, error) {
 		Templates: PromptTemplate,
 	}
 	path, err := p.Run()
-	if err !=nil{
-		return "",err
+	if err != nil {
+		return "", err
 	}
 
 	if path == "" {
 		path = filepath.Join(nodePath, soft_wallet.WalletDefaultName)
 	}
 
-	return path,nil
+	return path, nil
 }
 
 func portValidate(port string) error {

@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_state
 
 import (
+	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
 	"gopkg.in/check.v1"
 	"testing"
-	"github.com/dipperin/dipperin-core/core/chain-config"
 )
 
 // Hook up gocheck into the "go test" runner
@@ -36,9 +35,9 @@ var _ = check.Suite(&chainHelperSuite{})
 func (suite *chainHelperSuite) SetUpSuite(c *check.C) {
 	writerF := chain_writer.NewChainWriterFactory()
 	suite.cs = NewChainState(&ChainStateConfig{
-		DataDir: "",
+		DataDir:       "",
 		WriterFactory: writerF,
-		ChainConfig: chain_config.GetChainConfig(),
+		ChainConfig:   chain_config.GetChainConfig(),
 	})
 
 	c.Check(suite.cs, check.NotNil)

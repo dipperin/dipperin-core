@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package commands
 
 import (
@@ -42,8 +41,8 @@ func wrapRpcArgs(c *cli.Context, m string, p string) {
 
 func addRpcFlags(app *cli.App) {
 	app.Flags = []cli.Flag{
-		cli.StringFlag{ Name: "m" },
-		cli.StringFlag{ Name: "p" },
+		cli.StringFlag{Name: "m"},
+		cli.StringFlag{Name: "p"},
 	}
 }
 
@@ -76,7 +75,7 @@ func Test_rpcCaller_TransferEDIPToDIP(t *testing.T) {
 			c.TransferEDIPToDIP(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0] }))
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 }
 
 func Test_rpcCaller_SetExchangeRate(t *testing.T) {
@@ -100,5 +99,5 @@ func Test_rpcCaller_SetExchangeRate(t *testing.T) {
 			c.SetExchangeRate(context)
 		})
 	}
-	assert.NoError(t, app.Run([]string{ os.Args[0] }))
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 }

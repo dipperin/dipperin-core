@@ -24,8 +24,8 @@ import (
 
 type SingleTaskControl struct {
 	isDoing int32
-	count int
-	lock sync.Mutex
+	count   int
+	lock    sync.Mutex
 }
 
 // Return whether swapped ， true represent can do
@@ -46,7 +46,7 @@ func (stc *SingleTaskControl) Done() {
 	defer stc.lock.Unlock()
 
 	stc.count--
-	if stc.count <=0 {
+	if stc.count <= 0 {
 		if !atomic.CompareAndSwapInt32(&stc.isDoing, 1, 0) {
 			log.Warn("try call task done, but not started")
 		}

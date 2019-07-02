@@ -18,13 +18,13 @@ package state_processor
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"testing"
+	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"math/big"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/common/g-error"
-	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/dipperin/dipperin-core/core/model"
+	"testing"
 )
 
 /*
@@ -33,7 +33,7 @@ Include three function relate to verifier's stake
 Stake: move money from balance to stake
 UnStake: move all money from stake to balance
 MoveStakeToAddress: move somebody's stake to another person's balance.
- */
+*/
 func TestAccountStateProcessor_Stake(t *testing.T) {
 	db, root := CreateTestStateDB()
 	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))

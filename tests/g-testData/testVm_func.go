@@ -5,26 +5,26 @@ import (
 	"io/ioutil"
 )
 
-func GetCallExtraData(funcName, param string) ([]byte,error) {
+func GetCallExtraData(funcName, param string) ([]byte, error) {
 	input := []interface{}{
 		funcName,
 		param,
 	}
 
 	result, err := rlp.EncodeToBytes(input)
-	return result,err
+	return result, err
 }
 
-func GetCreateExtraData( wasmPath, abiPath string, init string) ([]byte,error) {
+func GetCreateExtraData(wasmPath, abiPath string, init string) ([]byte, error) {
 	// GetContractExtraData
 	WASMBytes, err := ioutil.ReadFile(wasmPath)
-	if err !=nil {
-		return WASMBytes,err
+	if err != nil {
+		return WASMBytes, err
 	}
 
 	abiBytes, err := ioutil.ReadFile(abiPath)
-	if err !=nil{
-		return abiBytes,err
+	if err != nil {
+		return abiBytes, err
 	}
 
 	var rlpParams []interface{}
@@ -39,5 +39,5 @@ func GetCreateExtraData( wasmPath, abiPath string, init string) ([]byte,error) {
 	}
 
 	data, err := rlp.EncodeToBytes(rlpParams)
-	return data,err
+	return data, err
 }

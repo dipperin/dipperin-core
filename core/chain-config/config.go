@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_config
 
 import (
@@ -46,7 +45,7 @@ const (
 
 	TestServer               = "172.16.5.201"
 	TestVerifierBootNodePort = "10000"
-	TestIPWhiteList = "127.0.0.0/16,172.0.0.0/8,192.0.0.0/8,10.0.0.0/8"
+	TestIPWhiteList          = "127.0.0.0/16,172.0.0.0/8,192.0.0.0/8,10.0.0.0/8"
 
 	// 100M
 	MaxBlockSize = 100 * 1024 * 1024
@@ -54,9 +53,9 @@ const (
 
 	//使用gasLimit限制block容量,但区块容量可调节上限依然由MaxBlockSize控制
 	BlockGasLimit = 3360000000 //160000 normal tx
-	MaxGasLimit = uint64(0x7fffffffffffffff)
+	MaxGasLimit   = uint64(0x7fffffffffffffff)
 
-	CallCreateDepth  uint64 = 1024
+	CallCreateDepth uint64 = 1024
 )
 
 const (
@@ -87,7 +86,7 @@ func defaultChainConfig() *ChainConfig {
 
 		// number of verifier
 		//VerifierNumber: 4,
-		VerifierNumber:22,
+		VerifierNumber: 22,
 
 		// angel verifier priority
 		SystemVerifierPriority: 0,
@@ -104,7 +103,7 @@ func defaultChainConfig() *ChainConfig {
 
 		//VerifierBootNodeNumber: 4,
 		VerifierBootNodeNumber: 4,
-		BlockTimeRestriction: 15*time.Second,
+		BlockTimeRestriction:   15 * time.Second,
 	}
 
 	switch os.Getenv(BootEnvTagName) {
@@ -257,11 +256,11 @@ func initLocalBoots(dataDir string) {
 	// Two miners are 50030, one miner is 50027
 	if VerifierBootNodes = LoadVerifierBootNodesFromFile(dataDir); len(VerifierBootNodes) == 0 {
 		//n, _ := enode.ParseV4(fmt.Sprintf("enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@127.0.0.1:%v", TestVerifierBootNodePort))
-	/*	n, _ := enode.ParseV4(fmt.Sprintf("" +
-			"enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@127.0.0.1:%v", TestVerifierBootNodePort))
-		VerifierBootNodes = append(VerifierBootNodes, n)
-	}*/
-	n, _ := enode.ParseV4(fmt.Sprintf("" +
+		/*	n, _ := enode.ParseV4(fmt.Sprintf("" +
+				"enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@127.0.0.1:%v", TestVerifierBootNodePort))
+			VerifierBootNodes = append(VerifierBootNodes, n)
+		}*/
+		n, _ := enode.ParseV4(fmt.Sprintf(""+
 			"enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@127.0.0.1:%v", TestVerifierBootNodePort))
 		VerifierBootNodes = append(VerifierBootNodes, n)
 	}

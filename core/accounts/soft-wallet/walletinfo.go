@@ -14,25 +14,24 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package soft_wallet
 
 import (
-	"github.com/dipperin/dipperin-core/core/accounts"
-	"github.com/dipperin/dipperin-core/common"
-	"math/big"
-	"encoding/json"
 	"crypto/ecdsa"
-	"sync"
-	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/common/hexutil"
+	"encoding/json"
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/core/accounts"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"math/big"
+	"sync"
 )
 
 const (
 	WalletEntropyLength = 256
-	WalletDefaultPath  = "/tmp/CSWallet"
-	WalletDefaultName  ="CSWallet"
+	WalletDefaultPath   = "/tmp/CSWallet"
+	WalletDefaultName   = "CSWallet"
 )
 
 const (
@@ -41,7 +40,7 @@ const (
 	EstablishWallet
 )
 
-const(
+const (
 	// m / purpose' / coin_type' / account' / change / address_index
 	DefaultDerivedPath       = "m/44'/709394'/0'/0"
 	DefaultDerivedPathLength = 4
@@ -52,72 +51,70 @@ const(
 )
 
 type WalletInfo struct {
-	Accounts   []accounts.Account // used account included in the wallet
+	Accounts   []accounts.Account                         // used account included in the wallet
 	Paths      map[common.Address]accounts.DerivationPath // derived path of the account in the wallet
-	ExtendKeys map[common.Address]ExtendedKey //Key information corresponding to the account address in the wallet
-	Balances   map[common.Address]*big.Int //The balance corresponding to each account address in the wallet
-	Nonce	   map[common.Address]uint64  //The nonce value corresponding to each account address in the wallet
+	ExtendKeys map[common.Address]ExtendedKey             //Key information corresponding to the account address in the wallet
+	Balances   map[common.Address]*big.Int                //The balance corresponding to each account address in the wallet
+	Nonce      map[common.Address]uint64                  //The nonce value corresponding to each account address in the wallet
 	//the used largest index in wallet derivation path, the key is the changeValue to identify the derived path, and the value is the largest index used.
 	DerivedPathIndex map[uint32]uint32
-	Seed       []byte //Wallet seed
+	Seed             []byte //Wallet seed
 
 	//Get the balance and nonce value corresponding to the address
 	lock sync.RWMutex
 }
 
-func NewHdWalletInfo()(info *WalletInfo){
+func NewHdWalletInfo() (info *WalletInfo) {
 
 	walletInfo := WalletInfo{
-		Accounts:make([]accounts.Account,0),
-		Paths: make(map[common.Address]accounts.DerivationPath,0),
-		ExtendKeys: make(map[common.Address]ExtendedKey),
-		Balances:make(map[common.Address]*big.Int ,0),
-		Nonce: make(map[common.Address]uint64,0),
-		DerivedPathIndex:make(map[uint32]uint32 ,0),
-		Seed:make([]byte,0),
+		Accounts:         make([]accounts.Account, 0),
+		Paths:            make(map[common.Address]accounts.DerivationPath, 0),
+		ExtendKeys:       make(map[common.Address]ExtendedKey),
+		Balances:         make(map[common.Address]*big.Int, 0),
+		Nonce:            make(map[common.Address]uint64, 0),
+		DerivedPathIndex: make(map[uint32]uint32, 0),
+		Seed:             make([]byte, 0),
 	}
 
 	return &walletInfo
 }
 
-
 type ExtendedKeyJson struct {
-	Key       []byte `json:"Key"`// This will be the pubkey for extended pub keys
-	PubKey    []byte `json:"PubKey"`// This will only be set for extended priv keys
+	Key       []byte `json:"Key"`    // This will be the pubkey for extended pub keys
+	PubKey    []byte `json:"PubKey"` // This will only be set for extended priv keys
 	ChainCode []byte `json:"ChainCode"`
-	Depth     uint8	 `json:"Depth"`
+	Depth     uint8  `json:"Depth"`
 	ParentFP  []byte `json:"ParentFP"`
 	ChildNum  uint32 `json:"ChildNum"`
 	Version   []byte `json:"Version"`
 	IsPrivate bool   `json:"IsPrivate"`
 }
 
-type WalletInfoJson struct{
-	Accounts   []accounts.Account `json:"accounts"`
-	Paths      map[string]accounts.DerivationPath `json:"paths"`
-	ExtendKeys map[string]ExtendedKeyJson `json:"extend_keys"`
-	Balances   map[string]*big.Int `json:"balances"`
-	Nonce	   map[string]uint64
+type WalletInfoJson struct {
+	Accounts         []accounts.Account                 `json:"accounts"`
+	Paths            map[string]accounts.DerivationPath `json:"paths"`
+	ExtendKeys       map[string]ExtendedKeyJson         `json:"extend_keys"`
+	Balances         map[string]*big.Int                `json:"balances"`
+	Nonce            map[string]uint64
 	DerivedPathIndex map[uint32]uint32
-	Seed       []byte `json:"seed"`
+	Seed             []byte `json:"seed"`
 }
 
-func NewHdWalletInfoJson() (jsonInfo *WalletInfoJson){
-	w:=&WalletInfoJson{
-		Accounts:make([]accounts.Account,0),
-		Paths:make(map[string]accounts.DerivationPath,0),
-		ExtendKeys:make(map[string]ExtendedKeyJson,0),
-		Balances:make(map[string]*big.Int,0),
-		Nonce: make(map[string]uint64,0),
-		DerivedPathIndex:make(map[uint32]uint32 ,0),
-		Seed:make([]byte,0),
+func NewHdWalletInfoJson() (jsonInfo *WalletInfoJson) {
+	w := &WalletInfoJson{
+		Accounts:         make([]accounts.Account, 0),
+		Paths:            make(map[string]accounts.DerivationPath, 0),
+		ExtendKeys:       make(map[string]ExtendedKeyJson, 0),
+		Balances:         make(map[string]*big.Int, 0),
+		Nonce:            make(map[string]uint64, 0),
+		DerivedPathIndex: make(map[uint32]uint32, 0),
+		Seed:             make([]byte, 0),
 	}
 	return w
 }
 
-
 //Json encode for HdWalletInfo, converts key to string type in map
-func (w WalletInfo)HdWalletInfoEncodeJson() (encodeData []byte,err error){
+func (w WalletInfo) HdWalletInfoEncodeJson() (encodeData []byte, err error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 
@@ -125,19 +122,19 @@ func (w WalletInfo)HdWalletInfoEncodeJson() (encodeData []byte,err error){
 
 	tmpData.Seed = w.Seed
 
-	for _,account := range w.Accounts{
-		tmpData.Accounts = append(tmpData.Accounts,account)
+	for _, account := range w.Accounts {
+		tmpData.Accounts = append(tmpData.Accounts, account)
 
 		tmpData.Paths[account.Address.Hex()] = w.Paths[account.Address]
 		tmpData.ExtendKeys[account.Address.Hex()] = ExtendedKeyJson{
-			Key:w.ExtendKeys[account.Address].key,
-			PubKey:w.ExtendKeys[account.Address].pubKey,
-			ChainCode:w.ExtendKeys[account.Address].chainCode,
-			Depth:w.ExtendKeys[account.Address].depth,
-			ParentFP:w.ExtendKeys[account.Address].parentFP,
-			ChildNum:w.ExtendKeys[account.Address].childNum,
-			Version:w.ExtendKeys[account.Address].version,
-			IsPrivate:w.ExtendKeys[account.Address].isPrivate,
+			Key:       w.ExtendKeys[account.Address].key,
+			PubKey:    w.ExtendKeys[account.Address].pubKey,
+			ChainCode: w.ExtendKeys[account.Address].chainCode,
+			Depth:     w.ExtendKeys[account.Address].depth,
+			ParentFP:  w.ExtendKeys[account.Address].parentFP,
+			ChildNum:  w.ExtendKeys[account.Address].childNum,
+			Version:   w.ExtendKeys[account.Address].version,
+			IsPrivate: w.ExtendKeys[account.Address].isPrivate,
 		}
 		tmpData.Balances[account.Address.Hex()] = w.Balances[account.Address]
 		tmpData.Nonce[account.Address.Hex()] = w.Nonce[account.Address]
@@ -149,33 +146,33 @@ func (w WalletInfo)HdWalletInfoEncodeJson() (encodeData []byte,err error){
 }
 
 //wallet data json decoding interface
-func (w* WalletInfo)HdWalletInfoDecodeJson(decodeData []byte)(err error){
+func (w *WalletInfo) HdWalletInfoDecodeJson(decodeData []byte) (err error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 
 	tmpData := NewHdWalletInfoJson()
 	//log.Debug(string(decodeData))
-	err = json.Unmarshal(decodeData,tmpData)
-	if err !=nil {
+	err = json.Unmarshal(decodeData, tmpData)
+	if err != nil {
 		return err
 	}
 
 	w.Seed = tmpData.Seed
 
-	for _,account := range tmpData.Accounts{
+	for _, account := range tmpData.Accounts {
 		w.Paths[account.Address] = tmpData.Paths[string(account.Address[:])]
 
-		w.Accounts=append(w.Accounts,account)
+		w.Accounts = append(w.Accounts, account)
 
 		w.ExtendKeys[account.Address] = ExtendedKey{
-			key:        tmpData.ExtendKeys[account.Address.Hex()].Key,
-			pubKey:     tmpData.ExtendKeys[account.Address.Hex()].PubKey,
-			chainCode:  tmpData.ExtendKeys[account.Address.Hex()].ChainCode,
-			depth:      tmpData.ExtendKeys[account.Address.Hex()].Depth,
-			parentFP:   tmpData.ExtendKeys[account.Address.Hex()].ParentFP,
-			childNum:   tmpData.ExtendKeys[account.Address.Hex()].ChildNum,
-			version:    tmpData.ExtendKeys[account.Address.Hex()].Version,
-			isPrivate:  tmpData.ExtendKeys[account.Address.Hex()].IsPrivate,
+			key:       tmpData.ExtendKeys[account.Address.Hex()].Key,
+			pubKey:    tmpData.ExtendKeys[account.Address.Hex()].PubKey,
+			chainCode: tmpData.ExtendKeys[account.Address.Hex()].ChainCode,
+			depth:     tmpData.ExtendKeys[account.Address.Hex()].Depth,
+			parentFP:  tmpData.ExtendKeys[account.Address.Hex()].ParentFP,
+			childNum:  tmpData.ExtendKeys[account.Address.Hex()].ChildNum,
+			version:   tmpData.ExtendKeys[account.Address.Hex()].Version,
+			isPrivate: tmpData.ExtendKeys[account.Address.Hex()].IsPrivate,
 		}
 		w.Balances[account.Address] = tmpData.Balances[string(account.Address[:])]
 		w.Nonce[account.Address] = tmpData.Nonce[string(account.Address[:])]
@@ -186,52 +183,52 @@ func (w* WalletInfo)HdWalletInfoDecodeJson(decodeData []byte)(err error){
 }
 
 //Generate a master key according to the seed. Then generate a key corresponding to the index on the specified derived path according to the master key
-func (w *WalletInfo)GenerateKeyFromSeedAndPath(derivedPath string, index uint32)(derivedKey *ExtendedKey,Path accounts.DerivationPath,err error){
+func (w *WalletInfo) GenerateKeyFromSeedAndPath(derivedPath string, index uint32) (derivedKey *ExtendedKey, Path accounts.DerivationPath, err error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 
-	log.Debug("the wallet seed is：","seed",hexutil.Encode(w.Seed))
+	log.Debug("the wallet seed is：", "seed", hexutil.Encode(w.Seed))
 	//generate master key according to seed
 	extKey, err := NewMaster(w.Seed, &DipperinChainCfg)
 	if err != nil {
-		return nil,accounts.DerivationPath{},err
+		return nil, accounts.DerivationPath{}, err
 	}
 
 	//Get the first account information on the default derived path based on the master key
-	Path,err = accounts.ParseDerivationPath(derivedPath)
-	if err !=nil{
+	Path, err = accounts.ParseDerivationPath(derivedPath)
+	if err != nil {
 		ClearSensitiveData(extKey)
-		return nil,accounts.DerivationPath{},err
+		return nil, accounts.DerivationPath{}, err
 	}
 	Path = append(Path, index)
 
-	log.Debug("the Path is: ","path",Path)
-	for _,value := range Path{
-		extKey ,err = extKey.Child(value)
-		if err !=nil{
-			return nil,accounts.DerivationPath{},err
+	log.Debug("the Path is: ", "path", Path)
+	for _, value := range Path {
+		extKey, err = extKey.Child(value)
+		if err != nil {
+			return nil, accounts.DerivationPath{}, err
 		}
 	}
-	return extKey,Path,nil
+	return extKey, Path, nil
 }
 
 //get the  first 20 account according to the derived path, query whether it is used, and if it is used, join the recovered wallet.
-func (w *WalletInfo)paddingUsedAccount(GetAddressRelatedInfo accounts.AddressInfoReader)(err error){
+func (w *WalletInfo) paddingUsedAccount(GetAddressRelatedInfo accounts.AddressInfoReader) (err error) {
 	tmpPath, err := accounts.ParseDerivationPath(DefaultDerivedPath)
 	if err != nil {
 		return err
 	}
 
-	tmpPath = append(tmpPath,w.DerivedPathIndex[DefaultAccountValue])
-	for i:=0;i<SyncAccountNumber;i++{
+	tmpPath = append(tmpPath, w.DerivedPathIndex[DefaultAccountValue])
+	for i := 0; i < SyncAccountNumber; i++ {
 		//derived path to use
 		tmpPath[len(tmpPath)-1] = w.DerivedPathIndex[DefaultAccountValue] + 1
 
-		log.Info("the tmpPath is:","tmpPath",tmpPath.String())
+		log.Info("the tmpPath is:", "tmpPath", tmpPath.String())
 		//determine if the derived path is legal
 		isValid, err := CheckDerivedPathValid(tmpPath)
 		if err != nil || !isValid {
-			return  accounts.ErrInvalidDerivedPath
+			return accounts.ErrInvalidDerivedPath
 		}
 
 		//Generate derived keys based on incoming derived paths and wallet seeds
@@ -240,7 +237,7 @@ func (w *WalletInfo)paddingUsedAccount(GetAddressRelatedInfo accounts.AddressInf
 			return err
 		}
 
-		log.Info("Derive tmpPath is:","tmpPath",tmpPath)
+		log.Info("Derive tmpPath is:", "tmpPath", tmpPath)
 		//Generate derived keys based on path parameters and master key
 		for _, value := range tmpPath {
 			var err error
@@ -252,21 +249,21 @@ func (w *WalletInfo)paddingUsedAccount(GetAddressRelatedInfo accounts.AddressInf
 
 		account, err := GetAccountFromExtendedKey(extKey)
 		if err != nil {
-			return  err
+			return err
 		}
 
 		//check if the derived account is used
-		nonce,err := GetAddressRelatedInfo.GetTransactionNonce(account.Address)
-		if err !=nil{
+		nonce, err := GetAddressRelatedInfo.GetTransactionNonce(account.Address)
+		if err != nil {
 			if err == g_error.AccountNotExist {
 				break
-			}else{
+			} else {
 				return err
 			}
-		}else{
-			log.Info("the used address is:","address",account.Address.Hex())
-			balance  :=GetAddressRelatedInfo.CurrentBalance(account.Address)
-			w.Accounts = append(w.Accounts,account)
+		} else {
+			log.Info("the used address is:", "address", account.Address.Hex())
+			balance := GetAddressRelatedInfo.CurrentBalance(account.Address)
+			w.Accounts = append(w.Accounts, account)
 			w.Paths[account.Address] = tmpPath
 			w.Nonce[account.Address] = nonce
 			w.Balances[account.Address] = balance
@@ -278,7 +275,7 @@ func (w *WalletInfo)paddingUsedAccount(GetAddressRelatedInfo accounts.AddressInf
 }
 
 //Obtain the private key data corresponding to the address
-func (w *WalletInfo)getSkFromAddress(address common.Address)(sk *ecdsa.PrivateKey,err error){
+func (w *WalletInfo) getSkFromAddress(address common.Address) (sk *ecdsa.PrivateKey, err error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 
@@ -298,34 +295,33 @@ func (w *WalletInfo)getSkFromAddress(address common.Address)(sk *ecdsa.PrivateKe
 		D:         privateKey.D,
 	}
 
-	return tmpSk,nil
+	return tmpSk, nil
 }
 
-func (w *WalletInfo)PaddingAddressNonce(GetAddressRelatedInfo accounts.AddressInfoReader)(err error){
+func (w *WalletInfo) PaddingAddressNonce(GetAddressRelatedInfo accounts.AddressInfoReader) (err error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 
-	for _,account := range w.Accounts{
-		currentNonce ,err:= GetAddressRelatedInfo.GetTransactionNonce(account.Address)
-		log.Error("PaddingAddressNonce GetTransactionNonce error","err",err)
-		log.Info("the padding address is:","address",account.Address.Hex())
-		log.Info("PaddingAddressNonce is: ","currentNonce",currentNonce)
+	for _, account := range w.Accounts {
+		currentNonce, err := GetAddressRelatedInfo.GetTransactionNonce(account.Address)
+		log.Error("PaddingAddressNonce GetTransactionNonce error", "err", err)
+		log.Info("the padding address is:", "address", account.Address.Hex())
+		log.Info("PaddingAddressNonce is: ", "currentNonce", currentNonce)
 		w.Nonce[account.Address] = currentNonce
 	}
 	return nil
 }
 
-func (w *WalletInfo)GetAddressNonce(address common.Address)(nonce uint64,err error){
+func (w *WalletInfo) GetAddressNonce(address common.Address) (nonce uint64, err error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
-	return w.Nonce[address],nil
+	return w.Nonce[address], nil
 }
 
 //add nonce when send transaction
-func (w *WalletInfo)SetAddressNonce(address common.Address,nonce uint64)(err error){
+func (w *WalletInfo) SetAddressNonce(address common.Address, nonce uint64) (err error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 	w.Nonce[address] = nonce
 	return nil
 }
-

@@ -27,5 +27,5 @@ func TestNow(t *testing.T) {
 	s.Now()
 	s.Sleep(1)
 	ac := s.After(1)
-	<- ac
+	<-ac
 }

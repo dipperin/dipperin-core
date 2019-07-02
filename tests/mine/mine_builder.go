@@ -31,7 +31,6 @@ func MasterBuilder() minemaster.Master {
 }
 
 type fakeMaster struct {
-
 }
 
 func (m *fakeMaster) SetMineGasConfig(gasFloor, gasCeil uint64) {
@@ -84,12 +83,12 @@ func (m *fakeMaster) RetrieveReward(address common.Address) {
 
 func MasterServerBuilder() minemaster.MasterServer {
 	return &FakeMasterServer{
-		Workers: make(map[string] minemaster.WorkerForMaster),
+		Workers: make(map[string]minemaster.WorkerForMaster),
 	}
 }
 
 type FakeMasterServer struct {
-	Workers map[string] minemaster.WorkerForMaster
+	Workers map[string]minemaster.WorkerForMaster
 }
 
 func (ms *FakeMasterServer) RegisterWorker(worker minemaster.WorkerForMaster) {
@@ -111,4 +110,3 @@ func (ms *FakeMasterServer) OnNewMsg(msg p2p.Msg, p chain_communication.PmAbstra
 func (ms *FakeMasterServer) SetMineMasterPeer(peer chain_communication.PmAbstractPeer) {
 	panic("implement me")
 }
-

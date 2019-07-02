@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package tests
 
 import (
@@ -32,10 +31,10 @@ func ChangeVerBootNodeAddress() ([]Account, error) {
 		panic("config.VerifierBootNodeNumber != 4")
 	}
 	accounts := []Account{
-		{ Pk: crypto.HexToECDSAErrPanic("1e00aa89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91") },
-		{ Pk: crypto.HexToECDSAErrPanic("2e00ab89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd92") },
-		{ Pk: crypto.HexToECDSAErrPanic("3e00ac89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd93") },
-		{ Pk: crypto.HexToECDSAErrPanic("4e00ad89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd94") },
+		{Pk: crypto.HexToECDSAErrPanic("1e00aa89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91")},
+		{Pk: crypto.HexToECDSAErrPanic("2e00ab89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd92")},
+		{Pk: crypto.HexToECDSAErrPanic("3e00ac89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd93")},
+		{Pk: crypto.HexToECDSAErrPanic("4e00ad89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd94")},
 	}
 
 	for i := 0; i < 4; i++ {
@@ -51,37 +50,37 @@ func ChangeVerBootNodeAddress() ([]Account, error) {
 	n, _ = enode.ParseV4(fmt.Sprintf("enode://07f3fdca9a07b048ea7d0cb642f69004e4fa5dd390888a9bb3e9fc382697c3634280cc8d327703b872d3711462da4aca96ee805069510375e7be2aded3dc5ad6@%v:%v", "127.0.0.1", 10012))
 	chain_config.VerifierBootNodes = append(chain_config.VerifierBootNodes, n)
 
-	return accounts,nil
+	return accounts, nil
 }
 
-func ChangeVerifierAddress(accounts []Account)([]Account, error){
+func ChangeVerifierAddress(accounts []Account) ([]Account, error) {
 	changeVerifiers := []Account{
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd92") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd93") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd94") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd95") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd96") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd97") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd98") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd99") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd9a") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd9b") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd9c") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd9d") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd9e") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd9f") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd1a") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd2a") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd3a") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd4a") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd5a") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd6a") },
-		{ Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd7a") },
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd92")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd93")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd94")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd95")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd96")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd97")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd98")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd99")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd9a")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd9b")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd9c")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd9d")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd9e")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd9f")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd1a")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd2a")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd3a")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd4a")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd5a")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd6a")},
+		{Pk: crypto.HexToECDSAErrPanic("fe00ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd7a")},
 	}
 
 	if accounts != nil {
-		for i:=0; i<len(accounts); i++ {
+		for i := 0; i < len(accounts); i++ {
 			changeVerifiers[i] = accounts[i]
 		}
 	}
@@ -90,5 +89,5 @@ func ChangeVerifierAddress(accounts []Account)([]Account, error){
 	for _, v := range changeVerifiers {
 		chain.VerifierAddress = append(chain.VerifierAddress, v.Address())
 	}
-	return changeVerifiers,nil
+	return changeVerifiers, nil
 }
