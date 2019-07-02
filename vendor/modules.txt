@@ -105,8 +105,6 @@ github.com/nicksnyder/go-i18n/i18n/language
 github.com/nicksnyder/go-i18n/i18n/translation
 # github.com/pelletier/go-toml v1.2.0
 github.com/pelletier/go-toml
-# github.com/pkg/errors v0.8.1
-github.com/pkg/errors
 # github.com/pkg/term v0.0.0-20190109203006-aa71e9d9e942
 github.com/pkg/term/termios
 # github.com/pmezard/go-difflib v1.0.0
