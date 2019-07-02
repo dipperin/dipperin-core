@@ -486,8 +486,8 @@ func (state fakeStateDB) GetBalance(addr common.Address) *big.Int {
 	return state.account[addr]
 }
 
-func (state fakeStateDB) GetNonce(common.Address) (uint64,error) {
-	return 0,nil
+func (state fakeStateDB) GetNonce(common.Address) (uint64, error) {
+	return 0, nil
 }
 
 func (state fakeStateDB) SetNonce(common.Address, uint64) {

@@ -52,7 +52,7 @@ func (state fakeStateDB) GetBalance(common.Address) *big.Int {
 	panic("implement me")
 }
 
-func (state fakeStateDB) GetNonce(common.Address) (uint64,error) {
+func (state fakeStateDB) GetNonce(common.Address) (uint64, error) {
 	panic("implement me")
 }
 

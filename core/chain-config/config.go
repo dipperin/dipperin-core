@@ -88,7 +88,6 @@ func defaultChainConfig() *ChainConfig {
 		//VerifierNumber: 4,
 		VerifierNumber: 22,
 
-
 		// angel verifier priority
 		SystemVerifierPriority: 0,
 
@@ -320,4 +319,6 @@ func LoadNodesFromFile(fileP string) (bootNodes []*enode.Node) {
 	}
 	log.Debug("load boot nodes from file", "nodes len", len(bootNodes))
 	return
+
+
 }

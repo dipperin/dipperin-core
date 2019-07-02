@@ -90,8 +90,8 @@ func (st *StateTransition) buyGas() error {
 func (st *StateTransition) preCheck() error {
 	// Make sure this transaction's nonce is correct.
 	if st.msg.CheckNonce() {
-		nonce,err := st.lifeVm.GetStateDB().GetNonce(st.msg.From())
-		if err !=nil{
+		nonce, err := st.lifeVm.GetStateDB().GetNonce(st.msg.From())
+		if err != nil {
 			return err
 		}
 		log.Info("StateTransition#preCheck", "nonce", nonce, "st.msg.Nonce()", st.msg.Nonce())
