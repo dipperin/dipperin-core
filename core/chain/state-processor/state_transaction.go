@@ -43,7 +43,6 @@ func NewStateTransition(vm *vm.VM, msg Message, gp *uint64) *StateTransition {
 // indicates a core error meaning that the message would always fail for that particular
 // state and would never be accepted within a block.
 func ApplyMessage(vm *vm.VM, msg Message, gp *uint64) ([]byte, uint64, bool, *big.Int, error) {
-	//log.Debug("Called create","data",vm.state.GetState(addrs,[]byte{7, 98, 97, 108, 97, 110 ,99, 101}),"err",vmerr)
 	return NewStateTransition(vm, msg, gp).TransitionDb()
 }
 

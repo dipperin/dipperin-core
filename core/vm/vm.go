@@ -177,9 +177,8 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 
 	// Ensure there's no existing contract already at the designated address
 	contractHash := vm.state.GetCodeHash(address)
-	_, err := vm.state.GetNonce(address)
-	log.Info("creat contract result is:", "err", err)
-	if err == nil || (contractHash != common.Hash{} && contractHash != emptyCodeHash) {
+	nonce, _ := vm.state.GetNonce(address)
+	if nonce != uint64(0) || (contractHash != common.Hash{} && contractHash != emptyCodeHash) {
 		return nil, common.Address{}, 0, g_error.ErrContractAddressCollision
 	}
 

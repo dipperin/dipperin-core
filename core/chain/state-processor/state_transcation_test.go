@@ -10,8 +10,6 @@ import (
 )
 
 func TestApplyMessage(t *testing.T) {
-	t.Skip()
-
 	WASMPath := g_testData.GetWasmPath("event")
 	AbiPath := g_testData.GetAbiPath("event")
 	tx := createContractTx(t, WASMPath, AbiPath)
