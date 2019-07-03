@@ -71,7 +71,7 @@ func Test_rpcCaller_TransferEDIPToDIP(t *testing.T) {
 		c.TransferEDIPToDIP(context)
 
 		assert.Panics(t, func() {
-			wrapRpcArgs(context, "TransferEDIPToDIP", "0x00005033874289F4F823A896700D94274683535cF0E1,12,2")
+			wrapRpcArgs(context, "TransferEDIPToDIP", "0x00005033874289F4F823A896700D94274683535cF0E1,12,1,21000")
 			c.TransferEDIPToDIP(context)
 		})
 	}
@@ -95,7 +95,7 @@ func Test_rpcCaller_SetExchangeRate(t *testing.T) {
 		c.SetExchangeRate(context)
 
 		assert.Panics(t, func() {
-			wrapRpcArgs(context, "SetExchangeRate", "0x00005033874289F4F823A896700D94274683535cF0E1,p,1")
+			wrapRpcArgs(context, "SetExchangeRate", "0x00005033874289F4F823A896700D94274683535cF0E1,p,1,21000")
 			c.SetExchangeRate(context)
 		})
 	}

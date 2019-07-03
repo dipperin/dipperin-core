@@ -521,9 +521,9 @@ func (caller *rpcCaller) SendTx(c *cli.Context) {
 		return
 	}
 
-	if len(cParams) < 3 {
+	if len(cParams) < 4 {
 
-		l.Error("parameter includes：to value transactionFee")
+		l.Error("parameter includes：to value gasPrice gasLimit")
 		return
 	}
 
@@ -539,9 +539,15 @@ func (caller *rpcCaller) SendTx(c *cli.Context) {
 		return
 	}
 
-	txFee, err := MoneyValueToCSCoin(cParams[2])
+	gasPrice, err := MoneyValueToCSCoin(cParams[2])
 	if err != nil {
-		l.Error("the parameter transactionFee invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", "err", err)
+		return
+	}
+
+	gasLimit, err := strconv.Atoi(cParams[3])
+	if err != nil {
+		l.Error("the parameter gaLimit invalid", "err", err)
 		return
 	}
 
@@ -556,7 +562,7 @@ func (caller *rpcCaller) SendTx(c *cli.Context) {
 	l.Info("the value is:", "value", cParams[1]+consts.CoinDIPName)
 	l.Info("the TransactionFee is:", "TransactionFee", cParams[2]+consts.CoinDIPName)
 	l.Info("the ExtraData is: ", "ExtraData", extraData)
-	if err = client.Call(&resp, getDipperinRpcMethodByName("SendTransaction"), defaultAccount, toAddress, value, txFee, extraData, nil); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName("SendTransaction"), defaultAccount, toAddress, value, gasPrice, gasLimit, extraData, nil); err != nil {
 		l.Error("call send transaction error", "err", err)
 		return
 	}
@@ -575,8 +581,8 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 		return
 	}
 
-	if len(cParams) != 4 && len(cParams) != 5 {
-		l.Error("parameter includes：from to value transactionFee")
+	if len(cParams) != 5 && len(cParams) != 6 {
+		l.Error("parameter includes：from to value gasPrice gasLimit")
 		return
 	}
 
@@ -599,15 +605,21 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 		return
 	}
 
-	TransactionFee, err := MoneyValueToCSCoin(cParams[3])
+	gasPrice, err := MoneyValueToCSCoin(cParams[3])
 	if err != nil {
-		l.Error("the parameter transactionFee invalid")
+		l.Error("the parameter gasPrice invalid", "err", err)
+		return
+	}
+
+	gasLimit, err := strconv.Atoi(cParams[4])
+	if err != nil {
+		l.Error("the parameter gaLimit invalid", "err", err)
 		return
 	}
 
 	ExtraData := make([]byte, 0)
-	if len(cParams) == 5 {
-		ExtraData = []byte(cParams[4])
+	if len(cParams) == 6 {
+		ExtraData = []byte(cParams[5])
 	}
 
 	var resp common.Hash
@@ -616,7 +628,7 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 	l.Info("the Value is:", "Value", cParams[2]+consts.CoinDIPName)
 	l.Info("the TransactionFee is:", "TransactionFee", cParams[3]+consts.CoinDIPName)
 	l.Info("the ExtraData is: ", "ExtraData", ExtraData)
-	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, To, Value, TransactionFee, ExtraData, nil); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, To, Value, gasPrice, gasLimit, ExtraData, nil); err != nil {
 
 		l.Error("call send transaction", "err", err)
 		return
@@ -1023,8 +1035,8 @@ func (caller *rpcCaller) SendRegisterTx(c *cli.Context) {
 		return
 	}
 
-	if len(cParams) != 2 {
-		l.Error("SendRegisterTransaction need：stake transactionFee")
+	if len(cParams) != 3 {
+		l.Error("SendRegisterTransaction need：stake gasPrice gasLimit")
 		return
 	}
 
@@ -1034,13 +1046,19 @@ func (caller *rpcCaller) SendRegisterTx(c *cli.Context) {
 		return
 	}
 
-	txFee, err := MoneyValueToCSCoin(cParams[1])
+	gasPrice, err := MoneyValueToCSCoin(cParams[1])
 	if err != nil {
-		l.Error("the parameter transactionFee invalid")
+		l.Error("the parameter gasPrice invalid", "err", err)
+		return
+	}
+
+	gasLimit, err := strconv.Atoi(cParams[2])
+	if err != nil {
+		l.Error("the parameter gaLimit invalid", "err", err)
 		return
 	}
 	var resp common.Hash
-	if err = client.Call(&resp, getDipperinRpcMethodByName("SendRegisterTransaction"), defaultAccount, stake, txFee, nil); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName("SendRegisterTransaction"), defaultAccount, stake, gasPrice, gasLimit, nil); err != nil {
 
 		l.Error("call send transaction", "err", err)
 		return
@@ -1061,8 +1079,8 @@ func (caller *rpcCaller) SendRegisterTransaction(c *cli.Context) {
 		l.Error("getRpcMethodAndParam error")
 		return
 	}
-	if len(cParams) != 3 {
-		l.Error("SendRegisterTransaction need：from stake transactionFee")
+	if len(cParams) != 4 {
+		l.Error("SendRegisterTransaction need：from stake gasPrice gasLimit")
 		return
 	}
 
@@ -1079,13 +1097,19 @@ func (caller *rpcCaller) SendRegisterTransaction(c *cli.Context) {
 		return
 	}
 
-	TransactionFee, err := MoneyValueToCSCoin(cParams[2])
+	gasPrice, err := MoneyValueToCSCoin(cParams[2])
 	if err != nil {
-		l.Error("the parameter transactionFee invalid")
+		l.Error("the parameter gasPrice invalid", "err", err)
 		return
 	}
 
-	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, stake, TransactionFee, nil); err != nil {
+	gasLimit, err := strconv.Atoi(cParams[3])
+	if err != nil {
+		l.Error("the parameter gaLimit invalid", "err", err)
+		return
+	}
+
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, stake, gasPrice, gasLimit, nil); err != nil {
 
 		l.Error("call send transaction", "err", err)
 		return
@@ -1106,19 +1130,25 @@ func (caller *rpcCaller) SendUnStakeTx(c *cli.Context) {
 		return
 	}
 
-	if len(cParams) != 1 {
-		l.Error("SendUnStakeTransaction need transactionFee")
+	if len(cParams) != 2 {
+		l.Error("SendUnStakeTransaction need gasPrice and gasLimit")
 		return
 	}
 
 	var resp common.Hash
-	txFee, err := MoneyValueToCSCoin(cParams[0])
+	gasPrice, err := MoneyValueToCSCoin(cParams[0])
 	if err != nil {
-		l.Error("the parameter transactionFee invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", "err", err)
 		return
 	}
 
-	if err = client.Call(&resp, getDipperinRpcMethodByName("SendUnStakeTransaction"), defaultAccount, txFee, nil); err != nil {
+	gasLimit, err := strconv.Atoi(cParams[1])
+	if err != nil {
+		l.Error("the parameter gaLimit invalid", "err", err)
+		return
+	}
+
+	if err = client.Call(&resp, getDipperinRpcMethodByName("SendUnStakeTransaction"), defaultAccount, gasPrice, gasLimit, nil); err != nil {
 		l.Error("call send transaction", "err", err)
 		return
 	}
@@ -1137,8 +1167,8 @@ func (caller *rpcCaller) SendUnStakeTransaction(c *cli.Context) {
 		return
 	}
 
-	if len(cParams) != 2 {
-		l.Error("SendUnStakeTransaction need：from transactionFee")
+	if len(cParams) != 3 {
+		l.Error("SendUnStakeTransaction need：from gasPrice gasLimit")
 		return
 	}
 
@@ -1149,13 +1179,19 @@ func (caller *rpcCaller) SendUnStakeTransaction(c *cli.Context) {
 		return
 	}
 
-	TransactionFee, err := MoneyValueToCSCoin(cParams[1])
+	gasPrice, err := MoneyValueToCSCoin(cParams[1])
 	if err != nil {
-		l.Error("the parameter transactionFee invalid")
+		l.Error("the parameter gasPrice invalid", "err", err)
 		return
 	}
 
-	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, TransactionFee, nil); err != nil {
+	gasLimit, err := strconv.Atoi(cParams[2])
+	if err != nil {
+		l.Error("the parameter gaLimit invalid", "err", err)
+		return
+	}
+
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, gasPrice, gasLimit, nil); err != nil {
 		l.Error("call send transaction", "err", err)
 		return
 	}
@@ -1173,19 +1209,25 @@ func (caller *rpcCaller) SendCancelTx(c *cli.Context) {
 		return
 	}
 
-	if len(cParams) != 1 {
-		l.Error("SendCancelTransaction need transactionFee")
+	if len(cParams) != 2 {
+		l.Error("SendCancelTransaction need gasPrice gasLimit")
 		return
 	}
 
 	var resp common.Hash
-	txFee, err := MoneyValueToCSCoin(cParams[0])
+	gasPrice, err := MoneyValueToCSCoin(cParams[0])
 	if err != nil {
-		l.Error("the parameter transactionFee invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", "err", err)
 		return
 	}
 
-	if err = client.Call(&resp, getDipperinRpcMethodByName("SendCancelTransaction"), defaultAccount, txFee, nil); err != nil {
+	gasLimit, err := strconv.Atoi(cParams[1])
+	if err != nil {
+		l.Error("the parameter gaLimit invalid", "err", err)
+		return
+	}
+
+	if err = client.Call(&resp, getDipperinRpcMethodByName("SendCancelTransaction"), defaultAccount, gasPrice,gasLimit, nil); err != nil {
 		l.Error("call send transaction", "err", err)
 		return
 	}
@@ -1206,8 +1248,8 @@ func (caller *rpcCaller) SendCancelTransaction(c *cli.Context) {
 		return
 	}
 
-	if len(cParams) != 2 {
-		l.Error("SendCancelTransaction need：from transactionFee")
+	if len(cParams) != 3 {
+		l.Error("SendCancelTransaction need：from gasPrice gasLimit")
 		return
 	}
 
@@ -1218,13 +1260,19 @@ func (caller *rpcCaller) SendCancelTransaction(c *cli.Context) {
 		return
 	}
 
-	TransactionFee, err := MoneyValueToCSCoin(cParams[1])
+	gasPrice, err := MoneyValueToCSCoin(cParams[1])
 	if err != nil {
-		l.Error("the parameter transactionFee invalid")
+		l.Error("the parameter gasPrice invalid", "err", err)
 		return
 	}
 
-	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, TransactionFee, nil); err != nil {
+	gasLimit, err := strconv.Atoi(cParams[2])
+	if err != nil {
+		l.Error("the parameter gaLimit invalid", "err", err)
+		return
+	}
+
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, gasPrice,gasLimit, nil); err != nil {
 		l.Error("call send transaction", "err", err)
 		return
 	}

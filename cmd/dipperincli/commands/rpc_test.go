@@ -591,12 +591,12 @@ func Test_rpcCaller_SendTx(t *testing.T) {
 		c.Set("p", common.HexToAddress("0x1234").Hex()+",10,test")
 		caller.SendTx(c)
 
-		c.Set("p", common.HexToAddress("0x1234").Hex()+",10,10,test")
+		c.Set("p", common.HexToAddress("0x1234").Hex()+",10,10,1,21000")
 
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test"))
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test"))
 		caller.SendTx(c)
 
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 		caller.SendTx(c)
 	}
@@ -1153,11 +1153,11 @@ func Test_rpcCaller_SendRegisterTx(t *testing.T) {
 		c.Set("p", "10,test")
 		caller.SendRegisterTx(c)
 
-		c.Set("p", "10,10")
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test"))
+		c.Set("p", "10,1,21000")
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test"))
 		caller.SendRegisterTx(c)
 
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Nil()).Return(nil)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Nil()).Return(nil)
 
 		caller.SendRegisterTx(c)
 
@@ -1199,11 +1199,11 @@ func Test_rpcCaller_SendRegisterTransaction(t *testing.T) {
 		c.Set("p", common.HexToAddress("0x1234").Hex()+",10,test")
 		caller.SendRegisterTransaction(c)
 
-		c.Set("p", common.HexToAddress("0x1234").Hex()+",10,10")
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test"))
+		c.Set("p", common.HexToAddress("0x1234").Hex()+",10,1,21000")
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test"))
 		caller.SendRegisterTransaction(c)
 
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Nil()).Return(nil)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Nil()).Return(nil)
 
 		caller.SendRegisterTransaction(c)
 
@@ -1239,11 +1239,11 @@ func Test_rpcCaller_SendUnStakeTx(t *testing.T) {
 		c.Set("p", "test")
 		caller.SendUnStakeTx(c)
 
-		c.Set("p", "10")
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test"))
+		c.Set("p", "1,21000")
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test"))
 		caller.SendUnStakeTx(c)
 
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 		caller.SendUnStakeTx(c)
 
@@ -1282,11 +1282,11 @@ func Test_rpcCaller_SendUnStakeTransaction(t *testing.T) {
 		c.Set("p", common.HexToAddress("0x1234").Hex()+",test")
 		caller.SendUnStakeTransaction(c)
 
-		c.Set("p", common.HexToAddress("0x1234").Hex()+",10")
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test"))
+		c.Set("p", common.HexToAddress("0x1234").Hex()+",1,21000")
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test"))
 		caller.SendUnStakeTransaction(c)
 
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 		caller.SendUnStakeTransaction(c)
 
@@ -1322,11 +1322,11 @@ func Test_rpcCaller_SendCancelTx(t *testing.T) {
 		c.Set("p", "test")
 		caller.SendCancelTx(c)
 
-		c.Set("p", "10")
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test"))
+		c.Set("p", "1,21000")
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test"))
 		caller.SendCancelTx(c)
 
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 		caller.SendCancelTx(c)
 
@@ -1365,11 +1365,11 @@ func Test_rpcCaller_SendCancelTransaction(t *testing.T) {
 		c.Set("p", common.HexToAddress("0x1234").Hex()+",test")
 		caller.SendCancelTransaction(c)
 
-		c.Set("p", common.HexToAddress("0x1234").Hex()+",10")
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test"))
+		c.Set("p", common.HexToAddress("0x1234").Hex()+",1,21000")
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test"))
 		caller.SendCancelTransaction(c)
 
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 		caller.SendCancelTransaction(c)
 

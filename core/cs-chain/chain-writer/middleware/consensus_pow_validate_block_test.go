@@ -169,53 +169,52 @@ func TestValidateGasLimit(t *testing.T) {
 
 	nextGasLimit := gasLimit + gasLimit/1024 - 1
 	assert.NoError(t, ValidateGasLimit(&BlockContext{
-		Block: &fakeBlock{GasLimit: uint64(nextGasLimit),},
-		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit),}},
+		Block: &fakeBlock{GasLimit: uint64(nextGasLimit)},
+		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit)}},
 	})())
 
 	nextGasLimit = gasLimit + gasLimit/1024
 	assert.Error(t, ValidateGasLimit(&BlockContext{
-		Block: &fakeBlock{GasLimit: uint64(nextGasLimit),},
-		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit),}},
+		Block: &fakeBlock{GasLimit: uint64(nextGasLimit)},
+		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit)}},
 	})())
 
 	nextGasLimit = gasLimit - gasLimit/1024 + 1
 	assert.NoError(t, ValidateGasLimit(&BlockContext{
-		Block: &fakeBlock{GasLimit: uint64(nextGasLimit),},
-		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit),}},
+		Block: &fakeBlock{GasLimit: uint64(nextGasLimit)},
+		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit)}},
 	})())
 
 	nextGasLimit = gasLimit - gasLimit/1024
 	assert.Error(t, ValidateGasLimit(&BlockContext{
-		Block: &fakeBlock{GasLimit: uint64(nextGasLimit),},
-		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit),}},
+		Block: &fakeBlock{GasLimit: uint64(nextGasLimit)},
+		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit)}},
 	})())
 }
 
 func TestValidGasUsedAndReceipts(t *testing.T) {
 	gasLimit := chain_config.BlockGasLimit
 
-	receipt := &model2.Receipt{GasUsed:model2.TxGas}
-	receipts:= model2.Receipts{receipt,receipt,receipt}
-	txs:= []model.AbstractTransaction{
-		&fakeTx{GasLimit:g_testData.TestGasLimit,Receipt:receipt},
-		&fakeTx{GasLimit:g_testData.TestGasLimit,Receipt:receipt},
-		&fakeTx{GasLimit:g_testData.TestGasLimit,Receipt:receipt},
+	receipt := &model2.Receipt{GasUsed: model2.TxGas}
+	receipts := model2.Receipts{receipt, receipt, receipt}
+	txs := []model.AbstractTransaction{
+		&fakeTx{GasLimit: g_testData.TestGasLimit, Receipt: receipt},
+		&fakeTx{GasLimit: g_testData.TestGasLimit, Receipt: receipt},
+		&fakeTx{GasLimit: g_testData.TestGasLimit, Receipt: receipt},
 	}
 
 	testBlock := &fakeBlock{
-		GasLimit:chain_config.BlockGasLimit,
+		GasLimit:    chain_config.BlockGasLimit,
 		ReceiptHash: model.DeriveSha(receipts),
-		GasUsed:receipt.GasUsed*uint64(len(receipts)),
-		txs:txs,
+		GasUsed:     receipt.GasUsed * uint64(len(receipts)),
+		txs:         txs,
 	}
 
-	assert.NoError(t,ValidGasUsedAndReceipts(&BlockContext{
+	assert.NoError(t, ValidGasUsedAndReceipts(&BlockContext{
 		Block: testBlock,
-		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit),}},
+		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit)}},
 	})())
 
-	
 }
 
 type fakeWrongBlock struct {

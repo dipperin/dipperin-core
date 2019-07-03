@@ -69,8 +69,8 @@ func (caller *rpcCaller) AnnounceERC20(c *cli.Context) {
 		return
 	}
 
-	if !isParamValid(cParams, 6) {
-		l.Error("parameters need：owner_address, token_name, token_symbol, token_total_supply, decimal, transaction_fee")
+	if !isParamValid(cParams, 7) {
+		l.Error("parameters need：owner_address, token_name, token_symbol, token_total_supply, decimal, gasPrice,gasLimit")
 		return
 	}
 
@@ -100,16 +100,22 @@ func (caller *rpcCaller) AnnounceERC20(c *cli.Context) {
 		return
 	}
 
-	txFee, err := MoneyValueToCSCoin(cParams[5])
+	gasPrice, err := MoneyValueToCSCoin(cParams[5])
 	if err != nil {
-		l.Error("the parameter transactionFee invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", "err", err)
+		return
+	}
+
+	gasLimit, err := strconv.Atoi(cParams[6])
+	if err != nil {
+		l.Error("the parameter gaLimit invalid", "err", err)
 		return
 	}
 
 	var resp rpc_interface.ERC20Resp
 	//create contract, dest address must equal to contract address in transaction
 
-	if err := client.Call(&resp, getDipperinRpcMethodByName("CreateERC20"), owner, tokenName, tokenSymbol, tokenTotalSupply, decimal, txFee); err != nil {
+	if err := client.Call(&resp, getDipperinRpcMethodByName("CreateERC20"), owner, tokenName, tokenSymbol, tokenTotalSupply, decimal, gasPrice, gasLimit); err != nil {
 		l.Error("AnnounceERC20 failed", "err", err)
 		return
 	}
@@ -154,8 +160,8 @@ func (caller *rpcCaller) ERC20Transfer(c *cli.Context) {
 		return
 	}
 
-	if !isParamValid(cParams, 5) {
-		l.Error("parameters need：contract address, owner, to_address, amount, transaction fee")
+	if !isParamValid(cParams, 6) {
+		l.Error("parameters need：contract address, owner, to_address, amount, gasPrice,gasLimit")
 		return
 	}
 
@@ -186,15 +192,21 @@ func (caller *rpcCaller) ERC20Transfer(c *cli.Context) {
 		return
 	}
 
-	txFee, err := MoneyValueToCSCoin(cParams[4])
+	gasPrice, err := MoneyValueToCSCoin(cParams[4])
 	if err != nil {
-		l.Error("the parameter transactionFee invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", "err", err)
+		return
+	}
+
+	gasLimit, err := strconv.Atoi(cParams[5])
+	if err != nil {
+		l.Error("the parameter gaLimit invalid", "err", err)
 		return
 	}
 
 	//send transaction
 	var resp common.Hash
-	if err := client.Call(&resp, getDipperinRpcMethodByName("ERC20Transfer"), contractAdr, owner, toAdr, value, txFee); err != nil {
+	if err := client.Call(&resp, getDipperinRpcMethodByName("ERC20Transfer"), contractAdr, owner, toAdr, value, gasPrice, gasLimit); err != nil {
 		l.Error("ERC20Transfer failed", "err", err)
 		return
 	}
@@ -208,8 +220,8 @@ func (caller *rpcCaller) ERC20TransferFrom(c *cli.Context) {
 		return
 	}
 
-	if !isParamValid(cParams, 6) {
-		l.Error("parameters need：contract address, owner, from_address, to_address, amount, transaction fee")
+	if !isParamValid(cParams, 7) {
+		l.Error("parameters need：contract address, owner, from_address, to_address, amount, gasPrice,gasLimit")
 		return
 	}
 
@@ -246,15 +258,21 @@ func (caller *rpcCaller) ERC20TransferFrom(c *cli.Context) {
 		return
 	}
 
-	txFee, err := MoneyValueToCSCoin(cParams[5])
+	gasPrice, err := MoneyValueToCSCoin(cParams[5])
 	if err != nil {
-		l.Error("the parameter transactionFee invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", "err", err)
+		return
+	}
+
+	gasLimit, err := strconv.Atoi(cParams[6])
+	if err != nil {
+		l.Error("the parameter gaLimit invalid", "err", err)
 		return
 	}
 
 	//send transaction
 	var resp common.Hash
-	if err := client.Call(&resp, getDipperinRpcMethodByName("ERC20TransferFrom"), contractAdr, owner, fromAdr, toAdr, value, txFee); err != nil {
+	if err := client.Call(&resp, getDipperinRpcMethodByName("ERC20TransferFrom"), contractAdr, owner, fromAdr, toAdr, value, gasPrice, gasLimit); err != nil {
 		l.Error("ERC20TransferFrom failed", "err", err)
 		return
 	}
@@ -472,8 +490,8 @@ func (caller *rpcCaller) ERC20Approve(c *cli.Context) {
 		return
 	}
 
-	if !isParamValid(cParams, 5) {
-		l.Error("parameters need：contract address, owner, to_address, amount, transaction fee")
+	if !isParamValid(cParams, 6) {
+		l.Error("parameters need：contract address, owner, to_address, amount,gasPrice,gasLimit")
 		return
 	}
 
@@ -517,15 +535,21 @@ func (caller *rpcCaller) ERC20Approve(c *cli.Context) {
 		return
 	}
 
-	txFee, err := MoneyValueToCSCoin(cParams[4])
+	gasPrice, err := MoneyValueToCSCoin(cParams[4])
 	if err != nil {
-		l.Error("the parameter transactionFee invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", "err", err)
+		return
+	}
+
+	gasLimit, err := strconv.Atoi(cParams[5])
+	if err != nil {
+		l.Error("the parameter gaLimit invalid", "err", err)
 		return
 	}
 
 	//send transaction
 	var resp common.Hash
-	if err := client.Call(&resp, getDipperinRpcMethodByName("ERC20Approve"), contractAdr, from, to, value, txFee); err != nil {
+	if err := client.Call(&resp, getDipperinRpcMethodByName("ERC20Approve"), contractAdr, from, to, value, gasPrice,gasLimit); err != nil {
 		l.Error("ERC20Approve failed", "err", err)
 		return
 	}
