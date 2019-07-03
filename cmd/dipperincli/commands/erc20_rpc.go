@@ -549,7 +549,7 @@ func (caller *rpcCaller) ERC20Approve(c *cli.Context) {
 
 	//send transaction
 	var resp common.Hash
-	if err := client.Call(&resp, getDipperinRpcMethodByName("ERC20Approve"), contractAdr, from, to, value, gasPrice,gasLimit); err != nil {
+	if err := client.Call(&resp, getDipperinRpcMethodByName("ERC20Approve"), contractAdr, from, to, value, gasPrice, gasLimit); err != nil {
 		l.Error("ERC20Approve failed", "err", err)
 		return
 	}

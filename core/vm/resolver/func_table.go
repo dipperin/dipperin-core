@@ -111,7 +111,7 @@ func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
 			"__modti3":  &exec.FunctionImport{Execute: env__modti3, GasCost: env__modti3GasCost},
 			"__umodti3": &exec.FunctionImport{Execute: env__umodti3, GasCost: env__umodti3GasCost},
 			"__multi3":  &exec.FunctionImport{Execute: env__multi3, GasCost: env__multi3GasCost},
-			"__addtf3":  &exec.FunctionImport{Execute: env__addtf3, GasCost: env__addtf3GasCost},
+/*			"__addtf3":  &exec.FunctionImport{Execute: env__addtf3, GasCost: env__addtf3GasCost},
 			"__subtf3":  &exec.FunctionImport{Execute: env__subtf3, GasCost: env__subtf3GasCost},
 			"__multf3":  &exec.FunctionImport{Execute: env__multf3, GasCost: env__multf3GasCost},
 			"__divtf3":  &exec.FunctionImport{Execute: env__divtf3, GasCost: env__divtf3GasCost},
@@ -145,7 +145,7 @@ func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
 			"__letf2":    &exec.FunctionImport{Execute: env__letf2, GasCost: env__letf2GasCost},
 			"__cmptf2":   &exec.FunctionImport{Execute: env__cmptf2, GasCost: env__cmptf2GasCost},
 			"__unordtf2": &exec.FunctionImport{Execute: env__unordtf2, GasCost: env__unordtf2GasCost},
-			"__negtf2":   &exec.FunctionImport{Execute: env__negtf2, GasCost: env__negtf2GasCost},
+			"__negtf2":   &exec.FunctionImport{Execute: env__negtf2, GasCost: env__negtf2GasCost},*/
 
 			// for blockchain function
 			"gasPrice":     &exec.FunctionImport{Execute: r.envGasPrice, GasCost: constGasFunc(GasQuickStep)},

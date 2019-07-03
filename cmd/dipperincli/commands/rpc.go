@@ -1227,7 +1227,7 @@ func (caller *rpcCaller) SendCancelTx(c *cli.Context) {
 		return
 	}
 
-	if err = client.Call(&resp, getDipperinRpcMethodByName("SendCancelTransaction"), defaultAccount, gasPrice,gasLimit, nil); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName("SendCancelTransaction"), defaultAccount, gasPrice, gasLimit, nil); err != nil {
 		l.Error("call send transaction", "err", err)
 		return
 	}
@@ -1272,7 +1272,7 @@ func (caller *rpcCaller) SendCancelTransaction(c *cli.Context) {
 		return
 	}
 
-	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, gasPrice,gasLimit, nil); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, gasPrice, gasLimit, nil); err != nil {
 		l.Error("call send transaction", "err", err)
 		return
 	}
