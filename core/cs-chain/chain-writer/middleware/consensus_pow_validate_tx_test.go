@@ -53,13 +53,13 @@ func TestNewTxValidatorForRpcService(t *testing.T) {
 	assert.Error(t, ValidateBlockTxs(&BlockContext{Block: &fakeBlock{
 		txRoot:    common.HexToHash("0xd76a8eabd6e80cb0bcac287d629cc69b498e995847eae3057bc2b36d752d6c63"),
 		isSpecial: true,
-		txs:       []model.AbstractTransaction{&fakeTx{Receipt:&model2.Receipt{}}},
+		txs:       []model.AbstractTransaction{&fakeTx{Receipt: &model2.Receipt{}}},
 	}, Chain: &fakeChainInterface{}})())
 
 	assert.Error(t, ValidateBlockTxs(&BlockContext{Block: &fakeBlock{
 		txRoot:    common.HexToHash("0xd76a8eabd6e80cb0bcac287d629cc69b498e995847eae3057bc2b36d752d6c63"),
 		isSpecial: false,
-		txs:       []model.AbstractTransaction{&fakeTx{fee: big.NewInt(1),Receipt:&model2.Receipt{}}},
+		txs:       []model.AbstractTransaction{&fakeTx{fee: big.NewInt(1), Receipt: &model2.Receipt{}}},
 	}, Chain: &fakeChainInterface{}})())
 }
 
@@ -104,9 +104,9 @@ func TestTxValidatorForRpcService_Valid(t *testing.T) {
 		em:    &fakeEconomyModel{lockM: big.NewInt(10000011)},
 	}, 1))
 	assert.NoError(t, ValidTxSender(&fakeTx{
-		sender: sender,
-		GasLimit:   g_testData.TestGasLimit,
-		amount: big.NewInt(10),
+		sender:   sender,
+		GasLimit: g_testData.TestGasLimit,
+		amount:   big.NewInt(10),
 	}, &fakeChainInterface{
 		state: adb,
 		block: &fakeBlock{},
@@ -260,9 +260,9 @@ func getTxTestEnv(t *testing.T) (common.Address, *state_processor.AccountStateDB
 	assert.NoError(t, adb.NewAccountState(s))
 	assert.NoError(t, adb.AddBalance(s, big.NewInt(10000011)))
 	passTx := &fakeTx{
-		sender: s,
-		GasLimit:   g_testData.TestGasLimit,
-		amount: big.NewInt(10),
+		sender:   s,
+		GasLimit: g_testData.TestGasLimit,
+		amount:   big.NewInt(10),
 	}
 	passChain := &fakeChainInterface{
 		state:   adb,

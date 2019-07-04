@@ -576,7 +576,7 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 		return
 	}
 
-	if  len(cParams) != 5 && len(cParams) != 6{
+	if len(cParams) != 5 && len(cParams) != 6 {
 		l.Error("parameter includes：from to value gasLimit gasPrice extraData")
 		return
 	}
@@ -620,8 +620,6 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 		ExtraData = []byte(cParams[5])
 	}
 
-
-
 	var resp common.Hash
 	l.Info("the From is: ", "From", From.Hex())
 	l.Info("the To is: ", "To", To.Hex())
@@ -629,7 +627,7 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 	l.Info("the gasLimit is:", "gasLimit", cParams[3])
 	l.Info("the gasPrice is:", "gasPrice", cParams[4])
 	l.Info("the ExtraData is: ", "ExtraData", ExtraData)
-	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, To, Value, gasPrice,gasLimit, ExtraData, nil); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, To, Value, gasPrice, gasLimit, ExtraData, nil); err != nil {
 
 		l.Error("call send transaction", "err", err)
 		return

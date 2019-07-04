@@ -47,12 +47,12 @@ func loadDefaultAccountStake() {
 	}
 }
 
-func PrintCommandsModuleName()  {
+func PrintCommandsModuleName() {
 	var moduleName string
-	for _,c := range config.Commands{
-		moduleName = moduleName +  c.Text  + ","
+	for _, c := range config.Commands {
+		moduleName = moduleName + c.Text + ","
 	}
-	if  len(config.Commands) > 0 {
+	if len(config.Commands) > 0 {
 		moduleName = moduleName[:len(moduleName)-1]
 	}
 	l.Info("you can use the base command to interactive with the node :" + moduleName)
