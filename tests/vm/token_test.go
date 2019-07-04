@@ -39,3 +39,16 @@ func Test_TokenContractCall(t *testing.T) {
 	err = Call(client, from, to, input)
 	assert.NoError(t, err)
 }
+
+/*func Test_dial_server(t *testing.T){
+	//if client, err = rpc.Dial(fmt.Sprintf("http://%v:%d", "127.0.0.1", port)); err != nil {
+	//	panic("init rpc client failed: " + err.Error())
+	//}
+	wsURL := fmt.Sprintf("ws://%v:%d", "172.16.5.183", 7002)
+	//l.Info("init rpc client", "wsURL", wsURL)
+	if _, err := rpc.Dial(wsURL); err != nil {
+		panic("init rpc client failed: " + err.Error())
+	}
+
+	log.Info("dial success")
+}*/
