@@ -62,7 +62,7 @@ func Test_rpcCaller_AnnounceERC20(t *testing.T) {
 		c.AnnounceERC20(context)
 
 		assert.Panics(t, func() {
-			wrapRpcArgs(context, "1", "0x00005033874289F4F823A896700D94274683535cF0E1,y,z,10,1,2")
+			wrapRpcArgs(context, "1", "0x00005033874289F4F823A896700D94274683535cF0E1,y,z,10,1,1,210000")
 			c.AnnounceERC20(context)
 		})
 	}
@@ -104,7 +104,7 @@ func Test_rpcCaller_ERC20Transfer(t *testing.T) {
 		c.ERC20Transfer(context)
 
 		assert.Panics(t, func() {
-			wrapRpcArgs(context, "ERC20Transfer", "0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4,z,h")
+			wrapRpcArgs(context, "ERC20Transfer", "0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4,z,h,21000")
 			c.ERC20Transfer(context)
 		})
 		//wrapRpcArgs(context, "1", "0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4,4,0.00001")
@@ -135,7 +135,7 @@ func Test_rpcCaller_ERC20TransferFrom(t *testing.T) {
 		c.ERC20TransferFrom(context)
 
 		assert.Panics(t, func() {
-			wrapRpcArgs(context, "ERC20TransferFrom", "0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,y,z")
+			wrapRpcArgs(context, "ERC20TransferFrom", "0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,y,z,21000")
 			c.ERC20TransferFrom(context)
 		})
 	}
@@ -302,7 +302,7 @@ func Test_rpcCaller_ERC20Approve(t *testing.T) {
 		c.ERC20Approve(context)
 
 		assert.Panics(t, func() {
-			wrapRpcArgs(context, "ERC20Approve", "0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,y,z")
+			wrapRpcArgs(context, "ERC20Approve", "0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,y,z,21000")
 			c.ERC20Approve(context)
 		})
 	}

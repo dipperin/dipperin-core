@@ -46,16 +46,17 @@ func TestTransaction_EncodeRLP(t *testing.T) {
 	tx := CreateSignedTx(0, big.NewInt(10000))
 	buffer := new(bytes.Buffer)
 	assert.NoError(t, tx.EncodeRLP(buffer))
-
 	stream := rlp.NewStream(buffer, 0)
 	assert.NoError(t, tx.DecodeRLP(stream))
 }
 
 func TestTransaction_EncodeRlpToBytes(t *testing.T) {
 	tx := CreateSignedTx(0, big.NewInt(10000))
+	//log.Info("the tx is:","txData",tx)
 	result, err := tx.EncodeRlpToBytes()
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
+	//log.Info("the tx rlp data is:","rlpData",hexutil.Encode(result))
 }
 
 func TestTransaction_RLP(t *testing.T) {

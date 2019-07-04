@@ -33,8 +33,8 @@ func (caller *rpcCaller) TransferEDIPToDIP(c *cli.Context) {
 		return
 	}
 
-	if len(cParams) != 3 {
-		l.Error("EarlyTokenTransferEDIPToDIP needs at least：from, eDIPValue,transactionFee")
+	if len(cParams) != 4 {
+		l.Error("EarlyTokenTransferEDIPToDIP needs at least：from, eDIPValue,gasPrice,gasLimit")
 		return
 	}
 
@@ -50,9 +50,15 @@ func (caller *rpcCaller) TransferEDIPToDIP(c *cli.Context) {
 		return
 	}
 
-	txFee, err := MoneyValueToCSCoin(cParams[2])
+	gasPrice, err := MoneyValueToCSCoin(cParams[2])
 	if err != nil {
-		l.Error("the parameter transactionFee invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", "err", err)
+		return
+	}
+
+	gasLimit, err := strconv.Atoi(cParams[3])
+	if err != nil {
+		l.Error("the parameter gaLimit invalid", "err", err)
 		return
 	}
 
@@ -63,7 +69,7 @@ func (caller *rpcCaller) TransferEDIPToDIP(c *cli.Context) {
 
 	//send transaction
 	var resp common.Hash
-	if err := client.Call(&resp, getDipperinRpcMethodByName("SendTransaction"), from, contractAdr, 0, txFee, extraData, nil); err != nil {
+	if err := client.Call(&resp, getDipperinRpcMethodByName("SendTransaction"), from, contractAdr, 0, gasPrice, gasLimit, extraData, nil); err != nil {
 		l.Error("Call a send transaction", "err", err)
 		return
 	}
@@ -77,8 +83,8 @@ func (caller *rpcCaller) SetExchangeRate(c *cli.Context) {
 		return
 	}
 
-	if len(cParams) != 3 {
-		l.Error("SetExchangeRate needs at least：from, exchangeRate,transactionFee")
+	if len(cParams) != 4 {
+		l.Error("SetExchangeRate needs at least：from, exchangeRate,gasPrice,gasLimit")
 		return
 	}
 
@@ -90,9 +96,15 @@ func (caller *rpcCaller) SetExchangeRate(c *cli.Context) {
 
 	exChangeRate := cParams[1]
 
-	txFee, err := MoneyValueToCSCoin(cParams[2])
+	gasPrice, err := MoneyValueToCSCoin(cParams[2])
 	if err != nil {
-		l.Error("the parameter transactionFee invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", "err", err)
+		return
+	}
+
+	gasLimit, err := strconv.Atoi(cParams[3])
+	if err != nil {
+		l.Error("the parameter gaLimit invalid", "err", err)
 		return
 	}
 
@@ -108,7 +120,7 @@ func (caller *rpcCaller) SetExchangeRate(c *cli.Context) {
 
 	//send transaction
 	var resp common.Hash
-	if err := client.Call(&resp, getDipperinRpcMethodByName("SendTransaction"), from, contractAdr, 0, txFee, extraData, nil); err != nil {
+	if err := client.Call(&resp, getDipperinRpcMethodByName("SendTransaction"), from, contractAdr, 0, gasPrice, gasLimit, extraData, nil); err != nil {
 		l.Error("call sending transaction", "err", err)
 		return
 	}
