@@ -34,6 +34,7 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/urfave/cli"
 	"io/ioutil"
+	"math/big"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -575,8 +576,8 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 		return
 	}
 
-	if len(cParams) != 4 && len(cParams) != 5 {
-		l.Error("parameter includes：from to value transactionFee")
+	if  len(cParams) != 5 && len(cParams) != 6{
+		l.Error("parameter includes：from to value gasLimit gasPrice extraData")
 		return
 	}
 
@@ -598,25 +599,37 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 		l.Error("the parameter value invalid")
 		return
 	}
-
-	TransactionFee, err := MoneyValueToCSCoin(cParams[3])
+	gas, err := strconv.Atoi(cParams[3])
 	if err != nil {
-		l.Error("the parameter transactionFee invalid")
+		l.Error("the gasLimit value is wrong")
 		return
+	}
+	gasLimit := uint64(gas)
+
+	var gasPrice *big.Int
+	if len(cParams) == 5 {
+		gasPrice, err = MoneyValueToCSCoin(cParams[4])
+		if err != nil {
+			l.Error("the gasPrice value is wrong")
+			return
+		}
 	}
 
 	ExtraData := make([]byte, 0)
-	if len(cParams) == 5 {
-		ExtraData = []byte(cParams[4])
+	if len(cParams) == 6 {
+		ExtraData = []byte(cParams[5])
 	}
+
+
 
 	var resp common.Hash
 	l.Info("the From is: ", "From", From.Hex())
 	l.Info("the To is: ", "To", To.Hex())
 	l.Info("the Value is:", "Value", cParams[2]+consts.CoinDIPName)
-	l.Info("the TransactionFee is:", "TransactionFee", cParams[3]+consts.CoinDIPName)
+	l.Info("the gasLimit is:", "gasLimit", cParams[3])
+	l.Info("the gasPrice is:", "gasPrice", cParams[4])
 	l.Info("the ExtraData is: ", "ExtraData", ExtraData)
-	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, To, Value, TransactionFee, ExtraData, nil); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, To, Value, gasPrice,gasLimit, ExtraData, nil); err != nil {
 
 		l.Error("call send transaction", "err", err)
 		return
@@ -683,7 +696,7 @@ func (caller *rpcCaller) GetConvertReceiptByTxHash(c *cli.Context) {
 		return
 	}
 	l.Info("Call GetConvertReceiptByTxHash")
-	fmt.Print(resp.String())
+	fmt.Println(resp.String())
 }
 
 func (caller *rpcCaller) GetReceiptByTxHash(c *cli.Context) {

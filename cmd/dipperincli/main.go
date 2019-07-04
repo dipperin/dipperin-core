@@ -198,6 +198,7 @@ func appAction(c *cli.Context) {
 		closeApp()
 	}()
 
+	commands.PrintCommandsModuleName()
 	commands.PrintDefaultAccountStake()
 
 	go commands.CheckDownloaderSyncStatus()

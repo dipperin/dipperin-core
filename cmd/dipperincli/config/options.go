@@ -177,6 +177,7 @@ var txMethods = []prompt.Suggest{
 	{Text: "SendRegisterTx", Description: ""},
 	{Text: "SendTransaction", Description: ""},
 	{Text: "SendTransactionContract", Description: ""},
+	{Text: "CallContract", Description: ""},
 	{Text: "SendTx", Description: ""},
 	{Text: "Transaction", Description: ""},
 	{Text: "GetContractAddressByTxHash", Description: ""},
