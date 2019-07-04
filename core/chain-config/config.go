@@ -268,7 +268,7 @@ func initLocalBoots(dataDir string) {
 
 	// local boot node
 	/*if KBucketNodes = LoadBootNodesFromFile(dataDir); len(KBucketNodes) == 0 {
-		n, _ := enode.ParseV4("enode://f569bb9b4a7ac1ff1aa807f2c8edcc1dab877bfd6b9ea0692f12683ba06229971c1482d6748e7b09e07cd0278ada7137bcb0b84b571f977a385aec7887be75bc@127.0.0.1:30301")
+		n, _ := enode.ParseV4("enode://f569bb9b4a7ac1ff1aa807f2c8edcc1dab877bfd6b9ea0692f12683ba06229971c1482d6748e7b09e07cd0278ada7137bcb0b84b571f977a385aec7887be75bc@127.0.0.1:30301")genesis block not match
 		KBucketNodes = append(KBucketNodes, n)
 	}	*/
 	if KBucketNodes = LoadBootNodesFromFile(dataDir); len(KBucketNodes) == 0 {

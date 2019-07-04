@@ -23,7 +23,7 @@ import (
 
 var nilSuggest []prompt.Suggest
 
-var commands = []prompt.Suggest{
+var Commands = []prompt.Suggest{
 	{Text: "miner", Description: "miner method"},
 	{Text: "verifier", Description: "verifier method"},
 	{Text: "tx", Description: "tx method"},
@@ -127,7 +127,7 @@ func argumentsCompleterNew(args []string) []prompt.Suggest {
 	l := len(args)
 
 	if l <= 1 {
-		return prompt.FilterHasPrefix(commands, args[0], true)
+		return prompt.FilterHasPrefix(Commands, args[0], true)
 	}
 
 	first := args[0]
@@ -149,7 +149,7 @@ func argumentsCompleterNew(args []string) []prompt.Suggest {
 	l := len(args)
 
 	if l <= 1 {
-		return prompt.FilterHasPrefix(commands, args[0], true)
+		return prompt.FilterHasPrefix(Commands, args[0], true)
 	}
 
 	first := args[0]
