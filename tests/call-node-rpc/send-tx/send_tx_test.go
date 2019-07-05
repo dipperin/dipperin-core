@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func Test_SendNormalTx(t *testing.T){
+func Test_SendNormalTx(t *testing.T) {
 	t.Skip()
 	cluster, err := node_cluster.CreateNodeCluster()
 	assert.NoError(t, err)
@@ -18,13 +18,13 @@ func Test_SendNormalTx(t *testing.T){
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
 
-	nodeAddr ,err:= cluster.GetNodeMainAddress(nodeName)
-	assert.NoError(t,err)
-	testKey,err := crypto.GenerateKey()
-	assert.NoError(t,err)
+	nodeAddr, err := cluster.GetNodeMainAddress(nodeName)
+	assert.NoError(t, err)
+	testKey, err := crypto.GenerateKey()
+	assert.NoError(t, err)
 	toAddr := cs_crypto.GetNormalAddress(testKey.PublicKey)
 
 	var resp common.Hash
 	err = client.Call(&resp, vm.GetRpcTXMethod("SendTransaction"), nodeAddr, toAddr, 1000, 1, 21000, nil, nil)
-	assert.NoError(t,err)
+	assert.NoError(t, err)
 }

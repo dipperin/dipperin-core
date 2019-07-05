@@ -1561,17 +1561,16 @@ func (service *MercuryFullChainService) GetConvertReceiptByTxHash(txHash common.
 		return nil, g_error.ErrReceiptIsNil
 	}
 
-
 	for _, value := range receipts {
 		if txHash.IsEqual(value.TxHash) {
 
-			if tx.GetType() != common.AddressTypeContractCreate && tx.GetType() != common.AddressTypeContractCall{
-				return value,nil
+			if tx.GetType() != common.AddressTypeContractCreate && tx.GetType() != common.AddressTypeContractCall {
+				return value, nil
 			}
 
 			result, innerErr := service.convertReceiptLog(*value)
 			if innerErr != nil {
-				log.Info("GetConvertReceiptByTxHash convertReceiptLog error","err",innerErr)
+				log.Info("GetConvertReceiptByTxHash convertReceiptLog error", "err", innerErr)
 				return nil, innerErr
 			}
 			return result, nil
@@ -1583,13 +1582,13 @@ func (service *MercuryFullChainService) GetConvertReceiptByTxHash(txHash common.
 func (service *MercuryFullChainService) GetTxActualFee(txHash common.Hash) (*big.Int, error) {
 	receipt, err := service.GetReceiptByTxHash(txHash)
 	if err != nil {
-		log.Info("GetTxActualFee GetConvertReceiptByTxHash error","err",err)
+		log.Info("GetTxActualFee GetConvertReceiptByTxHash error", "err", err)
 		return nil, err
 	}
 
 	tx, _, _, _, err := service.Transaction(txHash)
 	if err != nil {
-		log.Info("GetTxActualFee Transaction error","err",err)
+		log.Info("GetTxActualFee Transaction error", "err", err)
 		return nil, err
 	}
 
