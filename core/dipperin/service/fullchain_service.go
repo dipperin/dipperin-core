@@ -1733,6 +1733,11 @@ func (service *MercuryFullChainService) CallContract(from, to common.Address, da
 		return "", g_error.ErrInvalidContractType
 	}
 
+	data, err := service.getExtraData(to, data)
+	if err != nil {
+		return "", err
+	}
+
 	constant, funcName, abi, err := service.checkConstant(to, data)
 	if err != nil {
 		return "", err

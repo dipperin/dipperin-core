@@ -1,7 +1,6 @@
 package state_processor
 
 import (
-	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
@@ -137,9 +136,7 @@ func (f *Fullstate) AddLog(addedLog *model2.Log) {
 	contractLogs := f.GetLogs(txHash)
 	addedLog.Index = uint(len(contractLogs))
 	f.state.logs[txHash] = append(contractLogs, addedLog)
-
 	log.Info("Log Added", "txHash", txHash)
-	fmt.Println(f.state.logs[txHash])
 }
 
 func (f *Fullstate) GetLogs(txHash common.Hash) []*model2.Log {
