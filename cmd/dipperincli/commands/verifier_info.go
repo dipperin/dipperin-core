@@ -17,6 +17,7 @@
 package commands
 
 import (
+	"github.com/dipperin/dipperin-core/cmd/dipperincli/config"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/core/accounts"
@@ -44,6 +45,17 @@ func loadDefaultAccountStake() {
 	if err == nil {
 		defaultAccountStake = stake + consts.CoinDIPName
 	}
+}
+
+func PrintCommandsModuleName() {
+	var moduleName string
+	for _, c := range config.Commands {
+		moduleName = moduleName + c.Text + ","
+	}
+	if len(config.Commands) > 0 {
+		moduleName = moduleName[:len(moduleName)-1]
+	}
+	l.Info("you can use the base command to interactive with the node :" + moduleName)
 }
 
 func PrintDefaultAccountStake() {

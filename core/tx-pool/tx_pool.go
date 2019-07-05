@@ -769,7 +769,7 @@ func (pool *TxPool) demoteUnexecutables() {
 	for addr, list := range pool.pending {
 		nonce, _ := pool.currentState.GetNonce(addr)
 
-		// Drop all transactions that are deemed too old (low nonce)
+		// Drop all transbuild dipperin-core failedactions that are deemed too old (low nonce)
 		for _, tx := range list.FilterNonce(nonce) {
 			hash := tx.CalTxId()
 			log.Debug("Removed old pending transaction", "hash", hash)

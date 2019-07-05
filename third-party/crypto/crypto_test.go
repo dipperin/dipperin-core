@@ -19,6 +19,7 @@ package crypto
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"reflect"
 	"testing"
 
@@ -95,4 +96,16 @@ func TestPythonIntegration(t *testing.T) {
 
 	t.Logf("msg: %x, privkey: %s sig: %x\n", msg0, kh, sig0)
 	t.Logf("msg: %x, privkey: %s sig: %x\n", msg1, kh, sig1)
+}
+
+func TestSha3(t *testing.T) {
+	dataSource := make([]byte,0)
+	dataLen := 1024*1024
+	for i:=0;i<dataLen;i++{
+		dataSource = append(dataSource,0x66)
+	}
+
+	log.Info("the dataSource is:","dataSource",hexutil.Encode(dataSource))
+	result := Keccak256(dataSource)
+	log.Info("the result is:","result",hexutil.Encode(result))
 }
