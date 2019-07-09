@@ -1703,7 +1703,7 @@ func (service *MercuryFullChainService) getExtraData(to common.Address, data []b
 			return nil, err
 		}
 	} else {
-		log.Info("ParseCreateContractData","data",hexutil.Encode(data))
+		log.Info("ParseCreateContractData", "data", hexutil.Encode(data))
 		var err error
 		extraData, err = utils.ParseCreateContractData(data)
 		if err != nil {

@@ -122,7 +122,7 @@ func SendCreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNam
 	data, err := g_testData.GetCreateExtraData(wasmPath, abiPath, params)
 	assert.NoError(t, err)
 
-	log.Info("SendCreateContract the extraData is:","data",hexutil.Encode(data))
+	log.Info("SendCreateContract the extraData is:", "data", hexutil.Encode(data))
 
 	value := big.NewInt(0).Mul(g_testData.TestValue, big.NewInt(2))
 	gasLimit := big.NewInt(0).SetUint64(g_testData.TestGasLimit * 10000)

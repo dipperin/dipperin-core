@@ -14,11 +14,11 @@ var (
 )
 
 type ContractTestParameter struct {
-	NodeName string
-	WASMPath string
-	AbiPath string
+	NodeName      string
+	WASMPath      string
+	AbiPath       string
 	InitInputPara string
-	CallFuncName string
+	CallFuncName  string
 	CallInputPara string
 }
 
