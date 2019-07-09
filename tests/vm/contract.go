@@ -3,6 +3,7 @@ package vm
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
@@ -120,6 +121,8 @@ func SendCreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNam
 	to := common.HexToAddress(common.AddressContractCreate)
 	data, err := g_testData.GetCreateExtraData(wasmPath, abiPath, params)
 	assert.NoError(t, err)
+
+	log.Info("SendCreateContract the extraData is:","data",hexutil.Encode(data))
 
 	value := big.NewInt(0).Mul(g_testData.TestValue, big.NewInt(2))
 	gasLimit := big.NewInt(0).SetUint64(g_testData.TestGasLimit * 10000)

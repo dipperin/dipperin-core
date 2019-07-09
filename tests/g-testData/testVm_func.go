@@ -41,3 +41,5 @@ func GetCreateExtraData(wasmPath, abiPath string, init string) ([]byte, error) {
 	data, err := rlp.EncodeToBytes(rlpParams)
 	return data, err
 }
+
+

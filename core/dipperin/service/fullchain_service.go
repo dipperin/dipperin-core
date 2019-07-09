@@ -1628,7 +1628,6 @@ func (service *MercuryFullChainService) GetReceiptByTxHash(txHash common.Hash) (
 }
 
 func (service *MercuryFullChainService) SendTransactionContract(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
-
 	// check Tx type
 	if to.GetAddressType() != common.AddressTypeContractCall && to.GetAddressType() != common.AddressTypeContractCreate {
 		return common.Hash{}, g_error.ErrInvalidContractType
@@ -1704,11 +1703,12 @@ func (service *MercuryFullChainService) getExtraData(to common.Address, data []b
 			return nil, err
 		}
 	} else {
-		log.Info("ParseCreateContractData")
+		log.Info("ParseCreateContractData","data",hexutil.Encode(data))
 		var err error
 		extraData, err = utils.ParseCreateContractData(data)
 		if err != nil {
-			return nil, err
+			log.Error("getExtraData ParseCreateContractData failed", "err", err)
+			return nil, g_error.ErrParaVmExtraData
 		}
 	}
 	return extraData, nil

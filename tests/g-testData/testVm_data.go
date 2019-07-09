@@ -17,3 +17,5 @@ func GetAbiPath(fileName string) string {
 	path := filepath.Join(homeDir, "go/src/github.com/dipperin/dipperin-core/core/vm/test-data")
 	return filepath.Join(path, fmt.Sprintf("%s/%s.cpp.abi.json", fileName, fileName))
 }
+
+
