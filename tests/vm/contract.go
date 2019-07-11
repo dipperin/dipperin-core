@@ -25,9 +25,9 @@ func GetRpcTXMethod(methodName string) string {
 	return "dipperin_" + strings.ToLower(methodName[0:1]) + methodName[1:]
 }
 
-func SendTransaction(client *rpc.Client, from, to common.Address, value, fee *big.Int, data []byte) (common.Hash, error) {
+func SendTransaction(client *rpc.Client, from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte) (common.Hash, error) {
 	var resp common.Hash
-	if err := client.Call(&resp, GetRpcTXMethod("SendTransaction"), from, to, value, fee, data, nil); err != nil {
+	if err := client.Call(&resp, GetRpcTXMethod("SendTransaction"), from, to, value, gasPrice, gasLimit, data, nil); err != nil {
 		LogTestPrint("Test", "SendTransaction failed", "err", err)
 		return common.Hash{}, err
 	}
@@ -123,7 +123,7 @@ func SendCreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNam
 
 	value := big.NewInt(0).Mul(g_testData.TestValue, big.NewInt(2))
 	gasLimit := big.NewInt(0).SetUint64(g_testData.TestGasLimit * 10000)
-	gasPrice := big.NewInt(0).Mul(g_testData.TestGasPrice, big.NewInt(3))
+	gasPrice := big.NewInt(0).Mul(g_testData.TestGasPrice, big.NewInt(4))
 	txHash, innerErr := SendTransactionContract(client, from, to, value, gasLimit, gasPrice, data)
 	assert.NoError(t, innerErr)
 	return txHash

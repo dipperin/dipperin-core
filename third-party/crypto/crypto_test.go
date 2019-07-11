@@ -99,13 +99,13 @@ func TestPythonIntegration(t *testing.T) {
 }
 
 func TestSha3(t *testing.T) {
-	dataSource := make([]byte,0)
-	dataLen := 1024*1024
-	for i:=0;i<dataLen;i++{
-		dataSource = append(dataSource,0x66)
+	dataSource := make([]byte, 0)
+	dataLen := 1024 * 1024
+	for i := 0; i < dataLen; i++ {
+		dataSource = append(dataSource, 0x66)
 	}
 
-	log.Info("the dataSource is:","dataSource",hexutil.Encode(dataSource))
+	log.Info("the dataSource is:", "dataSource", hexutil.Encode(dataSource))
 	result := Keccak256(dataSource)
-	log.Info("the result is:","result",hexutil.Encode(result))
+	log.Info("the result is:", "result", hexutil.Encode(result))
 }

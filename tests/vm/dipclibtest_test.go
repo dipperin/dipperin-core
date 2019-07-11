@@ -8,19 +8,19 @@ import (
 	"testing"
 )
 
-func Test_ConvertContractCall(t *testing.T) {
+func Test_DipcLibTestCall(t *testing.T) {
 	cluster, err := node_cluster.CreateNodeCluster()
 	assert.NoError(t, err)
 
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
 
-	WASMConvertPath := g_testData.GetWasmPath("convert")
-	ABIConvertPath := g_testData.GetAbiPath("convert")
+	WASMConvertPath := g_testData.GetWasmPath("dipclib_test")
+	ABIConvertPath := g_testData.GetAbiPath("dipclib_test")
 	contractHash := SendCreateContract(t, cluster, nodeName, WASMConvertPath, ABIConvertPath, "")
 	checkTransactionOnChain(client, []common.Hash{contractHash})
 
-	data, err := g_testData.GetCallExtraData("printTest", "")
+	data, err := g_testData.GetCallExtraData("libTest", "")
 	assert.NoError(t, err)
 	txHash := SendCallContract(t, cluster, nodeName, contractHash, data)
 	checkTransactionOnChain(client, []common.Hash{txHash})

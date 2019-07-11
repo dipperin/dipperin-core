@@ -31,11 +31,7 @@ func (f *Fullstate) GetBalance(addr common.Address) *big.Int {
 }
 
 func (f *Fullstate) GetNonce(addr common.Address) (uint64, error) {
-	nonce, err := f.state.GetNonce(addr)
-	if err != nil {
-		log.Error("GetNonce failed", "err", err)
-	}
-	return nonce, err
+	return f.state.GetNonce(addr)
 }
 
 func (f *Fullstate) AddNonce(addr common.Address, add uint64) {

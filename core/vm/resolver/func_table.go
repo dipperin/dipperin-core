@@ -167,6 +167,7 @@ func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
 
 			// supplement
 			"getCallerNonce": &exec.FunctionImport{Execute: r.envGetCallerNonce, GasCost: constGasFunc(GasQuickStep)},
+			// "currentTime": &exec.FunctionImport{Execute: r.envCurrentTime, GasCost: constGasFunc(GasQuickStep)},
 			/*			"callTransfer":   &exec.FunctionImport{Execute: r.envCallTransfer, GasCost: constGasFunc(GasQuickStep)},
 
 						"dipcCall":               &exec.FunctionImport{Execute: r.envDipperCall, GasCost: envDipperCallGasCost},

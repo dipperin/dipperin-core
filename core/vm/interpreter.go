@@ -97,6 +97,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 		// init function.
 		funcName, params, returnType, err = parseInitFunctionByABI(lifeVm, contract.Input, contract.ABI)
 		if err != nil {
+			log.Error("parseInitFunctionByABI failed", "err", err)
 			return nil, err
 		}
 	} else {
@@ -106,6 +107,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 			if err == errReturnInsufficientParams { // transfer to contract address.
 				return nil, nil
 			}
+			log.Error("parseCallExtraDataByABI failed", "err", err)
 			return nil, err
 		}
 	}
