@@ -14,4 +14,5 @@ var (
 	ErrExecutionReverted         = errors.New("vm: execution reverted")
 	ErrMaxCodeSizeExceeded       = errors.New("vm: max code size exceeded")
 	ErrReturnInvalidRlpFormat    = errors.New("vm: return invalid rlp format")
+	ErrParaVmExtraData           = errors.New("getExtraData ParseCreateContractData failed")
 )

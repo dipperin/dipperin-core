@@ -8,6 +8,22 @@ import (
 	"testing"
 )
 
+func CreatAndCallContract(t *testing.T, parameter *g_testData.ContractTestParameter) (common.Hash, error) {
+	cluster, err := node_cluster.CreateNodeCluster()
+	assert.NoError(t, err)
+	client := cluster.NodeClient[parameter.NodeName]
+
+	contractHash := SendCreateContract(t, cluster, parameter.NodeName, parameter.WASMPath, parameter.AbiPath, parameter.InitInputPara)
+	checkTransactionOnChain(client, []common.Hash{contractHash})
+
+	data, err := g_testData.GetCallExtraData(parameter.CallFuncName, parameter.CallInputPara)
+	assert.NoError(t, err)
+	txHash := SendCallContract(t, cluster, parameter.NodeName, contractHash, data)
+	checkTransactionOnChain(client, []common.Hash{txHash})
+
+	return contractHash, nil
+}
+
 func Test_EventContractCall(t *testing.T) {
 	cluster, err := node_cluster.CreateNodeCluster()
 	assert.NoError(t, err)
@@ -24,4 +40,8 @@ func Test_EventContractCall(t *testing.T) {
 	assert.NoError(t, err)
 	txHash := SendCallContract(t, cluster, nodeName, contractHash, data)
 	checkTransactionOnChain(client, []common.Hash{txHash})
+}
+
+func Test_DIPCLibContract(t *testing.T) {
+	CreatAndCallContract(t, &g_testData.ContractTestPar)
 }
