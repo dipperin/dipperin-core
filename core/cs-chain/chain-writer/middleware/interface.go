@@ -61,7 +61,7 @@ type StateReader interface {
 	GetBlockNumber(hash common.Hash) *uint64
 	GetTransaction(txHash common.Hash) (model.AbstractTransaction, common.Hash, uint64, uint64)
 	GetReceipts(hash common.Hash, number uint64) model2.Receipts
-	GetBloomBits(head common.Hash, bit uint, section uint64 ) []byte
+	GetBloomBits(head common.Hash, bit uint, section uint64) []byte
 	GetLatestNormalBlock() model.AbstractBlock
 
 	BlockProcessor(root common.Hash) (*chain.BlockProcessor, error)

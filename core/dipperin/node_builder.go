@@ -74,7 +74,7 @@ type BaseComponent struct {
 	txBConf              *chain_communication.NewTxBroadcasterConfig
 	verHaltCheckConfig   *verifiers_halt_check.HaltCheckConf
 
-	prometheusServer            *g_metrics.PrometheusMetricsServer
+	prometheusServer *g_metrics.PrometheusMetricsServer
 	//cacheDB                     *cachedb.CacheDB
 	fullChain                   *cs_chain.CsChainService
 	txPool                      *tx_pool.TxPool
@@ -214,7 +214,7 @@ func (b *BaseComponent) buildDipperinConfig() {
 	b.DipperinConfig.MineMasterServer = b.mineMasterServer
 	b.DipperinConfig.DefaultAccount = b.defaultAccountAddress
 	b.DipperinConfig.MsgSigner = b.msgSigner
-	b.DipperinConfig.ChainIndex = chain_state.NewBloomIndexer(b.DipperinConfig.ChainReader, b.fullChain.CacheChainState.ChainState.GetDB(),   chain_state.BloomBitsBlocks, chain_state.BloomConfirms)
+	b.DipperinConfig.ChainIndex = chain_state.NewBloomIndexer(b.DipperinConfig.ChainReader, b.fullChain.CacheChainState.ChainState.GetDB(), chain_state.BloomBitsBlocks, chain_state.BloomConfirms)
 }
 
 func (b *BaseComponent) buildBftConfig() {

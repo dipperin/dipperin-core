@@ -66,13 +66,12 @@ type ChainIndexerChain interface {
 // after an entire section has been finished or in case of rollbacks that might
 // affect already finished sections.
 type ChainIndexer struct {
-	chainDb  ethdb.Database      // Chain database to index the data from
-	chainReader middleware.ChainInterface
-	indexDb  ethdb.Database      // Prefixed table-view of the db to write index metadata into
-	backend  ChainIndexerBackend // Background processor generating the index data content
-	children []*ChainIndexer     // Child indexers to cascade chain updates to
+	chainDb       ethdb.Database // Chain database to index the data from
+	chainReader   middleware.ChainInterface
+	indexDb       ethdb.Database       // Prefixed table-view of the db to write index metadata into
+	backend       ChainIndexerBackend  // Background processor generating the index data content
+	children      []*ChainIndexer      // Child indexers to cascade chain updates to
 	BloomRequests chan chan *Retrieval // Channel receiving bloom data retrieval requests
-
 
 	active    uint32          // Flag whether the event loop was started
 	update    chan struct{}   // Notification channel that headers should be processed
@@ -101,8 +100,8 @@ type ChainIndexer struct {
 // The throttling parameter might be used to prevent database thrashing.
 func NewChainIndexer(chainReader middleware.ChainInterface, db ethdb.Database, indexDb ethdb.Database, backend ChainIndexerBackend, section, confirm uint64, throttling time.Duration, kind string) *ChainIndexer {
 	c := &ChainIndexer{
-		chainReader:     chainReader,
-		chainDb:  db,
+		chainReader: chainReader,
+		chainDb:     db,
 		indexDb:     indexDb,
 		backend:     backend,
 		update:      make(chan struct{}, 1),
@@ -227,7 +226,7 @@ func (c *ChainIndexer) eventLoop(currentHeader *model.AbstractHeader, events cha
 				return
 			}
 			header := ev.Block.Header()
-			if header.GetPreHash() == prevHash && prevHeader != nil{
+			if header.GetPreHash() == prevHash && prevHeader != nil {
 				c.newHead(header.GetNumber())
 				prevHeader, prevHash = &header, header.Hash()
 			}
@@ -251,7 +250,7 @@ func (c *ChainIndexer) newHead(head uint64) {
 			if c.knownSections < c.checkpointSections {
 				// syncing reached the checkpoint, verify section head
 				var syncedHead common.Hash
-				syncedH := c.chainReader.GetHeaderByNumber(c.checkpointSections*c.sectionSize-1)
+				syncedH := c.chainReader.GetHeaderByNumber(c.checkpointSections*c.sectionSize - 1)
 				if syncedH != nil {
 					syncedHead = syncedH.Hash()
 				}
@@ -409,7 +408,7 @@ func (c *ChainIndexer) AddChildIndexer(indexer *ChainIndexer) {
 		sections = c.knownSections
 	}
 	if sections > 0 {
-		indexer.newHead(sections*c.sectionSize-1)
+		indexer.newHead(sections*c.sectionSize - 1)
 	}
 }
 

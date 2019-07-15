@@ -26,7 +26,6 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"time"
-
 )
 
 const (
@@ -55,8 +54,6 @@ const (
 	BloomConfirms = 256
 )
 
-
-
 const (
 	// bloomThrottling is the time to wait between processing two consecutive index
 	// sections. It's useful during chain upgrades to prevent disk overload.
@@ -66,12 +63,12 @@ const (
 // BloomIndexer implements a core.ChainIndexer, building up a rotated bloom bits index
 // for the Ethereum header bloom filters, permitting blazing fast filtering.
 type BloomIndexer struct {
-	size    uint64               // section size to generate bloombits for
-	db      ethdb.Database       // database instance to write index data and metadata into
+	size uint64         // section size to generate bloombits for
+	db   ethdb.Database // database instance to write index data and metadata into
 	//chainReader middleware.ChainInterface
-	gen     *Generator // generator to rotate the bloom bits crating the bloom index
-	section uint64               // Section is the section number being processed currently
-	head    common.Hash          // Head is the hash of the last header processed
+	gen     *Generator  // generator to rotate the bloom bits crating the bloom index
+	section uint64      // Section is the section number being processed currently
+	head    common.Hash // Head is the hash of the last header processed
 }
 
 // NewBloomIndexer returns a chain indexer that generates bloom bits data for the

@@ -99,7 +99,7 @@ type AbstractBlock interface {
 	GetVerifications() []AbstractVerification
 	SetReceiptHash(receiptHash common.Hash)
 	GetReceiptHash() common.Hash
-    GetBloomLog() model.Bloom
+	GetBloomLog() model.Bloom
 	SetBloomLog(bloom model.Bloom)
 	//GasLimit() uint64
 }

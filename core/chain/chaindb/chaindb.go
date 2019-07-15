@@ -308,8 +308,8 @@ func (chainDB *ChainDB) GetReceipts(hash common.Hash, number uint64) model2.Rece
 	return receipts
 }
 
-func (chainDB *ChainDB) GetBloomBits(head common.Hash, bit uint, section uint64) ([]byte){
-	bloomBits, err :=  chainDB.db.Get(bloomBitsKey(bit, section, head))
+func (chainDB *ChainDB) GetBloomBits(head common.Hash, bit uint, section uint64) []byte {
+	bloomBits, err := chainDB.db.Get(bloomBitsKey(bit, section, head))
 	if err != nil {
 		log.Error("ChainDB#GetBloomBits err", "hash", head, "err", err)
 		return nil
@@ -317,7 +317,7 @@ func (chainDB *ChainDB) GetBloomBits(head common.Hash, bit uint, section uint64)
 	return bloomBits
 }
 
-func BatchSaveBloomBits(db DatabaseWriter, head common.Hash, bit uint, section uint64,  bits []byte) error {
+func BatchSaveBloomBits(db DatabaseWriter, head common.Hash, bit uint, section uint64, bits []byte) error {
 	if err := db.Put(bloomBitsKey(bit, section, head), bits); err != nil {
 		log.Error("Failed to store bloom bits", "err", err)
 		return err

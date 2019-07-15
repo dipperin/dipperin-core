@@ -35,8 +35,8 @@ var (
 // to be used for batched filtering.
 type Generator struct {
 	blooms   [model2.BloomBitLength][]byte // Rotated blooms for per-bit matching
-	sections uint                         // Number of sections to batch together
-	nextSec  uint                         // Next section to set when adding a bloom
+	sections uint                          // Number of sections to batch together
+	nextSec  uint                          // Next section to set when adding a bloom
 }
 
 // NewGenerator creates a rotated bloom generator that can iteratively fill a

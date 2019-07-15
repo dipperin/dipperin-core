@@ -102,20 +102,20 @@ var txFlags = []cli.Flag{
 }
 
 type FilterParams struct {
-	blockHash *common.Hash `json:"block_hash"`
-	fromBlock *big.Int `json:"from_block"`
-	toBlock *big.Int `json:"to_block"`
+	blockHash *common.Hash     `json:"block_hash"`
+	fromBlock *big.Int         `json:"from_block"`
+	toBlock   *big.Int         `json:"to_block"`
 	addresses []common.Address `json:"addresses"`
-	topics [][]common.Hash `json:"topics"`
+	topics    [][]common.Hash  `json:"topics"`
 }
 
 func (f *FilterParams) UnmarshalJSON(inputs []byte) error {
 	type Fp struct {
-		BlockHash string `json:"block_hash"`
-		FromBlock int64 `json:"from_block"`
-		ToBlock int64 `json:"to_block"`
-		Addresses []string `json:"addresses"`
-		Topics [][]string `json:"topics"`
+		BlockHash string     `json:"block_hash"`
+		FromBlock int64      `json:"from_block"`
+		ToBlock   int64      `json:"to_block"`
+		Addresses []string   `json:"addresses"`
+		Topics    [][]string `json:"topics"`
 	}
 	var fp Fp
 	if err := json.Unmarshal(inputs, &fp); err != nil {
@@ -128,14 +128,14 @@ func (f *FilterParams) UnmarshalJSON(inputs []byte) error {
 	blockHash := common.HexToHash(fp.BlockHash)
 	f.blockHash = &blockHash
 	var addrs []common.Address
-	for _,add := range fp.Addresses {
+	for _, add := range fp.Addresses {
 		addrs = append(addrs, common.HexToAddress(add))
 	}
 	f.addresses = addrs
 	var tops [][]common.Hash
-	for _, top := range fp.Topics{
+	for _, top := range fp.Topics {
 		var tps []common.Hash
-		for _,tp := range top {
+		for _, tp := range top {
 			tps = append(tps, common.HexToHash(tp))
 		}
 		tops = append(tops, tps)
@@ -149,8 +149,6 @@ func (f *FilterParams) UnmarshalJSON(inputs []byte) error {
 }
 */
 
-
 /*func (f *FilterParams)String() string {
 
 }*/
-

@@ -205,7 +205,6 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 	}
 	log.Info("build bft block2", "vers", len(block.GetVerifications()))
 
-
 	//calculate receipt hash
 	receiptHash := model.DeriveSha(&receipts)
 	block.SetReceiptHash(receiptHash)
