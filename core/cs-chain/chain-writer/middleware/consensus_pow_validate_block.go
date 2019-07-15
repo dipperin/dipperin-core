@@ -161,7 +161,6 @@ func ValidateSeed(c *BlockContext) Middleware {
 		block := c.Block
 		preBlockHeight := block.Number() - 1
 		preBlock := c.Chain.GetBlockByNumber(preBlockHeight)
-		log.Info("ValidateSeed#preBlock", "preBlock", preBlock)
 
 		seed := preBlock.Header().GetSeed().Bytes()
 		proof := block.Header().GetProof()

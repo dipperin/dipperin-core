@@ -68,3 +68,12 @@ func TestWASMInterpreter_Run_event(t *testing.T) {
 	assert.Equal(t, expect, result)
 	assert.NoError(t, err)
 }
+
+/*func TestWASMInterpreter_Run_DIPCLibContract(t *testing.T) {
+	testVm := getTestVm()
+	interpreter := testVm.Interpreter
+	inputs := genInput(t, g_testData.ContractTestPar.CallFuncName,[][]byte{})
+	contract := getContract(t, contractAddr, g_testData.ContractTestPar.WASMPath, g_testData.ContractTestPar.AbiPath, inputs)
+	_, err := interpreter.Run(testVm, contract, false)
+	assert.NoError(t,err)
+}*/

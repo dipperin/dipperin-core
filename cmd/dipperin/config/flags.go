@@ -60,6 +60,9 @@ const (
 	AllowHostsFlagName = "allow_hosts"
 
 	MetricsPortFlagName = "m_port"
+
+	PProfBoolFlagName ="pprof"
+	PProfPortFlagName = "pprofport"
 )
 
 var (
