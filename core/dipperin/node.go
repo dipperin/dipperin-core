@@ -26,6 +26,7 @@ import (
 
 var (
 	chokeTimeout = 20 * time.Second
+
 )
 
 type NodeService interface {

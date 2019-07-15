@@ -143,6 +143,10 @@ func (body fakeBody) GetInterLinks() model.InterLink {
 
 type fakeHeader struct{}
 
+func (h fakeHeader) GetBloomLog() model.Bloom {
+	panic("implement me")
+}
+
 func (h fakeHeader) GetTimeStamp() *big.Int {
 	panic("implement me")
 }

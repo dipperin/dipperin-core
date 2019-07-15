@@ -1,0 +1,11 @@
+blockHash *common.Hash `json:"block_hash"`
+fromBlock *big.Int `json:"from_block"`
+toBlock *big.Int `json:"to_block"`
+addresses []common.Address `json:"addresses"`
+topics [][]common.Hash `json:"topics"`
+
+
+{"from_block":0,"to_block":1000,"addresses":["0x001488Fb46F1a09274745d6022EF1A176bcD4C5a02Aa"],"topics":[[],[]]}
+
+
+{"block_hash":"0x00001be4edfe1f168e01990f5d17a0656102e1d9f8b6bec6bf8dff886271e54a","from_block":0,"to_block":1000,"addresses":["0x001488Fb46F1a09274745d6022EF1A176bcD4C5a02Aa"],"topics":[[],[]]}

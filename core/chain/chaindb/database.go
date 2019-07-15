@@ -70,4 +70,6 @@ type Database interface {
 
 	SaveReceipts(hash common.Hash, number uint64, receipts model2.Receipts) error
 	GetReceipts(hash common.Hash, number uint64) model2.Receipts
+	//SaveBloomBits(head common.Hash, bit uint, section uint64,  bits []byte) error
+	GetBloomBits(head common.Hash, bit uint, section uint64) ([]byte)
 }

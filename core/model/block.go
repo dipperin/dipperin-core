@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/bloom_log"
@@ -73,6 +74,8 @@ type Header struct {
 	Nonce common.BlockNonce `json:"nonce"  gencodec:"required"`
 	//todo add bloom filter for Logs or txs
 	Bloom *iblt.Bloom `json:"Bloom"        gencodec:"required"`
+	// txs bloom
+	BloomLogs model2.Bloom `json:"bloom_log"  gencodec:"required"`
 	// MPT trie Root for transaction
 	TransactionRoot common.Hash `json:"txs_root"   gencodec:"required"`
 	// MPT trie Root for accounts state
@@ -86,6 +89,10 @@ type Header struct {
 	RegisterRoot common.Hash `json:"register_root"  gencodec:"required"`
 	//add receipt hash
 	ReceiptHash common.Hash `json:"receiptsRoot"     gencodec:"required"`
+}
+
+func (h *Header) GetBloomLog() model2.Bloom {
+	return h.BloomLogs
 }
 
 func (h *Header) GetGasLimit() uint64 {
@@ -279,6 +286,14 @@ type Block struct {
 	hash     atomic.Value `json:"-"`
 	size     atomic.Value `json:"-"`
 	receipts atomic.Value `json:"-"`
+}
+
+func (b *Block) GetBloomLog() model2.Bloom {
+	return b.header.BloomLogs
+}
+
+func (b *Block) SetBloomLog(bloom model2.Bloom) {
+	b.header.BloomLogs = bloom
 }
 
 func (b *Block) GasLimit() uint64 {

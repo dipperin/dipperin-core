@@ -75,7 +75,7 @@ type BaseComponent struct {
 	verHaltCheckConfig   *verifiers_halt_check.HaltCheckConf
 
 	prometheusServer            *g_metrics.PrometheusMetricsServer
-	cacheDB                     *cachedb.CacheDB
+	//cacheDB                     *cachedb.CacheDB
 	fullChain                   *cs_chain.CsChainService
 	txPool                      *tx_pool.TxPool
 	rpcService                  *rpc_interface.Service
@@ -214,6 +214,7 @@ func (b *BaseComponent) buildDipperinConfig() {
 	b.DipperinConfig.MineMasterServer = b.mineMasterServer
 	b.DipperinConfig.DefaultAccount = b.defaultAccountAddress
 	b.DipperinConfig.MsgSigner = b.msgSigner
+	b.DipperinConfig.ChainIndex = chain_state.NewBloomIndexer(b.DipperinConfig.ChainReader, b.fullChain.CacheChainState.ChainState.GetDB(),   chain_state.BloomBitsBlocks, chain_state.BloomConfirms)
 }
 
 func (b *BaseComponent) buildBftConfig() {
@@ -312,6 +313,7 @@ func (b *BaseComponent) initTxPool() {
 
 func (b *BaseComponent) initChainService() {
 	b.DipperinConfig.ChainReader = b.fullChain
+	//b.DipperinConfig.ChainIndex =
 	// init service
 	b.chainService = service.MakeFullChainService(b.DipperinConfig)
 }

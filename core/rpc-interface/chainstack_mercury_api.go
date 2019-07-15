@@ -1218,6 +1218,10 @@ func (api *DipperinMercuryApi) GetContractAddressByTxHash(txHash common.Hash) (c
 	return api.service.GetContractAddressByTxHash(txHash)
 }
 
+func (api *DipperinMercuryApi) GetLogs(blockHash *common.Hash, fromBlock,toBlock *big.Int, Addresses []common.Address, Topics [][]common.Hash) ([]*model2.Log, error ) {
+	return api.service.GetLogs(blockHash,fromBlock,toBlock,Addresses,Topics)
+}
+
 func (api *DipperinMercuryApi) GetConvertReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
 	return api.service.GetConvertReceiptByTxHash(txHash)
 }

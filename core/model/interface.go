@@ -44,6 +44,7 @@ type AbstractHeader interface {
 	GetDifficulty() common.Difficulty
 	GetRegisterRoot() common.Hash
 	SetRegisterRoot(root common.Hash)
+	GetBloomLog() model.Bloom
 	//IsEqual(header *Header) bool
 }
 
@@ -98,6 +99,8 @@ type AbstractBlock interface {
 	GetVerifications() []AbstractVerification
 	SetReceiptHash(receiptHash common.Hash)
 	GetReceiptHash() common.Hash
+    GetBloomLog() model.Bloom
+	SetBloomLog(bloom model.Bloom)
 	//GasLimit() uint64
 }
 

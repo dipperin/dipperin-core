@@ -18,6 +18,7 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
@@ -728,6 +729,29 @@ func (caller *rpcCaller) GetReceiptByTxHash(c *cli.Context) {
 	}
 	fmt.Println(resp.String())
 }
+
+
+func (caller *rpcCaller) GetLogs(c *cli.Context) {
+	//blockHash *common.Hash, fromBlock *big.Int, toBlock *big.Int, addresses []common.Address, topics [][]common.Hash
+	params := c.String("p")
+	l.Info("GetLogs the params is:", "params", params)
+	var filterParams FilterParams
+	if err := json.Unmarshal([]byte(params), &filterParams); err != nil {
+		l.Error("rpcCaller#GetLogs", "err", err)
+	}
+	fmt.Println(filterParams)
+
+	var resp []model.Log
+	if err := client.Call(&resp, getDipperinRpcMethodByName("GetLogs"), filterParams.blockHash,filterParams.fromBlock,filterParams.toBlock,filterParams.addresses,filterParams.topics); err != nil {
+		l.Error("Call GetReceiptByTxHash", "err", err)
+		return
+	}
+	for _,lg := range resp{
+		fmt.Println(lg)
+	}
+}
+
+
 
 func (caller *rpcCaller) GetReceiptsByBlockNum(c *cli.Context) {
 	_, cParams, err := getRpcMethodAndParam(c)

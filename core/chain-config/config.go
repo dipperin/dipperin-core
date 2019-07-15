@@ -110,7 +110,10 @@ func defaultChainConfig() *ChainConfig {
 		c.NetworkID = 99
 	case "test":
 		c.NetworkID = 1
+	case "local":
+		c.VerifierNumber = 4
 	}
+
 	return c
 }
 

@@ -186,9 +186,11 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 	//log.Info("~~~~~~~~~~~~~~ the txBuf len is: ", "txBuf Len", len(txBuf))
 
 	var tmpTxs []*model.Transaction
+	//var logs []*model2.Log
 	for _, tx := range txBuf {
 		//log.Info("the packaged tx is:", "txId", tx.CalTxId().Hex())
 		tmpTxs = append(tmpTxs, tx.(*model.Transaction))
+
 	}
 
 	if len(vers) == 0 && curHeight > 0 {
@@ -203,9 +205,11 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 	}
 	log.Info("build bft block2", "vers", len(block.GetVerifications()))
 
+
 	//calculate receipt hash
 	receiptHash := model.DeriveSha(&receipts)
 	block.SetReceiptHash(receiptHash)
+	block.SetBloomLog(model2.CreateBloom(receipts))
 
 	//TODO:calculate block interlinks
 	linkList := model.NewInterLink(curBlock.GetInterlinks(), block)
