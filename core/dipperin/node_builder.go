@@ -48,6 +48,7 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/log/pm_log"
 	"github.com/dipperin/dipperin-core/third-party/log/ver_halt_check_log"
+	"github.com/dipperin/dipperin-core/third-party/log/vm_log"
 	"github.com/dipperin/dipperin-core/third-party/log/witch_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/nat"
@@ -193,7 +194,7 @@ func newBaseComponent(nodeConfig NodeConfig) *BaseComponent {
 	bloom_log.InitLogger(log.LvlError, nodeName, true)
 	witch_log.InitWitchLogger(log.LvlInfo, nodeName, true)
 	ver_halt_check_log.InitHaltLogger(log.LvlInfo, nodeName, true)
-
+	vm_log.InitWASMContractLogger(log.LvlDebug, nodeName, true)
 	return b
 }
 

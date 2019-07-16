@@ -33,6 +33,7 @@ func main() {
 	app := base.NewApp("dipperin", "dipperin node and console")
 	app.Flags = append(config.Flags, debug.Flags...)
 	app.Action = func(c *cli.Context) error {
+		//use pprof
 		debug.Setup(c)
 
 		// Start system runtime metrics collection

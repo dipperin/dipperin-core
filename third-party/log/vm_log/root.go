@@ -76,8 +76,8 @@ func homeDir() string {
 }
 
 // 外边可能要文件输出，可能要控制台输出，可能两个都需要
-func InitHaltLogger(logLevel log.Lvl, nodeName string, removeOld bool) {
-	targetDir := filepath.Join(homeDir(), "tmp", "cs_debug", "halt")
+func InitWASMContractLogger(logLevel log.Lvl, nodeName string, removeOld bool) {
+	targetDir := filepath.Join(homeDir(), "tmp", "cs_debug", "wasmContract")
 
 	if !log.PathExists(targetDir) {
 		_ = os.MkdirAll(targetDir, os.ModePerm)

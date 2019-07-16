@@ -1,6 +1,6 @@
 package resolver
 
-// #cgo CFLAGS: -I../softfloat/source/include
+// #cgo CFLAGS: -I./softfloat/source/include
 // #define SOFTFLOAT_FAST_INT64
 // #include "softfloat.h"
 //
@@ -19,6 +19,14 @@ import (
 	"math"
 	"github.com/dipperin/dipperin-core/common"
 )
+/*func PrintTest(){
+	lo := uint64(1232)
+	ho := uint64(0)
+	ret := C.printi128(C.uint64_t(lo), C.uint64_t(ho))
+
+	num := C.GoString(ret)
+	fmt.Printf("envPrinti128 called result is:%v \r\n", num)
+}*/
 
 func envMemcpyGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	len := int(uint32(vm.GetCurrentFrame().Locals[2]))
