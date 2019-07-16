@@ -49,6 +49,7 @@ const (
 var LE = binary.LittleEndian
 var memPool = NewMemPool(DefaultMemPoolCount, DefaultMemBlockSize)
 var treePool = NewTreePool(DefaultMemPoolCount, DefaultMemBlockSize)
+
 //var memPool *MemPool
 //var treePool *TreePool
 

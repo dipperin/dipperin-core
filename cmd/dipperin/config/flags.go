@@ -61,7 +61,7 @@ const (
 
 	MetricsPortFlagName = "m_port"
 
-	PProfBoolFlagName ="pprof"
+	PProfBoolFlagName = "pprof"
 	PProfPortFlagName = "pprofport"
 )
 

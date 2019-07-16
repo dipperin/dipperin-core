@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func Test_GetCurrentBlock(t *testing.T){
+func Test_GetCurrentBlock(t *testing.T) {
 	//t.Skip()
 	cluster, err := node_cluster.CreateNodeCluster()
 	assert.NoError(t, err)
@@ -18,7 +18,7 @@ func Test_GetCurrentBlock(t *testing.T){
 	client := cluster.NodeClient[nodeName]
 	var respBlock rpc_interface.BlockResp
 	err = client.Call(&respBlock, vm.GetRpcTXMethod("CurrentBlock"))
-	assert.NoError(t,err)
+	assert.NoError(t, err)
 
-	log.Info("the current Block is:","blockNumber",respBlock.Header.Number)
+	log.Info("the current Block is:", "blockNumber", respBlock.Header.Number)
 }

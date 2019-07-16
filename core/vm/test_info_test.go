@@ -179,11 +179,11 @@ func genInput(t *testing.T, funcName string, param [][]byte) []byte {
 func getContract(t *testing.T, addr common.Address, code, abi string, input []byte) *Contract {
 	fileCode, err := ioutil.ReadFile(code)
 	assert.NoError(t, err)
-	log.Info("the code is:","wasmCode",hexutil.Encode(fileCode))
+	log.Info("the code is:", "wasmCode", hexutil.Encode(fileCode))
 
 	fileABI, err := ioutil.ReadFile(abi)
 	assert.NoError(t, err)
-	log.Info("the fileABI is:","fileABI",hexutil.Encode(fileABI))
+	log.Info("the fileABI is:", "fileABI", hexutil.Encode(fileABI))
 
 	return &Contract{
 		self:  fakeContractRef{addr: addr},

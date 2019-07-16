@@ -85,8 +85,8 @@ func Setup(ctx *cli.Context) error {
 		}
 	}
 
-	log.Info("the pprofFlag is:","pprofFlag",ctx.GlobalBool(pprofFlag.Name))
-	log.Info("the pprofPortFlag is:","pprofPortFlag",ctx.GlobalInt(pprofPortFlag.Name))
+	log.Info("the pprofFlag is:", "pprofFlag", ctx.GlobalBool(pprofFlag.Name))
+	log.Info("the pprofPortFlag is:", "pprofPortFlag", ctx.GlobalInt(pprofPortFlag.Name))
 
 	// pprof server
 	if ctx.GlobalBool(pprofFlag.Name) {
