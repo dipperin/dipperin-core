@@ -12,13 +12,14 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/vm_log"
 	"math"
-	"github.com/dipperin/dipperin-core/common"
 )
+
 /*func PrintTest(){
 	lo := uint64(1232)
 	ho := uint64(0)
