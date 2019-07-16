@@ -47,8 +47,10 @@ const (
 
 // LE is a simple alias to `binary.LittleEndian`.
 var LE = binary.LittleEndian
-var memPool = NewMemPool(DefaultMemPoolCount, DefaultMemBlockSize)
-var treePool = NewTreePool(DefaultMemPoolCount, DefaultMemBlockSize)
+/*var memPool = NewMemPool(DefaultMemPoolCount, DefaultMemBlockSize)
+var treePool = NewTreePool(DefaultMemPoolCount, DefaultMemBlockSize)*/
+var memPool *MemPool
+var treePool *TreePool
 
 type FunctionImportInfo struct {
 	ModuleName string
@@ -143,6 +145,16 @@ type ImportResolver interface {
 func ImportGasFunc(vm *VirtualMachine, frame *Frame) (uint64, error) {
 	importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
 	return vm.FunctionImports[importID].F.GasCost(vm)
+}
+
+func NewVMMemory() {
+	memPool = NewMemPool(DefaultMemPoolCount, DefaultMemBlockSize)
+	treePool = NewTreePool(DefaultMemPoolCount, DefaultMemBlockSize)
+}
+
+func FreeVMMemory() {
+	memPool = nil
+	treePool = nil
 }
 
 // NewVirtualMachine instantiates a virtual machine for a given WebAssembly module, with
