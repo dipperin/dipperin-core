@@ -19,9 +19,7 @@ package state_processor
 import (
 	"bytes"
 	"crypto/ecdsa"
-	"encoding/binary"
 	"errors"
-	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/model"
@@ -29,18 +27,15 @@ import (
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"math/big"
 	"strings"
-	"testing"
 	"time"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 var (
@@ -66,32 +61,21 @@ func createKey() (*ecdsa.PrivateKey, *ecdsa.PrivateKey) {
 	return key1, key2
 }
 
-func createTestTx() (*model.Transaction, *model.Transaction) {
-	key1, key2 := createKey()
-	fs1 := model.NewMercurySigner(big.NewInt(1))
-	fs2 := model.NewMercurySigner(big.NewInt(3))
-	testTx1 := model.NewTransaction(0, bobAddr, big.NewInt(200), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
-	testTx1.SignTx(key1, fs1)
-	testTx2 := model.NewTransaction(0, aliceAddr, big.NewInt(10), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
-	testTx2.SignTx(key2, fs2)
-	return testTx1, testTx2
-}
-
-func createContractTx(t *testing.T, code, abi string) *model.Transaction {
+func createContractTx(code, abi string, nonce uint64) *model.Transaction {
 	key, _ := createKey()
 	fs := model.NewMercurySigner(big.NewInt(1))
-	data := getContractCode(t, code, abi)
+	data := getContractCode(code, abi)
 	to := common.HexToAddress(common.AddressContractCreate)
-	tx := model.NewTransactionSc(0, &to, big.NewInt(200), testGasPrice, testGasLimit, data)
+	tx := model.NewTransactionSc(nonce, &to, big.NewInt(200), testGasPrice, testGasLimit, data)
 	tx.SignTx(key, fs)
 	tx.PaddingTxIndex(0)
 	return tx
 }
 
-func callContractTx(t *testing.T, to *common.Address, funcName string, param [][]byte, nonce uint64) *model.Transaction {
+func callContractTx(to *common.Address, funcName string, param [][]byte, nonce uint64) *model.Transaction {
 	key, _ := createKey()
 	fs := model.NewMercurySigner(big.NewInt(1))
-	data := getContractInput(t, funcName, param)
+	data := getContractInput(funcName, param)
 	tx := model.NewTransactionSc(nonce, to, big.NewInt(200), testGasPrice, testGasLimit, data)
 	tx.SignTx(key, fs)
 	tx.PaddingTxIndex(0)
@@ -145,16 +129,16 @@ func getTestVm() *vm.VM {
 		return
 	}
 
-	a := make(map[common.Address]*big.Int)
-	c := make(map[common.Address][]byte)
-	abi := make(map[common.Address][]byte)
+	db, root := CreateTestStateDB()
+	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
+	state := NewFullState(processor)
 	return vm.NewVM(vm.Context{
 		BlockNumber: big.NewInt(1),
 		CanTransfer: testCanTransfer,
 		Transfer:    testTransfer,
 		GasLimit:    model2.TxGas,
 		GetHash:     getTestHashFunc(),
-	}, fakeStateDB{account: a, code: c, abi: abi}, vm.DEFAULT_VM_CONFIG)
+	}, state, vm.DEFAULT_VM_CONFIG)
 }
 
 func getTestHashFunc() func(num uint64) common.Hash {
@@ -163,12 +147,19 @@ func getTestHashFunc() func(num uint64) common.Hash {
 	}
 }
 
-func getContractCode(t *testing.T, code, abi string) []byte {
+func getContractCode(code, abi string) []byte {
 	fileCode, err := ioutil.ReadFile(code)
-	assert.NoError(t, err)
+	if err != nil {
+		log.Error("Read code failed", "err", err)
+		return nil
+	}
 
 	fileABI, err := ioutil.ReadFile(abi)
-	assert.NoError(t, err)
+	if err != nil {
+		log.Error("Read abi failed", "err", err)
+		return nil
+	}
+
 	var input [][]byte
 	input = make([][]byte, 0)
 	// code
@@ -178,12 +169,14 @@ func getContractCode(t *testing.T, code, abi string) []byte {
 	// params
 
 	buffer := new(bytes.Buffer)
-	err = rlp.Encode(buffer, input)
-	assert.NoError(t, err)
+	if err = rlp.Encode(buffer, input); err != nil {
+		log.Error("RLP encode failed", "err", err)
+		return nil
+	}
 	return buffer.Bytes()
 }
 
-func getContractInput(t *testing.T, funcName string, param [][]byte) []byte {
+func getContractInput(funcName string, param [][]byte) []byte {
 	var input [][]byte
 	input = make([][]byte, 0)
 	// func name
@@ -194,8 +187,10 @@ func getContractInput(t *testing.T, funcName string, param [][]byte) []byte {
 	}
 
 	buffer := new(bytes.Buffer)
-	err := rlp.Encode(buffer, input)
-	assert.NoError(t, err)
+	if err := rlp.Encode(buffer, input); err != nil {
+		log.Error("RLP encode failed", "err", err)
+		return nil
+	}
 	return buffer.Bytes()
 }
 
@@ -448,120 +443,4 @@ func (tx fakeTransaction) Cost() *big.Int {
 
 func (tx fakeTransaction) EstimateFee() *big.Int {
 	panic("implement me")
-}
-
-type fakeStateDB struct {
-	account map[common.Address]*big.Int
-	code    map[common.Address][]byte
-	abi     map[common.Address][]byte
-}
-
-func (state fakeStateDB) GetLogs(txHash common.Hash) []*model2.Log {
-	panic("implement me")
-}
-
-func (state fakeStateDB) AddLog(addedLog *model2.Log) {
-	log.Info("add log success")
-	return
-}
-
-func (state fakeStateDB) CreateAccount(addr common.Address) {
-	state.account[addr] = big.NewInt(1000)
-}
-
-func (state fakeStateDB) AddBalance(addr common.Address, amount *big.Int) {
-	if state.account[addr] != nil {
-		state.account[addr] = new(big.Int).Add(state.account[addr], amount)
-	}
-}
-
-func (state fakeStateDB) SubBalance(addr common.Address, amount *big.Int) {
-	state.account[addr] = new(big.Int).Sub(state.account[addr], amount)
-}
-
-func (state fakeStateDB) GetBalance(addr common.Address) *big.Int {
-	if state.account[addr] == nil {
-		state.account[addr] = big.NewInt(9000000)
-	}
-	return state.account[addr]
-}
-
-func (state fakeStateDB) GetNonce(common.Address) (uint64, error) {
-	return 0, nil
-}
-
-func (state fakeStateDB) SetNonce(common.Address, uint64) {
-	panic("implement me")
-}
-
-func (state fakeStateDB) AddNonce(common.Address, uint64) {
-	return
-}
-
-func (state fakeStateDB) GetCodeHash(addr common.Address) common.Hash {
-	code := state.code[addr]
-	return cs_crypto.Keccak256Hash(code)
-}
-
-func (state fakeStateDB) GetCode(addr common.Address) []byte {
-	return state.code[addr]
-}
-
-func (state fakeStateDB) SetCode(addr common.Address, code []byte) {
-	state.code[addr] = code
-}
-
-func (state fakeStateDB) GetCodeSize(common.Address) int {
-	panic("implement me")
-}
-
-func (state fakeStateDB) GetAbiHash(addr common.Address) common.Hash {
-	return common.RlpHashKeccak256(state.GetAbi(addr))
-}
-
-func (state fakeStateDB) GetAbi(addr common.Address) []byte {
-	return state.abi[addr]
-}
-
-func (state fakeStateDB) SetAbi(addr common.Address, abi []byte) {
-	state.abi[addr] = abi
-}
-
-func (state fakeStateDB) GetCommittedState(common.Address, []byte) []byte {
-	panic("implement me")
-}
-
-func (state fakeStateDB) GetState(common.Address, []byte) []byte {
-	fmt.Println("fake stateDB get state sucessful")
-	bytesBuffer := bytes.NewBuffer([]byte{})
-	binary.Write(bytesBuffer, binary.LittleEndian, int32(123))
-	return bytesBuffer.Bytes()
-}
-
-func (state fakeStateDB) SetState(common.Address, []byte, []byte) {
-	fmt.Println("fake stateDB set state sucessful")
-}
-
-func (state fakeStateDB) Suicide(common.Address) bool {
-	panic("implement me")
-}
-
-func (state fakeStateDB) HasSuicided(common.Address) bool {
-	panic("implement me")
-}
-
-func (state fakeStateDB) Exist(common.Address) bool {
-	return false
-}
-
-func (state fakeStateDB) Empty(common.Address) bool {
-	panic("implement me")
-}
-
-func (state fakeStateDB) RevertToSnapshot(int) {
-	panic("implement me")
-}
-
-func (state fakeStateDB) Snapshot() int {
-	return 0
 }
