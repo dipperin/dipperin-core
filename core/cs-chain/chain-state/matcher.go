@@ -22,6 +22,7 @@ import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common/bitutil"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"math"
 	"sort"
 	"sync"
@@ -174,6 +175,7 @@ func (m *Matcher) Start(ctx context.Context, begin, end uint64, results chan uin
 				return
 
 			case res, ok := <-sink:
+				log.Info("Matcher start sink", "sink res", res)
 				// New match result found
 				if !ok {
 					return
@@ -608,10 +610,12 @@ func (s *MatcherSession) Multiplex(batch int, wait time.Duration, mux chan chan 
 	for {
 		// Allocate a new bloom bit index to retrieve data for, stopping when done
 		bit, ok := s.AllocateRetrieval()
+		//log.Info("MatcherSession#Multiplex", "bit", bit, "ok", ok)
 		if !ok {
 			return
 		}
 		// Bit allocated, throttle a bit if we're below our batch limit
+		//log.Info("MatcherSession#Multiplex2", "bit", bit, "ok", ok)
 		if s.PendingSections(bit) < batch {
 			select {
 			case <-s.quit:
@@ -625,16 +629,21 @@ func (s *MatcherSession) Multiplex(batch int, wait time.Duration, mux chan chan 
 			}
 		}
 		// Allocate as much as we can handle and request servicing
+		//log.Info("MatcherSession#Multiplex3", "bit", bit, "ok", ok)
 		sections := s.AllocateSections(bit, batch)
-		request := make(chan *Retrieval)
+		//log.Info("MatcherSession#Multiplex4", "bit", bit, "ok", ok)
 
+		request := make(chan *Retrieval)
+		//request <- &Retrieval{Bit: bit, Sections: sections, Context: s.ctx}
 		select {
 		case <-s.quit:
+			//log.Info("MatcherSession#Multiplex5", "bit", bit, "ok", ok)
 			// Session terminating, we can't meaningfully service, abort
 			s.DeliverSections(bit, sections, make([][]byte, len(sections)))
 			return
 
 		case mux <- request:
+			//log.Info("MatcherSession#Multiplex send request", "request", request)
 			// Retrieval accepted, something must arrive before we're aborting
 			request <- &Retrieval{Bit: bit, Sections: sections, Context: s.ctx}
 

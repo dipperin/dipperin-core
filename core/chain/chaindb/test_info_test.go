@@ -21,6 +21,8 @@ import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+
 	"github.com/ethereum/go-ethereum/ethdb"
 	"math/big"
 )
@@ -143,7 +145,7 @@ func (body fakeBody) GetInterLinks() model.InterLink {
 
 type fakeHeader struct{}
 
-func (h fakeHeader) GetBloomLog() model.Bloom {
+func (h fakeHeader) GetBloomLog() model2.Bloom {
 	panic("implement me")
 }
 

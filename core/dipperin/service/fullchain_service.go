@@ -156,12 +156,14 @@ type MercuryFullChainService struct {
 // retrievals from possibly a range of filters and serving the data to satisfy.
 func (service *MercuryFullChainService) startBloomHandlers(sectionSize uint64) {
 	for i := 0; i < chain_state.BloomServiceThreads; i++ {
+		//log.Info("MercuryFullChainService#startBloomHandlers start")
 		go func() {
 			for {
 				select {
-
 				case request := <-service.DipperinConfig.ChainIndex.BloomRequests:
+					//log.Info("MercuryFullChainService#startBloomHandlers", "request", request)
 					task := <-request
+					//log.Info("MercuryFullChainService#startBloomHandlers", "request task", task)
 					task.Bitsets = make([][]byte, len(task.Sections))
 					for i, section := range task.Sections {
 						//head := rawdb.ReadCanonicalHash(eth.chainDb, (section+1)*sectionSize-1)
@@ -170,6 +172,7 @@ func (service *MercuryFullChainService) startBloomHandlers(sectionSize uint64) {
 						if header != nil {
 							head = header.Hash()
 						}
+						//log.Info("MercuryFullChainService#startBloomHandlers", "head", head, "header number", header.GetNumber())
 						//if compVector, err := rawdb.ReadBloomBits(eth.chainDb, task.Bit, section, head); err == nil {
 						if compVector := service.ChainReader.GetBloomBits(head, task.Bit, section); compVector != nil {
 							if blob, err := bitutil.DecompressBytes(compVector, int(sectionSize/8)); err == nil {
@@ -181,6 +184,7 @@ func (service *MercuryFullChainService) startBloomHandlers(sectionSize uint64) {
 							task.Error = g_error.ErrBloombitsNotFound
 						}
 					}
+					//log.Info("MercuryFullChainService#startBloomHandlers", "request task final", task)
 					request <- task
 				}
 			}
@@ -1593,9 +1597,9 @@ func (service *MercuryFullChainService) convertReceiptLog(src model2.Receipt) (*
 func (service *MercuryFullChainService) GetLogs(blockHash *common.Hash, fromBlock *big.Int, toBlock *big.Int, addresses []common.Address, topics [][]common.Hash) ([]*model2.Log, error) {
 	fmt.Println("MercuryFullChainService#GetLogs", "fromBlock", fromBlock, "toBlock", toBlock, "addresses", addresses, "topics", topics, "blockHash", blockHash)
 	var filter *chain_state.Filter
-	if blockHash != nil {
+	if blockHash != nil && !blockHash.IsEmpty() {
 		// Block filter requested, construct a single-shot filter
-		filter = chain_state.NewBlockFilter(*service.ChainIndex, service.ChainReader, *blockHash, addresses, topics)
+		filter = chain_state.NewBlockFilter(service.ChainIndex, service.ChainReader, *blockHash, addresses, topics)
 	} else {
 		// Convert the RPC block numbers into internal representations
 		begin := int64(service.ChainReader.GetLatestNormalBlock().Number())
@@ -1606,12 +1610,15 @@ func (service *MercuryFullChainService) GetLogs(blockHash *common.Hash, fromBloc
 		if toBlock != nil {
 			end = toBlock.Int64()
 		}
+		log.Info("MercuryFullChainService#GetLogs  begin and end", "begin", begin, "end", end)
 		// Construct the range filter
-		filter = chain_state.NewRangeFilter(service.ChainReader, *service.ChainIndex, begin, end, addresses, topics)
+		filter = chain_state.NewRangeFilter(service.ChainReader, service.ChainIndex, begin, end, addresses, topics)
 	}
 	// Run the filter and return all the logs
-	fmt.Println("MercuryFullChainService#GetLogs", "filter", filter)
-	logs, err := filter.Logs(context.Background())
+	//fmt.Println("MercuryFullChainService#GetLogs", "filter", filter)
+	cx, cancel := context.WithTimeout(context.Background(),time.Second * 150)
+	defer cancel()
+	logs, err := filter.Logs(cx)
 	fmt.Println("MercuryFullChainService#GetLogs", "logs", logs, "err", err)
 	if err != nil {
 		return nil, err

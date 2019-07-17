@@ -26,7 +26,7 @@ type NodeCluster struct {
 func (cluster NodeCluster) GetNodeMainAddress(name string) (common.Address, error) {
 	address := cluster.NodeConfigure[name].Address
 	if address == "" {
-		return common.Address{}, errors.New(fmt.Sprintf("can't find %d main address", name))
+		return common.Address{}, errors.New(fmt.Sprintf("can't find %s main address", name))
 	}
 	return common.HexToAddress(address), nil
 }

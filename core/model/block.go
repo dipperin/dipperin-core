@@ -125,6 +125,7 @@ func NewHeader(version uint64, num uint64, prehash common.Hash, seed common.Hash
 		CoinBase:    coinbase,
 		Nonce:       nonce,
 		Bloom:       iblt.NewBloom(DefaultBlockBloomConfig),
+		BloomLogs:   model2.Bloom{},
 		GasLimit:    DefaultGasLimit,
 		Proof:       []byte{},
 		MinerPubKey: []byte{},
@@ -251,12 +252,13 @@ func (h *Header) String() string {
 	GasUsed             %d
 	Nonce:		        %s
 	Bloom：         		%v
+	BloomLog:           %s
 	TransactionRoot:    %s
 	StateRoot:	        %s
 	VerificationRoot:   %s
 	InterlinkRoot:      %s
 	RegisterRoot     	%s
-	ReceiptHash      	%s]`, h.Hash().Hex(), h.Version, h.Number, h.Seed.Hex(), h.PreHash.Hex(), h.Diff.Hex(), h.TimeStamp, h.CoinBase.Hex(), h.GasLimit, h.GasUsed, h.Nonce.Hex(), h.Bloom.Hex(), h.TransactionRoot.Hex(), h.StateRoot.Hex(), h.VerificationRoot.Hex(), h.InterlinkRoot.Hex(), h.RegisterRoot.Hex(), h.ReceiptHash.Hex())
+	ReceiptHash      	%s]`, h.Hash().Hex(), h.Version, h.Number, h.Seed.Hex(), h.PreHash.Hex(), h.Diff.Hex(), h.TimeStamp, h.CoinBase.Hex(), h.GasLimit, h.GasUsed, h.Nonce.Hex(), h.Bloom.Hex(), h.BloomLogs.Hex(), h.TransactionRoot.Hex(), h.StateRoot.Hex(), h.VerificationRoot.Hex(), h.InterlinkRoot.Hex(), h.RegisterRoot.Hex(), h.ReceiptHash.Hex())
 }
 
 // swagger:response Body

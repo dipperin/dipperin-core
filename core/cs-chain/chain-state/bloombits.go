@@ -31,7 +31,8 @@ import (
 const (
 	// BloomServiceThreads is the number of goroutines used globally by an Ethereum
 	// instance to service bloombits lookups for all running filters.
-	BloomServiceThreads = 16
+	//BloomServiceThreads = 16
+	BloomServiceThreads = 1
 
 	// bloomFilterThreads is the number of goroutines used locally per filter to
 	// multiplex requests onto the global servicing goroutines.

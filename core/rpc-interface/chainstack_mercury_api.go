@@ -106,6 +106,7 @@ func (api *DipperinMercuryApi) GetBlockByNumber(number uint64) (*BlockResp, erro
 	}
 
 	curBlock, err := api.service.GetBlockByNumber(number)
+	log.Info("DipperinMercuryApi#GetBlockByNumber", "curBlock", curBlock)
 	if err != nil {
 		return nil, err
 	}

@@ -22,6 +22,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/csbft/state-machine"
 	model2 "github.com/dipperin/dipperin-core/core/model"
+	model3 "github.com/dipperin/dipperin-core/core/vm/model"
 	"math/big"
 	"sync/atomic"
 )
@@ -92,6 +93,22 @@ type FakeBlockForBft struct {
 	PHash common.Hash
 
 	hash atomic.Value `rlp:"-"`
+}
+
+func (fb *FakeBlockForBft) SetReceiptHash(receiptHash common.Hash) {
+	panic("implement me")
+}
+
+func (fb *FakeBlockForBft) GetReceiptHash() common.Hash {
+	panic("implement me")
+}
+
+func (fb *FakeBlockForBft) GetBloomLog() model3.Bloom {
+	panic("implement me")
+}
+
+func (fb *FakeBlockForBft) SetBloomLog(bloom model3.Bloom) {
+	panic("implement me")
 }
 
 func (fb *FakeBlockForBft) Version() uint64 {

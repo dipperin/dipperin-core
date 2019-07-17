@@ -19,6 +19,7 @@ package chain_state
 import (
 	"context"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-event"
@@ -95,6 +96,21 @@ type ChainIndexer struct {
 	lock sync.RWMutex
 }
 
+
+func (c *ChainIndexer) Start() error {
+	block := c.chainReader.GetLatestNormalBlock()
+	if block != nil {
+		c.StartChainIndex(block.Header())
+		return nil
+	}
+	return errors.New("can't find useful block")
+}
+
+func (c *ChainIndexer) Stop() {
+	log.Info("ChainIndexer Stop")
+}
+
+
 // NewChainIndexer creates a new chain indexer to do background processing on
 // chain segments of a given size after certain number of confirmations passed.
 // The throttling parameter might be used to prevent database thrashing.
@@ -106,6 +122,7 @@ func NewChainIndexer(chainReader middleware.ChainInterface, db ethdb.Database, i
 		backend:     backend,
 		update:      make(chan struct{}, 1),
 		quit:        make(chan chan error),
+		BloomRequests: make(chan chan *Retrieval),
 		sectionSize: section,
 		confirmsReq: confirm,
 		throttling:  throttling,
@@ -143,11 +160,13 @@ func (c *ChainIndexer) AddCheckpoint(section uint64, shead common.Hash) {
 // Start creates a goroutine to feed chain head events into the indexer for
 // cascading background processing. Children do not need to be started, they
 // are notified about new events by their parents.
-func (c *ChainIndexer) Start(chain ChainIndexerChain) {
-	events := make(chan ChainHeadEvent, 10)
-	sub := chain.SubscribeChainHeadEvent(events)
+func (c *ChainIndexer) StartChainIndex(header model.AbstractHeader) {
+	//events := make(chan ChainHeadEvent, 10)
+	blockCh := make(chan model.Block, 10)
+	//sub := chain.SubscribeChainHeadEvent(events)
+	blockSub := g_event.Subscribe(g_event.NewBlockInsertEvent, blockCh)
 
-	go c.eventLoop(chain.CurrentHeader(), events, sub)
+	go c.eventLoop(&header, blockCh, blockSub)
 }
 
 func (c *ChainIndexer) ServiceFilter(ctx context.Context, session *MatcherSession) {
@@ -198,7 +217,7 @@ func (c *ChainIndexer) Close() error {
 // eventLoop is a secondary - optional - event loop of the indexer which is only
 // started for the outermost indexer to push chain head events into a processing
 // queue.
-func (c *ChainIndexer) eventLoop(currentHeader *model.AbstractHeader, events chan ChainHeadEvent, sub g_event.Subscription) {
+func (c *ChainIndexer) eventLoop(currentHeader *model.AbstractHeader, blockChan chan model.Block, sub g_event.Subscription) {
 	// Mark the chain indexer as active, requiring an additional teardown
 	atomic.StoreUint32(&c.active, 1)
 
@@ -218,14 +237,14 @@ func (c *ChainIndexer) eventLoop(currentHeader *model.AbstractHeader, events cha
 			errc <- nil
 			return
 
-		case ev, ok := <-events:
+		case ev, ok := <-blockChan:
 			// Received a new event, ensure it's not nil (closing) and update
 			if !ok {
 				errc := <-c.quit
 				errc <- nil
 				return
 			}
-			header := ev.Block.Header()
+			header := ev.Header()
 			if header.GetPreHash() == prevHash && prevHeader != nil {
 				c.newHead(header.GetNumber())
 				prevHeader, prevHash = &header, header.Hash()
@@ -287,13 +306,14 @@ func (c *ChainIndexer) updateLoop() {
 
 		case <-c.update:
 			// Section headers completed (or rolled back), update the index
+			log.Info("ChainIndexer#updateLoop start", "knownSections", c.knownSections, "storedSections", c.storedSections)
 			c.lock.Lock()
 			if c.knownSections > c.storedSections {
 				// Periodically print an upgrade log message to the user
 				if time.Since(updated) > 8*time.Second {
 					if c.knownSections > c.storedSections+1 {
 						updating = true
-						c.log.Info("Upgrading chain index", "percentage", c.storedSections*100/c.knownSections)
+						log.Info("Upgrading chain index", "percentage", c.storedSections*100/c.knownSections)
 					}
 					updated = time.Now()
 				}
@@ -355,7 +375,7 @@ func (c *ChainIndexer) updateLoop() {
 // held while processing, the continuity can be broken by a long reorg, in which
 // case the function returns with an error.
 func (c *ChainIndexer) processSection(section uint64, lastHead common.Hash) (common.Hash, error) {
-	c.log.Debug("Processing new chain section", "section", section)
+	log.Info("Processing new chain section", "section", section)
 
 	// Reset and partial processing
 
@@ -380,6 +400,7 @@ func (c *ChainIndexer) processSection(section uint64, lastHead common.Hash) (com
 	if err := c.backend.Commit(); err != nil {
 		return common.Hash{}, err
 	}
+	log.Info("ChainIndexer#processSection", "section", section, "lastHead", lastHead)
 	return lastHead, nil
 }
 

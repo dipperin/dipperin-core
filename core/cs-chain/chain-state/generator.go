@@ -90,3 +90,4 @@ func (b *Generator) Bitset(idx uint) ([]byte, error) {
 	}
 	return b.blooms[idx], nil
 }
+

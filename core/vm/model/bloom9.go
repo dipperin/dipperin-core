@@ -55,6 +55,10 @@ func (b *Bloom) SetBytes(d []byte) {
 	copy(b[BloomByteLength-len(d):], d)
 }
 
+func (b *Bloom) Hex() string {
+	return hexutil.Encode(b[:])
+}
+
 // Add adds d to the filter. Future calls of Test(d) will return true.
 func (b *Bloom) Add(d *big.Int) {
 	bin := new(big.Int).SetBytes(b[:])
