@@ -1788,7 +1788,7 @@ func (service *MercuryFullChainService) getExtraData(to common.Address, data []b
 			return nil, err
 		}
 	} else {
-		log.Info("ParseCreateContractData", "data", hexutil.Encode(data))
+		log.Info("ParseCreateContractData", "dataLen", len(data))
 		var err error
 		extraData, err = utils.ParseCreateContractData(data)
 		if err != nil {
@@ -2078,6 +2078,7 @@ func (service *MercuryFullChainService) doCall(args CallArgs, blockNum uint64, t
 func (service *MercuryFullChainService) checkConstant(to common.Address, data []byte) (bool, string, *utils.WasmAbi, error) {
 	funcName, err := vm.ParseInputForFuncName(data)
 	if err != nil {
+		log.Error("ParseInputForFuncName failed", "err", err)
 		return false, "", nil, err
 	}
 

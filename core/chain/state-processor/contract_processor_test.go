@@ -128,13 +128,14 @@ func newContractCallTx(from *common.Address, to *common.Address, gasPrice *big.I
 }
 
 func TestAccountStateDB_ProcessContract2(t *testing.T) {
-	var testPath = "../../vm/test-data/event"
-	tx1 := createContractTx(t, testPath+"/event.wasm", testPath+"/event.cpp.abi.json")
+	WASMPath := g_testData.GetWasmPath("event")
+	abiPath := g_testData.GetAbiPath("event")
+	tx1 := createContractTx(WASMPath, abiPath, 0)
 	contractAddr := cs_crypto.CreateContractAddress(aliceAddr, 0)
 	name := []byte("ProcessContract")
 	num := utils.Int64ToBytes(456)
 	param := [][]byte{name, num}
-	tx2 := callContractTx(t, &contractAddr, "hello", param, 1)
+	tx2 := callContractTx(&contractAddr, "hello", param, 1)
 
 	db, root := CreateTestStateDB()
 	tdb := NewStateStorageWithCache(db)

@@ -1,6 +1,6 @@
 package resolver
 
-// #cgo CFLAGS: -I../softfloat/source/include
+// #cgo CFLAGS: -I./softfloat/source/include
 // #define SOFTFLOAT_FAST_INT64
 // #include "softfloat.h"
 //
@@ -12,12 +12,22 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/vm_log"
 	"math"
 )
+
+/*func PrintTest(){
+	lo := uint64(1232)
+	ho := uint64(0)
+	ret := C.printi128(C.uint64_t(lo), C.uint64_t(ho))
+
+	num := C.GoString(ret)
+	fmt.Printf("envPrinti128 called result is:%v \r\n", num)
+}*/
 
 func envMemcpyGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	len := int(uint32(vm.GetCurrentFrame().Locals[2]))
@@ -202,7 +212,9 @@ func envPrintqfGasCost(vm *exec.VirtualMachine) (uint64, error) {
 }
 
 func envPrintn(vm *exec.VirtualMachine) int64 {
-	vm_log.Debug(fmt.Sprintf("%d", int(uint32(vm.GetCurrentFrame().Locals[0]))))
+	data := fmt.Sprintf("%d", int(uint32(vm.GetCurrentFrame().Locals[0])))
+	vm_log.Debug(data)
+	log.Info("envPrintn called", "envPrintn", data)
 	return 0
 }
 
@@ -387,7 +399,7 @@ func envSha3(vm *exec.VirtualMachine) int64 {
 	destSize := int(int32(vm.GetCurrentFrame().Locals[3]))
 	data := vm.Memory.Memory[offset : offset+size]
 	hash := crypto.Keccak256(data)
-	//fmt.Println(common.Bytes2Hex(hash))
+	log.Info("envSha3 called", "hash", hash, "hasHex", common.Bytes2Hex(hash))
 	if destSize < len(hash) {
 		return 0
 	}
@@ -428,6 +440,12 @@ func (r *Resolver) envGetCallerNonce(vm *exec.VirtualMachine) int64 {
 	log.Info("envGetCallerNonce", "nonce", nonce)
 	return nonce
 }
+
+/*func (r *Resolver) envCurrentTime(vm *exec.VirtualMachine) int64 {
+	curTime := time.Now().UnixNano()
+	log.Info("envCurrentTime", "time", curTime)
+	return curTime
+}*/
 
 /*func (r *Resolver) envCallTransfer(vm *exec.VirtualMachine) int64 {
 	key := int(int32(vm.GetCurrentFrame().Locals[0]))

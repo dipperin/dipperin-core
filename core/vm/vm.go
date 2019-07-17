@@ -192,6 +192,7 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 	// only.
 	code, abi, rlpInit, err := parseCreateExtraData(data)
 	if err != nil {
+		log.Error("parseCreateExtraData failed", "err", err)
 		return nil, common.Address{}, 0, err
 	}
 	contract := NewContract(caller, AccountRef(address), value, gas, rlpInit)
