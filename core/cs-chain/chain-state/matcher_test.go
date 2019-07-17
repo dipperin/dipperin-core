@@ -283,4 +283,3 @@ func expMatch3(filter [][]bloomIndexes, i uint64) bool {
 	}
 	return true
 }
-
