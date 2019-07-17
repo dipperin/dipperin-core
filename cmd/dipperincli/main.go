@@ -57,6 +57,13 @@ func main() {
 	//cslog.InitLogger(zap.InfoLevel, "", true)
 	app = newApp()
 	app.Run(os.Args)
+	
+	
+	
+}
+
+func StartPprof()  {
+	
 }
 
 func newApp() (nApp *cli.App) {

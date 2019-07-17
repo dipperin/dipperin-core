@@ -86,7 +86,7 @@ func (caller *rpcCaller) CallContract(c *cli.Context) {
 	var inputs []string
 	inputInterface := []interface{}{funcName}
 	if strings.Contains(input, ",") {
-		inputs = strings.Split(input,",")
+		inputs = strings.Split(input, ",")
 		for _, in := range inputs {
 			inputInterface = append(inputInterface, in)
 		}

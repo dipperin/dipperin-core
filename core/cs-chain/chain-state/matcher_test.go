@@ -18,7 +18,6 @@ package chain_state
 
 import (
 	"context"
-	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"math/rand"
 	"sync/atomic"
@@ -285,21 +284,3 @@ func expMatch3(filter [][]bloomIndexes, i uint64) bool {
 	return true
 }
 
-func TestMatcherSession_AllocateRetrieval(t *testing.T) {
-	var s MatcherSession
-	fetcher := make(chan uint)
-
-	go func() {
-		time.Sleep(time.Second)
-		s.quit <- struct{}{}
-	}()
-
-	select {
-	case <-s.quit:
-		fmt.Println("s.quit")
-	case <-fetcher:
-		bit, ok := <-fetcher
-		fmt.Println("AllocateRetrieval", bit, ok)
-	}
-	time.Sleep(5 * time.Second)
-}
