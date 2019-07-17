@@ -18,19 +18,14 @@ package chain_state
 
 import (
 	"bytes"
-	"fmt"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"math/rand"
-	"strings"
 	"testing"
 )
 
 // Tests that batched bloom bits are correctly rotated from the input bloom
 // filters.
 func TestGenerator(t *testing.T) {
-	s := "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
-
-	fmt.Println(len(strings.Split(s, " ")))
 	// Generate the input and the rotated output
 	var input, output [model2.BloomBitLength][model2.BloomByteLength]byte
 
@@ -44,7 +39,7 @@ func TestGenerator(t *testing.T) {
 	}
 	// Crunch the input through the generator and verify the result
 	gen, err := NewGenerator(model2.BloomBitLength)
-	fmt.Println("fmt println   ", gen)
+	//fmt.Println("fmt println   ", gen)
 	if err != nil {
 		t.Fatalf("failed to create bloombit generator: %v", err)
 	}

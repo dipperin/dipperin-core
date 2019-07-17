@@ -2077,6 +2077,7 @@ func (service *MercuryFullChainService) doCall(args CallArgs, blockNum uint64, t
 
 func (service *MercuryFullChainService) checkConstant(to common.Address, data []byte) (bool, string, *utils.WasmAbi, error) {
 	funcName, err := vm.ParseInputForFuncName(data)
+	//fmt.Println("MercuryFullChainService#checkConstant", funcName)
 	if err != nil {
 		log.Error("ParseInputForFuncName failed", "err", err)
 		return false, "", nil, err
