@@ -99,8 +99,6 @@ func defaultChainConfig() *ChainConfig {
 		BlockCountOfPeriod: uint64(4096),
 
 		//verifier boot node number
-
-		//VerifierBootNodeNumber: 4,
 		VerifierBootNodeNumber: 4,
 		BlockTimeRestriction:   15 * time.Second,
 	}
@@ -110,7 +108,10 @@ func defaultChainConfig() *ChainConfig {
 		c.NetworkID = 99
 	case "test":
 		c.NetworkID = 1
+	case "local":
+		c.VerifierNumber = 4
 	}
+
 	return c
 }
 

@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -179,12 +178,8 @@ func genInput(t *testing.T, funcName string, param [][]byte) []byte {
 func getContract(t *testing.T, addr common.Address, code, abi string, input []byte) *Contract {
 	fileCode, err := ioutil.ReadFile(code)
 	assert.NoError(t, err)
-	log.Info("the code is:", "wasmCode", hexutil.Encode(fileCode))
-
 	fileABI, err := ioutil.ReadFile(abi)
 	assert.NoError(t, err)
-	log.Info("the fileABI is:", "fileABI", hexutil.Encode(fileABI))
-
 	return &Contract{
 		self:  fakeContractRef{addr: addr},
 		Code:  fileCode,

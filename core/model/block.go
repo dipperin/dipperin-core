@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/bloom_log"
@@ -73,6 +74,8 @@ type Header struct {
 	Nonce common.BlockNonce `json:"nonce"  gencodec:"required"`
 	//todo add bloom filter for Logs or txs
 	Bloom *iblt.Bloom `json:"Bloom"        gencodec:"required"`
+	// txs bloom
+	BloomLogs model2.Bloom `json:"bloom_log"  gencodec:"required"`
 	// MPT trie Root for transaction
 	TransactionRoot common.Hash `json:"txs_root"   gencodec:"required"`
 	// MPT trie Root for accounts state
@@ -86,6 +89,10 @@ type Header struct {
 	RegisterRoot common.Hash `json:"register_root"  gencodec:"required"`
 	//add receipt hash
 	ReceiptHash common.Hash `json:"receiptsRoot"     gencodec:"required"`
+}
+
+func (h *Header) GetBloomLog() model2.Bloom {
+	return h.BloomLogs
 }
 
 func (h *Header) GetGasLimit() uint64 {
@@ -118,6 +125,7 @@ func NewHeader(version uint64, num uint64, prehash common.Hash, seed common.Hash
 		CoinBase:    coinbase,
 		Nonce:       nonce,
 		Bloom:       iblt.NewBloom(DefaultBlockBloomConfig),
+		BloomLogs:   model2.Bloom{},
 		GasLimit:    DefaultGasLimit,
 		Proof:       []byte{},
 		MinerPubKey: []byte{},
@@ -244,12 +252,13 @@ func (h *Header) String() string {
 	GasUsed             %d
 	Nonce:		        %s
 	Bloom：         		%v
+	BloomLog:           %s
 	TransactionRoot:    %s
 	StateRoot:	        %s
 	VerificationRoot:   %s
 	InterlinkRoot:      %s
 	RegisterRoot     	%s
-	ReceiptHash      	%s]`, h.Hash().Hex(), h.Version, h.Number, h.Seed.Hex(), h.PreHash.Hex(), h.Diff.Hex(), h.TimeStamp, h.CoinBase.Hex(), h.GasLimit, h.GasUsed, h.Nonce.Hex(), h.Bloom.Hex(), h.TransactionRoot.Hex(), h.StateRoot.Hex(), h.VerificationRoot.Hex(), h.InterlinkRoot.Hex(), h.RegisterRoot.Hex(), h.ReceiptHash.Hex())
+	ReceiptHash      	%s]`, h.Hash().Hex(), h.Version, h.Number, h.Seed.Hex(), h.PreHash.Hex(), h.Diff.Hex(), h.TimeStamp, h.CoinBase.Hex(), h.GasLimit, h.GasUsed, h.Nonce.Hex(), h.Bloom.Hex(), h.BloomLogs.Hex(), h.TransactionRoot.Hex(), h.StateRoot.Hex(), h.VerificationRoot.Hex(), h.InterlinkRoot.Hex(), h.RegisterRoot.Hex(), h.ReceiptHash.Hex())
 }
 
 // swagger:response Body
@@ -279,6 +288,14 @@ type Block struct {
 	hash     atomic.Value `json:"-"`
 	size     atomic.Value `json:"-"`
 	receipts atomic.Value `json:"-"`
+}
+
+func (b *Block) GetBloomLog() model2.Bloom {
+	return b.header.BloomLogs
+}
+
+func (b *Block) SetBloomLog(bloom model2.Bloom) {
+	b.header.BloomLogs = bloom
 }
 
 func (b *Block) GasLimit() uint64 {

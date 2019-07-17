@@ -27,12 +27,14 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	contract2 "github.com/dipperin/dipperin-core/core/contract"
+	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"os"
@@ -712,10 +714,13 @@ func TestMercuryFullChainService_EstablishWallet(t *testing.T) {
 }
 
 func TestMercuryFullChainService_Start(t *testing.T) {
+	db, _ := ethdb.NewLDBDatabase("/tmp/db", 0, 0)
+	defer db.Close()
 	config := DipperinConfig{
 		MineMaster:       fakeMaster{},
 		MineMasterServer: fakeMasterServer{},
 		NodeConf:         fakeNodeConfig{},
+		ChainIndex:  chain_state.NewBloomIndexer(nil,db,12,6),
 	}
 	service := MakeFullChainService(&config)
 	err := service.Start()

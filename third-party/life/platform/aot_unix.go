@@ -224,10 +224,10 @@ func FullAOTCompile(vm *exec.VirtualMachine) *AOTContext {
 	}
 
 	nativeVM := C.vm_alloc()
-	C.vm_build(nativeVM, C.uintptr_t(uintptr(unsafe.Pointer(vm))), C.uint64_t(len(vm.Memory)))
+	/*C.vm_build(nativeVM, C.uintptr_t(uintptr(unsafe.Pointer(vm))), C.uint64_t(len(vm.Memory)))
 	if len(vm.Memory) > 0 {
 		C.memcpy(unsafe.Pointer(nativeVM.mem), unsafe.Pointer(&vm.Memory[0]), C.ulong(len(vm.Memory)))
-	}
+	}*/
 
 	updateMemory(nativeVM)
 

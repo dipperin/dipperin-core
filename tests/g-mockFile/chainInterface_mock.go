@@ -245,6 +245,20 @@ func (mr *MockChainInterfaceMockRecorder) GetBlockNumber(arg0 interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlockNumber", reflect.TypeOf((*MockChainInterface)(nil).GetBlockNumber), arg0)
 }
 
+// GetBloomBits mocks base method
+func (m *MockChainInterface) GetBloomBits(arg0 common.Hash, arg1 uint, arg2 uint64) []byte {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBloomBits", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]byte)
+	return ret0
+}
+
+// GetBloomBits indicates an expected call of GetBloomBits
+func (mr *MockChainInterfaceMockRecorder) GetBloomBits(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBloomBits", reflect.TypeOf((*MockChainInterface)(nil).GetBloomBits), arg0, arg1, arg2)
+}
+
 // GetBody mocks base method
 func (m *MockChainInterface) GetBody(arg0 common.Hash) model.AbstractBody {
 	m.ctrl.T.Helper()

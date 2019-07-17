@@ -187,6 +187,7 @@ var txMethods = []prompt.Suggest{
 	{Text: "TransferEDIPToDIP", Description: ""},
 	{Text: "SetExchangeRate", Description: ""},
 	{Text: "EstimateGas", Description: ""},
+	{Text: "GetLogs", Description: ""},
 }
 
 var chainMethods = []prompt.Suggest{

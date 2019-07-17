@@ -18,6 +18,7 @@ package chain_communication
 
 import (
 	"errors"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-metrics"
 	"github.com/dipperin/dipperin-core/core/chain-config"
@@ -148,6 +149,9 @@ func (broadcaster *NewBlockBroadcaster) onNewBlock(msg p2p.Msg, p PmAbstractPeer
 	if err != nil {
 		return err
 	}
+	receiptHash := block.GetReceiptHash()
+	bloomLog := block.GetBloomLog()
+	log.Info("NewBlockBroadcaster#onNewBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receiptHash, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
 
 	// load blockReceiver
 	broadcaster.getReceiver(p).markBlock(&block)

@@ -27,4 +27,5 @@ var (
 	ErrFunctionCalledNotConstant = errors.New("function called isn't constant, need to send a transaction")
 	ErrFunctionInitCanNotCalled  = errors.New("function init can't be called")
 	ErrFuncNameNotFoundInABI     = errors.New("funcName not found in abi")
+	ErrBloombitsNotFound         = errors.New("can't find the bloombits")
 )
