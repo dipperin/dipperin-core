@@ -42,7 +42,7 @@ func (h Header) MarshalJSON() ([]byte, error) {
 		GasUsed          hexutil.Uint64    `json:"gasUsed"          gencodec:"required"`
 		Nonce            common.BlockNonce `json:"nonce"  gencodec:"required"`
 		Bloom            iblt.BloomRLP     `json:"Bloom"        gencodec:"required"`
-		BloomLog         model.Bloom        `json:"bloom_log" gencodec:"required"`
+		BloomLog         model.Bloom       `json:"bloom_log" gencodec:"required"`
 		TransactionRoot  common.Hash       `json:"txs_root"   gencodec:"required"`
 		StateRoot        common.Hash       `json:"state_root" gencodec:"required"`
 		VerificationRoot common.Hash       `json:"verification_root"  gencodec:"required"`

@@ -76,7 +76,7 @@ func newFilter(chainReader middleware.ChainInterface, chainIndex *ChainIndexer, 
 		ChainReader: chainReader,
 		addresses:   addresses,
 		topics:      topics,
-		ChainIndex: chainIndex,
+		ChainIndex:  chainIndex,
 	}
 }
 

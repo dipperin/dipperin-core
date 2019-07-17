@@ -24,7 +24,6 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
-
 )
 
 const testSectionSize = 4096
@@ -290,7 +289,6 @@ func TestMatcherSession_AllocateRetrieval(t *testing.T) {
 	var s MatcherSession
 	fetcher := make(chan uint)
 
-
 	go func() {
 		time.Sleep(time.Second)
 		s.quit <- struct{}{}
@@ -299,7 +297,7 @@ func TestMatcherSession_AllocateRetrieval(t *testing.T) {
 	select {
 	case <-s.quit:
 		fmt.Println("s.quit")
-	case  <- fetcher:
+	case <-fetcher:
 		bit, ok := <-fetcher
 		fmt.Println("AllocateRetrieval", bit, ok)
 	}

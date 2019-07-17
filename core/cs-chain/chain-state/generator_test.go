@@ -44,7 +44,7 @@ func TestGenerator(t *testing.T) {
 	}
 	// Crunch the input through the generator and verify the result
 	gen, err := NewGenerator(model2.BloomBitLength)
-	fmt.Println("fmt println   " ,gen)
+	fmt.Println("fmt println   ", gen)
 	if err != nil {
 		t.Fatalf("failed to create bloombit generator: %v", err)
 	}

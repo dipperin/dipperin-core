@@ -1616,7 +1616,7 @@ func (service *MercuryFullChainService) GetLogs(blockHash *common.Hash, fromBloc
 	}
 	// Run the filter and return all the logs
 	//fmt.Println("MercuryFullChainService#GetLogs", "filter", filter)
-	cx, cancel := context.WithTimeout(context.Background(),time.Second * 150)
+	cx, cancel := context.WithTimeout(context.Background(), time.Second*150)
 	defer cancel()
 	logs, err := filter.Logs(cx)
 	fmt.Println("MercuryFullChainService#GetLogs", "logs", logs, "err", err)

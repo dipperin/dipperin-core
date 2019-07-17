@@ -515,7 +515,7 @@ func (b *BaseComponent) getNodeServices() []NodeService {
 	// these services may have nil
 	return filterNilService([]NodeService{
 		b.chainService, b.bftNode, b.walletManager, b.csPm,
-		b.p2pServer, b.rpcService, b.txPool, b.prometheusServer,b.DipperinConfig.ChainIndex,
+		b.p2pServer, b.rpcService, b.txPool, b.prometheusServer, b.DipperinConfig.ChainIndex,
 	})
 }
 

@@ -96,7 +96,6 @@ type ChainIndexer struct {
 	lock sync.RWMutex
 }
 
-
 func (c *ChainIndexer) Start() error {
 	block := c.chainReader.GetLatestNormalBlock()
 	if block != nil {
@@ -110,23 +109,22 @@ func (c *ChainIndexer) Stop() {
 	log.Info("ChainIndexer Stop")
 }
 
-
 // NewChainIndexer creates a new chain indexer to do background processing on
 // chain segments of a given size after certain number of confirmations passed.
 // The throttling parameter might be used to prevent database thrashing.
 func NewChainIndexer(chainReader middleware.ChainInterface, db ethdb.Database, indexDb ethdb.Database, backend ChainIndexerBackend, section, confirm uint64, throttling time.Duration, kind string) *ChainIndexer {
 	c := &ChainIndexer{
-		chainReader: chainReader,
-		chainDb:     db,
-		indexDb:     indexDb,
-		backend:     backend,
-		update:      make(chan struct{}, 1),
-		quit:        make(chan chan error),
+		chainReader:   chainReader,
+		chainDb:       db,
+		indexDb:       indexDb,
+		backend:       backend,
+		update:        make(chan struct{}, 1),
+		quit:          make(chan chan error),
 		BloomRequests: make(chan chan *Retrieval),
-		sectionSize: section,
-		confirmsReq: confirm,
-		throttling:  throttling,
-		log:         log.New("type", kind),
+		sectionSize:   section,
+		confirmsReq:   confirm,
+		throttling:    throttling,
+		log:           log.New("type", kind),
 	}
 	// Initialize database dependent fields and start the updater
 	c.loadValidSections()

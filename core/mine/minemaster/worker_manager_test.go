@@ -20,7 +20,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/model"
-	model2  "github.com/dipperin/dipperin-core/core/vm/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"sync/atomic"
