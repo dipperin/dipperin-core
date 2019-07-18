@@ -37,7 +37,7 @@ func ValidGasUsedAndReceipts(c *BlockContext) Middleware {
 			if err != nil {
 				return err
 			}
-			accumulatedGas += receipt.GasUsed
+			accumulatedGas = receipt.CumulativeGasUsed
 			receipts = append(receipts, receipt)
 			return nil
 		}); err != nil {

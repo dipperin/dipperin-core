@@ -43,7 +43,6 @@ func (state *AccountStateDB) ProcessContract(conf *TxProcessConfig, create bool)
 		Root:              root[:],
 		HandlerResult:     failed,
 		CumulativeGasUsed: *conf.GasUsed,
-		GasUsed:           usedGas,
 		Logs:              fullState.GetLogs(conf.Tx.CalTxId()),
 	}, nil
 }

@@ -21,6 +21,9 @@ import (
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"math/big"
+	"github.com/dipperin/dipperin-core/tests/factory"
 )
 
 func TestChainDB_InsertBlock(t *testing.T) {
@@ -269,12 +272,46 @@ func TestChainDB_DB(t *testing.T) {
 
 func TestChainDB_SaveReceipts(t *testing.T) {
 	db := newChainDB()
-	receipt := model.NewReceipt(common.HexToHash("0xd36884f1f26ca542ac572832eb02316f3a665571c34653e104eb74bebd2d4335").Bytes(), false, uint64(100))
-	receipt.Logs = []*model.Log{}
-	receipts := []*model.Receipt{receipt}
-	err := db.SaveReceipts(common.Hash{}, 1, receipts)
+	receipt1 := model.NewReceipt([]byte{}, false, g_testData.TestGasLimit)
+	receipt2 := model.NewReceipt([]byte{}, false, g_testData.TestGasLimit*3)
+	receipts := []*model.Receipt{receipt1, receipt2}
+
+	block := createBlock(1)
+	db.SaveBlock(block)
+
+	err := db.SaveReceipts(block.Hash(), 1, receipts)
 	assert.NoError(t, err)
 
-	result := db.GetReceipts(common.Hash{}, 1)
-	assert.Equal(t, receipts[0], result[0])
+	result := db.GetReceipts(block.Hash(), 1)
+	DeriveFields(receipts, block)
+	assert.NoError(t, err)
+	assert.Equal(t, receipts[0].BlockNumber, result[0].BlockNumber)
+	assert.Equal(t, receipts[0].BlockHash, result[0].BlockHash)
+	assert.Equal(t, receipts[0].TransactionIndex, result[0].TransactionIndex)
+	assert.Equal(t, receipts[0].ContractAddress, result[0].ContractAddress)
+	assert.Equal(t, receipts[0].GasUsed, result[0].GasUsed)
+	assert.Equal(t, len(receipts[0].Logs), len(result[0].Logs))
+}
+
+func TestDeriveFields(t *testing.T) {
+	receipt1 := model.NewReceipt([]byte{}, false, g_testData.TestGasLimit)
+	receipt2 := model.NewReceipt([]byte{}, false, g_testData.TestGasLimit*3)
+	receipts := []*model.Receipt{receipt1, receipt2}
+	block := createBlock(1)
+
+	err := DeriveFields(receipts, block)
+	assert.NoError(t, err)
+	assert.Equal(t, big.NewInt(1), receipts[0].BlockNumber)
+	assert.Equal(t, block.Hash(), receipts[0].BlockHash)
+	assert.Equal(t, uint(0), receipts[0].TransactionIndex)
+	assert.Equal(t, factory.BobAddrV, receipts[0].ContractAddress)
+	assert.Equal(t, g_testData.TestGasLimit, receipts[0].GasUsed)
+	assert.Equal(t, 0, len(receipts[0].Logs))
+
+	assert.Equal(t, big.NewInt(1), receipts[1].BlockNumber)
+	assert.Equal(t, block.Hash(), receipts[1].BlockHash)
+	assert.Equal(t, uint(1), receipts[1].TransactionIndex)
+	assert.Equal(t, factory.BobAddrV, receipts[1].ContractAddress)
+	assert.Equal(t, g_testData.TestGasLimit*2, receipts[1].GasUsed)
+	assert.Equal(t, 0, len(receipts[1].Logs))
 }

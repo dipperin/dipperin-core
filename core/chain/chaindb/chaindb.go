@@ -24,6 +24,9 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
+	"math/big"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"errors"
 )
 
 type ChainDB struct {
@@ -295,7 +298,7 @@ func (chainDB *ChainDB) GetReceipts(hash common.Hash, number uint64) model2.Rece
 	}
 
 	// Convert the receipts from their storage form to their internal representation
-	storageReceipts := []*model2.ReceiptForStorage{}
+	var storageReceipts []*model2.ReceiptForStorage
 	if err := rlp.DecodeBytes(data, &storageReceipts); err != nil {
 		log.Error("Invalid receipt array RLP", "hash", hash, "err", err)
 		return nil
@@ -305,7 +308,64 @@ func (chainDB *ChainDB) GetReceipts(hash common.Hash, number uint64) model2.Rece
 	for i, receipt := range storageReceipts {
 		receipts[i] = (*model2.Receipt)(receipt)
 	}
+
+	// complement receipts
+	block := chainDB.GetBlock(hash, number)
+	err := DeriveFields(receipts, block)
+	if err != nil {
+		log.Error("DeriveFields failed", "err", err)
+		return nil
+	}
 	return receipts
+}
+
+// DeriveFields fills the receipts with their computed fields based on consensus
+// data and contextual infos like containing block and transactions.
+func DeriveFields(r model2.Receipts, block model.AbstractBlock) error {
+	logIndex := uint(0)
+	txs := block.GetTransactions()
+	number := block.Number()
+	hash := block.Hash()
+	if len(txs) != len(r) {
+		return errors.New("transaction and receipt count mismatch")
+	}
+	for i := 0; i < len(r); i++ {
+		// The transaction hash can be retrieved from the transaction itself
+		r[i].TxHash = txs[i].CalTxId()
+
+		// block location fields
+		r[i].BlockHash = hash
+		r[i].BlockNumber = new(big.Int).SetUint64(number)
+		r[i].TransactionIndex = uint(i)
+
+		// The contract address can be derived from the transaction itself
+		if txs[i].GetType() == common.AddressTypeContractCreate {
+			callerAddress, err := txs[i].Sender(nil)
+			if err != nil {
+				return err
+			}
+			r[i].ContractAddress = cs_crypto.CreateContractAddress(callerAddress, txs[i].Nonce())
+		} else {
+			r[i].ContractAddress = *txs[i].To()
+		}
+
+		// The used gas can be calculated based on previous r
+		if i == 0 {
+			r[i].GasUsed = r[i].CumulativeGasUsed
+		} else {
+			r[i].GasUsed = r[i].CumulativeGasUsed - r[i-1].CumulativeGasUsed
+		}
+		// The derived log fields can simply be set from the block and transaction
+		for j := 0; j < len(r[i].Logs); j++ {
+			r[i].Logs[j].BlockNumber = number
+			r[i].Logs[j].BlockHash = hash
+			r[i].Logs[j].TxHash = r[i].TxHash
+			r[i].Logs[j].TxIndex = uint(i)
+			r[i].Logs[j].Index = logIndex
+			logIndex++
+		}
+	}
+	return nil
 }
 
 /*func (chainDB *ChainDB) FindCommonAncestor(a, b model.AbstractHeader) model.AbstractHeader {

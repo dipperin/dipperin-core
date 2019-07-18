@@ -24,16 +24,14 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/math"
-
 	"github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
 	"math/big"
 	"sort"
 	"sync/atomic"
-
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 )
 
 type Transaction struct {
@@ -46,8 +44,6 @@ type Transaction struct {
 
 	//add receipt cache
 	receipt atomic.Value
-	//add txIndex cache
-	txIndex atomic.Value
 	//add actual tx usedFee
 	actualTxFee atomic.Value
 }
@@ -436,30 +432,7 @@ type ReceiptPara struct {
 	Root              []byte
 	HandlerResult     bool
 	CumulativeGasUsed uint64
-	GasUsed           uint64
 	Logs              []*model.Log
-}
-
-func (tx *Transaction) PaddingReceipt(parameters ReceiptPara) (*model.Receipt, error) {
-	log.Info("Call PaddingReceipt", "handlerResult", parameters.HandlerResult)
-	receipt := model.NewReceipt(parameters.Root, parameters.HandlerResult, parameters.CumulativeGasUsed)
-	receipt.TxHash = tx.CalTxId()
-	receipt.GasUsed = parameters.GasUsed
-	// if the transaction created a contract, store the creation address in the receipt.
-	if tx.GetType() == common.AddressTypeContractCreate {
-		callerAddress, err := tx.Sender(nil)
-		if err != nil {
-			return &model.Receipt{}, err
-		}
-		receipt.ContractAddress = cs_crypto.CreateContractAddress(callerAddress, tx.Nonce())
-	} else {
-		receipt.ContractAddress = *tx.To()
-	}
-	// Set the receipt Logs and create a bloom for filtering
-	receipt.Logs = parameters.Logs
-	receipt.Bloom = model.CreateBloom(model.Receipts{receipt})
-	tx.receipt.Store(receipt)
-	return receipt, nil
 }
 
 func (tx *Transaction) PaddingActualTxFee(fee *big.Int) error {
@@ -477,24 +450,35 @@ func (tx *Transaction) GetActualTxFee() (fee *big.Int) {
 	return nil
 }
 
+func (tx *Transaction) PaddingReceipt(parameters ReceiptPara) (*model.Receipt, error) {
+	log.Info("Call PaddingReceipt", "handlerResult", parameters.HandlerResult)
+	receipt := model.NewReceipt(parameters.Root, parameters.HandlerResult, parameters.CumulativeGasUsed)
+
+	// Set the receipt Logs
+	receipt.Logs = parameters.Logs
+	tx.receipt.Store(receipt)
+	return receipt, nil
+}
+
 func (tx *Transaction) GetReceipt() (*model.Receipt, error) {
 	value := tx.receipt.Load()
 	if value != nil {
-		return value.(*model.Receipt), nil
+		receipt := value.(*model.Receipt)
+		receipt.TxHash = tx.CalTxId()
+
+		// if the transaction created a contract, store the creation address in the receipt.
+		if tx.GetType() == common.AddressTypeContractCreate {
+			callerAddress, err := tx.Sender(nil)
+			if err != nil {
+				return &model.Receipt{}, err
+			}
+			receipt.ContractAddress = cs_crypto.CreateContractAddress(callerAddress, tx.Nonce())
+		} else {
+			receipt.ContractAddress = *tx.To()
+		}
+		return receipt, nil
 	}
 	return &model.Receipt{}, errors.New("not set tx receipt")
-}
-
-func (tx *Transaction) PaddingTxIndex(index int) {
-	tx.txIndex.Store(index)
-}
-
-func (tx *Transaction) GetTxIndex() (int, error) {
-	index := tx.txIndex.Load()
-	if index != nil {
-		return index.(int), nil
-	}
-	return 0, g_error.ErrNotSetTxIndex
 }
 
 // Transactions is a Transaction slice type for basic sorting.

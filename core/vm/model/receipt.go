@@ -19,19 +19,13 @@ package model
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
 	"strconv"
-	"unsafe"
+	"math/big"
 )
 
 //go:generate gencodec -type Receipt -field-override receiptMarshaling -out gen_receipt_json.go
-
-var (
-	receiptStatusFailedRLP     = []byte{}
-	receiptStatusSuccessfulRLP = []byte{0x01}
-)
 
 const (
 	// ReceiptStatusFailed is the status code of a transaction if execution failed.
@@ -54,8 +48,15 @@ type Receipt struct {
 	TxHash          common.Hash    `json:"transactionHash" gencodec:"required"`
 	ContractAddress common.Address `json:"contractAddress"`
 	GasUsed         uint64         `json:"gasUsed" gencodec:"required"`
+
+	// Inclusion information: These fields provide information about the inclusion of the
+	// transaction corresponding to this receipt.
+	BlockHash        common.Hash `json:"blockHash,omitempty"`
+	BlockNumber      *big.Int    `json:"blockNumber,omitempty"`
+	TransactionIndex uint        `json:"transactionIndex"`
 }
 
+/*
 type receiptMarshaling struct {
 	PostState         hexutil.Bytes
 	Status            hexutil.Uint64
@@ -71,16 +72,13 @@ type receiptRLP struct {
 	Bloom             Bloom
 	Logs              []*Log
 }
+*/
 
 type receiptStorageRLP struct {
 	PostState         []byte
 	Status            uint64
 	CumulativeGasUsed uint64
-	Bloom             Bloom
-	TxHash            common.Hash
-	ContractAddress   common.Address
 	Logs              []*LogForStorage
-	GasUsed           uint64
 }
 
 // NewReceipt creates a barebone transaction receipt, copying the init fields.
@@ -118,6 +116,9 @@ func (r *Receipt) String() string {
 	TxHash:				%s
 	ContractAddress:	%s
 	GasUsed:			%v
+	BlockHash     		%s   
+	BlockNumber     	%v 
+	TransactionIndex 	%v
 `,
 		r.PostState,
 		r.GetStatusStr(),
@@ -126,10 +127,13 @@ func (r *Receipt) String() string {
 		r.TxHash.Hex(),
 		r.ContractAddress.Hex(),
 		r.GasUsed,
+		r.BlockHash,
+		r.BlockNumber,
+		r.TransactionIndex,
 	)
 }
 
-// EncodeRLP implements rlp.Encoder, and flattens the consensus fields of a receipt
+/*// EncodeRLP implements rlp.Encoder, and flattens the consensus fields of a receipt
 // into an RLP stream. If no post state is present, byzantium fork is assumed.
 func (r *Receipt) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, &receiptRLP{r.PostState, r.Status, r.CumulativeGasUsed, r.Bloom, r.Logs})
@@ -157,7 +161,7 @@ func (r *Receipt) Size() common.StorageSize {
 		size += common.StorageSize(len(log.Topics)*common.HashLength + len(log.Data))
 	}
 	return size
-}
+}*/
 
 // ReceiptForStorage is a wrapper around a Receipt that flattens and parses the
 // entire content of a receipt, as opposed to only the consensus fields originally.
@@ -170,11 +174,7 @@ func (r *ReceiptForStorage) EncodeRLP(w io.Writer) error {
 		PostState:         r.PostState,
 		Status:            r.Status,
 		CumulativeGasUsed: r.CumulativeGasUsed,
-		Bloom:             r.Bloom,
-		TxHash:            r.TxHash,
-		ContractAddress:   r.ContractAddress,
 		Logs:              make([]*LogForStorage, len(r.Logs)),
-		GasUsed:           r.GasUsed,
 	}
 	for i, log := range r.Logs {
 		enc.Logs[i] = (*LogForStorage)(log)
@@ -191,14 +191,13 @@ func (r *ReceiptForStorage) DecodeRLP(s *rlp.Stream) error {
 	}
 
 	// Assign the consensus fields
-	r.PostState, r.Status = dec.PostState, dec.Status
-	r.CumulativeGasUsed, r.Bloom = dec.CumulativeGasUsed, dec.Bloom
+	r.PostState, r.Status, r.CumulativeGasUsed = dec.PostState, dec.Status, dec.CumulativeGasUsed
 	r.Logs = make([]*Log, len(dec.Logs))
 	for i, log := range dec.Logs {
 		r.Logs[i] = (*Log)(log)
 	}
 	// Assign the implementation fields
-	r.TxHash, r.ContractAddress, r.GasUsed = dec.TxHash, dec.ContractAddress, dec.GasUsed
+	r.Bloom = CreateBloom(Receipts{(*Receipt)(r)})
 	return nil
 }
 
@@ -220,3 +219,4 @@ func (r Receipts) GetRlp(i int) []byte {
 func (r Receipts) GetKey(i int) []byte {
 	return []byte(strconv.Itoa(i))
 }
+

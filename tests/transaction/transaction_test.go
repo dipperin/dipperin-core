@@ -129,7 +129,6 @@ func TestWASMContactMiniTxFee(t *testing.T) {
 
 	//creat process config
 	block := createBlock(1, common.Hash{}, []*model.Transaction{tempTx}, chain_config.MaxGasLimit)
-	tempTx.PaddingTxIndex(0)
 	gasUsed := uint64(0)
 	confGasLimit := gasLimit.Uint64()
 	txConfigCreate := &state_processor.TxProcessConfig{

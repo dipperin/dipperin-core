@@ -1237,7 +1237,6 @@ func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *
 	//add block gasUsed
 	*blockGasUsed += gasUsed
 
-	par.GasUsed = gasUsed
 	par.CumulativeGasUsed = *blockGasUsed
 	par.HandlerResult = false
 	par.Root = root[:]
@@ -1247,7 +1246,6 @@ func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *
 
 type TxProcessConfig struct {
 	Tx       model.AbstractTransaction
-	TxIndex  int
 	Header   model.AbstractHeader
 	GetHash  vm.GetHashFunc
 	GasLimit *uint64

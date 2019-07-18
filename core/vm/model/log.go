@@ -19,7 +19,6 @@ package model
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
 )
@@ -59,7 +58,7 @@ type Log struct {
 	Removed bool `json:"removed"`
 }
 
-type logMarshaling struct {
+/*type logMarshaling struct {
 	Data        hexutil.Bytes
 	BlockNumber hexutil.Uint64
 	TxIndex     hexutil.Uint
@@ -70,18 +69,13 @@ type rlpLog struct {
 	Address common.Address
 	Topics  []common.Hash
 	Data    []byte
-}
+}*/
 
 type rlpStorageLog struct {
 	Address     common.Address
 	Topics      []common.Hash
 	TopicName   string
 	Data        []byte
-	BlockNumber uint64
-	TxHash      common.Hash
-	TxIndex     uint
-	BlockHash   common.Hash
-	Index       uint
 }
 
 func (l *Log) String() string {
@@ -114,7 +108,7 @@ func (l *Log) String() string {
 	)
 }
 
-// EncodeRLP implements rlp.Encoder.
+/*// EncodeRLP implements rlp.Encoder.
 func (l *Log) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, rlpLog{Address: l.Address, Topics: l.Topics, Data: l.Data})
 }
@@ -127,7 +121,7 @@ func (l *Log) DecodeRLP(s *rlp.Stream) error {
 		l.Address, l.Topics, l.Data = dec.Address, dec.Topics, dec.Data
 	}
 	return err
-}
+}*/
 
 // LogForStorage is a wrapper around a Log that flattens and parses the entire content of
 // a log including non-consensus fields.
@@ -140,11 +134,6 @@ func (l *LogForStorage) EncodeRLP(w io.Writer) error {
 		Topics:      l.Topics,
 		TopicName:   l.TopicName,
 		Data:        l.Data,
-		BlockNumber: l.BlockNumber,
-		TxHash:      l.TxHash,
-		TxIndex:     l.TxIndex,
-		BlockHash:   l.BlockHash,
-		Index:       l.Index,
 	})
 }
 
@@ -158,11 +147,6 @@ func (l *LogForStorage) DecodeRLP(s *rlp.Stream) error {
 			Topics:      dec.Topics,
 			TopicName:   dec.TopicName,
 			Data:        dec.Data,
-			BlockNumber: dec.BlockNumber,
-			TxHash:      dec.TxHash,
-			TxIndex:     dec.TxIndex,
-			BlockHash:   dec.BlockHash,
-			Index:       dec.Index,
 		}
 	}
 	return err

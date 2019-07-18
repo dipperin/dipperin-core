@@ -194,21 +194,6 @@ func (mr *MockAbstractTransactionMockRecorder) GetSigner() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSigner", reflect.TypeOf((*MockAbstractTransaction)(nil).GetSigner))
 }
 
-// GetTxIndex mocks base method
-func (m *MockAbstractTransaction) GetTxIndex() (int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTxIndex")
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetTxIndex indicates an expected call of GetTxIndex
-func (mr *MockAbstractTransactionMockRecorder) GetTxIndex() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTxIndex", reflect.TypeOf((*MockAbstractTransaction)(nil).GetTxIndex))
-}
-
 // GetType mocks base method
 func (m *MockAbstractTransaction) GetType() common.TxType {
 	m.ctrl.T.Helper()
@@ -250,18 +235,6 @@ func (m *MockAbstractTransaction) PaddingReceipt(arg0 model.ReceiptPara) (*model
 func (mr *MockAbstractTransactionMockRecorder) PaddingReceipt(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PaddingReceipt", reflect.TypeOf((*MockAbstractTransaction)(nil).PaddingReceipt), arg0)
-}
-
-// PaddingTxIndex mocks base method
-func (m *MockAbstractTransaction) PaddingTxIndex(arg0 int) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "PaddingTxIndex", arg0)
-}
-
-// PaddingTxIndex indicates an expected call of PaddingTxIndex
-func (mr *MockAbstractTransactionMockRecorder) PaddingTxIndex(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PaddingTxIndex", reflect.TypeOf((*MockAbstractTransaction)(nil).PaddingTxIndex), arg0)
 }
 
 // Sender mocks base method
