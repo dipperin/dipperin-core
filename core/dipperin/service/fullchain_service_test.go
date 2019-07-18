@@ -508,7 +508,7 @@ func TestMercuryFullChainService_VerifierStatus(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "Not Registered", state)
 	assert.Equal(t, big.NewInt(0), stake)
-	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(9999000000000),big.NewInt(consts.GDIPUNIT)), balance)
+	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(9999000000000), big.NewInt(consts.GDIPUNIT)), balance)
 	assert.Equal(t, uint64(0), reputation)
 	assert.Equal(t, true, isCurrent)
 }
@@ -721,7 +721,7 @@ func TestMercuryFullChainService_Start(t *testing.T) {
 		MineMaster:       fakeMaster{},
 		MineMasterServer: fakeMasterServer{},
 		NodeConf:         fakeNodeConfig{},
-		ChainIndex:  chain_state.NewBloomIndexer(nil,db,12,6),
+		ChainIndex:       chain_state.NewBloomIndexer(nil, db, 12, 6),
 	}
 	service := MakeFullChainService(&config)
 	err := service.Start()
@@ -1199,7 +1199,7 @@ func TestMakeFullChainService_EconomyModel(t *testing.T) {
 
 	reward, err = service.GetOneBlockTotalDIPReward(1)
 	assert.NoError(t, err)
-	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(2e10),big.NewInt(consts.GDIPUNIT)), reward)
+	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(2e10), big.NewInt(consts.GDIPUNIT)), reward)
 
 	info := service.GetInvestorInfo()
 	assert.NotNil(t, info)

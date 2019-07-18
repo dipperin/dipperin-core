@@ -161,16 +161,16 @@ func TestDipperinEconomyModel_GetMineMasterDIPReward(t *testing.T) {
 
 	reward, err := economyModel.GetMineMasterDIPReward(testBlock)
 	assert.NoError(t, err)
-	assert.EqualValues(t, big.NewInt(0).Mul(big.NewInt(17400000000),big.NewInt(consts.GDIPUNIT)), reward)
+	assert.EqualValues(t, big.NewInt(0).Mul(big.NewInt(17400000000), big.NewInt(consts.GDIPUNIT)), reward)
 	testBlock.EXPECT().Number().Return(uint64(economy_model.HeightAfterTenYear + 1))
 	reward, err = economyModel.GetMineMasterDIPReward(testBlock)
 	assert.NoError(t, err)
-	assert.EqualValues(t,big.NewInt(0).Mul(big.NewInt(8700000000),big.NewInt(consts.GDIPUNIT)), reward)
+	assert.EqualValues(t, big.NewInt(0).Mul(big.NewInt(8700000000), big.NewInt(consts.GDIPUNIT)), reward)
 
 	testBlock.EXPECT().Number().Return(uint64(11*economy_model.HeightAfterOneYear) + 1)
 	reward, err = economyModel.GetMineMasterDIPReward(testBlock)
 	assert.NoError(t, err)
-	assert.EqualValues(t, big.NewInt(0).Mul(big.NewInt(12441000000),big.NewInt(consts.GDIPUNIT)), reward)
+	assert.EqualValues(t, big.NewInt(0).Mul(big.NewInt(12441000000), big.NewInt(consts.GDIPUNIT)), reward)
 
 	testBlock.EXPECT().Number().Return(uint64(0))
 	_, err = economyModel.GetMineMasterDIPReward(testBlock)
@@ -209,20 +209,20 @@ func TestDipperinEconomyModel_GetVerifierDIPReward(t *testing.T) {
 func TestDipperinEconomyModel_GetInvestorInitBalance(t *testing.T) {
 	economyModel := economy_model.MakeDipperinEconomyModel(testEconomyService, economy_model.DIPProportion)
 	info := economyModel.GetInvestorInitBalance()
-	assert.EqualValues(t, big.NewInt(0).Mul(big.NewInt(262800000000000000),big.NewInt(consts.GDIPUNIT)), info[economy_model.InvestorAddresses[0]])
+	assert.EqualValues(t, big.NewInt(0).Mul(big.NewInt(262800000000000000), big.NewInt(consts.GDIPUNIT)), info[economy_model.InvestorAddresses[0]])
 }
 
 // test developers
 func TestDipperinEconomyModel_GetDeveloperInitBalance(t *testing.T) {
 	economyModel := economy_model.MakeDipperinEconomyModel(testEconomyService, economy_model.DIPProportion)
 	info := economyModel.GetDeveloperInitBalance()
-	assert.EqualValues(t,big.NewInt(0).Mul(big.NewInt(87600000000000000),big.NewInt(consts.GDIPUNIT)), info[economy_model.DeveloperAddresses[0]])
+	assert.EqualValues(t, big.NewInt(0).Mul(big.NewInt(87600000000000000), big.NewInt(consts.GDIPUNIT)), info[economy_model.DeveloperAddresses[0]])
 }
 
 // test investor unlocking mechanism
 func TestDipperinEconomyModel_GetInvestorLockDIP(t *testing.T) {
 	economyModel := economy_model.MakeDipperinEconomyModel(testEconomyService, economy_model.DIPProportion)
-	investorTotalDIP := big.NewInt(0).Mul(big.NewInt(262800000000000000),big.NewInt(consts.GDIPUNIT))
+	investorTotalDIP := big.NewInt(0).Mul(big.NewInt(262800000000000000), big.NewInt(consts.GDIPUNIT))
 
 	// unlocking by quarters each year
 	for i := 1; i <= 4; i++ {
@@ -246,7 +246,7 @@ func TestDipperinEconomyModel_GetInvestorLockDIP(t *testing.T) {
 // test developer unlocking mechanism
 func TestDipperinEconomyModel_GetDeveloperLockDIP(t *testing.T) {
 	economyModel := economy_model.MakeDipperinEconomyModel(testEconomyService, economy_model.DIPProportion)
-	investorTotalDIP := big.NewInt(0).Mul(big.NewInt(87600000000000000),big.NewInt(consts.GDIPUNIT))
+	investorTotalDIP := big.NewInt(0).Mul(big.NewInt(87600000000000000), big.NewInt(consts.GDIPUNIT))
 
 	// unlocking by quarters each year
 	for i := 1; i <= 4; i++ {
@@ -287,7 +287,7 @@ func TestCalcDIPTotalCirculation(t *testing.T) {
 	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(394200000), big.NewInt(consts.DIP)), value)
 
 	value = economy_model.CalcDIPTotalCirculation(15)
-	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(3788167915366200000),big.NewInt(consts.GDIPUNIT)), value)
+	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(3788167915366200000), big.NewInt(consts.GDIPUNIT)), value)
 }
 
 func TestDipperinEconomyModel_GetDiffVerifierAddress(t *testing.T) {
@@ -320,8 +320,8 @@ func TestDipperinEconomyModel_GetDiffVerifierAddress(t *testing.T) {
 
 func TestDIP(t *testing.T) {
 	tmpValue := int64(^uint64(1) >> 1)
-	fmt.Printf("the tmpValue is:%x\r\n",tmpValue)
+	fmt.Printf("the tmpValue is:%x\r\n", tmpValue)
 
-	log.Info("the const.DIP is:","DIP",consts.DIP)
-	log.Info("the tmpValue < 1E18 is:","compareResult",tmpValue<1E18)
+	log.Info("the const.DIP is:", "DIP", consts.DIP)
+	log.Info("the tmpValue < 1E18 is:", "compareResult", tmpValue < 1E18)
 }

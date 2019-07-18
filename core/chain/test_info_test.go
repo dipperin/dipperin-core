@@ -68,7 +68,7 @@ func createTestStateDB(t *testing.T) (ethdb.Database, common.Hash) {
 	foundationAddr = earlyTokenContract.Owner
 	err = processor.NewAccountState(foundationAddr)
 	assert.NoError(t, err)
-	err = processor.SetBalance(foundationAddr, big.NewInt(0).Mul(big.NewInt(999999),big.NewInt(consts.DIP)))
+	err = processor.SetBalance(foundationAddr, big.NewInt(0).Mul(big.NewInt(999999), big.NewInt(consts.DIP)))
 	assert.NoError(t, err)
 
 	err = processor.PutContract(contract.EarlyContractAddress, reflect.ValueOf(&earlyTokenContract))
@@ -83,7 +83,7 @@ func createTestStateDB(t *testing.T) (ethdb.Database, common.Hash) {
 	// add alice account
 	err = processor.NewAccountState(aliceAddr)
 	assert.NoError(t, err)
-	err = processor.SetBalance(aliceAddr, big.NewInt(0).Mul(big.NewInt(999999),big.NewInt(consts.DIP)))
+	err = processor.SetBalance(aliceAddr, big.NewInt(0).Mul(big.NewInt(999999), big.NewInt(consts.DIP)))
 	assert.NoError(t, err)
 
 	root, err := processor.Commit()

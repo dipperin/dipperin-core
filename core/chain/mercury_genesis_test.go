@@ -130,7 +130,7 @@ func TestDefaultGenesisBlock(t *testing.T) {
 	// get info from genesis.json
 	defaultGenesis = createGenesis()
 	assert.Equal(t, cfg.Nonce, defaultGenesis.Nonce)
-	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(10),big.NewInt(consts.DIP)), defaultGenesis.Alloc[aliceAddr])
+	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(10), big.NewInt(consts.DIP)), defaultGenesis.Alloc[aliceAddr])
 	assert.Equal(t, bobAddr, defaultGenesis.Verifiers[0])
 
 	err = os.Remove(gFPath)
@@ -241,7 +241,7 @@ func TestGenesis_SetEarlyTokenContract_Error(t *testing.T) {
 	// set balance error
 	sProcessor, err = state_processor.MakeGenesisAccountStateProcessor(fakeStateStorage{
 		setErr:          TrieError,
-		contractBalance: big.NewInt(0).Mul(big.NewInt(43693128000000000),big.NewInt(consts.DIP)),
+		contractBalance: big.NewInt(0).Mul(big.NewInt(43693128000000000), big.NewInt(consts.DIP)),
 	})
 	assert.NoError(t, err)
 	defaultGenesis.AccountStateProcessor = sProcessor

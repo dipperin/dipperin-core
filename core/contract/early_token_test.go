@@ -204,7 +204,7 @@ func TestEarlyRewardContract_TransferEDIPToDIP(t *testing.T) {
 	contract.AccountDB = testDB
 
 	rewardAddress := common.HexToAddress("0x0000f01dA91C64eF6202c735e9362010196a556C7fc7")
-	DIPReward := big.NewInt(0).Mul(big.NewInt(1740000000),big.NewInt(consts.GDIPUNIT))
+	DIPReward := big.NewInt(0).Mul(big.NewInt(1740000000), big.NewInt(consts.GDIPUNIT))
 	blockNumber := uint64(30)
 
 	err := contract.RewardMineMaster(DIPReward, blockNumber, rewardAddress)
@@ -317,7 +317,7 @@ func TestEarlyRewardContract_RewardMineMaster(t *testing.T) {
 	}
 
 	rewardAddress := common.HexToAddress("0x0000970e8128aB834E8EAC17aB8E3812f010678CF791")
-	DIPReward := big.NewInt(0).Mul(big.NewInt(1740000000),big.NewInt(consts.GDIPUNIT))
+	DIPReward := big.NewInt(0).Mul(big.NewInt(1740000000), big.NewInt(consts.GDIPUNIT))
 
 	testReward := []*big.Int{
 		big.NewInt(8700),
@@ -351,9 +351,9 @@ func TestEarlyRewardContract_RewardVerifier(t *testing.T) {
 	}
 
 	DIPReward := map[economy_model.VerifierType]*big.Int{
-		economy_model.MasterVerifier:    big.NewInt(0).Mul(big.NewInt(3768115),big.NewInt(consts.GDIPUNIT)),
-		economy_model.CommitVerifier:    big.NewInt(0).Mul(big.NewInt(7536231),big.NewInt(consts.GDIPUNIT)),
-		economy_model.NotCommitVerifier: big.NewInt(0).Mul(big.NewInt(1884057),big.NewInt(consts.GDIPUNIT)),
+		economy_model.MasterVerifier:    big.NewInt(0).Mul(big.NewInt(3768115), big.NewInt(consts.GDIPUNIT)),
+		economy_model.CommitVerifier:    big.NewInt(0).Mul(big.NewInt(7536231), big.NewInt(consts.GDIPUNIT)),
+		economy_model.NotCommitVerifier: big.NewInt(0).Mul(big.NewInt(1884057), big.NewInt(consts.GDIPUNIT)),
 	}
 
 	addresses := map[economy_model.VerifierType][]common.Address{

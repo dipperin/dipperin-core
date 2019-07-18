@@ -87,9 +87,9 @@ func DecimalToInter(src string, unitBit int) (*big.Int, error) {
 		decimalString = src[pointPos+1:]
 	}
 
-	integerValue ,result:= big.NewInt(0).SetString(interString,10)
-	if !result{
-		return nil,g_error.ErrParseBigIntFromString
+	integerValue, result := big.NewInt(0).SetString(interString, 10)
+	if !result {
+		return nil, g_error.ErrParseBigIntFromString
 	}
 
 	decimalLen := len(decimalString)
@@ -102,13 +102,13 @@ func DecimalToInter(src string, unitBit int) (*big.Int, error) {
 	}
 
 	tmpValue := append([]byte(decimalString), padding[:]...)
-	decimalValue ,result:= big.NewInt(0).SetString(string(tmpValue),10)
-	if !result{
-		return nil,g_error.ErrParseBigIntFromString
+	decimalValue, result := big.NewInt(0).SetString(string(tmpValue), 10)
+	if !result {
+		return nil, g_error.ErrParseBigIntFromString
 	}
 
-	unit := big.NewInt(0).Exp(big.NewInt(10),big.NewInt(int64(unitBit)),nil)
-	totalValue := big.NewInt(0).Add(big.NewInt(0).Mul(integerValue,unit),decimalValue)
+	unit := big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(unitBit)), nil)
+	totalValue := big.NewInt(0).Add(big.NewInt(0).Mul(integerValue, unit), decimalValue)
 	return totalValue, nil
 }
 
