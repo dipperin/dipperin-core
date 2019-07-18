@@ -19,6 +19,7 @@ package commands
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"io/ioutil"
@@ -1880,4 +1881,18 @@ func Test_getDefaultWallet(t *testing.T) {
 	wallet := getDefaultWallet()
 
 	assert.Equal(t, wallet, accounts.WalletIdentifier{})
+}
+
+func Test_ToJson(t *testing.T) {
+	/*filter := FilterParams{
+		fromBlock: new(big.Int).SetInt64(0),
+		toBlock:new(big.Int).SetInt64(int64(1000)),
+		addresses:[]common.Address{common.HexToAddress("0x11111")},
+		topics:[][]common.Hash{[]common.Hash{common.HexToHash("0x22222")},},
+	}*/
+	var filter FilterParams
+
+	f := `{"from_block":0,"to_block":1000,"addresses":["0x0000DF2f2284ddF0E5a4f9462594b9bFFC97Ca6777De"],"topics":[[],[]]}`
+
+	fmt.Println(json.Unmarshal([]byte(f), &filter))
 }

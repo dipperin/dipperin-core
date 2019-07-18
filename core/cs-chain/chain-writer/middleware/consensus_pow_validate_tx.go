@@ -298,6 +298,10 @@ func validEarlyTokenTx(tx model.AbstractTransaction, chain ChainInterface, block
 	return nil
 }
 
+func validContractCreateTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
+	return nil
+}
+
 func validEvidenceTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
 	if err := conflictVote(tx, chain, blockHeight); err != nil {
 		return err

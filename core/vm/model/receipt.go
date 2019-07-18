@@ -112,6 +112,7 @@ func (r *Receipt) String() string {
 	PostState:			0x%x
 	Status: 			%s
 	CumulativeGasUsed:	%v
+	Bloom:              %s
 	Logs:				%s
 	TxHash:				%s
 	ContractAddress:	%s
@@ -123,6 +124,7 @@ func (r *Receipt) String() string {
 		r.PostState,
 		r.GetStatusStr(),
 		r.CumulativeGasUsed,
+		r.Bloom.Hex(),
 		logList,
 		r.TxHash.Hex(),
 		r.ContractAddress.Hex(),

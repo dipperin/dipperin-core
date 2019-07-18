@@ -317,6 +317,10 @@ type fakeChainInterface struct {
 	cf        *chain_config.ChainConfig
 }
 
+func (ci *fakeChainInterface) GetBloomBits(head common.Hash, bit uint, section uint64) []byte {
+	panic("implement me")
+}
+
 func (ci *fakeChainInterface) GetReceipts(hash common.Hash, number uint64) model2.Receipts {
 	panic("implement me")
 }
@@ -673,6 +677,14 @@ type fakeBlock struct {
 	GasUsed      uint64
 	ExtraData    []byte
 	ReceiptHash  common.Hash
+}
+
+func (fb *fakeBlock) GetBloomLog() model2.Bloom {
+	panic("implement me")
+}
+
+func (fb *fakeBlock) SetBloomLog(bloom model2.Bloom) {
+	panic("implement me")
 }
 
 func (fb *fakeBlock) SetReceiptHash(receiptHash common.Hash) {

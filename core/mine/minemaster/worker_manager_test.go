@@ -20,6 +20,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"sync/atomic"
@@ -38,6 +39,14 @@ func TestDefaultPerformance_GetPerformance(t *testing.T) {
 }
 
 type fakeCalculableBlock struct{}
+
+func (fakeCalculableBlock) GetBloomLog() model2.Bloom {
+	panic("implement me")
+}
+
+func (fakeCalculableBlock) SetBloomLog(bloom model2.Bloom) {
+	panic("implement me")
+}
 
 func (fakeCalculableBlock) SetReceiptHash(receiptHash common.Hash) {
 	panic("implement me")

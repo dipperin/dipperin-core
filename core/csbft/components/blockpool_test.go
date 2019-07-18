@@ -20,6 +20,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
@@ -162,6 +163,14 @@ type FakeBlock struct {
 	Height     uint64
 	HeaderHash common.Hash
 	Headers    model.AbstractHeader
+}
+
+func (fb *FakeBlock) GetBloomLog() model2.Bloom {
+	panic("implement me")
+}
+
+func (fb *FakeBlock) SetBloomLog(bloom model2.Bloom) {
+	panic("implement me")
 }
 
 func (fb *FakeBlock) SetReceiptHash(receiptHash common.Hash) {

@@ -98,5 +98,5 @@ func (caller *rpcCaller) Debug(c *cli.Context) {
 	fmt.Println("next v len:", len(resp.NextVerifier))
 	fmt.Println("v boot len:", len(resp.VerifierBoot))
 
-	fmt.Println(resp.String())
+	//fmt.Println(resp.String())
 }

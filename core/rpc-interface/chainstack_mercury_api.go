@@ -106,6 +106,7 @@ func (api *DipperinMercuryApi) GetBlockByNumber(number uint64) (*BlockResp, erro
 	}
 
 	curBlock, err := api.service.GetBlockByNumber(number)
+	log.Info("DipperinMercuryApi#GetBlockByNumber", "curBlock", curBlock)
 	if err != nil {
 		return nil, err
 	}
@@ -1216,6 +1217,10 @@ func (api *DipperinMercuryApi) GetABI(contractAddr common.Address) (*utils.WasmA
 
 func (api *DipperinMercuryApi) GetContractAddressByTxHash(txHash common.Hash) (common.Address, error) {
 	return api.service.GetContractAddressByTxHash(txHash)
+}
+
+func (api *DipperinMercuryApi) GetLogs(blockHash *common.Hash, fromBlock, toBlock *big.Int, Addresses []common.Address, Topics [][]common.Hash) ([]*model2.Log, error) {
+	return api.service.GetLogs(blockHash, fromBlock, toBlock, Addresses, Topics)
 }
 
 func (api *DipperinMercuryApi) GetConvertReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
