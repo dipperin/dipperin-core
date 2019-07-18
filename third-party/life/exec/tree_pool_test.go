@@ -11,13 +11,12 @@ var (
 	cacheSize = 4
 )
 
-
-func TestBuildTree(t *testing.T){
+func TestBuildTree(t *testing.T) {
 	//buildTree
 	size := 8
 	tree := buildTree(size)
-	log.Info("the tree len is:","len(tree)",len(tree))
-	log.Info("the tree is:","tree",tree)
+	log.Info("the tree len is:", "len(tree)", len(tree))
+	log.Info("the tree is:", "tree", tree)
 }
 
 func TestNewTreePool(t *testing.T) {
