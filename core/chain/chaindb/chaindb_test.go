@@ -19,11 +19,11 @@ package chaindb
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/stretchr/testify/assert"
-	"testing"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
-	"math/big"
 	"github.com/dipperin/dipperin-core/tests/factory"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
 )
 
 func TestChainDB_InsertBlock(t *testing.T) {

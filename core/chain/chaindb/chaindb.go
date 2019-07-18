@@ -18,15 +18,15 @@ package chaindb
 
 import (
 	"encoding/binary"
+	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"errors"
 )
 
 type ChainDB struct {

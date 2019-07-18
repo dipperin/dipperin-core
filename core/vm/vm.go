@@ -268,13 +268,13 @@ type Context struct {
 	Origin common.Address // Provides information for ORIGIN
 
 	// Block information
-	Coinbase     common.Address // Provides information for COINBASE
-	GasPrice     *big.Int       // Provides information for GASPRICE
-	GasLimit     uint64         // Provides information for GASLIMIT
-	BlockNumber  *big.Int       // Provides information for NUMBER
-	Time         *big.Int       // Provides information for TIME
-	Difficulty   *big.Int       // Provides information for DIFFICULTY
-	TxHash  common.Hash
+	Coinbase    common.Address // Provides information for COINBASE
+	GasPrice    *big.Int       // Provides information for GASPRICE
+	GasLimit    uint64         // Provides information for GASLIMIT
+	BlockNumber *big.Int       // Provides information for NUMBER
+	Time        *big.Int       // Provides information for TIME
+	Difficulty  *big.Int       // Provides information for DIFFICULTY
+	TxHash      common.Hash
 
 	// callGasTemp holds the gas available for the current call. This is needed because the
 	// available gas is calculated in gasCall* according to the 63/64 rule and later
@@ -336,12 +336,12 @@ func NewVMContext(tx model.AbstractTransaction, header model.AbstractHeader, Get
 		GasLimit:    tx.GetGasLimit(),
 		BlockNumber: new(big.Int).SetUint64(header.GetNumber()),
 		//callGasTemp:  tx.Fee().Uint64(),
-		TxHash:       tx.CalTxId(),
-		CanTransfer:  CanTransfer,
-		Transfer:     Transfer,
-		Coinbase:     header.CoinBaseAddress(),
-		Time:         header.GetTimeStamp(),
-		GetHash:      GetHash,
+		TxHash:      tx.CalTxId(),
+		CanTransfer: CanTransfer,
+		Transfer:    Transfer,
+		Coinbase:    header.CoinBaseAddress(),
+		Time:        header.GetTimeStamp(),
+		GetHash:     GetHash,
 	}
 }
 

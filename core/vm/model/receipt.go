@@ -21,8 +21,8 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
-	"strconv"
 	"math/big"
+	"strconv"
 )
 
 //go:generate gencodec -type Receipt -field-override receiptMarshaling -out gen_receipt_json.go
@@ -219,4 +219,3 @@ func (r Receipts) GetRlp(i int) []byte {
 func (r Receipts) GetKey(i int) []byte {
 	return []byte(strconv.Itoa(i))
 }
-

@@ -72,10 +72,10 @@ type rlpLog struct {
 }*/
 
 type rlpStorageLog struct {
-	Address     common.Address
-	Topics      []common.Hash
-	TopicName   string
-	Data        []byte
+	Address   common.Address
+	Topics    []common.Hash
+	TopicName string
+	Data      []byte
 }
 
 func (l *Log) String() string {
@@ -130,10 +130,10 @@ type LogForStorage Log
 // EncodeRLP implements rlp.Encoder.
 func (l *LogForStorage) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, rlpStorageLog{
-		Address:     l.Address,
-		Topics:      l.Topics,
-		TopicName:   l.TopicName,
-		Data:        l.Data,
+		Address:   l.Address,
+		Topics:    l.Topics,
+		TopicName: l.TopicName,
+		Data:      l.Data,
 	})
 }
 
@@ -143,10 +143,10 @@ func (l *LogForStorage) DecodeRLP(s *rlp.Stream) error {
 	err := s.Decode(&dec)
 	if err == nil {
 		*l = LogForStorage{
-			Address:     dec.Address,
-			Topics:      dec.Topics,
-			TopicName:   dec.TopicName,
-			Data:        dec.Data,
+			Address:   dec.Address,
+			Topics:    dec.Topics,
+			TopicName: dec.TopicName,
+			Data:      dec.Data,
 		}
 	}
 	return err
