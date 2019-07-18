@@ -17,6 +17,7 @@
 package commands
 
 import (
+	"fmt"
 	"math/big"
 	"reflect"
 	"testing"
@@ -34,9 +35,9 @@ func TestMoneyValueToCSCoin(t *testing.T) {
 
 	moneyValue3 := "a.2234343454"
 
-	moneyValue4 := "300"
+	moneyValue4 := "300000"
 
-	moneyValue5 := "0.0000000001"
+	moneyValue5 := "0.0000000000000000001"
 
 	value, err := MoneyValueToCSCoin(moneyValue1)
 	assert.NoError(t, err)
@@ -51,7 +52,10 @@ func TestMoneyValueToCSCoin(t *testing.T) {
 
 	value, err = MoneyValueToCSCoin(moneyValue4)
 	assert.NoError(t, err)
-	assert.Equal(t, big.NewInt(300*consts.DIP), value)
+
+	fmt.Printf("the value is:%x\r\n",value)
+
+	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(300000),big.NewInt(consts.DIP)), value)
 
 	value, err = MoneyValueToCSCoin(moneyValue5)
 	assert.Error(t, err)
@@ -61,15 +65,15 @@ func TestMoneyValueToCSCoin(t *testing.T) {
 }
 
 func TestCSCoinToMoneyValue(t *testing.T) {
-	csCoinValue1 := (*hexutil.Big)(big.NewInt(10000000))
+	csCoinValue1 := (*hexutil.Big)(big.NewInt(0).Mul(big.NewInt(10000000),big.NewInt(consts.GDIPUNIT)))
 
-	csCoinValue2 := (*hexutil.Big)(big.NewInt(34545000))
+	csCoinValue2 := (*hexutil.Big)(big.NewInt(0).Mul(big.NewInt(34545000),big.NewInt(consts.GDIPUNIT)))
 
-	csCoinValue3 := (*hexutil.Big)(big.NewInt(600000000))
+	csCoinValue3 := (*hexutil.Big)(big.NewInt(0).Mul(big.NewInt(600000000),big.NewInt(consts.GDIPUNIT)))
 
-	csCoinValue4 := (*hexutil.Big)(big.NewInt(897878600000000))
+	csCoinValue4 := (*hexutil.Big)(big.NewInt(0).Mul(big.NewInt(897878600000000),big.NewInt(consts.GDIPUNIT)))
 
-	csCoinValue5 := (*hexutil.Big)(big.NewInt(3069000000000))
+	csCoinValue5 := (*hexutil.Big)(big.NewInt(0).Mul(big.NewInt(3069000000000),big.NewInt(consts.GDIPUNIT)))
 
 	moneyValue1, err := CSCoinToMoneyValue(csCoinValue1)
 	assert.NoError(t, err)

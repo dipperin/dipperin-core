@@ -19,6 +19,7 @@ package service
 import (
 	"context"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
@@ -507,7 +508,7 @@ func TestMercuryFullChainService_VerifierStatus(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "Not Registered", state)
 	assert.Equal(t, big.NewInt(0), stake)
-	assert.Equal(t, big.NewInt(9999000000000), balance)
+	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(9999000000000),big.NewInt(consts.GDIPUNIT)), balance)
 	assert.Equal(t, uint64(0), reputation)
 	assert.Equal(t, true, isCurrent)
 }
@@ -1198,7 +1199,7 @@ func TestMakeFullChainService_EconomyModel(t *testing.T) {
 
 	reward, err = service.GetOneBlockTotalDIPReward(1)
 	assert.NoError(t, err)
-	assert.Equal(t, big.NewInt(2e10), reward)
+	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(2e10),big.NewInt(consts.GDIPUNIT)), reward)
 
 	info := service.GetInvestorInfo()
 	assert.NotNil(t, info)

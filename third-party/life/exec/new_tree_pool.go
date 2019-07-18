@@ -13,7 +13,7 @@ func (treePool *SimpleTreePool) GetTree(pages int) tree {
 	treePool.Lock()
 	defer treePool.Unlock()
 
-	if treePool.tree == nil{
+	if treePool.tree == nil {
 		pages = fixSize(pages)
 		tree := buildTree(pages * DefaultPageSize)
 		treePool.tree = &tree
@@ -28,6 +28,3 @@ func (treePool *SimpleTreePool) PutTree(tree []int) {
 	defer treePool.Unlock()
 	treePool.tree = nil
 }
-
-
-

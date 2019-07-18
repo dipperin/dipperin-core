@@ -69,7 +69,7 @@ var MercuryDIPProportion = AddressDIPProportion{
 
 // system parameters
 var (
-	TotalReWardDIPOneBlock = big.NewInt(20 * consts.DIP)
+	TotalReWardDIPOneBlock = big.NewInt(0).Mul(big.NewInt(20), big.NewInt(consts.DIP))
 
 	// the reward proportions of mineMaster and verifiers respectively for one block
 	MineMasterRewardProportion = int64(87) //87%
@@ -91,13 +91,13 @@ var (
 	GenerateBlockDuration = 8
 
 	// set the minimal deposit to register as a verifier
-	MiniPledgeValue = big.NewInt(1000 * consts.DIP)
+	MiniPledgeValue = big.NewInt(0).Mul(big.NewInt(1000), big.NewInt(consts.DIP))
 
 	// the total supply of pre-mining
-	PreMineDIP = big.NewInt(525600000 * consts.DIP)
+	PreMineDIP = big.NewInt(0).Mul(big.NewInt(525600000), big.NewInt(consts.DIP))
 
 	// the supply of pre-mining for investors, developers and maintenance operators
-	PreMineMineDIP = big.NewInt(438000000 * consts.DIP)
+	PreMineMineDIP = big.NewInt(0).Mul(big.NewInt(438000000), big.NewInt(consts.DIP))
 
 	// the supply of pre-mining of each group
 	InvestorProportion    = int64(60) //60%
@@ -105,7 +105,7 @@ var (
 	MaintenanceProportion = int64(20) //20%
 
 	// the supply of pre-mining for reward
-	PreMineRewardDIP = big.NewInt(87600000 * consts.DIP)
+	PreMineRewardDIP = big.NewInt(0).Mul(big.NewInt(87600000), big.NewInt(consts.DIP))
 
 	// the supply of pre-mining for reward for each group, respectively 50%
 	EarlyTokenReward  = int64(50)

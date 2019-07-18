@@ -123,7 +123,7 @@ func TestWASMContactMiniTxFee(t *testing.T) {
 
 	//creat test stateDB
 	sender := cs_crypto.GetNormalAddress(keyAlice.PublicKey)
-	db, root := createTestStateDB(map[common.Address]*big.Int{sender: big.NewInt(100 * consts.DIP)})
+	db, root := createTestStateDB(map[common.Address]*big.Int{sender: big.NewInt(0).Mul(big.NewInt(100), big.NewInt(consts.DIP))})
 	processor, err := state_processor.NewAccountStateDB(root, state_processor.NewStateStorageWithCache(db))
 	assert.NoError(t, err)
 
