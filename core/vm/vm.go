@@ -268,16 +268,13 @@ type Context struct {
 	Origin common.Address // Provides information for ORIGIN
 
 	// Block information
-	Coinbase     common.Address // Provides information for COINBASE
-	GasPrice     *big.Int       // Provides information for GASPRICE
-	GasLimit     uint64         // Provides information for GASLIMIT
-	BlockNumber  *big.Int       // Provides information for NUMBER
-	Time         *big.Int       // Provides information for TIME
-	Difficulty   *big.Int       // Provides information for DIFFICULTY
-	CurBlockHash common.Hash    // Provides information for CurBlockHash
-
-	TxHash  common.Hash
-	TxIndex uint64
+	Coinbase    common.Address // Provides information for COINBASE
+	GasPrice    *big.Int       // Provides information for GASPRICE
+	GasLimit    uint64         // Provides information for GASLIMIT
+	BlockNumber *big.Int       // Provides information for NUMBER
+	Time        *big.Int       // Provides information for TIME
+	Difficulty  *big.Int       // Provides information for DIFFICULTY
+	TxHash      common.Hash
 
 	// callGasTemp holds the gas available for the current call. This is needed because the
 	// available gas is calculated in gasCall* according to the 63/64 rule and later
@@ -298,10 +295,6 @@ func (context *Context) GetTxHash() common.Hash {
 	return context.TxHash
 }
 
-func (context *Context) GetTxIdx() uint64 {
-	return context.TxIndex
-}
-
 /*func (context *Context) GetCallGasTemp() uint64 {
 	return context.callGasTemp
 }
@@ -312,10 +305,6 @@ func (context *Context) GetGasPrice() int64 {
 
 func (context *Context) GetBlockHash(num uint64) common.Hash {
 	return context.GetHash(num)
-}
-
-func (context *Context) GetCurBlockHash() common.Hash {
-	return context.CurBlockHash
 }
 
 func (context *Context) GetBlockNumber() *big.Int {
@@ -341,24 +330,18 @@ func (context *Context) GetOrigin() common.Address {
 // NewVMContext creates a new context for use in the VM.
 func NewVMContext(tx model.AbstractTransaction, header model.AbstractHeader, GetHash GetHashFunc) Context {
 	sender, _ := tx.Sender(tx.GetSigner())
-	txIndex, err := tx.GetTxIndex()
-	if err != nil {
-		panic("GetTxIndex failed")
-	}
 	return Context{
 		Origin:      sender,
 		GasPrice:    tx.GetGasPrice(),
 		GasLimit:    tx.GetGasLimit(),
 		BlockNumber: new(big.Int).SetUint64(header.GetNumber()),
 		//callGasTemp:  tx.Fee().Uint64(),
-		CurBlockHash: header.Hash(),
-		TxHash:       tx.CalTxId(),
-		TxIndex:      uint64(txIndex),
-		CanTransfer:  CanTransfer,
-		Transfer:     Transfer,
-		Coinbase:     header.CoinBaseAddress(),
-		Time:         header.GetTimeStamp(),
-		GetHash:      GetHash,
+		TxHash:      tx.CalTxId(),
+		CanTransfer: CanTransfer,
+		Transfer:    Transfer,
+		Coinbase:    header.CoinBaseAddress(),
+		Time:        header.GetTimeStamp(),
+		GetHash:     GetHash,
 	}
 }
 

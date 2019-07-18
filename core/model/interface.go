@@ -113,7 +113,6 @@ type AbstractTransaction interface {
 	Size() common.StorageSize
 	Amount() *big.Int
 	CalTxId() common.Hash
-	//Fee() *big.Int
 	Nonce() uint64
 	To() *common.Address
 	Sender(singer Signer) (common.Address, error)
@@ -125,12 +124,10 @@ type AbstractTransaction interface {
 	Cost() *big.Int
 	EstimateFee() *big.Int
 	GetGasPrice() *big.Int
+	GetGasLimit() uint64
 	AsMessage() (Message, error)
 	PaddingReceipt(parameters ReceiptPara) (*model.Receipt, error)
-	GetGasLimit() uint64
 	GetReceipt() (*model.Receipt, error)
-	PaddingTxIndex(index int)
-	GetTxIndex() (int, error)
 }
 
 //go:generate mockgen -destination=./../economy-model/verification_mock_test.go -package=economy_model github.com/dipperin/dipperin-core/core/model AbstractVerification

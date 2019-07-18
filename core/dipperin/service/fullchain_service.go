@@ -2043,7 +2043,6 @@ func (service *MercuryFullChainService) doCall(args CallArgs, blockNum uint64, t
 	defer cancel()
 
 	// Create NewVM
-	signedTx.PaddingTxIndex(0)
 	conText := vm.NewVMContext(signedTx, block.Header(), service.GetBlockHashByNumber)
 	fullState := state_processor.NewFullState(state)
 	dvm := vm.NewVM(conText, fullState, vm.DEFAULT_VM_CONFIG)

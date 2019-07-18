@@ -34,7 +34,6 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	}
 	log.Info("processContract", "Tx", tx)
 
-	tx.PaddingTxIndex(0)
 	gasLimit := testGasLimit * 10000000000
 	block := CreateBlock(1, common.Hash{}, []*model.Transaction{&tx}, gasLimit)
 
@@ -87,7 +86,6 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 	signCallTx, err := sw.SignTx(account, callTx, nil)
 
 	assert.NoError(t, err)
-	callTx.PaddingTxIndex(0)
 	block2 := CreateBlock(2, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
 	log.Info("callTx info", "callTx", callTx)
 
@@ -176,9 +174,7 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 
 	log1 := receipt2.Logs[0]
 	assert.Equal(t, tx2.CalTxId(), log1.TxHash)
-	assert.Equal(t, block.Header().Hash(), log1.BlockHash)
 	assert.Equal(t, receipt2.ContractAddress, log1.Address)
-	assert.Equal(t, uint64(1), log1.BlockNumber)
 }
 
 func TestAccountStateDB_ProcessContractToken(t *testing.T) {
@@ -211,7 +207,6 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	addr := common.HexToAddress(common.AddressContractCreate)
 	tx := model.NewTransactionSc(0, &addr, big.NewInt(10), big.NewInt(1), 26427000, data)
 	signCreateTx := getSignedTx(t, ownSK, tx, singer)
-	signCreateTx.PaddingTxIndex(0)
 
 	gasLimit := testGasLimit * 10000000000
 	block := CreateBlock(1, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
@@ -275,7 +270,6 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	signCallTxApprove, err := callTxApprove.SignTx(ownSK, singer)
 
 	assert.NoError(t, err)
-	signCallTxApprove.PaddingTxIndex(0)
 	block5 := CreateBlock(5, common.Hash{}, []*model.Transaction{signCallTxApprove}, gasLimit)
 	log.Info("signCallTxApprove info", "signCallTxApprove", signCallTxApprove)
 
@@ -304,7 +298,6 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 	signCallTxTransferFrom, err := callTxTransferFrom.SignTx(brotherSK, singer)
 	assert.NoError(t, err)
-	signCallTxTransferFrom.PaddingTxIndex(0)
 	block7 := CreateBlock(7, common.Hash{}, []*model.Transaction{signCallTxTransferFrom}, gasLimit)
 	log.Info("signCallTxTransferFrom info", "signCallTxTransferFrom", signCallTxTransferFrom)
 
@@ -367,7 +360,6 @@ func processContractCall(t *testing.T, contractAddress common.Address, code []by
 	signCallTx, err := callTx.SignTx(priKey, singer)
 	//sw.SignTx(accountOwn, callTx, nil)
 	assert.NoError(t, err)
-	callTx.PaddingTxIndex(0)
 	block := CreateBlock(blockNum, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
 	log.Info("callTx info", "callTx", callTx)
 	txConfig := &TxProcessConfig{

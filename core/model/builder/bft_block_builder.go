@@ -48,13 +48,6 @@ type BftBlockBuilder struct {
 
 func (builder *BftBlockBuilder) commitTransaction(conf *state_processor.TxProcessConfig, state *chain.BlockProcessor) error {
 	snap := state.Snapshot()
-	//err := state.ProcessTx(tx, height)
-	/*	conf := state_processor.TxProcessConfig{
-		Tx:      tx,
-		TxIndex: txIndex,
-		Header:  header,
-		GetHash: state.GetBlockHashByNumber,
-	}*/
 	err := state.ProcessTxNew(conf)
 	if err != nil {
 		state.RevertToSnapshot(snap)
@@ -67,7 +60,6 @@ func (builder *BftBlockBuilder) commitTransaction(conf *state_processor.TxProces
 func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndNonce, state *chain.BlockProcessor, header *model.Header, vers []model.AbstractVerification) (txBuf []model.AbstractTransaction, receipts model2.Receipts) {
 	var invalidList []*model.Transaction
 	log.Info("BftBlockBuilder#commitTransactions  start ~~~~~++")
-	txIndex := 0
 	gasUsed := uint64(0)
 	gasLimit := header.GasLimit
 	for {
@@ -78,10 +70,8 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 		}
 		log.Info("BftBlockBuilder#commitTransactions ", "tx hash", tx.CalTxId())
 		//from, _ := tx.Sender(builder.nodeContext.TxSigner())
-		tx.PaddingTxIndex(txIndex)
 		conf := state_processor.TxProcessConfig{
 			Tx:       tx,
-			TxIndex:  txIndex,
 			Header:   header,
 			GetHash:  state.GetBlockHashByNumber,
 			GasLimit: &gasLimit,
@@ -102,7 +92,6 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 				txBuf = append(txBuf, tx)
 				txs.Shift()
 				receipts = append(receipts, receipt)
-				txIndex++
 			}
 		}
 	}

@@ -186,7 +186,6 @@ func TestContractCreate(t *testing.T) {
 	gasUsed := block.GasUsed()
 	conf := TxProcessConfig{
 		Tx:       tx,
-		TxIndex:  0,
 		Header:   block.Header().(*model.Header),
 		GetHash:  fakeGetBlockHash,
 		GasLimit: &gasLimit,
@@ -194,7 +193,6 @@ func TestContractCreate(t *testing.T) {
 		TxFee:    big.NewInt(0),
 	}
 
-	tx.PaddingTxIndex(0)
 	err := processor.ProcessTxNew(&conf)
 	assert.NoError(t, err)
 }

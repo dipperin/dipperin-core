@@ -418,7 +418,6 @@ func (builder *BlockBuilder) getDiff() common.Difficulty {
 
 func (builder *BlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndNonce, state *chain.BlockProcessor, header *model.Header, vers []model.AbstractVerification) (txBuf []model.AbstractTransaction, receipts model2.Receipts) {
 	var invalidList []*model.Transaction
-	txIndex := 0
 	gasLimit := header.GetGasLimit()
 	gasUsed := header.GetGasUsed()
 	for {
@@ -428,10 +427,8 @@ func (builder *BlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndN
 			break
 		}
 		//from, _ := tx.Sender(builder.nodeContext.TxSigner())
-		tx.PaddingTxIndex(txIndex)
 		conf := state_processor.TxProcessConfig{
 			Tx:       tx,
-			TxIndex:  txIndex,
 			Header:   header,
 			GetHash:  state.GetBlockHashByNumber,
 			GasLimit: &gasLimit,
@@ -452,7 +449,6 @@ func (builder *BlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndN
 				txBuf = append(txBuf, tx)
 				txs.Shift()
 				receipts = append(receipts, receipt)
-				txIndex++
 			}
 		}
 	}
