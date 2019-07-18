@@ -48,9 +48,6 @@ const (
 // LE is a simple alias to `binary.LittleEndian`.
 var LE = binary.LittleEndian
 
-//var memPool = NewMemPool(DefaultMemPoolCount, DefaultMemBlockSize)
-//var treePool = NewTreePool(DefaultMemPoolCount, DefaultMemBlockSize)
-
 type FunctionImportInfo struct {
 	ModuleName string
 	FieldName  string

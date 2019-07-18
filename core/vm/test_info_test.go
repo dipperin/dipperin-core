@@ -180,6 +180,7 @@ func getContract(t *testing.T, addr common.Address, code, abi string, input []by
 	assert.NoError(t, err)
 	fileABI, err := ioutil.ReadFile(abi)
 	assert.NoError(t, err)
+
 	return &Contract{
 		self:  fakeContractRef{addr: addr},
 		Code:  fileCode,
