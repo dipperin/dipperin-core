@@ -106,9 +106,9 @@ func (caller *rpcCaller) AnnounceERC20(c *cli.Context) {
 		return
 	}
 
-	gasLimit, err := strconv.Atoi(cParams[6])
+	gasLimit, err := strconv.ParseUint(cParams[6], 10, 64)
 	if err != nil {
-		l.Error("the parameter gaLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", "err", err)
 		return
 	}
 
@@ -161,7 +161,7 @@ func (caller *rpcCaller) ERC20Transfer(c *cli.Context) {
 	}
 
 	if !isParamValid(cParams, 6) {
-		l.Error("parameters need：contract address, owner, to_address, amount, gasPrice,gasLimit")
+		l.Error("parameters need：contract address, owner, to_address, amount, gasPrice, gasLimit")
 		return
 	}
 
@@ -198,9 +198,9 @@ func (caller *rpcCaller) ERC20Transfer(c *cli.Context) {
 		return
 	}
 
-	gasLimit, err := strconv.Atoi(cParams[5])
+	gasLimit, err := strconv.ParseUint(cParams[5], 10, 64)
 	if err != nil {
-		l.Error("the parameter gaLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", "err", err)
 		return
 	}
 
@@ -221,7 +221,7 @@ func (caller *rpcCaller) ERC20TransferFrom(c *cli.Context) {
 	}
 
 	if !isParamValid(cParams, 7) {
-		l.Error("parameters need：contract address, owner, from_address, to_address, amount, gasPrice,gasLimit")
+		l.Error("parameters need：contract address, owner, from_address, to_address, amount, gasPrice, gasLimit")
 		return
 	}
 
@@ -264,9 +264,9 @@ func (caller *rpcCaller) ERC20TransferFrom(c *cli.Context) {
 		return
 	}
 
-	gasLimit, err := strconv.Atoi(cParams[6])
+	gasLimit, err := strconv.ParseUint(cParams[6], 10, 64)
 	if err != nil {
-		l.Error("the parameter gaLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", "err", err)
 		return
 	}
 
@@ -491,7 +491,7 @@ func (caller *rpcCaller) ERC20Approve(c *cli.Context) {
 	}
 
 	if !isParamValid(cParams, 6) {
-		l.Error("parameters need：contract address, owner, to_address, amount,gasPrice,gasLimit")
+		l.Error("parameters need：contract address, owner, to_address, amount,gasPrice, gasLimit")
 		return
 	}
 
@@ -541,9 +541,9 @@ func (caller *rpcCaller) ERC20Approve(c *cli.Context) {
 		return
 	}
 
-	gasLimit, err := strconv.Atoi(cParams[5])
+	gasLimit, err := strconv.ParseUint(cParams[5], 10, 64)
 	if err != nil {
-		l.Error("the parameter gaLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", "err", err)
 		return
 	}
 

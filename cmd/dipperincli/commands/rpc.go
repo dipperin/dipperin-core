@@ -524,7 +524,6 @@ func (caller *rpcCaller) SendTx(c *cli.Context) {
 	}
 
 	if len(cParams) < 4 {
-
 		l.Error("parameter includes：to value gasPrice gasLimit")
 		return
 	}
@@ -547,9 +546,9 @@ func (caller *rpcCaller) SendTx(c *cli.Context) {
 		return
 	}
 
-	gasLimit, err := strconv.Atoi(cParams[3])
+	gasLimit, err := strconv.ParseUint(cParams[3], 10, 64)
 	if err != nil {
-		l.Error("the parameter gaLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", "err", err)
 		return
 	}
 
@@ -562,7 +561,7 @@ func (caller *rpcCaller) SendTx(c *cli.Context) {
 	l.Info("the from is: ", "from", defaultAccount.Hex())
 	l.Info("the to is: ", "to", toAddress.Hex())
 	l.Info("the value is:", "value", cParams[1]+consts.CoinDIPName)
-	l.Info("the TransactionFee is:", "TransactionFee", cParams[2]+consts.CoinDIPName)
+	l.Info("the gasPrice is:", "gasPrice", cParams[2]+consts.CoinDIPName)
 	l.Info("the ExtraData is: ", "ExtraData", extraData)
 	if err = client.Call(&resp, getDipperinRpcMethodByName("SendTransaction"), defaultAccount, toAddress, value, gasPrice, gasLimit, extraData, nil); err != nil {
 		l.Error("call send transaction error", "err", err)
@@ -583,8 +582,8 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 		return
 	}
 
-	if len(cParams) != 5 && len(cParams) != 6 {
-		l.Error("parameter includes：from to value gasLimit gasPrice extraData")
+	if len(cParams) < 6 {
+		l.Error("parameter includes：from to value gasPrice gasLimit extraData")
 		return
 	}
 
@@ -606,20 +605,17 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 		l.Error("the parameter value invalid")
 		return
 	}
-	gas, err := strconv.Atoi(cParams[3])
+
+	gasPrice, err := MoneyValueToCSCoin(cParams[3])
+	if err != nil {
+		l.Error("the gasPrice value is wrong")
+		return
+	}
+
+	gasLimit, err := strconv.ParseUint(cParams[4], 10, 64)
 	if err != nil {
 		l.Error("the gasLimit value is wrong")
 		return
-	}
-	gasLimit := uint64(gas)
-
-	var gasPrice *big.Int
-	if len(cParams) == 5 {
-		gasPrice, err = MoneyValueToCSCoin(cParams[4])
-		if err != nil {
-			l.Error("the gasPrice value is wrong")
-			return
-		}
 	}
 
 	ExtraData := make([]byte, 0)
@@ -631,8 +627,8 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 	l.Info("the From is: ", "From", From.Hex())
 	l.Info("the To is: ", "To", To.Hex())
 	l.Info("the Value is:", "Value", cParams[2]+consts.CoinDIPName)
-	l.Info("the gasLimit is:", "gasLimit", cParams[3])
-	l.Info("the gasPrice is:", "gasPrice", cParams[4])
+	l.Info("the gasPrice is:", "gasPrice", cParams[3]+consts.CoinDIPName)
+	l.Info("the gasLimit is:", "gasLimit", gasLimit)
 	l.Info("the ExtraData is: ", "ExtraData", ExtraData)
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, To, Value, gasPrice, gasLimit, ExtraData, nil); err != nil {
 
@@ -1078,9 +1074,9 @@ func (caller *rpcCaller) SendRegisterTx(c *cli.Context) {
 		return
 	}
 
-	gasLimit, err := strconv.Atoi(cParams[2])
+	gasLimit, err := strconv.ParseUint(cParams[2], 10, 64)
 	if err != nil {
-		l.Error("the parameter gaLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", "err", err)
 		return
 	}
 	var resp common.Hash
@@ -1129,9 +1125,9 @@ func (caller *rpcCaller) SendRegisterTransaction(c *cli.Context) {
 		return
 	}
 
-	gasLimit, err := strconv.Atoi(cParams[3])
+	gasLimit, err := strconv.ParseUint(cParams[3], 10, 64)
 	if err != nil {
-		l.Error("the parameter gaLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", "err", err)
 		return
 	}
 
@@ -1168,9 +1164,9 @@ func (caller *rpcCaller) SendUnStakeTx(c *cli.Context) {
 		return
 	}
 
-	gasLimit, err := strconv.Atoi(cParams[1])
+	gasLimit, err := strconv.ParseUint(cParams[1], 10, 64)
 	if err != nil {
-		l.Error("the parameter gaLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", "err", err)
 		return
 	}
 
@@ -1211,9 +1207,9 @@ func (caller *rpcCaller) SendUnStakeTransaction(c *cli.Context) {
 		return
 	}
 
-	gasLimit, err := strconv.Atoi(cParams[2])
+	gasLimit, err := strconv.ParseUint(cParams[2], 10, 64)
 	if err != nil {
-		l.Error("the parameter gaLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", "err", err)
 		return
 	}
 
@@ -1247,9 +1243,9 @@ func (caller *rpcCaller) SendCancelTx(c *cli.Context) {
 		return
 	}
 
-	gasLimit, err := strconv.Atoi(cParams[1])
+	gasLimit, err := strconv.ParseUint(cParams[1], 10, 64)
 	if err != nil {
-		l.Error("the parameter gaLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", "err", err)
 		return
 	}
 
@@ -1292,9 +1288,9 @@ func (caller *rpcCaller) SendCancelTransaction(c *cli.Context) {
 		return
 	}
 
-	gasLimit, err := strconv.Atoi(cParams[2])
+	gasLimit, err := strconv.ParseUint(cParams[2], 10, 64)
 	if err != nil {
-		l.Error("the parameter gaLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", "err", err)
 		return
 	}
 
