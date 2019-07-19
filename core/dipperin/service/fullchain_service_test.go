@@ -1069,7 +1069,7 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	abiPath := g_testData.GetAbiPath("token")
 	data, err := g_testData.GetCreateExtraData(WASMPath, abiPath, "dipp,DIPP,100000000")
 	assert.NoError(t, err)
-	gasLimit := g_testData.TestGasLimit*100
+	gasLimit := g_testData.TestGasLimit * 100
 	hash, err = service.SendTransactionContract(address, to, value, g_testData.TestGasPrice, gasLimit, data, &nonce)
 	assert.NoError(t, err)
 

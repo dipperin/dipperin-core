@@ -834,7 +834,7 @@ func (api *DipperinMercuryApi) SendTransaction(from, to common.Address, value, g
 	return api.service.SendTransaction(from, to, value, gasPrice, gasLimit, data, nonce)
 }
 
-func (api *DipperinMercuryApi) SendTransactionContract(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64 , data []byte, nonce *uint64) (common.Hash, error) {
+func (api *DipperinMercuryApi) SendTransactionContract(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (common.Hash, error) {
 	return api.service.SendTransactionContract(from, to, value, gasPrice, gasLimit, data, nonce)
 }
 
