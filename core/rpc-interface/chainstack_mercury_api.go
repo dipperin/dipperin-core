@@ -335,7 +335,6 @@ func (api *DipperinMercuryApi) GetTransactionNonce(addr common.Address) (nonce u
 //        description:return TxHash and the operation result
 func (api *DipperinMercuryApi) NewTransaction(transactionRlpB []byte) (TxHash common.Hash, err error) {
 	var transaction model.Transaction
-
 	err = rlp.DecodeBytes(transactionRlpB, &transaction)
 	if err != nil {
 		log.TagError("decode client tx failed", "err", err)
@@ -349,6 +348,19 @@ func (api *DipperinMercuryApi) NewTransaction(transactionRlpB []byte) (TxHash co
 
 	log.Info("NewTransaction the txId is:", "txId", TxHash.Hex())
 	return
+}
+
+// call contract
+func (api *DipperinMercuryApi) NewContract(transactionRlpB []byte, blockNum uint64) (resp string, err error) {
+	var transaction model.Transaction
+	err = rlp.DecodeBytes(transactionRlpB, &transaction)
+	if err != nil {
+		log.TagError("decode client tx failed", "err", err)
+		return "", err
+	}
+
+	log.Info("[NewContract] the tx is: ", "tx", transaction)
+	return api.service.NewContract(transaction, blockNum)
 }
 
 //func (apiB *DipperinMercuryApi) RetrieveSingleSC(req *req_params.SingleSCReq) *req_params.RetrieveSingleSCResp {
@@ -1244,5 +1256,5 @@ func (api *DipperinMercuryApi) CallContract(from, to common.Address, data []byte
 }
 
 func (api *DipperinMercuryApi) EstimateGas(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (hexutil.Uint64, error) {
-	return api.service.EstimateGas(from, to, value, gasLimit, gasPrice, data, nonce)
+	return api.service.EstimateGas(from, to, value, gasLimit, gasPrice, data)
 }

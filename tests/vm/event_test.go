@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"

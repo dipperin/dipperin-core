@@ -919,6 +919,51 @@ func (service *MercuryFullChainService) NewTransaction(transaction model.Transac
 	return txHash, nil
 }
 
+// wallet initiates a contract
+func (service *MercuryFullChainService) NewContract(transaction model.Transaction, blockNum uint64) (resp string, err error) {
+	from, err := transaction.Sender(transaction.GetSigner())
+	if err != nil {
+		return "", err
+	}
+	to := *transaction.To()
+
+	// check Tx type
+	if to.GetAddressType() != common.AddressTypeContractCall {
+		return "", g_error.ErrInvalidContractType
+	}
+
+	data, err := service.getExtraData(to, transaction.ExtraData())
+	if err != nil {
+		return "", err
+	}
+
+	constant, funcName, abi, err := service.checkConstant(to, data)
+	if err != nil {
+		return "", err
+	}
+
+	if !constant {
+		return "", g_error.ErrFunctionCalledNotConstant
+	}
+
+	var gasLimit uint64
+	curBlock := service.CurrentBlock()
+	if blockNum == 0 || curBlock.Number() < blockNum {
+		gasLimit = curBlock.Header().GetGasLimit()
+	} else {
+		block, _ := service.GetBlockByNumber(blockNum)
+		gasLimit = block.Header().GetGasLimit()
+	}
+
+	args := CallArgs{
+		From: from,
+		To:   &to,
+		Data: data,
+		Gas:  hexutil.Uint64(gasLimit),
+	}
+	return service.callContract(args, blockNum, funcName, abi)
+}
+
 // consult a transaction
 func (service *MercuryFullChainService) Transaction(hash common.Hash) (transaction *model.Transaction, blockHash common.Hash, blockNumber uint64, txIndex uint64, err error) {
 
@@ -1874,7 +1919,7 @@ func (service *MercuryFullChainService) callContract(args CallArgs, blockNum uin
 	return resp, err
 }
 
-func (service *MercuryFullChainService) EstimateGas(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (hexutil.Uint64, error) {
+func (service *MercuryFullChainService) EstimateGas(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte) (hexutil.Uint64, error) {
 	if value == nil {
 		value = new(big.Int).SetUint64(0)
 	}
