@@ -193,7 +193,6 @@ func ParseInputForFuncName(rlpData []byte) (funcName string, err error) {
 	if len(iRlpList) == 0 {
 		return "", errReturnInsufficientParams
 	}
-	fmt.Println("rlpList", rlpList, iRlpList[0].([]byte))
 
 	if v, ok := iRlpList[0].([]byte); ok {
 		funcName = string(v)
