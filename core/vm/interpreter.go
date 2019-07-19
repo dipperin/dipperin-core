@@ -193,7 +193,6 @@ func ParseInputForFuncName(rlpData []byte) (funcName string, err error) {
 	if len(iRlpList) == 0 {
 		return "", errReturnInsufficientParams
 	}
-	fmt.Println("rlpList", rlpList, iRlpList[0].([]byte))
 
 	if v, ok := iRlpList[0].([]byte); ok {
 		funcName = string(v)
@@ -280,7 +279,6 @@ func findParams(vm *exec.VirtualMachine, abi []byte, funcName string, inputList 
 	for _, v := range wasmAbi.AbiArr {
 		if strings.EqualFold(v.Name, funcName) && strings.EqualFold(v.Type, "function") {
 			abiParam = v.Inputs
-			fmt.Println("len outputs", len(v.Outputs), "abiParam", len(abiParam), "inputlist", len(inputList))
 			log.Info("findParams", "len outputs", len(v.Outputs), "abiParam", len(abiParam), "inputlist", len(inputList))
 			if len(v.Outputs) != 0 {
 				returnType = v.Outputs[0].Type
