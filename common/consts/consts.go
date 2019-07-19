@@ -31,15 +31,18 @@ var (
 // currency unit
 const (
 	// gray but other places to use
-	DIP_Units     = 1
-	DIP_Thousands = 1000
-	DIP_Millions  = 1000 * 1000
-	DIP           = 1000 * 1000 * 1000
+	DIPUNIT  = 1
+	KDIPUNIT = 1E3
+	MDIPUNIT = 1E6
+	GDIPUNIT = 1E9
+	MICRODIP = 1E12
+	MILLIDIP = 1E15
+	DIP      = 1E18
 )
 
 // coin digits
 const (
-	DIPDecimalBits = 9
+	DIPDecimalBits = 18
 )
 
 // ninimum currency unit name

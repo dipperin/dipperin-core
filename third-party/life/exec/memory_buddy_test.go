@@ -6,12 +6,6 @@ import (
 )
 
 func TestMemory_Malloc(t *testing.T) {
-
-	/*	testTree := buildTree(16*DefaultPageSize)
-		log.Info("the testTree size is:","size",len(testTree)/1024*4/1024)
-
-		return*/
-
 	tree := buildTree(8)
 	mem := Memory{
 		Memory: make([]byte, 8),

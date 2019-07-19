@@ -541,7 +541,7 @@ func GenesisBlockFromFile(chainDB chaindb.Database, accountStateProcessor state_
 		if v <= 0 {
 			panic(fmt.Sprintf("genesis account balance wrong, %v: %v", k, v))
 		}
-		alloc[common.HexToAddress(k)] = big.NewInt(v * consts.DIP)
+		alloc[common.HexToAddress(k)] = big.NewInt(0).Mul(big.NewInt(v), big.NewInt(consts.DIP))
 	}
 
 	var verifiers []common.Address

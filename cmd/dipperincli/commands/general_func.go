@@ -17,16 +17,15 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 	"path/filepath"
-	"strconv"
-
-	"errors"
-	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/hexutil"
 )
 
 //check address format
@@ -58,22 +57,19 @@ func ParseWalletPathAndName(inputPath string) (path, name string) {
 func DecimalToInter(src string, unitBit int) (*big.Int, error) {
 	length := len(src)
 	if length == 0 {
-		return nil, errors.New("missing number")
-	}
-	scalingPos := 0
-	if (src[0] < '0' && src[0] > '9') || (src[length-1] < '0' && src[length-1] > '9') {
-		return nil, errors.New("the first and last character should be 0~9")
+		return nil, g_error.ErrMissNumber
 	}
 
-	unit := 1
-	for i := 0; i < unitBit; i++ {
-		unit *= 10
+	//check the decimal point pos
+	pointPos := 0
+	if (src[0] < '0' && src[0] > '9') || (src[length-1] < '0' && src[length-1] > '9') {
+		return nil, g_error.ErrCharacterIsNotDigit
 	}
 
 	for i := 1; i < length-1; i++ {
 		if src[i] < '0' || src[i] > '9' {
 			if src[i] == '.' {
-				scalingPos = i
+				pointPos = i
 			} else {
 				errInfo := fmt.Sprintf("the character that index is:%v is invalid", i)
 				return nil, errors.New(errInfo)
@@ -83,38 +79,37 @@ func DecimalToInter(src string, unitBit int) (*big.Int, error) {
 
 	var interString string
 	var decimalString string
-	if scalingPos == 0 {
+	if pointPos == 0 {
 		interString = src
 		decimalString = ""
 	} else {
-		interString = src[:scalingPos]
-		decimalString = src[scalingPos+1:]
+		interString = src[:pointPos]
+		decimalString = src[pointPos+1:]
 	}
 
-	integerValue, err := strconv.ParseInt(interString, 10, 64)
-	if err != nil {
-		return nil, err
+	integerValue, result := big.NewInt(0).SetString(interString, 10)
+	if !result {
+		return nil, g_error.ErrParseBigIntFromString
 	}
 
 	decimalLen := len(decimalString)
 	if unitBit < decimalLen {
-		return nil, errors.New("decimal length is invalid")
+		return nil, g_error.ErrInvalidDecimalLength
 	}
-
 	padding := make([]byte, unitBit-decimalLen)
 	for index := range padding {
 		padding[index] = '0'
 	}
 
 	tmpValue := append([]byte(decimalString), padding[:]...)
-
-	decimalValue, err := strconv.ParseInt(string(tmpValue), 10, 64)
-	if err != nil {
-		return nil, err
+	decimalValue, result := big.NewInt(0).SetString(string(tmpValue), 10)
+	if !result {
+		return nil, g_error.ErrParseBigIntFromString
 	}
 
-	totalValue := integerValue*int64(unit) + decimalValue
-	return big.NewInt(totalValue), nil
+	unit := big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(unitBit)), nil)
+	totalValue := big.NewInt(0).Add(big.NewInt(0).Mul(integerValue, unit), decimalValue)
+	return totalValue, nil
 }
 
 func InterToDecimal(csCoinValue *hexutil.Big, unitBit int) (string, error) {
