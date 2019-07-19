@@ -35,7 +35,6 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/urfave/cli"
 	"io/ioutil"
-	"math/big"
 	"os"
 	"path/filepath"
 	"reflect"
