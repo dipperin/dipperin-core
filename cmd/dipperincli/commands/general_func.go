@@ -103,9 +103,9 @@ func DecimalToInter(src string, unitBit int) (*big.Int, error) {
 
 	tmpValue := append([]byte(decimalString), padding[:]...)
 	var decimalValue *big.Int
-	if string(tmpValue) == ""{
+	if string(tmpValue) == "" {
 		decimalValue = big.NewInt(0)
-	}else {
+	} else {
 		decimalValue, result = big.NewInt(0).SetString(string(tmpValue), 10)
 		if !result {
 			return nil, g_error.ErrParseBigIntFromString
@@ -164,7 +164,7 @@ func InterToDecimal(csCoinValue *hexutil.Big, unitBit int) (string, error) {
 }
 
 func GetUnit(input string) (value, unit string) {
-	for i:=0; i<len(input); i++ {
+	for i := 0; i < len(input); i++ {
 		if (input[i] < '0' || input[i] > '9') && input[i] != '.' {
 			value = input[:i]
 			unit = input[i:]
