@@ -1569,7 +1569,100 @@ func (service *MercuryFullChainService) GetABI(contractAddr common.Address) (*ut
 	return &abi, nil
 }
 
-func (service *MercuryFullChainService) convertReceiptLog(src model2.Receipt) (*model2.Receipt, error) {
+func (service *MercuryFullChainService) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, addresses []common.Address, topics [][]common.Hash) ([]*model2.Log, error) {
+	log.Info("MercuryFullChainService#GetLogs", "blockHash", blockHash, "fromBlock", fromBlock, "toBlock", toBlock)
+	log.Info("MercuryFullChainService#GetLogs", "addresses", addresses, "topics", topics)
+	var filter *chain_state.Filter
+	if !blockHash.IsEmpty() {
+		// Block filter requested, construct a single-shot filter
+		if num := service.GetBlockNumber(blockHash); num == nil {
+			return nil, errors.New("invalid block hash")
+		}
+		filter = chain_state.NewBlockFilter(service.ChainIndex, service.ChainReader, blockHash, addresses, topics)
+	} else {
+		// Convert the RPC block numbers into internal representations
+		begin := fromBlock
+		end := service.ChainReader.GetLatestNormalBlock().Number()
+		if toBlock != uint64(0) {
+			end = toBlock
+		}
+		if begin > end {
+			return nil, errors.New("beginBlockNum couldn't larger than endBlockNum")
+		}
+		// Construct the range filter
+		filter = chain_state.NewRangeFilter(service.ChainReader, service.ChainIndex, int64(begin), int64(end), addresses, topics)
+		log.Info("MercuryFullChainService#GetLogs", "begin", begin, "end", end)
+	}
+	// Run the filter and return all the logs
+	cx, cancel := context.WithTimeout(context.Background(), time.Second*150)
+	defer cancel()
+	logs, err := filter.Logs(cx)
+	if err != nil {
+		log.Info("MercuryFullChainService#GetLogs", "logs", logs, "err", err)
+		return nil, err
+	}
+	return service.convertLogs(logs)
+}
+
+// convertLogs is a helper that will return an empty log array in case the given logs array is nil,
+// otherwise the given logs array is returned.
+func (service *MercuryFullChainService) convertLogs(logs []*model2.Log) ([]*model2.Log, error) {
+	if logs == nil {
+		return []*model2.Log{}, nil
+	}
+
+	// convert logs data
+	for i := 0; i < len(logs); i++ {
+		abi, err := service.GetABI(logs[i].Address)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, v := range abi.AbiArr {
+			if strings.EqualFold(v.Name, logs[i].TopicName) && strings.EqualFold(v.Type, "event") {
+				data, innerErr := utils.ConvertInputs(logs[i].Data, v.Inputs)
+				if innerErr != nil {
+					return nil, innerErr
+				}
+				logs[i].Data = data
+				break
+			}
+		}
+
+	}
+	return logs, nil
+}
+
+func (service *MercuryFullChainService) GetConvertReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
+	tx, blockHash, blockNumber, _, err := service.Transaction(txHash)
+	if err != nil {
+		return nil, err
+	}
+
+	receipts := service.ChainReader.GetReceipts(blockHash, blockNumber)
+	if receipts == nil {
+		return nil, g_error.ErrReceiptIsNil
+	}
+
+	for _, value := range receipts {
+		if txHash.IsEqual(value.TxHash) {
+
+			if tx.GetType() != common.AddressTypeContractCreate && tx.GetType() != common.AddressTypeContractCall {
+				return value, nil
+			}
+
+			result, innerErr := service.convertReceipt(*value)
+			if innerErr != nil {
+				log.Info("GetConvertReceiptByTxHash convertReceipt error", "err", innerErr)
+				return nil, innerErr
+			}
+			return result, nil
+		}
+	}
+	return nil, g_error.ErrReceiptNotFound
+}
+
+func (service *MercuryFullChainService) convertReceipt(src model2.Receipt) (*model2.Receipt, error) {
 	abi, err := service.GetABI(src.ContractAddress)
 	if err != nil {
 		return nil, err
@@ -1592,76 +1685,6 @@ func (service *MercuryFullChainService) convertReceiptLog(src model2.Receipt) (*
 	}
 	src.Logs = logs
 	return &src, nil
-}
-
-func (service *MercuryFullChainService) GetLogs(blockHash *common.Hash, fromBlock *big.Int, toBlock *big.Int, addresses []common.Address, topics [][]common.Hash) ([]*model2.Log, error) {
-	fmt.Println("MercuryFullChainService#GetLogs", "fromBlock", fromBlock, "toBlock", toBlock, "addresses", addresses, "topics", topics, "blockHash", blockHash)
-	var filter *chain_state.Filter
-	if blockHash != nil && !blockHash.IsEmpty() {
-		// Block filter requested, construct a single-shot filter
-		filter = chain_state.NewBlockFilter(service.ChainIndex, service.ChainReader, *blockHash, addresses, topics)
-	} else {
-		// Convert the RPC block numbers into internal representations
-		begin := int64(service.ChainReader.GetLatestNormalBlock().Number())
-		if fromBlock != nil {
-			begin = fromBlock.Int64()
-		}
-		end := int64(service.ChainReader.GetLatestNormalBlock().Number())
-		if toBlock != nil {
-			end = toBlock.Int64()
-		}
-		log.Info("MercuryFullChainService#GetLogs  begin and end", "begin", begin, "end", end)
-		// Construct the range filter
-		filter = chain_state.NewRangeFilter(service.ChainReader, service.ChainIndex, begin, end, addresses, topics)
-	}
-	// Run the filter and return all the logs
-	//fmt.Println("MercuryFullChainService#GetLogs", "filter", filter)
-	cx, cancel := context.WithTimeout(context.Background(), time.Second*150)
-	defer cancel()
-	logs, err := filter.Logs(cx)
-	fmt.Println("MercuryFullChainService#GetLogs", "logs", logs, "err", err)
-	if err != nil {
-		return nil, err
-	}
-	return returnLogs(logs), err
-}
-
-// returnLogs is a helper that will return an empty log array in case the given logs array is nil,
-// otherwise the given logs array is returned.
-func returnLogs(logs []*model2.Log) []*model2.Log {
-	if logs == nil {
-		return []*model2.Log{}
-	}
-	return logs
-}
-
-func (service *MercuryFullChainService) GetConvertReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
-	tx, blockHash, blockNumber, _, err := service.Transaction(txHash)
-	if err != nil {
-		return nil, err
-	}
-
-	receipts := service.ChainReader.GetReceipts(blockHash, blockNumber)
-	if receipts == nil {
-		return nil, g_error.ErrReceiptIsNil
-	}
-
-	for _, value := range receipts {
-		if txHash.IsEqual(value.TxHash) {
-
-			if tx.GetType() != common.AddressTypeContractCreate && tx.GetType() != common.AddressTypeContractCall {
-				return value, nil
-			}
-
-			result, innerErr := service.convertReceiptLog(*value)
-			if innerErr != nil {
-				log.Info("GetConvertReceiptByTxHash convertReceiptLog error", "err", innerErr)
-				return nil, innerErr
-			}
-			return result, nil
-		}
-	}
-	return nil, g_error.ErrReceiptNotFound
 }
 
 func (service *MercuryFullChainService) GetTxActualFee(txHash common.Hash) (*big.Int, error) {

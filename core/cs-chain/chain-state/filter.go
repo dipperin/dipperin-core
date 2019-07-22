@@ -3,7 +3,6 @@ package chain_state
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"github.com/dipperin/dipperin-core/core/model"
@@ -51,12 +50,9 @@ func NewRangeFilter(chainReader middleware.ChainInterface, chainIndex *ChainInde
 
 	// Create a generic filter and convert it into a range filter
 	filter := newFilter(chainReader, chainIndex, addresses, topics)
-
 	filter.matcher = NewMatcher(size, filters)
 	filter.begin = begin
 	filter.end = end
-	fmt.Println("NewRangeFilter#filter", "matcher", filter.matcher)
-
 	return filter
 }
 

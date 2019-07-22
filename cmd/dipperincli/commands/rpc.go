@@ -332,7 +332,7 @@ func printTransactionInfo(respTx rpc_interface.TransactionResp) {
 
 	fmt.Printf("\r\n[the tx info is:]")
 	fmt.Printf("\r\n%v", respTx.Transaction.String())
-	fmt.Printf("\r\nthe blockHash is:%v", respTx.BlockHash.Hex())
+	fmt.Printf("\r\nthe BlockHash is:%v", respTx.BlockHash.Hex())
 	fmt.Printf("\r\nthe BlockNumber is:%v", respTx.BlockNumber)
 	fmt.Printf("\r\nthe TxIndex is:%v\r\n", respTx.TxIndex)
 }
@@ -403,7 +403,7 @@ func (caller *rpcCaller) GetBlockByHash(c *cli.Context) {
 	}
 
 	if len(cParams) == 0 {
-		l.Error("parameter includes：blockHash")
+		l.Error("parameter includes：BlockHash")
 		return
 	}
 
@@ -723,23 +723,47 @@ func (caller *rpcCaller) GetReceiptByTxHash(c *cli.Context) {
 }
 
 func (caller *rpcCaller) GetLogs(c *cli.Context) {
-	//blockHash *common.Hash, fromBlock *big.Int, toBlock *big.Int, addresses []common.Address, topics [][]common.Hash
+	//BlockHash *common.Hash, FromBlock *big.Int, ToBlock *big.Int, Addresses []common.Address, Topics [][]common.Hash
 	params := c.String("p")
 	l.Info("GetLogs the params is:", "params", params)
 	var filterParams FilterParams
 	if err := json.Unmarshal([]byte(params), &filterParams); err != nil {
-		l.Error("rpcCaller#GetLogs", "err", err)
-	}
-	fmt.Println(filterParams)
-
-	var resp []model.Log
-	if err := client.Call(&resp, getDipperinRpcMethodByName("GetLogs"), filterParams.blockHash, filterParams.fromBlock, filterParams.toBlock, filterParams.addresses, filterParams.topics); err != nil {
-		l.Error("Call GetReceiptByTxHash", "err", err)
+		l.Error("json.Unmarshal failed", "err", err)
+		l.Info("json needed")
+		fmt.Println("example1:", `{"block_hash":"0x000023e18421a0abfceea172867b9b4a3bcf593edd0b504554bb7d1cf5f5e7b7","addresses":["0x0014049F835be46352eD0Ec6B819272A2c8cF4feA10f"],"topics":[["0x0b5d2220daf8f0dfd95983d2ce625affbb7183c991271f49d818b4a64a268dbb"]]}`)
+		fmt.Println("example2:", `{"from_block":10,"to_block":500,"addresses":["0x0014049F835be46352eD0Ec6B819272A2c8cF4feA10f"],"topics":[["0x0b5d2220daf8f0dfd95983d2ce625affbb7183c991271f49d818b4a64a268dbb"]]}`)
 		return
 	}
-	for _, lg := range resp {
-		fmt.Println(lg)
+
+	if filterParams.BlockHash.IsEmpty() {
+		l.Info("the blockHash is", "blockHash", "empty")
+	} else {
+		l.Info("the blockHash is", "blockHash", filterParams.BlockHash)
 	}
+	l.Info("the fromBlock is", "num", filterParams.FromBlock)
+	if filterParams.ToBlock == uint64(0) {
+		l.Info("the toBlock is", "num", "currentBlock")
+	} else {
+		l.Info("the toBlock is", "num", filterParams.ToBlock)
+	}
+	l.Info("the contractAddresses is", "addresses", filterParams.Addresses)
+	l.Info("the topics is", "topics", filterParams.Topics)
+
+	var resp []model.Log
+	if err := client.Call(&resp, getDipperinRpcMethodByName("GetLogs"), filterParams.BlockHash, filterParams.FromBlock, filterParams.ToBlock, filterParams.Addresses, filterParams.Topics); err != nil {
+		l.Error("Call GetLogs failed", "err", err)
+		return
+	}
+
+	if len(resp) == 0 {
+		l.Info("logs not found")
+		return
+	}
+
+	for _, lg := range resp {
+		fmt.Println("found logs", lg.String())
+	}
+	return
 }
 
 func (caller *rpcCaller) GetReceiptsByBlockNum(c *cli.Context) {
@@ -1346,7 +1370,7 @@ func (caller *rpcCaller) GetVerifiersBySlot(c *cli.Context) {
 
 // VerifierStatus call to get the verifier status
 func (caller *rpcCaller) VerifierStatus(c *cli.Context) {
-	//params is a comma separated list of addresses
+	//params is a comma separated list of Addresses
 	mName, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
 		l.Error("getRpcMethodAndParam error")
@@ -1440,7 +1464,7 @@ func (caller *rpcCaller) GetDefaultAccountStake(c *cli.Context) {
 
 // CurrentStake call to get the current account stake
 func (caller *rpcCaller) CurrentStake(c *cli.Context) {
-	//params is a comma separated list of addresses
+	//params is a comma separated list of Addresses
 	mName, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
 		l.Error("getRpcMethodAndParam error")
@@ -1480,7 +1504,7 @@ func (caller *rpcCaller) CurrentStake(c *cli.Context) {
 
 // CurrentReputation call the method to get the current reputation value
 func (caller *rpcCaller) CurrentReputation(c *cli.Context) {
-	//params is a comma separated list of addresses
+	//params is a comma separated list of Addresses
 	mName, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
 		l.Error("getRpcMethodAndParam error")

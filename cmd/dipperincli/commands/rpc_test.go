@@ -1885,14 +1885,14 @@ func Test_getDefaultWallet(t *testing.T) {
 
 func Test_ToJson(t *testing.T) {
 	/*filter := FilterParams{
-		fromBlock: new(big.Int).SetInt64(0),
-		toBlock:new(big.Int).SetInt64(int64(1000)),
-		addresses:[]common.Address{common.HexToAddress("0x11111")},
-		topics:[][]common.Hash{[]common.Hash{common.HexToHash("0x22222")},},
+		FromBlock: new(big.Int).SetInt64(0),
+		ToBlock:new(big.Int).SetInt64(int64(1000)),
+		Addresses:[]common.Address{common.HexToAddress("0x11111")},
+		Topics:[][]common.Hash{[]common.Hash{common.HexToHash("0x22222")},},
 	}*/
 	var filter FilterParams
 
-	f := `{"from_block":0,"to_block":1000,"addresses":["0x0000DF2f2284ddF0E5a4f9462594b9bFFC97Ca6777De"],"topics":[[],[]]}`
+	f := `{"from_block":0,"to_block":1000,"Addresses":["0x0000DF2f2284ddF0E5a4f9462594b9bFFC97Ca6777De"],"Topics":[[],[]]}`
 
 	fmt.Println(json.Unmarshal([]byte(f), &filter))
 }
