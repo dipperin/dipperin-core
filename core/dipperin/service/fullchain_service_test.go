@@ -1033,7 +1033,6 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 
 	nonce := uint64(0)
 	value := big.NewInt(100)
-	txFee := testFee
 	hash, err := service.SendRegisterTransaction(address, value, g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.NoError(t, err)
 	assert.NotNil(t, hash)
@@ -1070,7 +1069,8 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	abiPath := g_testData.GetAbiPath("token")
 	data, err := g_testData.GetCreateExtraData(WASMPath, abiPath, "dipp,DIPP,100000000")
 	assert.NoError(t, err)
-	hash, err = service.SendTransactionContract(address, to, value, new(big.Int).Mul(txFee, new(big.Int).SetInt64(int64(30))), new(big.Int).SetInt64(int64(1)), data, &nonce)
+	gasLimit := g_testData.TestGasLimit * 100
+	hash, err = service.SendTransactionContract(address, to, value, g_testData.TestGasPrice, gasLimit, data, &nonce)
 	assert.NoError(t, err)
 
 	nonce = uint64(7)
