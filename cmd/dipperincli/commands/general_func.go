@@ -176,7 +176,7 @@ func GetUnit(input string) (value, unit string) {
 
 func MoneyWithUnit(input string) string {
 	value, unit := GetUnit(input)
-	return value+unit
+	return value + unit
 }
 
 //check and change input money value
