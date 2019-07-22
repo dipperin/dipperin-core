@@ -38,10 +38,11 @@ func TestGetUnit(t *testing.T) {
 
 	value, unit = GetUnit("0.9999")
 	assert.Equal(t, "0.9999", value)
-	assert.Equal(t, "", unit)
+	assert.Equal(t, "WU", unit)
 }
 
 func TestMoneyValueToCSCoin(t *testing.T) {
+
 	value, err := MoneyValueToCSCoin("0.001")
 	assert.Error(t, err)
 	assert.Nil(t, value)
@@ -120,7 +121,7 @@ func TestCSCoinToMoneyValue(t *testing.T) {
 }
 
 func TestDecimalToInter(t *testing.T) {
-	moneyValue1 := "1.0"
+	moneyValue1 := "0.001"
 	moneyValue2 := "7.89"
 
 	moneyValue3 := "a.2234"
@@ -138,7 +139,7 @@ func TestDecimalToInter(t *testing.T) {
 
 	value, err := DecimalToInter(moneyValue1, unitBit)
 	assert.NoError(t, err)
-	assert.Equal(t, big.NewInt(1000), value)
+	assert.Equal(t, big.NewInt(1), value)
 
 	value, err = DecimalToInter(moneyValue2, unitBit)
 	assert.NoError(t, err)

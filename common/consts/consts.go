@@ -64,9 +64,6 @@ const (
 )
 
 func UnitConversion(unit string) int {
-	if unit == "" {
-		return UnitDecimalBits
-	}
 	switch unit {
 	case "WU", "wu":
 		return UnitDecimalBits

@@ -191,6 +191,7 @@ func contractCreate(c *cli.Context) (resp interface{}, err error) {
 	to := common.HexToAddress(common.AddressContractCreate)
 	value, err := MoneyValueToCSCoin(cParams[1])
 	if err != nil {
+		l.Error("the parameter value invalid", "err", err)
 		return
 	}
 
@@ -216,7 +217,6 @@ func contractCreate(c *cli.Context) (resp interface{}, err error) {
 	l.Info("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[2]))
 	l.Info("the gasLimit is:", "gasLimit", gasLimit)
 	//l.Info("the ExtraData is: ", "ExtraData", ExtraData)
-
 	err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, to, value, gasPrice, gasLimit, ExtraData, nil)
 	return
 }

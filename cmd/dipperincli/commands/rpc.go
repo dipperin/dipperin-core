@@ -588,7 +588,6 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 	from, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
 		l.Error("the from address is invalid", "err", err)
-		l.Error(err.Error())
 		return
 	}
 
@@ -600,19 +599,19 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 
 	value, err := MoneyValueToCSCoin(cParams[2])
 	if err != nil {
-		l.Error("the parameter value invalid")
+		l.Error("the parameter value invalid", "err", err)
 		return
 	}
 
 	gasPrice, err := MoneyValueToCSCoin(cParams[3])
 	if err != nil {
-		l.Error("the gasPrice value is wrong")
+		l.Error("the parameter gasPrice is invalid", "err", err)
 		return
 	}
 
 	gasLimit, err := strconv.ParseUint(cParams[4], 10, 64)
 	if err != nil {
-		l.Error("the gasLimit value is wrong")
+		l.Error("the parameter gasLimit is invalid", "err", err)
 		return
 	}
 
