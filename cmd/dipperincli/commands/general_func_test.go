@@ -101,23 +101,23 @@ func TestCSCoinToMoneyValue(t *testing.T) {
 
 	moneyValue1, err := CSCoinToMoneyValue(csCoinValue1)
 	assert.NoError(t, err)
-	assert.Equal(t, "0.01", moneyValue1)
+	assert.Equal(t, "0.01DIP", moneyValue1)
 
 	moneyValue2, err := CSCoinToMoneyValue(csCoinValue2)
 	assert.NoError(t, err)
-	assert.Equal(t, "0.034545", moneyValue2)
+	assert.Equal(t, "0.034545DIP", moneyValue2)
 
 	moneyValue3, err := CSCoinToMoneyValue(csCoinValue3)
 	assert.NoError(t, err)
-	assert.Equal(t, "0.6", moneyValue3)
+	assert.Equal(t, "0.6DIP", moneyValue3)
 
 	moneyValue4, err := CSCoinToMoneyValue(csCoinValue4)
 	assert.NoError(t, err)
-	assert.Equal(t, "897878.6", moneyValue4)
+	assert.Equal(t, "897878.6DIP", moneyValue4)
 
 	moneyValue5, err := CSCoinToMoneyValue(csCoinValue5)
 	assert.NoError(t, err)
-	assert.Equal(t, "3069", moneyValue5)
+	assert.Equal(t, "3069DIP", moneyValue5)
 }
 
 func TestDecimalToInter(t *testing.T) {
