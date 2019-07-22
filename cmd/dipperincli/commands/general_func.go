@@ -171,7 +171,12 @@ func GetUnit(input string) (value, unit string) {
 			return
 		}
 	}
-	return input, ""
+	return input, consts.CoinWuName
+}
+
+func MoneyWithUnit(input string) string {
+	value, unit := GetUnit(input)
+	return value+unit
 }
 
 //check and change input money value

@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
@@ -559,8 +558,8 @@ func (caller *rpcCaller) SendTx(c *cli.Context) {
 	var resp common.Hash
 	l.Info("the from is: ", "from", defaultAccount.Hex())
 	l.Info("the to is: ", "to", toAddress.Hex())
-	l.Info("the value is:", "value", cParams[1]+consts.CoinDIPName)
-	l.Info("the gasPrice is:", "gasPrice", cParams[2]+consts.CoinDIPName)
+	l.Info("the value is:", "value", MoneyWithUnit(cParams[1]))
+	l.Info("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[2]))
 	l.Info("the ExtraData is: ", "ExtraData", extraData)
 	if err = client.Call(&resp, getDipperinRpcMethodByName("SendTransaction"), defaultAccount, toAddress, value, gasPrice, gasLimit, extraData, nil); err != nil {
 		l.Error("call send transaction error", "err", err)
@@ -586,20 +585,20 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 		return
 	}
 
-	From, err := CheckAndChangeHexToAddress(cParams[0])
+	from, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
 		l.Error("the from address is invalid", "err", err)
 		l.Error(err.Error())
 		return
 	}
 
-	To, err := CheckAndChangeHexToAddress(cParams[1])
+	to, err := CheckAndChangeHexToAddress(cParams[1])
 	if err != nil {
 		l.Error("the to address is invalid", "err", err)
 		return
 	}
 
-	Value, err := MoneyValueToCSCoin(cParams[2])
+	value, err := MoneyValueToCSCoin(cParams[2])
 	if err != nil {
 		l.Error("the parameter value invalid")
 		return
@@ -623,14 +622,13 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 	}
 
 	var resp common.Hash
-	l.Info("the From is: ", "From", From.Hex())
-	l.Info("the To is: ", "To", To.Hex())
-	l.Info("the Value is:", "Value", cParams[2]+consts.CoinDIPName)
-	l.Info("the gasPrice is:", "gasPrice", cParams[3]+consts.CoinDIPName)
+	l.Info("the from is: ", "from", from.Hex())
+	l.Info("the to is: ", "to", to.Hex())
+	l.Info("the value is:", "value", MoneyWithUnit(cParams[2]))
+	l.Info("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[3]))
 	l.Info("the gasLimit is:", "gasLimit", gasLimit)
 	l.Info("the ExtraData is: ", "ExtraData", ExtraData)
-	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, To, Value, gasPrice, gasLimit, ExtraData, nil); err != nil {
-
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, to, value, gasPrice, gasLimit, ExtraData, nil); err != nil {
 		l.Error("call send transaction", "err", err)
 		return
 	}
@@ -1078,9 +1076,12 @@ func (caller *rpcCaller) SendRegisterTx(c *cli.Context) {
 		l.Error("the parameter gasLimit invalid", "err", err)
 		return
 	}
+
+	l.Info("the stake is:", "stake", MoneyWithUnit(cParams[0]))
+	l.Info("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[1]))
+	l.Info("the gasLimit is:", "gasLimit", gasLimit)
 	var resp common.Hash
 	if err = client.Call(&resp, getDipperinRpcMethodByName("SendRegisterTransaction"), defaultAccount, stake, gasPrice, gasLimit, nil); err != nil {
-
 		l.Error("call send transaction", "err", err)
 		return
 	}
@@ -1106,7 +1107,7 @@ func (caller *rpcCaller) SendRegisterTransaction(c *cli.Context) {
 	}
 
 	var resp common.Hash
-	From, err := CheckAndChangeHexToAddress(cParams[0])
+	from, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
 		l.Error("the from address is invalid", "err", err)
 		return
@@ -1130,13 +1131,15 @@ func (caller *rpcCaller) SendRegisterTransaction(c *cli.Context) {
 		return
 	}
 
-	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, stake, gasPrice, gasLimit, nil); err != nil {
-
+	l.Info("the stake is:", "stake", MoneyWithUnit(cParams[1]))
+	l.Info("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[2]))
+	l.Info("the gasLimit is:", "gasLimit", gasLimit)
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, stake, gasPrice, gasLimit, nil); err != nil {
 		l.Error("call send transaction", "err", err)
 		return
 	}
 	l.Info("SendRegisterTransaction result", "txId", resp.Hex())
-	addTrackingAccount(From)
+	addTrackingAccount(from)
 	RecordRegistration(resp.Hex())
 }
 
@@ -1169,6 +1172,8 @@ func (caller *rpcCaller) SendUnStakeTx(c *cli.Context) {
 		return
 	}
 
+	l.Info("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[0]))
+	l.Info("the gasLimit is:", "gasLimit", gasLimit)
 	if err = client.Call(&resp, getDipperinRpcMethodByName("SendUnStakeTransaction"), defaultAccount, gasPrice, gasLimit, nil); err != nil {
 		l.Error("call send transaction", "err", err)
 		return
@@ -1194,7 +1199,7 @@ func (caller *rpcCaller) SendUnStakeTransaction(c *cli.Context) {
 	}
 
 	var resp common.Hash
-	From, err := CheckAndChangeHexToAddress(cParams[0])
+	from, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
 		l.Error("the from address is invalid", "err", err)
 		return
@@ -1212,7 +1217,9 @@ func (caller *rpcCaller) SendUnStakeTransaction(c *cli.Context) {
 		return
 	}
 
-	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, gasPrice, gasLimit, nil); err != nil {
+	l.Info("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[1]))
+	l.Info("the gasLimit is:", "gasLimit", gasLimit)
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, gasPrice, gasLimit, nil); err != nil {
 		l.Error("call send transaction", "err", err)
 		return
 	}
@@ -1248,6 +1255,8 @@ func (caller *rpcCaller) SendCancelTx(c *cli.Context) {
 		return
 	}
 
+	l.Info("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[0]))
+	l.Info("the gasLimit is:", "gasLimit", gasLimit)
 	if err = client.Call(&resp, getDipperinRpcMethodByName("SendCancelTransaction"), defaultAccount, gasPrice, gasLimit, nil); err != nil {
 		l.Error("call send transaction", "err", err)
 		return
@@ -1275,7 +1284,7 @@ func (caller *rpcCaller) SendCancelTransaction(c *cli.Context) {
 	}
 
 	var resp common.Hash
-	From, err := CheckAndChangeHexToAddress(cParams[0])
+	from, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
 		l.Error("the from address is invalid", "err", err)
 		return
@@ -1293,12 +1302,14 @@ func (caller *rpcCaller) SendCancelTransaction(c *cli.Context) {
 		return
 	}
 
-	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, gasPrice, gasLimit, nil); err != nil {
+	l.Info("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[1]))
+	l.Info("the gasLimit is:", "gasLimit", gasLimit)
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, gasPrice, gasLimit, nil); err != nil {
 		l.Error("call send transaction", "err", err)
 		return
 	}
 	l.Info("SendCancelTransaction result", "txId", resp.Hex())
-	removeTrackingAccount(From)
+	removeTrackingAccount(from)
 	RemoveRegistration()
 }
 

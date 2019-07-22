@@ -3,7 +3,6 @@ package commands
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -53,7 +52,7 @@ func (caller *rpcCaller) CallContract(c *cli.Context) {
 		l.Error("parameter includes：from to blockNum, blockNum is optional")
 		return
 	}
-	From, err := CheckAndChangeHexToAddress(cParams[0])
+	from, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
 		l.Error("call  the from address is invalid", "err", err)
 		return
@@ -103,14 +102,14 @@ func (caller *rpcCaller) CallContract(c *cli.Context) {
 		return
 	}
 
-	l.Info("the From is: ", "From", From.Hex())
-	l.Info("the To is: ", "To", to.Hex())
-	l.Info("the BlockNum is: ", "Num", blockNum)
+	l.Info("the from is: ", "from", from.Hex())
+	l.Info("the to is: ", "to", to.Hex())
+	l.Info("the blockNum is: ", "num", blockNum)
 	l.Info("the funcName is:", "funcName", funcName)
 	//l.Info("the ExtraData is: ", "ExtraData", inputRlp)
 
 	var resp string
-	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, to, inputRlp, blockNum); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, to, inputRlp, blockNum); err != nil {
 		l.Error("CallContract failed", "err", err)
 		return
 	}
@@ -171,7 +170,7 @@ func (caller *rpcCaller) SendTransactionContract(c *cli.Context) {
 			return
 		}
 	}
-	l.Info(" SendTransactionContract successful", "resp", reflect.ValueOf(resp).String())
+	l.Info("SendTransactionContract successful", "resp", reflect.ValueOf(resp).String())
 }
 
 func contractCreate(c *cli.Context) (resp interface{}, err error) {
@@ -184,13 +183,13 @@ func contractCreate(c *cli.Context) (resp interface{}, err error) {
 		return
 	}
 
-	From, err := CheckAndChangeHexToAddress(cParams[0])
+	from, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
 		return
 	}
 
 	to := common.HexToAddress(common.AddressContractCreate)
-	Value, err := MoneyValueToCSCoin(cParams[1])
+	value, err := MoneyValueToCSCoin(cParams[1])
 	if err != nil {
 		return
 	}
@@ -212,13 +211,13 @@ func contractCreate(c *cli.Context) (resp interface{}, err error) {
 		return
 	}
 
-	l.Info("the From is: ", "From", From.Hex())
-	l.Info("the Value is:", "Value", cParams[1]+consts.CoinDIPName)
-	l.Info("the gasPrice is:", "gasPrice", gasPrice)
+	l.Info("the from is: ", "from", from.Hex())
+	l.Info("the value is:", "value", MoneyWithUnit(cParams[1]))
+	l.Info("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[2]))
 	l.Info("the gasLimit is:", "gasLimit", gasLimit)
 	//l.Info("the ExtraData is: ", "ExtraData", ExtraData)
 
-	err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, to, Value, gasPrice, gasLimit, ExtraData, nil)
+	err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, to, value, gasPrice, gasLimit, ExtraData, nil)
 	return
 }
 
@@ -227,14 +226,17 @@ func contractCall(c *cli.Context) (resp interface{}, err error) {
 	if err != nil {
 		return
 	}
+
 	if len(cParams) != 3 && len(cParams) != 4 {
 		err = errors.New("parameter includes：from to gasPrice gasLimit, gasPrice is optional")
 		return
 	}
-	From, err := CheckAndChangeHexToAddress(cParams[0])
+
+	from, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
 		return
 	}
+
 	to, err := CheckAndChangeHexToAddress(cParams[1])
 	if err != nil {
 		return
@@ -266,14 +268,14 @@ func contractCall(c *cli.Context) (resp interface{}, err error) {
 		return
 	}
 
-	l.Info("the From is: ", "From", From.Hex())
-	l.Info("the From is: ", "to", to.Hex())
-	l.Info("the gasPrice is:", "gasPrice", gasPrice)
+	l.Info("the from is: ", "from", from.Hex())
+	l.Info("the to is: ", "to", to.Hex())
+	l.Info("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[2]))
 	l.Info("the gasLimit is:", "gasLimit", gasLimit)
 	l.Info("the funcName is:", "funcName", funcName)
 	//l.Info("the ExtraData is: ", "ExtraData", inputRlp)
 
-	err = client.Call(&resp, getDipperinRpcMethodByName(mName), From, to, nil, gasPrice, gasLimit, inputRlp, nil)
+	err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, to, nil, gasPrice, gasLimit, inputRlp, nil)
 	return
 }
 
