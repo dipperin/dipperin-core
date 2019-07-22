@@ -1768,6 +1768,10 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 }
 
 func (service *MercuryFullChainService) getExtraData(to common.Address, data []byte) ([]byte, error) {
+	if data == nil || len(data) == 0 {
+		return []byte{}, errors.New("empty tx data")
+	}
+
 	var extraData []byte
 	if to.GetAddressType() == common.AddressTypeContractCall {
 		state, err := service.ChainReader.CurrentState()
@@ -1793,7 +1797,7 @@ func (service *MercuryFullChainService) getExtraData(to common.Address, data []b
 		extraData, err = utils.ParseCreateContractData(data)
 		if err != nil {
 			log.Error("getExtraData ParseCreateContractData failed", "err", err)
-			return nil, g_error.ErrParaVmExtraData
+			return nil, err
 		}
 	}
 	return extraData, nil
@@ -1875,12 +1879,20 @@ func (service *MercuryFullChainService) callContract(args CallArgs, blockNum uin
 }
 
 func (service *MercuryFullChainService) EstimateGas(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte) (hexutil.Uint64, error) {
+	if to.GetAddressType() != common.AddressTypeContractCreate && to.GetAddressType() != common.AddressTypeContractCall {
+		gasUsed, err := model.IntrinsicGas(data, false, false)
+		if err != nil {
+			return hexutil.Uint64(0), err
+		}
+		return hexutil.Uint64(gasUsed), nil
+	}
+
 	if value == nil {
 		value = new(big.Int).SetUint64(0)
 	}
 
 	if gasPrice == nil {
-		return hexutil.Uint64(0), errors.New("gasLimit or gasPrice are nil")
+		gasPrice = big.NewInt(0).SetInt64(config.DEFAULT_GAS_PRICE)
 	}
 
 	extraData, err := service.getExtraData(to, data)
@@ -2008,7 +2020,7 @@ func (service *MercuryFullChainService) doCall(args CallArgs, blockNum uint64, t
 		gasPrice = new(big.Int).SetUint64(uint64(config.DEFAULT_GAS_PRICE))
 	}
 	if value.Sign() == 0 {
-		gasPrice = new(big.Int).SetUint64(uint64(1))
+		value = new(big.Int).SetUint64(uint64(1))
 	}
 
 	// Create tmpTransaction

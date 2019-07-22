@@ -267,7 +267,7 @@ func (caller *rpcCaller) GetDefaultAccountBalance(c *cli.Context) {
 	if err != nil {
 		l.Error("the address isn't on the block chain balance=0")
 	} else {
-		l.Info("address current Balance is:", "balance", balance+consts.CoinDIPName)
+		l.Info("address current Balance is:", "balance", balance)
 	}
 }
 
@@ -305,7 +305,7 @@ func (caller *rpcCaller) CurrentBalance(c *cli.Context) {
 	if err != nil {
 		l.Error("the address isn't on the block chain balance=0")
 	} else {
-		l.Info("address current Balance is:", "balance", balance+consts.CoinDIPName)
+		l.Info("address current Balance is:", "balance", balance)
 	}
 }
 
@@ -522,8 +522,8 @@ func (caller *rpcCaller) SendTx(c *cli.Context) {
 		return
 	}
 
-	if len(cParams) < 4 {
-		l.Error("parameter includes：to value gasPrice gasLimit")
+	if len(cParams) != 4 && len(cParams) != 5 {
+		l.Error("parameter includes：to value gasPrice gasLimit extraData, extraData is optional")
 		return
 	}
 
@@ -552,8 +552,8 @@ func (caller *rpcCaller) SendTx(c *cli.Context) {
 	}
 
 	extraData := make([]byte, 0)
-	if len(cParams) >= 4 {
-		extraData = []byte(cParams[3])
+	if len(cParams) == 5 {
+		extraData = []byte(cParams[4])
 	}
 
 	var resp common.Hash
@@ -581,8 +581,8 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 		return
 	}
 
-	if len(cParams) < 6 {
-		l.Error("parameter includes：from to value gasPrice gasLimit extraData")
+	if len(cParams) != 5 && len(cParams) != 6 {
+		l.Error("parameter includes：from to value gasPrice gasLimit extraData, extraData is optional")
 		return
 	}
 
@@ -1373,12 +1373,12 @@ func (caller *rpcCaller) VerifierStatus(c *cli.Context) {
 	}
 
 	if resp.Status == VerifierStatusNoRegistered {
-		l.Info("Verifier status", "status", resp.Status, "balance", balance+" DIP")
+		l.Info("Verifier status", "status", resp.Status, "balance", balance)
 		return
 	}
 
 	if resp.Status == VerifiedStatusUnstaked {
-		l.Info("Verifier status", "status", resp.Status, "balance", balance+" DIP")
+		l.Info("Verifier status", "status", resp.Status, "balance", balance)
 		return
 	}
 
@@ -1387,11 +1387,11 @@ func (caller *rpcCaller) VerifierStatus(c *cli.Context) {
 		l.Error("The address has no stake, stake = 0 DIP")
 	}
 	if resp.Status == VerifierStatusRegistered {
-		l.Info("Verifier status", "status", resp.Status, "balance", balance+" DIP", "stake", stake+" DIP", "reputation", resp.Reputation, "is current verifier", resp.IsCurrentVerifier)
+		l.Info("Verifier status", "status", resp.Status, "balance", balance, "stake", stake, "reputation", resp.Reputation, "is current verifier", resp.IsCurrentVerifier)
 	}
 
 	if resp.Status == VerifiedStatusCanceled {
-		l.Info("Verifier status", "status", resp.Status, "balance", balance+" DIP", "stake", stake+" DIP", "reputation", resp.Reputation)
+		l.Info("Verifier status", "status", resp.Status, "balance", balance, "stake", stake, "reputation", resp.Reputation)
 	}
 }
 
@@ -1464,7 +1464,7 @@ func (caller *rpcCaller) CurrentStake(c *cli.Context) {
 	if err != nil {
 		l.Error("the address isn't on the block chain stake=0")
 	} else {
-		l.Info("address current stake is:", "stake", stake+consts.CoinDIPName)
+		l.Info("address current stake is:", "stake", stake)
 	}
 }
 
