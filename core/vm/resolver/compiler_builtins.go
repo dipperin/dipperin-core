@@ -6,14 +6,9 @@ import (
 	"unsafe"
 )
 
-// #cgo CFLAGS: -I./softfloat/source/include -I./builtins
-// #define SOFTFLOAT_FAST_INT64
-// #define SOFTFLOAT_ROUND_EVEN
+// #cgo CFLAGS: -I./builtins
 // #define INLINE_LEVEL 5
-// #define SOFTFLOAT_FAST_DIV32TO16
-// #define SOFTFLOAT_FAST_DIV64TO32
-// #cgo LDFLAGS: -L./softfloat/build -lsoftfloat -L./builtins/build -lbuiltins
-// #include "softfloat.h"
+// #cgo LDFLAGS: -L./builtins/build -lbuiltins
 // #include "compiler_builtins.hpp"
 // #include "int_t.h"
 import "C"
@@ -259,7 +254,7 @@ func env__multi3GasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func env__addtf3(vm *exec.VirtualMachine) int64 {
+/*func env__addtf3(vm *exec.VirtualMachine) int64 {
 	frame := vm.GetCurrentFrame()
 	ret := int(int32(frame.Locals[0]))
 	la := uint64(frame.Locals[1])
@@ -568,17 +563,17 @@ func env__fixunstfsi(vm *exec.VirtualMachine) int64 {
 	var f C.float128_t
 	f.v[0] = C.uint64_t(frame.Locals[0])
 	f.v[1] = C.uint64_t(frame.Locals[1])
-	/*
-		rounding:
-		Binary value 00: approximate to the nearest even number (default)
-		Binary value 01: downward approximation tends to -∞
-		Binary value 10: Upward approximation tends to +∞
-		Binary value 11: Approximate to 0 (trimming)
 
-		Here rounding is used to use 1 to ensure that (a-b) >= 0 in __subtf3(a,b).
-		According to the debugging result, when rounding is 0, double/long double is converted to a string, it is possible
-		There will be an infinite loop.
-	*/
+		//rounding:
+		//Binary value 00: approximate to the nearest even number (default)
+		//Binary value 01: downward approximation tends to -∞
+		//Binary value 10: Upward approximation tends to +∞
+		//Binary value 11: Approximate to 0 (trimming)
+		//
+		//Here rounding is used to use 1 to ensure that (a-b) >= 0 in __subtf3(a,b).
+		//According to the debugging result, when rounding is 0, double/long double is converted to a string, it is possible
+		//There will be an infinite loop.
+
 	ret := uint32(C.f128_to_ui32(f, 1, false))
 	return int64(ret)
 }
@@ -816,3 +811,4 @@ func cmptf2(la, ha, lb, hb C.uint64_t, returnValueIfNan int) int {
 	}
 	return 1
 }
+*/
