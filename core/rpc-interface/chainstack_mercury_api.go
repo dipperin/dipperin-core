@@ -363,10 +363,12 @@ func (api *DipperinMercuryApi) NewContract(transactionRlpB []byte, blockNum uint
 	if err != nil {
 		return "", err
 	}
-	to := *transaction.To()
-	data := transaction.ExtraData()
-	log.Info("[NewContract]", "from", from, "to", to, "blockNum", blockNum)
-	return api.service.CallContract(from, to, data, blockNum)
+	args := service.CallArgs{
+		From: from,
+		To:   &*transaction.To(),
+		Data: transaction.ExtraData(),
+	}
+	return api.service.Call(args, blockNum)
 }
 
 func (api *DipperinMercuryApi) NewEstimateGas(transactionRlpB []byte) (resp hexutil.Uint64, err error) {
@@ -376,17 +378,20 @@ func (api *DipperinMercuryApi) NewEstimateGas(transactionRlpB []byte) (resp hexu
 		log.TagError("decode client tx failed", "err", err)
 		return hexutil.Uint64(0), err
 	}
+
 	from, err := transaction.Sender(transaction.GetSigner())
 	if err != nil {
 		return hexutil.Uint64(0), err
 	}
-	to := *transaction.To()
-	value := transaction.Amount()
-	gasPrice := transaction.GetGasPrice()
-	gasLimit := transaction.GetGasLimit()
-	data := transaction.ExtraData()
-	log.Info("[NewEstimateGas]", "from", from, "to", to, "value", value, "gasPrice", gasPrice, "gasLimit", gasLimit)
-	return api.service.EstimateGas(from, to, value, gasPrice, gasLimit, data)
+	args := service.CallArgs{
+		From:     from,
+		To:       transaction.To(),
+		Gas:      hexutil.Uint64(transaction.GetGasLimit()),
+		GasPrice: hexutil.Big(*transaction.GetGasPrice()),
+		Value:    hexutil.Big(*transaction.Amount()),
+		Data:     hexutil.Bytes(transaction.ExtraData()),
+	}
+	return api.service.CalGasUsed(args)
 }
 
 //func (apiB *DipperinMercuryApi) RetrieveSingleSC(req *req_params.SingleSCReq) *req_params.RetrieveSingleSCResp {
@@ -1257,7 +1262,7 @@ func (api *DipperinMercuryApi) GetContractAddressByTxHash(txHash common.Hash) (c
 	return api.service.GetContractAddressByTxHash(txHash)
 }
 
-func (api *DipperinMercuryApi) GetLogs(blockHash *common.Hash, fromBlock, toBlock *big.Int, Addresses []common.Address, Topics [][]common.Hash) ([]*model2.Log, error) {
+func (api *DipperinMercuryApi) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, Addresses []common.Address, Topics [][]common.Hash) ([]*model2.Log, error) {
 	return api.service.GetLogs(blockHash, fromBlock, toBlock, Addresses, Topics)
 }
 

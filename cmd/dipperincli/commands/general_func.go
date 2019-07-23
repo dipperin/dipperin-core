@@ -102,9 +102,14 @@ func DecimalToInter(src string, unitBit int) (*big.Int, error) {
 	}
 
 	tmpValue := append([]byte(decimalString), padding[:]...)
-	decimalValue, result := big.NewInt(0).SetString(string(tmpValue), 10)
-	if !result {
-		return nil, g_error.ErrParseBigIntFromString
+	var decimalValue *big.Int
+	if string(tmpValue) == "" {
+		decimalValue = big.NewInt(0)
+	} else {
+		decimalValue, result = big.NewInt(0).SetString(string(tmpValue), 10)
+		if !result {
+			return nil, g_error.ErrParseBigIntFromString
+		}
 	}
 
 	unit := big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(unitBit)), nil)
@@ -149,22 +154,44 @@ func InterToDecimal(csCoinValue *hexutil.Big, unitBit int) (string, error) {
 		//log.Info("the tmpBytes is:","tmpBytes",tmpBytes,"string",string(tmpBytes[:]))
 		return "0." + string(tmpBytes[:]), nil
 	} else {
-		scalingPos := coinValueLen - unitBit
+		pointPos := coinValueLen - unitBit
 		if zeroNumber >= unitBit {
-			return coinValue[:scalingPos], nil
+			return coinValue[:pointPos], nil
 		} else {
-			return coinValue[:scalingPos] + "." + coinValue[scalingPos:], nil
+			return coinValue[:pointPos] + "." + coinValue[pointPos:], nil
 		}
 	}
 }
 
+func GetUnit(input string) (value, unit string) {
+	for i := 0; i < len(input); i++ {
+		if (input[i] < '0' || input[i] > '9') && input[i] != '.' {
+			value = input[:i]
+			unit = input[i:]
+			return
+		}
+	}
+	return input, consts.CoinWuName
+}
+
+func MoneyWithUnit(input string) string {
+	value, unit := GetUnit(input)
+	return value + unit
+}
+
 //check and change input money value
 //input money unit is DIP
-func MoneyValueToCSCoin(moneyValue string) (*big.Int, error) {
-	return DecimalToInter(moneyValue, consts.DIPDecimalBits)
+func MoneyValueToCSCoin(value string) (*big.Int, error) {
+	moneyValue, unit := GetUnit(value)
+	unitBit := consts.UnitConversion(unit)
+	if unitBit == -1 {
+		return nil, errors.New(fmt.Sprintf("invalid unit, need %s or %s", consts.CoinDIPName, consts.CoinWuName))
+	}
+	return DecimalToInter(moneyValue, unitBit)
 }
 
 //CSCoin to money Value
 func CSCoinToMoneyValue(csCoinValue *hexutil.Big) (string, error) {
-	return InterToDecimal(csCoinValue, consts.DIPDecimalBits)
+	value, err := InterToDecimal(csCoinValue, consts.DIPDecimalBits)
+	return value + consts.CoinDIPName, err
 }

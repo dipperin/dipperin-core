@@ -17,7 +17,6 @@
 package commands
 
 import (
-	"fmt"
 	"math/big"
 	"reflect"
 	"testing"
@@ -28,40 +27,65 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestGetUnit(t *testing.T) {
+	value, unit := GetUnit("1.23456DIP")
+	assert.Equal(t, "1.23456", value)
+	assert.Equal(t, "DIP", unit)
+
+	value, unit = GetUnit("123456WU")
+	assert.Equal(t, "123456", value)
+	assert.Equal(t, "WU", unit)
+
+	value, unit = GetUnit("0.9999")
+	assert.Equal(t, "0.9999", value)
+	assert.Equal(t, "WU", unit)
+}
+
 func TestMoneyValueToCSCoin(t *testing.T) {
 
-	moneyValue1 := "0.001"
-	moneyValue2 := "7.890765"
-
-	moneyValue3 := "a.2234343454"
-
-	moneyValue4 := "300000"
-
-	moneyValue5 := "0.0000000000000000001"
-
-	value, err := MoneyValueToCSCoin(moneyValue1)
-	assert.NoError(t, err)
-	assert.Equal(t, big.NewInt(0.001*consts.DIP), value)
-
-	value, err = MoneyValueToCSCoin(moneyValue2)
-	assert.NoError(t, err)
-	assert.Equal(t, big.NewInt(7.890765*consts.DIP), value)
-
-	value, err = MoneyValueToCSCoin(moneyValue3)
+	value, err := MoneyValueToCSCoin("0.001")
 	assert.Error(t, err)
+	assert.Nil(t, value)
 
-	value, err = MoneyValueToCSCoin(moneyValue4)
-	assert.NoError(t, err)
-
-	fmt.Printf("the value is:%x\r\n", value)
-
-	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(300000), big.NewInt(consts.DIP)), value)
-
-	value, err = MoneyValueToCSCoin(moneyValue5)
+	value, err = MoneyValueToCSCoin("S.001DIP")
 	assert.Error(t, err)
+	assert.Nil(t, value)
 
-	/*	decimalValue, err := strconv.ParseInt("000000101",10,64)
-		log.Info("the decimalValue is:","decimalValue",decimalValue)*/
+	value, err = MoneyValueToCSCoin("0.0000000000000000001DIP")
+	assert.Error(t, err)
+	assert.Nil(t, value)
+
+	value, err = MoneyValueToCSCoin("10000000000000000000WU")
+	assert.NoError(t, err)
+	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(10), big.NewInt(consts.DIP)), value)
+
+	value, err = MoneyValueToCSCoin("1.23456DIP")
+	assert.NoError(t, err)
+	assert.Equal(t, big.NewInt(1.23456*consts.DIP), value)
+
+	value, err = MoneyValueToCSCoin("1.23456UDIP")
+	assert.NoError(t, err)
+	assert.Equal(t, big.NewInt(1.23456*consts.UDIP), value)
+
+	value, err = MoneyValueToCSCoin("1.23456MDIP")
+	assert.NoError(t, err)
+	assert.Equal(t, big.NewInt(1.23456*consts.MDIP), value)
+
+	value, err = MoneyValueToCSCoin("1.23456GWU")
+	assert.NoError(t, err)
+	assert.Equal(t, big.NewInt(1.23456*consts.GDIPUNIT), value)
+
+	value, err = MoneyValueToCSCoin("1.23456MWU")
+	assert.NoError(t, err)
+	assert.Equal(t, big.NewInt(1.23456*consts.MDIPUNIT), value)
+
+	value, err = MoneyValueToCSCoin("1.234KWU")
+	assert.NoError(t, err)
+	assert.Equal(t, big.NewInt(1.234*consts.KDIPUNIT), value)
+
+	value, err = MoneyValueToCSCoin("1234WU")
+	assert.NoError(t, err)
+	assert.Equal(t, big.NewInt(1234*consts.DIPUNIT), value)
 }
 
 func TestCSCoinToMoneyValue(t *testing.T) {
@@ -77,23 +101,23 @@ func TestCSCoinToMoneyValue(t *testing.T) {
 
 	moneyValue1, err := CSCoinToMoneyValue(csCoinValue1)
 	assert.NoError(t, err)
-	assert.Equal(t, "0.01", moneyValue1)
+	assert.Equal(t, "0.01DIP", moneyValue1)
 
 	moneyValue2, err := CSCoinToMoneyValue(csCoinValue2)
 	assert.NoError(t, err)
-	assert.Equal(t, "0.034545", moneyValue2)
+	assert.Equal(t, "0.034545DIP", moneyValue2)
 
 	moneyValue3, err := CSCoinToMoneyValue(csCoinValue3)
 	assert.NoError(t, err)
-	assert.Equal(t, "0.6", moneyValue3)
+	assert.Equal(t, "0.6DIP", moneyValue3)
 
 	moneyValue4, err := CSCoinToMoneyValue(csCoinValue4)
 	assert.NoError(t, err)
-	assert.Equal(t, "897878.6", moneyValue4)
+	assert.Equal(t, "897878.6DIP", moneyValue4)
 
 	moneyValue5, err := CSCoinToMoneyValue(csCoinValue5)
 	assert.NoError(t, err)
-	assert.Equal(t, "3069", moneyValue5)
+	assert.Equal(t, "3069DIP", moneyValue5)
 }
 
 func TestDecimalToInter(t *testing.T) {

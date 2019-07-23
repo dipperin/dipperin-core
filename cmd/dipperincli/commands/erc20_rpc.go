@@ -161,7 +161,7 @@ func (caller *rpcCaller) ERC20Transfer(c *cli.Context) {
 	}
 
 	if !isParamValid(cParams, 6) {
-		l.Error("parameters need：contract address, owner, to_address, amount, gasPrice, gasLimit")
+		l.Error("parameters need：contract address, owner, to_address, amount, gasPrice,gasLimit")
 		return
 	}
 
@@ -221,7 +221,7 @@ func (caller *rpcCaller) ERC20TransferFrom(c *cli.Context) {
 	}
 
 	if !isParamValid(cParams, 7) {
-		l.Error("parameters need：contract address, owner, from_address, to_address, amount, gasPrice, gasLimit")
+		l.Error("parameters need：contract address, owner, from_address, to_address, amount, gasPrice,gasLimit")
 		return
 	}
 
@@ -491,7 +491,7 @@ func (caller *rpcCaller) ERC20Approve(c *cli.Context) {
 	}
 
 	if !isParamValid(cParams, 6) {
-		l.Error("parameters need：contract address, owner, to_address, amount,gasPrice, gasLimit")
+		l.Error("parameters need：contract address, owner, to_address, amount,gasPrice,gasLimit")
 		return
 	}
 

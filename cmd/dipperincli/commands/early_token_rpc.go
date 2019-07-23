@@ -34,7 +34,7 @@ func (caller *rpcCaller) TransferEDIPToDIP(c *cli.Context) {
 	}
 
 	if len(cParams) != 4 {
-		l.Error("EarlyTokenTransferEDIPToDIP needs at least：from eDIPValue gasPrice gasLimit")
+		l.Error("EarlyTokenTransferEDIPToDIP needs at least：from, eDIPValue,gasPrice,gasLimit")
 		return
 	}
 
@@ -84,7 +84,7 @@ func (caller *rpcCaller) SetExchangeRate(c *cli.Context) {
 	}
 
 	if len(cParams) != 4 {
-		l.Error("SetExchangeRate needs at least：from exchangeRate gasPrice gasLimit")
+		l.Error("SetExchangeRate needs at least：from, exchangeRate,gasPrice,gasLimit")
 		return
 	}
 
