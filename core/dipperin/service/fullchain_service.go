@@ -209,6 +209,15 @@ func (service *MercuryFullChainService) GetBlockByNumber(number uint64) (model.A
 	return service.ChainReader.GetBlockByNumber(number), nil
 }
 
+func (service *MercuryFullChainService) GetBlockHashByNumber(number uint64) common.Hash {
+	if number > service.CurrentBlock().Number() {
+		log.Info("GetBlockHashByNumber failed, can't get future block")
+		return common.Hash{}
+	}
+	block, _ := service.GetBlockByNumber(number)
+	return block.Hash()
+}
+
 func (service *MercuryFullChainService) GetBlockByHash(hash common.Hash) (model.AbstractBlock, error) {
 	return service.ChainReader.GetBlockByHash(hash), nil
 }
@@ -1741,7 +1750,7 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 		return common.Hash{}, g_error.ErrInvalidContractType
 	}
 
-	extraData, err := service.getExtraData(to, data)
+	extraData, err := service.GetExtraData(to, data)
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -1790,7 +1799,7 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 	return txHash, nil
 }
 
-func (service *MercuryFullChainService) getExtraData(to common.Address, data []byte) ([]byte, error) {
+func (service *MercuryFullChainService) GetExtraData(to common.Address, data []byte) ([]byte, error) {
 	if data == nil || len(data) == 0 {
 		return []byte{}, errors.New("empty tx data")
 	}
@@ -1804,14 +1813,14 @@ func (service *MercuryFullChainService) getExtraData(to common.Address, data []b
 
 		abi, err := state.GetAbi(to)
 		if err != nil {
-			log.Error("getExtraData#GetABI failed", "err", err)
+			log.Error("GetExtraData#GetABI failed", "err", err)
 			return nil, err
 		}
 
 		log.Info("ParseCallContractData")
 		extraData, err = utils.ParseCallContractData(abi, data)
 		if err != nil {
-			log.Error("getExtraData#ParseData failed", "err", err)
+			log.Error("GetExtraData#ParseData failed", "err", err)
 			return nil, err
 		}
 	} else {
@@ -1819,7 +1828,7 @@ func (service *MercuryFullChainService) getExtraData(to common.Address, data []b
 		var err error
 		extraData, err = utils.ParseCreateContractData(data)
 		if err != nil {
-			log.Error("getExtraData ParseCreateContractData failed", "err", err)
+			log.Error("GetExtraData ParseCreateContractData failed", "err", err)
 			return nil, err
 		}
 	}
@@ -1836,28 +1845,15 @@ type CallArgs struct {
 	Data     hexutil.Bytes   `json:"data"`
 }
 
-// CallContract executes the given transaction on the state for the given block number.
+// Call executes the given transaction on the state for the given block number.
 // It doesn't make and changes in the state/block chain and is useful to execute and retrieve values.
-func (service *MercuryFullChainService) CallContract(from, to common.Address, data []byte, blockNum uint64) (string, error) {
-	extraData, err := service.getExtraData(to, data)
-	if err != nil {
-		return "", err
-	}
-	args := CallArgs{
-		From: from,
-		To:   &to,
-		Data: extraData,
-	}
-	return service.Call(args, blockNum)
-}
-
-func (service *MercuryFullChainService) Call(args CallArgs, blockNum uint64) (string, error) {
+func (service *MercuryFullChainService) Call(signedTx model.AbstractTransaction, blockNum uint64) (string, error) {
 	// check Tx type
-	if args.To.GetAddressType() != common.AddressTypeContractCall {
+	if signedTx.To().GetAddressType() != common.AddressTypeContractCall {
 		return "", g_error.ErrInvalidContractType
 	}
 
-	constant, funcName, abi, err := service.CheckConstant(*args.To, args.Data)
+	constant, funcName, abi, err := service.CheckConstant(*signedTx.To(), signedTx.ExtraData())
 	if err != nil {
 		return "", err
 	}
@@ -1866,17 +1862,12 @@ func (service *MercuryFullChainService) Call(args CallArgs, blockNum uint64) (st
 		return "", g_error.ErrFunctionCalledNotConstant
 	}
 
-	var gasLimit uint64
-	curBlock := service.CurrentBlock()
-	if blockNum == 0 || curBlock.Number() < blockNum {
-		gasLimit = curBlock.Header().GetGasLimit()
-	} else {
-		block, _ := service.GetBlockByNumber(blockNum)
-		gasLimit = block.Header().GetGasLimit()
+	msg, err := signedTx.AsMessage()
+	if err != nil {
+		return "", err
 	}
 
-	args.Gas = hexutil.Uint64(gasLimit)
-	result, _, err := service.doCall(args, blockNum, 5*time.Second)
+	result, _, err := service.doCall(&msg, signedTx.CalTxId(), blockNum, 5*time.Second)
 	if err != nil {
 		return "", err
 	}
@@ -1899,36 +1890,12 @@ func (service *MercuryFullChainService) Call(args CallArgs, blockNum uint64) (st
 	return resp, err
 }
 
-func (service *MercuryFullChainService) EstimateGas(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte) (hexutil.Uint64, error) {
-	if value == nil {
-		value = new(big.Int).SetUint64(0)
-	}
-
-	if gasPrice == nil {
-		gasPrice = big.NewInt(0).SetInt64(config.DEFAULT_GAS_PRICE)
-	}
-
-	extraData, err := service.getExtraData(to, data)
-	if err != nil {
-		return hexutil.Uint64(0), err
-	}
-	args := CallArgs{
-		From:     from,
-		To:       &to,
-		Gas:      hexutil.Uint64(gasLimit),
-		GasPrice: hexutil.Big(*gasPrice),
-		Value:    hexutil.Big(*value),
-		Data:     hexutil.Bytes(extraData),
-	}
-	return service.CalGasUsed(args)
-}
-
 // EstimateGas returns an estimate of the amount of gas needed to execute the
 // given transaction against the current block.
-func (service *MercuryFullChainService) CalGasUsed(args CallArgs) (hexutil.Uint64, error) {
-	log.Info("CalGasUsed Start")
-	if args.To.GetAddressType() != common.AddressTypeContractCreate && args.To.GetAddressType() != common.AddressTypeContractCall {
-		gasUsed, err := model.IntrinsicGas(args.Data, false, false)
+func (service *MercuryFullChainService) EstimateGas(signedTx model.AbstractTransaction, blockNum uint64) (hexutil.Uint64, error) {
+	log.Info("Service#EstimateGas Start")
+	if signedTx.To().GetAddressType() != common.AddressTypeContractCreate && signedTx.To().GetAddressType() != common.AddressTypeContractCall {
+		gasUsed, err := model.IntrinsicGas(signedTx.ExtraData(), false, false)
 		if err != nil {
 			return hexutil.Uint64(0), err
 		}
@@ -1936,25 +1903,36 @@ func (service *MercuryFullChainService) CalGasUsed(args CallArgs) (hexutil.Uint6
 	}
 
 	// Binary search the gas requirement, as it may be higher than the amount used
-	block := service.CurrentBlock()
+	block, err := service.GetBlockByNumber(blockNum)
+	if err != nil {
+		return hexutil.Uint64(0), err
+	}
 	var (
 		low      = model2.TxGas - 1
 		high     uint64
 		capacity uint64
 	)
-	if uint64(args.Gas) >= model2.TxGas {
-		high = uint64(args.Gas)
+	if uint64(signedTx.GetGasLimit()) >= model2.TxGas {
+		high = uint64(signedTx.GetGasLimit())
 	} else {
 		// Retrieve the current pending block to act as the gas ceiling
 		high = block.Header().GetGasLimit()
 	}
 	capacity = high
 
+	txHash := signedTx.CalTxId()
+	msg, err := signedTx.AsMessage()
+	if err != nil {
+		log.Error("EstimateGas#AsMessage failed", "err", err)
+		return hexutil.Uint64(0), err
+	}
+
 	// Create a helper to check if a gas allowance results in an executable transaction
 	executable := func(gas uint64) bool {
-		args.Gas = hexutil.Uint64(gas)
-		_, failed, err := service.doCall(args, block.Number(), 0)
-		if err != nil || failed {
+		msg.SetGas(gas)
+		_, pass, innerErr := service.doCall(&msg, txHash, block.Number(), 0)
+		log.Info("executable#doCall", "pass", pass)
+		if innerErr != nil || pass {
 			return false
 		}
 		return true
@@ -1973,7 +1951,6 @@ func (service *MercuryFullChainService) CalGasUsed(args CallArgs) (hexutil.Uint6
 		index++
 	}
 	log.Info("executable End", "times", index, "low", low, "high", high, "cap", capacity)
-
 	// Reject the transaction as invalid if it still fails at the highest allowance
 	if high == capacity {
 		if !executable(high) {
@@ -1983,30 +1960,10 @@ func (service *MercuryFullChainService) CalGasUsed(args CallArgs) (hexutil.Uint6
 	return hexutil.Uint64(high), nil
 }
 
-func (service *MercuryFullChainService) GetBlockHashByNumber(number uint64) common.Hash {
-	if number > service.CurrentBlock().Number() {
-		log.Info("GetBlockHashByNumber failed, can't get future block")
-		return common.Hash{}
-	}
-	block, _ := service.GetBlockByNumber(number)
-	return block.Hash()
-}
-
-func (service *MercuryFullChainService) doCall(args CallArgs, blockNum uint64, timeout time.Duration) ([]byte, bool, error) {
-	defer func(start time.Time) { log.Debug("Executing EVM call finished", "runtime", time.Since(start)) }(time.Now())
-
-	var (
-		state *state_processor.AccountStateDB
-		err   error
-	)
-	if blockNum == 0 {
-		state, err = service.ChainReader.CurrentState()
-	} else {
-		state, err = service.ChainReader.StateAtByBlockNumber(blockNum)
-	}
-
+func (service *MercuryFullChainService) MakeTmpSignedTx(args CallArgs, blockNum uint64) (model.AbstractTransaction, error) {
+	state, err := service.ChainReader.StateAtByBlockNumber(blockNum)
 	if state == nil || err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
 	// Set sender address or use a default if none specified
@@ -2015,7 +1972,7 @@ func (service *MercuryFullChainService) doCall(args CallArgs, blockNum uint64, t
 		if wallets := service.WalletManager.Wallets; len(wallets) > 0 {
 			a, innerErr := wallets[0].Accounts()
 			if innerErr != nil {
-				return nil, false, innerErr
+				return nil, innerErr
 			}
 			if len(a) > 0 {
 				from = a[0].Address
@@ -2043,22 +2000,37 @@ func (service *MercuryFullChainService) doCall(args CallArgs, blockNum uint64, t
 	}
 
 	// Create tmpTransaction
+	log.Info("MakeTmpSignedTx#getSendTxInfo", "from", from)
 	tmpWallet, usedNonce, err := service.getSendTxInfo(from, nil)
 	if err != nil {
-		log.Error("doCall#getSendTxInfo failed", "err", err)
-		return nil, false, err
+		log.Error("MakeTmpSignedTx#getSendTxInfo failed", "err", err)
+		return nil, err
 	}
 
 	tmpTx := model.NewTransactionSc(usedNonce, to, value, gasPrice, gas, args.Data)
 	fromAccount := accounts.Account{Address: from}
 	signedTx, err := tmpWallet.SignTx(fromAccount, tmpTx, service.ChainConfig.ChainId)
 	if err != nil {
-		log.Error("doCall#SignTx failed", "err", err)
+		log.Error("MakeTmpSignedTx#SignTx failed", "err", err)
+		return nil, err
+	}
+	return signedTx, nil
+}
+
+func (service *MercuryFullChainService) doCall(msg state_processor.Message, txHash common.Hash, blockNum uint64, timeout time.Duration) ([]byte, bool, error) {
+	defer func(start time.Time) { log.Debug("Executing EVM call finished", "runtime", time.Since(start)) }(time.Now())
+
+	// GetBlock and GetState
+	block, err := service.GetBlockByNumber(blockNum)
+	if err != nil {
+		log.Error("doCall#GetBlockByNumber failed", "err", err, "blockNum", blockNum)
 		return nil, false, err
 	}
-
-	// GetBlock
-	block, _ := service.GetBlockByNumber(blockNum)
+	state, err := service.ChainReader.StateAtByBlockNumber(blockNum)
+	if err != nil {
+		log.Error("doCall#StateAtByBlockNumber failed", "err", err, "blockNum", blockNum)
+		return nil, false, err
+	}
 
 	// Setup context so it may be cancelled the call has completed
 	// or, in case of unmetered gas, setup a context with a timeout.
@@ -2074,7 +2046,19 @@ func (service *MercuryFullChainService) doCall(args CallArgs, blockNum uint64, t
 	defer cancel()
 
 	// Create NewVM
-	conText := vm.NewVMContext(signedTx, block.Header(), service.GetBlockHashByNumber)
+	log.Info("doCall#gasLimit", "gasLimit", msg.Gas())
+	conText := vm.Context{
+		Origin:      msg.From(),
+		GasPrice:    msg.GasPrice(),
+		GasLimit:    msg.Gas(),
+		BlockNumber: new(big.Int).SetUint64(blockNum),
+		TxHash:      txHash,
+		CanTransfer: vm.CanTransfer,
+		Transfer:    vm.Transfer,
+		Coinbase:    block.Header().CoinBaseAddress(),
+		Time:        block.Header().GetTimeStamp(),
+		GetHash:     service.GetBlockHashByNumber,
+	}
 	fullState := state_processor.NewFullState(state)
 	dvm := vm.NewVM(conText, fullState, vm.DEFAULT_VM_CONFIG)
 
@@ -2088,11 +2072,6 @@ func (service *MercuryFullChainService) doCall(args CallArgs, blockNum uint64, t
 	// Setup the gas pool (also for unmetered requests)
 	// and apply the message.
 	gp := uint64(math.MaxUint64)
-	msg, err := signedTx.AsMessage()
-	if err != nil {
-		log.Error("doCall#AsMessage failed", "err", err)
-		return nil, false, err
-	}
 	result, _, failed, _, err := state_processor.ApplyMessage(dvm, msg, &gp)
 	if err != nil {
 		log.Error("doCall#ApplyMessage failed", "err", err)

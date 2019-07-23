@@ -113,7 +113,7 @@ func (caller *rpcCaller) CallContract(c *cli.Context) {
 		l.Error("CallContract failed", "err", err)
 		return
 	}
-	l.Info(" CallContract", "resp", resp)
+	l.Info("CallContract", "resp", resp)
 }
 
 func (caller *rpcCaller) EstimateGas(c *cli.Context) {

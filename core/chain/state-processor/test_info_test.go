@@ -366,6 +366,7 @@ func (tx fakeTransaction) PaddingReceipt(parameters model.ReceiptPara) (*model2.
 func (tx fakeTransaction) GetGasLimit() uint64 {
 	return g_testData.TestGasLimit
 }
+
 func (tx fakeTransaction) GetReceipt() (*model2.Receipt, error) {
 	panic("implement me")
 }

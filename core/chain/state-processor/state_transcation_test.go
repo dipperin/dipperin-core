@@ -18,7 +18,7 @@ func TestApplyMessage(t *testing.T) {
 
 	testVm := getTestVm()
 	gasPool := uint64(5 * testGasLimit)
-	result, usedGas, failed, _, err := ApplyMessage(testVm, msg, &gasPool)
+	result, usedGas, failed, _, err := ApplyMessage(testVm, &msg, &gasPool)
 	assert.NoError(t, err)
 	assert.False(t, failed)
 	assert.NotNil(t, usedGas)
@@ -33,7 +33,7 @@ func TestApplyMessage(t *testing.T) {
 	msg, err = tx.AsMessage()
 	assert.NoError(t, err)
 
-	result, usedGas, failed, _, err = ApplyMessage(testVm, msg, &gasPool)
+	result, usedGas, failed, _, err = ApplyMessage(testVm, &msg, &gasPool)
 	assert.NoError(t, err)
 	assert.False(t, failed)
 	assert.NotNil(t, usedGas)
@@ -49,7 +49,7 @@ func BenchmarkApplyMessage_Create(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		testVm := getTestVm()
 		gasPool := uint64(5 * testGasLimit)
-		_, usedGas, failed, _, err := ApplyMessage(testVm, msg, &gasPool)
+		_, usedGas, failed, _, err := ApplyMessage(testVm, &msg, &gasPool)
 		assert.NoError(b, err)
 		assert.False(b, failed)
 		assert.NotNil(b, usedGas)
@@ -80,14 +80,14 @@ func BenchmarkApplyMessage_Call(b *testing.B) {
 		testVm := getTestVm()
 		gasPool := uint64(5 * testGasLimit)
 
-		_, usedGas, failed, _, innerErr := ApplyMessage(testVm, msg1, &gasPool)
+		_, usedGas, failed, _, innerErr := ApplyMessage(testVm, &msg1, &gasPool)
 		assert.NoError(b, innerErr)
 		assert.False(b, failed)
 		assert.NotNil(b, usedGas)
 
 		fmt.Println("----------------------------------")
 
-		_, usedGas, failed, _, innerErr = ApplyMessage(testVm, msg2, &gasPool)
+		_, usedGas, failed, _, innerErr = ApplyMessage(testVm, &msg2, &gasPool)
 		assert.NoError(b, innerErr)
 		assert.False(b, failed)
 		assert.NotNil(b, usedGas)

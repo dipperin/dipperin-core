@@ -270,6 +270,10 @@ func (tx *Transaction) GetGasLimit() uint64 {
 	return tx.data.GasLimit
 }
 
+func (tx *Transaction) SetGasLimit(gasLimit uint64) {
+	tx.data.GasLimit = gasLimit
+}
+
 //DecodeRLP implements rlp.Decoder
 func (tx *Transaction) DecodeRLP(s *rlp.Stream) error {
 	var dtx TransactionRLP
@@ -412,7 +416,7 @@ func (tx *Transaction) EstimateFee() *big.Int {
 }
 
 func (tx *Transaction) AsMessage() (Message, error) {
-	log.Info("Transaction", "tx.data.price", tx.data.Price)
+	log.Info("Transaction#AsMessage", "gasPrice", tx.data.Price)
 	msg := Message{
 		nonce:      tx.data.AccountNonce,
 		gasLimit:   tx.data.GasLimit,
@@ -665,3 +669,6 @@ func (m Message) Gas() uint64          { return m.gasLimit }
 func (m Message) Nonce() uint64        { return m.nonce }
 func (m Message) Data() []byte         { return m.data }
 func (m Message) CheckNonce() bool     { return m.checkNonce }
+func (m *Message) SetGas(gas uint64) {
+	m.gasLimit = gas
+}
