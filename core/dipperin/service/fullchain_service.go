@@ -1742,8 +1742,6 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 	}
 
 	extraData, err := service.getExtraData(to, data)
-	fmt.Println("SendTransactionContract test", len(data), data)
-	fmt.Println("SendTransactionContract test", len(extraData), extraData)
 	if err != nil {
 		return common.Hash{}, err
 	}
