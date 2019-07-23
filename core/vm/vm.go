@@ -269,6 +269,7 @@ type Context struct {
 
 	// Block information
 	Coinbase    common.Address // Provides information for COINBASE
+	Value       *big.Int       // Provides information for VALUE
 	GasPrice    *big.Int       // Provides information for GASPRICE
 	GasLimit    uint64         // Provides information for GASLIMIT
 	BlockNumber *big.Int       // Provides information for NUMBER
@@ -299,8 +300,17 @@ func (context *Context) GetTxHash() common.Hash {
 	return context.callGasTemp
 }
 */
+
+func (context *Context) GetValue() int64 {
+	return context.Value.Int64()
+}
+
 func (context *Context) GetGasPrice() int64 {
 	return context.GasPrice.Int64()
+}
+
+func (context *Context) GetGasLimit() uint64 {
+	return context.GasLimit
 }
 
 func (context *Context) GetBlockHash(num uint64) common.Hash {
@@ -309,10 +319,6 @@ func (context *Context) GetBlockHash(num uint64) common.Hash {
 
 func (context *Context) GetBlockNumber() *big.Int {
 	return context.BlockNumber
-}
-
-func (context *Context) GetGasLimit() uint64 {
-	return context.GasLimit
 }
 
 func (context *Context) GetTime() *big.Int {
@@ -332,6 +338,7 @@ func NewVMContext(tx model.AbstractTransaction, header model.AbstractHeader, Get
 	sender, _ := tx.Sender(tx.GetSigner())
 	return Context{
 		Origin:      sender,
+		Value:       tx.Amount(),
 		GasPrice:    tx.GetGasPrice(),
 		GasLimit:    tx.GetGasLimit(),
 		BlockNumber: new(big.Int).SetUint64(header.GetNumber()),

@@ -148,6 +148,7 @@ func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
 						"__negtf2":   &exec.FunctionImport{Execute: env__negtf2, GasCost: env__negtf2GasCost},*/
 
 			// for blockchain function
+			"value":        &exec.FunctionImport{Execute: r.envValue, GasCost: constGasFunc(GasQuickStep)},
 			"gasPrice":     &exec.FunctionImport{Execute: r.envGasPrice, GasCost: constGasFunc(GasQuickStep)},
 			"blockHash":    &exec.FunctionImport{Execute: r.envBlockHash, GasCost: constGasFunc(GasQuickStep)},
 			"number":       &exec.FunctionImport{Execute: r.envNumber, GasCost: constGasFunc(GasQuickStep)},

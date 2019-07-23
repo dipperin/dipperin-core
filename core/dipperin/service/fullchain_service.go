@@ -2049,6 +2049,7 @@ func (service *MercuryFullChainService) doCall(msg state_processor.Message, txHa
 	log.Info("doCall#gasLimit", "gasLimit", msg.Gas())
 	conText := vm.Context{
 		Origin:      msg.From(),
+		Value:       msg.Value(),
 		GasPrice:    msg.GasPrice(),
 		GasLimit:    msg.Gas(),
 		BlockNumber: new(big.Int).SetUint64(blockNum),

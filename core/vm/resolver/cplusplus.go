@@ -287,6 +287,13 @@ func envAbortGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 0, nil
 }
 
+// define: int64_t value();
+func (r *Resolver) envValue(vm *exec.VirtualMachine) int64 {
+	value := r.Service.GetValue()
+	log.Info("envValue", "value", value)
+	return value
+}
+
 // define: int64_t gasPrice();
 func (r *Resolver) envGasPrice(vm *exec.VirtualMachine) int64 {
 	gasPrice := r.Service.GetGasPrice()
