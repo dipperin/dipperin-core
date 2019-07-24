@@ -17,8 +17,8 @@ func Test_BuildInsContractCall(t *testing.T) {
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
 
-	WASMBuildPath := g_testData.GetWASMPath("buildins",g_testData.CoreVmTestData)
-	ABIBuildPath := g_testData.GetAbiPath("buildins",g_testData.CoreVmTestData)
+	WASMBuildPath := g_testData.GetWASMPath("buildins", g_testData.CoreVmTestData)
+	ABIBuildPath := g_testData.GetAbiPath("buildins", g_testData.CoreVmTestData)
 	contractHash := SendCreateContract(t, cluster, nodeName, WASMBuildPath, ABIBuildPath, "")
 	checkTransactionOnChain(client, []common.Hash{contractHash})
 

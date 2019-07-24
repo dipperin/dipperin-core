@@ -15,8 +15,8 @@ func Test_MapContractCall(t *testing.T) {
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
 
-	WASMMapPath := g_testData.GetWASMPath("map-string",g_testData.CoreVmTestData)
-	ABIMapPath := g_testData.GetAbiPath("map-string",g_testData.CoreVmTestData)
+	WASMMapPath := g_testData.GetWASMPath("map-string", g_testData.CoreVmTestData)
+	ABIMapPath := g_testData.GetAbiPath("map-string", g_testData.CoreVmTestData)
 	contractHash := SendCreateContract(t, cluster, nodeName, WASMMapPath, ABIMapPath, "")
 	checkTransactionOnChain(client, []common.Hash{contractHash})
 

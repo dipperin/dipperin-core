@@ -1065,8 +1065,8 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 
 	nonce = uint64(6)
 	to := common.HexToAddress(common.AddressContractCreate)
-	WASMPath := g_testData.GetWASMPath("token",g_testData.CoreVmTestData)
-	abiPath := g_testData.GetAbiPath("token",g_testData.CoreVmTestData)
+	WASMPath := g_testData.GetWASMPath("token", g_testData.CoreVmTestData)
+	abiPath := g_testData.GetAbiPath("token", g_testData.CoreVmTestData)
 	data, err := g_testData.GetCreateExtraData(WASMPath, abiPath, "dipp,DIPP,100000000")
 	assert.NoError(t, err)
 	gasLimit := g_testData.TestGasLimit * 100
@@ -1075,8 +1075,8 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 
 	nonce = uint64(7)
 	to = common.BytesToAddress(hash[:])
-	WASMPath = g_testData.GetWASMPath("token",g_testData.CoreVmTestData)
-	abiPath = g_testData.GetAbiPath("token",g_testData.CoreVmTestData)
+	WASMPath = g_testData.GetWASMPath("token", g_testData.CoreVmTestData)
+	abiPath = g_testData.GetAbiPath("token", g_testData.CoreVmTestData)
 	data, err = g_testData.GetCallExtraData("getBalance", address.String())
 	assert.NoError(t, err)
 

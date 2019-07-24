@@ -22,8 +22,8 @@ type ContractTestParameter struct {
 
 var ContractTestPar = ContractTestParameter{
 	NodeName:      "default_v0",
-	WASMPath:      GetWASMPath("dipclib_test",DIPCTestContract),
-	AbiPath:       GetAbiPath("dipclib_test",DIPCTestContract),
+	WASMPath:      GetWASMPath("dipclib_test", DIPCTestContract),
+	AbiPath:       GetAbiPath("dipclib_test", DIPCTestContract),
 	InitInputPara: "",
 	CallFuncName:  "libTest",
 	CallInputPara: "",

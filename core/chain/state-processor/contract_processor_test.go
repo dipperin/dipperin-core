@@ -126,8 +126,8 @@ func newContractCallTx(from *common.Address, to *common.Address, gasPrice *big.I
 }
 
 func TestAccountStateDB_ProcessContract2(t *testing.T) {
-	WASMPath := g_testData.GetWASMPath("event",g_testData.CoreVmTestData)
-	abiPath := g_testData.GetAbiPath("event",g_testData.CoreVmTestData)
+	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
+	abiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
 	tx1 := createContractTx(WASMPath, abiPath, 0)
 	contractAddr := cs_crypto.CreateContractAddress(aliceAddr, 0)
 	name := []byte("ProcessContract")
@@ -198,8 +198,8 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 		brotherAddress,
 	}
 
-	WASMPath := g_testData.GetWASMPath("token",g_testData.CoreVmTestData)
-	abiPath := g_testData.GetAbiPath("token",g_testData.CoreVmTestData)
+	WASMPath := g_testData.GetWASMPath("token", g_testData.CoreVmTestData)
+	abiPath := g_testData.GetAbiPath("token", g_testData.CoreVmTestData)
 	input := []string{"dipp", "DIPP", "1000000"}
 	data, err := getCreateExtraData(WASMPath, abiPath, input)
 	assert.NoError(t, err)
@@ -398,7 +398,7 @@ func CreateProcessorAndInitAccount(t *testing.T, addressSlice []common.Address) 
 }
 
 func TestGetByteFromAbiFile(t *testing.T) {
-	abiTokenPath := g_testData.GetAbiPath("token-const",g_testData.CoreVmTestData)
+	abiTokenPath := g_testData.GetAbiPath("token-const", g_testData.CoreVmTestData)
 	bytes, err := ioutil.ReadFile(abiTokenPath)
 	assert.NoError(t, err)
 	fmt.Println(bytes)

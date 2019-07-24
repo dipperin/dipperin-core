@@ -10,8 +10,8 @@ import (
 )
 
 func TestApplyMessage(t *testing.T) {
-	WASMPath := g_testData.GetWASMPath("event",g_testData.CoreVmTestData)
-	AbiPath := g_testData.GetAbiPath("event",g_testData.CoreVmTestData)
+	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
 	tx := createContractTx(WASMPath, AbiPath, 0)
 	msg, err := tx.AsMessage()
 	assert.NoError(t, err)
@@ -41,8 +41,8 @@ func TestApplyMessage(t *testing.T) {
 }
 
 func BenchmarkApplyMessage_Create(b *testing.B) {
-	WASMPath := g_testData.GetWASMPath("event",g_testData.CoreVmTestData)
-	AbiPath := g_testData.GetAbiPath("event",g_testData.CoreVmTestData)
+	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
 	tx := createContractTx(WASMPath, AbiPath, 0)
 	msg, err := tx.AsMessage()
 	assert.NoError(b, err)
@@ -59,8 +59,8 @@ func BenchmarkApplyMessage_Create(b *testing.B) {
 }
 
 func BenchmarkApplyMessage_Call(b *testing.B) {
-	WASMPath := g_testData.GetWASMPath("event",g_testData.CoreVmTestData)
-	AbiPath := g_testData.GetAbiPath("event",g_testData.CoreVmTestData)
+	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
 
 	// create tx
 	tx1 := createContractTx(WASMPath, AbiPath, 0)

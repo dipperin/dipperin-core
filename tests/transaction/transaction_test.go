@@ -103,8 +103,8 @@ func createBlock(num uint64, preHash common.Hash, txList []*model.Transaction, l
 func TestWASMContactMiniTxFee(t *testing.T) {
 	params := "dipp,DIPP,1000000"
 
-	WASMTokenPath := g_testData.GetWASMPath("token-const",g_testData.CoreVmTestData)
-	AbiTokenPath := g_testData.GetAbiPath("token-const",g_testData.CoreVmTestData)
+	WASMTokenPath := g_testData.GetWASMPath("token-const", g_testData.CoreVmTestData)
+	AbiTokenPath := g_testData.GetAbiPath("token-const", g_testData.CoreVmTestData)
 	extraData, err := g_testData.GetCreateExtraData(WASMTokenPath, AbiTokenPath, params)
 	extraData, err = utils.ParseCreateContractData(extraData)
 	assert.NoError(t, err)
