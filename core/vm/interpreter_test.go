@@ -9,7 +9,7 @@ import (
 )
 
 func TestWASMInterpreter_Run_map_string(t *testing.T) {
-	/*	WASMPath := g_testData.GetWasmPath("map-string")
+	/*	WASMPath := g_testData.GetWASMPath("map-string")
 		AbiPath := g_testData.GetAbiPath("map-string")*/
 	/*	WASMPath := "/home/qydev/go/src/dipperin-c/dipc/testcontract/mapString/mapString.wasm"
 		AbiPath := "/home/qydev/go/src/dipperin-c/dipc/testcontract/mapString/mapString.cpp.abi.json"
@@ -50,8 +50,8 @@ func TestWASMInterpreter_Run_map_string(t *testing.T) {
 }
 
 func TestWASMInterpreter_Run_event(t *testing.T) {
-	WASMPath := g_testData.GetWasmPath("event")
-	AbiPath := g_testData.GetAbiPath("event")
+	WASMPath := g_testData.GetWASMPath("event",g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("event",g_testData.CoreVmTestData)
 	testVm := getTestVm()
 	interpreter := testVm.Interpreter
 
@@ -69,11 +69,14 @@ func TestWASMInterpreter_Run_event(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-/*func TestWASMInterpreter_Run_DIPCLibContract(t *testing.T) {
+func TestWASMInterpreter_Run_DIPCLibContract(t *testing.T) {
+	t.Skip()
 	testVm := getTestVm()
 	interpreter := testVm.Interpreter
 	inputs := genInput(t, g_testData.ContractTestPar.CallFuncName,[][]byte{})
+	log.Info("the wasmPath is:","wasmPath",g_testData.ContractTestPar.WASMPath)
+	log.Info("the abiPath is:","abiPath",g_testData.ContractTestPar.AbiPath)
 	contract := getContract(t, contractAddr, g_testData.ContractTestPar.WASMPath, g_testData.ContractTestPar.AbiPath, inputs)
 	_, err := interpreter.Run(testVm, contract, false)
 	assert.NoError(t,err)
-}*/
+}

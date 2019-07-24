@@ -31,8 +31,8 @@ func Test_EventContractCall(t *testing.T) {
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
 
-	WASMEventPath := g_testData.GetWasmPath("event")
-	AbiEventPath := g_testData.GetAbiPath("event")
+	WASMEventPath := g_testData.GetWASMPath("event",g_testData.CoreVmTestData)
+	AbiEventPath := g_testData.GetAbiPath("event",g_testData.CoreVmTestData)
 	contractHash := SendCreateContract(t, cluster, nodeName, WASMEventPath, AbiEventPath, "")
 	checkTransactionOnChain(client, []common.Hash{contractHash})
 
