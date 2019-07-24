@@ -227,8 +227,8 @@ func contractCall(c *cli.Context) (resp interface{}, err error) {
 		return
 	}
 
-	if len(cParams) != 3 && len(cParams) != 4 {
-		err = errors.New("parameter includes：from to gasPrice gasLimit, gasPrice is optional")
+	if len(cParams) != 5 {
+		err = errors.New("parameter includes：from to value gasPrice gasLimit")
 		return
 	}
 
@@ -242,13 +242,19 @@ func contractCall(c *cli.Context) (resp interface{}, err error) {
 		return
 	}
 
-	gasPrice, err := MoneyValueToCSCoin(cParams[2])
+	value, err := MoneyValueToCSCoin(cParams[2])
+	if err != nil {
+		l.Error("the parameter value invalid", "err", err)
+		return
+	}
+
+	gasPrice, err := MoneyValueToCSCoin(cParams[3])
 	if err != nil {
 		l.Error("the parameter gasPrice invalid", "err", err)
 		return
 	}
 
-	gasLimit, err := strconv.ParseUint(cParams[3], 10, 64)
+	gasLimit, err := strconv.ParseUint(cParams[4], 10, 64)
 	if err != nil {
 		l.Error("the parameter gasLimit invalid", "err", err)
 		return
@@ -270,12 +276,13 @@ func contractCall(c *cli.Context) (resp interface{}, err error) {
 
 	l.Info("the from is: ", "from", from.Hex())
 	l.Info("the to is: ", "to", to.Hex())
-	l.Info("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[2]))
+	l.Info("the value is:", "value", MoneyWithUnit(cParams[2]))
+	l.Info("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[3]))
 	l.Info("the gasLimit is:", "gasLimit", gasLimit)
 	l.Info("the funcName is:", "funcName", funcName)
 	//l.Info("the ExtraData is: ", "ExtraData", inputRlp)
 
-	err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, to, nil, gasPrice, gasLimit, inputRlp, nil)
+	err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, to, value, gasPrice, gasLimit, inputRlp, nil)
 	return
 }
 
