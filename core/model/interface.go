@@ -109,6 +109,7 @@ type PriofityCalculator interface {
 	GetReputation(uint64, *big.Int, uint64) (uint64, error)
 }
 
+//go:generate mockgen -destination=./../chain-communication/transaction_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/model AbstractTransaction
 type AbstractTransaction interface {
 	Size() common.StorageSize
 	Amount() *big.Int

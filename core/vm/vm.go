@@ -299,8 +299,13 @@ func (context *Context) GetTxHash() common.Hash {
 	return context.callGasTemp
 }
 */
+
 func (context *Context) GetGasPrice() int64 {
 	return context.GasPrice.Int64()
+}
+
+func (context *Context) GetGasLimit() uint64 {
+	return context.GasLimit
 }
 
 func (context *Context) GetBlockHash(num uint64) common.Hash {
@@ -309,10 +314,6 @@ func (context *Context) GetBlockHash(num uint64) common.Hash {
 
 func (context *Context) GetBlockNumber() *big.Int {
 	return context.BlockNumber
-}
-
-func (context *Context) GetGasLimit() uint64 {
-	return context.GasLimit
 }
 
 func (context *Context) GetTime() *big.Int {
