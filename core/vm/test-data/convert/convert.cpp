@@ -2,7 +2,8 @@
 
 void convert::init() {}
 
-void convert::toString() {
+void convert::toString()
+{
     {
         float f = 1.000001f;
         char buf[10];
@@ -14,7 +15,7 @@ void convert::toString() {
         float f = 2e-6f / 3.0f;
         char buf[10];
         ::snprintf(buf, sizeof(buf), "%f", f);
-        DipcAssert(strcmp(buf, "0.000001") == 0);    
+        DipcAssert(strcmp(buf, "0.000001") == 0);
     }
 
     {
@@ -46,24 +47,27 @@ void convert::toString() {
     }
 }
 
-void convert::getBlockInfo() {
+void convert::getBlockInfo()
+{
     uint64_t num = ::number();
     uint64_t gasLimit = ::gasLimit();
     int64_t gasPrice = ::gasPrice();
     int64_t timestamp = ::timestamp();
     int64_t nonce = ::getCallerNonce();
 
-    std::string blockHash = dipc::blockHash(num-1).toString();
+    std::string blockHash = dipc::blockHash(num - 1).toString();
     std::string coinbase = dipc::coinbase2().toString();
-    std::string balance = dipc::balance().convert_to<std::string>().c_str();
+    Address2 addr = dipc::address2();
+    std::string address = addr.toString();
+    std::string balance = dipc::balance(addr).convert_to<std::string>().c_str();
     std::string origin = dipc::origin2().toString();
     std::string caller = dipc::caller2().toString();
     std::string callValue = dipc::callValue().convert_to<std::string>().c_str();
-    std::string address = dipc::address2().toString();
+
 
     DIPC_EMIT_EVENT(uint64, &("blockNum"[0]), num);
     DIPC_EMIT_EVENT(uint64, &("GasLimit"[0]), gasLimit);
-    
+
     DIPC_EMIT_EVENT(int64, &("GasPrice"[0]), gasPrice);
     DIPC_EMIT_EVENT(int64, &("TimeStamp"[0]), timestamp);
     DIPC_EMIT_EVENT(int64, &("Nonce"[0]), nonce);
@@ -77,7 +81,8 @@ void convert::getBlockInfo() {
     DIPC_EMIT_EVENT(string, &("Address"[0]), &(address[0]));
 }
 
-void convert::rlpTest() {
+void convert::rlpTest()
+{
     std::string data = "9600005586b883ec6dd4f8c26063e18eb4bd228e59c3e9";
     RLPStream stream;
     stream << Address2("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9", true);
@@ -86,7 +91,8 @@ void convert::rlpTest() {
     DIPC_EMIT_EVENT(string, &(data[0]), &(result[0]));
 }
 
-void convert::printTest() {
+void convert::printTest()
+{
     {
         prints("hello");
         prints_l("world", 5);
@@ -99,14 +105,14 @@ void convert::printTest() {
     {
         __int128 i = std::numeric_limits<__int128>::lowest();
         printi128(&i);
-    
+
         unsigned __int128 u = std::numeric_limits<unsigned __int128>::max();
         printui128(&u);
     }
 
     // test float
-    {   
-        float f = 1.0f/2.0f;
+    {
+        float f = 1.0f / 2.0f;
         printsf(f);
 
         f = 5.0f * -0.75f;
@@ -146,4 +152,3 @@ void convert::printTest() {
         printhex(f.data(), f.size());
     }
 }
-  

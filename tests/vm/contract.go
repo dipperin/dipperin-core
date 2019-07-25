@@ -124,7 +124,7 @@ func SendCreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNam
 
 	log.Info("SendCreateContract the extraData is:", "data", hexutil.Encode(data))
 
-	value := big.NewInt(0).Mul(g_testData.TestValue, big.NewInt(2))
+	value := big.NewInt(0).Mul(g_testData.TestValue, big.NewInt(5e10))
 	gasLimit := g_testData.TestGasLimit * 10000
 	gasPrice := big.NewInt(0).Mul(g_testData.TestGasPrice, big.NewInt(4))
 	txHash, innerErr := SendTransactionContract(client, from, to, value, gasPrice, gasLimit, data)
@@ -139,7 +139,7 @@ func SendCallContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName 
 	assert.NoError(t, err)
 
 	to := GetContractAddressByTxHash(client, txHash)
-	value := big.NewInt(0).Mul(g_testData.TestValue, big.NewInt(5))
+	value := big.NewInt(0).Mul(g_testData.TestValue, big.NewInt(3e10))
 	gasLimit := g_testData.TestGasLimit * 10000
 	gasPrice := big.NewInt(0).Mul(g_testData.TestGasPrice, big.NewInt(2))
 	txHash, innerErr := SendTransactionContract(client, from, to, value, gasPrice, gasLimit, input)

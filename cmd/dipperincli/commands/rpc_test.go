@@ -682,7 +682,7 @@ func TestRpcCaller_SendTransactionContract(t *testing.T) {
 		//	caller.SendTransactionContract(c)
 
 		c.Set("p", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,0x00144179D57e45Cb3b54D6FAEF69e746bf240E287978,11122,10")
-		c.Set("abi", util.HomeDir()+"go/src/github.com/dipperin/dipperin-core/core/vm/test-data/event/example/example.cpp.abi.json")
+		c.Set("abi", util.HomeDir()+"go/src/github.com/dipperin/dipperin-core/core/vm/test-data/event/event/event.cpp.abi.json")
 		c.Set("input", "test,123,456")
 		c.Set("func-name", "fake")
 		c.Set("is-create", "false")

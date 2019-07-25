@@ -16,11 +16,12 @@ void statetest::stateTests()
 
     std::string blockHash = dipc::blockHash(num - 1).toString();
     std::string coinbase = dipc::coinbase2().toString();
-    std::string balance = dipc::balance().convert_to<std::string>().c_str();
+    Address2 addr = dipc::address2();
+    std::string address = addr.toString();
+    std::string balance = dipc::balance(addr).convert_to<std::string>().c_str();
     std::string origin = dipc::origin2().toString();
     std::string caller = dipc::caller2().toString();
     std::string callValue = dipc::callValue().convert_to<std::string>().c_str();
-    std::string address = dipc::address2().toString();
 
     //test sha3
     sha3Test();

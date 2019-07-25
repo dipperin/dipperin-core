@@ -26,18 +26,18 @@ func TestApplyMessage(t *testing.T) {
 	fmt.Println("----------------------------------")
 
 	name := []byte("ApplyMsg")
-	num := utils.Int64ToBytes(234)
-	params := [][]byte{name, num}
+	params := [][]byte{name}
 	to := cs_crypto.CreateContractAddress(aliceAddr, 0)
-	tx = callContractTx(&to, "hello", params, 1)
+	tx = callContractTx(&to, "returnString", params, 1)
 	msg, err = tx.AsMessage()
 	assert.NoError(t, err)
 
 	result, usedGas, failed, _, err = ApplyMessage(testVm, &msg, &gasPool)
+	resp := utils.Align32BytesConverter(result, "string")
 	assert.NoError(t, err)
 	assert.False(t, failed)
 	assert.NotNil(t, usedGas)
-	assert.Equal(t, make([]byte, 32), result)
+	assert.Equal(t, string(name), resp)
 }
 
 func BenchmarkApplyMessage_Create(b *testing.B) {

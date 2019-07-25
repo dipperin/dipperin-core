@@ -22,3 +22,6 @@ DIPC_ABI(convert, printTest);
 DIPC_EVENT(int64, const char*, int64_t);
 DIPC_EVENT(uint64, const char*, uint64_t);
 DIPC_EVENT(string, const char*, const char*);
+
+bytes generateHashSrcData(uint64_t datalen);
+void sha3Test();

@@ -131,9 +131,8 @@ func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	tx1 := createContractTx(WASMPath, abiPath, 0)
 	contractAddr := cs_crypto.CreateContractAddress(aliceAddr, 0)
 	name := []byte("ProcessContract")
-	num := utils.Int64ToBytes(456)
-	param := [][]byte{name, num}
-	tx2 := callContractTx(&contractAddr, "hello", param, 1)
+	param := [][]byte{name}
+	tx2 := callContractTx(&contractAddr, "returnString", param, 1)
 
 	db, root := CreateTestStateDB()
 	tdb := NewStateStorageWithCache(db)
