@@ -1,11 +1,11 @@
 package vm
 
 import (
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 )
 
 func TestWASMInterpreter_Run(t *testing.T) {
@@ -112,7 +112,7 @@ func TestParseInputForFuncName(t *testing.T) {
 	assert.Equal(t, "", funcName)
 	assert.Equal(t, errEmptyInput, err)
 
-	funcName, err = ParseInputForFuncName([]byte{1,2,3})
+	funcName, err = ParseInputForFuncName([]byte{1, 2, 3})
 	assert.Equal(t, "", funcName)
 	assert.Equal(t, errReturnInvalidRlpFormat, err)
 

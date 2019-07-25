@@ -3,8 +3,8 @@ package g_testData
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/util"
-	"path/filepath"
 	"io/ioutil"
+	"path/filepath"
 )
 
 func GetWasmPath(fileName string) string {

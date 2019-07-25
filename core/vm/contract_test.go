@@ -1,9 +1,9 @@
 package vm
 
 import (
-	"testing"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestNewContract(t *testing.T) {
@@ -29,7 +29,7 @@ func TestContract_AsDelegate(t *testing.T) {
 
 	inputs := genInput(t, "hello", nil)
 	callerContract := getContract(WASMPath, AbiPath, inputs)
-	contract := &Contract{caller:callerContract}
+	contract := &Contract{caller: callerContract}
 
 	deContract := contract.AsDelegate()
 	assert.Equal(t, true, deContract.DelegateCall)

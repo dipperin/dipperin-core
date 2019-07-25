@@ -338,7 +338,7 @@ func (r *Resolver) envBalance(vm *exec.VirtualMachine) int64 {
 	addrLen := int(int32(vm.GetCurrentFrame().Locals[1]))
 	ptr := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	address := vm.Memory.Memory[addr:addr+addrLen]
+	address := vm.Memory.Memory[addr : addr+addrLen]
 	balance := r.Service.GetBalance(common.BytesToAddress(address))
 	// 256 bits
 	if len(balance.Bytes()) > 32 {
