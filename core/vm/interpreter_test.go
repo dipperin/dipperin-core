@@ -3,10 +3,10 @@ package vm
 import (
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 func TestWASMInterpreter_Run(t *testing.T) {
