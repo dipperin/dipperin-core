@@ -48,9 +48,6 @@ const (
 // LE is a simple alias to `binary.LittleEndian`.
 var LE = binary.LittleEndian
 
-//var memPool = NewMemPool(DefaultMemPoolCount, DefaultMemBlockSize)
-//var treePool = NewTreePool(DefaultMemPoolCount, DefaultMemBlockSize)
-
 type FunctionImportInfo struct {
 	ModuleName string
 	FieldName  string
@@ -461,10 +458,12 @@ func (f *Frame) Destroy(vm *VirtualMachine) {
 
 // GetCurrentFrame returns the current frame.
 func (vm *VirtualMachine) GetCurrentFrame() *Frame {
+	//log.Info("GetCurrentFrame~~~~~~~~~~~~~~~~~~~~~")
 	if vm.Config.MaxCallStackDepth != 0 && vm.CurrentFrame >= vm.Config.MaxCallStackDepth {
 		panic("max call stack depth exceeded")
 	}
-
+	//log.Info("the current frame is:","currentFrame",vm.CurrentFrame)
+	//log.Info("the len(vm.CallStack) is:","len(vm.CallStack)",len(vm.CallStack))
 	if vm.CurrentFrame >= len(vm.CallStack) {
 		panic("call stack overflow")
 		//vmcommon.CallStack = append(vmcommon.CallStack, make([]Frame, DefaultCallStackSize / 2)...)
@@ -1812,7 +1811,7 @@ func (vm *VirtualMachine) Execute() {
 			importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
 			frame.IP += 4
 			vm.Delegate = func() {
-				log.Debug("the call func is:", "f", vm.FunctionImports[importID])
+				//log.Debug("the call func is:", "f", vm.FunctionImports[importID])
 				frame.Regs[valueID] = vm.FunctionImports[importID].F.Execute(vm)
 			}
 			return

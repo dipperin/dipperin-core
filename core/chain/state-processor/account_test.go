@@ -198,8 +198,8 @@ func TestContractCreate(t *testing.T) {
 }
 
 func FakeContract(t *testing.T) *model.Transaction {
-	codePath := g_testData.GetWasmPath("map-string")
-	abiPath := g_testData.GetAbiPath("map-string")
+	codePath := g_testData.GetWASMPath("map-string", g_testData.CoreVmTestData)
+	abiPath := g_testData.GetAbiPath("map-string", g_testData.CoreVmTestData)
 	fileCode, err := ioutil.ReadFile(codePath)
 	assert.NoError(t, err)
 

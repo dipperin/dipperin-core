@@ -6,11 +6,12 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 func TestWASMInterpreter_Run(t *testing.T) {
-	WASMPath := g_testData.GetWasmPath("event")
-	AbiPath := g_testData.GetAbiPath("event")
+	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
 	testVm := getTestVm()
 	interpreter := testVm.Interpreter
 
@@ -63,8 +64,8 @@ func TestWASMInterpreter_Run_Error(t *testing.T) {
 	assert.Nil(t, result)
 	assert.Error(t, err)
 
-	WASMPath := g_testData.GetWasmPath("event")
-	AbiPath := g_testData.GetAbiPath("event")
+	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
 	code, abi := g_testData.GetCodeAbi(WASMPath, AbiPath)
 	contract.Code = code
 	contract.ABI = abi
@@ -124,5 +125,16 @@ func TestParseInputForFuncName(t *testing.T) {
 	input, err = rlp.EncodeToBytes([]interface{}{"funcName"})
 	funcName, err = ParseInputForFuncName(input)
 	assert.Equal(t, "funcName", funcName)
+}
+
+func TestWASMInterpreter_Run_DIPCLibContract(t *testing.T) {
+	t.Skip()
+	testVm := getTestVm()
+	interpreter := testVm.Interpreter
+	inputs := genInput(t, g_testData.ContractTestPar.CallFuncName, [][]byte{})
+	log.Info("the wasmPath is:", "wasmPath", g_testData.ContractTestPar.WASMPath)
+	log.Info("the abiPath is:", "abiPath", g_testData.ContractTestPar.AbiPath)
+	contract := getContract(g_testData.ContractTestPar.WASMPath, g_testData.ContractTestPar.AbiPath, inputs)
+	_, err := interpreter.Run(testVm, contract, false)
 	assert.NoError(t, err)
 }

@@ -7,8 +7,8 @@ import (
 )
 
 func TestNewContract(t *testing.T) {
-	WASMPath := g_testData.GetWasmPath("event")
-	AbiPath := g_testData.GetAbiPath("event")
+	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
 
 	inputs := genInput(t, "hello", nil)
 	contract := getContract(WASMPath, AbiPath, inputs)
@@ -24,8 +24,8 @@ func TestNewContract(t *testing.T) {
 }
 
 func TestContract_AsDelegate(t *testing.T) {
-	WASMPath := g_testData.GetWasmPath("event")
-	AbiPath := g_testData.GetAbiPath("event")
+	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
 
 	inputs := genInput(t, "hello", nil)
 	callerContract := getContract(WASMPath, AbiPath, inputs)

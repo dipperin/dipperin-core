@@ -1,11 +1,6 @@
 package resolver
 
-// #cgo CFLAGS: -I./softfloat/source/include
-// #define SOFTFLOAT_FAST_INT64
-// #include "softfloat.h"
-//
 // #cgo CXXFLAGS: -std=c++14
-// #include "printqf.h"
 // #include "print128.h"
 import "C"
 import (
@@ -194,7 +189,7 @@ func envPrintdfGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func envPrintqf(vm *exec.VirtualMachine) int64 {
+/*func envPrintqf(vm *exec.VirtualMachine) int64 {
 	frame := vm.GetCurrentFrame()
 	pos := frame.Locals[0]
 
@@ -210,6 +205,7 @@ func envPrintqf(vm *exec.VirtualMachine) int64 {
 func envPrintqfGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
+*/
 
 func envPrintn(vm *exec.VirtualMachine) int64 {
 	data := fmt.Sprintf("%d", int(uint32(vm.GetCurrentFrame().Locals[0])))

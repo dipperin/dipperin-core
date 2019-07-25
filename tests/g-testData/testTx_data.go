@@ -1,10 +1,8 @@
 package g_testData
 
 import (
-	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"math/big"
-	"path/filepath"
 )
 
 var (
@@ -24,8 +22,8 @@ type ContractTestParameter struct {
 
 var ContractTestPar = ContractTestParameter{
 	NodeName:      "default_v0",
-	WASMPath:      filepath.Join(util.HomeDir(), "c++/src/dipc/testcontract/dipclib_test/dipclib_test.wasm"),
-	AbiPath:       filepath.Join(util.HomeDir(), "c++/src/dipc/testcontract/dipclib_test/dipclib_test.cpp.abi.json"),
+	WASMPath:      GetWASMPath("dipclib_test", DIPCTestContract),
+	AbiPath:       GetAbiPath("dipclib_test", DIPCTestContract),
 	InitInputPara: "",
 	CallFuncName:  "libTest",
 	CallInputPara: "",

@@ -15,8 +15,8 @@ func Test_ConvertContractCall(t *testing.T) {
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
 
-	WASMConvertPath := g_testData.GetWasmPath("convert")
-	ABIConvertPath := g_testData.GetAbiPath("convert")
+	WASMConvertPath := g_testData.GetWASMPath("convert", g_testData.CoreVmTestData)
+	ABIConvertPath := g_testData.GetAbiPath("convert", g_testData.CoreVmTestData)
 	contractHash := SendCreateContract(t, cluster, nodeName, WASMConvertPath, ABIConvertPath, "")
 	checkTransactionOnChain(client, []common.Hash{contractHash})
 
