@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common/bitutil"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
@@ -366,6 +367,7 @@ func (m *Matcher) subMatch(source chan *partialMatches, dist chan *request, bloo
 					bitutil.ANDBytes(orVector, orVector, subres.bitset)
 				}
 				if bitutil.TestBytes(orVector) {
+					fmt.Println("orVerctor=========", orVector)
 					select {
 					case <-session.quit:
 						return

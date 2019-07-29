@@ -8,6 +8,7 @@ package bitutil
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 )
 
@@ -65,6 +66,14 @@ func TestAND(t *testing.T) {
 	}
 }
 
+func TestAnd2(t *testing.T)  {
+	d1 := make([]byte, 10)
+	p := []byte{1,2,3}
+	q := []byte{4,5,6}
+	ANDBytes(d1, p, q)
+	fmt.Println(d1)
+}
+
 // Tests that bitwise OR works for various alignments.
 func TestOR(t *testing.T) {
 	for alignP := 0; alignP < 2; alignP++ {
@@ -110,6 +119,9 @@ func TestTest(t *testing.T) {
 			t.Error("not equal")
 		}
 	}
+	p := make([]byte, 1023)
+	p[100] = 1
+	fmt.Println(TestBytes(p))
 }
 
 // Benchmarks the potentially optimized XOR performance.

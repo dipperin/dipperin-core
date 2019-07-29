@@ -34,6 +34,8 @@ import (
 	"github.com/dipperin/dipperin-core/core/dipperin"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/urfave/cli"
+	"net/http"
+	_ "net/http/pprof"
 	"io/ioutil"
 	"os"
 	"os/signal"
@@ -56,12 +58,15 @@ func main() {
 	log.InitLogger(log.LvlInfo)
 	//cslog.InitLogger(zap.InfoLevel, "", true)
 	app = newApp()
+	go StartPprof()
 	app.Run(os.Args)
-
 }
 
 func StartPprof() {
-
+	err := http.ListenAndServe("localhost:6060", nil)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func newApp() (nApp *cli.App) {

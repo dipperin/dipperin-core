@@ -67,7 +67,7 @@ type ChainIndexerChain interface {
 // after an entire section has been finished or in case of rollbacks that might
 // affect already finished sections.
 type ChainIndexer struct {
-	chainDb       ethdb.Database // Chain database to index the data from
+	//chainDb       ethdb.Database // Chain database to index the data from
 	chainReader   middleware.ChainInterface
 	indexDb       ethdb.Database       // Prefixed table-view of the db to write index metadata into
 	backend       ChainIndexerBackend  // Background processor generating the index data content
@@ -92,7 +92,6 @@ type ChainIndexer struct {
 
 	throttling time.Duration // Disk throttling to prevent a heavy upgrade from hogging resources
 
-	log  log.Logger
 	lock sync.RWMutex
 }
 
@@ -115,7 +114,7 @@ func (c *ChainIndexer) Stop() {
 func NewChainIndexer(chainReader middleware.ChainInterface, db ethdb.Database, indexDb ethdb.Database, backend ChainIndexerBackend, section, confirm uint64, throttling time.Duration, kind string) *ChainIndexer {
 	c := &ChainIndexer{
 		chainReader:   chainReader,
-		chainDb:       db,
+		//chainDb:       db,
 		indexDb:       indexDb,
 		backend:       backend,
 		update:        make(chan struct{}, 1),
@@ -124,7 +123,6 @@ func NewChainIndexer(chainReader middleware.ChainInterface, db ethdb.Database, i
 		sectionSize:   section,
 		confirmsReq:   confirm,
 		throttling:    throttling,
-		log:           log.New("type", kind),
 	}
 	// Initialize database dependent fields and start the updater
 	c.loadValidSections()
@@ -273,7 +271,7 @@ func (c *ChainIndexer) newHead(head uint64) {
 				}
 				//syncedHead := rawdb.ReadCanonicalHash(c.chainDb, c.checkpointSections*c.sectionSize-1)
 				if syncedHead != c.checkpointHead {
-					c.log.Error("Synced chain does not match checkpoint", "number", c.checkpointSections*c.sectionSize-1, "expected", c.checkpointHead, "synced", syncedHead)
+					log.Error("Synced chain does not match checkpoint", "number", c.checkpointSections*c.sectionSize-1, "expected", c.checkpointHead, "synced", syncedHead)
 					return
 				}
 			}
@@ -331,26 +329,26 @@ func (c *ChainIndexer) updateLoop() {
 						return
 					default:
 					}
-					c.log.Error("Section processing failed", "error", err)
+					log.Error("Section processing failed", "error", err)
 				}
 				c.lock.Lock()
 
-				// If processing succeeded and no reorgs occcurred, mark the section completed
+				// If processing succeeded, mark the section completed
 				if err == nil && oldHead == c.SectionHead(section-1) {
 					c.setSectionHead(section, newHead)
 					c.setValidSections(section + 1)
 					if c.storedSections == c.knownSections && updating {
 						updating = false
-						c.log.Info("Finished upgrading chain index")
+						log.Info("Finished upgrading chain index")
 					}
 					c.cascadedHead = c.storedSections*c.sectionSize - 1
 					for _, child := range c.children {
-						c.log.Debug("Cascading chain index update", "head", c.cascadedHead)
+						log.Debug("Cascading chain index update", "head", c.cascadedHead)
 						child.newHead(c.cascadedHead)
 					}
 				} else {
 					// If processing failed, don't retry until further notification
-					c.log.Debug("Chain index processing failed", "section", section, "err", err)
+					log.Debug("Chain index processing failed", "section", section, "err", err)
 					c.knownSections = c.storedSections
 				}
 			}

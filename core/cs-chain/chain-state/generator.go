@@ -54,6 +54,7 @@ func NewGenerator(sections uint) (*Generator, error) {
 
 // AddBloom takes a single bloom filter and sets the corresponding bit column
 // in memory accordingly.
+// 整个方法的作用是判断bloom中该位是否为0，如果不为0则与generator中blooms中该位在bloom中对应的序号中对应的
 func (b *Generator) AddBloom(index uint, bloom model2.Bloom) error {
 	// Make sure we're not adding more bloom filters than our capacity
 	if b.nextSec >= b.sections {
@@ -65,10 +66,14 @@ func (b *Generator) AddBloom(index uint, bloom model2.Bloom) error {
 	// Rotate the bloom and insert into our collection
 	byteIndex := b.nextSec / 8
 	bitMask := byte(1) << byte(7-b.nextSec%8)
+	//fmt.Println("AddBloom ============", bitMask, byte(1), byte(7-b.nextSec%8))
 
 	for i := 0; i < model2.BloomBitLength; i++ {
 		bloomByteIndex := model2.BloomByteLength - 1 - i/8
 		bloomBitMask := byte(1) << byte(i%8)
+		//fmt.Println("Adoom =====","i", i,",bloomByteIndex",byte(bloomByteIndex),",bloomBitMask",byte(bloomBitMask),
+		//	"bloom[bloomByteIndex]",byte(bloom[bloomByteIndex]),
+		//	"(bloom[bloomByteIndex] & bloomBitMask)",byte(bloom[bloomByteIndex] & bloomBitMask), "(b.blooms[i][byteIndex] | bitMask)", byte(b.blooms[i][byteIndex] | bitMask), "bteIndex", byte(byteIndex), "bitMask", byte(bitMask))
 
 		if (bloom[bloomByteIndex] & bloomBitMask) != 0 {
 			b.blooms[i][byteIndex] |= bitMask

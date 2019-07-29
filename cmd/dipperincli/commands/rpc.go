@@ -739,6 +739,10 @@ func (caller *rpcCaller) GetLogs(c *cli.Context) {
 		l.Error("rpcCaller#GetLogs", "err", err)
 	}
 	fmt.Println(filterParams)
+	if filterParams.blockHash.IsEmpty() && filterParams.fromBlock.Cmp(filterParams.toBlock) == 1 {
+		l.Error("fromBlock num can't big than toBlock")
+		return
+	}
 
 	var resp []model.Log
 	if err := client.Call(&resp, getDipperinRpcMethodByName("GetLogs"), filterParams.blockHash, filterParams.fromBlock, filterParams.toBlock, filterParams.addresses, filterParams.topics); err != nil {

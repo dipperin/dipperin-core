@@ -720,7 +720,7 @@ func TestMercuryFullChainService_Start(t *testing.T) {
 		MineMaster:       fakeMaster{},
 		MineMasterServer: fakeMasterServer{},
 		NodeConf:         fakeNodeConfig{},
-		ChainIndex:  chain_state.NewBloomIndexer(nil,db,12,6),
+		ChainIndex:       chain_state.NewBloomIndexer(nil, db, 12, 6),
 	}
 	service := MakeFullChainService(&config)
 	err := service.Start()
