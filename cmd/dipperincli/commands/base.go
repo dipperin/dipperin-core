@@ -19,6 +19,7 @@ package commands
 import (
 	"encoding/json"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/urfave/cli"
 	"os"
 )
@@ -135,7 +136,7 @@ func (f *FilterParams) UnmarshalJSON(inputs []byte) error {
 	for _, top := range fp.Topics {
 		var tps []common.Hash
 		for _, tp := range top {
-			tps = append(tps, common.HexToHash(tp))
+			tps = append(tps, common.BytesToHash(crypto.Keccak256([]byte(tp))))
 		}
 		tops = append(tops, tps)
 	}

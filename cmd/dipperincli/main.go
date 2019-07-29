@@ -35,6 +35,7 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/urfave/cli"
 	"io/ioutil"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -57,12 +58,8 @@ func main() {
 	//cslog.InitLogger(zap.InfoLevel, "", true)
 	app = newApp()
 	app.Run(os.Args)
-
 }
 
-func StartPprof() {
-
-}
 
 func newApp() (nApp *cli.App) {
 	nApp = cli.NewApp()

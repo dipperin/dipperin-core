@@ -8,4 +8,4 @@ topics [][]common.Hash `json:"topics"`
 {"from_block":0,"to_block":1000,"addresses":["0x001488Fb46F1a09274745d6022EF1A176bcD4C5a02Aa"]}
 
 
-{"block_hash":"0x000014bdafdc0b7b73013ef3550d69086e454de40f12f6165b282cf25c6fcc8d","from_block":0,"to_block":1000,"addresses":["0x001488Fb46F1a09274745d6022EF1A176bcD4C5a02Aa"]}
+{"block_hash":"","from_block":0,"to_block":1000,"addresses":[],"topics":[["transfer"]]}
