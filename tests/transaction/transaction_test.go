@@ -103,8 +103,8 @@ func createBlock(num uint64, preHash common.Hash, txList []*model.Transaction, l
 func TestWASMContactMiniTxFee(t *testing.T) {
 	params := "dipp,DIPP,1000000"
 
-	WASMTokenPath := g_testData.GetWasmPath("token-const")
-	AbiTokenPath := g_testData.GetAbiPath("token-const")
+	WASMTokenPath := g_testData.GetWASMPath("token-const", g_testData.CoreVmTestData)
+	AbiTokenPath := g_testData.GetAbiPath("token-const", g_testData.CoreVmTestData)
 	extraData, err := g_testData.GetCreateExtraData(WASMTokenPath, AbiTokenPath, params)
 	extraData, err = utils.ParseCreateContractData(extraData)
 	assert.NoError(t, err)
@@ -123,13 +123,12 @@ func TestWASMContactMiniTxFee(t *testing.T) {
 
 	//creat test stateDB
 	sender := cs_crypto.GetNormalAddress(keyAlice.PublicKey)
-	db, root := createTestStateDB(map[common.Address]*big.Int{sender: big.NewInt(100 * consts.DIP)})
+	db, root := createTestStateDB(map[common.Address]*big.Int{sender: big.NewInt(0).Mul(big.NewInt(100), big.NewInt(consts.DIP))})
 	processor, err := state_processor.NewAccountStateDB(root, state_processor.NewStateStorageWithCache(db))
 	assert.NoError(t, err)
 
 	//creat process config
 	block := createBlock(1, common.Hash{}, []*model.Transaction{tempTx}, chain_config.MaxGasLimit)
-	tempTx.PaddingTxIndex(0)
 	gasUsed := uint64(0)
 	confGasLimit := gasLimit.Uint64()
 	txConfigCreate := &state_processor.TxProcessConfig{

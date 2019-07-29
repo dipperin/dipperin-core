@@ -68,7 +68,6 @@ func createContractTx(code, abi string, nonce uint64) *model.Transaction {
 	to := common.HexToAddress(common.AddressContractCreate)
 	tx := model.NewTransactionSc(nonce, &to, big.NewInt(200), testGasPrice, testGasLimit, data)
 	tx.SignTx(key, fs)
-	tx.PaddingTxIndex(0)
 	return tx
 }
 
@@ -78,7 +77,6 @@ func callContractTx(to *common.Address, funcName string, param [][]byte, nonce u
 	data := getContractInput(funcName, param)
 	tx := model.NewTransactionSc(nonce, to, big.NewInt(200), testGasPrice, testGasLimit, data)
 	tx.SignTx(key, fs)
-	tx.PaddingTxIndex(0)
 	return tx
 }
 
@@ -368,15 +366,8 @@ func (tx fakeTransaction) PaddingReceipt(parameters model.ReceiptPara) (*model2.
 func (tx fakeTransaction) GetGasLimit() uint64 {
 	return g_testData.TestGasLimit
 }
+
 func (tx fakeTransaction) GetReceipt() (*model2.Receipt, error) {
-	panic("implement me")
-}
-
-func (tx fakeTransaction) PaddingTxIndex(index int) {
-	panic("implement me")
-}
-
-func (tx fakeTransaction) GetTxIndex() (int, error) {
 	panic("implement me")
 }
 

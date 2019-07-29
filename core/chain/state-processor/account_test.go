@@ -186,7 +186,6 @@ func TestContractCreate(t *testing.T) {
 	gasUsed := block.GasUsed()
 	conf := TxProcessConfig{
 		Tx:       tx,
-		TxIndex:  0,
 		Header:   block.Header().(*model.Header),
 		GetHash:  fakeGetBlockHash,
 		GasLimit: &gasLimit,
@@ -194,14 +193,13 @@ func TestContractCreate(t *testing.T) {
 		TxFee:    big.NewInt(0),
 	}
 
-	tx.PaddingTxIndex(0)
 	err := processor.ProcessTxNew(&conf)
 	assert.NoError(t, err)
 }
 
 func FakeContract(t *testing.T) *model.Transaction {
-	codePath := g_testData.GetWasmPath("map-string")
-	abiPath := g_testData.GetAbiPath("map-string")
+	codePath := g_testData.GetWASMPath("map-string", g_testData.CoreVmTestData)
+	abiPath := g_testData.GetAbiPath("map-string", g_testData.CoreVmTestData)
 	fileCode, err := ioutil.ReadFile(codePath)
 	assert.NoError(t, err)
 

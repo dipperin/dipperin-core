@@ -111,9 +111,9 @@ func (g *GenesisEnv) initGenesis(chainDB chaindb.Database, stateStorage state_pr
 		ExtraData:             []byte("dipperin Genesis"),
 		Difficulty:            common.HexToDiff("0x1fffffff"),
 		Alloc: map[common.Address]*big.Int{
-			g.defaultVerifiers[0].Address(): big.NewInt(9999 * consts.DIP),
-			g.defaultVerifiers[1].Address(): big.NewInt(9999 * consts.DIP),
-			g.defaultVerifiers[2].Address(): big.NewInt(9999 * consts.DIP),
+			g.defaultVerifiers[0].Address(): big.NewInt(0).Mul(big.NewInt(9999), big.NewInt(consts.DIP)),
+			g.defaultVerifiers[1].Address(): big.NewInt(0).Mul(big.NewInt(9999), big.NewInt(consts.DIP)),
+			g.defaultVerifiers[2].Address(): big.NewInt(0).Mul(big.NewInt(9999), big.NewInt(consts.DIP)),
 		},
 		Verifiers: chain.VerifierAddress[:g.chainConf.VerifierNumber],
 		GasLimit:  chain_config.BlockGasLimit,

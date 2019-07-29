@@ -68,7 +68,7 @@ func createTestStateDB(t *testing.T) (ethdb.Database, common.Hash) {
 	foundationAddr = earlyTokenContract.Owner
 	err = processor.NewAccountState(foundationAddr)
 	assert.NoError(t, err)
-	err = processor.SetBalance(foundationAddr, big.NewInt(999999*consts.DIP))
+	err = processor.SetBalance(foundationAddr, big.NewInt(0).Mul(big.NewInt(999999), big.NewInt(consts.DIP)))
 	assert.NoError(t, err)
 
 	err = processor.PutContract(contract.EarlyContractAddress, reflect.ValueOf(&earlyTokenContract))
@@ -83,7 +83,7 @@ func createTestStateDB(t *testing.T) (ethdb.Database, common.Hash) {
 	// add alice account
 	err = processor.NewAccountState(aliceAddr)
 	assert.NoError(t, err)
-	err = processor.SetBalance(aliceAddr, big.NewInt(999999*consts.DIP))
+	err = processor.SetBalance(aliceAddr, big.NewInt(0).Mul(big.NewInt(999999), big.NewInt(consts.DIP)))
 	assert.NoError(t, err)
 
 	root, err := processor.Commit()
@@ -219,7 +219,7 @@ type fakeStateStorage struct {
 	getErr          error
 	setErr          error
 	errKey          string
-	contractBalance int64
+	contractBalance *big.Int
 }
 
 func (storage fakeStateStorage) OpenTrie(root common.Hash) (state_processor.StateTrie, error) {
@@ -227,7 +227,7 @@ func (storage fakeStateStorage) OpenTrie(root common.Hash) (state_processor.Stat
 			getErr:          storage.getErr,
 			setErr:          storage.setErr,
 			errKey:          storage.errKey,
-			contractBalance: &storage.contractBalance,
+			contractBalance: storage.contractBalance,
 		},
 		storage.storageErr
 }
@@ -252,7 +252,7 @@ type fakeTrie struct {
 	getErr          error
 	setErr          error
 	errKey          string
-	contractBalance *int64
+	contractBalance *big.Int
 }
 
 func (t fakeTrie) TryGet(key []byte) ([]byte, error) {
@@ -260,7 +260,7 @@ func (t fakeTrie) TryGet(key []byte) ([]byte, error) {
 		return nil, TrieError
 	}
 	if t.contractBalance != nil {
-		result, _ := rlp.EncodeToBytes(big.NewInt(*t.contractBalance))
+		result, _ := rlp.EncodeToBytes(t.contractBalance)
 		return result, t.getErr
 	}
 	return []byte{128}, t.getErr

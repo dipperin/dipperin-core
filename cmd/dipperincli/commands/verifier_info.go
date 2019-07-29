@@ -43,7 +43,7 @@ func loadDefaultAccountStake() {
 
 	stake, err := CSCoinToMoneyValue(resp.Balance)
 	if err == nil {
-		defaultAccountStake = stake + consts.CoinDIPName
+		defaultAccountStake = stake
 	}
 }
 
@@ -176,7 +176,7 @@ func logElection() {
 
 		if resp.Status == VerifierStatusNoRegistered || resp.Status == VerifiedStatusUnstaked {
 
-			l.Info("[Verifier Tracking]", "Verifier status", resp.Status, "balance", balance+" DIP")
+			l.Info("[Verifier Tracking]", "Verifier status", resp.Status, "balance", balance)
 			continue
 		}
 
@@ -186,7 +186,7 @@ func logElection() {
 			l.Error("The address has no stake, stake = 0 DIP")
 		}
 
-		l.Info("[Verifier Tracking]", "Verifier status", resp.Status, "balance", balance+" DIP", "stake", stake+" DIP", "reputation", resp.Reputation)
+		l.Info("[Verifier Tracking]", "Verifier status", resp.Status, "balance", balance, "stake", stake, "reputation", resp.Reputation)
 
 	}
 

@@ -1,3 +1,1 @@
-[submodule "core/vm/resolver/softfloat"]
-	path = core/vm/resolver/softfloat
-	url = git@github.com:ucb-bar/berkeley-softfloat-3.git
+

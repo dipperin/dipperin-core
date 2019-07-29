@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/address-util"
+	"github.com/dipperin/dipperin-core/common/config"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
@@ -335,7 +336,6 @@ func (api *DipperinMercuryApi) GetTransactionNonce(addr common.Address) (nonce u
 //        description:return TxHash and the operation result
 func (api *DipperinMercuryApi) NewTransaction(transactionRlpB []byte) (TxHash common.Hash, err error) {
 	var transaction model.Transaction
-
 	err = rlp.DecodeBytes(transactionRlpB, &transaction)
 	if err != nil {
 		log.TagError("decode client tx failed", "err", err)
@@ -349,6 +349,34 @@ func (api *DipperinMercuryApi) NewTransaction(transactionRlpB []byte) (TxHash co
 
 	log.Info("NewTransaction the txId is:", "txId", TxHash.Hex())
 	return
+}
+
+// call contract
+func (api *DipperinMercuryApi) NewContract(transactionRlpB []byte, blockNum uint64) (resp string, err error) {
+	var transaction model.Transaction
+	err = rlp.DecodeBytes(transactionRlpB, &transaction)
+	if err != nil {
+		log.TagError("decode client tx failed", "err", err)
+		return "", err
+	}
+
+	curBlock := api.service.CurrentBlock()
+	if blockNum == 0 || curBlock.Number() < blockNum {
+		blockNum = curBlock.Number()
+	}
+	return api.service.Call(&transaction, blockNum)
+}
+
+func (api *DipperinMercuryApi) NewEstimateGas(transactionRlpB []byte) (resp hexutil.Uint64, err error) {
+	var transaction model.Transaction
+	err = rlp.DecodeBytes(transactionRlpB, &transaction)
+	if err != nil {
+		log.TagError("decode client tx failed", "err", err)
+		return hexutil.Uint64(0), err
+	}
+
+	blockNum := api.service.CurrentBlock().Number()
+	return api.service.EstimateGas(&transaction, blockNum)
 }
 
 //func (apiB *DipperinMercuryApi) RetrieveSingleSC(req *req_params.SingleSCReq) *req_params.RetrieveSingleSCResp {
@@ -796,8 +824,8 @@ func (api *DipperinMercuryApi) SendTransaction(from, to common.Address, value, g
 	return api.service.SendTransaction(from, to, value, gasPrice, gasLimit, data, nonce)
 }
 
-func (api *DipperinMercuryApi) SendTransactionContract(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (common.Hash, error) {
-	return api.service.SendTransactionContract(from, to, value, gasLimit, gasPrice, data, nonce)
+func (api *DipperinMercuryApi) SendTransactionContract(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (common.Hash, error) {
+	return api.service.SendTransactionContract(from, to, value, gasPrice, gasLimit, data, nonce)
 }
 
 //send multiple-txs
@@ -1219,7 +1247,7 @@ func (api *DipperinMercuryApi) GetContractAddressByTxHash(txHash common.Hash) (c
 	return api.service.GetContractAddressByTxHash(txHash)
 }
 
-func (api *DipperinMercuryApi) GetLogs(blockHash *common.Hash, fromBlock, toBlock *big.Int, Addresses []common.Address, Topics [][]common.Hash) ([]*model2.Log, error) {
+func (api *DipperinMercuryApi) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, Addresses []common.Address, Topics [][]common.Hash) ([]*model2.Log, error) {
 	return api.service.GetLogs(blockHash, fromBlock, toBlock, Addresses, Topics)
 }
 
@@ -1240,9 +1268,64 @@ func (api *DipperinMercuryApi) GetReceiptsByBlockNum(num uint64) (model2.Receipt
 }
 
 func (api *DipperinMercuryApi) CallContract(from, to common.Address, data []byte, blockNum uint64) (string, error) {
-	return api.service.CallContract(from, to, data, blockNum)
+	extraData, err := api.service.GetExtraData(to, data)
+	if err != nil {
+		return "", err
+	}
+	args := service.CallArgs{
+		From: from,
+		To:   &to,
+		Data: extraData,
+	}
+
+	var gasLimit uint64
+	curBlock := api.service.CurrentBlock()
+	if blockNum == 0 || curBlock.Number() < blockNum {
+		blockNum = curBlock.Number()
+		gasLimit = curBlock.Header().GetGasLimit()
+	} else {
+		block, _ := api.service.GetBlockByNumber(blockNum)
+		gasLimit = block.Header().GetGasLimit()
+	}
+	args.Gas = hexutil.Uint64(gasLimit)
+	log.Info("API#CallContract start", "from", from, "to", to, "blockNum", blockNum)
+	log.Info("API#CallContract start", "gasLimit", gasLimit)
+	signedTx, err := api.service.MakeTmpSignedTx(args, blockNum)
+	if err != nil {
+		return "", err
+	}
+	return api.service.Call(signedTx, blockNum)
 }
 
-func (api *DipperinMercuryApi) EstimateGas(from, to common.Address, value, gasLimit, gasPrice *big.Int, data []byte, nonce *uint64) (hexutil.Uint64, error) {
-	return api.service.EstimateGas(from, to, value, gasLimit, gasPrice, data, nonce)
+func (api *DipperinMercuryApi) EstimateGas(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (hexutil.Uint64, error) {
+	if value == nil {
+		value = new(big.Int).SetUint64(0)
+	}
+
+	if gasPrice == nil {
+		gasPrice = big.NewInt(0).SetInt64(config.DEFAULT_GAS_PRICE)
+	}
+
+	extraData, err := api.service.GetExtraData(to, data)
+	if err != nil {
+		return hexutil.Uint64(0), err
+	}
+
+	args := service.CallArgs{
+		From:     from,
+		To:       &to,
+		Gas:      hexutil.Uint64(gasLimit),
+		GasPrice: hexutil.Big(*gasPrice),
+		Value:    hexutil.Big(*value),
+		Data:     hexutil.Bytes(extraData),
+	}
+
+	blockNum := api.service.CurrentBlock().Number()
+	log.Info("API#EstimateGas start", "from", from, "to", to, "blockNum", blockNum)
+	log.Info("API#EstimateGas start", "value", value, "gasPrice", gasPrice, "gasLimit", gasLimit)
+	signedTx, err := api.service.MakeTmpSignedTx(args, blockNum)
+	if err != nil {
+		return hexutil.Uint64(0), err
+	}
+	return api.service.EstimateGas(signedTx, blockNum)
 }

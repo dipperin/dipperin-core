@@ -194,7 +194,7 @@ func (receiver *FAddress) Alloc() map[common.Address]*big.Int {
 	tmpMap := make(map[common.Address]*big.Int)
 
 	for i := 0; i < receiver.count; i++ {
-		tmpMap[receiver.addressList[0]] = big.NewInt(100 * consts.DIP)
+		tmpMap[receiver.addressList[0]] = big.NewInt(0).Mul(big.NewInt(100), big.NewInt(consts.DIP))
 	}
 
 	return tmpMap

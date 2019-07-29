@@ -682,7 +682,7 @@ func TestRpcCaller_SendTransactionContract(t *testing.T) {
 		//	caller.SendTransactionContract(c)
 
 		c.Set("p", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,0x00144179D57e45Cb3b54D6FAEF69e746bf240E287978,11122,10")
-		c.Set("abi", util.HomeDir()+"go/src/github.com/dipperin/dipperin-core/core/vm/test-data/event/example/example.cpp.abi.json")
+		c.Set("abi", util.HomeDir()+"go/src/github.com/dipperin/dipperin-core/core/vm/test-data/event/event/event.cpp.abi.json")
 		c.Set("input", "test,123,456")
 		c.Set("func-name", "fake")
 		c.Set("is-create", "false")
@@ -1885,14 +1885,14 @@ func Test_getDefaultWallet(t *testing.T) {
 
 func Test_ToJson(t *testing.T) {
 	/*filter := FilterParams{
-		fromBlock: new(big.Int).SetInt64(0),
-		toBlock:new(big.Int).SetInt64(int64(1000)),
-		addresses:[]common.Address{common.HexToAddress("0x11111")},
-		topics:[][]common.Hash{[]common.Hash{common.HexToHash("0x22222")},},
+		FromBlock: new(big.Int).SetInt64(0),
+		ToBlock:new(big.Int).SetInt64(int64(1000)),
+		Addresses:[]common.Address{common.HexToAddress("0x11111")},
+		Topics:[][]common.Hash{[]common.Hash{common.HexToHash("0x22222")},},
 	}*/
 	var filter FilterParams
 
-	f := `{"from_block":0,"to_block":1000,"addresses":["0x0000DF2f2284ddF0E5a4f9462594b9bFFC97Ca6777De"],"topics":[[],[]]}`
+	f := `{"from_block":0,"to_block":1000,"Addresses":["0x0000DF2f2284ddF0E5a4f9462594b9bFFC97Ca6777De"],"Topics":[[],[]]}`
 
 	fmt.Println(json.Unmarshal([]byte(f), &filter))
 }

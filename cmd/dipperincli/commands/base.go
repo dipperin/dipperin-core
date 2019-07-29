@@ -18,10 +18,9 @@ package commands
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/urfave/cli"
-	"math/big"
 	"os"
 )
 
@@ -102,45 +101,46 @@ var txFlags = []cli.Flag{
 }
 
 type FilterParams struct {
-	blockHash *common.Hash     `json:"block_hash"`
-	fromBlock *big.Int         `json:"from_block"`
-	toBlock   *big.Int         `json:"to_block"`
-	addresses []common.Address `json:"addresses"`
-	topics    [][]common.Hash  `json:"topics"`
+	BlockHash common.Hash      `json:"block_hash"`
+	FromBlock uint64           `json:"from_block"`
+	ToBlock   uint64           `json:"to_block"`
+	Addresses []common.Address `json:"Addresses"`
+	Topics    [][]common.Hash  `json:"Topics"`
 }
 
 func (f *FilterParams) UnmarshalJSON(inputs []byte) error {
-	type Fp struct {
+	type rlpFilterParams struct {
 		BlockHash string     `json:"block_hash"`
-		FromBlock int64      `json:"from_block"`
-		ToBlock   int64      `json:"to_block"`
-		Addresses []string   `json:"addresses"`
-		Topics    [][]string `json:"topics"`
+		FromBlock uint64     `json:"from_block"`
+		ToBlock   uint64     `json:"to_block"`
+		Addresses []string   `json:"Addresses"`
+		Topics    [][]string `json:"Topics"`
 	}
-	var fp Fp
+
+	var fp rlpFilterParams
 	if err := json.Unmarshal(inputs, &fp); err != nil {
-		l.Error("FilterParams#UnmarshalJSON err", "err", err)
 		return err
 	}
-	fmt.Println("FilterParams#UnmarshalJSON", fp)
-	f.toBlock = new(big.Int).SetInt64(fp.ToBlock)
-	f.fromBlock = new(big.Int).SetInt64(fp.FromBlock)
-	blockHash := common.HexToHash(fp.BlockHash)
-	f.blockHash = &blockHash
-	var addrs []common.Address
+
+	f.FromBlock = fp.FromBlock
+	f.ToBlock = fp.ToBlock
+	f.BlockHash = common.HexToHash(fp.BlockHash)
+
+	var addresses []common.Address
 	for _, add := range fp.Addresses {
-		addrs = append(addrs, common.HexToAddress(add))
+		addresses = append(addresses, common.HexToAddress(add))
 	}
-	f.addresses = addrs
+	f.Addresses = addresses
+
 	var tops [][]common.Hash
 	for _, top := range fp.Topics {
 		var tps []common.Hash
 		for _, tp := range top {
-			tps = append(tps, common.HexToHash(tp))
+			tps = append(tps, common.BytesToHash(crypto.Keccak256([]byte(tp))))
 		}
 		tops = append(tops, tps)
 	}
-	f.topics = tops
+	f.Topics = tops
 	return nil
 }
 

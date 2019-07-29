@@ -56,9 +56,9 @@ func (caller *rpcCaller) TransferEDIPToDIP(c *cli.Context) {
 		return
 	}
 
-	gasLimit, err := strconv.Atoi(cParams[3])
+	gasLimit, err := strconv.ParseUint(cParams[3], 10, 64)
 	if err != nil {
-		l.Error("the parameter gaLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", "err", err)
 		return
 	}
 
@@ -102,9 +102,9 @@ func (caller *rpcCaller) SetExchangeRate(c *cli.Context) {
 		return
 	}
 
-	gasLimit, err := strconv.Atoi(cParams[3])
+	gasLimit, err := strconv.ParseUint(cParams[3], 10, 64)
 	if err != nil {
-		l.Error("the parameter gaLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", "err", err)
 		return
 	}
 

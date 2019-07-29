@@ -7,29 +7,61 @@
         "type": "function"
     },
     {
-        "name": "hello",
+        "name": "returnString",
         "inputs": [
             {
                 "name": "name",
                 "type": "string"
-            },
-            {
-                "name": "num",
-                "type": "int64"
             }
         ],
-        "outputs": [],
-        "constant": "false",
+        "outputs": [
+            {
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "constant": "true",
         "type": "function"
     },
     {
-        "name": "logName",
+        "name": "returnInt",
+        "inputs": [
+            {
+                "name": "name",
+                "type": "string"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "int64"
+            }
+        ],
+        "constant": "true",
+        "type": "function"
+    },
+    {
+        "name": "returnUint",
+        "inputs": [
+            {
+                "name": "name",
+                "type": "string"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "constant": "true",
+        "type": "function"
+    },
+    {
+        "name": "topic",
         "inputs": [
             {
                 "type": "string"
-            },
-            {
-                "type": "int64"
             }
         ],
         "type": "event"

@@ -47,11 +47,6 @@ const (
 
 // LE is a simple alias to `binary.LittleEndian`.
 var LE = binary.LittleEndian
-var memPool = NewMemPool(DefaultMemPoolCount, DefaultMemBlockSize)
-var treePool = NewTreePool(DefaultMemPoolCount, DefaultMemBlockSize)
-
-//var memPool *MemPool
-//var treePool *TreePool
 
 type FunctionImportInfo struct {
 	ModuleName string
@@ -101,6 +96,10 @@ type VirtualMachine struct {
 	GasUsed uint64
 	//add GasLimited
 	GasLimit uint64
+
+	//memory pool interface
+	MemPool  MemPoolInterface
+	TreePool TreePoolInterface
 }
 
 // VMConfig denotes a set of options passed to a single VirtualMachine insta.ce
@@ -146,16 +145,6 @@ type ImportResolver interface {
 func ImportGasFunc(vm *VirtualMachine, frame *Frame) (uint64, error) {
 	importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
 	return vm.FunctionImports[importID].F.GasCost(vm)
-}
-
-func NewVMMemory() {
-	memPool = NewMemPool(DefaultMemPoolCount, DefaultMemBlockSize)
-	treePool = NewTreePool(DefaultMemPoolCount, DefaultMemBlockSize)
-}
-
-func FreeVMMemory() {
-	memPool = nil
-	treePool = nil
 }
 
 // NewVirtualMachine instantiates a virtual machine for a given WebAssembly module, with
@@ -260,6 +249,8 @@ func NewVirtualMachine(
 	}
 
 	memory := &Memory{}
+	memPool := &SimpleMemPool{}
+	treePool := &SimpleTreePool{}
 	if m.Base.Memory != nil && len(m.Base.Memory.Entries) > 0 {
 		initialLimit := int(m.Base.Memory.Entries[0].Limits.Initial)
 		if config.MaxMemoryPages != 0 && initialLimit > config.MaxMemoryPages {
@@ -296,6 +287,8 @@ func NewVirtualMachine(
 		GasPolicy:       gasPolicy,
 		ImportResolver:  impResolver,
 		ExternalParams:  make([]int64, 0),
+		MemPool:         memPool,
+		TreePool:        treePool,
 	}, nil
 }
 
@@ -465,10 +458,12 @@ func (f *Frame) Destroy(vm *VirtualMachine) {
 
 // GetCurrentFrame returns the current frame.
 func (vm *VirtualMachine) GetCurrentFrame() *Frame {
+	//log.Info("GetCurrentFrame~~~~~~~~~~~~~~~~~~~~~")
 	if vm.Config.MaxCallStackDepth != 0 && vm.CurrentFrame >= vm.Config.MaxCallStackDepth {
 		panic("max call stack depth exceeded")
 	}
-
+	//log.Info("the current frame is:","currentFrame",vm.CurrentFrame)
+	//log.Info("the len(vm.CallStack) is:","len(vm.CallStack)",len(vm.CallStack))
 	if vm.CurrentFrame >= len(vm.CallStack) {
 		panic("call stack overflow")
 		//vmcommon.CallStack = append(vmcommon.CallStack, make([]Frame, DefaultCallStackSize / 2)...)
@@ -1816,7 +1811,7 @@ func (vm *VirtualMachine) Execute() {
 			importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
 			frame.IP += 4
 			vm.Delegate = func() {
-				log.Debug("the call func is:", "f", vm.FunctionImports[importID])
+				//log.Debug("the call func is:", "f", vm.FunctionImports[importID])
 				frame.Regs[valueID] = vm.FunctionImports[importID].F.Execute(vm)
 			}
 			return

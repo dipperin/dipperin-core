@@ -66,10 +66,10 @@ func TestAND(t *testing.T) {
 	}
 }
 
-func TestAnd2(t *testing.T)  {
+func TestAnd2(t *testing.T) {
 	d1 := make([]byte, 10)
-	p := []byte{1,2,3}
-	q := []byte{4,5,6}
+	p := []byte{1, 2, 3}
+	q := []byte{4, 5, 6}
 	ANDBytes(d1, p, q)
 	fmt.Println(d1)
 }

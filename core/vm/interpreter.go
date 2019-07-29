@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
@@ -20,6 +19,7 @@ import (
 )
 
 var (
+	errEmptyInput               = errors.New("interpreter_life: empty input")
 	errReturnInvalidRlpFormat   = errors.New("interpreter_life: invalid rlp format")
 	errReturnInsufficientParams = errors.New("interpreter_life: invalid input. ele must greater than 1")
 	errReturnInvalidAbi         = errors.New("interpreter_life: invalid abi, encoded fail")
@@ -126,12 +126,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 		return nil, err
 	}
 
-	if contract.Gas > lifeVm.GasUsed {
-		contract.Gas = contract.Gas - lifeVm.GasUsed
-	} else {
-		return nil, g_error.ErrOutOfGas
-	}
-
+	contract.Gas = contract.Gas - lifeVm.GasUsed
 	if create {
 		return contract.Code, nil
 	}
@@ -172,12 +167,18 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 	return nil, nil
 }
 
-func (in *WASMInterpreter) CanRun([]byte) bool {
+// CanRun tells if the contract, passed as an argument, can be run
+// by the current interpreter
+func (in *WASMInterpreter) CanRun(code []byte) bool {
 	return true
 }
 
 // input = RLP([funcName][params])
 func ParseInputForFuncName(rlpData []byte) (funcName string, err error) {
+	if rlpData == nil || len(rlpData) == 0 {
+		return "", errEmptyInput
+	}
+
 	ptr := new(interface{})
 	err = rlp.Decode(bytes.NewReader(rlpData), &ptr)
 	if err != nil {
@@ -190,10 +191,9 @@ func ParseInputForFuncName(rlpData []byte) (funcName string, err error) {
 	}
 
 	iRlpList := rlpList.([]interface{})
-	if len(iRlpList) == 0 {
+	if len(iRlpList) < 1 {
 		return "", errReturnInsufficientParams
 	}
-	fmt.Println("rlpList", rlpList, iRlpList[0].([]byte))
 
 	if v, ok := iRlpList[0].([]byte); ok {
 		funcName = string(v)
@@ -232,8 +232,8 @@ func parseInitFunctionByABI(vm *exec.VirtualMachine, input []byte, abi []byte) (
 // input = RLP([funcName][params])
 // get returnType[0] if more than 1 return
 func parseCallExtraDataByABI(vm *exec.VirtualMachine, input []byte, abi []byte) (funcName string, params []int64, returnType string, err error) {
-	if input == nil || len(input) <= 1 {
-		return "", nil, "", fmt.Errorf("invalid input")
+	if input == nil || len(input) == 0 {
+		return "", nil, "", errEmptyInput
 	}
 
 	// rlp decode
@@ -249,7 +249,7 @@ func parseCallExtraDataByABI(vm *exec.VirtualMachine, input []byte, abi []byte) 
 	}
 
 	iRlpList := rlpList.([]interface{})
-	if len(iRlpList) == 0 {
+	if len(iRlpList) < 1 {
 		return "", nil, "", errReturnInsufficientParams
 	}
 
@@ -280,7 +280,6 @@ func findParams(vm *exec.VirtualMachine, abi []byte, funcName string, inputList 
 	for _, v := range wasmAbi.AbiArr {
 		if strings.EqualFold(v.Name, funcName) && strings.EqualFold(v.Type, "function") {
 			abiParam = v.Inputs
-			fmt.Println("len outputs", len(v.Outputs), "abiParam", len(abiParam), "inputlist", len(inputList))
 			log.Info("findParams", "len outputs", len(v.Outputs), "abiParam", len(abiParam), "inputlist", len(inputList))
 			if len(v.Outputs) != 0 {
 				returnType = v.Outputs[0].Type

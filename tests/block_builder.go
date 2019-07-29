@@ -229,7 +229,7 @@ func (builder *BlockBuilder) Build() model.AbstractBlock {
 	curHeight := curBlock.Number()
 	pubKey := &builder.MinerPk.PublicKey
 	seed, proof := crypto.Evaluate(builder.MinerPk, builder.PreBlock.Seed().Bytes())
-	gaLimit := uint64(chain_config.BlockGasLimit)
+	gasLimit := uint64(chain_config.BlockGasLimit)
 
 	header := &model.Header{
 		Version:     curBlock.Version(),
@@ -245,7 +245,7 @@ func (builder *BlockBuilder) Build() model.AbstractBlock {
 		TimeStamp: big.NewInt(time.Now().Add(time.Second * 3).UnixNano()),
 		CoinBase:  coinbaseAddr,
 		Bloom:     iblt.NewBloom(model.DefaultBlockBloomConfig),
-		GasLimit:  gaLimit,
+		GasLimit:  gasLimit,
 	}
 
 	// set pre block verifications
@@ -418,7 +418,6 @@ func (builder *BlockBuilder) getDiff() common.Difficulty {
 
 func (builder *BlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndNonce, state *chain.BlockProcessor, header *model.Header, vers []model.AbstractVerification) (txBuf []model.AbstractTransaction, receipts model2.Receipts) {
 	var invalidList []*model.Transaction
-	txIndex := 0
 	gasLimit := header.GetGasLimit()
 	gasUsed := header.GetGasUsed()
 	for {
@@ -428,10 +427,8 @@ func (builder *BlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndN
 			break
 		}
 		//from, _ := tx.Sender(builder.nodeContext.TxSigner())
-		tx.PaddingTxIndex(txIndex)
 		conf := state_processor.TxProcessConfig{
 			Tx:       tx,
-			TxIndex:  txIndex,
 			Header:   header,
 			GetHash:  state.GetBlockHashByNumber,
 			GasLimit: &gasLimit,
@@ -452,7 +449,6 @@ func (builder *BlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndN
 				txBuf = append(txBuf, tx)
 				txs.Shift()
 				receipts = append(receipts, receipt)
-				txIndex++
 			}
 		}
 	}

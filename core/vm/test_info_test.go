@@ -6,15 +6,18 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"math/big"
 	"testing"
 )
 
-var contractAddr = common.HexToAddress("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
+var (
+	callerAddr   = common.HexToAddress("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
+	contractAddr = common.HexToAddress("0x0014B5Df12F50295469Fe33951403b8f4E63231Ef488")
+)
 
 type fakeContractRef struct {
 	addr common.Address
@@ -160,10 +163,13 @@ func (state fakeStateDB) TxIdx() uint32 {
 }
 
 func genInput(t *testing.T, funcName string, param [][]byte) []byte {
-	var input [][]byte
-	input = make([][]byte, 0)
+	input := make([][]byte, 0)
+
 	// func name
-	input = append(input, []byte(funcName))
+	if funcName != "" {
+		input = append(input, []byte(funcName))
+	}
+
 	// func parameter
 	for _, v := range param {
 		input = append(input, v)
@@ -175,24 +181,21 @@ func genInput(t *testing.T, funcName string, param [][]byte) []byte {
 	return buffer.Bytes()
 }
 
-func getContract(t *testing.T, addr common.Address, code, abi string, input []byte) *Contract {
-	fileCode, err := ioutil.ReadFile(code)
-	assert.NoError(t, err)
-	fileABI, err := ioutil.ReadFile(abi)
-	assert.NoError(t, err)
-	return &Contract{
-		self:  fakeContractRef{addr: addr},
-		Code:  fileCode,
-		ABI:   fileABI,
-		Gas:   model.TxGas,
-		Input: input,
-	}
+func getContract(code, abi string, input []byte) *Contract {
+	fileCode, fileABI := g_testData.GetCodeAbi(code, abi)
+	caller := fakeContractRef{callerAddr}
+	self := fakeContractRef{contractAddr}
+	value := g_testData.TestValue
+	gasLimit := g_testData.TestGasLimit
+	contract := NewContract(caller, self, value, gasLimit, input)
+	contract.SetCode(&callerAddr, common.Hash{}, fileCode)
+	contract.SetAbi(&callerAddr, common.Hash{}, fileABI)
+	return contract
 }
 
 func getTestVm() *VM {
 	return NewVM(Context{
 		BlockNumber: big.NewInt(1),
-		GasLimit:    model.TxGas,
 		GetHash:     getTestHashFunc(),
 	}, fakeStateDB{}, DEFAULT_VM_CONFIG)
 }

@@ -14,7 +14,6 @@ type VmContextService interface {
 	GetGasPrice() int64
 	GetGasLimit() uint64
 	GetBlockHash(num uint64) common.Hash
-	GetCurBlockHash() common.Hash
 	GetBlockNumber() *big.Int
 	GetTime() *big.Int
 	GetCoinBase() common.Address
@@ -23,7 +22,6 @@ type VmContextService interface {
 	//GetCallGasTemp() uint64
 	DelegateCall(caller ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error)
 	GetTxHash() common.Hash
-	GetTxIdx() uint64
 }
 
 type ContractService interface {
@@ -36,7 +34,6 @@ type ContractService interface {
 type StateDBService interface {
 	GetBalance(addr common.Address) *big.Int
 	AddLog(addedLog *model.Log)
-	//AddLog(address common.Address, topics []common.Hash, data []byte, bn uint64)
 	SetState(addr common.Address, key []byte, value []byte)
 	GetState(addr common.Address, key []byte) (data []byte)
 	GetNonce(common.Address) (uint64, error)

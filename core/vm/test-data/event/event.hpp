@@ -1,15 +1,18 @@
 #pragma once
-#include <platon/platon.hpp>
-using namespace platon;
+#include <dipc/dipc.hpp>
+using namespace dipc;
 
 class envEvent : public Contract {
  public: 
-  void init(char *tokenName, char *sym, uint64_t supply);
-
-  void hello(const char* name, int64_t num);
+  void init();
+  CONSTANT const char* returnString(const char* name);
+  CONSTANT int64_t returnInt(const char* name);
+  CONSTANT uint64_t returnUint(const char* name);
 };
 
 // You must define ABI here.
-PLATON_ABI(envEvent, init);
-PLATON_ABI(envEvent, hello);
-PLATON_EVENT(logName, const char*, int64_t);
+DIPC_ABI(envEvent, init);
+DIPC_ABI(envEvent, returnString);
+DIPC_ABI(envEvent, returnInt);
+DIPC_ABI(envEvent, returnUint);
+DIPC_EVENT(topic, const char*);

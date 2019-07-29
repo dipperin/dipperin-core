@@ -113,7 +113,7 @@ func (c *ChainIndexer) Stop() {
 // The throttling parameter might be used to prevent database thrashing.
 func NewChainIndexer(chainReader middleware.ChainInterface, db ethdb.Database, indexDb ethdb.Database, backend ChainIndexerBackend, section, confirm uint64, throttling time.Duration, kind string) *ChainIndexer {
 	c := &ChainIndexer{
-		chainReader:   chainReader,
+		chainReader: chainReader,
 		//chainDb:       db,
 		indexDb:       indexDb,
 		backend:       backend,

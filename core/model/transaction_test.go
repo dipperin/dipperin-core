@@ -188,7 +188,6 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 		for i := 0; i < 2; i++ {
 			tx := NewTransaction(uint64(start+i), common.Address{}, big.NewInt(100), g_testData.TestGasPrice, g_testData.TestGasLimit, nil)
 			tx.SignTx(key, signer)
-			tx.PaddingTxIndex(i)
 			groups[addr] = append(groups[addr], tx)
 		}
 	}

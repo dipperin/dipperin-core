@@ -195,18 +195,20 @@ func TestValidateGasLimit(t *testing.T) {
 func TestValidGasUsedAndReceipts(t *testing.T) {
 	gasLimit := chain_config.BlockGasLimit
 
-	receipt := &model2.Receipt{GasUsed: model2.TxGas}
-	receipts := model2.Receipts{receipt, receipt, receipt}
+	receipt1 := &model2.Receipt{GasUsed: model2.TxGas, CumulativeGasUsed: model2.TxGas * 1}
+	receipt2 := &model2.Receipt{GasUsed: model2.TxGas, CumulativeGasUsed: model2.TxGas * 2}
+	receipt3 := &model2.Receipt{GasUsed: model2.TxGas, CumulativeGasUsed: model2.TxGas * 3}
+	receipts := model2.Receipts{receipt1, receipt2, receipt3}
 	txs := []model.AbstractTransaction{
-		&fakeTx{GasLimit: g_testData.TestGasLimit, Receipt: receipt},
-		&fakeTx{GasLimit: g_testData.TestGasLimit, Receipt: receipt},
-		&fakeTx{GasLimit: g_testData.TestGasLimit, Receipt: receipt},
+		&fakeTx{GasLimit: g_testData.TestGasLimit, Receipt: receipt1},
+		&fakeTx{GasLimit: g_testData.TestGasLimit, Receipt: receipt2},
+		&fakeTx{GasLimit: g_testData.TestGasLimit, Receipt: receipt3},
 	}
 
 	testBlock := &fakeBlock{
 		GasLimit:    chain_config.BlockGasLimit,
 		ReceiptHash: model.DeriveSha(receipts),
-		GasUsed:     receipt.GasUsed * uint64(len(receipts)),
+		GasUsed:     receipt3.CumulativeGasUsed,
 		txs:         txs,
 	}
 

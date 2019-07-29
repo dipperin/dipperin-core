@@ -11,7 +11,8 @@ const char* printi128(uint64_t lo, uint64_t hi) {
     unsigned __int128 tmp = u < 0 ? -u : u;
     static char buffer[128+1];
     buffer[sizeof(buffer)-1] = '\0';
-    char* d = std::end(buffer)-1;
+    //char* d = std::end(buffer)-1;
+    char* d = &buffer[sizeof(buffer)-2];
     do
     {
         --d;
@@ -34,7 +35,8 @@ const char* printui128(uint64_t lo, uint64_t hi) {
     unsigned __int128 tmp = u;
     static char buffer[128+1];
     buffer[sizeof(buffer)-1] = '\0';
-    char* d = std::end(buffer)-1;
+    //char* d = std::end(buffer)-1;
+    char* d = &buffer[sizeof(buffer)-2];
     do
     {
         --d;

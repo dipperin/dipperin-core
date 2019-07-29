@@ -589,14 +589,6 @@ func (ft *fakeTx) GetReceipt() (*model2.Receipt, error) {
 	return ft.Receipt, nil
 }
 
-func (ft *fakeTx) PaddingTxIndex(index int) {
-	panic("implement me")
-}
-
-func (ft *fakeTx) GetTxIndex() (int, error) {
-	panic("implement me")
-}
-
 func (ft *fakeTx) AsMessage() (model.Message, error) {
 	panic("implement me")
 }

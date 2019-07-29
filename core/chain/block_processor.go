@@ -82,10 +82,8 @@ func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel eco
 	// special block doesn't process txs
 	if !block.IsSpecial() {
 		if err = block.TxIterator(func(i int, tx model.AbstractTransaction) error {
-			tx.PaddingTxIndex(i)
 			conf := state_processor.TxProcessConfig{
 				Tx:       tx,
-				TxIndex:  i,
 				Header:   blockHeader,
 				GetHash:  state.GetBlockHashByNumber,
 				GasUsed:  &gasUsed,
