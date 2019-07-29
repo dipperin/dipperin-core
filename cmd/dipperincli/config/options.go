@@ -181,6 +181,7 @@ var txMethods = []prompt.Suggest{
 	{Text: "SendTx", Description: ""},
 	{Text: "Transaction", Description: ""},
 	{Text: "TransferEDIPToDIP", Description: ""},
+	{Text: "GetContractAddressByTxHash", Description: ""},
 }
 
 var chainMethods = []prompt.Suggest{
@@ -193,7 +194,6 @@ var chainMethods = []prompt.Suggest{
 	{Text: "SetExchangeRate", Description: ""},
 	{Text: "EstimateGas", Description: ""},
 	{Text: "GetLogs", Description: ""},
-	{Text: "GetContractAddressByTxHash", Description: ""},
 	{Text: "GetConvertReceiptByTxHash", Description: ""},
 	{Text: "GetReceiptByTxHash", Description: ""},
 	{Text: "GetReceiptsByBlockNum", Description: ""},
