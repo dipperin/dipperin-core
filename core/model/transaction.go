@@ -456,10 +456,7 @@ func (tx *Transaction) GetActualTxFee() (fee *big.Int) {
 
 func (tx *Transaction) PaddingReceipt(parameters ReceiptPara) (*model.Receipt, error) {
 	log.Info("Call PaddingReceipt", "handlerResult", parameters.HandlerResult)
-	receipt := model.NewReceipt(parameters.Root, parameters.HandlerResult, parameters.CumulativeGasUsed)
-
-	// Set the receipt Logs
-	receipt.Logs = parameters.Logs
+	receipt := model.NewReceipt(parameters.Root, parameters.HandlerResult, parameters.CumulativeGasUsed, parameters.Logs)
 	tx.receipt.Store(receipt)
 	return receipt, nil
 }

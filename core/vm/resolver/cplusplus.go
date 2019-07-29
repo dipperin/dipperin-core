@@ -285,7 +285,7 @@ func envAbortGasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 // define: int64_t gasPrice();
 func (r *Resolver) envGasPrice(vm *exec.VirtualMachine) int64 {
-	gasPrice := r.Service.GetGasPrice()
+	gasPrice := r.Service.GetGasPrice().Int64()
 	log.Info("envGasPrice", "price", gasPrice)
 	return gasPrice
 }
@@ -436,9 +436,10 @@ func envGetStateSizeGasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 // define: int64_t getNonce();
 func (r *Resolver) envGetCallerNonce(vm *exec.VirtualMachine) int64 {
-	nonce := r.Service.GetCallerNonce()
+	addr := r.Service.Caller()
+	nonce, _ := r.Service.StateDBService.GetNonce(addr)
 	log.Info("envGetCallerNonce", "nonce", nonce)
-	return nonce
+	return int64(nonce)
 }
 
 /*func (r *Resolver) envCurrentTime(vm *exec.VirtualMachine) int64 {

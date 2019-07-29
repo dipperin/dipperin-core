@@ -3,11 +3,24 @@ package vm
 import (
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
+
+func TestWASMInterpreter_Run_DIPCLibContract(t *testing.T) {
+	t.Skip()
+	testVm := getTestVm()
+	interpreter := testVm.Interpreter
+	inputs := genInput(t, g_testData.ContractTestPar.CallFuncName, [][]byte{})
+	log.Info("the wasmPath is:", "wasmPath", g_testData.ContractTestPar.WASMPath)
+	log.Info("the abiPath is:", "abiPath", g_testData.ContractTestPar.AbiPath)
+	contract := getContract(g_testData.ContractTestPar.WASMPath, g_testData.ContractTestPar.AbiPath, inputs)
+	_, err := interpreter.Run(testVm, contract, false)
+	assert.NoError(t, err)
+}
 
 func TestWASMInterpreter_Run(t *testing.T) {
 	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
@@ -31,7 +44,6 @@ func TestWASMInterpreter_Run(t *testing.T) {
 	assert.Equal(t, "contract", resp)
 	assert.NoError(t, err)
 
-	name = []byte("contract")
 	inputs = genInput(t, "returnInt", [][]byte{name})
 	contract.Input = inputs
 	result, err = interpreter.Run(testVm, contract, false)
@@ -39,7 +51,6 @@ func TestWASMInterpreter_Run(t *testing.T) {
 	assert.Equal(t, int64(50), resp)
 	assert.NoError(t, err)
 
-	name = []byte("contract")
 	inputs = genInput(t, "returnUint", [][]byte{name})
 	contract.Input = inputs
 	result, err = interpreter.Run(testVm, contract, false)
@@ -62,7 +73,7 @@ func TestWASMInterpreter_Run_Error(t *testing.T) {
 	contract.ABI = []byte{123}
 	result, err = interpreter.Run(testVm, contract, false)
 	assert.Nil(t, result)
-	assert.Error(t, err)
+	assert.Equal(t, "unexpected EOF", err.Error())
 
 	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
 	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
@@ -71,7 +82,7 @@ func TestWASMInterpreter_Run_Error(t *testing.T) {
 	contract.ABI = abi
 	result, err = interpreter.Run(testVm, contract, false)
 	assert.Nil(t, result)
-	assert.Error(t, err)
+	assert.Equal(t, errEmptyInput, err)
 
 	input, err := rlp.EncodeToBytes([]interface{}{})
 	assert.NoError(t, err)
@@ -85,14 +96,14 @@ func TestWASMInterpreter_Run_Error(t *testing.T) {
 	contract.Input = input
 	result, err = interpreter.Run(testVm, contract, false)
 	assert.Nil(t, result)
-	assert.Error(t, err)
+	assert.Equal(t, errFuncNameNotFound, err)
 
 	input, err = rlp.EncodeToBytes([]interface{}{"returnString"})
 	assert.NoError(t, err)
 	contract.Input = input
 	result, err = interpreter.Run(testVm, contract, false)
 	assert.Nil(t, result)
-	assert.Error(t, err)
+	assert.Equal(t, errInputAbiNotMatch, err)
 
 	name := []byte("string")
 	param := [][]byte{name}
@@ -100,12 +111,12 @@ func TestWASMInterpreter_Run_Error(t *testing.T) {
 	contract.Input = input
 	result, err = interpreter.Run(testVm, contract, false)
 	assert.Nil(t, result)
-	assert.Error(t, err)
+	assert.Equal(t, "out of gas  cost:1 GasUsed:0 GasLimit:0", err.Error())
 
-	contract.Input = []byte{123}
+	contract.Input = []byte{1, 2, 3}
 	result, err = interpreter.Run(testVm, contract, true)
 	assert.Nil(t, result)
-	assert.Error(t, err)
+	assert.Equal(t, errInvalidRlpFormat, err)
 }
 
 func TestParseInputForFuncName(t *testing.T) {
@@ -113,28 +124,148 @@ func TestParseInputForFuncName(t *testing.T) {
 	assert.Equal(t, "", funcName)
 	assert.Equal(t, errEmptyInput, err)
 
+	funcName, err = ParseInputForFuncName([]byte{})
+	assert.Equal(t, "", funcName)
+	assert.Equal(t, errEmptyInput, err)
+
 	funcName, err = ParseInputForFuncName([]byte{1, 2, 3})
 	assert.Equal(t, "", funcName)
-	assert.Equal(t, errReturnInvalidRlpFormat, err)
+	assert.Equal(t, errInvalidRlpFormat, err)
 
 	input, err := rlp.EncodeToBytes([]interface{}{})
 	funcName, err = ParseInputForFuncName(input)
 	assert.Equal(t, "", funcName)
-	assert.Equal(t, errReturnInsufficientParams, err)
+	assert.Equal(t, errInsufficientParams, err)
+
+	input, err = rlp.EncodeToBytes([]interface{}{""})
+	funcName, err = ParseInputForFuncName(input)
+	assert.Equal(t, "", funcName)
+	assert.NoError(t, err)
 
 	input, err = rlp.EncodeToBytes([]interface{}{"funcName"})
 	funcName, err = ParseInputForFuncName(input)
 	assert.Equal(t, "funcName", funcName)
+	assert.NoError(t, err)
+
+	input, err = rlp.EncodeToBytes([]interface{}{"funcName", ""})
+	funcName, err = ParseInputForFuncName(input)
+	assert.Equal(t, "funcName", funcName)
+	assert.NoError(t, err)
 }
 
-func TestWASMInterpreter_Run_DIPCLibContract(t *testing.T) {
-	t.Skip()
-	testVm := getTestVm()
-	interpreter := testVm.Interpreter
-	inputs := genInput(t, g_testData.ContractTestPar.CallFuncName, [][]byte{})
-	log.Info("the wasmPath is:", "wasmPath", g_testData.ContractTestPar.WASMPath)
-	log.Info("the abiPath is:", "abiPath", g_testData.ContractTestPar.AbiPath)
-	contract := getContract(g_testData.ContractTestPar.WASMPath, g_testData.ContractTestPar.AbiPath, inputs)
-	_, err := interpreter.Run(testVm, contract, false)
+func TestParseInitFunctionByABI(t *testing.T) {
+	lifeVm := &exec.VirtualMachine{}
+	num := utils.Uint64ToBytes(100)
+	input := genInput(t, "", [][]byte{num})
+
+	_, _, err := ParseInitFunctionByABI(lifeVm, nil, nil)
+	assert.NoError(t, err)
+
+	_, _, err = ParseInitFunctionByABI(lifeVm, input, nil)
+	assert.Equal(t, errEmptyABI, err)
+
+	_, _, err = ParseInitFunctionByABI(lifeVm, []byte{1, 2, 3}, []byte{1, 2, 3})
+	assert.Equal(t, errInvalidRlpFormat, err)
+
+	_, _, err = ParseInitFunctionByABI(lifeVm, input, []byte(abi1))
+	assert.Equal(t, errInputAbiNotMatch, err)
+
+	_, _, err = ParseInitFunctionByABI(lifeVm, input, []byte(abi2))
+	assert.Equal(t, errInvalidReturnType, err)
+
+	_, _, err = ParseInitFunctionByABI(lifeVm, input, []byte(abi3))
+	assert.NoError(t, err)
+}
+
+func TestParseCallExtraDataByABI(t *testing.T) {
+	lifeVm := &exec.VirtualMachine{}
+	_, _, _, err := ParseCallExtraDataByABI(lifeVm, nil, nil)
+	assert.Equal(t, errEmptyInput, err)
+
+	_, _, _, err = ParseCallExtraDataByABI(lifeVm, []byte{1, 2, 3}, nil)
+	assert.Equal(t, errEmptyABI, err)
+
+	_, _, _, err = ParseCallExtraDataByABI(lifeVm, []byte{1, 2, 3}, []byte{1, 2, 3})
+	assert.Equal(t, errInvalidRlpFormat, err)
+
+	input := genInput(t, "", [][]byte{})
+	_, _, _, err = ParseCallExtraDataByABI(lifeVm, input, []byte(abi2))
+	assert.Equal(t, errInsufficientParams, err)
+
+	input = genInput(t, "test", [][]byte{})
+	_, _, _, err = ParseCallExtraDataByABI(lifeVm, input, []byte(abi2))
+	assert.NoError(t, err)
+
+	_, _, _, err = ParseCallExtraDataByABI(lifeVm, input, []byte{123})
+	assert.Equal(t, errInvalidAbi, err)
+
+	input = genInput(t, "init", [][]byte{})
+	_, _, _, err = ParseCallExtraDataByABI(lifeVm, input, []byte(abi2))
+	assert.Equal(t, errInputAbiNotMatch, err)
+
+	num := utils.Uint64ToBytes(100)
+	input = genInput(t, "init", [][]byte{num})
+	funcName, params, returnType, err := ParseCallExtraDataByABI(lifeVm, input, []byte(abi2))
+	assert.Equal(t, "init", funcName)
+	assert.Equal(t, 1, len(params))
+	assert.Equal(t, "string", returnType)
+	assert.NoError(t, err)
+
+	funcName, params, returnType, err = ParseCallExtraDataByABI(lifeVm, input, []byte(abi3))
+	assert.Equal(t, "init", funcName)
+	assert.Equal(t, 1, len(params))
+	assert.Equal(t, "void", returnType)
+	assert.NoError(t, err)
+
+	input = genInput(t, "init", [][]byte{})
+	funcName, params, returnType, err = ParseCallExtraDataByABI(lifeVm, input, []byte(abi1))
+	assert.Equal(t, "init", funcName)
+	assert.Equal(t, 0, len(params))
+	assert.Equal(t, "void", returnType)
+	assert.NoError(t, err)
+
+	funcName, params, returnType, err = ParseCallExtraDataByABI(lifeVm, input, []byte(abi4))
+	assert.Equal(t, "init", funcName)
+	assert.Equal(t, 0, len(params))
+	assert.Equal(t, "string", returnType)
+	assert.NoError(t, err)
+
+	num1 := utils.Uint64ToBytes(10)
+	num2 := utils.Uint32ToBytes(10)
+	num3 := utils.Uint16ToBytes(10)
+	num4 := []byte{255}
+	num5 := []byte{1}
+	input = genInput(t, "init", [][]byte{num1, num2, num3, num4, num5})
+	funcName, params, returnType, err = ParseCallExtraDataByABI(lifeVm, input, []byte(abi5))
+	assert.Equal(t, "init", funcName)
+	assert.Equal(t, 5, len(params))
+	assert.Equal(t, "void", returnType)
+	assert.NoError(t, err)
+}
+
+func TestParseCreateExtraData(t *testing.T) {
+	_, _, _, err := ParseCreateExtraData(nil)
+	assert.Equal(t, errEmptyInput, err)
+
+	_, _, _, err = ParseCreateExtraData([]byte{123})
+	assert.Equal(t, errInvalidRlpFormat, err)
+
+	_, _, _, err = ParseCreateExtraData([]byte{1, 2, 3})
+	assert.Equal(t, errInvalidRlpFormat, err)
+
+	input, err := rlp.EncodeToBytes([]interface{}{})
+	_, _, _, err = ParseCreateExtraData(input)
+	assert.Equal(t, errInsufficientParams, err)
+
+	input, err = rlp.EncodeToBytes([]interface{}{""})
+	_, _, _, err = ParseCreateExtraData(input)
+	assert.Equal(t, errInsufficientParams, err)
+
+	input, err = rlp.EncodeToBytes([]interface{}{"code", "abi"})
+	_, _, _, err = ParseCreateExtraData(input)
+	assert.NoError(t, err)
+
+	input, err = rlp.EncodeToBytes([]interface{}{"code", "abi", "init"})
+	_, _, _, err = ParseCreateExtraData(input)
 	assert.NoError(t, err)
 }

@@ -120,20 +120,13 @@ func createSignedVote(num uint64, blockId common.Hash, voteType model.VoteMsgTyp
 }
 
 func getTestVm() *vm.VM {
-	testCanTransfer := func(vm.StateDB, common.Address, *big.Int) bool {
-		return true
-	}
-	testTransfer := func(vm.StateDB, common.Address, common.Address, *big.Int) {
-		return
-	}
-
 	db, root := CreateTestStateDB()
 	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
 	state := NewFullState(processor)
 	return vm.NewVM(vm.Context{
 		BlockNumber: big.NewInt(1),
-		CanTransfer: testCanTransfer,
-		Transfer:    testTransfer,
+		CanTransfer: vm.CanTransfer,
+		Transfer:    vm.Transfer,
 		GasLimit:    model2.TxGas,
 		GetHash:     getTestHashFunc(),
 	}, state, vm.DEFAULT_VM_CONFIG)

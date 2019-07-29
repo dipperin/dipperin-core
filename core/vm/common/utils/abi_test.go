@@ -1,23 +1,20 @@
 package utils
 
 import (
-	"fmt"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestConvertInputs(t *testing.T) {
-	inputParam1 := InputParam{
-		Type: "string",
-	}
-	inputParam2 := InputParam{
-		Type: "string",
-	}
-	inputParam3 := InputParam{
-		Type: "uint64",
-	}
-	data := []byte{242, 128, 172, 48, 48, 48, 48, 52, 49, 55, 57, 100, 53, 55, 101, 52, 53, 99, 98, 51, 98, 53, 52, 100, 54, 102, 97, 101, 102, 54, 57, 101, 55, 52, 54, 98, 102, 50, 52, 48, 101, 50, 56, 55, 57, 55, 56, 131, 15, 66, 64}
-	convertData, err := ConvertInputs(data, []InputParam{inputParam1, inputParam2, inputParam3})
+func TestWasmAbi_FromJson(t *testing.T) {
+	abiByte := new(WasmAbi)
+	err := abiByte.FromJson(nil)
+	assert.Equal(t, errEmptyInput, err)
+
+	WASMPath := g_testData.GetWASMPath("token-const", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("token-const", g_testData.CoreVmTestData)
+	_, abi := g_testData.GetCodeAbi(WASMPath, AbiPath)
+
+	err = abiByte.FromJson(abi)
 	assert.NoError(t, err)
-	fmt.Println(string(convertData))
 }

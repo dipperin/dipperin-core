@@ -10,8 +10,9 @@ type ContractRef interface {
 	Address() common.Address
 }
 
+//go:generate mockgen -destination=/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/vm_context_service_mock_test.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver VmContextService
 type VmContextService interface {
-	GetGasPrice() int64
+	GetGasPrice() *big.Int
 	GetGasLimit() uint64
 	GetBlockHash(num uint64) common.Hash
 	GetBlockNumber() *big.Int
@@ -24,6 +25,7 @@ type VmContextService interface {
 	GetTxHash() common.Hash
 }
 
+//go:generate mockgen -destination=/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/contract_service_mock_test.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver ContractService
 type ContractService interface {
 	Caller() common.Address
 	Address() common.Address
@@ -31,6 +33,7 @@ type ContractService interface {
 	GetGas() uint64
 }
 
+//go:generate mockgen -destination=/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/statedb_service_mock_test.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver StateDBService
 type StateDBService interface {
 	GetBalance(addr common.Address) *big.Int
 	AddLog(addedLog *model.Log)
@@ -44,37 +47,3 @@ type resolverNeedExternalService struct {
 	VmContextService
 	StateDBService
 }
-
-func (service *resolverNeedExternalService) GetCallerNonce() int64 {
-	addr := service.Caller()
-	nonce, _ := service.StateDBService.GetNonce(addr)
-	return int64(nonce)
-}
-
-func (service *resolverNeedExternalService) ReSolverSetState(key []byte, value []byte) {
-	service.StateDBService.SetState(service.Address(), key, value)
-}
-
-func (service *resolverNeedExternalService) ReSolverGetState(key []byte) []byte {
-	return service.StateDBService.GetState(service.Address(), key)
-}
-
-/*func (service *resolverNeedExternalService) Transfer(toAddr common.Address, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
-	gas := service.GetCallGasTemp()
-	if value.Sign() != 0 {
-		gas += model.CallStipend
-	}
-	log.Info("Call Transfer", "Transfer to:", toAddr.String(), "Transfer caller:", service.Address().Hex())
-	ret, returnGas, err := service.VmContextService.Call(service.ContractService, toAddr, nil, gas, value)
-	return ret, returnGas, err
-}
-
-func (service *resolverNeedExternalService) ResolverCall(addr, param []byte) ([]byte, error) {
-	ret, _, err := service.VmContextService.Call(service.ContractService, common.HexToAddress(hex.EncodeToString(addr)), param, service.ContractService.GetGas(), service.ContractService.CallValue())
-	return ret, err
-}
-
-func (service *resolverNeedExternalService) ResolverDelegateCall(addr, param []byte) ([]byte, error) {
-	ret, _, err := service.VmContextService.DelegateCall(service.ContractService, common.HexToAddress(hex.EncodeToString(addr)), param,service.ContractService.GetGas())
-	return ret, err
-}*/

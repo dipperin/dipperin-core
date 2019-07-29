@@ -15,7 +15,7 @@ func TestNewContract(t *testing.T) {
 
 	value := g_testData.TestValue
 	gasLimit := g_testData.TestGasLimit
-	assert.Equal(t, callerAddr, contract.Caller())
+	assert.Equal(t, aliceAddr, contract.Caller())
 	assert.Equal(t, value, contract.CallValue())
 	assert.Equal(t, gasLimit, contract.GetGas())
 	assert.Equal(t, false, contract.UseGas(uint64(gasLimit*2)))

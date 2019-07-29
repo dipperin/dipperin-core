@@ -272,8 +272,8 @@ func TestChainDB_DB(t *testing.T) {
 
 func TestChainDB_SaveReceipts(t *testing.T) {
 	db := newChainDB()
-	receipt1 := model.NewReceipt([]byte{}, false, g_testData.TestGasLimit)
-	receipt2 := model.NewReceipt([]byte{}, false, g_testData.TestGasLimit*3)
+	receipt1 := model.NewReceipt([]byte{}, false, g_testData.TestGasLimit, nil)
+	receipt2 := model.NewReceipt([]byte{}, false, g_testData.TestGasLimit*3, nil)
 	receipts := []*model.Receipt{receipt1, receipt2}
 
 	block := createBlock(1)
@@ -294,8 +294,8 @@ func TestChainDB_SaveReceipts(t *testing.T) {
 }
 
 func TestDeriveFields(t *testing.T) {
-	receipt1 := model.NewReceipt([]byte{}, false, g_testData.TestGasLimit)
-	receipt2 := model.NewReceipt([]byte{}, false, g_testData.TestGasLimit*3)
+	receipt1 := model.NewReceipt([]byte{}, false, g_testData.TestGasLimit, nil)
+	receipt2 := model.NewReceipt([]byte{}, false, g_testData.TestGasLimit*3, nil)
 	receipts := []*model.Receipt{receipt1, receipt2}
 	block := createBlock(1)
 

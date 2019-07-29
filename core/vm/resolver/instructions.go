@@ -23,7 +23,7 @@ func (r *Resolver) envSetState(vm *exec.VirtualMachine) int64 {
 	copy(copyValue, vm.Memory.Memory[value:value+valueLen])
 
 	log.Info("Get Params From Memory ", "copyKey", string(copyKey), "copyValue", copyValue)
-	r.Service.ReSolverSetState(copyKey, copyValue)
+	r.Service.StateDBService.SetState(r.Service.Address(), copyKey, copyValue)
 	return 0
 }
 
@@ -38,7 +38,7 @@ func (r *Resolver) envGetState(vm *exec.VirtualMachine) int64 {
 	copyKey := make([]byte, keyLen)
 	copy(copyKey, vm.Memory.Memory[key:key+keyLen])
 	log.Info("Get Params key From Memory ", "copyKey", string(copyKey))
-	val := r.Service.ReSolverGetState(copyKey)
+	val := r.Service.GetState(r.Service.Address(), copyKey)
 	if len(val) > valueLen {
 		return 0
 	}
@@ -51,7 +51,10 @@ func (r *Resolver) envGetStateSize(vm *exec.VirtualMachine) int64 {
 	log.Info("envGetStateSize Called")
 	key := int(int32(vm.GetCurrentFrame().Locals[0]))
 	keyLen := int(int32(vm.GetCurrentFrame().Locals[1]))
-	val := r.Service.ReSolverGetState(vm.Memory.Memory[key : key+keyLen])
+	copyKey := make([]byte, keyLen)
+	copy(copyKey, vm.Memory.Memory[key:key+keyLen])
+	log.Info("Get Params key From Memory ", "copyKey", string(copyKey))
+	val := r.Service.GetState(r.Service.Address(), copyKey)
 	log.Info("Get valueLen", "valueLen", len(val))
 	return int64(len(val))
 }

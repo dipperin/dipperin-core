@@ -671,16 +671,6 @@ func TestBlock_Header(t *testing.T) {
 	assert.Nil(t, result)
 }
 
-func TestBlock_GetHeader(t *testing.T) {
-	block := CreateBlock(0, common.Hash{}, 1)
-	result := block.GetHeader()
-	assert.NotNil(t, result)
-
-	block.header = nil
-	result = block.GetHeader()
-	assert.Nil(t, result)
-}
-
 func TestBlock_Body(t *testing.T) {
 	block := CreateBlock(0, common.Hash{}, 1)
 	result := block.Body()

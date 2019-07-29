@@ -11,28 +11,34 @@ import (
 )
 
 var (
-	errReturnInvalidRlpFormat    = errors.New("vm_utils: invalid rlp format")
-	errReturnInsufficientParams  = errors.New("vm_utils: invalid input. ele must greater than 1")
-	errReturnInvalidOutputLength = errors.New("vm_utils: invalid init function outputs length")
-	errLengthInputAbiNotMatch    = errors.New("vm_utils: length of input and abi not match")
+	errEmptyInput             = errors.New("vm_utils: empty input")
+	errInvalidRlpFormat       = errors.New("vm_utils: invalid rlp format")
+	errInsufficientParams     = errors.New("vm_utils: invalid input params")
+	errInvalidOutputLength    = errors.New("vm_utils: invalid init function outputs length")
+	errLengthInputAbiNotMatch = errors.New("vm_utils: length of input and abi not match")
+	errFuncNameNotFound       = errors.New("vm_utils: function name not found")
 )
 
-// RLP([code][abi][init params])
+// RLP([funName][params])
 func ParseCallContractData(abi []byte, rlpInput []byte) (extraData []byte, err error) {
+	if rlpInput == nil || len(rlpInput) == 0 {
+		return nil, errEmptyInput
+	}
+
 	// decode rlpInput
 	inputPtr := new(interface{})
-	//err = rlp.Decode(bytes.NewReader(rlpInput), &inputPtr)
-	err = rlp.Decode(bytes.NewReader(rlpInput), &inputPtr)
-	if err != nil {
-		log.Error("ParseCallContractData#rlp.Decode", "err", err)
-		return
-	}
+	rlp.Decode(bytes.NewReader(rlpInput), &inputPtr)
 	inputRlpList := reflect.ValueOf(inputPtr).Elem().Interface()
 	if _, ok := inputRlpList.([]interface{}); !ok {
-		return nil, errReturnInvalidRlpFormat
+		return nil, errInvalidRlpFormat
 	}
 
 	inRlpList := inputRlpList.([]interface{})
+	if len(inRlpList) < 1 || len(inRlpList) > 2 {
+		err = errInsufficientParams
+		return
+	}
+
 	var funcName string
 	if v, ok := inRlpList[0].([]byte); ok {
 		funcName = string(v)
@@ -46,23 +52,42 @@ func ParseCallContractData(abi []byte, rlpInput []byte) (extraData []byte, err e
 	}
 
 	var args []InputParam
+	found := false
 	for _, v := range wasmAbi.AbiArr {
 		if strings.EqualFold(v.Name, funcName) && strings.EqualFold(v.Type, "function") {
+			found = true
 			args = v.Inputs
 			break
 		}
+	}
+
+	if !found {
+		log.Error("ParseCallContractData failed", "err", errFuncNameNotFound, "funcName", funcName)
+		err = errFuncNameNotFound
+		return
 	}
 
 	var (
 		paramStr string
 		params   []string
 	)
-	if v, ok := inRlpList[1].([]byte); ok {
-		paramStr = string(v)
-	}
 
-	if paramStr != "" {
-		params = strings.Split(paramStr, ",")
+	// if function has params or not
+	if len(args) == 0 && len(inRlpList) == 1 {
+		return rlpInput, nil
+	} else {
+		if len(inRlpList) == 1 {
+			log.Error("ParseCallContractData failed", "err", fmt.Sprintf("rlpInput:%v, abi:%v", len(params), len(args)))
+			return nil, errLengthInputAbiNotMatch
+		}
+
+		if v, ok := inRlpList[1].([]byte); ok {
+			paramStr = string(v)
+		}
+
+		if paramStr != "" {
+			params = strings.Split(paramStr, ",")
+		}
 	}
 
 	if len(args) != len(params) {
@@ -70,10 +95,7 @@ func ParseCallContractData(abi []byte, rlpInput []byte) (extraData []byte, err e
 		return nil, errLengthInputAbiNotMatch
 	}
 
-	rlpParams := []interface{}{
-		funcName,
-	}
-
+	rlpParams := []interface{}{funcName}
 	for i, v := range args {
 		bts := params[i]
 		result, innerErr := StringConverter(bts, v.Type)
@@ -87,26 +109,20 @@ func ParseCallContractData(abi []byte, rlpInput []byte) (extraData []byte, err e
 
 // RLP([code][abi][init params])
 func ParseCreateContractData(rlpData []byte) (extraData []byte, err error) {
-	ptr := new(interface{})
-	err = rlp.Decode(bytes.NewReader(rlpData), &ptr)
-	if err != nil {
-		return
+	if rlpData == nil || len(rlpData) == 0 {
+		return nil, errEmptyInput
 	}
 
+	ptr := new(interface{})
+	rlp.Decode(bytes.NewReader(rlpData), &ptr)
 	rlpList := reflect.ValueOf(ptr).Elem().Interface()
 	if _, ok := rlpList.([]interface{}); !ok {
-		return nil, errReturnInvalidRlpFormat
+		return nil, errInvalidRlpFormat
 	}
 
 	iRlpList := rlpList.([]interface{})
-	if len(iRlpList) <= 1 {
-		return nil, errReturnInsufficientParams
-	}
-
-	// return if no init params
-	if len(iRlpList) == 2 {
-		log.Info("init function has no params", "len", len(iRlpList))
-		return rlpData, nil
+	if len(iRlpList) < 2 {
+		return nil, errInsufficientParams
 	}
 
 	var wasmBytes []byte
@@ -126,30 +142,48 @@ func ParseCreateContractData(rlpData []byte) (extraData []byte, err error) {
 	}
 
 	var args []InputParam
+	found := false
 	for _, v := range abi.AbiArr {
 		if strings.EqualFold(v.Name, "init") && strings.EqualFold(v.Type, "function") {
+			found = true
 			args = v.Inputs
 			if len(v.Outputs) != 0 {
-				return nil, errReturnInvalidOutputLength
+				return nil, errInvalidOutputLength
 			}
 			break
 		}
+	}
+
+	if !found {
+		log.Error("ParseCreateContractData failed", "err", errFuncNameNotFound, "funcName", "init")
+		err = errFuncNameNotFound
+		return
 	}
 
 	var (
 		paramStr string
 		params   []string
 	)
-	if v, ok := iRlpList[2].([]byte); ok {
-		paramStr = string(v)
-	}
+	// if function has params or not
+	if len(args) == 0 && len(iRlpList) == 2 {
+		return rlpData, nil
+	} else {
+		if len(iRlpList) == 2 {
+			log.Error("ParseCallContractData failed", "err", fmt.Sprintf("rlpInput:%v, abi:%v", len(params), len(args)))
+			return nil, errLengthInputAbiNotMatch
+		}
 
-	if paramStr != "" {
-		params = strings.Split(paramStr, ",")
+		if v, ok := iRlpList[2].([]byte); ok {
+			paramStr = string(v)
+		}
+
+		if paramStr != "" {
+			params = strings.Split(paramStr, ",")
+		}
 	}
 
 	if len(args) != len(params) {
-		log.Error("ParseCreateContractData failed", "err", fmt.Sprintf("input:%v, abi:%v", len(params), len(args)))
+		log.Error("ParseCallContractData failed", "err", fmt.Sprintf("rlpInput:%v, abi:%v", len(params), len(args)))
 		return nil, errLengthInputAbiNotMatch
 	}
 
@@ -166,4 +200,33 @@ func ParseCreateContractData(rlpData []byte) (extraData []byte, err error) {
 		rlpParams = append(rlpParams, re)
 	}
 	return rlp.EncodeToBytes(rlpParams)
+}
+
+func ConvertInputs(src []byte, abiInput []InputParam) ([]byte, error) {
+	if src == nil || len(src) == 0 {
+		log.Error("ConvertInputs failed", "err", errEmptyInput)
+		return nil, errEmptyInput
+	}
+
+	ptr := new(interface{})
+	rlp.Decode(bytes.NewReader(src), &ptr)
+	rlpList := reflect.ValueOf(ptr).Elem().Interface()
+	if _, ok := rlpList.([]interface{}); !ok {
+		return nil, errInvalidRlpFormat
+	}
+
+	inputList := rlpList.([]interface{})
+	if len(inputList) != len(abiInput) {
+		log.Error("ConvertInputs failed", "length", fmt.Sprintf("input:%v, abi:%v", len(inputList), len(abiInput)))
+		return nil, errLengthInputAbiNotMatch
+	}
+
+	var data []byte
+	for i, v := range abiInput {
+		input := inputList[i].([]byte)
+		convert := Align32BytesConverter(input, v.Type)
+		result := fmt.Sprintf("%v,", convert)
+		data = append(data, []byte(result)...)
+	}
+	return data, nil
 }

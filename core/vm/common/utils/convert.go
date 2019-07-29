@@ -4,15 +4,12 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"math"
 	"strconv"
 )
 
 const (
-	ALIGN_LENGTH   = 32
-	ALIGN_LENGTH_8 = 8
+	ALIGN_LENGTH = 32
 )
 
 func Int16ToBytes(n int16) []byte {
@@ -76,19 +73,6 @@ func Align32Bytes(b []byte) []byte {
 	return tmp
 }
 
-func Align8Bytes(b []byte) []byte {
-	tmp := make([]byte, ALIGN_LENGTH_8)
-	if len(b) > ALIGN_LENGTH_8 {
-		b = b[len(b)-ALIGN_LENGTH_8:]
-	}
-	copy(tmp[ALIGN_LENGTH_8-len(b):], b)
-	return tmp
-}
-
-func BytesCombine(pBytes ...[]byte) []byte {
-	return bytes.Join(pBytes, []byte(""))
-}
-
 func Int64ToBytes(n int64) []byte {
 	tmp := int64(n)
 	bytesBuffer := bytes.NewBuffer([]byte{})
@@ -99,10 +83,7 @@ func Int64ToBytes(n int64) []byte {
 func BytesToInt64(b []byte) int64 {
 	bytesBuffer := bytes.NewBuffer(b)
 	var tmp int64
-	err := binary.Read(bytesBuffer, binary.BigEndian, &tmp)
-	if err != nil {
-		log.Error("BytesToInt64", "err", err)
-	}
+	binary.Read(bytesBuffer, binary.BigEndian, &tmp)
 	return int64(tmp)
 }
 
@@ -149,9 +130,7 @@ func BoolToBytes(b bool) []byte {
 // used for output, receipt
 // makeUpBytes before
 func Align32BytesConverter(source []byte, t string) interface{} {
-	if len(source) < ALIGN_LENGTH {
-		source = MakeUpBytes(source, t)
-	}
+	source = MakeUpBytes(source, t)
 	switch t {
 	case "int16":
 		source = source[ALIGN_LENGTH-2:]
@@ -178,7 +157,6 @@ func Align32BytesConverter(source []byte, t string) interface{} {
 		source = source[ALIGN_LENGTH-8:]
 		return BytesToFloat64(source)
 	case "string":
-		source = source[64:]
 		returnBytes := make([]byte, 0)
 		for _, v := range source {
 			if v == 0 {
@@ -204,20 +182,13 @@ func MakeUpBytes(source []byte, t string) []byte {
 	case "float32", "float64", "bool":
 		return Align32Bytes(source)
 	case "string":
-		strHash := common.BytesToHash(Int32ToBytes(32))
-		sizeHash := common.BytesToHash(Int64ToBytes(int64(len(source))))
 		var dataRealSize = len(source)
 		if (dataRealSize % 32) != 0 {
 			dataRealSize = dataRealSize + (32 - (dataRealSize % 32))
 		}
 		dataByt := make([]byte, dataRealSize)
-		copy(dataByt[0:], source)
-
-		finalData := make([]byte, 0)
-		finalData = append(finalData, strHash.Bytes()...)
-		finalData = append(finalData, sizeHash.Bytes()...)
-		finalData = append(finalData, dataByt...)
-		return finalData
+		copy(dataByt[:], source)
+		return dataByt
 	}
 	return nil
 }
@@ -252,10 +223,12 @@ func StringConverter(source string, t string) ([]byte, error) {
 		if "true" == source || "false" == source {
 			return BoolToBytes("true" == source), nil
 		} else {
-			return []byte{}, errors.New("invalid boolean param")
+			return nil, errors.New("invalid boolean param")
 		}
-	default:
+	case "string":
 		return []byte(source), nil
+	default:
+		return nil, errors.New("invalid type")
 	}
 
 }

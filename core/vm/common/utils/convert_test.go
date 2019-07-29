@@ -6,28 +6,37 @@ import (
 )
 
 func TestAlign32BytesConverter(t *testing.T) {
+	result := Align32BytesConverter(nil, "test")
+	assert.Equal(t, []byte(nil), result)
+
+	num := uint64(1e10)
+	alignByte := make([]byte, ALIGN_LENGTH)
+	alignByte = append(alignByte, Uint64ToBytes(num)...)
+	result = Align32BytesConverter(alignByte, "uint64")
+	assert.Equal(t, num, result)
+
 	num1 := uint64(1000000)
-	result := Align32BytesConverter(Uint64ToBytes(num1), "uint64")
+	result = Align32BytesConverter(Uint64ToBytes(num1), "uint64")
 	assert.Equal(t, num1, result)
 
 	num2 := int64(-1000000)
 	result = Align32BytesConverter(Int64ToBytes(num2), "int64")
 	assert.Equal(t, num2, result)
 
-	num3 := uint16(10000)
-	result = Align32BytesConverter(Uint16ToBytes(num3), "uint16")
+	num3 := uint32(10000)
+	result = Align32BytesConverter(Uint32ToBytes(num3), "uint32")
 	assert.Equal(t, num3, result)
 
-	num4 := int16(-10000)
-	result = Align32BytesConverter(Int16ToBytes(num4), "int16")
+	num4 := int32(-10000)
+	result = Align32BytesConverter(Int32ToBytes(num4), "int32")
 	assert.Equal(t, num4, result)
 
-	num5 := uint32(10000)
-	result = Align32BytesConverter(Uint32ToBytes(num5), "uint32")
+	num5 := uint16(10000)
+	result = Align32BytesConverter(Uint16ToBytes(num5), "uint16")
 	assert.Equal(t, num5, result)
 
-	num6 := int32(-10000)
-	result = Align32BytesConverter(Int32ToBytes(num6), "int32")
+	num6 := int16(-10000)
+	result = Align32BytesConverter(Int16ToBytes(num6), "int16")
 	assert.Equal(t, num6, result)
 
 	f1 := float32(1.11)
@@ -38,8 +47,10 @@ func TestAlign32BytesConverter(t *testing.T) {
 	result = Align32BytesConverter(Float64ToBytes(f2), "float64")
 	assert.Equal(t, f2, result)
 
-	str := "hello"
+	str := "hello world, I'm the best programmer who code dipperin-core"
 	result = Align32BytesConverter([]byte(str), "string")
+	assert.Equal(t, str, result)
+	result = Align32BytesConverter([]byte(result.(string)), "string")
 	assert.Equal(t, str, result)
 
 	b := true
@@ -83,4 +94,14 @@ func TestStringConverter(t *testing.T) {
 	num, err = StringConverter("true", "bool")
 	assert.NoError(t, err)
 	assert.Equal(t, BoolToBytes(true), num)
+
+	num, err = StringConverter("test", "bool")
+	assert.Error(t, err)
+
+	num, err = StringConverter("test", "string")
+	assert.NoError(t, err)
+	assert.Equal(t, []byte("test"), num)
+
+	num, err = StringConverter("test", "test")
+	assert.Error(t, err)
 }

@@ -13,11 +13,6 @@ const (
 	// ...
 )
 
-var (
-	cfc  = newCfcSet()
-	cgbl = newGlobalSet()
-)
-
 type Resolver struct {
 	Service resolverNeedExternalService
 }
@@ -28,20 +23,6 @@ func NewResolver(vmValue VmContextService, contract ContractService, state State
 			ContractService:  contract,
 			VmContextService: vmValue,
 			StateDBService:   state,
-		},
-	}
-}
-
-func newCfcSet() map[string]map[string]*exec.FunctionImport {
-	return map[string]map[string]*exec.FunctionImport{}
-}
-
-func newGlobalSet() map[string]map[string]int64 {
-	return map[string]map[string]int64{
-		"env": {
-			"stderr": 0,
-			"stdin":  0,
-			"stdout": 0,
 		},
 	}
 }
@@ -66,11 +47,31 @@ func (r *Resolver) ResolveFunc(module, field string) *exec.FunctionImport {
 	} else {
 		return df
 	}
-	return sysFunc[module][field]
 }
 
 func (r *Resolver) ResolveGlobal(module, field string) int64 {
-	return 0
+	if m, exist := newGlobalSet()[module]; exist == true {
+		if g, exist := m[field]; exist == true {
+			return g
+		} else {
+			return 0
+			//panic("unknown field " + field)
+
+		}
+	} else {
+		return 0
+		//panic("unknown module " + module)
+	}
+}
+
+func newGlobalSet() map[string]map[string]int64 {
+	return map[string]map[string]int64{
+		"env": {
+			"stderr": 0,
+			"stdin":  0,
+			"stdout": 0,
+		},
+	}
 }
 
 func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {

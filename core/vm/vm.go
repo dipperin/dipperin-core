@@ -63,7 +63,7 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 	if vm.depth > int(model2.CallCreateDepth) {
 		return nil, gas, g_error.ErrDepth
 	}
-	// Fail if we're trying to transfer more than the available balance
+	// Fail if we're trying to transfer more than the available balanceMap
 	if !vm.Context.CanTransfer(vm.state, caller.Address(), value) {
 		return nil, gas, g_error.ErrInsufficientBalance
 	}
@@ -190,9 +190,9 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 	// initialise a new contract and set the data that is to be used by the
 	// EVM. The contract is a scoped environment for this execution context
 	// only.
-	code, abi, rlpInit, err := parseCreateExtraData(data)
+	code, abi, rlpInit, err := ParseCreateExtraData(data)
 	if err != nil {
-		log.Error("parseCreateExtraData failed", "err", err)
+		log.Error("ParseCreateExtraData failed", "err", err)
 		return nil, common.Address{}, 0, err
 	}
 	contract := NewContract(caller, AccountRef(address), value, gas, rlpInit)
@@ -300,8 +300,8 @@ func (context *Context) GetTxHash() common.Hash {
 }
 */
 
-func (context *Context) GetGasPrice() int64 {
-	return context.GasPrice.Int64()
+func (context *Context) GetGasPrice() *big.Int {
+	return context.GasPrice
 }
 
 func (context *Context) GetGasLimit() uint64 {

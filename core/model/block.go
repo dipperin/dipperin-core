@@ -643,13 +643,6 @@ func (b *Block) Header() AbstractHeader {
 	return nil
 }
 
-func (b *Block) GetHeader() AbstractHeader {
-	if b.header != nil {
-		return CopyHeader(b.header)
-	}
-	return nil
-}
-
 func (b *Block) Body() AbstractBody {
 	return b.body
 	//return &Body{Txs: b.body.Txs, Vers: b.body.Vers}

@@ -82,8 +82,8 @@ type receiptStorageRLP struct {
 }
 
 // NewReceipt creates a barebone transaction receipt, copying the init fields.
-func NewReceipt(root []byte, failed bool, cumulativeGasUsed uint64) *Receipt {
-	r := &Receipt{PostState: common.CopyBytes(root), CumulativeGasUsed: cumulativeGasUsed}
+func NewReceipt(root []byte, failed bool, cumulativeGasUsed uint64, logs []*Log) *Receipt {
+	r := &Receipt{PostState: common.CopyBytes(root), CumulativeGasUsed: cumulativeGasUsed, Logs: logs}
 	if failed {
 		r.Status = ReceiptStatusFailed
 	} else {
