@@ -1032,7 +1032,7 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	}
 
 	nonce := uint64(0)
-	value := big.NewInt(100)
+	value := g_testData.TestValue
 	hash, err := service.SendRegisterTransaction(address, value, g_testData.TestGasPrice, g_testData.TestGasLimit, &nonce)
 	assert.NoError(t, err)
 	assert.NotNil(t, hash)
@@ -1247,8 +1247,8 @@ func TestMercuryFullChainService_ContractTransaction(t *testing.T) {
 	csChain := createCsChain(nil)
 
 	// create create contract
-	WASMPath1 := g_testData.GetWASMPath("token-const", g_testData.CoreVmTestData)
-	AbiPath1 := g_testData.GetAbiPath("token-const", g_testData.CoreVmTestData)
+	WASMPath1 := g_testData.GetWASMPath("token", g_testData.CoreVmTestData)
+	AbiPath1 := g_testData.GetAbiPath("token", g_testData.CoreVmTestData)
 	tx1 := createContractTx(0, WASMPath1, AbiPath1, "DIPP,WU,10000")
 	WASMPath2 := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
 	AbiPath2 := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
@@ -1258,7 +1258,11 @@ func TestMercuryFullChainService_ContractTransaction(t *testing.T) {
 	err := csChain.SaveBftBlock(block, votes)
 	assert.NoError(t, err)
 
-	config := &DipperinConfig{ChainReader: csChain}
+	chainIndex := chain_state.NewBloomIndexer(csChain, csChain.GetDB(), chain_state.BloomBitsBlocks, chain_state.BloomConfirms)
+	config := &DipperinConfig{
+		ChainReader: csChain,
+		ChainIndex:  chainIndex,
+	}
 	service := MercuryFullChainService{DipperinConfig: config}
 
 	// get contract address
@@ -1288,4 +1292,16 @@ func TestMercuryFullChainService_ContractTransaction(t *testing.T) {
 	expectFee2 := receipt2.GasUsed * g_testData.TestGasPrice.Uint64()
 	assert.Equal(t, expectFee1, fee1.Uint64())
 	assert.Equal(t, expectFee2, fee2.Uint64())
+
+	// get logs
+	topic := []common.Hash{common.BytesToHash(crypto.Keccak256([]byte("Tranfer")))}
+	logs, err := service.GetLogs(block.Hash(), uint64(0), uint64(100), []common.Address{addr}, [][]common.Hash{topic})
+	assert.NoError(t, err)
+	assert.Equal(t, receipt1.Logs, logs)
+
+	err = service.Start()
+	assert.NoError(t, err)
+	logs, err = service.GetLogs(common.Hash{}, uint64(0), uint64(100), []common.Address{addr}, [][]common.Hash{topic})
+	assert.NoError(t, err)
+	assert.Equal(t, receipt1.Logs, logs)
 }

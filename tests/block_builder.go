@@ -182,6 +182,9 @@ func (builder *BlockBuilder) BuildFuture() model.AbstractBlock {
 	// calculate receipt hash
 	receiptHash := model.DeriveSha(&receipts)
 	block.SetReceiptHash(receiptHash)
+	block.SetBloomLog(model2.CreateBloom(receipts))
+	bloomLog := block.GetBloomLog()
+	log.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
 
 	linkList := model.NewInterLink(curBlock.GetInterlinks(), block)
 	block.SetInterLinks(linkList)
@@ -274,6 +277,9 @@ func (builder *BlockBuilder) Build() model.AbstractBlock {
 	// calculate receipt hash
 	receiptHash := model.DeriveSha(&receipts)
 	block.SetReceiptHash(receiptHash)
+	block.SetBloomLog(model2.CreateBloom(receipts))
+	bloomLog := block.GetBloomLog()
+	log.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
 
 	linkList := model.NewInterLink(curBlock.GetInterlinks(), block)
 	block.SetInterLinks(linkList)
@@ -338,6 +344,9 @@ func (builder *BlockBuilder) BuildSpecialBlock() model.AbstractBlock {
 	var receipts model2.Receipts
 	receiptHash := model.DeriveSha(&receipts)
 	block.SetReceiptHash(receiptHash)
+	block.SetBloomLog(model2.CreateBloom(receipts))
+	bloomLog := block.GetBloomLog()
+	log.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
 
 	// set interlink root
 	linkList := model.NewInterLink(preBlock.GetInterlinks(), block)
