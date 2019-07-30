@@ -1251,10 +1251,6 @@ func (api *DipperinMercuryApi) GetLogs(blockHash common.Hash, fromBlock, toBlock
 	return api.service.GetLogs(blockHash, fromBlock, toBlock, Addresses, Topics)
 }
 
-func (api *DipperinMercuryApi) GetConvertReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
-	return api.service.GetConvertReceiptByTxHash(txHash)
-}
-
 func (api *DipperinMercuryApi) GetTxActualFee(txHash common.Hash) (*big.Int, error) {
 	return api.service.GetTxActualFee(txHash)
 }

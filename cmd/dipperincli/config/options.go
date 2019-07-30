@@ -177,9 +177,7 @@ var txMethods = []prompt.Suggest{
 	{Text: "SendRegisterTx", Description: ""},
 	{Text: "SendTransaction", Description: ""},
 	{Text: "SendTransactionContract", Description: ""},
-	{Text: "CallContract", Description: ""},
 	{Text: "SendTx", Description: ""},
-	{Text: "Transaction", Description: ""},
 	{Text: "TransferEDIPToDIP", Description: ""},
 	{Text: "GetContractAddressByTxHash", Description: ""},
 }
@@ -192,11 +190,13 @@ var chainMethods = []prompt.Suggest{
 	{Text: "GetGenesis", Description: ""},
 	{Text: "Peers", Description: ""},
 	{Text: "SetExchangeRate", Description: ""},
+	{Text: "CallContract", Description: ""},
 	{Text: "EstimateGas", Description: ""},
 	{Text: "GetLogs", Description: ""},
-	{Text: "GetConvertReceiptByTxHash", Description: ""},
+	{Text: "GetContractAddressByTxHash", Description: ""},
 	{Text: "GetReceiptByTxHash", Description: ""},
 	{Text: "GetReceiptsByBlockNum", Description: ""},
+	{Text: "Transaction", Description: ""},
 }
 
 var verifierMethods = []prompt.Suggest{

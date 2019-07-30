@@ -1,6 +1,7 @@
 package state_processor
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
@@ -37,21 +38,20 @@ func (f *Fullstate) GetNonce(addr common.Address) (uint64, error) {
 func (f *Fullstate) AddNonce(addr common.Address, add uint64) {
 	err := f.state.AddNonce(addr, add)
 	if err != nil {
-		panic("add nonce error")
+		panic(fmt.Sprintf("AddNonce failed, err=%v", err))
 	}
 }
 
 func (f *Fullstate) AddBalance(addr common.Address, amount *big.Int) {
 	err := f.state.AddBalance(addr, amount)
 	if err != nil {
-		log.Error("Fullstate#AddBalance", "err", err)
-		panic("Can not add balance")
+		panic(fmt.Sprintf("AddBalance failed, err=%v", err))
 	}
 }
 func (f *Fullstate) SubBalance(addr common.Address, amount *big.Int) {
 	err := f.state.SubBalance(addr, amount)
 	if err != nil {
-		panic("Can not sub balance")
+		panic(fmt.Sprintf("SubBalance failed, err=%v", err))
 	}
 }
 
@@ -75,7 +75,7 @@ func (f *Fullstate) GetCode(addr common.Address) (result []byte) {
 func (f *Fullstate) SetCode(addr common.Address, code []byte) {
 	err := f.state.SetCode(addr, code)
 	if err != nil {
-		panic("set code error")
+		panic(fmt.Sprintf("SetCode failed, err=%v", err))
 	}
 }
 
@@ -106,7 +106,7 @@ func (f *Fullstate) GetAbi(addr common.Address) (abi []byte) {
 func (f *Fullstate) SetAbi(addr common.Address, abi []byte) {
 	err := f.state.SetAbi(addr, abi)
 	if err != nil {
-		panic("set abi error")
+		panic(fmt.Sprintf("SetAbi failed, err=%v", err))
 	}
 }
 
@@ -121,7 +121,7 @@ func (f *Fullstate) GetState(addr common.Address, key []byte) (data []byte) {
 func (f *Fullstate) SetState(addr common.Address, key []byte, value []byte) {
 	err := f.state.SetData(addr, string(key), value)
 	if err != nil {
-		panic("can not update contract field")
+		panic(fmt.Sprintf("SetState failed, err=%v", err))
 	}
 }
 

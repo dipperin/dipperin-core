@@ -18,6 +18,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/g-error"
@@ -34,6 +35,7 @@ import (
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/stretchr/testify/assert"
@@ -42,8 +44,6 @@ import (
 	"testing"
 	"time"
 )
-
-var testFee = economy_model.GetMinimumTxFee(1000)
 
 func TestMercuryFullChainService_NormalPM(t *testing.T) {
 	config := &DipperinConfig{NormalPm: fakePeerManager{}}
@@ -1074,13 +1074,6 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	assert.NoError(t, err)
 
 	nonce = uint64(7)
-	to = common.BytesToAddress(hash[:])
-	WASMPath = g_testData.GetWASMPath("token", g_testData.CoreVmTestData)
-	abiPath = g_testData.GetAbiPath("token", g_testData.CoreVmTestData)
-	data, err = g_testData.GetCallExtraData("getBalance", address.String())
-	assert.NoError(t, err)
-
-	nonce = uint64(8)
 	fs1 := model.NewMercurySigner(big.NewInt(1))
 	tx := model.NewTransaction(nonce, aliceAddr, value, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	signedTx, _ := tx.SignTx(pk, fs1)
@@ -1248,4 +1241,51 @@ func TestMercuryFullChainService_Metrics(t *testing.T) {
 	service.Metrics(false)
 	service.NewBlock(context.Background())
 	service.SubscribeBlock(context.Background())
+}
+
+func TestMercuryFullChainService_ContractTransaction(t *testing.T) {
+	csChain := createCsChain(nil)
+
+	// create create contract
+	WASMPath1 := g_testData.GetWASMPath("token-const", g_testData.CoreVmTestData)
+	AbiPath1 := g_testData.GetAbiPath("token-const", g_testData.CoreVmTestData)
+	tx1 := createContractTx(0, WASMPath1, AbiPath1, "DIPP,WU,10000")
+	WASMPath2 := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
+	AbiPath2 := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
+	tx2 := createContractTx(1, WASMPath2, AbiPath2, "")
+	block := createBlock(csChain, []*model.Transaction{tx1, tx2}, nil)
+	votes := createVerifiersVotes(block, csChain.ChainConfig.VerifierNumber)
+	err := csChain.SaveBftBlock(block, votes)
+	assert.NoError(t, err)
+
+	config := &DipperinConfig{ChainReader: csChain}
+	service := MercuryFullChainService{DipperinConfig: config}
+
+	// get contract address
+	sender, err := tx1.Sender(nil)
+	contractAddr := cs_crypto.CreateContractAddress(sender, uint64(0))
+	addr, err := service.GetContractAddressByTxHash(tx1.CalTxId())
+	assert.NoError(t, err)
+	assert.Equal(t, contractAddr, addr)
+
+	// get receipt
+	receipt1, err := service.GetReceiptByTxHash(tx1.CalTxId())
+	assert.NoError(t, err)
+	receipt2, err := service.GetReceiptByTxHash(tx2.CalTxId())
+	assert.NoError(t, err)
+	receipts, err := service.GetReceiptsByBlockNum(block.Number())
+	assert.NoError(t, err)
+	assert.Equal(t, receipt1, receipts[0])
+	assert.Equal(t, receipt2, receipts[1])
+	fmt.Println(receipts)
+
+	// get tx actual fee
+	fee1, err := service.GetTxActualFee(tx1.CalTxId())
+	assert.NoError(t, err)
+	fee2, err := service.GetTxActualFee(tx2.CalTxId())
+	assert.NoError(t, err)
+	expectFee1 := receipt1.GasUsed * g_testData.TestGasPrice.Uint64()
+	expectFee2 := receipt2.GasUsed * g_testData.TestGasPrice.Uint64()
+	assert.Equal(t, expectFee1, fee1.Uint64())
+	assert.Equal(t, expectFee2, fee2.Uint64())
 }

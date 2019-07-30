@@ -60,7 +60,6 @@ func main() {
 	app.Run(os.Args)
 }
 
-
 func newApp() (nApp *cli.App) {
 	nApp = cli.NewApp()
 	nApp.Name = "DipperinCli"

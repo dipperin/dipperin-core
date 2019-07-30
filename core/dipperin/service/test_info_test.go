@@ -35,10 +35,12 @@ import (
 	"github.com/dipperin/dipperin-core/core/mine/minemaster"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/tx-pool"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"net"
@@ -192,16 +194,30 @@ func createTxPool(csChain *chain_state.ChainState) *tx_pool.TxPool {
 func createSignedTx(nonce uint64, to common.Address, amount *big.Int, extraData []byte) *model.Transaction {
 	verifiers, _ := tests.ChangeVerifierAddress(nil)
 	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewTransaction(nonce, to, amount, testFee, g_testData.TestGasLimit, extraData)
+	gasLimit := g_testData.TestGasLimit * 500
+	tx := model.NewTransaction(nonce, to, amount, g_testData.TestGasPrice, gasLimit, extraData)
 	signedTx, _ := tx.SignTx(verifiers[0].Pk, fs1)
 	return signedTx
 }
 
 func createSignedTx2(nonce uint64, from *ecdsa.PrivateKey, to common.Address, amount *big.Int) *model.Transaction {
 	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewTransaction(nonce, to, amount, testFee, g_testData.TestGasLimit, []byte{})
+	tx := model.NewTransaction(nonce, to, amount, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	signedTx, _ := tx.SignTx(from, fs1)
 	return signedTx
+}
+
+func createContractTx(nonce uint64, WASMPath, AbiPath, input string) *model.Transaction {
+	codeByte, abiByte := g_testData.GetCodeAbi(WASMPath, AbiPath)
+	var data []byte
+	if input == "" {
+		data, _ = rlp.EncodeToBytes([]interface{}{codeByte, abiByte})
+	} else {
+		data, _ = rlp.EncodeToBytes([]interface{}{codeByte, abiByte, input})
+	}
+	extraData, _ := utils.ParseCreateContractData(data)
+	to := common.HexToAddress(common.AddressContractCreate)
+	return createSignedTx(nonce, to, g_testData.TestValue, extraData)
 }
 
 type fakeValidator struct {

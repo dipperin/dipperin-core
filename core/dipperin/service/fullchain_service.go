@@ -1642,60 +1642,6 @@ func (service *MercuryFullChainService) convertLogs(logs []*model2.Log) ([]*mode
 	return logs, nil
 }
 
-func (service *MercuryFullChainService) GetConvertReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
-	tx, blockHash, blockNumber, _, err := service.Transaction(txHash)
-	if err != nil {
-		return nil, err
-	}
-
-	receipts := service.ChainReader.GetReceipts(blockHash, blockNumber)
-	if receipts == nil {
-		return nil, g_error.ErrReceiptIsNil
-	}
-
-	for _, value := range receipts {
-		if txHash.IsEqual(value.TxHash) {
-
-			if tx.GetType() != common.AddressTypeContractCreate && tx.GetType() != common.AddressTypeContractCall {
-				return value, nil
-			}
-
-			result, innerErr := service.convertReceipt(*value)
-			if innerErr != nil {
-				log.Info("GetConvertReceiptByTxHash convertReceipt error", "err", innerErr)
-				return nil, innerErr
-			}
-			return result, nil
-		}
-	}
-	return nil, g_error.ErrReceiptNotFound
-}
-
-func (service *MercuryFullChainService) convertReceipt(src model2.Receipt) (*model2.Receipt, error) {
-	abi, err := service.GetABI(src.ContractAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	logs := make([]*model2.Log, 0)
-	for _, value := range src.Logs {
-		for _, v := range abi.AbiArr {
-			if strings.EqualFold(v.Name, value.TopicName) && strings.EqualFold(v.Type, "event") {
-				data, innerErr := utils.ConvertInputs(value.Data, v.Inputs)
-				if innerErr != nil {
-					return nil, innerErr
-				}
-				tmpLog := *value
-				tmpLog.Data = data
-				logs = append(logs, &tmpLog)
-				break
-			}
-		}
-	}
-	src.Logs = logs
-	return &src, nil
-}
-
 func (service *MercuryFullChainService) GetTxActualFee(txHash common.Hash) (*big.Int, error) {
 	receipt, err := service.GetReceiptByTxHash(txHash)
 	if err != nil {
@@ -1723,6 +1669,19 @@ func (service *MercuryFullChainService) GetReceiptsByBlockNum(num uint64) (model
 	if receipts == nil {
 		return nil, g_error.ErrReceiptIsNil
 	}
+
+	// convert logs
+	for _, value := range receipts {
+		if len(value.Logs) == 0 {
+			continue
+		}
+		result, innerErr := service.convertLogs(value.Logs)
+		if innerErr != nil {
+			log.Info("GetReceiptsByBlockNum convertReceipt error", "innerErr", innerErr)
+			return nil, innerErr
+		}
+		value.Logs = result
+	}
 	return receipts, nil
 }
 
@@ -1736,8 +1695,19 @@ func (service *MercuryFullChainService) GetReceiptByTxHash(txHash common.Hash) (
 	if receipts == nil {
 		return nil, g_error.ErrReceiptIsNil
 	}
+
+	// convert logs
 	for _, value := range receipts {
 		if txHash.IsEqual(value.TxHash) {
+			if len(value.Logs) == 0 {
+				return value, nil
+			}
+			result, innerErr := service.convertLogs(value.Logs)
+			if innerErr != nil {
+				log.Info("GetConvertReceiptByTxHash convertReceipt error", "err", innerErr)
+				return nil, innerErr
+			}
+			value.Logs = result
 			return value, nil
 		}
 	}
@@ -2086,7 +2056,6 @@ func (service *MercuryFullChainService) doCall(msg state_processor.Message, txHa
 
 func (service *MercuryFullChainService) CheckConstant(to common.Address, data []byte) (bool, string, *utils.WasmAbi, error) {
 	funcName, err := vm.ParseInputForFuncName(data)
-	//fmt.Println("MercuryFullChainService#CheckConstant", funcName)
 	if err != nil {
 		log.Error("ParseInputForFuncName failed", "err", err)
 		return false, "", nil, err

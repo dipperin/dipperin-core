@@ -669,33 +669,6 @@ func (caller *rpcCaller) Transaction(c *cli.Context) {
 	printTransactionInfo(resp)
 }
 
-func (caller *rpcCaller) GetConvertReceiptByTxHash(c *cli.Context) {
-	_, cParams, err := getRpcMethodAndParam(c)
-	if err != nil {
-		l.Error("GetConvertReceiptByTxHash  getRpcMethodAndParam error")
-		return
-	}
-	if len(cParams) < 1 {
-		l.Error("GetConvertReceiptByTxHash need：txHash")
-		return
-	}
-	tmpHash, err := hexutil.Decode(cParams[0])
-	if err != nil {
-		l.Error("GetConvertReceiptByTxHash decode error")
-		return
-	}
-	var hash common.Hash
-	_ = copy(hash[:], tmpHash)
-
-	var resp model.Receipt
-	if err = client.Call(&resp, getDipperinRpcMethodByName("GetConvertReceiptByTxHash"), hash); err != nil {
-		l.Error("Call GetConvertReceiptByTxHash failed", "err", err)
-		return
-	}
-	l.Info("Call GetConvertReceiptByTxHash")
-	fmt.Println(resp.String())
-}
-
 func (caller *rpcCaller) GetReceiptByTxHash(c *cli.Context) {
 	_, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {

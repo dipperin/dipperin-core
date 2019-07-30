@@ -19,6 +19,7 @@ package chaindb
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
@@ -327,7 +328,7 @@ func DeriveFields(r model2.Receipts, block model.AbstractBlock) error {
 	number := block.Number()
 	hash := block.Hash()
 	if len(txs) != len(r) {
-		return errors.New("transaction and receipt count mismatch")
+		return errors.New(fmt.Sprintf("length of txs and receipts not match txs:%v, receipts:%v", len(txs), len(r)))
 	}
 	for i := 0; i < len(r); i++ {
 		// The transaction hash can be retrieved from the transaction itself
