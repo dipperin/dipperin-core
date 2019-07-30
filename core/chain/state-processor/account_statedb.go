@@ -259,7 +259,6 @@ func (state *AccountStateDB) GetNonce(addr common.Address) (uint64, error) {
 }
 
 func (state *AccountStateDB) GetBalance(addr common.Address) (*big.Int, error) {
-	log.Info("AccountStateDB GetBalance the addr is: ", "addr", addr.Hex())
 	empty := state.IsEmptyAccount(addr)
 	if empty {
 		return nil, g_error.AccountNotExist

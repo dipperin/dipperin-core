@@ -70,8 +70,8 @@ func createBlock(chain *chain_state.ChainState, txs []*model.Transaction, votes 
 	return bb.Build()
 }
 
-func createVerifiersVotes(block model.AbstractBlock, votesNum int) (votes []model.AbstractVerification) {
-	testVerifierAccounts, _ := tests.ChangeVerifierAddress(nil)
+func createVerifiersVotes(block model.AbstractBlock, votesNum int, testAccounts []tests.Account) (votes []model.AbstractVerification) {
+	testVerifierAccounts, _ := tests.ChangeVerifierAddress(testAccounts)
 	for i := 0; i < votesNum; i++ {
 		voteA := model.NewVoteMsg(block.Number(), uint64(0), block.Hash(), model.VoteMessage)
 		sign, _ := crypto.Sign(voteA.Hash().Bytes(), testVerifierAccounts[i].Pk)
@@ -93,12 +93,12 @@ func insertBlockToChain(t *testing.T, chain *chain_state.ChainState, num int) {
 		} else {
 
 			// votes for curBlock on chain
-			curBlockVotes := createVerifiersVotes(curBlock, config.VerifierNumber*2/3+1)
+			curBlockVotes := createVerifiersVotes(curBlock, config.VerifierNumber*2/3+1, nil)
 			block = createBlock(chain, nil, curBlockVotes)
 		}
 
 		// votes for build block
-		votes := createVerifiersVotes(block, config.VerifierNumber*2/3+1)
+		votes := createVerifiersVotes(block, config.VerifierNumber*2/3+1, nil)
 		err := chain.SaveBftBlock(block, votes)
 		assert.NoError(t, err)
 		assert.Equal(t, uint64(i+1), chain.CurrentBlock().Number())
@@ -122,7 +122,7 @@ func createERC20() (*model.Transaction, common.Address) {
 	contractAdr, _ := address_util.GenERC20Address()
 	extra.ContractAddress = contractAdr
 
-	tx := createSignedTx(0, aliceAddr, big.NewInt(0), util.StringifyJsonToBytes(extra))
+	tx := createSignedTx(0, aliceAddr, big.NewInt(0), util.StringifyJsonToBytes(extra), nil)
 
 	return tx, contractAdr
 }
@@ -191,8 +191,8 @@ func createTxPool(csChain *chain_state.ChainState) *tx_pool.TxPool {
 	return tx_pool.NewTxPool(txConfig, *config, csChain)
 }
 
-func createSignedTx(nonce uint64, to common.Address, amount *big.Int, extraData []byte) *model.Transaction {
-	verifiers, _ := tests.ChangeVerifierAddress(nil)
+func createSignedTx(nonce uint64, to common.Address, amount *big.Int, extraData []byte, testAccounts []tests.Account) *model.Transaction {
+	verifiers, _ := tests.ChangeVerifierAddress(testAccounts)
 	fs1 := model.NewMercurySigner(big.NewInt(1))
 	gasLimit := g_testData.TestGasLimit * 500
 	tx := model.NewTransaction(nonce, to, amount, g_testData.TestGasPrice, gasLimit, extraData)
@@ -207,7 +207,7 @@ func createSignedTx2(nonce uint64, from *ecdsa.PrivateKey, to common.Address, am
 	return signedTx
 }
 
-func createContractTx(nonce uint64, WASMPath, AbiPath, input string) *model.Transaction {
+func createContractTx(nonce uint64, WASMPath, AbiPath, input string, testAccounts []tests.Account) *model.Transaction {
 	codeByte, abiByte := g_testData.GetCodeAbi(WASMPath, AbiPath)
 	var data []byte
 	if input == "" {
@@ -217,7 +217,7 @@ func createContractTx(nonce uint64, WASMPath, AbiPath, input string) *model.Tran
 	}
 	extraData, _ := utils.ParseCreateContractData(data)
 	to := common.HexToAddress(common.AddressContractCreate)
-	return createSignedTx(nonce, to, g_testData.TestValue, extraData)
+	return createSignedTx(nonce, to, g_testData.TestValue, extraData, testAccounts)
 }
 
 type fakeValidator struct {
