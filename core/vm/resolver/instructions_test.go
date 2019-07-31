@@ -1,29 +1,53 @@
 package resolver
 
 import (
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-var TEST_VM_CONFIG = exec.VMConfig{
-	EnableJIT:          false,
-	DefaultMemoryPages: exec.DefaultPageSize,
+func TestInstructions(t *testing.T) {
+	vmValue := &fakeVmContextService{}
+	contract := &fakeContractService{}
+	state := NewFakeStateDBService()
+	solver := NewResolver(vmValue, contract, state)
+
+	WASMPath := g_testData.GetWASMPath("convert", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("convert", g_testData.CoreVmTestData)
+	code, _ := g_testData.GetCodeAbi(WASMPath, AbiPath)
+	vm, err := exec.NewVirtualMachine(code, TEST_VM_CONFIG, solver, nil)
+	assert.NoError(t, err)
+	entryID, ok := vm.GetFunctionExport("getBlockInfo")
+	assert.Equal(t, true, ok)
+	vm.GasLimit = g_testData.TestGasLimit * 100
+
+	res, err := vm.Run(entryID)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(0), res)
 }
 
-func TestInstructions(t *testing.T) {
-	/*	ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
+func TestMallocString(t *testing.T) {
+	vmValue := &fakeVmContextService{}
+	contract := &fakeContractService{}
+	state := NewFakeStateDBService()
+	solver := NewResolver(vmValue, contract, state)
 
-		vmValue := NewMockVmContextService(ctrl)
-		contract := NewMockContractService(ctrl)
-		state := NewMockStateDBService(ctrl)
-		solver := NewResolver(vmValue, contract, state)
-		vm, err := exec.NewVirtualMachine([]byte{}, TEST_VM_CONFIG, solver, nil)
-		assert.NoError(t, err)
+	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
+	code, _ := g_testData.GetCodeAbi(WASMPath, AbiPath)
+	vm, err := exec.NewVirtualMachine(code, TEST_VM_CONFIG, solver, nil)
+	assert.NoError(t, err)
 
-		solverFunc := solver.ResolveFunc("env", "setState")
-		gasCost, err := solverFunc.GasCost(vm)
-		assert.NoError(t, err)
-		assert.Equal(t, uint64(1), gasCost)
-		assert.Equal(t, int64(0), solverFunc.Execute(vm))*/
+	param := "DIPP"
+	pos := MallocString(vm, param)
+	assert.Equal(t, param, string(vm.Memory.Memory[pos:pos+int64(len(param))]))
+
+	param = ""
+	pos = MallocString(vm, param)
+	assert.Equal(t, param, string(vm.Memory.Memory[pos:pos+int64(len(param))]))
+
+	param = aliceAddr.String()
+	pos = MallocString(vm, param)
+	assert.Equal(t, param, string(vm.Memory.Memory[pos:pos+int64(len(param))]))
 }
