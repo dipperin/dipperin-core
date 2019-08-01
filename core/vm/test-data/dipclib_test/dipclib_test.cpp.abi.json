@@ -4,6 +4,7 @@
         "inputs": [],
         "outputs": [],
         "constant": "false",
+        "payable": "false",
         "type": "function"
     },
     {
@@ -11,6 +12,7 @@
         "inputs": [],
         "outputs": [],
         "constant": "false",
+        "payable": "false",
         "type": "function"
     }
 ]

@@ -14,7 +14,8 @@
 using namespace dipc;
 
 class dipcLibTest:
-public buildins,
+public Contract,
+public buildins, 
 public converttest,
 public fixedhashtest,
 public rlptest,

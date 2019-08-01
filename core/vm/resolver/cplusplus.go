@@ -4,7 +4,6 @@ package resolver
 // #include "print128.h"
 import "C"
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
@@ -12,7 +11,6 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/vm_log"
-	"math"
 )
 
 /*func PrintTest(){
@@ -34,7 +32,7 @@ func envMemmoveGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return uint64(len), nil
 }
 
-//int memcmp ( const void * ptr1, const void * ptr2, size_t num );
+/*//int memcmp ( const void * ptr1, const void * ptr2, size_t num );
 func envMemcmp(vm *exec.VirtualMachine) int64 {
 	ptr1 := int(uint32(vm.GetCurrentFrame().Locals[0]))
 	ptr2 := int(uint32(vm.GetCurrentFrame().Locals[1]))
@@ -46,7 +44,7 @@ func envMemcmp(vm *exec.VirtualMachine) int64 {
 func envMemcmpGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	len := int(uint32(vm.GetCurrentFrame().Locals[2]))
 	return uint64(len), nil
-}
+}*/
 
 //void * memset ( void * ptr, int value, size_t num );
 func envMemset(vm *exec.VirtualMachine) int64 {
@@ -165,7 +163,7 @@ func envPrintui128GasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func envPrintsf(vm *exec.VirtualMachine) int64 {
+/*func envPrintsf(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
 	float := math.Float32frombits(uint32(pos))
 	vm_log.Debug(fmt.Sprintf("%g", float))
@@ -187,7 +185,7 @@ func envPrintdf(vm *exec.VirtualMachine) int64 {
 
 func envPrintdfGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
-}
+}*/
 
 /*func envPrintqf(vm *exec.VirtualMachine) int64 {
 	frame := vm.GetCurrentFrame()
@@ -546,7 +544,7 @@ func (r *Resolver) envDipperDelegateCallString(vmValue *exec.VirtualMachine) int
 	return MallocString(vmValue, string(ret))
 }*/
 
-func envDipperCallGasCost(vm *exec.VirtualMachine) (uint64, error) {
+/*func envDipperCallGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
@@ -556,4 +554,4 @@ func envDipperCallInt64GasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 func envDipperCallStringGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
-}
+}*/

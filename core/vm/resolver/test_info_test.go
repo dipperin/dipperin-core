@@ -40,6 +40,9 @@ func (state *fakeStateDBService) AddLog(addedLog *model.Log) {
 }
 
 func (state *fakeStateDBService) SetState(addr common.Address, key []byte, value []byte) {
+	if state.stateMap[addr] == nil {
+		state.stateMap[addr] = make(map[string][]byte, 0)
+	}
 	state.stateMap[addr][string(key)] = value
 }
 

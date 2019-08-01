@@ -93,9 +93,9 @@ func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
 			"printui":    &exec.FunctionImport{Execute: envPrintui, GasCost: envPrintuiGasCost},
 			"printi128":  &exec.FunctionImport{Execute: envPrinti128, GasCost: envPrinti128GasCost},
 			"printui128": &exec.FunctionImport{Execute: envPrintui128, GasCost: envPrintui128GasCost},
-			"printsf":    &exec.FunctionImport{Execute: envPrintsf, GasCost: envPrintsfGasCost},
-			"printdf":    &exec.FunctionImport{Execute: envPrintdf, GasCost: envPrintdfGasCost},
-			//"printqf":    &exec.FunctionImport{Execute: envPrintqf, GasCost: envPrintqfGasCost},
+			/*			"printsf":    &exec.FunctionImport{Execute: envPrintsf, GasCost: envPrintsfGasCost},
+						"printdf":    &exec.FunctionImport{Execute: envPrintdf, GasCost: envPrintdfGasCost},
+						"printqf":    &exec.FunctionImport{Execute: envPrintqf, GasCost: envPrintqfGasCost},*/
 			"printn":   &exec.FunctionImport{Execute: envPrintn, GasCost: envPrintnGasCost},
 			"printhex": &exec.FunctionImport{Execute: envPrinthex, GasCost: envPrinthexGasCost},
 
