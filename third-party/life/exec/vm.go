@@ -3,6 +3,7 @@ package exec
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/dipperin/dipperin-core/third-party/life/mem-manage"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math"
 	"math/bits"
@@ -27,23 +28,6 @@ type FunctionImport struct {
 	Execute Execute
 	GasCost GasCost
 }
-
-const (
-	// DefaultCallStackSize is the default call stack size.
-	DefaultCallStackSize = 512
-
-	// DefaultPageSize is the linear memory page size.  65536
-	DefaultPageSize = 65536
-
-	// JITCodeSizeThreshold is the lower-bound code size threshold for the JIT compiler.
-	JITCodeSizeThreshold = 30
-
-	DefaultMemoryPages = 16
-	DynamicMemoryPages = 16
-
-	DefaultMemPoolCount = 5
-	DefaultMemBlockSize = 5
-)
 
 // LE is a simple alias to `binary.LittleEndian`.
 var LE = binary.LittleEndian
@@ -76,7 +60,7 @@ type VirtualMachine struct {
 	CurrentFrame     int
 	Table            []uint32
 	Globals          []int64
-	Memory           *Memory
+	Memory           *mem_manage.BuddyMemory
 	NumValueSlots    int
 	Yielded          int64
 	InsideExecute    bool
@@ -98,8 +82,8 @@ type VirtualMachine struct {
 	GasLimit uint64
 
 	//memory pool interface
-	MemPool  MemPoolInterface
-	TreePool TreePoolInterface
+	MemPool  mem_manage.MemPoolInterface
+	TreePool mem_manage.TreePoolInterface
 }
 
 // VMConfig denotes a set of options passed to a single VirtualMachine insta.ce
@@ -248,21 +232,21 @@ func NewVirtualMachine(
 		}
 	}
 
-	memory := &Memory{}
-	memPool := &SimpleMemPool{}
-	treePool := &SimpleTreePool{}
+	memory := &mem_manage.BuddyMemory{}
+	memPool := &mem_manage.SimpleMemPool{}
+	treePool := &mem_manage.SimpleTreePool{}
 	if m.Base.Memory != nil && len(m.Base.Memory.Entries) > 0 {
 		initialLimit := int(m.Base.Memory.Entries[0].Limits.Initial)
 		if config.MaxMemoryPages != 0 && initialLimit > config.MaxMemoryPages {
 			panic("max memory exceeded")
 		}
 
-		capacity := initialLimit + DynamicMemoryPages
+		capacity := initialLimit + mem_manage.DynamicMemoryPages
 		// Initialize empty memory.
 		memory.Memory = memPool.Get(capacity)
-		memory.Start = initialLimit * DefaultPageSize
-		memory.tree = treePool.GetTree(capacity - initialLimit)
-		memory.Size = (len(memory.tree) + 1) / 2
+		memory.Start = initialLimit * mem_manage.DefaultPageSize
+		memory.Tree = treePool.GetTree(capacity - initialLimit)
+		memory.Size = (len(memory.Tree) + 1) / 2
 
 		if m.Base.Data != nil && len(m.Base.Data.Entries) > 0 {
 			for _, e := range m.Base.Data.Entries {
@@ -278,7 +262,7 @@ func NewVirtualMachine(
 		FunctionCode:    functionCode,
 		FunctionImports: funcImports,
 		JumpTable:       GasTable,
-		CallStack:       make([]Frame, DefaultCallStackSize),
+		CallStack:       make([]Frame, mem_manage.DefaultCallStackSize),
 		CurrentFrame:    -1,
 		Table:           table,
 		Globals:         globals,
@@ -1817,16 +1801,16 @@ func (vm *VirtualMachine) Execute() {
 			return
 
 		case opcodes.CurrentMemory:
-			frame.Regs[valueID] = int64(len(vm.Memory.Memory) / DefaultPageSize)
+			frame.Regs[valueID] = int64(len(vm.Memory.Memory) / mem_manage.DefaultPageSize)
 
 		case opcodes.GrowMemory:
 			n := int(uint32(frame.Regs[int(LE.Uint32(frame.Code[frame.IP:frame.IP+4]))]))
 			frame.IP += 4
 
-			current := len(vm.Memory.Memory) / DefaultPageSize
+			current := len(vm.Memory.Memory) / mem_manage.DefaultPageSize
 			if vm.Config.MaxMemoryPages == 0 || (current+n >= current && current+n <= vm.Config.MaxMemoryPages) {
 				frame.Regs[valueID] = int64(current)
-				vm.Memory.Memory = append(vm.Memory.Memory, make([]byte, n*DefaultPageSize)...)
+				vm.Memory.Memory = append(vm.Memory.Memory, make([]byte, n*mem_manage.DefaultPageSize)...)
 			} else {
 				frame.Regs[valueID] = -1
 			}

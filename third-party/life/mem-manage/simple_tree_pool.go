@@ -1,4 +1,4 @@
-package exec
+package mem_manage
 
 import (
 	"sync"

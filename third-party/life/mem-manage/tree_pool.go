@@ -1,4 +1,4 @@
-package exec
+package mem_manage
 
 import (
 	"fmt"
@@ -29,7 +29,7 @@ func initTree(t tree, size int) {
 func buildTree(size int) tree {
 
 	if size < 1 || !isPowOf2(size) {
-		panic(fmt.Errorf("build tree failed,wrong Size:%d", size))
+		panic(fmt.Errorf("build Tree failed,wrong Size:%d", size))
 	}
 	tree := make([]int, size*2-1)
 	initTree(tree, size)
@@ -106,7 +106,7 @@ func (tp *TreePool) PutTree(tree []int) {
 	key := int(math.Log2(float64(pages)))
 
 	if tree[0] != size {
-		log.Debug("reset memory tree...")
+		log.Debug("reset memory Tree...")
 		reset(tree, tp.trees[key], tp.emptyTree[key])
 	}
 	treeArr, ok := tp.trees[key]

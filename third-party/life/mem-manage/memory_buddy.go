@@ -1,24 +1,24 @@
-package exec
+package mem_manage
 
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
-type Memory struct {
+type BuddyMemory struct {
 	Memory []byte
 	Start  int //start position for malloc
 	Size   int //memory size for malloc
-	tree   []int
+	Tree   []int
 }
 
-func (m *Memory) Malloc(size int) int {
+func (m *BuddyMemory) Malloc(size int) int {
 	if size <= 0 {
 		panic(fmt.Errorf("wrong Size=%d", size))
 	} else {
 		size = fixSize(size)
 	}
-	if size > m.tree[0] {
+	if size > m.Tree[0] {
 		panic(fmt.Errorf("malloc Size=%d exceed avalable memory Size", size))
 	}
 
@@ -28,27 +28,27 @@ func (m *Memory) Malloc(size int) int {
 	index := 0
 	nodeSize := 0
 	for nodeSize = m.Size; nodeSize != size; nodeSize /= 2 {
-		if m.tree[left(index)] >= size {
+		if m.Tree[left(index)] >= size {
 			index = left(index)
 		} else {
 			index = right(index)
 		}
 	}
-	m.tree[index] = 0
+	m.Tree[index] = 0
 	//Calculate the address corresponding to the node
 	offset := (index+1)*nodeSize - m.Size
 
 	//Upward modify the size of the parent node affected by the size
 	for index > 0 {
 		index = parent(index)
-		m.tree[index] = max(m.tree[left(index)], m.tree[right(index)])
+		m.Tree[index] = max(m.Tree[left(index)], m.Tree[right(index)])
 	}
 	//Clear the memory data corresponding to the node
 	clear(offset+m.Start, offset+m.Start+nodeSize, m.Memory)
 	return offset + m.Start
 }
 
-func (m *Memory) Free(offset int) error {
+func (m *BuddyMemory) Free(offset int) error {
 	if offset == 0 {
 		log.Debug("free offset = 0...")
 		return nil
@@ -63,7 +63,7 @@ func (m *Memory) Free(offset int) error {
 	//Offset corresponds to the node index
 	index := offset + m.Size - 1
 	//From the last node, go up and find the node with size 0, that is, the size and position of the original allocation block.
-	for ; m.tree[index] != 0; index = parent(index) {
+	for ; m.Tree[index] != 0; index = parent(index) {
 		nodeSize *= 2
 		if index == 0 {
 			return nil
@@ -71,19 +71,19 @@ func (m *Memory) Free(offset int) error {
 	}
 
 	//Recovery node
-	m.tree[index] = nodeSize
+	m.Tree[index] = nodeSize
 
 	//Traverse up the nodes that are affected by the recovery
 	var leftNode int
 	var rightNode int
 	for index = parent(index); index >= 0; index = parent(index) {
 		nodeSize *= 2
-		leftNode = m.tree[left(index)]
-		rightNode = m.tree[right(index)]
+		leftNode = m.Tree[left(index)]
+		rightNode = m.Tree[right(index)]
 		if leftNode+rightNode == nodeSize {
-			m.tree[index] = nodeSize
+			m.Tree[index] = nodeSize
 		} else {
-			m.tree[index] = max(leftNode, rightNode)
+			m.Tree[index] = max(leftNode, rightNode)
 		}
 	}
 

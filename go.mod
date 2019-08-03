@@ -37,6 +37,7 @@ require (
 	github.com/tidwall/gjson v1.1.5
 	github.com/tidwall/match v1.0.1 // indirect
 	github.com/urfave/cli v1.20.0
+	github.com/vntchain/go-vnt v0.6.2
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 	golang.org/x/net v0.0.0-20190603091049-60506f45cf65
 	golang.org/x/sys v0.0.0-20190602015325-4c4f7f33c9ed

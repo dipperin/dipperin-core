@@ -98,6 +98,6 @@ func (vm *VirtualMachine) Stop() (err error) {
 		err = vm.Memory.Free(int(pos))
 
 	}
-	vm.TreePool.PutTree(vm.Memory.tree)
+	vm.TreePool.PutTree(vm.Memory.Tree)
 	return err
 }

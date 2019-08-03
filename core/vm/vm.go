@@ -8,6 +8,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/third-party/life/mem-manage"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 	"sync/atomic"
@@ -17,7 +18,7 @@ var emptyCodeHash = cs_crypto.Keccak256Hash(nil)
 
 var DEFAULT_VM_CONFIG = exec.VMConfig{
 	EnableJIT:          false,
-	DefaultMemoryPages: exec.DefaultPageSize,
+	DefaultMemoryPages: mem_manage.DefaultPageSize,
 }
 
 type VM struct {
