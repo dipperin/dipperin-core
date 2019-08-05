@@ -7,10 +7,12 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/vm_log"
+	"math/big"
 )
 
 /*func PrintTest(){
@@ -359,7 +361,7 @@ func (r *Resolver) envOrigin(vm *exec.VirtualMachine) int64 {
 // define: void caller(char addr[20]);
 func (r *Resolver) envCaller(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
-	caller := r.Service.Caller()
+	caller := r.Service.Caller().Address()
 	copy(vm.Memory.Memory[offset:], caller.Bytes())
 	return 0
 }
@@ -434,7 +436,7 @@ func envGetStateSizeGasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 // define: int64_t getNonce();
 func (r *Resolver) envGetCallerNonce(vm *exec.VirtualMachine) int64 {
-	addr := r.Service.Caller()
+	addr := r.Service.Caller().Address()
 	nonce, _ := r.Service.StateDBService.GetNonce(addr)
 	log.Info("envGetCallerNonce", "nonce", nonce)
 	return int64(nonce)
@@ -446,15 +448,15 @@ func (r *Resolver) envGetCallerNonce(vm *exec.VirtualMachine) int64 {
 	return curTime
 }*/
 
-/*func (r *Resolver) envCallTransfer(vm *exec.VirtualMachine) int64 {
+func (r *Resolver) envCallTransfer(vm *exec.VirtualMachine) int64 {
 	key := int(int32(vm.GetCurrentFrame().Locals[0]))
 	keyLen := int(int32(vm.GetCurrentFrame().Locals[1]))
 	value := int(vm.GetCurrentFrame().Locals[2])
 	bValue := new(big.Int)
 	// 256 bits
-	bValue.SetBytes(vm.Memory.Memory[value: value+32])
-	value256 := math2.U256(bValue)
-	addr := common.BytesToAddress(vm.Memory.Memory[key: key+keyLen])
+	bValue.SetBytes(vm.Memory.Memory[value : value+32])
+	value256 := math.U256(bValue)
+	addr := common.BytesToAddress(vm.Memory.Memory[key : key+keyLen])
 	_, returnGas, err := r.Service.Transfer(addr, value256)
 
 	//先使用在life　vm中添加的字段，待后续看是否可以使用life自带gas机制
@@ -467,7 +469,7 @@ func (r *Resolver) envGetCallerNonce(vm *exec.VirtualMachine) int64 {
 	}
 }
 
-func (r *Resolver) envDipperCall(vm *exec.VirtualMachine) int64 {
+/*func (r *Resolver) envDipperCall(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))

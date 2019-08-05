@@ -18,6 +18,7 @@ package state_processor
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
 	"math/big"
@@ -276,8 +277,8 @@ const (
 	CodeChange
 	DataChange
 	ContractChange
-
 	DeleteAccountChange
+	LogsChange
 )
 
 type (
@@ -375,7 +376,37 @@ type (
 		Current    reflect.Value
 		ChangeType uint64
 	}
+	logsChange struct {
+		TxHash     *common.Hash
+		Prev       []*model.Log
+		Current    []*model.Log
+		ChangeType uint64
+	}
 )
+
+func (lc logsChange) revert(s *AccountStateDB) {
+	s.logs[*lc.TxHash] = lc.Prev
+}
+
+func (lc logsChange) dirtied() *common.Address {
+	return nil
+}
+
+func (lc logsChange) recover(s *AccountStateDB) {
+	s.logs[*lc.TxHash] = lc.Current
+}
+
+func (lc logsChange) getType() int {
+	return int(lc.ChangeType)
+}
+
+func (lc logsChange) digest(sc StateChange) StateChange {
+	if sc.getType() == LogsChange {
+		c := sc.(logsChange)
+		return logsChange{TxHash: c.TxHash, Prev: c.Prev, Current: c.Current, ChangeType: LogsChange}
+	}
+	return nil
+}
 
 func (sc deleteAccountChange) revert(s *AccountStateDB) {
 	s.newAccountState(*sc.Account)

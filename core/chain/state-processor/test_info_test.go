@@ -48,8 +48,8 @@ var (
 
 	TrieError = errors.New("trie error")
 
-	testGasPrice = big.NewInt(2)
-	testGasLimit = uint64(2100000)
+	testGasPrice = g_testData.TestGasPrice
+	testGasLimit = g_testData.TestGasLimit * 100
 )
 
 func createKey() (*ecdsa.PrivateKey, *ecdsa.PrivateKey) {
@@ -61,12 +61,12 @@ func createKey() (*ecdsa.PrivateKey, *ecdsa.PrivateKey) {
 	return key1, key2
 }
 
-func createContractTx(code, abi string, nonce uint64) *model.Transaction {
+func createContractTx(code, abi string, nonce, gasLimit uint64) *model.Transaction {
 	key, _ := createKey()
 	fs := model.NewMercurySigner(big.NewInt(1))
 	data := getContractCode(code, abi)
 	to := common.HexToAddress(common.AddressContractCreate)
-	tx := model.NewTransactionSc(nonce, &to, big.NewInt(200), testGasPrice, testGasLimit, data)
+	tx := model.NewTransactionSc(nonce, &to, big.NewInt(2000000), testGasPrice, gasLimit, data)
 	tx.SignTx(key, fs)
 	return tx
 }
@@ -75,7 +75,7 @@ func callContractTx(to *common.Address, funcName string, param [][]byte, nonce u
 	key, _ := createKey()
 	fs := model.NewMercurySigner(big.NewInt(1))
 	data := getContractInput(funcName, param)
-	tx := model.NewTransactionSc(nonce, to, big.NewInt(200), testGasPrice, testGasLimit, data)
+	tx := model.NewTransactionSc(nonce, to, big.NewInt(2000000), testGasPrice, testGasLimit, data)
 	tx.SignTx(key, fs)
 	return tx
 }
@@ -119,8 +119,7 @@ func createSignedVote(num uint64, blockId common.Hash, voteType model.VoteMsgTyp
 	return voteA
 }
 
-func getTestVm() *vm.VM {
-	db, root := CreateTestStateDB()
+func getTestVm(db ethdb.Database, root common.Hash) *vm.VM {
 	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
 	state := NewFullState(processor)
 	return vm.NewVM(vm.Context{

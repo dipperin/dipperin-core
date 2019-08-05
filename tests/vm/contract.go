@@ -67,10 +67,10 @@ func Transaction(client *rpc.Client, hash common.Hash) (bool, uint64) {
 	return true, resp.BlockNumber
 }
 
-func GetConvertReceiptByTxHash(client *rpc.Client, hash common.Hash) *model.Receipt {
-	var resp *model.Receipt
-	if err := client.Call(&resp, GetRpcTXMethod("GetConvertReceiptByTxHash"), hash); err != nil {
-		LogTestPrint("Test", "call GetConvertReceiptByTxHash failed", "err", err)
+func CurrentBalance(client *rpc.Client, addr common.Address) *rpc_interface.CurBalanceResp {
+	var resp *rpc_interface.CurBalanceResp
+	if err := client.Call(&resp, GetRpcTXMethod("CurrentBalance"), addr); err != nil {
+		LogTestPrint("Test", "call CurrentBalance failed", "err", err)
 		return nil
 	}
 	return resp
@@ -124,9 +124,9 @@ func SendCreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNam
 
 	log.Info("SendCreateContract the extraData is:", "data", hexutil.Encode(data))
 
-	value := big.NewInt(0).Mul(g_testData.TestValue, big.NewInt(5e10))
+	value := big.NewInt(0).Mul(g_testData.TestValue, big.NewInt(5))
 	gasLimit := g_testData.TestGasLimit * 10000
-	gasPrice := big.NewInt(0).Mul(g_testData.TestGasPrice, big.NewInt(4))
+	gasPrice := big.NewInt(0).Mul(g_testData.TestGasPrice, big.NewInt(5))
 	txHash, innerErr := SendTransactionContract(client, from, to, value, gasPrice, gasLimit, data)
 	assert.NoError(t, innerErr)
 	return txHash
@@ -139,7 +139,7 @@ func SendCallContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeName 
 	assert.NoError(t, err)
 
 	to := GetContractAddressByTxHash(client, txHash)
-	value := big.NewInt(0).Mul(g_testData.TestValue, big.NewInt(3e10))
+	value := big.NewInt(0).Mul(g_testData.TestValue, big.NewInt(3))
 	gasLimit := g_testData.TestGasLimit * 10000
 	gasPrice := big.NewInt(0).Mul(g_testData.TestGasPrice, big.NewInt(2))
 	txHash, innerErr := SendTransactionContract(client, from, to, value, gasPrice, gasLimit, input)
@@ -152,7 +152,7 @@ func checkTransactionOnChain(client *rpc.Client, txHashList []common.Hash) {
 		for {
 			result, num := Transaction(client, txHashList[i])
 			if result {
-				receipts := GetConvertReceiptByTxHash(client, txHashList[i])
+				receipts := GetReceiptByTxHash(client, txHashList[i])
 				LogTestPrint("Test", "CallTransaction", "blockNum", num)
 				fmt.Println(receipts)
 				break

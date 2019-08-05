@@ -37,8 +37,12 @@ func NewContract(caller, object resolver.ContractRef, value *big.Int, gas uint64
 	}
 }
 
-func (c *Contract) Caller() common.Address {
-	return c.CallerAddress
+func (c *Contract) Caller() resolver.ContractRef {
+	return c.caller
+}
+
+func (c *Contract) Self() resolver.ContractRef {
+	return c.self
 }
 
 func (c *Contract) Address() common.Address {

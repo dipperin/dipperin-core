@@ -128,7 +128,7 @@ func newContractCallTx(from *common.Address, to *common.Address, gasPrice *big.I
 func TestAccountStateDB_ProcessContract2(t *testing.T) {
 	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
 	abiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
-	tx1 := createContractTx(WASMPath, abiPath, 0)
+	tx1 := createContractTx(WASMPath, abiPath, 0, testGasLimit)
 	contractAddr := cs_crypto.CreateContractAddress(aliceAddr, 0)
 	name := []byte("ProcessContract")
 	param := [][]byte{name}

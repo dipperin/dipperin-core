@@ -180,10 +180,6 @@ func (state *fakeStateDB) SetCode(addr common.Address, code []byte) {
 	state.codeMap[addr] = code
 }
 
-func (state *fakeStateDB) GetCodeSize(common.Address) int {
-	panic("implement me")
-}
-
 func (state *fakeStateDB) GetAbiHash(addr common.Address) common.Hash {
 	abi := state.GetCode(addr)
 	return cs_crypto.Keccak256Hash(abi)
@@ -209,10 +205,6 @@ func (state *fakeStateDB) GetRefund() uint64 {
 	panic("implement me")
 }
 
-func (state *fakeStateDB) GetCommittedState(common.Address, []byte) []byte {
-	panic("implement me")
-}
-
 func (state *fakeStateDB) GetState(addr common.Address, key []byte) []byte {
 	return state.stateMap[addr][string(key)]
 }
@@ -221,24 +213,12 @@ func (state *fakeStateDB) SetState(addr common.Address, key []byte, value []byte
 	state.stateMap[addr][string(key)] = value
 }
 
-func (state *fakeStateDB) Suicide(common.Address) bool {
-	panic("implement me")
-}
-
-func (state *fakeStateDB) HasSuicided(common.Address) bool {
-	panic("implement me")
-}
-
 func (state *fakeStateDB) Exist(addr common.Address) bool {
 	if _, ok := state.nonceMap[addr]; ok {
 		return true
 	} else {
 		return false
 	}
-}
-
-func (state *fakeStateDB) Empty(common.Address) bool {
-	panic("implement me")
 }
 
 func (state *fakeStateDB) RevertToSnapshot(int) {
@@ -297,6 +277,7 @@ func getContract(code, abi string, input []byte) *Contract {
 
 func getTestVm() *VM {
 	return NewVM(Context{
+		Origin:      aliceAddr,
 		BlockNumber: big.NewInt(1),
 		CanTransfer: CanTransfer,
 		Transfer:    Transfer,

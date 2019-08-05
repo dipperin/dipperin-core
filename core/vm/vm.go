@@ -13,7 +13,7 @@ import (
 	"sync/atomic"
 )
 
-var emptyCodeHash = cs_crypto.Keccak256Hash(nil)
+var EmptyCodeHash = cs_crypto.Keccak256Hash(nil)
 
 var DEFAULT_VM_CONFIG = exec.VMConfig{
 	EnableJIT:          false,
@@ -178,7 +178,7 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 	// Ensure there's no existing contract already at the designated address
 	contractHash := vm.state.GetCodeHash(address)
 	nonce, _ := vm.state.GetNonce(address)
-	if nonce != uint64(0) || (contractHash != common.Hash{} && contractHash != emptyCodeHash) {
+	if nonce != uint64(0) || (contractHash != common.Hash{} && contractHash != EmptyCodeHash) {
 		return nil, common.Address{}, 0, g_error.ErrContractAddressCollision
 	}
 
