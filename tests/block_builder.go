@@ -397,7 +397,7 @@ func (builder *BlockBuilder) commitTransaction(conf *state_processor.TxProcessCo
 	}
 
 	//updating tx fee
-	conf.Tx.(*model.Transaction).PaddingActualTxFee(conf.TxFee)
+	conf.Tx.PaddingActualTxFee(conf.TxFee)
 	return nil
 }
 
@@ -449,9 +449,9 @@ func (builder *BlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndN
 			txs.Pop()
 			invalidList = append(invalidList, tx.(*model.Transaction))
 		} else {
-			receipt, err := tx.GetReceipt()
-			if err != nil {
-				log.Info("cant get tx receipt", "txId", tx.CalTxId().Hex())
+			receipt := tx.GetReceipt()
+			if receipt == nil {
+				log.Info("empty receipt", "txId", tx.CalTxId().Hex())
 				txs.Pop()
 				invalidList = append(invalidList, tx.(*model.Transaction))
 			} else {

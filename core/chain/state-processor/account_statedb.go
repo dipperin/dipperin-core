@@ -700,9 +700,7 @@ func (state *AccountStateDB) AddStake(addr common.Address, amount *big.Int) erro
 	if err != nil {
 		return err
 	}
-	log.Info("the old stake is:", "value", value)
 	newValue := big.NewInt(0).Add(value, amount)
-	log.Info("the new stake is:", "newValue", newValue)
 	return state.SetStake(addr, newValue)
 }
 
@@ -1131,28 +1129,27 @@ func (state *AccountStateDB) Finalise() (result common.Hash, err error) {
 	if state.finalised() {
 		result = state.blockStateTrie.Hash()
 		mpt_log.Debug("Finalise", "cur root", result.Hex(), "pre state", state.preStateRoot.Hex())
-		return result, nil
+		return
 	}
 	// finalise contracts
-	if err := state.finaliseContractData(); err != nil {
+	if err = state.finaliseContractData(); err != nil {
 		// change blockStateTrie to origin pre hash？
 		// If you want, clear the finalised contract root. But it is best to discard the AccountStateDB directly after the error is reported.
 		//state.resetThisStateDB()
 		mpt_log.Debug("Finalise failed", "err", err, "pre state", state.preStateRoot.Hex())
 		result = common.Hash{}
-		return result, err
+		return
 	}
 
-	if err := state.finalSmartData(); err != nil {
+	if err = state.finalSmartData(); err != nil {
 		mpt_log.Debug("Finalise smart data failed", "err", err, "pre state", state.preStateRoot.Hex())
 		result = common.Hash{}
-		return result, err
+		return
 	}
 
 	state.alreadyFinalised = true
 	result, err = state.blockStateTrie.Commit(nil)
 	mpt_log.Debug("Finalise", "cur root", result.Hex(), "pre state", state.preStateRoot.Hex())
-	//log.Debug("~~~~~~Finalise", "cur root", result.Hex(), "pre state", state.preStateRoot.Hex())
 	return
 }
 
@@ -1163,24 +1160,22 @@ func (state *AccountStateDB) IntermediateRoot() (result common.Hash, err error) 
 		return result, nil
 	}
 	// finalise contracts
-	if err := state.finaliseContractData(); err != nil {
+	if err = state.finaliseContractData(); err != nil {
 		// change blockStateTrie to origin pre hash？
 		// If you want, clear the finalised contract root. But it is best to discard the AccountStateDB directly after the error is reported.
 		// state.resetThisStateDB()
 		mpt_log.Debug("Finalise failed", "err", err, "pre state", state.preStateRoot.Hex())
 		result = common.Hash{}
-		return result, err
+		return
 	}
 
 	// finalise smart contracts data
-	if err := state.finalSmartData(); err != nil {
+	if err = state.finalSmartData(); err != nil {
 		mpt_log.Debug("Finalise smart data failed", "err", err, "pre state", state.preStateRoot.Hex())
 		result = common.Hash{}
-		return result, err
+		return
 	}
-
-	result, err = state.blockStateTrie.Commit(nil)
-	return
+	return state.blockStateTrie.Commit(nil)
 }
 
 //todo these processes are removed afterwards。
@@ -1295,8 +1290,8 @@ func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
 	}
 
 	//updating tx fee
-	conf.Tx.(*model.Transaction).PaddingActualTxFee(conf.TxFee)
-	_, err = conf.Tx.PaddingReceipt(par)
+	conf.Tx.PaddingActualTxFee(conf.TxFee)
+	conf.Tx.PaddingReceipt(par)
 	return
 }
 
@@ -1469,7 +1464,6 @@ func (state *AccountStateDB) GetLogs(txHash common.Hash) []*model2.Log {
 
 func (state *AccountStateDB) finalSmartData() error {
 	for addr, data := range state.smartContractData {
-
 		ct, err := state.putSmartDataToTrie(addr, data)
 		if err != nil {
 			return err

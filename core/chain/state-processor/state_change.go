@@ -130,6 +130,10 @@ func (scl *StateChangeList) DecodeRLP(s *rlp.Stream) (err error) {
 			var change dataChange
 			rlp.DecodeBytes(state.StateChange, &change)
 			scl.append(change)
+		case LogsChange:
+			var change logsChange
+			rlp.DecodeBytes(state.StateChange, &change)
+			scl.append(change)
 		case ContractChange:
 			var change contractChange
 			rlp.DecodeBytes(state.StateChange, &change)
@@ -277,8 +281,8 @@ const (
 	CodeChange
 	DataChange
 	ContractChange
-	DeleteAccountChange
 	LogsChange
+	DeleteAccountChange
 )
 
 type (
@@ -401,11 +405,7 @@ func (lc logsChange) getType() int {
 }
 
 func (lc logsChange) digest(sc StateChange) StateChange {
-	if sc.getType() == LogsChange {
-		c := sc.(logsChange)
-		return logsChange{TxHash: c.TxHash, Prev: c.Prev, Current: c.Current, ChangeType: LogsChange}
-	}
-	return nil
+	panic("Add logs can't use digest function")
 }
 
 func (sc deleteAccountChange) revert(s *AccountStateDB) {

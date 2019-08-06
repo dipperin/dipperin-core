@@ -32,9 +32,11 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"math/big"
 	"strings"
+	"testing"
 	"time"
 )
 
@@ -107,6 +109,22 @@ func CreateTestStateDB() (ethdb.Database, common.Hash) {
 	root, _ := processor.Commit()
 	tdb.TrieDB().Commit(root, false)
 	return db, root
+}
+
+func createStateProcessor(t *testing.T) *AccountStateDB {
+	db, root := CreateTestStateDB()
+	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
+	aliceOriginalStake, _ := processor.GetStake(aliceAddr)
+	aliceOriginalBalance, _ := processor.GetBalance(aliceAddr)
+	aliceOriginalNonce, _ := processor.GetNonce(aliceAddr)
+	aliceOriginalLastElect, _ := processor.GetLastElect(aliceAddr)
+	processor.newAccountState(bobAddr)
+
+	assert.EqualValues(t, big.NewInt(0), aliceOriginalStake)
+	assert.EqualValues(t, big.NewInt(9000000), aliceOriginalBalance)
+	assert.EqualValues(t, uint64(0), aliceOriginalNonce)
+	assert.EqualValues(t, uint64(0), aliceOriginalLastElect)
+	return processor
 }
 
 func createSignedVote(num uint64, blockId common.Hash, voteType model.VoteMsgType, testPriv string, address common.Address) *model.VoteMsg {
@@ -345,22 +363,30 @@ type erc20 struct {
 }
 
 type fakeTransaction struct {
-	txType common.TxType
-	nonce  uint64
+	txType *common.TxType
+	nonce  *uint64
 	err    error
 	sender common.Address
 }
 
-func (tx fakeTransaction) PaddingReceipt(parameters model.ReceiptPara) (*model2.Receipt, error) {
+func (tx fakeTransaction) PaddingReceipt(parameters model.ReceiptPara) {
+	return
+}
+
+func (tx fakeTransaction) PaddingActualTxFee(fee *big.Int) {
+	return
+}
+
+func (tx fakeTransaction) GetReceipt() *model2.Receipt {
+	panic("implement me")
+}
+
+func (tx fakeTransaction) GetActualTxFee() (fee *big.Int) {
 	panic("implement me")
 }
 
 func (tx fakeTransaction) GetGasLimit() uint64 {
 	return g_testData.TestGasLimit
-}
-
-func (tx fakeTransaction) GetReceipt() (*model2.Receipt, error) {
-	panic("implement me")
 }
 
 func (tx fakeTransaction) AsMessage() (model.Message, error) {
@@ -383,16 +409,33 @@ func (tx fakeTransaction) CalTxId() common.Hash {
 	return common.HexToHash("123")
 }
 
-func (tx fakeTransaction) Fee() *big.Int {
-	return big.NewInt(40)
-}
-
 func (tx fakeTransaction) Nonce() uint64 {
-	return tx.nonce
+	if tx.nonce == nil {
+		return uint64(0)
+	}
+	return *tx.nonce
 }
 
 func (tx fakeTransaction) To() *common.Address {
-	return &bobAddr
+	if tx.txType == nil {
+		return &bobAddr
+	}
+	switch *tx.txType {
+	case common.AddressTypeStake:
+		addr := common.HexToAddress(common.AddressStake)
+		return &addr
+	case common.AddressTypeUnStake:
+		addr := common.HexToAddress(common.AddressUnStake)
+		return &addr
+	case common.AddressTypeCancel:
+		addr := common.HexToAddress(common.AddressCancel)
+		return &addr
+	case common.AddressTypeEvidence:
+		addr := common.HexToAddress("0x0005970e8128aB834E8EAC17aB8E3812f010678CF791")
+		return &addr
+	default:
+		return &bobAddr
+	}
 }
 
 func (tx fakeTransaction) Sender(singer model.Signer) (common.Address, error) {
@@ -412,7 +455,7 @@ func (tx fakeTransaction) GetSigner() model.Signer {
 }
 
 func (tx fakeTransaction) GetType() common.TxType {
-	return tx.txType
+	return *tx.txType
 }
 
 func (tx fakeTransaction) ExtraData() []byte {

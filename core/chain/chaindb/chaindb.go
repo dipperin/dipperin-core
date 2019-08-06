@@ -285,12 +285,6 @@ func (chainDB *ChainDB) SaveReceipts(hash common.Hash, number uint64, receipts m
 	return nil
 }
 
-func (chainDB *ChainDB) DeleteReceipts(hash common.Hash, number uint64) {
-	if err := chainDB.db.Delete(blockReceiptsKey(number, hash)); err != nil {
-		log.Crit("Failed to delete block receipt", "err", err)
-	}
-}
-
 func (chainDB *ChainDB) GetReceipts(hash common.Hash, number uint64) model2.Receipts {
 	// Retrieve the flattened receipt slice
 	data, _ := chainDB.db.Get(blockReceiptsKey(number, hash))

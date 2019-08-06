@@ -577,16 +577,24 @@ type fakeTx struct {
 	Receipt   *model2.Receipt
 }
 
-func (ft *fakeTx) PaddingReceipt(parameters model.ReceiptPara) (*model2.Receipt, error) {
+func (ft *fakeTx) PaddingReceipt(parameters model.ReceiptPara) {
+	panic("implement me")
+}
+
+func (ft *fakeTx) PaddingActualTxFee(fee *big.Int) {
+	panic("implement me")
+}
+
+func (ft *fakeTx) GetReceipt() *model2.Receipt {
+	return ft.Receipt
+}
+
+func (ft *fakeTx) GetActualTxFee() (fee *big.Int) {
 	panic("implement me")
 }
 
 func (ft *fakeTx) GetGasLimit() uint64 {
 	return ft.GasLimit
-}
-
-func (ft *fakeTx) GetReceipt() (*model2.Receipt, error) {
-	return ft.Receipt, nil
 }
 
 func (ft *fakeTx) AsMessage() (model.Message, error) {
@@ -606,10 +614,6 @@ func (ft *fakeTx) Amount() *big.Int {
 
 func (ft *fakeTx) CalTxId() common.Hash {
 	return common.Hash{}
-}
-
-func (ft *fakeTx) Fee() *big.Int {
-	return ft.fee
 }
 
 func (ft *fakeTx) Nonce() uint64 {

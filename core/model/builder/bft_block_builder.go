@@ -83,8 +83,8 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 			txs.Pop()
 			invalidList = append(invalidList, tx.(*model.Transaction))
 		} else {
-			receipt, err := tx.GetReceipt()
-			if err != nil {
+			receipt := tx.GetReceipt()
+			if receipt == nil {
 				log.Info("cant get tx receipt", "txId", tx.CalTxId().Hex())
 				txs.Pop()
 				invalidList = append(invalidList, tx.(*model.Transaction))

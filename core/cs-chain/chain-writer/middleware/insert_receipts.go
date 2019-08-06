@@ -33,9 +33,9 @@ func ValidGasUsedAndReceipts(c *BlockContext) Middleware {
 		receipts := make(model2.Receipts, 0, c.Block.TxCount())
 		var accumulatedGas uint64
 		if err := c.Block.TxIterator(func(i int, transaction model.AbstractTransaction) error {
-			receipt, err := transaction.GetReceipt()
-			if err != nil {
-				return err
+			receipt := transaction.GetReceipt()
+			if receipt == nil {
+				return g_error.ErrEmptyReceipt
 			}
 			accumulatedGas = receipt.CumulativeGasUsed
 			receipts = append(receipts, receipt)
