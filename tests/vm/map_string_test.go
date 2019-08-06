@@ -5,6 +5,7 @@ import (
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/stretchr/testify/assert"
+	"math/big"
 	"testing"
 )
 
@@ -22,7 +23,7 @@ func Test_MapContractCall(t *testing.T) {
 
 	data, err := g_testData.GetCallExtraData("setBalance", "balance,100")
 	assert.NoError(t, err)
-	txHash := SendCallContract(t, cluster, nodeName, contractHash, data)
+	txHash := SendCallContract(t, cluster, nodeName, contractHash, data, big.NewInt(0))
 
 	checkTransactionOnChain(client, []common.Hash{txHash})
 
@@ -32,6 +33,7 @@ func Test_MapContractCall(t *testing.T) {
 	data, err = g_testData.GetCallExtraData("getBalance", "balance")
 	assert.NoError(t, err)
 
-	err = Call(client, from, to, data)
+	resp, err := Call(client, from, to, data)
 	assert.NoError(t, err)
+	assert.Equal(t, "100", resp)
 }
