@@ -82,12 +82,13 @@ func (f *Filter) Logs(ctx context.Context) ([]*model2.Log, error) {
 	// If we're doing singleton block filtering, execute and return
 	if f.block != (common.Hash{}) {
 		// header, err := f.backend.HeaderByHash(ctx, f.block)
-		header := f.ChainReader.GetHeaderByHash(f.block)
-		log.Info("Filter#Logs", "header", header.Hash(), "block", f.block)
-		if header == nil {
+		block := f.ChainReader.GetBlockByHash(f.block)
+		if block == nil {
 			return nil, errors.New("unknown block")
 		}
-		return f.blockLogs(ctx, &header)
+		header := block.Header()
+		log.Info("Filter#Logs", "header", header.Hash(), "block", f.block)
+		return f.blockLogs(ctx, &header, block.GetBloomLog())
 	}
 	// Figure out the limits of the filter range
 	// header, _ := f.backend.HeaderByNumber(ctx, rpc.LatestBlockNumber)
@@ -190,11 +191,12 @@ func (f *Filter) unindexedLogs(ctx context.Context, end uint64) ([]*model2.Log, 
 
 	for ; f.begin <= int64(end); f.begin++ {
 		log.Info("Filter#unindexedLogs", "begin", f.begin, "end", f.end)
-		header := f.ChainReader.GetHeaderByNumber(uint64(f.begin))
-		if header == nil {
+		block := f.ChainReader.GetBlockByNumber(uint64(f.begin))
+		if block == nil {
 			return logs, nil
 		}
-		found, err := f.blockLogs(ctx, &header)
+		header := block.Header()
+		found, err := f.blockLogs(ctx, &header, block.GetBloomLog())
 		log.Info("Filter#unindexedLogs", "begin", f.begin, "end", f.end, "found", found)
 		if err != nil {
 			return logs, err
@@ -205,9 +207,9 @@ func (f *Filter) unindexedLogs(ctx context.Context, end uint64) ([]*model2.Log, 
 }
 
 // blockLogs returns the logs matching the filter criteria within a single block.
-func (f *Filter) blockLogs(ctx context.Context, header *model.AbstractHeader) (logs []*model2.Log, err error) {
-	log.Info("Filter#blockLogs", "header bloomLog", (*header).GetBloomLog())
-	if bloomFilter((*header).GetBloomLog(), f.addresses, f.topics) {
+func (f *Filter) blockLogs(ctx context.Context, header *model.AbstractHeader, bloom model2.Bloom) (logs []*model2.Log, err error) {
+	log.Info("Filter#blockLogs", "header bloomLog", bloom)
+	if bloomFilter(bloom, f.addresses, f.topics) {
 		found, err := f.checkMatches(ctx, header)
 		log.Info("Filter#blockLogs", "found", found)
 		if err != nil {

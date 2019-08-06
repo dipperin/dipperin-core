@@ -23,7 +23,6 @@ import (
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/bloom"
-	"github.com/dipperin/dipperin-core/core/vm/model"
 	"math/big"
 )
 
@@ -42,7 +41,7 @@ func (h Header) MarshalJSON() ([]byte, error) {
 		GasUsed          hexutil.Uint64    `json:"gasUsed"          gencodec:"required"`
 		Nonce            common.BlockNonce `json:"nonce"  gencodec:"required"`
 		Bloom            iblt.BloomRLP     `json:"Bloom"        gencodec:"required"`
-		BloomLog         model.Bloom       `json:"bloom_log" gencodec:"required"`
+		//BloomLog         model.Bloom       `json:"bloom_log" gencodec:"required"`
 		TransactionRoot  common.Hash       `json:"txs_root"   gencodec:"required"`
 		StateRoot        common.Hash       `json:"state_root" gencodec:"required"`
 		VerificationRoot common.Hash       `json:"verification_root"  gencodec:"required"`
@@ -72,7 +71,7 @@ func (h Header) MarshalJSON() ([]byte, error) {
 	enc.InterlinkRoot = h.InterlinkRoot
 	enc.RegisterRoot = h.RegisterRoot
 	enc.ReceiptHash = h.ReceiptHash
-	enc.BloomLog = h.BloomLogs
+	//enc.BloomLog = h.BloomLogs
 	return json.Marshal(&enc)
 }
 
@@ -91,7 +90,7 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 		GasUsed          *hexutil.Uint64    `json:"gasUsed"          gencodec:"required"`
 		Nonce            *common.BlockNonce `json:"nonce"  gencodec:"required"`
 		Bloom            *iblt.BloomRLP     `json:"Bloom"        gencodec:"required"`
-		BloomLog         *model.Bloom       `json:"bloom_log" gencodec:"required"`
+		//BloomLog         *model.Bloom       `json:"bloom_log" gencodec:"required"`
 		TransactionRoot  *common.Hash       `json:"txs_root"   gencodec:"required"`
 		StateRoot        *common.Hash       `json:"state_root" gencodec:"required"`
 		VerificationRoot *common.Hash       `json:"verification_root"  gencodec:"required"`
@@ -156,10 +155,10 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 	}
 	h.Bloom = iblt.NewBloom(dec.Bloom.Config)
 	dec.Bloom.CBloom(h.Bloom)
-	if dec.BloomLog == nil {
-		return errors.New("missing required field 'bloomLog' for Header")
-	}
-	h.BloomLogs = *dec.BloomLog
+	//if dec.BloomLog == nil {
+	//	return errors.New("missing required field 'bloomLog' for Header")
+	//}
+	//h.BloomLogs = *dec.BloomLog
 	if dec.TransactionRoot == nil {
 		return errors.New("missing required field 'transactionRoot' for Header")
 	}

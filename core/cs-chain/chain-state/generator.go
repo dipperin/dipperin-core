@@ -54,7 +54,7 @@ func NewGenerator(sections uint) (*Generator, error) {
 
 // AddBloom takes a single bloom filter and sets the corresponding bit column
 // in memory accordingly.
-// 整个方法的作用是判断bloom中该位是否为0，如果不为0则与generator中blooms中该位在bloom中对应的序号中对应的
+// 整个方法的作用是判断bloom中该位是否为0，如果不为0则与generator中blooms中该位在bloom中对应的序号中对应的section上
 func (b *Generator) AddBloom(index uint, bloom model2.Bloom) error {
 	// Make sure we're not adding more bloom filters than our capacity
 	if b.nextSec >= b.sections {
@@ -76,6 +76,7 @@ func (b *Generator) AddBloom(index uint, bloom model2.Bloom) error {
 		//	"(bloom[bloomByteIndex] & bloomBitMask)",byte(bloom[bloomByteIndex] & bloomBitMask), "(b.blooms[i][byteIndex] | bitMask)", byte(b.blooms[i][byteIndex] | bitMask), "bteIndex", byte(byteIndex), "bitMask", byte(bitMask))
 
 		if (bloom[bloomByteIndex] & bloomBitMask) != 0 {
+			// 如果有数据则将其方法b.blooms中该位对应的数组中对应的section上
 			b.blooms[i][byteIndex] |= bitMask
 		}
 	}
