@@ -279,7 +279,6 @@ func (b *Body) GetInterLinks() InterLink {
 	return b.Inters
 }
 
-
 type Block struct {
 	header *Header
 	body   *Body
@@ -289,7 +288,6 @@ type Block struct {
 	size     atomic.Value `json:"-"`
 	receipts atomic.Value `json:"-"`
 }
-
 
 //func (b *Block) SetBloomLog(bloom model2.Bloom) {
 //	b.header.BloomLogs = bloom
