@@ -82,13 +82,12 @@ func (f *Filter) Logs(ctx context.Context) ([]*model2.Log, error) {
 	// If we're doing singleton block filtering, execute and return
 	if f.block != (common.Hash{}) {
 		// header, err := f.backend.HeaderByHash(ctx, f.block)
-		block := f.ChainReader.GetBlockByHash(f.block)
-		if block == nil {
+		header := f.ChainReader.GetHeaderByHash(f.block)
+		if header == nil {
 			return nil, errors.New("unknown block")
 		}
-		header := block.Header()
 		log.Info("Filter#Logs", "header", header.Hash(), "block", f.block)
-		return f.blockLogs(ctx, &header, block.GetBloomLog())
+		return f.blockLogs(ctx, &header, f.ChainReader.GetBloomLog(header.Hash(),header.GetNumber()))
 	}
 	// Figure out the limits of the filter range
 	// header, _ := f.backend.HeaderByNumber(ctx, rpc.LatestBlockNumber)
@@ -191,12 +190,11 @@ func (f *Filter) unindexedLogs(ctx context.Context, end uint64) ([]*model2.Log, 
 
 	for ; f.begin <= int64(end); f.begin++ {
 		log.Info("Filter#unindexedLogs", "begin", f.begin, "end", f.end)
-		block := f.ChainReader.GetBlockByNumber(uint64(f.begin))
-		if block == nil {
+		header := f.ChainReader.GetHeaderByNumber(uint64(f.begin))
+		if header == nil {
 			return logs, nil
 		}
-		header := block.Header()
-		found, err := f.blockLogs(ctx, &header, block.GetBloomLog())
+		found, err := f.blockLogs(ctx, &header, f.ChainReader.GetBloomLog(header.Hash(),header.GetNumber()))
 		log.Info("Filter#unindexedLogs", "begin", f.begin, "end", f.end, "found", found)
 		if err != nil {
 			return logs, err

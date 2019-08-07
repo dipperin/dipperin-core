@@ -169,6 +169,12 @@ func (cs *ChainState) GetReceipts(hash common.Hash, number uint64) model2.Receip
 	return cs.ChainDB.GetReceipts(hash, number)
 }
 
+func (cs *ChainState) GetBloomLog(hash common.Hash,number uint64) model2.Bloom  {
+	receipts := cs.ChainDB.GetReceipts(hash, number)
+	return model2.CreateBloom(receipts)
+}
+
+
 func (cs *ChainState) GetBloomBits(head common.Hash, bit uint, section uint64) []byte {
 	return cs.ChainDB.GetBloomBits(head, bit, section)
 }

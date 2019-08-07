@@ -199,6 +199,8 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 	WASMPath := g_testData.GetWASMPath("token", g_testData.CoreVmTestData)
 	abiPath := g_testData.GetAbiPath("token", g_testData.CoreVmTestData)
+	//WASMPath := g_testData.GetWASMPath("token-param", g_testData.CoreVmTestData)
+	//abiPath := g_testData.GetAbiPath("token-param", g_testData.CoreVmTestData)
 	input := []string{"dipp", "DIPP", "1000000"}
 	data, err := getCreateExtraData(WASMPath, abiPath, input)
 	assert.NoError(t, err)
@@ -349,6 +351,94 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", "", "err", err)
 }
 
+func TestContractWithNewFeature(t *testing.T)  {
+	singer := model.NewMercurySigner(new(big.Int).SetInt64(int64(1)))
+
+	ownSK, _ := crypto.GenerateKey()
+	ownPk := ownSK.PublicKey
+	ownAddress := cs_crypto.GetNormalAddress(ownPk)
+
+	aliceSK, _ := crypto.GenerateKey()
+	alicePk := aliceSK.PublicKey
+	aliceAddress := cs_crypto.GetNormalAddress(alicePk)
+
+	brotherSK, _ := crypto.GenerateKey()
+	brotherPk := brotherSK.PublicKey
+	brotherAddress := cs_crypto.GetNormalAddress(brotherPk)
+
+	addressSlice := []common.Address{
+		ownAddress,
+		aliceAddress,
+		brotherAddress,
+	}
+
+	//WASMPath := g_testData.GetWASMPath("token", g_testData.CoreVmTestData)
+	//abiPath := g_testData.GetAbiPath("token", g_testData.CoreVmTestData)
+	WASMPath := g_testData.GetWASMPath("token-param", g_testData.CoreVmTestData)
+	abiPath := g_testData.GetAbiPath("token-param", g_testData.CoreVmTestData)
+	input := []string{"dipp", "DIPP", "1000000"}
+	data, err := getCreateExtraData(WASMPath, abiPath, input)
+	assert.NoError(t, err)
+
+	addr := common.HexToAddress(common.AddressContractCreate)
+	tx := model.NewTransactionSc(0, &addr, big.NewInt(0), big.NewInt(1), 26427000, data)
+	signCreateTx := getSignedTx(t, ownSK, tx, singer)
+
+	gasLimit := testGasLimit * 10000000000
+	block := CreateBlock(1, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
+	processor, err := CreateProcessorAndInitAccount(t, addressSlice)
+
+	tmpGasLimit := block.GasLimit()
+	gasUsed := block.GasUsed()
+	config := &TxProcessConfig{
+		Tx:       tx,
+		Header:   block.Header(),
+		GetHash:  getTestHashFunc(),
+		GasLimit: &tmpGasLimit,
+		GasUsed:  &gasUsed,
+		TxFee:    big.NewInt(0),
+	}
+
+	err = processor.ProcessTxNew(config)
+	assert.NoError(t, err)
+
+	receipt, err := tx.GetReceipt()
+
+	assert.NoError(t, err)
+	//assert.Equal(t, receipt.Status)
+
+	//byteBalance := []byte{7, 98, 97, 108, 97, 110, 99, 101}
+	//baData := processor.GetData(receipt.ContractAddress, string(byteBalance))
+	//fmt.Println("&&&&&", receipt.ContractAddress, baData, processor.smartContractData)
+
+	contractNonce, err := processor.GetNonce(receipt.ContractAddress)
+	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce, "receiptResult", receipt)
+	code, err := processor.GetCode(receipt.ContractAddress)
+	abi, err := processor.GetAbi(receipt.ContractAddress)
+	log.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
+	assert.NoError(t, err)
+	//assert.Equal(t, code, tx.ExtraData())
+	processor.Commit()
+
+	accountOwn := accounts.Account{ownAddress}
+	//  合约调用getBalance方法  获取合约原始账户balance
+	ownTransferNonce, err := processor.GetNonce(ownAddress)
+	assert.NoError(t, err)
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 2, singer)
+	assert.NoError(t, err)
+
+	//gasUsed2 := uint64(0)
+	//  合约调用  transfer方法 转账给alice
+	ownTransferNonce++
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK, processor, accountOwn, ownTransferNonce, "transfer", aliceAddress.Hex()+",20", 3, singer)
+	assert.NoError(t, err)
+
+	//  合约调用getBalance方法  获取alice账户balance
+	ownTransferNonce++
+	err = processContractCall(t, receipt.ContractAddress, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 4, singer)
+	assert.NoError(t, err)
+}
+
 //  合约调用getBalance方法
 func processContractCall(t *testing.T, contractAddress common.Address, code []byte, priKey *ecdsa.PrivateKey, processor *AccountStateDB, accountOwn accounts.Account, nonce uint64, funcName string, params string, blockNum uint64, singer model.Signer) error {
 	gasUsed2 := uint64(0)
@@ -369,11 +459,11 @@ func processContractCall(t *testing.T, contractAddress common.Address, code []by
 		GasUsed:  &gasUsed2,
 	}
 	err = processor.ProcessTxNew(txConfig)
-	if funcName == "getBalance" {
+	//if funcName == "getBalance" {
 		receipt, err := callTx.GetReceipt()
 		assert.NoError(t, err)
-		log.Info("receipt  log", "receipt log", receipt.Logs)
-	}
+		fmt.Println("receipt  log", "receipt log", receipt.Logs)
+	//}
 	assert.NoError(t, err)
 	processor.Commit()
 	return err

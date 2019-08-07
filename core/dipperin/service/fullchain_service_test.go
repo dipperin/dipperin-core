@@ -1264,6 +1264,8 @@ func TestMercuryFullChainService_ContractTransaction(t *testing.T) {
 		ChainIndex:  chainIndex,
 	}
 	service := MercuryFullChainService{DipperinConfig: config}
+	err = chainIndex.Start();
+	assert.NoError(t, err)
 
 	// get contract address
 	sender, err := tx1.Sender(nil)

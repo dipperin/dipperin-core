@@ -18,14 +18,12 @@ func TestCreateBloom(t *testing.T) {
 	assert.Equal(t, false, BloomLookup(bloom, common.HexToHash("bloom")))
 }
 
-
 func bloom9t(b []byte) *big.Int {
 	b = crypto.Keccak256(b)
 	fmt.Println("crypto : ", common.Bytes2Hex(b))
 
 	r := new(big.Int)
-	fmt.Println( "=====r", r)
-
+	fmt.Println("=====r", r)
 
 	for i := 0; i < 6; i += 2 {
 		t := big.NewInt(1)
@@ -41,6 +39,6 @@ func bloom9t(b []byte) *big.Int {
 	return r
 }
 
-func TestBloom9(t *testing.T)  {
-	fmt.Println(bloom9t([]byte("t")));
+func TestBloom9(t *testing.T) {
+	fmt.Println(bloom9t([]byte("t")))
 }

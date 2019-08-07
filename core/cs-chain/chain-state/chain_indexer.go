@@ -382,16 +382,23 @@ func (c *ChainIndexer) processSection(section uint64, lastHead common.Hash) (com
 	}
 
 	for number := section * c.sectionSize; number < (section+1)*c.sectionSize; number++ {
-		var hash common.Hash
-		block := c.chainReader.GetBlockByNumber(number)
-
-		if block == nil {
-			return common.Hash{}, fmt.Errorf("block #%d [%x…] not found", number, hash[:4])
-		} else if block.Header().GetPreHash() != lastHead {
+		//var hash common.Hash
+		//block := c.chainReader.GetBlockByNumber(number)
+		//
+		//if block == nil {
+		//	return common.Hash{}, fmt.Errorf("block #%d [%x…] not found", number, hash[:4])
+		//} else if block.Header().GetPreHash() != lastHead {
+		//	return common.Hash{}, fmt.Errorf("chain reorged during section processing")
+		//}
+		//header := block.Header()
+		header := c.chainReader.GetHeaderByNumber(number)
+		if header == nil {
+			return common.Hash{}, fmt.Errorf("block #%d  not found", number)
+		} else if header.GetPreHash() != lastHead {
 			return common.Hash{}, fmt.Errorf("chain reorged during section processing")
 		}
-		header := block.Header()
-		if err := c.backend.Process(c.ctx, &header, block.GetBloomLog()); err != nil {
+		//c.chainReader.GetReceipts(block.Hash(),block.Number())
+		if err := c.backend.Process(c.ctx, &header, c.chainReader.GetBloomLog(header.Hash(), header.GetNumber())); err != nil {
 			return common.Hash{}, err
 		}
 		lastHead = header.Hash()

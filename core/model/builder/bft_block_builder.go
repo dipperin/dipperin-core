@@ -233,8 +233,6 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 	registerRoot := register.Finalise()
 	block.SetRegisterRoot(registerRoot)
 	pbft_log.Debug("build block", "block id", block.Hash().Hex(), "transaction", block.TxCount())
-	bloomLog := block.GetBloomLog()
-	log.Info("BftBlockBuilder#BuildWaitPackBlock2", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
 	return block
 }
 

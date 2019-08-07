@@ -117,15 +117,15 @@ func (h *Header) GetStateRoot() common.Hash {
 func NewHeader(version uint64, num uint64, prehash common.Hash, seed common.Hash, diff common.Difficulty, time *big.Int, coinbase common.Address, nonce common.BlockNonce) *Header {
 
 	return &Header{
-		Version:     version,
-		Number:      num,
-		PreHash:     prehash,
-		Seed:        seed,
-		Diff:        diff,
-		TimeStamp:   time,
-		CoinBase:    coinbase,
-		Nonce:       nonce,
-		Bloom:       iblt.NewBloom(DefaultBlockBloomConfig),
+		Version:   version,
+		Number:    num,
+		PreHash:   prehash,
+		Seed:      seed,
+		Diff:      diff,
+		TimeStamp: time,
+		CoinBase:  coinbase,
+		Nonce:     nonce,
+		Bloom:     iblt.NewBloom(DefaultBlockBloomConfig),
 		//BloomLogs:   model2.Bloom{},
 		GasLimit:    DefaultGasLimit,
 		Proof:       []byte{},
@@ -258,7 +258,7 @@ func (h *Header) String() string {
 	VerificationRoot:   %s
 	InterlinkRoot:      %s
 	RegisterRoot     	%s
-	ReceiptHash      	%s]`, h.Hash().Hex(), h.Version, h.Number, h.Seed.Hex(), h.PreHash.Hex(), h.Diff.Hex(), h.TimeStamp, h.CoinBase.Hex(), h.GasLimit, h.GasUsed, h.Nonce.Hex(), h.Bloom.Hex(),  h.TransactionRoot.Hex(), h.StateRoot.Hex(), h.VerificationRoot.Hex(), h.InterlinkRoot.Hex(), h.RegisterRoot.Hex(), h.ReceiptHash.Hex())
+	ReceiptHash      	%s]`, h.Hash().Hex(), h.Version, h.Number, h.Seed.Hex(), h.PreHash.Hex(), h.Diff.Hex(), h.TimeStamp, h.CoinBase.Hex(), h.GasLimit, h.GasUsed, h.Nonce.Hex(), h.Bloom.Hex(), h.TransactionRoot.Hex(), h.StateRoot.Hex(), h.VerificationRoot.Hex(), h.InterlinkRoot.Hex(), h.RegisterRoot.Hex(), h.ReceiptHash.Hex())
 }
 
 // swagger:response Body
@@ -280,9 +280,9 @@ func (b *Body) GetInterLinks() InterLink {
 	return b.Inters
 }
 
-func (b *Body) GetReceipts() ([]*model2.Receipt, error)  {
+func (b *Body) GetReceipts() ([]*model2.Receipt, error) {
 	receipts := make([]*model2.Receipt, len(b.Txs))
-	for _,tx := range b.Txs{
+	for _, tx := range b.Txs {
 		r, err := tx.GetReceipt()
 		if err != nil {
 			return nil,err
@@ -305,6 +305,7 @@ type Block struct {
 func (b *Block) GetBloomLog() model2.Bloom {
 	receipts, err := b.Body().GetReceipts()
 	if err != nil {
+		log.Error("Block#GetBloomLog   err ", "err  " , err)
 		return model2.Bloom{}
 	}
 	return model2.CreateBloom(receipts)

@@ -20,6 +20,7 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 
@@ -126,6 +127,166 @@ func (batch fakeBatch) Reset() {
 }
 
 type fakeBody struct{}
+
+func (body fakeBody) Version() uint64 {
+	panic("implement me")
+}
+
+func (body fakeBody) Number() uint64 {
+	panic("implement me")
+}
+
+func (body fakeBody) IsSpecial() bool {
+	panic("implement me")
+}
+
+func (body fakeBody) Difficulty() common.Difficulty {
+	panic("implement me")
+}
+
+func (body fakeBody) PreHash() common.Hash {
+	panic("implement me")
+}
+
+func (body fakeBody) Seed() common.Hash {
+	panic("implement me")
+}
+
+func (body fakeBody) RefreshHashCache() common.Hash {
+	panic("implement me")
+}
+
+func (body fakeBody) Hash() common.Hash {
+	panic("implement me")
+}
+
+func (body fakeBody) TxIterator(cb func(int, model.AbstractTransaction) error) error {
+	panic("implement me")
+}
+
+func (body fakeBody) TxRoot() common.Hash {
+	panic("implement me")
+}
+
+func (body fakeBody) Timestamp() *big.Int {
+	panic("implement me")
+}
+
+func (body fakeBody) Nonce() common.BlockNonce {
+	panic("implement me")
+}
+
+func (body fakeBody) StateRoot() common.Hash {
+	panic("implement me")
+}
+
+func (body fakeBody) SetStateRoot(root common.Hash) {
+	panic("implement me")
+}
+
+func (body fakeBody) GetRegisterRoot() common.Hash {
+	panic("implement me")
+}
+
+func (body fakeBody) SetRegisterRoot(root common.Hash) {
+	panic("implement me")
+}
+
+func (body fakeBody) FormatForRpc() interface{} {
+	panic("implement me")
+}
+
+func (body fakeBody) SetNonce(nonce common.BlockNonce) {
+	panic("implement me")
+}
+
+func (body fakeBody) CoinBaseAddress() common.Address {
+	panic("implement me")
+}
+
+func (body fakeBody) GetTransactionFees() *big.Int {
+	panic("implement me")
+}
+
+func (body fakeBody) CoinBase() *big.Int {
+	panic("implement me")
+}
+
+func (body fakeBody) GetTransactions() []*model.Transaction {
+	panic("implement me")
+}
+
+func (body fakeBody) GetInterlinks() model.InterLink {
+	panic("implement me")
+}
+
+func (body fakeBody) SetInterLinkRoot(root common.Hash) {
+	panic("implement me")
+}
+
+func (body fakeBody) GetInterLinkRoot() (root common.Hash) {
+	panic("implement me")
+}
+
+func (body fakeBody) SetInterLinks(inter model.InterLink) {
+	panic("implement me")
+}
+
+func (body fakeBody) GetAbsTransactions() []model.AbstractTransaction {
+	panic("implement me")
+}
+
+func (body fakeBody) GetBloom() iblt.Bloom {
+	panic("implement me")
+}
+
+func (body fakeBody) Header() model.AbstractHeader {
+	panic("implement me")
+}
+
+func (body fakeBody) Body() model.AbstractBody {
+	panic("implement me")
+}
+
+func (body fakeBody) TxCount() int {
+	panic("implement me")
+}
+
+func (body fakeBody) GetEiBloomBlockData(reqEstimator *iblt.HybridEstimator) *model.BloomBlockData {
+	panic("implement me")
+}
+
+func (body fakeBody) GetBlockTxsBloom() *iblt.Bloom {
+	panic("implement me")
+}
+
+func (body fakeBody) VerificationRoot() common.Hash {
+	panic("implement me")
+}
+
+func (body fakeBody) SetVerifications(vs []model.AbstractVerification) {
+	panic("implement me")
+}
+
+func (body fakeBody) VersIterator(func(int, model.AbstractVerification, model.AbstractBlock) error) error {
+	panic("implement me")
+}
+
+func (body fakeBody) GetVerifications() []model.AbstractVerification {
+	panic("implement me")
+}
+
+func (body fakeBody) SetReceiptHash(receiptHash common.Hash) {
+	panic("implement me")
+}
+
+func (body fakeBody) GetReceiptHash() common.Hash {
+	panic("implement me")
+}
+
+func (body fakeBody) GetBloomLog() model2.Bloom {
+	panic("implement me")
+}
 
 func (body fakeBody) GetTxsSize() int {
 	panic("implement me")
