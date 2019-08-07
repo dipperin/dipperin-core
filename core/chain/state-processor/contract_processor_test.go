@@ -351,7 +351,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", "", "err", err)
 }
 
-func TestContractWithNewFeature(t *testing.T)  {
+func TestContractWithNewFeature(t *testing.T) {
 	singer := model.NewMercurySigner(new(big.Int).SetInt64(int64(1)))
 
 	ownSK, _ := crypto.GenerateKey()
@@ -460,9 +460,9 @@ func processContractCall(t *testing.T, contractAddress common.Address, code []by
 	}
 	err = processor.ProcessTxNew(txConfig)
 	//if funcName == "getBalance" {
-		receipt, err := callTx.GetReceipt()
-		assert.NoError(t, err)
-		fmt.Println("receipt  log", "receipt log", receipt.Logs)
+	receipt, err := callTx.GetReceipt()
+	assert.NoError(t, err)
+	fmt.Println("receipt  log", "receipt log", receipt.Logs)
 	//}
 	assert.NoError(t, err)
 	processor.Commit()

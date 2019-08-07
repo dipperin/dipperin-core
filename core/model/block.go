@@ -285,7 +285,7 @@ func (b *Body) GetReceipts() ([]*model2.Receipt, error) {
 	for _, tx := range b.Txs {
 		r, err := tx.GetReceipt()
 		if err != nil {
-			return nil,err
+			return nil, err
 		}
 		receipts = append(receipts, r)
 	}
@@ -305,7 +305,7 @@ type Block struct {
 func (b *Block) GetBloomLog() model2.Bloom {
 	receipts, err := b.Body().GetReceipts()
 	if err != nil {
-		log.Error("Block#GetBloomLog   err ", "err  " , err)
+		log.Error("Block#GetBloomLog   err ", "err  ", err)
 		return model2.Bloom{}
 	}
 	return model2.CreateBloom(receipts)

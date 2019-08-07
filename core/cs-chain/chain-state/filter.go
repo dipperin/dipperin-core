@@ -87,7 +87,7 @@ func (f *Filter) Logs(ctx context.Context) ([]*model2.Log, error) {
 			return nil, errors.New("unknown block")
 		}
 		log.Info("Filter#Logs", "header", header.Hash(), "block", f.block)
-		return f.blockLogs(ctx, &header, f.ChainReader.GetBloomLog(header.Hash(),header.GetNumber()))
+		return f.blockLogs(ctx, &header, f.ChainReader.GetBloomLog(header.Hash(), header.GetNumber()))
 	}
 	// Figure out the limits of the filter range
 	// header, _ := f.backend.HeaderByNumber(ctx, rpc.LatestBlockNumber)
@@ -194,7 +194,7 @@ func (f *Filter) unindexedLogs(ctx context.Context, end uint64) ([]*model2.Log, 
 		if header == nil {
 			return logs, nil
 		}
-		found, err := f.blockLogs(ctx, &header, f.ChainReader.GetBloomLog(header.Hash(),header.GetNumber()))
+		found, err := f.blockLogs(ctx, &header, f.ChainReader.GetBloomLog(header.Hash(), header.GetNumber()))
 		log.Info("Filter#unindexedLogs", "begin", f.begin, "end", f.end, "found", found)
 		if err != nil {
 			return logs, err
