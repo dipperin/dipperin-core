@@ -39,18 +39,14 @@ var txValidators = map[common.TxType]func(tx model.AbstractTransaction, chain Ch
 	common.TxType(common.AddressTypeNormal): func(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
 		return nil
 	},
-	common.TxType(common.AddressTypeStake):       validRegisterTx,
-	common.TxType(common.AddressTypeCancel):      validCancelTx,
-	common.TxType(common.AddressTypeUnStake):     validUnStakeTx,
-	common.TxType(common.AddressTypeEvidence):    validEvidenceTx,
-	common.TxType(common.AddressTypeERC20):       validContractTx,
-	common.TxType(common.AddressTypeEarlyReward): validEarlyTokenTx,
-	common.TxType(common.AddressTypeContractCall): func(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
-		return nil
-	},
-	common.TxType(common.AddressTypeContractCreate): func(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
-		return nil
-	},
+	common.TxType(common.AddressTypeStake):          validRegisterTx,
+	common.TxType(common.AddressTypeCancel):         validCancelTx,
+	common.TxType(common.AddressTypeUnStake):        validUnStakeTx,
+	common.TxType(common.AddressTypeEvidence):       validEvidenceTx,
+	common.TxType(common.AddressTypeERC20):          validContractTx,
+	common.TxType(common.AddressTypeEarlyReward):    validEarlyTokenTx,
+	common.TxType(common.AddressTypeContractCall):   validContractCallTx,
+	common.TxType(common.AddressTypeContractCreate): validContractCreateTx,
 }
 
 //type TxContext struct {
@@ -79,19 +75,14 @@ func ValidateBlockTxs(c *BlockContext) Middleware {
 	return func() error {
 		txs := c.Block.GetAbsTransactions()
 		targetRoot := model.DeriveSha(model.AbsTransactions(txs))
-		/*		pbft_log.Info("the header tx root is:","root",c.Block.TxRoot().Hex())
-				pbft_log.Info("the calculated tx root is:","root",targetRoot.Hex())
-				pbft_log.Info("the block txs is:","len",len(txs))
-				for _,tx := range txs{
-					pbft_log.Info("the tx is:","tx",tx)
-				}*/
 		if !targetRoot.IsEqual(c.Block.TxRoot()) {
-			return errors.New(fmt.Sprintf("tx root not match, target: %v, root in block: %v", targetRoot.Hex(), c.Block.TxRoot().Hex()))
+			log.Error("tx root not match", "targetRoot", targetRoot.Hex(), "blockRoot", c.Block.TxRoot().Hex())
+			return g_error.ErrTxRootNotMatch
 		}
 
 		if c.Block.IsSpecial() {
 			if txs != nil {
-				return errors.New("special block should not have transactions")
+				return g_error.ErrTxInSpecialBlock
 			} else {
 				return c.Next()
 			}
@@ -223,7 +214,7 @@ func validTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uin
 
 	validator := txValidators[tx.GetType()]
 	if validator == nil {
-		return errors.New(fmt.Sprintf("no validator for tx, type: %v", tx.GetType()))
+		return g_error.ErrInvalidTxType
 	}
 
 	// start = time.Now()
@@ -234,12 +225,8 @@ func validTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uin
 }
 
 func validRegisterTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
-	if tx == nil || chain == nil {
-		log.Error("the tx and chain:", "tx", tx, "chain", chain)
-		return errors.New("the tx or chain is nil")
-	}
 	if tx.Amount().Cmp(economy_model.MiniPledgeValue) == -1 {
-		return errors.New("the register tx delegate is lower than MiniPledgeValue")
+		return g_error.ErrDelegatesNotEnough
 	}
 	return nil
 }
@@ -299,6 +286,10 @@ func validEarlyTokenTx(tx model.AbstractTransaction, chain ChainInterface, block
 }
 
 func validContractCreateTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
+	return nil
+}
+
+func validContractCallTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
 	return nil
 }
 
