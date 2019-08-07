@@ -13,12 +13,12 @@ func TestInstructions(t *testing.T) {
 	state := NewFakeStateDBService()
 	solver := NewResolver(vmValue, contract, state)
 
-	WASMPath := g_testData.GetWASMPath("convert", g_testData.CoreVmTestData)
-	AbiPath := g_testData.GetAbiPath("convert", g_testData.CoreVmTestData)
+	WASMPath := g_testData.GetWASMPath("dipclib_test", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("dipclib_test", g_testData.CoreVmTestData)
 	code, _ := g_testData.GetCodeAbi(WASMPath, AbiPath)
 	vm, err := exec.NewVirtualMachine(code, TEST_VM_CONFIG, solver, nil)
 	assert.NoError(t, err)
-	entryID, ok := vm.GetFunctionExport("getBlockInfo")
+	entryID, ok := vm.GetFunctionExport("libTest")
 	assert.Equal(t, true, ok)
 	vm.GasLimit = g_testData.TestGasLimit * 100
 

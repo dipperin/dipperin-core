@@ -21,7 +21,6 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
@@ -134,7 +133,7 @@ func TestAccountStateProcessor_MoveStakeToAddress(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestAccountStateDB_processStakeTx_Error(t *testing.T) {
+func TestAccountStateDB_processStakeTx(t *testing.T) {
 	db, root := CreateTestStateDB()
 	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
 
@@ -157,9 +156,13 @@ func TestAccountStateDB_processStakeTx_Error(t *testing.T) {
 	tx = getTestRegisterTransaction(0, key1, big.NewInt(1e7))
 	err = processor.processStakeTx(tx)
 	assert.Equal(t, NotEnoughBalanceError, err)
+
+	tx = getTestRegisterTransaction(0, key1, big.NewInt(100))
+	err = processor.processStakeTx(tx)
+	assert.NoError(t, err)
 }
 
-func TestAccountStateDB_processCancelTx_Error(t *testing.T) {
+func TestAccountStateDB_processCancelTx(t *testing.T) {
 	db, root := CreateTestStateDB()
 	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
 
@@ -187,19 +190,23 @@ func TestAccountStateDB_processCancelTx_Error(t *testing.T) {
 	err = processor.blockStateTrie.TryDelete(GetLastElectKey(aliceAddr))
 	assert.NoError(t, err)
 	err = processor.processCancelTx(tx, 1)
-	assert.Error(t, err)
+	assert.Equal(t, "EOF", err.Error())
 
 	// set alice last elect num
-	num, err := rlp.EncodeToBytes(uint64(1))
-	assert.NoError(t, err)
-	err = processor.blockStateTrie.TryUpdate(GetLastElectKey(aliceAddr), num)
+	err = processor.SetLastElect(aliceAddr, uint64(1))
 	assert.NoError(t, err)
 
 	err = processor.processCancelTx(tx, 1)
 	assert.Equal(t, SendRegisterTxFirst, err)
+
+	// no error
+	err = processor.SetLastElect(aliceAddr, uint64(0))
+	assert.NoError(t, err)
+	err = processor.processCancelTx(tx, 1)
+	assert.NoError(t, err)
 }
 
-func TestAccountStateDB_processUnStakeTx_Error(t *testing.T) {
+func TestAccountStateDB_processUnStakeTx(t *testing.T) {
 	db, root := CreateTestStateDB()
 	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
 
@@ -230,13 +237,17 @@ func TestAccountStateDB_processUnStakeTx_Error(t *testing.T) {
 	assert.Error(t, err)
 
 	// set alice last elect num
-	num, err := rlp.EncodeToBytes(uint64(0))
-	assert.NoError(t, err)
-	err = processor.blockStateTrie.TryUpdate(GetLastElectKey(aliceAddr), num)
+	err = processor.SetLastElect(aliceAddr, uint64(0))
 	assert.NoError(t, err)
 
 	err = processor.processUnStakeTx(tx)
 	assert.Equal(t, SendCancelTxFirst, err)
+
+	// no error
+	err = processor.SetLastElect(aliceAddr, uint64(1))
+	assert.NoError(t, err)
+	err = processor.processUnStakeTx(tx)
+	assert.NoError(t, err)
 }
 
 func TestAccountStateDB_processEvidenceTx_Error(t *testing.T) {
@@ -253,4 +264,11 @@ func TestAccountStateDB_processEvidenceTx_Error(t *testing.T) {
 	tx = getTestEvidenceTransaction(0, key1, common.HexToAddress("123"), &model.VoteMsg{}, &model.VoteMsg{})
 	err = processor.processEvidenceTx(tx)
 	assert.Equal(t, ReceiverNotExistErr, err)
+
+	key1, _ = createKey()
+	err = processor.SetStake(bobAddr, big.NewInt(100))
+	assert.NoError(t, err)
+	tx = getTestEvidenceTransaction(0, key1, bobAddr, &model.VoteMsg{}, &model.VoteMsg{})
+	err = processor.processEvidenceTx(tx)
+	assert.NoError(t, err)
 }

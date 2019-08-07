@@ -102,6 +102,70 @@ func TestVM_CreateAndCall(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestVM_CreateAndCallWithdraw(t *testing.T) {
+	vm := getTestVm()
+	aliceRef := AccountRef(aliceAddr)
+	gasLimit := g_testData.TestGasLimit * 100
+	value := g_testData.TestValue
+	WASMPath := g_testData.GetWASMPath("token-payable", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("token-payable", g_testData.CoreVmTestData)
+	code, abi := g_testData.GetCodeAbi(WASMPath, AbiPath)
+
+	// create alice and bob account
+	vm.GetStateDB().CreateAccount(aliceAddr)
+	vm.GetStateDB().AddBalance(aliceAddr, big.NewInt(500))
+	vm.GetStateDB().CreateAccount(bobAddr)
+	vm.GetStateDB().AddBalance(bobAddr, big.NewInt(1000))
+	expectAddr := cs_crypto.CreateContractAddress(aliceAddr, uint64(0))
+
+	tokenName := []byte("tokenName")
+	symbolName := []byte("symbolName")
+	supply := utils.Uint64ToBytes(500)
+	data, err := rlp.EncodeToBytes([]interface{}{code, abi, tokenName, symbolName, supply})
+	assert.NoError(t, err)
+
+	// init() is not payable function, couldn't transfer DIP
+	resp, addr, _, err := vm.Create(aliceRef, data, gasLimit, value)
+	assert.Equal(t, []byte(nil), resp)
+	assert.Equal(t, expectAddr, addr)
+	assert.Equal(t, "VM execute fail: abort", err.Error())
+	fmt.Println("-----------------------------------------------------")
+
+	// init() is not payable function, run with value == 0
+	expectAddr = cs_crypto.CreateContractAddress(aliceAddr, uint64(1))
+	resp, addr, _, err = vm.Create(aliceRef, data, gasLimit, big.NewInt(0))
+	assert.Equal(t, code, resp)
+	assert.Equal(t, expectAddr, addr)
+	assert.NoError(t, err)
+
+	// transfer token to bob and transfer DIP to contract
+	funcName := []byte("transfer")
+	to := []byte(bobAddr.Hex())
+	amount := utils.Uint64ToBytes(100)
+	data, err = rlp.EncodeToBytes([]interface{}{funcName, to, amount})
+	assert.NoError(t, err)
+	resp, _, err = vm.Call(aliceRef, addr, data, gasLimit, value)
+	assert.Equal(t, value, vm.GetStateDB().GetBalance(addr))
+	assert.Equal(t, make([]byte, utils.ALIGN_LENGTH), resp)
+	assert.NoError(t, err)
+
+	// call withdraw
+	funcName = []byte("withdraw")
+	data, err = rlp.EncodeToBytes([]interface{}{funcName})
+	assert.NoError(t, err)
+
+	// bob can't withdraw alice's contract
+	resp, _, err = vm.Call(AccountRef(bobAddr), addr, data, gasLimit, big.NewInt(0))
+	assert.Equal(t, []byte(nil), resp)
+	assert.Equal(t, "VM execute fail: abort", err.Error())
+
+	// alice withdraw the contract
+	resp, _, err = vm.Call(aliceRef, addr, data, gasLimit, big.NewInt(0))
+	assert.Equal(t, make([]byte, utils.ALIGN_LENGTH), resp)
+	assert.Equal(t, uint64(0), vm.GetStateDB().GetBalance(addr).Uint64())
+	assert.NoError(t, err)
+}
+
 func TestVM_CreateAndCallToken(t *testing.T) {
 	vm := getTestVm()
 	ref := AccountRef(aliceAddr)

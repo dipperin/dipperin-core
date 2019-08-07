@@ -19,6 +19,14 @@ var TEST_VM_CONFIG = exec.VMConfig{
 	DefaultMemoryPages: exec.DefaultPageSize,
 }
 
+type fakeContractRef struct {
+	address common.Address
+}
+
+func (ref *fakeContractRef) Address() common.Address {
+	return ref.address
+}
+
 type fakeStateDBService struct {
 	logList  []*model.Log
 	stateMap map[common.Address]map[string][]byte
@@ -40,6 +48,9 @@ func (state *fakeStateDBService) AddLog(addedLog *model.Log) {
 }
 
 func (state *fakeStateDBService) SetState(addr common.Address, key []byte, value []byte) {
+	if state.stateMap[addr] == nil {
+		state.stateMap[addr] = make(map[string][]byte, 0)
+	}
 	state.stateMap[addr][string(key)] = value
 }
 
@@ -54,8 +65,12 @@ func (state *fakeStateDBService) GetNonce(common.Address) (uint64, error) {
 type fakeContractService struct {
 }
 
-func (contract *fakeContractService) Caller() common.Address {
-	return bobAddr
+func (contract *fakeContractService) Caller() ContractRef {
+	return &fakeContractRef{aliceAddr}
+}
+
+func (contract *fakeContractService) Self() ContractRef {
+	return &fakeContractRef{contractAddr}
 }
 
 func (contract *fakeContractService) Address() common.Address {
@@ -102,7 +117,7 @@ func (context *fakeVmContextService) GetOrigin() common.Address {
 }
 
 func (context *fakeVmContextService) Call(caller ContractRef, addr common.Address, input []byte, gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
-	panic("implement me")
+	return nil, gas, nil
 }
 
 func (context *fakeVmContextService) DelegateCall(caller ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error) {

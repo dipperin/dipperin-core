@@ -5,6 +5,7 @@ import (
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/stretchr/testify/assert"
+	"math/big"
 	"testing"
 )
 
@@ -18,7 +19,7 @@ func CreatAndCallContract(t *testing.T, parameter *g_testData.ContractTestParame
 
 	data, err := g_testData.GetCallExtraData(parameter.CallFuncName, parameter.CallInputPara)
 	assert.NoError(t, err)
-	txHash := SendCallContract(t, cluster, parameter.NodeName, contractHash, data)
+	txHash := SendCallContract(t, cluster, parameter.NodeName, contractHash, data, big.NewInt(0))
 	checkTransactionOnChain(client, []common.Hash{txHash})
 
 	return contractHash, nil
@@ -36,10 +37,14 @@ func Test_EventContractCall(t *testing.T) {
 	contractHash := SendCreateContract(t, cluster, nodeName, WASMEventPath, AbiEventPath, "")
 	checkTransactionOnChain(client, []common.Hash{contractHash})
 
-	data, err := g_testData.GetCallExtraData("hello", "money,100")
+	from, err := cluster.GetNodeMainAddress(nodeName)
 	assert.NoError(t, err)
-	txHash := SendCallContract(t, cluster, nodeName, contractHash, data)
-	checkTransactionOnChain(client, []common.Hash{txHash})
+	to := GetContractAddressByTxHash(client, contractHash)
+	input, err := g_testData.GetCallExtraData("returnString", "input")
+	assert.NoError(t, err)
+	resp, err := Call(client, from, to, input)
+	assert.NoError(t, err)
+	assert.Equal(t, "input", resp)
 }
 
 func Test_DIPCLibContract(t *testing.T) {

@@ -172,8 +172,7 @@ func (service *MercuryFullChainService) startBloomHandlers(sectionSize uint64) {
 						if header != nil {
 							head = header.Hash()
 						}
-						//log.Info("MercuryFullChainService#startBloomHandlers", "head", head, "header number", header.GetNumber())
-						//if compVector, err := rawdb.ReadBloomBits(eth.chainDb, task.Bit, section, head); err == nil {
+
 						if compVector := service.ChainReader.GetBloomBits(head, task.Bit, section); compVector != nil {
 							if blob, err := bitutil.DecompressBytes(compVector, int(sectionSize/8)); err == nil {
 								task.Bitsets[i] = blob
@@ -1585,7 +1584,7 @@ func (service *MercuryFullChainService) GetLogs(blockHash common.Hash, fromBlock
 	if !blockHash.IsEmpty() {
 		// Block filter requested, construct a single-shot filter
 		if num := service.GetBlockNumber(blockHash); num == nil {
-			return nil, errors.New("invalid block hash")
+			return nil, g_error.BlockHashNotFound
 		}
 		filter = chain_state.NewBlockFilter(service.ChainIndex, service.ChainReader, blockHash, addresses, topics)
 	} else {
@@ -1596,7 +1595,7 @@ func (service *MercuryFullChainService) GetLogs(blockHash common.Hash, fromBlock
 			end = toBlock
 		}
 		if begin > end {
-			return nil, errors.New("beginBlockNum couldn't larger than endBlockNum")
+			return nil, g_error.BeginNumLargerError
 		}
 		// Construct the range filter
 		filter = chain_state.NewRangeFilter(service.ChainReader, service.ChainIndex, int64(begin), int64(end), addresses, topics)
@@ -1771,7 +1770,7 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 
 func (service *MercuryFullChainService) GetExtraData(to common.Address, data []byte) ([]byte, error) {
 	if data == nil || len(data) == 0 {
-		return []byte{}, errors.New("empty tx data")
+		return []byte{}, g_error.ErrEmptyTxData
 	}
 
 	var extraData []byte
@@ -1966,7 +1965,7 @@ func (service *MercuryFullChainService) MakeTmpSignedTx(args CallArgs, blockNum 
 		gasPrice = new(big.Int).SetUint64(uint64(config.DEFAULT_GAS_PRICE))
 	}
 	if value.Sign() == 0 {
-		value = new(big.Int).SetUint64(uint64(1))
+		value = new(big.Int).SetUint64(uint64(0))
 	}
 
 	// Create tmpTransaction

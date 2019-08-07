@@ -83,8 +83,8 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 			txs.Pop()
 			invalidList = append(invalidList, tx.(*model.Transaction))
 		} else {
-			receipt, err := tx.GetReceipt()
-			if err != nil {
+			receipt := tx.GetReceipt()
+			if receipt == nil {
 				log.Info("cant get tx receipt", "txId", tx.CalTxId().Hex())
 				txs.Pop()
 				invalidList = append(invalidList, tx.(*model.Transaction))
@@ -197,9 +197,9 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 	//calculate receipt hash
 	receiptHash := model.DeriveSha(&receipts)
 	block.SetReceiptHash(receiptHash)
-	block.SetBloomLog(model2.CreateBloom(receipts))
-	bloomLog := block.GetBloomLog()
-	log.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
+	//block.SetBloomLog(model2.CreateBloom(receipts))
+	//bloomLog := block.GetBloomLog()
+	//log.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
 
 	//TODO:calculate block interlinks
 	linkList := model.NewInterLink(curBlock.GetInterlinks(), block)
@@ -233,8 +233,6 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 	registerRoot := register.Finalise()
 	block.SetRegisterRoot(registerRoot)
 	pbft_log.Debug("build block", "block id", block.Hash().Hex(), "transaction", block.TxCount())
-	bloomLog = block.GetBloomLog()
-	log.Info("BftBlockBuilder#BuildWaitPackBlock2", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
 	return block
 }
 

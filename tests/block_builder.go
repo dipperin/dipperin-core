@@ -182,9 +182,9 @@ func (builder *BlockBuilder) BuildFuture() model.AbstractBlock {
 	// calculate receipt hash
 	receiptHash := model.DeriveSha(&receipts)
 	block.SetReceiptHash(receiptHash)
-	block.SetBloomLog(model2.CreateBloom(receipts))
-	bloomLog := block.GetBloomLog()
-	log.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
+	//block.SetBloomLog(model2.CreateBloom(receipts))
+	//bloomLog := block.GetBloomLog()
+	//log.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
 
 	linkList := model.NewInterLink(curBlock.GetInterlinks(), block)
 	block.SetInterLinks(linkList)
@@ -277,9 +277,9 @@ func (builder *BlockBuilder) Build() model.AbstractBlock {
 	// calculate receipt hash
 	receiptHash := model.DeriveSha(&receipts)
 	block.SetReceiptHash(receiptHash)
-	block.SetBloomLog(model2.CreateBloom(receipts))
-	bloomLog := block.GetBloomLog()
-	log.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
+	//block.SetBloomLog(model2.CreateBloom(receipts))
+	//bloomLog := block.GetBloomLog()
+	//log.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
 
 	linkList := model.NewInterLink(curBlock.GetInterlinks(), block)
 	block.SetInterLinks(linkList)
@@ -344,9 +344,9 @@ func (builder *BlockBuilder) BuildSpecialBlock() model.AbstractBlock {
 	var receipts model2.Receipts
 	receiptHash := model.DeriveSha(&receipts)
 	block.SetReceiptHash(receiptHash)
-	block.SetBloomLog(model2.CreateBloom(receipts))
-	bloomLog := block.GetBloomLog()
-	log.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
+	//block.SetBloomLog(model2.CreateBloom(receipts))
+	//bloomLog := block.GetBloomLog()
+	//log.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
 
 	// set interlink root
 	linkList := model.NewInterLink(preBlock.GetInterlinks(), block)
@@ -397,7 +397,7 @@ func (builder *BlockBuilder) commitTransaction(conf *state_processor.TxProcessCo
 	}
 
 	//updating tx fee
-	conf.Tx.(*model.Transaction).PaddingActualTxFee(conf.TxFee)
+	conf.Tx.PaddingActualTxFee(conf.TxFee)
 	return nil
 }
 
@@ -449,9 +449,9 @@ func (builder *BlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndN
 			txs.Pop()
 			invalidList = append(invalidList, tx.(*model.Transaction))
 		} else {
-			receipt, err := tx.GetReceipt()
-			if err != nil {
-				log.Info("cant get tx receipt", "txId", tx.CalTxId().Hex())
+			receipt := tx.GetReceipt()
+			if receipt == nil {
+				log.Info("empty receipt", "txId", tx.CalTxId().Hex())
 				txs.Pop()
 				invalidList = append(invalidList, tx.(*model.Transaction))
 			} else {

@@ -29,8 +29,8 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-//go:generate mockgen -destination=./chain_interface_mock.go -package=middleware github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware ChainInterface
-//go:generate mockgen -destination=../../../../tests/g-mockFile/chainInterface_mock.go -package=g_mockFile github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware ChainInterface
+//go:generate mockgen -destination=./chain_interface_mock_test.go -package=middleware github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware ChainInterface
+//go:generate mockgen -destination=../../../../tests/g-mockFile/chainInterface_mock_test.go -package=g_mockFile github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware ChainInterface
 type ChainInterface interface {
 	StateReader
 	StateWriter
@@ -61,6 +61,7 @@ type StateReader interface {
 	GetBlockNumber(hash common.Hash) *uint64
 	GetTransaction(txHash common.Hash) (model.AbstractTransaction, common.Hash, uint64, uint64)
 	GetReceipts(hash common.Hash, number uint64) model2.Receipts
+	GetBloomLog(hash common.Hash, number uint64) model2.Bloom
 	GetBloomBits(head common.Hash, bit uint, section uint64) []byte
 	GetLatestNormalBlock() model.AbstractBlock
 

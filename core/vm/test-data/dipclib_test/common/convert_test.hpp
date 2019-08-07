@@ -11,3 +11,4 @@ public:
 
 void convertStr();
 void operatorTest();
+void printTest();

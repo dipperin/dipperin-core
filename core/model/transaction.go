@@ -19,13 +19,11 @@ package model
 import (
 	"container/heap"
 	"crypto/ecdsa"
-	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
@@ -439,47 +437,30 @@ type ReceiptPara struct {
 	Logs              []*model.Log
 }
 
-func (tx *Transaction) PaddingActualTxFee(fee *big.Int) error {
+func (tx *Transaction) PaddingActualTxFee(fee *big.Int) {
 	tx.actualTxFee.Store(fee)
-	return nil
 }
 
 func (tx *Transaction) GetActualTxFee() (fee *big.Int) {
-
-	if fee := tx.actualTxFee.Load(); fee != nil {
-		return fee.(*big.Int)
+	if feeLoad := tx.actualTxFee.Load(); feeLoad != nil {
+		return feeLoad.(*big.Int)
 	}
-
 	log.Error("the transaction fee cache is nil")
 	return nil
 }
 
-func (tx *Transaction) PaddingReceipt(parameters ReceiptPara) (*model.Receipt, error) {
+func (tx *Transaction) PaddingReceipt(parameters ReceiptPara) {
 	log.Info("Call PaddingReceipt", "handlerResult", parameters.HandlerResult)
 	receipt := model.NewReceipt(parameters.Root, parameters.HandlerResult, parameters.CumulativeGasUsed, parameters.Logs)
 	tx.receipt.Store(receipt)
-	return receipt, nil
 }
 
-func (tx *Transaction) GetReceipt() (*model.Receipt, error) {
-	value := tx.receipt.Load()
-	if value != nil {
-		receipt := value.(*model.Receipt)
-		receipt.TxHash = tx.CalTxId()
-
-		// if the transaction created a contract, store the creation address in the receipt.
-		if tx.GetType() == common.AddressTypeContractCreate {
-			callerAddress, err := tx.Sender(nil)
-			if err != nil {
-				return &model.Receipt{}, err
-			}
-			receipt.ContractAddress = cs_crypto.CreateContractAddress(callerAddress, tx.Nonce())
-		} else {
-			receipt.ContractAddress = *tx.To()
-		}
-		return receipt, nil
+func (tx *Transaction) GetReceipt() *model.Receipt {
+	if receiptLoad := tx.receipt.Load(); receiptLoad != nil {
+		return receiptLoad.(*model.Receipt)
 	}
-	return &model.Receipt{}, errors.New("not set tx receipt")
+	log.Error("the receipt cache is nil")
+	return nil
 }
 
 // Transactions is a Transaction slice type for basic sorting.

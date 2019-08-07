@@ -32,7 +32,7 @@ const (
 	// BloomServiceThreads is the number of goroutines used globally by an Ethereum
 	// instance to service bloombits lookups for all running filters.
 	//BloomServiceThreads = 16
-	BloomServiceThreads = 1
+	BloomServiceThreads = 8
 
 	// bloomFilterThreads is the number of goroutines used locally per filter to
 	// multiplex requests onto the global servicing goroutines.
@@ -94,8 +94,8 @@ func (b *BloomIndexer) Reset(ctx context.Context, section uint64, lastSectionHea
 
 // Process implements core.ChainIndexerBackend, adding a new header's bloom into
 // the index.
-func (b *BloomIndexer) Process(ctx context.Context, header *model.AbstractHeader) error {
-	b.gen.AddBloom(uint((*header).GetNumber()-b.section*b.size), (*header).GetBloomLog())
+func (b *BloomIndexer) Process(ctx context.Context, header *model.AbstractHeader, bloom model2.Bloom) error {
+	b.gen.AddBloom(uint((*header).GetNumber()-b.section*b.size), bloom)
 	b.head = (*header).Hash()
 	return nil
 }

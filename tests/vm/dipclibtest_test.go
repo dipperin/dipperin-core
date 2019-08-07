@@ -5,6 +5,7 @@ import (
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/stretchr/testify/assert"
+	"math/big"
 	"testing"
 )
 
@@ -22,6 +23,6 @@ func Test_DipcLibTestCall(t *testing.T) {
 
 	data, err := g_testData.GetCallExtraData("libTest", "")
 	assert.NoError(t, err)
-	txHash := SendCallContract(t, cluster, nodeName, contractHash, data)
+	txHash := SendCallContract(t, cluster, nodeName, contractHash, data, big.NewInt(0))
 	checkTransactionOnChain(client, []common.Hash{txHash})
 }

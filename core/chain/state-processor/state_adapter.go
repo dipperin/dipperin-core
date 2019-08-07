@@ -26,7 +26,7 @@ func (f *Fullstate) CreateAccount(address common.Address) {
 func (f *Fullstate) GetBalance(addr common.Address) *big.Int {
 	balance, err := f.state.GetBalance(addr)
 	if err != nil {
-		return nil
+		panic(fmt.Sprintf("GetBalance failed, err=%v", err))
 	}
 	return balance
 }
@@ -63,11 +63,11 @@ func (f *Fullstate) GetCodeHash(addr common.Address) common.Hash {
 	return cs_crypto.Keccak256Hash(code)
 }
 
-func (f *Fullstate) GetCode(addr common.Address) (result []byte) {
+func (f *Fullstate) GetCode(addr common.Address) []byte {
 	//f.state.contractTrieCache
 	code, err := f.state.GetCode(addr)
 	if err != nil {
-		return
+		return nil
 	}
 	return code
 }
@@ -79,26 +79,18 @@ func (f *Fullstate) SetCode(addr common.Address, code []byte) {
 	}
 }
 
-func (f *Fullstate) GetCodeSize(addr common.Address) (size int) {
-	code, err := f.state.GetCode(addr)
-	if err != nil {
-		return
-	}
-	return len(code)
-}
-
 func (f *Fullstate) GetAbiHash(addr common.Address) common.Hash {
 	abi, err := f.state.GetAbi(addr)
 	if err != nil {
 		return common.Hash{}
 	}
-	return common.RlpHashKeccak256(abi)
+	return cs_crypto.Keccak256Hash(abi)
 }
 
-func (f *Fullstate) GetAbi(addr common.Address) (abi []byte) {
+func (f *Fullstate) GetAbi(addr common.Address) []byte {
 	abi, err := f.state.GetAbi(addr)
 	if err != nil {
-		return
+		return nil
 	}
 	return abi
 }
@@ -110,46 +102,35 @@ func (f *Fullstate) SetAbi(addr common.Address, abi []byte) {
 	}
 }
 
-func (f *Fullstate) GetCommittedState(common.Address, []byte) []byte {
-	panic("implement me")
-}
-
 func (f *Fullstate) GetState(addr common.Address, key []byte) (data []byte) {
 	return f.state.GetData(addr, string(key))
 }
 
 func (f *Fullstate) SetState(addr common.Address, key []byte, value []byte) {
-	err := f.state.SetData(addr, string(key), value)
-	if err != nil {
-		panic(fmt.Sprintf("SetState failed, err=%v", err))
-	}
+	f.state.SetData(addr, string(key), value)
 }
 
 func (f *Fullstate) AddLog(addedLog *model2.Log) {
-	log.Info("AddLog Called")
-	txHash := addedLog.TxHash
-	contractLogs := f.GetLogs(txHash)
-	f.state.logs[txHash] = append(contractLogs, addedLog)
-	log.Info("Log Added", "txHash", txHash)
+	err := f.state.AddLog(addedLog)
+	if err != nil {
+		panic(fmt.Sprintf("SetAbi failed, err=%v", err))
+	}
 }
 
 func (f *Fullstate) GetLogs(txHash common.Hash) []*model2.Log {
-	return f.state.logs[txHash]
+	return f.state.GetLogs(txHash)
 }
-func (f *Fullstate) Suicide(common.Address) bool {
+
+/*func (f *Fullstate) Suicide(common.Address) bool {
 	panic("implement me")
 }
 
 func (f *Fullstate) HasSuicided(common.Address) bool {
 	panic("implement me")
-}
+}*/
 
 func (f *Fullstate) Exist(addr common.Address) bool {
 	return !f.state.IsEmptyAccount(addr)
-}
-
-func (f *Fullstate) Empty(addr common.Address) bool {
-	return f.state.IsEmptyAccount(addr)
 }
 
 func (f *Fullstate) RevertToSnapshot(id int) {

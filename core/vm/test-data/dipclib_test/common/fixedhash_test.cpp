@@ -61,7 +61,8 @@ void andTest() {
 void insertTest() {
     FixedHash<4> h1("0xD3ADB33F");
     FixedHash<4> h2("0x2C524CC0");
-
+    printhex(h1.data(), h1.size());
+    printhex(h2.data(), h2.size());
     DipcAssertEQ(~h1, h2);
 }
 

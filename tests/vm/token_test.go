@@ -6,10 +6,15 @@ import (
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/stretchr/testify/assert"
+	"math/big"
 	"testing"
 )
 
-func Test_TokenContractCall(t *testing.T) {
+var (
+	aliceAddr = "0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9"
+)
+
+func Test_TokenConstantCall(t *testing.T) {
 	cluster, err := node_cluster.CreateNodeCluster()
 	assert.NoError(t, err)
 
@@ -22,11 +27,10 @@ func Test_TokenContractCall(t *testing.T) {
 	checkTransactionOnChain(client, []common.Hash{contractHash})
 
 	// Transfer money
-	aliceAddr := "0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9"
 	data, err := g_testData.GetCallExtraData("transfer", fmt.Sprintf("%s,1000", aliceAddr))
 	assert.NoError(t, err)
 
-	txHash := SendCallContract(t, cluster, nodeName, contractHash, data)
+	txHash := SendCallContract(t, cluster, nodeName, contractHash, data, big.NewInt(0))
 	checkTransactionOnChain(client, []common.Hash{txHash})
 
 	// Get Balance
@@ -35,20 +39,55 @@ func Test_TokenContractCall(t *testing.T) {
 	to := GetContractAddressByTxHash(client, contractHash)
 	input, err := g_testData.GetCallExtraData("getBalance", aliceAddr)
 	assert.NoError(t, err)
-
-	err = Call(client, from, to, input)
+	resp, err := Call(client, from, to, input)
 	assert.NoError(t, err)
+	assert.Equal(t, "1000", resp)
 }
 
-/*func Test_dial_server(t *testing.T){
-	//if client, err = rpc.Dial(fmt.Sprintf("http://%v:%d", "127.0.0.1", port)); err != nil {
-	//	panic("init rpc client failed: " + err.Error())
-	//}
-	wsURL := fmt.Sprintf("ws://%v:%d", "172.16.5.183", 7002)
-	//l.Info("init rpc client", "wsURL", wsURL)
-	if _, err := rpc.Dial(wsURL); err != nil {
-		panic("init rpc client failed: " + err.Error())
-	}
+func Test_TokenPayableCall(t *testing.T) {
+	cluster, err := node_cluster.CreateNodeCluster()
+	assert.NoError(t, err)
 
-	log.Info("dial success")
-}*/
+	nodeName := "default_v0"
+	client := cluster.NodeClient[nodeName]
+
+	WASMTokenPath := g_testData.GetWASMPath("token-payable", g_testData.CoreVmTestData)
+	AbiTokenPath := g_testData.GetAbiPath("token-payable", g_testData.CoreVmTestData)
+	contractHash := SendCreateContract(t, cluster, nodeName, WASMTokenPath, AbiTokenPath, "dipp,DIPP,1000000")
+	checkTransactionOnChain(client, []common.Hash{contractHash})
+
+	// transfer dip to contract and transfer token to alice
+	data, err := g_testData.GetCallExtraData("transfer", fmt.Sprintf("%s,1000", aliceAddr))
+	assert.NoError(t, err)
+	txHash := SendCallContract(t, cluster, nodeName, contractHash, data, big.NewInt(500))
+	checkTransactionOnChain(client, []common.Hash{txHash})
+
+	// get contract balance
+	contractAddr := GetContractAddressByTxHash(client, contractHash)
+	balance := CurrentBalance(client, contractAddr)
+	assert.Equal(t, uint64(500), balance.Balance.ToInt().Uint64())
+
+	// get alice balance
+	from, err := cluster.GetNodeMainAddress(nodeName)
+	assert.NoError(t, err)
+	input, err := g_testData.GetCallExtraData("getBalance", aliceAddr)
+	assert.NoError(t, err)
+	resp, err := Call(client, from, contractAddr, input)
+	assert.NoError(t, err)
+	assert.Equal(t, "1000", resp)
+
+	// withdraw
+	data, err = g_testData.GetCallExtraData("withdraw", "")
+	assert.NoError(t, err)
+	txHash = SendCallContract(t, cluster, nodeName, contractHash, data, big.NewInt(0))
+	checkTransactionOnChain(client, []common.Hash{txHash})
+
+	// get contract balance
+	balance = CurrentBalance(client, contractAddr)
+	assert.Equal(t, uint64(0), balance.Balance.ToInt().Uint64())
+
+	// get alice balance
+	resp, err = Call(client, from, contractAddr, input)
+	assert.NoError(t, err)
+	assert.Equal(t, "1000", resp)
+}
