@@ -44,7 +44,7 @@ type AbstractHeader interface {
 	GetDifficulty() common.Difficulty
 	GetRegisterRoot() common.Hash
 	SetRegisterRoot(root common.Hash)
-	GetBloomLog() model.Bloom
+	//GetBloomLog() model.Bloom
 	//IsEqual(header *Header) bool
 }
 
@@ -53,6 +53,7 @@ type AbstractBody interface {
 	GetTxByIndex(i int) AbstractTransaction
 	EncodeRlpToBytes() ([]byte, error)
 	GetInterLinks() InterLink
+	//GetReceipts() ([]*model.Receipt, error)
 }
 
 //go:generate mockgen -destination=./../cs-chain/chain-writer/block_mock_test.go -package=chain_writer github.com/dipperin/dipperin-core/core/model AbstractBlock
@@ -99,8 +100,8 @@ type AbstractBlock interface {
 	GetVerifications() []AbstractVerification
 	SetReceiptHash(receiptHash common.Hash)
 	GetReceiptHash() common.Hash
-	GetBloomLog() model.Bloom
-	SetBloomLog(bloom model.Bloom)
+	//GetBloomLog() model.Bloom
+	//SetBloomLog(bloom model.Bloom)
 	//GasLimit() uint64
 }
 

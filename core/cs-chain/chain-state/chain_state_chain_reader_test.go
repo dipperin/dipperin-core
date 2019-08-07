@@ -190,6 +190,18 @@ func (suite *ChainStateSuite) TestChainState_GetBlockNumber(c *check.C) {
 	c.Check(*result, check.Equals, suite.block.Number())
 }
 
+func (suite *ChainStateSuite) TestChainState_GetBloomBits(c *check.C) {
+	result := suite.chainState.GetBloomBits(suite.block.Hash(), uint(10), uint64(10))
+
+	c.Check(result, check.IsNil)
+}
+
+func (suite *ChainStateSuite) TestChainState_GetReceipts(c *check.C) {
+	result := suite.chainState.GetReceipts(suite.block.Hash(), suite.block.Number())
+
+	c.Check(result, check.NotNil)
+}
+
 func (suite *ChainStateSuite) TestChainState_GetLatestNormalBlock(c *check.C) {
 	// insert special blocks
 	config := suite.chainState.ChainConfig

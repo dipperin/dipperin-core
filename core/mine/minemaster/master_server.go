@@ -18,7 +18,6 @@ package minemaster
 
 import (
 	"errors"
-	"fmt"
 	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
 	"github.com/dipperin/dipperin-core/core/model"
@@ -88,8 +87,8 @@ func (s *server) onSubmitBlock(workerID WorkerId, work minemsg.Work) {
 	}
 
 	receiptHash := block.GetReceiptHash()
-	bloomLog := block.GetBloomLog()
-	log.Info("server#onSubmitBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receiptHash, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
+	//bloomLog := block.GetBloomLog()
+	log.Info("server#onSubmitBlock", "receipts", receiptHash)
 
 	//fmt.Println("mine master prepare broadcast block", util.StringifyJson(block), block.Hash())
 	//log.Info("mine master receive new work", "block hash", block.Hash().Hex(), "block number", block.Number())

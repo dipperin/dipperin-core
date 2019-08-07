@@ -172,8 +172,7 @@ func (service *MercuryFullChainService) startBloomHandlers(sectionSize uint64) {
 						if header != nil {
 							head = header.Hash()
 						}
-						//log.Info("MercuryFullChainService#startBloomHandlers", "head", head, "header number", header.GetNumber())
-						//if compVector, err := rawdb.ReadBloomBits(eth.chainDb, task.Bit, section, head); err == nil {
+
 						if compVector := service.ChainReader.GetBloomBits(head, task.Bit, section); compVector != nil {
 							if blob, err := bitutil.DecompressBytes(compVector, int(sectionSize/8)); err == nil {
 								task.Bitsets[i] = blob

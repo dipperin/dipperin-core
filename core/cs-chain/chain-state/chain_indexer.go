@@ -25,6 +25,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-event"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"sync"
@@ -42,7 +43,7 @@ type ChainIndexerBackend interface {
 
 	// Process crunches through the next header in the chain segment. The caller
 	// will ensure a sequential order of headers.
-	Process(ctx context.Context, header *model.AbstractHeader) error
+	Process(ctx context.Context, header *model.AbstractHeader, bloom model2.Bloom) error
 
 	// Commit finalizes the section metadata and stores it into the database.
 	Commit() error
@@ -381,14 +382,23 @@ func (c *ChainIndexer) processSection(section uint64, lastHead common.Hash) (com
 	}
 
 	for number := section * c.sectionSize; number < (section+1)*c.sectionSize; number++ {
-		var hash common.Hash
+		//var hash common.Hash
+		//block := c.chainReader.GetBlockByNumber(number)
+		//
+		//if block == nil {
+		//	return common.Hash{}, fmt.Errorf("block #%d [%x…] not found", number, hash[:4])
+		//} else if block.Header().GetPreHash() != lastHead {
+		//	return common.Hash{}, fmt.Errorf("chain reorged during section processing")
+		//}
+		//header := block.Header()
 		header := c.chainReader.GetHeaderByNumber(number)
 		if header == nil {
-			return common.Hash{}, fmt.Errorf("block #%d [%x…] not found", number, hash[:4])
+			return common.Hash{}, fmt.Errorf("block #%d  not found", number)
 		} else if header.GetPreHash() != lastHead {
 			return common.Hash{}, fmt.Errorf("chain reorged during section processing")
 		}
-		if err := c.backend.Process(c.ctx, &header); err != nil {
+		//c.chainReader.GetReceipts(block.Hash(),block.Number())
+		if err := c.backend.Process(c.ctx, &header, c.chainReader.GetBloomLog(header.Hash(), header.GetNumber())); err != nil {
 			return common.Hash{}, err
 		}
 		lastHead = header.Hash()

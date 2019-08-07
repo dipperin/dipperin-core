@@ -107,8 +107,8 @@ func TestVM_CreateAndCallWithdraw(t *testing.T) {
 	aliceRef := AccountRef(aliceAddr)
 	gasLimit := g_testData.TestGasLimit * 100
 	value := g_testData.TestValue
-	WASMPath := g_testData.GetWASMPath("token-payable", g_testData.DIPCTestContract)
-	AbiPath := g_testData.GetAbiPath("token-payable", g_testData.DIPCTestContract)
+	WASMPath := g_testData.GetWASMPath("token-payable", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("token-payable", g_testData.CoreVmTestData)
 	code, abi := g_testData.GetCodeAbi(WASMPath, AbiPath)
 
 	// create alice and bob account

@@ -83,11 +83,11 @@ func (f *Filter) Logs(ctx context.Context) ([]*model2.Log, error) {
 	if f.block != (common.Hash{}) {
 		// header, err := f.backend.HeaderByHash(ctx, f.block)
 		header := f.ChainReader.GetHeaderByHash(f.block)
-		log.Info("Filter#Logs", "header", header.Hash(), "block", f.block)
 		if header == nil {
 			return nil, errors.New("unknown block")
 		}
-		return f.blockLogs(ctx, &header)
+		log.Info("Filter#Logs", "header", header.Hash(), "block", f.block)
+		return f.blockLogs(ctx, &header, f.ChainReader.GetBloomLog(header.Hash(), header.GetNumber()))
 	}
 	// Figure out the limits of the filter range
 	// header, _ := f.backend.HeaderByNumber(ctx, rpc.LatestBlockNumber)
@@ -194,7 +194,7 @@ func (f *Filter) unindexedLogs(ctx context.Context, end uint64) ([]*model2.Log, 
 		if header == nil {
 			return logs, nil
 		}
-		found, err := f.blockLogs(ctx, &header)
+		found, err := f.blockLogs(ctx, &header, f.ChainReader.GetBloomLog(header.Hash(), header.GetNumber()))
 		log.Info("Filter#unindexedLogs", "begin", f.begin, "end", f.end, "found", found)
 		if err != nil {
 			return logs, err
@@ -205,9 +205,9 @@ func (f *Filter) unindexedLogs(ctx context.Context, end uint64) ([]*model2.Log, 
 }
 
 // blockLogs returns the logs matching the filter criteria within a single block.
-func (f *Filter) blockLogs(ctx context.Context, header *model.AbstractHeader) (logs []*model2.Log, err error) {
-	log.Info("Filter#blockLogs", "header bloomLog", (*header).GetBloomLog())
-	if bloomFilter((*header).GetBloomLog(), f.addresses, f.topics) {
+func (f *Filter) blockLogs(ctx context.Context, header *model.AbstractHeader, bloom model2.Bloom) (logs []*model2.Log, err error) {
+	log.Info("Filter#blockLogs", "header bloomLog", bloom)
+	if bloomFilter(bloom, f.addresses, f.topics) {
 		found, err := f.checkMatches(ctx, header)
 		log.Info("Filter#blockLogs", "found", found)
 		if err != nil {
