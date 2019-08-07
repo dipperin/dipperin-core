@@ -78,12 +78,12 @@ func TestTransaction_SenderPublicKey(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 
-	signer := NewMercurySigner(big.NewInt(100))
+	signer := NewSigner(big.NewInt(100))
 	result, err = tx.SenderPublicKey(signer)
 	assert.Equal(t, ErrInvalidSig, err)
 	assert.NotNil(t, result)
 
-	signer = NewMercurySigner(big.NewInt(1))
+	signer = NewSigner(big.NewInt(1))
 	result, err = tx.SenderPublicKey(signer)
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
@@ -107,7 +107,7 @@ func TestTransaction(t *testing.T) {
 	assert.Equal(t, common.StorageSize(107), tx.Size())
 	assert.Equal(t, common.StorageSize(107), tx.Size())
 
-	signer := NewMercurySigner(big.NewInt(1))
+	signer := NewSigner(big.NewInt(1))
 	assert.Equal(t, signer, tx.GetSigner())
 
 	var empty []byte
@@ -156,7 +156,7 @@ func TestTransactionsByFeeAndNonce(t *testing.T) {
 	tx2 := CreateSignedTx(1, txAmount)
 
 	txs[aliceAddr] = []AbstractTransaction{tx1, tx2}
-	signer := NewMercurySigner(big.NewInt(1))
+	signer := NewSigner(big.NewInt(1))
 
 	tx := NewTransactionsByFeeAndNonce(signer, txs)
 	assert.Equal(t, tx1.CalTxId(), tx.Peek().CalTxId())
@@ -180,7 +180,7 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 		keys[i], _ = crypto.GenerateKey()
 	}
 
-	signer := MercurySigner{big.NewInt(1)}
+	signer := DipperinSigner{big.NewInt(1)}
 	// Generate a batch of transactions with overlapping values, but shifted nonces
 	groups := map[common.Address][]AbstractTransaction{}
 	for start, key := range keys {

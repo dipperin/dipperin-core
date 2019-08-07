@@ -142,7 +142,7 @@ func factoryCreatePrivateKey(prkStr string) *ecdsa.PrivateKey {
 func FactoryCreateTx(senderPrk *ecdsa.PrivateKey, nonce uint64, toAddress common.Address,
 	amount *big.Int, fee *big.Int, data []byte) *model.Transaction {
 
-	signer := model.NewMercurySigner(chain_config.GetChainConfig().ChainId)
+	signer := model.NewSigner(chain_config.GetChainConfig().ChainId)
 
 	tx := model.NewTransaction(nonce, toAddress, amount, g_testData.TestGasPrice, g_testData.TestGasLimit, data)
 

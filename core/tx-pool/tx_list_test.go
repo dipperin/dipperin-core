@@ -73,7 +73,7 @@ func createKeyBatch(num int) (keys []*ecdsa.PrivateKey) {
 
 func createTxList(n int) []*model.Transaction {
 	keyAlice, keyBob, _ := createKey()
-	ms := model.NewMercurySigner(big.NewInt(1))
+	ms := model.NewSigner(big.NewInt(1))
 
 	bob := cs_crypto.GetNormalAddress(keyBob.PublicKey)
 
@@ -88,7 +88,7 @@ func createTxList(n int) []*model.Transaction {
 
 func createTxListWithFee(n int) []*model.Transaction {
 	keyAlice, keyBob, _ := createKey()
-	ms := model.NewMercurySigner(big.NewInt(1))
+	ms := model.NewSigner(big.NewInt(1))
 
 	bob := cs_crypto.GetNormalAddress(keyBob.PublicKey)
 
@@ -138,7 +138,7 @@ func TestTxLookup_Remove(t *testing.T) {
 
 func TestTxList_Add(t *testing.T) {
 	keyAlice, keyBob, _ := createKey()
-	ms := model.NewMercurySigner(big.NewInt(1))
+	ms := model.NewSigner(big.NewInt(1))
 
 	l := newTxList(true)
 
@@ -350,7 +350,7 @@ func TestTxList_Pop(t *testing.T) {
 	tfl.Put(tx)
 	tfl.Cap(big.NewInt(1), &accountSet{
 		accounts: map[common.Address]struct{}{},
-		signer:   model.NewMercurySigner(big.NewInt(1)),
+		signer:   model.NewSigner(big.NewInt(1)),
 	})
 
 	tfl = newTxFeeList(&txLookup{all: map[common.Hash]model.AbstractTransaction{
@@ -359,21 +359,21 @@ func TestTxList_Pop(t *testing.T) {
 	tfl.Put(tx)
 	tfl.Cap(big.NewInt(1), &accountSet{
 		accounts: map[common.Address]struct{}{},
-		signer:   model.NewMercurySigner(big.NewInt(1)),
+		signer:   model.NewSigner(big.NewInt(1)),
 	})
 
 	tfl = newTxFeeList(&txLookup{all: map[common.Hash]model.AbstractTransaction{}})
 	tfl.Put(tx)
 	tfl.UnderPriced(tx, &accountSet{
 		accounts: map[common.Address]struct{}{},
-		signer:   model.NewMercurySigner(big.NewInt(1)),
+		signer:   model.NewSigner(big.NewInt(1)),
 	})
 
 	tfl = newTxFeeList(&txLookup{all: map[common.Hash]model.AbstractTransaction{}})
 	tfl.Put(tx)
 	tfl.Discard(1, &accountSet{
 		accounts: map[common.Address]struct{}{},
-		signer:   model.NewMercurySigner(big.NewInt(1)),
+		signer:   model.NewSigner(big.NewInt(1)),
 	})
 
 	tfl = newTxFeeList(&txLookup{all: map[common.Hash]model.AbstractTransaction{
@@ -382,6 +382,6 @@ func TestTxList_Pop(t *testing.T) {
 	tfl.Put(tx)
 	tfl.Discard(1, &accountSet{
 		accounts: map[common.Address]struct{}{},
-		signer:   model.NewMercurySigner(big.NewInt(1)),
+		signer:   model.NewSigner(big.NewInt(1)),
 	})
 }

@@ -38,7 +38,7 @@ func TestGetLockAddress(t *testing.T) {
 
 func TestCreateRawLockTx(t *testing.T) {
 	key1, _ := CreateKey()
-	fs := NewMercurySigner(big.NewInt(1))
+	fs := NewSigner(big.NewInt(1))
 
 	hashKey := []byte("123")
 	hashLock := cs_crypto.Keccak256Hash(hashKey)
@@ -53,7 +53,7 @@ func TestCreateRawLockTx(t *testing.T) {
 
 func TestCreateRawRefundTx(t *testing.T) {
 	key1, _ := CreateKey()
-	fs := NewMercurySigner(big.NewInt(1))
+	fs := NewSigner(big.NewInt(1))
 	tx := CreateRawRefundTx(1, big.NewInt(10000), big.NewInt(1), model.TxGas, aliceAddr, bobAddr)
 	tx.SignTx(key1, fs)
 
@@ -64,7 +64,7 @@ func TestCreateRawRefundTx(t *testing.T) {
 
 func TestCreateRawClaimTx(t *testing.T) {
 	_, key2 := CreateKey()
-	fs := NewMercurySigner(big.NewInt(1))
+	fs := NewSigner(big.NewInt(1))
 
 	hashKey := []byte("123")
 	hashLock, _ := rlpHash(hashKey)

@@ -165,7 +165,7 @@ func newBaseComponent(nodeConfig NodeConfig) *BaseComponent {
 		coinbaseAddr:              &atomic.Value{},
 		nodeConfig:                nodeConfig,
 	}
-	b.txSigner = model.NewMercurySigner(b.chainConfig.ChainId)
+	b.txSigner = model.NewSigner(b.chainConfig.ChainId)
 
 	// init block decoder
 	b.blockDecoder = model.MakeDefaultBlockDecoder()
@@ -181,7 +181,7 @@ func newBaseComponent(nodeConfig NodeConfig) *BaseComponent {
 	log.InitAgentLog(nodeConfig.DataDir)
 	nodeName := nodeConfig.GetNodeName()
 
-	if os.Getenv("boots_env") == "mercury" {
+	if os.Getenv("boots_env") == "mercury" || os.Getenv("boots_env") == "venus" {
 		pbft_log.InitPbftLogger(log.LvlWarn, nodeName, true)
 		health_info_log.InitHealthLogger(log.LvlWarn, nodeName, true)
 		mpt_log.InitMptLogger(log.LvlWarn, nodeName, true)
@@ -290,7 +290,8 @@ func (b *BaseComponent) initFullChain() {
 	b.verifiersReader = chain.MakeVerifiersReader(b.fullChain)
 	b.consensusBeforeInsertBlocks = middleware.NewBftBlockValidator(b.fullChain)
 
-	if chain_config.GetCurBootsEnv() != "mercury" {
+	// Add Venus Testnet
+	if chain_config.GetCurBootsEnv() != "mercury" && chain_config.GetCurBootsEnv() != "venus" {
 		debug.Memsize.Add("fullChain", b.fullChain)
 		// TODo confirm if you need
 		//debug.Memsize.Add("consensusBeforeInsertBlocks", consensusBeforeInsertBlocks)

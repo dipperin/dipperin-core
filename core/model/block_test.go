@@ -739,7 +739,7 @@ func creatBlockWithAllTx(n int, t *testing.T) *Block {
 	header := NewHeader(1, 0, common.Hash{}, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), aliceAddr, common.BlockNonce{})
 
 	keyAlice, _ := CreateKey()
-	ms := NewMercurySigner(big.NewInt(1))
+	ms := NewSigner(big.NewInt(1))
 	tempTx := NewTransaction(uint64(0), bobAddr, big.NewInt(1000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	tempTx.SignTx(keyAlice, ms)
 	var res []*Transaction

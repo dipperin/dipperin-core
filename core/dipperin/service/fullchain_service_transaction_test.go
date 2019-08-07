@@ -313,7 +313,7 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	assert.NoError(t, err)
 
 	nonce = uint64(8)
-	fs1 := model.NewMercurySigner(big.NewInt(1))
+	fs1 := model.NewSigner(big.NewInt(1))
 	tx = model.NewTransaction(nonce, aliceAddr, value, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	signedTx, _ := tx.SignTx(pk, fs1)
 	hash, err = service.NewTransaction(*signedTx)

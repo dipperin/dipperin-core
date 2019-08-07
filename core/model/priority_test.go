@@ -337,7 +337,7 @@ func CreateMultiAccountAddress(count uint) (ta []*TestAccount) {
 		pk, err := crypto.HexToECDSA(testPriv1)
 		if err != nil {
 		}
-		//signer := NewMercurySigner(big.NewInt(int64((i+1) * BaseMulti)))
+		//signer := NewSigner(big.NewInt(int64((i+1) * BaseMulti)))
 		addr := cs_crypto.GetNormalAddress(pk.PublicKey)
 		account.accountAddress = addr
 		account.Name = "account" + strconv.Itoa(int(i))
@@ -363,7 +363,7 @@ func CreateMultiAccount(baseName string, count uint, generateNonce func(nonceMax
 		pk, err := crypto.HexToECDSA(testPriv1)
 		if err != nil {
 		}
-		//signer := NewMercurySigner(big.NewInt(int64((i+1) * BaseMulti)))
+		//signer := NewSigner(big.NewInt(int64((i+1) * BaseMulti)))
 		addr := cs_crypto.GetNormalAddress(pk.PublicKey)
 		account.accountAddress = addr
 		account.Name = baseName + strconv.Itoa(int(i))

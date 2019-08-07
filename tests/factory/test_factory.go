@@ -41,8 +41,8 @@ func CreateKey() (*ecdsa.PrivateKey, *ecdsa.PrivateKey) {
 
 func CreateTestTx() (*model.Transaction, *model.Transaction) {
 	key1, key2 := CreateKey()
-	fs1 := model.NewMercurySigner(big.NewInt(1))
-	fs2 := model.NewMercurySigner(big.NewInt(3))
+	fs1 := model.NewSigner(big.NewInt(1))
+	fs2 := model.NewSigner(big.NewInt(3))
 	testTx1 := model.NewTransaction(10, common.HexToAddress("0121321432423534534534"), big.NewInt(10000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	gasUsed, _ := model.IntrinsicGas(testTx1.ExtraData(), false, false)
 	testTx1.PaddingActualTxFee(big.NewInt(0).Mul(big.NewInt(int64(gasUsed)), testTx1.GetGasPrice()))

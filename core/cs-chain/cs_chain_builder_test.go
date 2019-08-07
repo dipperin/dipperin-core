@@ -113,14 +113,14 @@ func CreateVerBootVote(block model.AbstractBlock) model.AbstractVerification {
 }
 
 func CreateSignedTx(nonce uint64, to common.Address, amount *big.Int, account tests.Account) model.AbstractTransaction {
-	fs1 := model.NewMercurySigner(big.NewInt(1))
+	fs1 := model.NewSigner(big.NewInt(1))
 	tx := model.NewTransaction(nonce, to, amount, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	signedTx, _ := tx.SignTx(account.Pk, fs1)
 	return signedTx
 }
 
 func CreateSignedRegisterTx(nonce uint64, amount *big.Int, account tests.Account) model.AbstractTransaction {
-	fs1 := model.NewMercurySigner(big.NewInt(1))
+	fs1 := model.NewSigner(big.NewInt(1))
 	tx := model.NewRegisterTransaction(nonce, amount, g_testData.TestGasPrice, g_testData.TestGasLimit)
 	signedTx, _ := tx.SignTx(account.Pk, fs1)
 	return signedTx

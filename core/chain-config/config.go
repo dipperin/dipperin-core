@@ -75,7 +75,6 @@ func defaultChainConfig() *ChainConfig {
 	c := &ChainConfig{
 		//DeriveShaType:         DeriveShaTypeByHash,
 		SupportHardwareWallet: false,
-		ChainId:               big.NewInt(1),
 		Version:               uint64(0),
 		// verify segment size
 		SlotSize: uint64(110),
@@ -106,8 +105,13 @@ func defaultChainConfig() *ChainConfig {
 	switch os.Getenv(BootEnvTagName) {
 	case "mercury":
 		c.NetworkID = 99
+		c.ChainId = big.NewInt(1)
+	case "venus":
+		c.NetworkID = 100
+		c.ChainId = big.NewInt(2)
 	case "test":
-		c.NetworkID = 1
+		c.NetworkID = 1000
+		c.ChainId = big.NewInt(1000)
 	case "local":
 		c.VerifierNumber = 4
 	}

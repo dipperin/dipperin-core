@@ -215,7 +215,7 @@ func FakeContract(t *testing.T) *model.Transaction {
 	buffer := new(bytes.Buffer)
 	err = rlp.Encode(buffer, input)
 
-	fs := model.NewMercurySigner(big.NewInt(1))
+	fs := model.NewSigner(big.NewInt(1))
 	to := common.HexToAddress("0x00120000000000000000000000000000000000000000")
 	tx := model.NewTransactionSc(uint64(11), &to, big.NewInt(0), big.NewInt(1), uint64(20000000), buffer.Bytes())
 	key, _ := createKey()

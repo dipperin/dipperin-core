@@ -640,7 +640,7 @@ func (ft *fakeTx) EncodeRlpToBytes() ([]byte, error) {
 }
 
 func (ft *fakeTx) GetSigner() model.Signer {
-	return model.NewMercurySigner(big.NewInt(1))
+	return model.NewSigner(big.NewInt(1))
 }
 
 func (ft *fakeTx) GetType() common.TxType {

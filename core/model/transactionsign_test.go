@@ -28,30 +28,30 @@ import (
 func TestMercurySigner_Sender(t *testing.T) {
 	tx1, tx2 := createTestTx()
 
-	fs := NewMercurySigner(big.NewInt(1))
+	fs := NewSigner(big.NewInt(1))
 	tryAddr, err := fs.GetSender(tx1)
 	assert.NoError(t, err)
 	assert.Equal(t, tryAddr, aliceAddr)
 
-	fs = NewMercurySigner(big.NewInt(3))
+	fs = NewSigner(big.NewInt(3))
 	tryAddr, err = fs.GetSender(tx2)
 	assert.NoError(t, err)
 	assert.Equal(t, tryAddr, bobAddr)
-	assert.Equal(t, MercurySigner{chainId: new(big.Int)}, NewMercurySigner(nil))
+	assert.Equal(t, DipperinSigner{chainId: new(big.Int)}, NewSigner(nil))
 }
 
 func TestMercurySigner_Equal(t *testing.T) {
-	fs1 := NewMercurySigner(big.NewInt(1))
-	fs2 := NewMercurySigner(big.NewInt(4))
-	fs3 := NewMercurySigner(big.NewInt(1))
+	fs1 := NewSigner(big.NewInt(1))
+	fs2 := NewSigner(big.NewInt(4))
+	fs3 := NewSigner(big.NewInt(1))
 	assert.Equal(t, fs1.Equal(fs2), false)
 	assert.Equal(t, fs1.Equal(fs3), true)
 }
 
 func TestMercurySigner_GetSignHash(t *testing.T) {
 	tx1, tx2 := createTestTx()
-	fs1 := NewMercurySigner(big.NewInt(1))
-	fs2 := NewMercurySigner(big.NewInt(3))
+	fs1 := NewSigner(big.NewInt(1))
+	fs2 := NewSigner(big.NewInt(3))
 	tryHash1, err1 := rlpHash([]interface{}{tx1.data, fs1.chainId})
 	tryHash2, err2 := rlpHash([]interface{}{tx2.data, fs2.chainId})
 	assert.NoError(t, err1)
@@ -75,7 +75,7 @@ func TestMercurySigner_GetSignHash(t *testing.T) {
 func TestMercurySigner_SignatureValues(t *testing.T) {
 	tx1, _ := createTestTx()
 	key1, _ := CreateKey()
-	fs1 := NewMercurySigner(big.NewInt(1))
+	fs1 := NewSigner(big.NewInt(1))
 	getR := tx1.wit.R
 	getS := tx1.wit.S
 	getV := tx1.wit.V
@@ -102,7 +102,7 @@ func TestDeriveChainId(t *testing.T) {
 
 func TestTransaction_SignTx(t *testing.T) {
 	key1, _ := CreateKey()
-	fs1 := NewMercurySigner(big.NewInt(1))
+	fs1 := NewSigner(big.NewInt(1))
 	tx := NewTransaction(10, bobAddr, big.NewInt(10000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 
 	result, err := tx.SignTx(key1, fs1)
@@ -111,13 +111,13 @@ func TestTransaction_SignTx(t *testing.T) {
 }
 
 func TestNewMercurySigner(t *testing.T) {
-	fs1 := NewMercurySigner(big.NewInt(1))
+	fs1 := NewSigner(big.NewInt(1))
 	assert.NotNil(t, fs1)
 }
 
 func TestMercurySigner_GetSender(t *testing.T) {
 	tx := CreateSignedTx(0, big.NewInt(10000))
-	ms := NewMercurySigner(big.NewInt(1))
+	ms := NewSigner(big.NewInt(1))
 
 	sender, err := ms.GetSender(tx)
 	assert.Equal(t, aliceAddr, sender)
@@ -126,7 +126,7 @@ func TestMercurySigner_GetSender(t *testing.T) {
 
 func TestMercurySigner_GetSenderPublicKey(t *testing.T) {
 	tx := CreateSignedTx(0, big.NewInt(10000))
-	ms := NewMercurySigner(big.NewInt(1))
+	ms := NewSigner(big.NewInt(1))
 
 	key, _ := CreateKey()
 	pubKey, err2 := ms.GetSenderPublicKey(tx)
@@ -137,7 +137,7 @@ func TestMercurySigner_GetSenderPublicKey(t *testing.T) {
 
 func TestMakeSigner(t *testing.T) {
 	config := chain_config.GetChainConfig()
-	result := MercurySigner{chainId: config.ChainId}
+	result := DipperinSigner{chainId: config.ChainId}
 	signer := MakeSigner(config, 10)
 	assert.Equal(t, result, signer)
 }

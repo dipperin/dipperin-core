@@ -228,7 +228,7 @@ func TestGetERC20TxSize(t *testing.T) {
 
 	tx := model.NewTransaction(0, contractAdr, big.NewInt(0), g_testData.TestGasPrice, g_testData.TestGasLimit, extraData)
 	key1, _ := model.CreateKey()
-	fs := model.NewMercurySigner(big.NewInt(1))
+	fs := model.NewSigner(big.NewInt(1))
 	tx.SignTx(key1, fs)
 
 	tx.RawSignatureValues()
