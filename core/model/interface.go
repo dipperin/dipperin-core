@@ -53,7 +53,7 @@ type AbstractBody interface {
 	GetTxByIndex(i int) AbstractTransaction
 	EncodeRlpToBytes() ([]byte, error)
 	GetInterLinks() InterLink
-	GetReceipts() ([]*model.Receipt, error)
+	//GetReceipts() ([]*model.Receipt, error)
 }
 
 //go:generate mockgen -destination=./../cs-chain/chain-writer/block_mock_test.go -package=chain_writer github.com/dipperin/dipperin-core/core/model AbstractBlock

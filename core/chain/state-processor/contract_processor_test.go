@@ -269,7 +269,6 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", "", "err", err)
 }
 
-
 func TestContractWithNewFeature(t *testing.T) {
 	singer := model.NewMercurySigner(new(big.Int).SetInt64(int64(1)))
 
@@ -321,7 +320,7 @@ func TestContractWithNewFeature(t *testing.T) {
 	err = processor.ProcessTxNew(config)
 	assert.NoError(t, err)
 
-	receipt:= tx.GetReceipt()
+	receipt := tx.GetReceipt()
 	//assert.Equal(t, receipt.Status)
 
 	//byteBalance := []byte{7, 98, 97, 108, 97, 110, 99, 101}
@@ -398,7 +397,7 @@ func processContractCall(t *testing.T, contractAddress common.Address, code []by
 	}
 	err = processor.ProcessTxNew(txConfig)
 	//if funcName == "getBalance" {
-	receipt:= callTx.GetReceipt()
+	receipt := callTx.GetReceipt()
 	fmt.Println("receipt  log", "receipt log", receipt.Logs)
 	//}
 

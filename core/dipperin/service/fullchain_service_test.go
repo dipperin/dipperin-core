@@ -1001,5 +1001,3 @@ func TestMercuryFullChainService_Metrics(t *testing.T) {
 	service.NewBlock(context.Background())
 	service.SubscribeBlock(context.Background())
 }
-
-

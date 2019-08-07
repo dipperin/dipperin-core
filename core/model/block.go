@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/log/bloom_log"
@@ -280,17 +279,6 @@ func (b *Body) GetInterLinks() InterLink {
 	return b.Inters
 }
 
-func (b *Body) GetReceipts() ([]*model2.Receipt, error) {
-	receipts := make([]*model2.Receipt, len(b.Txs))
-	for _, tx := range b.Txs {
-		r, err := tx.GetReceipt()
-		if err != nil {
-			return nil, err
-		}
-		receipts = append(receipts, r)
-	}
-	return receipts, nil
-}
 
 type Block struct {
 	header *Header
@@ -302,14 +290,6 @@ type Block struct {
 	receipts atomic.Value `json:"-"`
 }
 
-func (b *Block) GetBloomLog() model2.Bloom {
-	receipts, err := b.Body().GetReceipts()
-	if err != nil {
-		log.Error("Block#GetBloomLog   err ", "err  ", err)
-		return model2.Bloom{}
-	}
-	return model2.CreateBloom(receipts)
-}
 
 //func (b *Block) SetBloomLog(bloom model2.Bloom) {
 //	b.header.BloomLogs = bloom

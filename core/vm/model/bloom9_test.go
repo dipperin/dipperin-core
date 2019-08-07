@@ -3,8 +3,8 @@ package model
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
