@@ -140,3 +140,13 @@ func envMemmove(vm *exec.VirtualMachine) int64 {
 	//log.Info("Memory Moved", "dest", dest, "src", src, "valueLen", len, "value", vm.Memory.Memory[dest:dest+len])
 	return int64(dest)
 }
+
+func MallocString(vm *exec.VirtualMachine, str string) int64 {
+	mem := vm.Memory
+	size := len([]byte(str)) + 1
+
+	pos := mem.Malloc(size)
+	copy(mem.Memory[pos:pos+size], []byte(str))
+	vm.ExternalParams = append(vm.ExternalParams, int64(pos))
+	return int64(pos)
+}

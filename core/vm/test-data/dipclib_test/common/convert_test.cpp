@@ -1,9 +1,10 @@
 #include "convert_test.hpp"
 
 void converttest::convertTest() {
-    print("\r\n dipc lib test convertTest start\r\n");
+    print("\r\n dipc lib test convertTest start111\r\n");
     convertStr();
     operatorTest();
+    printTest();
     print("\r\n dipc lib test convertTest success\r\n");
 }
 
@@ -40,4 +41,13 @@ void operatorTest() {
     DipcAssert(i + 10 == 110);
     DipcAssert(i / 2 == 50);
     DipcAssert(i * 2 == 200);
+}
+
+void printTest() {
+    print("printTest called");
+    int128_t large_int(-87654323456);
+    printi128(&large_int);
+
+    uint128_t large_uint(87654323456);
+    printui128(&large_uint);
 }

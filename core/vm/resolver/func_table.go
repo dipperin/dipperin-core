@@ -93,9 +93,9 @@ func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
 			"printui":    &exec.FunctionImport{Execute: envPrintui, GasCost: envPrintuiGasCost},
 			"printi128":  &exec.FunctionImport{Execute: envPrinti128, GasCost: envPrinti128GasCost},
 			"printui128": &exec.FunctionImport{Execute: envPrintui128, GasCost: envPrintui128GasCost},
-			"printsf":    &exec.FunctionImport{Execute: envPrintsf, GasCost: envPrintsfGasCost},
-			"printdf":    &exec.FunctionImport{Execute: envPrintdf, GasCost: envPrintdfGasCost},
-			//"printqf":    &exec.FunctionImport{Execute: envPrintqf, GasCost: envPrintqfGasCost},
+			/*			"printsf":    &exec.FunctionImport{Execute: envPrintsf, GasCost: envPrintsfGasCost},
+						"printdf":    &exec.FunctionImport{Execute: envPrintdf, GasCost: envPrintdfGasCost},
+						"printqf":    &exec.FunctionImport{Execute: envPrintqf, GasCost: envPrintqfGasCost},*/
 			"printn":   &exec.FunctionImport{Execute: envPrintn, GasCost: envPrintnGasCost},
 			"printhex": &exec.FunctionImport{Execute: envPrinthex, GasCost: envPrinthexGasCost},
 
@@ -121,14 +121,14 @@ func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
 			// supplement
 			"getCallerNonce": &exec.FunctionImport{Execute: r.envGetCallerNonce, GasCost: constGasFunc(GasQuickStep)},
 			// "currentTime": &exec.FunctionImport{Execute: r.envCurrentTime, GasCost: constGasFunc(GasQuickStep)},
-			/*			"callTransfer":   &exec.FunctionImport{Execute: r.envCallTransfer, GasCost: constGasFunc(GasQuickStep)},
+			"callTransfer": &exec.FunctionImport{Execute: r.envCallTransfer, GasCost: constGasFunc(GasQuickStep)},
 
-						"dipcCall":               &exec.FunctionImport{Execute: r.envDipperCall, GasCost: envDipperCallGasCost},
-						"dipcCallInt64":          &exec.FunctionImport{Execute: r.envDipperCallInt64, GasCost: envDipperCallInt64GasCost},
-						"dipcCallString":         &exec.FunctionImport{Execute: r.envDipperCallString, GasCost: envDipperCallStringGasCost},
-						"dipcDelegateCall":       &exec.FunctionImport{Execute: r.envDipperDelegateCall, GasCost: envDipperCallStringGasCost},
-						"dipcDelegateCallInt64":  &exec.FunctionImport{Execute: r.envDipperDelegateCallInt64, GasCost: envDipperCallStringGasCost},
-						"dipcDelegateCallString": &exec.FunctionImport{Execute: r.envDipperDelegateCallString, GasCost: envDipperCallStringGasCost},*/
+			/*"dipcCall":               &exec.FunctionImport{Execute: r.envDipperCall, GasCost: envDipperCallGasCost},
+			"dipcCallInt64":          &exec.FunctionImport{Execute: r.envDipperCallInt64, GasCost: envDipperCallInt64GasCost},
+			"dipcCallString":         &exec.FunctionImport{Execute: r.envDipperCallString, GasCost: envDipperCallStringGasCost},
+			"dipcDelegateCall":       &exec.FunctionImport{Execute: r.envDipperDelegateCall, GasCost: envDipperCallStringGasCost},
+			"dipcDelegateCallInt64":  &exec.FunctionImport{Execute: r.envDipperDelegateCallInt64, GasCost: envDipperCallStringGasCost},
+			"dipcDelegateCallString": &exec.FunctionImport{Execute: r.envDipperDelegateCallString, GasCost: envDipperCallStringGasCost},*/
 		},
 	}
 }

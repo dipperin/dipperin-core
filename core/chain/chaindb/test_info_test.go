@@ -24,8 +24,11 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 
+	"github.com/dipperin/dipperin-core/tests/factory"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"math/big"
+	"time"
 )
 
 var (
@@ -36,8 +39,31 @@ var (
 	HeaderErr   = errors.New("fakeHeader test error")
 )
 
-func createBlock(number uint64) *model.Block {
-	return model.CreateBlock(number, common.HexToHash("123456"), 2)
+func createSignedTx(nonce uint64, amount *big.Int, to common.Address) *model.Transaction {
+	key1, _ := model.CreateKey()
+	fs1 := model.NewMercurySigner(big.NewInt(1))
+	testTx1 := model.NewTransaction(nonce, to, amount, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
+	signedTx, _ := testTx1.SignTx(key1, fs1)
+	return signedTx
+}
+
+func createBlock(num uint64) *model.Block {
+	header := model.NewHeader(1, num, common.Hash{}, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), factory.AliceAddrV, common.BlockNonce{})
+
+	// tx list
+	to := common.HexToAddress(common.AddressContractCreate)
+	tx1 := createSignedTx(0, g_testData.TestValue, to)
+	tx2 := createSignedTx(0, g_testData.TestValue, factory.BobAddrV)
+	txList := []*model.Transaction{tx1, tx2}
+
+	// vote
+	var voteList []model.AbstractVerification
+	block := model.NewBlock(header, txList, voteList)
+
+	// calculate block nonce
+	model.CalNonce(block)
+	block.RefreshHashCache()
+	return block
 }
 
 func newDb() ethdb.Database {

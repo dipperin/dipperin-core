@@ -1965,7 +1965,7 @@ func (service *MercuryFullChainService) MakeTmpSignedTx(args CallArgs, blockNum 
 		gasPrice = new(big.Int).SetUint64(uint64(config.DEFAULT_GAS_PRICE))
 	}
 	if value.Sign() == 0 {
-		value = new(big.Int).SetUint64(uint64(1))
+		value = new(big.Int).SetUint64(uint64(0))
 	}
 
 	// Create tmpTransaction

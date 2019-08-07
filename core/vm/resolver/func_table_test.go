@@ -12,9 +12,9 @@ func TestNewResolver(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	vmValue := NewMockVmContextService(ctrl)
-	contract := NewMockContractService(ctrl)
-	state := NewMockStateDBService(ctrl)
+	vmValue := &fakeVmContextService{}
+	contract := &fakeContractService{}
+	state := NewFakeStateDBService()
 	solver := NewResolver(vmValue, contract, state)
 
 	// test resolve function
@@ -34,7 +34,6 @@ func TestNewResolver(t *testing.T) {
 		resolverFunc.GasCost(&exec.VirtualMachine{})
 	})
 
-	vmValue.EXPECT().GetGasPrice().Return(g_testData.TestGasPrice).AnyTimes()
 	resolverFunc = solver.ResolveFunc("env", "gasPrice")
 	gasPrice := resolverFunc.Execute(&exec.VirtualMachine{})
 	cost, err := resolverFunc.GasCost(&exec.VirtualMachine{})

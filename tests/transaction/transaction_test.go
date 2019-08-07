@@ -144,11 +144,8 @@ func TestWASMContactMiniTxFee(t *testing.T) {
 	err = processor.ProcessTxNew(txConfigCreate)
 	assert.NoError(t, err)
 
-	receipt, err := txConfigCreate.Tx.GetReceipt()
-	assert.NoError(t, err)
-
+	receipt := txConfigCreate.Tx.GetReceipt()
 	log.Info("the contract tx gasUsed is:", "gasUsed", receipt.GasUsed)
-	log.Info("the contract tx used TxFee is:", "txFee", txConfigCreate.Tx.(*model.Transaction).GetActualTxFee())
-
+	log.Info("the contract tx used TxFee is:", "txFee", txConfigCreate.Tx.GetActualTxFee())
 	log.Info("the contract tx size is: ", "size", txConfigCreate.Tx.Size())
 }

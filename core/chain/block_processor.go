@@ -143,10 +143,10 @@ func (state *BlockProcessor) processCommitList(block model.AbstractBlock, isProc
 
 		preBlockSlot := state.fullChain.GetSlot(preBlock)
 		verifiers := state.fullChain.GetVerifiers(*preBlockSlot)
-		for _, ver := range verifiers {
+		for index, ver := range verifiers {
 			innerErr := state.ProcessVerifierNumber(ver)
 			if innerErr != nil {
-				log.Error("process block verifiers error", "num", block.Number(), "storageErr", innerErr)
+				log.Error("process block verifiers error", "storageErr", innerErr, "verifier", ver, "index", index)
 				return innerErr
 			}
 		}
@@ -160,7 +160,7 @@ func (state *BlockProcessor) processCommitList(block model.AbstractBlock, isProc
 		for _, ver := range verifications {
 			innerErr := state.ProcessVerification(ver, 0)
 			if innerErr != nil {
-				log.Error("process block verifications error", "num", block.Number(), "storageErr", innerErr)
+				log.Error("process block verifications error", "storageErr", innerErr, "verifier", ver)
 				return innerErr
 			}
 		}

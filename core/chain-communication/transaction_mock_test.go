@@ -137,6 +137,20 @@ func (mr *MockAbstractTransactionMockRecorder) ExtraData() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExtraData", reflect.TypeOf((*MockAbstractTransaction)(nil).ExtraData))
 }
 
+// GetActualTxFee mocks base method
+func (m *MockAbstractTransaction) GetActualTxFee() *big.Int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetActualTxFee")
+	ret0, _ := ret[0].(*big.Int)
+	return ret0
+}
+
+// GetActualTxFee indicates an expected call of GetActualTxFee
+func (mr *MockAbstractTransactionMockRecorder) GetActualTxFee() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActualTxFee", reflect.TypeOf((*MockAbstractTransaction)(nil).GetActualTxFee))
+}
+
 // GetGasLimit mocks base method
 func (m *MockAbstractTransaction) GetGasLimit() uint64 {
 	m.ctrl.T.Helper()
@@ -166,12 +180,11 @@ func (mr *MockAbstractTransactionMockRecorder) GetGasPrice() *gomock.Call {
 }
 
 // GetReceipt mocks base method
-func (m *MockAbstractTransaction) GetReceipt() (*model0.Receipt, error) {
+func (m *MockAbstractTransaction) GetReceipt() *model0.Receipt {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetReceipt")
 	ret0, _ := ret[0].(*model0.Receipt)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	return ret0
 }
 
 // GetReceipt indicates an expected call of GetReceipt
@@ -222,13 +235,22 @@ func (mr *MockAbstractTransactionMockRecorder) Nonce() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Nonce", reflect.TypeOf((*MockAbstractTransaction)(nil).Nonce))
 }
 
-// PaddingReceipt mocks base method
-func (m *MockAbstractTransaction) PaddingReceipt(arg0 model.ReceiptPara) (*model0.Receipt, error) {
+// PaddingActualTxFee mocks base method
+func (m *MockAbstractTransaction) PaddingActualTxFee(arg0 *big.Int) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PaddingReceipt", arg0)
-	ret0, _ := ret[0].(*model0.Receipt)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	m.ctrl.Call(m, "PaddingActualTxFee", arg0)
+}
+
+// PaddingActualTxFee indicates an expected call of PaddingActualTxFee
+func (mr *MockAbstractTransactionMockRecorder) PaddingActualTxFee(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PaddingActualTxFee", reflect.TypeOf((*MockAbstractTransaction)(nil).PaddingActualTxFee), arg0)
+}
+
+// PaddingReceipt mocks base method
+func (m *MockAbstractTransaction) PaddingReceipt(arg0 model.ReceiptPara) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "PaddingReceipt", arg0)
 }
 
 // PaddingReceipt indicates an expected call of PaddingReceipt

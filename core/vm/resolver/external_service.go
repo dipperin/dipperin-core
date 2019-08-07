@@ -3,6 +3,7 @@ package resolver
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 )
 
@@ -27,7 +28,8 @@ type VmContextService interface {
 
 //go:generate mockgen -destination=/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/contract_service_mock_test.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver ContractService
 type ContractService interface {
-	Caller() common.Address
+	Caller() ContractRef
+	Self() ContractRef
 	Address() common.Address
 	CallValue() *big.Int
 	GetGas() uint64
@@ -46,4 +48,16 @@ type resolverNeedExternalService struct {
 	ContractService
 	VmContextService
 	StateDBService
+}
+
+func (service *resolverNeedExternalService) Transfer(toAddr common.Address, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
+	//todo gas used
+	gas := uint64(0)
+	/*gas := self.evm.callGasTemp
+	if value.Sign() != 0 {
+		gas += params.CallStipend
+	}*/
+	log.Info("Service#Transfer", "from", service.Self().Address(), "to", toAddr, "value", value, "gasLimit", gas)
+	ret, returnGas, err := service.Call(service.Self(), toAddr, nil, gas, value)
+	return ret, returnGas, err
 }

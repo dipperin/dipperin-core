@@ -15,7 +15,7 @@ func TestNewContract(t *testing.T) {
 
 	value := g_testData.TestValue
 	gasLimit := g_testData.TestGasLimit
-	assert.Equal(t, aliceAddr, contract.Caller())
+	assert.Equal(t, aliceAddr, contract.Caller().Address())
 	assert.Equal(t, value, contract.CallValue())
 	assert.Equal(t, gasLimit, contract.GetGas())
 	assert.Equal(t, false, contract.UseGas(uint64(gasLimit*2)))
@@ -33,6 +33,6 @@ func TestContract_AsDelegate(t *testing.T) {
 
 	deContract := contract.AsDelegate()
 	assert.Equal(t, true, deContract.DelegateCall)
-	assert.Equal(t, deContract.Caller(), callerContract.Caller())
+	assert.Equal(t, deContract.Caller().Address(), callerContract.Address())
 	assert.Equal(t, deContract.CallValue(), callerContract.CallValue())
 }
