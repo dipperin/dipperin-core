@@ -1,7 +1,6 @@
 package mem_manage
 
 import (
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"math"
 	"testing"
 )
@@ -10,14 +9,6 @@ var (
 	poolSize  = 5
 	cacheSize = 4
 )
-
-func TestBuildTree(t *testing.T) {
-	//buildTree
-	size := 16
-	tree := buildTree(size)
-	log.Info("the Tree len is:", "len(Tree)", len(tree))
-	log.Info("the Tree is:", "Tree", tree)
-}
 
 func TestNewTreePool(t *testing.T) {
 	treePool := NewTreePool(poolSize, cacheSize)

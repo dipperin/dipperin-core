@@ -1,7 +1,6 @@
 package mem_manage
 
 import (
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"math"
 	"sync"
 )
@@ -30,13 +29,10 @@ type MemPool struct {
 }
 
 func NewMemBlock(size, pages int) *MemBlock {
-	log.Info("new MemBlock", "size", size, "pages", pages)
 	block := &MemBlock{size: size, pages: pages}
 
 	block.FreeMem = make([][]byte, 0, size)
 	for i := 0; i < size; i++ {
-		log.Info("memBlock add freeMem", "i", i)
-		log.Info("memBlock added freeMem len", "freeMemPages", pages)
 		block.FreeMem = append(block.FreeMem, make([]byte, DefaultPageSize*pages))
 	}
 	block.memPool = &sync.Pool{
@@ -73,16 +69,12 @@ func (mb *MemBlock) Put(mem []byte) {
 
 func NewMemPool(count int, size int) *MemPool {
 	totalPages := 0
-	log.Info("NewMemPool count and size is:", "count", count, "size", size)
 	pool := &MemPool{}
 	pool.memBlock = make([]*MemBlock, 0, count)
 	for i := 0; i < count; i++ {
-		log.Info("add memBlock", "i", i)
-		log.Info("the added memBlock pages is:", "pages", DefaultMemoryPages+int(math.Pow(2, float64(i))))
 		totalPages += (DefaultMemoryPages + int(math.Pow(2, float64(i)))) * size
 		pool.memBlock = append(pool.memBlock, NewMemBlock(size, DefaultMemoryPages+int(math.Pow(2, float64(i)))))
 	}
-	log.Info("the memPool total pages is:", "totalPages", totalPages)
 	pool.largeMem = make(map[int]*sync.Pool)
 	return pool
 }

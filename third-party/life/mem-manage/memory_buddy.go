@@ -2,7 +2,6 @@ package mem_manage
 
 import (
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 type BuddyMemory struct {
@@ -12,10 +11,15 @@ type BuddyMemory struct {
 	Tree   []int
 }
 
+const BuddyMinimumSize = 4*1024
+
 func (m *BuddyMemory) Malloc(size int) int {
+	l.Debug("[malloc from buddy memory]","size",size,"start",m.Start,"treeLen",len(m.Tree))
+	//minimum memory is 4K in buddy
 	if size <= 0 {
 		panic(fmt.Errorf("wrong Size=%d", size))
 	} else {
+		size = (size + BuddyMinimumSize-1)/BuddyMinimumSize
 		size = fixSize(size)
 	}
 	if size > m.Tree[0] {
@@ -37,6 +41,7 @@ func (m *BuddyMemory) Malloc(size int) int {
 	m.Tree[index] = 0
 	//Calculate the address corresponding to the node
 	offset := (index+1)*nodeSize - m.Size
+	offset = offset * BuddyMinimumSize
 
 	//Upward modify the size of the parent node affected by the size
 	for index > 0 {
@@ -45,18 +50,31 @@ func (m *BuddyMemory) Malloc(size int) int {
 	}
 	//Clear the memory data corresponding to the node
 	clear(offset+m.Start, offset+m.Start+nodeSize, m.Memory)
+	l.Debug("[the buddy memory malloc offset is:]","addr",offset + m.Start)
 	return offset + m.Start
 }
 
 func (m *BuddyMemory) Free(offset int) error {
+	l.Debug("[the buddy memory free offset is:]","addr",offset)
+	//todo: 有的wasm会多一个free(0),待在cdt端解决
 	if offset == 0 {
-		log.Debug("free offset = 0...")
+		l.Debug("free offset = 0...")
 		return nil
 	}
+
+	if offset < m.Start{
+		panic(fmt.Errorf("free offset is small than momory start,offset:%v start:%v",offset,m.Start))
+	}
 	offset = offset - m.Start
-	if offset < 0 || offset >= m.Size {
+	if  offset%BuddyMinimumSize !=0{
+		panic(fmt.Errorf("offset is invalid error offset=%d", offset))
+	}
+
+	offset = offset/BuddyMinimumSize
+	if offset < 0 || offset >= m.Size{
 		panic(fmt.Errorf("error offset=%d", offset))
 	}
+
 
 	//Lowermost node
 	nodeSize := 1

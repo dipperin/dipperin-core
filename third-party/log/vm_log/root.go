@@ -27,6 +27,7 @@ func init() {
 
 	root = log.New()
 
+
 	// default output nothing
 	root.SetHandler(log.LvlFilterHandler(log.LvlInfo, StdoutHandler))
 }

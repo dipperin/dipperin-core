@@ -15,7 +15,8 @@ func (treePool *SimpleTreePool) GetTree(pages int) tree {
 
 	if treePool.tree == nil {
 		pages = fixSize(pages)
-		tree := buildTree(pages * DefaultPageSize)
+		//the basic memory is 4k in buddy
+		tree := buildTree(pages * DefaultPageSize / BuddyMinimumSize)
 		treePool.tree = &tree
 		return *treePool.tree
 	}

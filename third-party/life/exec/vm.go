@@ -60,7 +60,7 @@ type VirtualMachine struct {
 	CurrentFrame     int
 	Table            []uint32
 	Globals          []int64
-	Memory           *mem_manage.BuddyMemory
+	Memory           *mem_manage.VmMemory
 	NumValueSlots    int
 	Yielded          int64
 	InsideExecute    bool
@@ -80,10 +80,6 @@ type VirtualMachine struct {
 	GasUsed uint64
 	//add GasLimited
 	GasLimit uint64
-
-	//memory pool interface
-	MemPool  mem_manage.MemPoolInterface
-	TreePool mem_manage.TreePoolInterface
 }
 
 // VMConfig denotes a set of options passed to a single VirtualMachine insta.ce
@@ -232,26 +228,18 @@ func NewVirtualMachine(
 		}
 	}
 
-	memory := &mem_manage.BuddyMemory{}
-	memPool := &mem_manage.SimpleMemPool{}
-	treePool := &mem_manage.SimpleTreePool{}
+	var vmMemory *mem_manage.VmMemory
 	if m.Base.Memory != nil && len(m.Base.Memory.Entries) > 0 {
 		initialLimit := int(m.Base.Memory.Entries[0].Limits.Initial)
 		if config.MaxMemoryPages != 0 && initialLimit > config.MaxMemoryPages {
 			panic("max memory exceeded")
 		}
 
-		capacity := initialLimit + mem_manage.DynamicMemoryPages
-		// Initialize empty memory.
-		memory.Memory = memPool.Get(capacity)
-		memory.Start = initialLimit * mem_manage.DefaultPageSize
-		memory.Tree = treePool.GetTree(capacity - initialLimit)
-		memory.Size = (len(memory.Tree) + 1) / 2
-
+		vmMemory = mem_manage.NewVmMemory(initialLimit)
 		if m.Base.Data != nil && len(m.Base.Data.Entries) > 0 {
 			for _, e := range m.Base.Data.Entries {
 				offset := int(execInitExpr(e.Offset, globals))
-				copy(memory.Memory[int(offset):], e.Data)
+				copy(vmMemory.Memory[int(offset):], e.Data)
 			}
 		}
 	}
@@ -266,13 +254,11 @@ func NewVirtualMachine(
 		CurrentFrame:    -1,
 		Table:           table,
 		Globals:         globals,
-		Memory:          memory,
+		Memory:          vmMemory,
 		Exited:          true,
 		GasPolicy:       gasPolicy,
 		ImportResolver:  impResolver,
 		ExternalParams:  make([]int64, 0),
-		MemPool:         memPool,
-		TreePool:        treePool,
 	}, nil
 }
 
