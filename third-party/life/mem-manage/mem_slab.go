@@ -195,16 +195,16 @@ func (c *SlabClass) MallocChunks(number uint, slabSize uint) (offset []uint, err
 	return offset, nil
 }
 
-func (c *SlabClass) findAddrPos(offset []uint, f func(slabIndex int, addr uint) error) (error,[]uint) {
+func (c *SlabClass) findAddrPos(offset []uint, f func(slabIndex int, addr uint) error) (error, []uint) {
 	freeLen := 0
-	invalidOffset := make([]uint,0)
+	invalidOffset := make([]uint, 0)
 	for _, addr := range offset {
 		findFlag := false
 		for slabIndex, slab := range c.slabs {
 			if addr >= slab.SlabAddr && addr < (slab.SlabAddr+slab.ChunkNumber()*slab.ChunkSize) {
 				err := f(slabIndex, addr)
 				if err != nil {
-					return err,[]uint{}
+					return err, []uint{}
 				}
 				freeLen++
 				findFlag = true
@@ -212,22 +212,22 @@ func (c *SlabClass) findAddrPos(offset []uint, f func(slabIndex int, addr uint) 
 			}
 		}
 
-		if !findFlag{
-			invalidOffset = append(invalidOffset,addr)
+		if !findFlag {
+			invalidOffset = append(invalidOffset, addr)
 		}
 
 	}
 
 	if 0 == len(invalidOffset) {
 		//all chunk were free in offset slice
-		return nil,[]uint{}
+		return nil, []uint{}
 	} else {
 		//there is a offset not found in the slab
-		return ErrOffsetNotInSlab,invalidOffset
+		return ErrOffsetNotInSlab, invalidOffset
 	}
 }
 
-func (c *SlabClass) FreeChunks(offset []uint) (error,[]uint) {
+func (c *SlabClass) FreeChunks(offset []uint) (error, []uint) {
 	//l.Debug("the free offset is:","offsets",offset)
 	//l.Debug("free chunks from slab class","chunkSize",c.chunkSize,"slabNumber",c.SlabNumber(),"emptyChunkNumber",c.emptyChunkNumber)
 	//free chunk from slab
@@ -239,27 +239,27 @@ func (c *SlabClass) FreeChunks(offset []uint) (error,[]uint) {
 		return nil
 	}
 
-	err,invalidOffset := c.findAddrPos(offset, f)
-	if err !=nil{
-		return err,invalidOffset
+	err, invalidOffset := c.findAddrPos(offset, f)
+	if err != nil {
+		return err, invalidOffset
 	}
 
 	//free and delete empty slab from slab class
 	j := 0
-	for _,slab := range c.slabs{
+	for _, slab := range c.slabs {
 		if slab.Status() == SlabEmpty {
 			err := c.memorySource.Free(int(slab.SlabAddr))
 			if err != nil {
-				return err,[]uint{}
+				return err, []uint{}
 			}
 			c.emptyChunkNumber -= slab.ChunkNumber()
-		}else{
+		} else {
 			c.slabs[j] = slab
 			j++
 		}
 	}
 	c.slabs = c.slabs[:j]
-	return nil,[]uint{}
+	return nil, []uint{}
 }
 
 func NewSlabMemory(growthFactor float64, startChunkSize, slabSize uint, memoryOp SlabNeedInterface) *SlabMemory {
@@ -288,7 +288,7 @@ func (m *SlabMemory) MaxChunkSize() int {
 
 func (m *SlabMemory) SlabNumber() uint {
 	var totalSlabNumber uint
-	for _, slabClass := range m.slabClasses{
+	for _, slabClass := range m.slabClasses {
 		totalSlabNumber += slabClass.SlabNumber()
 	}
 
@@ -296,7 +296,7 @@ func (m *SlabMemory) SlabNumber() uint {
 }
 
 func (m *SlabMemory) Malloc(size int, slabSize uint) (int, error) {
-	l.Debug("[**malloc from slab**]","size",size,"len(slabClass)",len(m.slabClasses),"maxChunkSize",m.MaxChunkSize())
+	l.Debug("[**malloc from slab**]", "size", size, "len(slabClass)", len(m.slabClasses), "maxChunkSize", m.MaxChunkSize())
 	if size <= 0 {
 		panic(fmt.Errorf("wrong Size=%d", size))
 	}
@@ -317,10 +317,10 @@ func (m *SlabMemory) Malloc(size int, slabSize uint) (int, error) {
 }
 
 func (m *SlabMemory) Free(offset int) (err error) {
-	l.Debug("[**free from slab**]","offset",offset)
+	l.Debug("[**free from slab**]", "offset", offset)
 	for _, slabClass := range m.slabClasses {
-		err,_ = slabClass.FreeChunks([]uint{uint(offset)})
-		if err == nil{
+		err, _ = slabClass.FreeChunks([]uint{uint(offset)})
+		if err == nil {
 			return nil
 		}
 	}

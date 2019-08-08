@@ -42,27 +42,27 @@ func TestVmMemory_MallocAndFreeFromSlab(t *testing.T) {
 	//malloc
 	offsets := make([]int, 0)
 	for i := 0; i < SlabClassNumber; i++ {
-		chunkSize := StartChunkSize<<uint(i)
-		chunkNumber := DefaultSlabSize/chunkSize
-		for j:=0;j<int(chunkNumber);j++{
+		chunkSize := StartChunkSize << uint(i)
+		chunkNumber := DefaultSlabSize / chunkSize
+		for j := 0; j < int(chunkNumber); j++ {
 			offset := testVmMemory.Malloc(int(chunkSize))
-			assert.Equal(t,i*BuddyMinimumSize+j*int(chunkSize)+testVmMemory.BuddyMemory.Start,offset)
-			offsets = append(offsets,offset)
+			assert.Equal(t, i*BuddyMinimumSize+j*int(chunkSize)+testVmMemory.BuddyMemory.Start, offset)
+			offsets = append(offsets, offset)
 		}
 	}
 
 	//free
-	for _,offset := range  offsets{
+	for _, offset := range offsets {
 		err := testVmMemory.Free(offset)
-		assert.NoError(t,err)
+		assert.NoError(t, err)
 	}
 
 	//malloc and free
 	for i := 0; i < SlabClassNumber; i++ {
-		chunkSize := StartChunkSize<<uint(i)
+		chunkSize := StartChunkSize << uint(i)
 		offset := testVmMemory.Malloc(int(chunkSize))
-		assert.Equal(t,testVmMemory.Start,offset)
+		assert.Equal(t, testVmMemory.Start, offset)
 		err := testVmMemory.Free(offset)
-		assert.NoError(t,err)
+		assert.NoError(t, err)
 	}
 }

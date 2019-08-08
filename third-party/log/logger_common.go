@@ -13,7 +13,7 @@ const (
 	LoggerConSoleAndFile
 )
 
-func GetInitLogger(loggerType LoggerType, logLevel Lvl, filePath, dirName,logName string, initLog Logger) Logger {
+func GetInitLogger(loggerType LoggerType, logLevel Lvl, filePath, dirName, logName string, initLog Logger) Logger {
 	var l Logger
 	if initLog == nil {
 		l = &logger{[]interface{}{}, new(swapHandler)}

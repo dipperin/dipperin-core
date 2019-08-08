@@ -158,7 +158,7 @@ func TestSlabClass_FreeChunks(t *testing.T) {
 
 	//free chunk one bye one
 	for i, addr := range offsets {
-		err ,_:= testSlabClass.FreeChunks([]uint{addr})
+		err, _ := testSlabClass.FreeChunks([]uint{addr})
 		assert.NoError(t, err)
 		if uint(i+1) < defaultChunkNumber {
 			//free chunk in the first slab
@@ -179,8 +179,8 @@ func TestSlabClass_FreeChunks(t *testing.T) {
 	offsets, err := testSlabClass.MallocChunks(mallocChunkNumber0, uint(0))
 	assert.NoError(t, err)
 	assert.Equal(t, initialEmptyNumber, testSlabClass.emptyChunkNumber)
-	err,invalidOffsets := testSlabClass.FreeChunks(offsets)
-	assert.Equal(t,0,len(invalidOffsets))
+	err, invalidOffsets := testSlabClass.FreeChunks(offsets)
+	assert.Equal(t, 0, len(invalidOffsets))
 	assert.NoError(t, err)
 	assert.Equal(t, uint(0), testSlabClass.emptyChunkNumber)
 	assert.Equal(t, uint(0), testSlabClass.SlabNumber())
@@ -201,8 +201,8 @@ func TestSlabClass_AddSlab(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, uint(1), testSlabClass.SlabNumber())
 
-	err,invalidOffsets := testSlabClass.FreeChunks(offsets)
-	assert.Equal(t,0,len(invalidOffsets))
+	err, invalidOffsets := testSlabClass.FreeChunks(offsets)
+	assert.Equal(t, 0, len(invalidOffsets))
 	assert.NoError(t, err)
 	assert.Equal(t, uint(0), testSlabClass.emptyChunkNumber)
 }
