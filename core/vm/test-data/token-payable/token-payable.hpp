@@ -16,11 +16,10 @@ public:
     PAYABLE void transfer(const char* to, uint64_t value);
     EXPORT void withdraw();
     EXPORT void approve(const char* spender, uint64_t value);
+    EXPORT void burn(uint64_t _value);
     WITHDRAW void transferFrom(const char* from, const char* to, uint64_t value);
     CONSTANT uint64_t getBalance(const char* own);
     CONSTANT uint64_t getApproveBalance(const char* from, const char* approved);
-    void burn(uint64_t _value);
-
     void stop(){
         isOwner();
         stopped = true;    
@@ -48,9 +47,7 @@ private:
     String<ow> owner;
     
     inline void isOwner(){
-        Address2 callerAddr = caller2();
-        std::string callerStr = callerAddr.toString();
-        DipcAssert(owner.get() == callerStr);
+        DipcAssert(owner.get() == caller2().toString());
     }
 };
 // 没有加这个宏  导致编译wasm的时候没通过也没报错  待优化
