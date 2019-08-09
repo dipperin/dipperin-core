@@ -3,6 +3,7 @@ package resolver
 import (
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -15,6 +16,7 @@ func TestInstructions(t *testing.T) {
 
 	WASMPath := g_testData.GetWASMPath("dipclib_test", g_testData.CoreVmTestData)
 	AbiPath := g_testData.GetAbiPath("dipclib_test", g_testData.CoreVmTestData)
+	log.Info("the path is:", "abiPath", AbiPath, "wasmPath", WASMPath)
 	code, _ := g_testData.GetCodeAbi(WASMPath, AbiPath)
 	vm, err := exec.NewVirtualMachine(code, TEST_VM_CONFIG, solver, nil)
 	assert.NoError(t, err)

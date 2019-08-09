@@ -331,6 +331,7 @@ func (r *Resolver) envCoinbase(vm *exec.VirtualMachine) int64 {
 // define: u256 balance();
 func (r *Resolver) envBalance(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
+	log.Info("the currentFrame is:", "frame", vm.GetCurrentFrame(), "local", vm.GetCurrentFrame().Locals)
 	addrLen := int(int32(vm.GetCurrentFrame().Locals[1]))
 	ptr := int(int32(vm.GetCurrentFrame().Locals[2]))
 

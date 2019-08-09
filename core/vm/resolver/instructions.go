@@ -37,7 +37,7 @@ func (r *Resolver) envGetState(vm *exec.VirtualMachine) int64 {
 
 	copyKey := make([]byte, keyLen)
 	copy(copyKey, vm.Memory.Memory[key:key+keyLen])
-	log.Info("Get Params key From Memory ", "copyKey", string(copyKey))
+	//log.Info("Get Params key From Memory ", "copyKey", string(copyKey))
 	val := r.Service.GetState(r.Service.Address(), copyKey)
 	if len(val) > valueLen {
 		return 0

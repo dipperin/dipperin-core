@@ -312,6 +312,8 @@ func countMatchingProtocols(protocols []Protocol, caps []Cap) int {
 	n := 0
 	for _, cap := range caps {
 		for _, proto := range protocols {
+			log.Info("the local server protocol info is:", "name", proto.Name, "version", proto.Version)
+			log.Info("the remote server protocol info is:", "name", cap.Name, "version", cap.Version)
 			if proto.Name == cap.Name && proto.Version == cap.Version {
 				n++
 			}

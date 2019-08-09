@@ -5,6 +5,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/third-party/life/mem-manage"
 	"math/big"
 )
 
@@ -16,7 +17,7 @@ var (
 
 var TEST_VM_CONFIG = exec.VMConfig{
 	EnableJIT:          false,
-	DefaultMemoryPages: exec.DefaultPageSize,
+	DefaultMemoryPages: mem_manage.DefaultPageSize,
 }
 
 type fakeContractRef struct {

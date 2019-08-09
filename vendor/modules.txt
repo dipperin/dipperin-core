@@ -38,13 +38,22 @@ github.com/ethereum/go-ethereum/common
 # github.com/fjl/memsize v0.0.0-20180929194037-2a09253e352a
 github.com/fjl/memsize/memsizeui
 github.com/fjl/memsize
+# github.com/go-interpreter/wagon v0.0.0 => github.com/perlin-network/wagon v0.3.1-0.20180825141017-f8cb99b55a39
+github.com/go-interpreter/wagon/exec
+github.com/go-interpreter/wagon/validate
+github.com/go-interpreter/wagon/wasm
+github.com/go-interpreter/wagon/disasm
+github.com/go-interpreter/wagon/wasm/leb128
+github.com/go-interpreter/wagon/wasm/operators
+github.com/go-interpreter/wagon/exec/internal/compile
+github.com/go-interpreter/wagon/wasm/internal/readpos
 # github.com/go-stack/stack v1.8.0
 github.com/go-stack/stack
 # github.com/golang/lint v0.0.0-20181026193005-c67002cb31c3
 github.com/golang/lint/golint
 # github.com/golang/mock v1.3.1
 github.com/golang/mock/gomock
-# github.com/golang/protobuf v1.2.0
+# github.com/golang/protobuf v1.3.1
 github.com/golang/protobuf/proto
 # github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db
 github.com/golang/snappy
@@ -105,6 +114,13 @@ github.com/nicksnyder/go-i18n/i18n/language
 github.com/nicksnyder/go-i18n/i18n/translation
 # github.com/pelletier/go-toml v1.2.0
 github.com/pelletier/go-toml
+# github.com/perlin-network/life v0.0.0-20190723115110-3091ed0c1be8
+github.com/perlin-network/life/exec
+github.com/perlin-network/life/platform
+github.com/perlin-network/life/wasm-validation
+github.com/perlin-network/life/compiler/opcodes
+github.com/perlin-network/life/utils
+github.com/perlin-network/life/compiler
 # github.com/pkg/term v0.0.0-20190109203006-aa71e9d9e942
 github.com/pkg/term/termios
 # github.com/pmezard/go-difflib v1.0.0
@@ -151,6 +167,13 @@ github.com/tidwall/match
 github.com/tsenart/deadcode
 # github.com/urfave/cli v1.20.0
 github.com/urfave/cli
+# github.com/vmihailenco/msgpack v4.0.4+incompatible
+github.com/vmihailenco/msgpack
+github.com/vmihailenco/msgpack/codes
+# github.com/vntchain/go-vnt v0.6.2
+github.com/vntchain/go-vnt/rlp
+# github.com/willf/bitset v1.1.10
+github.com/willf/bitset
 # golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 golang.org/x/crypto/ripemd160
 golang.org/x/crypto/scrypt
@@ -161,9 +184,10 @@ golang.org/x/lint
 # golang.org/x/net v0.0.0-20190603091049-60506f45cf65
 golang.org/x/net/websocket
 golang.org/x/net/html/charset
+golang.org/x/net/context
 golang.org/x/net/html
 golang.org/x/net/html/atom
-# golang.org/x/sys v0.0.0-20190602015325-4c4f7f33c9ed
+# golang.org/x/sys v0.0.0-20190606165138-5da285871e9c
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
 # golang.org/x/text v0.3.2
@@ -184,10 +208,22 @@ golang.org/x/text/runes
 golang.org/x/text/internal/language
 golang.org/x/text/internal/language/compact
 golang.org/x/text/internal/tag
-# golang.org/x/tools v0.0.0-20190606050223-4d9ae51c2468
+# golang.org/x/tools v0.0.0-20190606124116-d0a3d012864b
 golang.org/x/tools/go/ast/astutil
 golang.org/x/tools/go/gcexportdata
 golang.org/x/tools/go/internal/gcimporter
+# google.golang.org/appengine v1.6.1
+google.golang.org/appengine/datastore
+google.golang.org/appengine
+google.golang.org/appengine/datastore/internal/cloudkey
+google.golang.org/appengine/internal
+google.golang.org/appengine/internal/datastore
+google.golang.org/appengine/internal/app_identity
+google.golang.org/appengine/internal/modules
+google.golang.org/appengine/datastore/internal/cloudpb
+google.golang.org/appengine/internal/base
+google.golang.org/appengine/internal/log
+google.golang.org/appengine/internal/remote_api
 # gopkg.in/alecthomas/kingpin.v3-unstable v3.0.0-20180810215634-df19058c872c
 gopkg.in/alecthomas/kingpin.v3-unstable
 # gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127
