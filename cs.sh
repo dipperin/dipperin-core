@@ -101,8 +101,8 @@ build_ci() {
     cd ${monitor_path}/cmd/dipperin; go install
 
     #rm ~/go/bin/dipperincli;
-    echo 'build dipperincli'
-    cd ${monitor_path}/cmd/dipperincli; go install
+    # echo 'build dipperincli'
+    # cd ${monitor_path}/cmd/dipperincli; go install
 
     #rm ~/go/bin/bootnode;
     echo 'build bootnode'
