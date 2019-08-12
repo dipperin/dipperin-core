@@ -163,6 +163,13 @@ func appAction(c *cli.Context) {
 		log.Error("debug setup failed", "err", err)
 	}
 
+	log.Info("network info", "name", os.Getenv("boots_env"))
+
+	if os.Getenv("boots_env") == "mercury"{
+		log.Error("the Mercury testnet is not stopped forever, please try set boots_env = venus.")
+		// return
+	}
+
 	err := startNode(c)
 	if err != nil {
 		panicInfo := "start node error err: " + err.Error()

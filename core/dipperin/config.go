@@ -31,7 +31,7 @@ type ExtraServiceFunc func(c ExtraServiceFuncConfig) (apis []rpc.API, services [
 type ExtraServiceFuncConfig struct {
 	service.DipperinConfig
 
-	ChainService *service.MercuryFullChainService
+	ChainService *service.VenusFullChainService
 }
 
 // start a dipperin node config

@@ -251,5 +251,3 @@ func Test_validUnStakeTime(t *testing.T) {
 		block: &fakeBlock{},
 	}, 0))
 }
-
-

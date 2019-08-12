@@ -871,7 +871,7 @@ func TestMercuryFullChainService_getSendTxInfo_Error(t *testing.T) {
 func TestMercuryFullChainService_Transaction(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := DipperinConfig{ChainReader: csChain}
-	service := MercuryFullChainService{
+	service := VenusFullChainService{
 		DipperinConfig: &config,
 		TxValidator:    fakeValidator{},
 	}
@@ -888,7 +888,7 @@ func TestMercuryFullChainService_Transaction(t *testing.T) {
 func TestMercuryFullChainService_NewSendTransactions(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := DipperinConfig{ChainReader: csChain, TxPool: fakeTxPool{}}
-	service := MercuryFullChainService{
+	service := VenusFullChainService{
 		DipperinConfig: &config,
 		TxValidator:    fakeValidator{},
 	}
@@ -915,7 +915,7 @@ func TestMercuryFullChainService_signTxAndSend_Error(t *testing.T) {
 		WalletManager: manager,
 		TxPool:        fakeTxPool{err: testErr},
 	}
-	service := MercuryFullChainService{
+	service := VenusFullChainService{
 		DipperinConfig: &config,
 		TxValidator:    fakeValidator{},
 	}

@@ -270,7 +270,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 }
 
 func TestContractWithNewFeature(t *testing.T) {
-	singer := model.NewMercurySigner(new(big.Int).SetInt64(int64(1)))
+	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
 
 	ownSK, _ := crypto.GenerateKey()
 	ownPk := ownSK.PublicKey

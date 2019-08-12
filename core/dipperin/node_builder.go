@@ -87,7 +87,7 @@ type BaseComponent struct {
 	consensusBeforeInsertBlocks BlockValidator
 	defaultMsgDecoder           chain_communication.P2PMsgDecoder
 	verifiersReader             VerifiersReader
-	chainService                *service.MercuryFullChainService
+	chainService                *service.VenusFullChainService
 	walletManager               *accounts.WalletManager
 	msgSigner                   *accounts.WalletSigner
 	bftNode                     *csbftnode.CsBft
@@ -181,7 +181,7 @@ func newBaseComponent(nodeConfig NodeConfig) *BaseComponent {
 	log.InitAgentLog(nodeConfig.DataDir)
 	nodeName := nodeConfig.GetNodeName()
 
-	if os.Getenv("boots_env") == "mercury" || os.Getenv("boots_env") == "venus" {
+	if os.Getenv("boots_env") == "venus" {
 		pbft_log.InitPbftLogger(log.LvlWarn, nodeName, true)
 		health_info_log.InitHealthLogger(log.LvlWarn, nodeName, true)
 		mpt_log.InitMptLogger(log.LvlWarn, nodeName, true)
@@ -413,14 +413,14 @@ func (b *BaseComponent) initP2PService() {
 	b.csPm = csPm
 	b.broadcastDelegate = broadcastDelegate
 
-	if chain_config.GetCurBootsEnv() != "mercury" {
+	if chain_config.GetCurBootsEnv() != "mercury" && chain_config.GetCurBootsEnv() != "venus" {
 		debug.Memsize.Add("p2p server", p2pServer)
 	}
 }
 
 func (b *BaseComponent) initRpc() {
 	// load rpc service todo chainService not init
-	rpcApi := rpc_interface.MakeDipperinMercuryApi(b.chainService)
+	rpcApi := rpc_interface.MakeDipperinVenusApi(b.chainService)
 	debugApi := rpc_interface.MakeDipperinDebugApi(b.chainService)
 	p2pApi := rpc_interface.MakeDipperinP2PApi(b.chainService)
 

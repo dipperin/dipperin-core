@@ -70,7 +70,7 @@ func TestMercuryFullChainService_ContractTransaction(t *testing.T) {
 		ChainReader: csChain,
 		ChainIndex:  chainIndex,
 	}
-	service := MercuryFullChainService{DipperinConfig: config}
+	service := VenusFullChainService{DipperinConfig: config}
 
 	// get contract address
 	sender, err := tx1.Sender(nil)
@@ -157,7 +157,7 @@ func TestMercuryFullChainService_MakeTmpSignedTx(t *testing.T) {
 		Broadcaster:   broadcaster,
 	}
 
-	service := MercuryFullChainService{
+	service := VenusFullChainService{
 		DipperinConfig: config,
 		TxValidator:    fakeValidator{},
 	}
@@ -188,7 +188,7 @@ func TestMercuryFullChainService_SendTransactions(t *testing.T) {
 		ChainConfig:   *chain_config.GetChainConfig(),
 	}
 
-	service := MercuryFullChainService{
+	service := VenusFullChainService{
 		DipperinConfig: config,
 		TxValidator:    fakeValidator{},
 	}
@@ -212,7 +212,7 @@ func TestMercuryFullChainService_SendTransactions(t *testing.T) {
 	assert.Equal(t, 0, num)
 
 	// Valid tx error
-	service = MercuryFullChainService{
+	service = VenusFullChainService{
 		DipperinConfig: config,
 		TxValidator:    fakeValidator{err: testErr},
 	}
@@ -260,7 +260,7 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 		Broadcaster:   broadcaster,
 	}
 
-	service := MercuryFullChainService{
+	service := VenusFullChainService{
 		DipperinConfig: config,
 		TxValidator:    fakeValidator{},
 	}
@@ -345,7 +345,7 @@ func TestMercuryFullChainService_SendTransaction_Error(t *testing.T) {
 		TxPool:        createTxPool(csChain.ChainState),
 	}
 
-	service := MercuryFullChainService{
+	service := VenusFullChainService{
 		DipperinConfig: config,
 		TxValidator:    fakeValidator{err: testErr},
 	}

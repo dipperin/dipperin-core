@@ -21,8 +21,8 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 )
 
-func MakeDipperinMercuryApi(service *service.MercuryFullChainService) *DipperinMercuryApi {
-	return &DipperinMercuryApi{service: service}
+func MakeDipperinVenusApi(service *service.VenusFullChainService) *DipperinVenusApi {
+	return &DipperinVenusApi{service: service}
 }
 
 func MakeDipperinDebugApi(service debugAPI) *DipperinDebugApi {
