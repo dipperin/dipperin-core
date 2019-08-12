@@ -1,6 +1,7 @@
 package resolver
 
 // #cgo CXXFLAGS: -std=c++14
+// #cgo windows LDFLAGS: -static-libgcc
 // #include "print128.h"
 import "C"
 import (

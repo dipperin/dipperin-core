@@ -143,10 +143,10 @@ cross_compile() {
     echo 'cross compile dipperin start'
     docker pull karalabe/xgo-latest
     go get github.com/karalabe/xgo
-    cd ./cmd/dipperin/
-    GOPATH=$HOME/go/ xgo -go 1.11.1 --targets=linux/amd64,windows/amd64,darwin/amd64 .
-    mkdir ~/dipperin_bin
-    mv dipperin-darwin-10.6-amd64  dipperin-linux-amd64  dipperin-windows-4.0-amd64.exe ~/dipperin_bin/
+    cd ~/go/src/github.com/dipperin/dipperin-core/cmd/dipperin
+
+    GOPATH=$HOME/go/ xgo -go 1.11.1 --dest=${GOPATH}/bin/ --targets=linux/amd64,windows/amd64,darwin/amd64 .
+
     echo 'cross compile dipperin end'
     ls
 }
