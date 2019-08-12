@@ -20,7 +20,7 @@ func InitHealthInfoLogger(conf log.LoggerConfig, nodeName string) {
 }
 
 func init() {
-	if os.Getenv("boots_env") == "mercury"{
+	if os.Getenv("boots_env") == "mercury" {
 		LogConf.LogLevel = log.LvlWarn
 	}
 	InitHealthInfoLogger(LogConf, "")
@@ -32,4 +32,3 @@ func OutputHealthLog() bool {
 	}
 	return true
 }
-

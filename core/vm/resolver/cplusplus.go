@@ -9,11 +9,11 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/math"
+	common2 "github.com/dipperin/dipperin-core/core/vm/common"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
-	common2 "github.com/dipperin/dipperin-core/core/vm/common"
 )
 
 /*func PrintTest(){

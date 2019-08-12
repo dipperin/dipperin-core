@@ -16,7 +16,7 @@ var LogConf = log.LoggerConfig{
 }
 
 func InitVmLogger(conf log.LoggerConfig, nodeName string) {
-	if os.Getenv("boots_env") == "mercury"{
+	if os.Getenv("boots_env") == "mercury" {
 		LogConf.LogLevel = log.LvlWarn
 	}
 	Log = log.SetInitLogger(conf, nodeName)
@@ -25,4 +25,3 @@ func InitVmLogger(conf log.LoggerConfig, nodeName string) {
 func init() {
 	InitVmLogger(LogConf, "")
 }
-

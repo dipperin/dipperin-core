@@ -181,11 +181,11 @@ func newBaseComponent(nodeConfig NodeConfig) *BaseComponent {
 
 	pbft_log.InitPBFTLogger(pbft_log.LogConf, nodeName)
 	mpt_log.InitMptLogger(mpt_log.LogConf, nodeName)
-	health_info_log.InitHealthInfoLogger(health_info_log.LogConf,nodeName)
-	chain_communication.InitPMLogger(chain_communication.PMLogConf,nodeName)
+	health_info_log.InitHealthInfoLogger(health_info_log.LogConf, nodeName)
+	chain_communication.InitPMLogger(chain_communication.PMLogConf, nodeName)
 	witch_log.InitWitchLogger(witch_log.LogConf, nodeName)
 	ver_halt_check_log.InitVerHaltLogger(ver_halt_check_log.VertHaltLogConf, nodeName)
-	common2.InitVmLogger(common2.LogConf,nodeName)
+	common2.InitVmLogger(common2.LogConf, nodeName)
 	return b
 }
 

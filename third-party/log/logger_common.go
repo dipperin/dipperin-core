@@ -14,14 +14,14 @@ const (
 )
 
 type LoggerConfig struct {
-	Type     LoggerType
-	LogLevel Lvl
-	FilePath string
-	DirName  string
+	Type      LoggerType
+	LogLevel  Lvl
+	FilePath  string
+	DirName   string
 	RemoveOld bool
 }
 
-func SetInitLogger(conf LoggerConfig,nodeName string) Logger {
+func SetInitLogger(conf LoggerConfig, nodeName string) Logger {
 	l := &logger{[]interface{}{}, new(swapHandler)}
 	var targetDir string
 	if conf.FilePath == "" {
@@ -33,7 +33,7 @@ func SetInitLogger(conf LoggerConfig,nodeName string) Logger {
 	if !PathExists(targetDir) {
 		os.MkdirAll(targetDir, os.ModePerm)
 	}
-	if nodeName == ""{
+	if nodeName == "" {
 		nodeName = conf.DirName
 	}
 
