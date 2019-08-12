@@ -65,7 +65,7 @@ func newApp() (nApp *cli.App) {
 	nApp.Name = "DipperinCli"
 	nApp.Version = chain_config.Version
 	nApp.Author = "dipperin"
-	nApp.Copyright = "(c) 2016-2018 dipperin."
+	nApp.Copyright = "(c) 2016-2019 dipperin."
 	nApp.Usage = "Dipperin commandline tool for " + runtime.GOOS + "/" + runtime.GOARCH
 	nApp.Description = ``
 
@@ -165,7 +165,7 @@ func appAction(c *cli.Context) {
 
 	log.Info("network info", "name", os.Getenv("boots_env"))
 
-	if os.Getenv("boots_env") == "mercury"{
+	if os.Getenv("boots_env") == "mercury" {
 		log.Error("the Mercury testnet is not stopped forever, please try set boots_env = venus.")
 		// return
 	}

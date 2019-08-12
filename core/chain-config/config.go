@@ -297,7 +297,6 @@ func initMercuryBoots(dataDir string) {
 	KBucketNodes = append(KBucketNodes, mercuryKBoots()...)
 }
 
-
 // Fixme add Venus Network
 // load from file + static nodes
 func initVenusBoots(dataDir string) {

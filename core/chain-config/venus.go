@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	venusHostIP = "172.16.5.15"
+	venusHostIP       = "172.16.5.15"
 	InitVenusBootPort = 10000
 )
 
@@ -39,4 +39,3 @@ func venusVBoots() []*enode.Node {
 	n, _ := enode.ParseV4("enode://7a035400458c476d52f49287d062445349fa3c3b5dd101392baf4f1953d47687b53d3191abfa144576e22bf979c3d0d6bae5ecac7a83aeb4c9230fc5253179fa@14.17.65.122:10000")
 	return []*enode.Node{n}
 }
-
