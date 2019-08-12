@@ -9,8 +9,8 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
-	"github.com/vntchain/go-vnt/rlp"
 	"math/big"
 	"testing"
 )
@@ -154,6 +154,11 @@ func TestVM_CreateAndCallWithdraw(t *testing.T) {
 	data, err = rlp.EncodeToBytes([]interface{}{funcName})
 	assert.NoError(t, err)
 
+	// withdraw() is not payable function, couldn't transfer DIP
+	resp, _, err = vm.Call(AccountRef(aliceAddr), addr, data, gasLimit, value)
+	assert.Equal(t, []byte(nil), resp)
+	assert.Equal(t, "VM execute fail: abort", err.Error())
+
 	// bob can't withdraw alice's contract
 	resp, _, err = vm.Call(AccountRef(bobAddr), addr, data, gasLimit, big.NewInt(0))
 	assert.Equal(t, []byte(nil), resp)
@@ -166,13 +171,13 @@ func TestVM_CreateAndCallWithdraw(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestVM_CreateAndCallToken(t *testing.T) {
+func TestVM_CreateAndCallToken_Transfer(t *testing.T) {
 	vm := getTestVm()
-	ref := AccountRef(aliceAddr)
+	aliceRef := AccountRef(aliceAddr)
 	gasLimit := g_testData.TestGasLimit * 100
 	value := g_testData.TestValue
-	WASMPath := g_testData.GetWASMPath("token-const", g_testData.CoreVmTestData)
-	AbiPath := g_testData.GetAbiPath("token-const", g_testData.CoreVmTestData)
+	WASMPath := g_testData.GetWASMPath("token-payable", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("token-payable", g_testData.CoreVmTestData)
 	code, abi := g_testData.GetCodeAbi(WASMPath, AbiPath)
 
 	tokenName := []byte("tokenName")
@@ -181,10 +186,10 @@ func TestVM_CreateAndCallToken(t *testing.T) {
 	data, err := rlp.EncodeToBytes([]interface{}{code, abi, tokenName, symbolName, supply})
 	assert.NoError(t, err)
 
-	vm.GetStateDB().CreateAccount(ref.Address())
-	vm.GetStateDB().AddBalance(ref.Address(), big.NewInt(10000))
-	expectAddr := cs_crypto.CreateContractAddress(ref.Address(), uint64(0))
-	resp, addr, gasLimit, err := vm.Create(ref, data, gasLimit, value)
+	vm.GetStateDB().CreateAccount(aliceRef.Address())
+	vm.GetStateDB().AddBalance(aliceRef.Address(), big.NewInt(10000))
+	expectAddr := cs_crypto.CreateContractAddress(aliceRef.Address(), uint64(0))
+	resp, addr, gasLimit, err := vm.Create(aliceRef, data, gasLimit, big.NewInt(0))
 	assert.Equal(t, code, resp)
 	assert.Equal(t, expectAddr, addr)
 	assert.NoError(t, err)
@@ -196,7 +201,7 @@ func TestVM_CreateAndCallToken(t *testing.T) {
 	data, err = rlp.EncodeToBytes([]interface{}{funcName, to, amount})
 	assert.NoError(t, err)
 
-	resp, _, err = vm.Call(ref, addr, data, gasLimit, value)
+	resp, _, err = vm.Call(aliceRef, addr, data, gasLimit, value)
 	assert.Equal(t, make([]byte, utils.ALIGN_LENGTH), resp)
 	assert.NoError(t, err)
 
@@ -205,7 +210,7 @@ func TestVM_CreateAndCallToken(t *testing.T) {
 	data, err = rlp.EncodeToBytes([]interface{}{funcName, to})
 	assert.NoError(t, err)
 
-	resp, _, err = vm.Call(ref, addr, data, gasLimit, value)
+	resp, _, err = vm.Call(aliceRef, addr, data, gasLimit, big.NewInt(0))
 	expectResp := utils.Align32BytesConverter(resp, "uint64")
 	assert.Equal(t, uint64(100), expectResp)
 	assert.NoError(t, err)
@@ -215,9 +220,134 @@ func TestVM_CreateAndCallToken(t *testing.T) {
 	data, err = rlp.EncodeToBytes([]interface{}{funcName, from})
 	assert.NoError(t, err)
 
-	resp, _, err = vm.Call(ref, addr, data, gasLimit, value)
+	resp, _, err = vm.Call(aliceRef, addr, data, gasLimit, big.NewInt(0))
 	expectResp = utils.Align32BytesConverter(resp, "uint64")
 	assert.Equal(t, uint64(400), expectResp)
+	assert.NoError(t, err)
+}
+
+func TestVM_CreateAndCallToken_TransferFrom(t *testing.T) {
+	vm := getTestVm()
+	aliceRef := AccountRef(aliceAddr)
+	bobRef := AccountRef(bobAddr)
+	charlieRef := AccountRef(charlieAddr)
+	gasLimit := g_testData.TestGasLimit * 100
+	WASMPath := g_testData.GetWASMPath("token-payable", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("token-payable", g_testData.CoreVmTestData)
+	code, abi := g_testData.GetCodeAbi(WASMPath, AbiPath)
+
+	tokenName := []byte("tokenName")
+	symbolName := []byte("symbolName")
+	supply := utils.Uint64ToBytes(500)
+	data, err := rlp.EncodeToBytes([]interface{}{code, abi, tokenName, symbolName, supply})
+	assert.NoError(t, err)
+
+	vm.GetStateDB().CreateAccount(aliceRef.Address())
+	vm.GetStateDB().CreateAccount(bobRef.Address())
+	vm.GetStateDB().CreateAccount(charlieRef.Address())
+	vm.GetStateDB().AddBalance(aliceRef.Address(), big.NewInt(10000))
+	expectAddr := cs_crypto.CreateContractAddress(aliceRef.Address(), uint64(0))
+	resp, addr, gasLimit, err := vm.Create(aliceRef, data, gasLimit, big.NewInt(0))
+	assert.Equal(t, code, resp)
+	assert.Equal(t, expectAddr, addr)
+	assert.NoError(t, err)
+
+	// vm.Call alice approve 1000 to bob (not enough token)
+	funcName := []byte("approve")
+	spender := []byte(bobAddr.Hex())
+	amount1 := utils.Uint64ToBytes(1000)
+	data, err = rlp.EncodeToBytes([]interface{}{funcName, spender, amount1})
+	assert.NoError(t, err)
+	resp, _, err = vm.Call(aliceRef, addr, data, gasLimit, big.NewInt(0))
+	assert.Equal(t, []byte(nil), resp)
+	assert.Equal(t, "VM execute fail: abort", err.Error())
+
+	// vm.Call alice approve 400 to bob
+	amount2 := utils.Uint64ToBytes(400)
+	data, err = rlp.EncodeToBytes([]interface{}{funcName, spender, amount2})
+	assert.NoError(t, err)
+	resp, _, err = vm.Call(aliceRef, addr, data, gasLimit, big.NewInt(0))
+	assert.Equal(t, make([]byte, utils.ALIGN_LENGTH), resp)
+	assert.NoError(t, err)
+
+	// vm.Call charlie getApproveBalance
+	funcName = []byte("getApproveBalance")
+	from := []byte(aliceAddr.Hex())
+	getApproveData, err := rlp.EncodeToBytes([]interface{}{funcName, from, spender})
+	assert.NoError(t, err)
+	resp, _, err = vm.Call(charlieRef, addr, getApproveData, gasLimit, big.NewInt(0))
+	expectResp := utils.Align32BytesConverter(resp, "uint64")
+	assert.Equal(t, uint64(400), expectResp)
+	assert.NoError(t, err)
+
+	// vm.Call bob transferFrom 1000 (not enough approval token)
+	funcName = []byte("transferFrom")
+	data, err = rlp.EncodeToBytes([]interface{}{funcName, from, spender, amount1})
+	assert.NoError(t, err)
+	resp, _, err = vm.Call(bobRef, addr, data, gasLimit, big.NewInt(0))
+	assert.Equal(t, []byte(nil), resp)
+	assert.Equal(t, "VM execute fail: abort", err.Error())
+
+	// vm.Call charlie transferFrom the token which alice approve to bob (failed)
+	data, err = rlp.EncodeToBytes([]interface{}{funcName, from, spender, amount2})
+	assert.NoError(t, err)
+	resp, _, err = vm.Call(charlieRef, addr, data, gasLimit, big.NewInt(0))
+	assert.Equal(t, []byte(nil), resp)
+	assert.Equal(t, "VM execute fail: abort", err.Error())
+
+	// vm.Call bob transferFrom 400 which alice approve to bob
+	resp, _, err = vm.Call(bobRef, addr, data, gasLimit, big.NewInt(0))
+	expectResp = utils.Align32BytesConverter(resp, "uint64")
+	assert.Equal(t, make([]byte, utils.ALIGN_LENGTH), resp)
+	assert.NoError(t, err)
+
+	// vm.Call charlie getApproveBalance
+	resp, _, err = vm.Call(charlieRef, addr, getApproveData, gasLimit, big.NewInt(0))
+	expectResp = utils.Align32BytesConverter(resp, "uint64")
+	assert.Equal(t, uint64(0), expectResp)
+	assert.NoError(t, err)
+
+	// vm.Call charlie get alice balance
+	funcName = []byte("getBalance")
+	aliceBalanceData, err := rlp.EncodeToBytes([]interface{}{funcName, from})
+	assert.NoError(t, err)
+	resp, _, err = vm.Call(charlieRef, addr, aliceBalanceData, gasLimit, big.NewInt(0))
+	expectResp = utils.Align32BytesConverter(resp, "uint64")
+	assert.Equal(t, uint64(100), expectResp)
+	assert.NoError(t, err)
+
+	// vm.Call charlie get bob balance
+	bobBalanceData, err := rlp.EncodeToBytes([]interface{}{funcName, spender})
+	assert.NoError(t, err)
+	resp, _, err = vm.Call(charlieRef, addr, bobBalanceData, gasLimit, big.NewInt(0))
+	expectResp = utils.Align32BytesConverter(resp, "uint64")
+	assert.Equal(t, uint64(400), expectResp)
+	assert.NoError(t, err)
+
+	// vm.Call charlie burn the token (not enough token)
+	funcName = []byte("burn")
+	data, err = rlp.EncodeToBytes([]interface{}{funcName, amount2})
+	assert.NoError(t, err)
+	resp, _, err = vm.Call(charlieRef, addr, data, gasLimit, big.NewInt(0))
+	assert.Equal(t, []byte(nil), resp)
+	assert.Equal(t, "VM execute fail: abort", err.Error())
+
+	// vm.Call bob burn the token
+	resp, _, err = vm.Call(bobRef, addr, data, gasLimit, big.NewInt(0))
+	expectResp = utils.Align32BytesConverter(resp, "uint64")
+	assert.Equal(t, make([]byte, utils.ALIGN_LENGTH), resp)
+	assert.NoError(t, err)
+
+	// vm.Call charlie get alice balance
+	resp, _, err = vm.Call(charlieRef, addr, aliceBalanceData, gasLimit, big.NewInt(0))
+	expectResp = utils.Align32BytesConverter(resp, "uint64")
+	assert.Equal(t, uint64(500), expectResp)
+	assert.NoError(t, err)
+
+	// vm.Call charlie get bob balance
+	resp, _, err = vm.Call(charlieRef, addr, bobBalanceData, gasLimit, big.NewInt(0))
+	expectResp = utils.Align32BytesConverter(resp, "uint64")
+	assert.Equal(t, uint64(0), expectResp)
 	assert.NoError(t, err)
 }
 

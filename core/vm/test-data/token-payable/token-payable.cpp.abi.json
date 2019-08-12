@@ -63,6 +63,19 @@
         "type": "function"
     },
     {
+        "name": "burn",
+        "inputs": [
+            {
+                "name": "_value",
+                "type": "uint64"
+            }
+        ],
+        "outputs": [],
+        "constant": "false",
+        "payable": "false",
+        "type": "function"
+    },
+    {
         "name": "transferFrom",
         "inputs": [
             {

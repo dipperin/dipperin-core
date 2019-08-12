@@ -16,6 +16,7 @@ import (
 var (
 	aliceAddr    = common.HexToAddress("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
 	bobAddr      = common.HexToAddress("0x0000970e8128aB834E8EAC17aB8E3812f010678CF791")
+	charlieAddr  = common.HexToAddress("0x00007dbbf084F4a6CcC070568f7674d4c2CE8CD2709E")
 	contractAddr = common.HexToAddress("0x0014B5Df12F50295469Fe33951403b8f4E63231Ef488")
 )
 
