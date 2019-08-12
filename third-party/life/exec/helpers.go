@@ -93,11 +93,11 @@ func (vm *VirtualMachine) Run(entryID int, params ...int64) (retVal int64, retEr
 }
 
 func (vm *VirtualMachine) Stop() (err error) {
-	vm.MemPool.Put(vm.Memory.Memory)
+	vm.Memory.Put(vm.Memory.Memory)
 	for _, pos := range vm.ExternalParams {
 		err = vm.Memory.Free(int(pos))
 
 	}
-	vm.TreePool.PutTree(vm.Memory.tree)
+	vm.Memory.PutTree(vm.Memory.Tree)
 	return err
 }

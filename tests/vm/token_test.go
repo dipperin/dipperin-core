@@ -51,8 +51,8 @@ func Test_TokenPayableCall(t *testing.T) {
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
 
-	WASMTokenPath := g_testData.GetWASMPath("token-payable", g_testData.DIPCTestContract)
-	AbiTokenPath := g_testData.GetAbiPath("token-payable", g_testData.DIPCTestContract)
+	WASMTokenPath := g_testData.GetWASMPath("token-payable", g_testData.CoreVmTestData)
+	AbiTokenPath := g_testData.GetAbiPath("token-payable", g_testData.CoreVmTestData)
 	contractHash := SendCreateContract(t, cluster, nodeName, WASMTokenPath, AbiTokenPath, "dipp,DIPP,1000000")
 	checkTransactionOnChain(client, []common.Hash{contractHash})
 

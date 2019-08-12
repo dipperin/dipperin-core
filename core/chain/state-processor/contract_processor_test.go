@@ -393,7 +393,7 @@ func processContractCall(t *testing.T, contractAddress common.Address, code []by
 	err = processor.ProcessTxNew(txConfig)
 	//if funcName == "getBalance" {
 	receipt := callTx.GetReceipt()
-	fmt.Println("receipt  log", "receipt log", receipt.Logs)
+	fmt.Println("receipt  log", "receipt log", receipt)
 	//}
 
 	assert.NoError(t, err)

@@ -16,8 +16,8 @@ func Test_DipcLibTestCall(t *testing.T) {
 	nodeName := "default_v0"
 	client := cluster.NodeClient[nodeName]
 
-	WASMConvertPath := g_testData.GetWASMPath("dipclib_test", g_testData.DIPCTestContract)
-	ABIConvertPath := g_testData.GetAbiPath("dipclib_test", g_testData.DIPCTestContract)
+	WASMConvertPath := g_testData.GetWASMPath("dipclib_test", g_testData.CoreVmTestData)
+	ABIConvertPath := g_testData.GetAbiPath("dipclib_test", g_testData.CoreVmTestData)
 	contractHash := SendCreateContract(t, cluster, nodeName, WASMConvertPath, ABIConvertPath, "")
 	checkTransactionOnChain(client, []common.Hash{contractHash})
 

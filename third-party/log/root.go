@@ -90,7 +90,6 @@ func homeDir() string {
 func InitCsLogger(logLevel Lvl, filePath string, withConsole bool, withFile bool) {
 
 	var targetDir string
-
 	if filePath == "" {
 		targetDir = filepath.Join(homeDir(), "tmp", "log", "dipperin")
 	} else {
