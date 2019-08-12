@@ -899,7 +899,7 @@ func (pool *TxPool) addTx(tx model.AbstractTransaction, local bool) error {
 		from, _ := tx.Sender(pool.signer) // already validated
 		pool.promoteExecutables([]common.Address{from})
 	}
-	pbft_log.Debug("Add tx success", "txid", tx.CalTxId().Hex())
+	pbft_log.Log.Debug("Add tx success", "txid", tx.CalTxId().Hex())
 	return nil
 }
 

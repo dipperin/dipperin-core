@@ -161,7 +161,7 @@ func (v VoteMsg) HaltedVoteValid(verifiers []common.Address) error {
 
 	recoverAddress, err := cs_crypto.RecoverAddressFromSig(v.Hash(), v.Witness.Sign)
 	if err != nil {
-		ver_halt_check_log.Error("recover Address error from witness")
+		ver_halt_check_log.Log.Error("recover Address error from witness")
 		return err
 	}
 
@@ -172,12 +172,12 @@ func (v VoteMsg) HaltedVoteValid(verifiers []common.Address) error {
 	if v.GetType() == VerBootNodeVoteMessage {
 		checkResult := CheckAddressIsVerifierBootNode(recoverAddress)
 		if !checkResult {
-			ver_halt_check_log.Warn("the Address isn't verifier boot node")
+			ver_halt_check_log.Log.Warn("the Address isn't verifier boot node")
 			return AddressIsNotVerifierBootNode
 		}
 	} else if v.GetType() == AliveVerifierVoteMessage {
 		if !CheckAddressIsCurrentVerifier(recoverAddress, verifiers) {
-			ver_halt_check_log.Warn("the Address isn't current verifier")
+			ver_halt_check_log.Log.Warn("the Address isn't current verifier")
 			return AddressIsNotCurrentVerifier
 		}
 	}

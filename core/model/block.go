@@ -23,7 +23,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/bloom"
 	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/bloom_log"
 	"github.com/dipperin/dipperin-core/third-party/log/witch_log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
@@ -352,8 +351,6 @@ func (b *Block) GetBlockTxsBloom() *iblt.Bloom {
 	for _, tx := range txs {
 		bloom.Digest(tx.CalTxId().Bytes())
 	}
-	bloom_log.Info("GetBlockTxsBloom", "txs len", len(txs))
-
 	return bloom
 }
 
@@ -391,10 +388,10 @@ func (b *Block) GetEiBloomBlockData(reqEstimator *iblt.HybridEstimator) *BloomBl
 	if len(txs) > DefaultTxs {
 		fmt.Println("1")
 		// run multiple procedure
-		witch_log.Info("start MapWork")
+		witch_log.Log.Info("start MapWork")
 		mapWorkEstimator := newMapWorkHybridEstimator(estimator)
 		if err := RunWorkMap(mapWorkEstimator, txs); err != nil {
-			witch_log.Info("RunWorkMap by mapWorkEstimator failed", "err", err)
+			witch_log.Log.Info("RunWorkMap by mapWorkEstimator failed", "err", err)
 		}
 	} else {
 		for _, tx := range txs {
@@ -404,13 +401,12 @@ func (b *Block) GetEiBloomBlockData(reqEstimator *iblt.HybridEstimator) *BloomBl
 	estimatedConfig := estimator.DeriveConfig(reqEstimator)
 	bloomConfig := iblt.DeriveBloomConfig(len(b.GetTransactions()))
 	invBloom := iblt.NewGraphene(estimatedConfig, bloomConfig)
-	bloom_log.Info("GetEiBloomBlockData", "txs len", len(txs))
 	if len(txs) > DefaultTxs {
 
 		// run multiple procedure
 		mapWorkBloom := newMapWorkInvBloom(invBloom)
 		if err := RunWorkMap(mapWorkBloom, txs); err != nil {
-			witch_log.Info("RunWorkMap by mapWorkBloom failed", "err", err)
+			witch_log.Log.Info("RunWorkMap by mapWorkBloom failed", "err", err)
 		}
 	} else {
 		for _, tx := range txs {
@@ -421,7 +417,7 @@ func (b *Block) GetEiBloomBlockData(reqEstimator *iblt.HybridEstimator) *BloomBl
 
 	diff := time.Now().Sub(startAt)
 	if diff > time.Second {
-		witch_log.Info("GetEiBloomBlockData", "cost", diff, "len", len(txs), "num", b.Number())
+		witch_log.Log.Info("GetEiBloomBlockData", "cost", diff, "len", len(txs), "num", b.Number())
 	}
 
 	invBloomRLP, err := rlp.EncodeToBytes(invBloom)

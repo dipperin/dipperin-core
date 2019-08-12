@@ -162,14 +162,14 @@ func (fd *NewPbftDownloader) onBlocks(msg p2p.Msg, p PmAbstractPeer) error {
 }
 
 func (fd *NewPbftDownloader) Start() error {
-	pbft_log.Debug("Start New PBFT Downloader")
+	pbft_log.Log.Debug("Start New PBFT Downloader")
 	go fd.loop()
 	return nil
 }
 
 func (fd *NewPbftDownloader) loop() {
 	tickHandler := func() {
-		pbft_log.Debug("pbft downloader call download")
+		pbft_log.Log.Debug("pbft downloader call download")
 		if fd.getBestPeer() == nil {
 			log.Warn("downloader can't get best peer, do nothing")
 			return
@@ -218,7 +218,7 @@ func (fd *NewPbftDownloader) getBestPeer() PmAbstractPeer {
 //run synchronise
 func (fd *NewPbftDownloader) runSync() {
 	log.Info("bft downloader run sync")
-	pbft_log.Debug("bft downloader run sync")
+	pbft_log.Log.Debug("bft downloader run sync")
 
 	if !atomic.CompareAndSwapInt32(&fd.synchronising, 0, 1) {
 		log.Info("downloader is busy")
@@ -314,9 +314,9 @@ func (fd *NewPbftDownloader) importBlockResults(list []*catchupRlp) error {
 		util.InterfaceSliceCopy(commits, b.SeenCommit)
 
 		if len(commits) > 0 {
-			pbft_log.Debug("pbft download call save block", "block height", b.Block.Number(), "commits", len(commits), "commits", commits[0].GetBlockId().Hex())
+			pbft_log.Log.Debug("pbft download call save block", "block height", b.Block.Number(), "commits", len(commits), "commits", commits[0].GetBlockId().Hex())
 		} else {
-			pbft_log.Warn("commits is empty", "height", b.Block.Number())
+			pbft_log.Log.Warn("commits is empty", "height", b.Block.Number())
 		}
 
 		if err := fd.Chain.SaveBlock(b.Block, commits); err != nil {

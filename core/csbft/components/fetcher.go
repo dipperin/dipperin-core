@@ -62,7 +62,7 @@ func (f *CsBftFetcher) FetchBlock(from common.Address, blockHash common.Hash) mo
 		log.Error("call fetch block, but fetcher not started")
 		return nil
 	}
-	pbft_log.Info("CsBftFetcher#FetchBlock  call fetch block", "block hash", blockHash.Hex(), "from", from.Hex())
+	pbft_log.Log.Info("CsBftFetcher#FetchBlock  call fetch block", "block hash", blockHash.Hex(), "from", from.Hex())
 	req := &FetchBlockReqMsg{
 		MsgId:      uint64(time.Now().UnixNano()),
 		From:       from,
@@ -76,11 +76,11 @@ func (f *CsBftFetcher) FetchBlock(from common.Address, blockHash common.Hash) mo
 	select {
 	case result := <-req.ResultChan:
 		f.rmReq(req.MsgId)
-		//pbft_log.Info("CsBftFetcher#FetchBlock fetch block success", "block hash", result.Hash().Hex(), "from", from.Hex() )
+		//pbft_log.Log.Info("CsBftFetcher#FetchBlock fetch block success", "block hash", result.Hash().Hex(), "from", from.Hex() )
 		return result
 
 	case <-time.After(fetchTimeout):
-		pbft_log.Warn("fetch block timeout", "block hash", blockHash.Hex(), "from", from.Hex())
+		pbft_log.Log.Warn("fetch block timeout", "block hash", blockHash.Hex(), "from", from.Hex())
 		// rm req
 		f.rmReq(req.MsgId)
 	}
@@ -92,7 +92,7 @@ func (f *CsBftFetcher) FetchBlockResp(resp *FetchBlockRespMsg) {
 	if f.IsRunning() {
 		f.fetchRespChan <- resp
 	} else {
-		pbft_log.Warn("receive fetch block resp, but fetcher not started")
+		pbft_log.Log.Warn("receive fetch block resp, but fetcher not started")
 		log.Warn("receive fetch block resp, but fetcher not started")
 	}
 }
@@ -130,7 +130,7 @@ func (f *CsBftFetcher) loop() {
 			delete(f.requests, rId)
 
 		case <-f.Quit():
-			pbft_log.Info("bft fetcher stopped")
+			pbft_log.Log.Info("bft fetcher stopped")
 			return
 		}
 	}
@@ -159,12 +159,12 @@ func (f *CsBftFetcher) isFetching(h common.Hash) bool {
 func (f *CsBftFetcher) onFetchBlock(req *FetchBlockReqMsg) {
 	if f.isFetching(req.BlockHash) {
 		req.onResult(nil)
-		pbft_log.Info("is fetching block", "hash", req.BlockHash)
+		pbft_log.Log.Info("is fetching block", "hash", req.BlockHash)
 		return
 	}
 	if len(f.requests) > 5 {
 		req.onResult(nil)
-		pbft_log.Warn("too many fetches", "req len", len(f.requests))
+		pbft_log.Log.Warn("too many fetches", "req len", len(f.requests))
 		return
 	}
 	f.requests[req.MsgId] = req
@@ -173,7 +173,7 @@ func (f *CsBftFetcher) onFetchBlock(req *FetchBlockReqMsg) {
 		BlockHash: req.BlockHash,
 	}); err != nil {
 		req.onResult(nil)
-		pbft_log.Warn("send fetch req failed", "err", err)
+		pbft_log.Log.Warn("send fetch req failed", "err", err)
 		return
 	}
 }
@@ -182,11 +182,11 @@ func (f *CsBftFetcher) onFetchBlock(req *FetchBlockReqMsg) {
 func (f *CsBftFetcher) onFetchResp(resp *FetchBlockRespMsg) {
 	req := f.requests[resp.MsgId]
 	if req == nil {
-		pbft_log.Info("receive fetch block resp, but req has been removed")
+		pbft_log.Log.Info("receive fetch block resp, but req has been removed")
 		return
 	}
 
-	pbft_log.Info("onFetchResp1", "block height", resp.Block.Number())
+	pbft_log.Log.Info("onFetchResp1", "block height", resp.Block.Number())
 	req.onResult(resp.Block)
 }
 
@@ -207,7 +207,7 @@ func (req *FetchBlockReqMsg) onResult(block model.AbstractBlock) {
 	select {
 	case req.ResultChan <- block:
 	case <-time.After(100 * time.Millisecond):
-		pbft_log.Warn("can't send fetch resp to ResultChan, maybe already timeout")
+		pbft_log.Log.Warn("can't send fetch resp to ResultChan, maybe already timeout")
 	}
 }
 

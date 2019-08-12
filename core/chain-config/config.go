@@ -21,7 +21,6 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/ver_halt_check_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"io/ioutil"
 	"math/big"
@@ -264,8 +263,6 @@ func initLocalBoots(dataDir string) {
 			"enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@127.0.0.1:%v", TestVerifierBootNodePort))
 		VerifierBootNodes = append(VerifierBootNodes, n)
 	}
-
-	ver_halt_check_log.Info("the VerifierBootNodes is:", "VerifierBootNodes", VerifierBootNodes)
 
 	// local boot node
 	/*if KBucketNodes = LoadBootNodesFromFile(dataDir); len(KBucketNodes) == 0 {

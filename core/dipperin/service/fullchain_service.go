@@ -603,7 +603,7 @@ func (service *MercuryFullChainService) signTxAndSend(tmpWallet accounts.Wallet,
 	if err != nil {
 		return nil, err
 	}
-	pbft_log.Debug("Sign and send transaction", "txid", signedTx.CalTxId().Hex())
+	pbft_log.Log.Debug("Sign and send transaction", "txid", signedTx.CalTxId().Hex())
 	if err := service.TxValidator.Valid(signedTx); err != nil {
 		log.Error("Transaction not valid", "error", err)
 		return nil, err
@@ -701,11 +701,11 @@ func (service *MercuryFullChainService) SendTransaction(from, to common.Address,
 	tx := model.NewTransaction(usedNonce, to, value, gasPrice, gasLimit, data)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
-		pbft_log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
+		pbft_log.Log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
 		return common.Hash{}, err
 	}
 
-	pbft_log.Info("send transaction", "txId", signTx.CalTxId().Hex())
+	pbft_log.Log.Info("send transaction", "txId", signTx.CalTxId().Hex())
 	txHash := signTx.CalTxId()
 	log.Info("the Sendnot enough balance errorTransaction txId is: ", "txId", txHash.Hex(), "txSize", signTx.Size())
 	return txHash, nil
@@ -1753,7 +1753,7 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 	tx := model.NewTransactionSc(usedNonce, &to, value, gasPrice, gasLimit, extraData)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
-		pbft_log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
+		pbft_log.Log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
 		log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
 		return common.Hash{}, err
 	}
@@ -1762,7 +1762,7 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 	//log.Info("send transaction", "gasPrice", signTx.GetGasPrice())
 	//log.Info("send transaction", "gas limit", signTx.GetGasLimit())
 	/*	signJson, _ := json.Marshal(signTx)
-		pbft_log.Info("send transaction", "signTx json", string(signJson))*/
+		pbft_log.Log.Info("send transaction", "signTx json", string(signJson))*/
 	txHash := signTx.CalTxId()
 	log.Info("the SendTransaction txId is: ", "txId", txHash.Hex(), "txSize", signTx.Size())
 	return txHash, nil

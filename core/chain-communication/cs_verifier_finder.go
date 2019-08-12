@@ -403,17 +403,17 @@ func (pm *CsProtocolManager) handleInsertEventForBft() error {
 			select {
 			case newBlock := <-newBlockChan:
 
-				pbft_log.Debug("[Insert Event]", "blockNumber", newBlock.Number(), "is change point", pm.Chain.IsChangePoint(&newBlock, false), "is current", pm.SelfIsCurrentVerifier(), "is next", pm.SelfIsNextVerifier())
+				pbft_log.Log.Debug("[Insert Event]", "blockNumber", newBlock.Number(), "is change point", pm.Chain.IsChangePoint(&newBlock, false), "is current", pm.SelfIsCurrentVerifier(), "is next", pm.SelfIsNextVerifier())
 
 				slot := pm.Chain.GetSlot(&newBlock)
-				pbft_log.Debug("the current slot is:", "slot", *slot)
+				pbft_log.Log.Debug("the current slot is:", "slot", *slot)
 
 				// should change verifier
 				if pm.Chain.IsChangePoint(&newBlock, false) && *slot > 0 {
-					pbft_log.Debug("[Insert Event] IsChangePoint CallChangeVerifier")
+					pbft_log.Log.Debug("[Insert Event] IsChangePoint CallChangeVerifier")
 					pm.ChangeVerifiers()
 				} else {
-					pbft_log.Debug("[Insert Event] NotChangePoint NotCurrentVerifier")
+					pbft_log.Log.Debug("[Insert Event] NotChangePoint NotCurrentVerifier")
 
 					if pm.vf != nil {
 						pm.vf.findVerifiers()
@@ -421,7 +421,7 @@ func (pm *CsProtocolManager) handleInsertEventForBft() error {
 				}
 				// goes to bft only the current round verifier
 				if pm.SelfIsCurrentVerifier() {
-					pbft_log.Debug("[Insert Event] NotChangePoint IsCurrentVerifier")
+					pbft_log.Log.Debug("[Insert Event] NotChangePoint IsCurrentVerifier")
 					pm.PbftNode.OnEnterNewHeight(newBlock.Number() + 1)
 				}
 

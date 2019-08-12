@@ -53,7 +53,7 @@ func (cache *CacheDB) GetSeenCommits(blockHeight uint64, blockHash common.Hash) 
 	}
 	if blockHeight > 1 {
 		if len(data) == 0 {
-			pbft_log.Debug("Can not get seen commits", "height", blockHeight)
+			pbft_log.Log.Debug("Can not get seen commits", "height", blockHeight)
 			return nil, errors.New("Can not get seen commits")
 		}
 	}

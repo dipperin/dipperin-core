@@ -23,7 +23,6 @@ import (
 	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pm_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"math/big"
 	"sync"
@@ -73,7 +72,7 @@ func (pm *BaseProtocolManager) handleMsg(p PmAbstractPeer) error {
 
 	if err != nil {
 		log.Info("base protocol read msg from peer failed", "err", err, "peer name", p.NodeName())
-		pm_log.Info("base protocol read msg from peer failed", "node", p.NodeName(), "err", err)
+		pmLog.Info("base protocol read msg from peer failed", "node", p.NodeName(), "err", err)
 		return err
 	}
 

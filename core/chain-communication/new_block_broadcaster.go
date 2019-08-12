@@ -98,7 +98,7 @@ func (broadcaster *NewBlockBroadcaster) getPeersWithoutBlock(block model.Abstrac
 // broadcast new block
 func (broadcaster *NewBlockBroadcaster) BroadcastBlock(block model.AbstractBlock) {
 	log.Info("new block broadcaster BroadcastBlock", "num", block.Number())
-	pbft_log.Debug("broadcast block", "num", block.Number(), "txs", block.TxCount())
+	pbft_log.Log.Debug("broadcast block", "num", block.Number(), "txs", block.TxCount())
 	peers := broadcaster.getPeersWithoutBlock(block)
 
 	var vPeers []PmAbstractPeer
@@ -135,14 +135,14 @@ func (broadcaster *NewBlockBroadcaster) broadcastBlock(block model.AbstractBlock
 	for i := range peers {
 		receiver := broadcaster.getReceiver(peers[i])
 		receiver.asyncSendBlock(block)
-		pbft_log.Debug("broadcast block", "to", peers[i].NodeName(), "type", peers[i].NodeType(), "num", block.Number(), "txs", block.TxCount())
+		pbft_log.Log.Debug("broadcast block", "to", peers[i].NodeName(), "type", peers[i].NodeType(), "num", block.Number(), "txs", block.TxCount())
 	}
 }
 
 func (broadcaster *NewBlockBroadcaster) onNewBlock(msg p2p.Msg, p PmAbstractPeer) error {
 	g_metrics.Add(g_metrics.ReceivedWaitVBlockCount, "", 1)
 
-	pbft_log.Debug("receive new block", "from", p.NodeName())
+	pbft_log.Log.Debug("receive new block", "from", p.NodeName())
 	var block model.Block
 	err := msg.Decode(&block)
 	if err != nil {
@@ -287,7 +287,7 @@ func (r *blockReceiver) sendBlock(block model.AbstractBlock, getPeer getPeerFunc
 	r.markBlock(block)
 
 	if peer := getPeer(); peer != nil {
-		pbft_log.Debug("send block", "block", block.Number(), "peer", peer.NodeName())
+		pbft_log.Log.Debug("send block", "block", block.Number(), "peer", peer.NodeName())
 		return peer.SendMsg(NewBlockV1Msg, block)
 	}
 

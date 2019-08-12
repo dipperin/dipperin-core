@@ -80,7 +80,7 @@ func (executor *defaultWorkExecutor) ChangeNonce() bool {
 			executor.curWork.ResultNonce = executor.curWork.BlockHeader.Nonce
 			log.Info("ChangeNonce successful")
 			//fmt.Println(executor.curWork.BlockHeader.String())
-			health_info_log.Info("found nonce", "height", executor.curWork.BlockHeader.Number)
+			health_info_log.Log.Info("found nonce", "height", executor.curWork.BlockHeader.Number)
 			return true
 		}
 	} else {
