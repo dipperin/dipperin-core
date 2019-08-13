@@ -228,6 +228,7 @@ func TestVM_CreateAndCallToken_Transfer(t *testing.T) {
 	from := []byte(aliceAddr.Hex())
 	data, err = rlp.EncodeToBytes([]interface{}{funcName, from})
 	assert.NoError(t, err)
+
 	resp, _, err = vm.Call(aliceRef, addr, data, gasLimit, big.NewInt(0))
 	expectResp = utils.Align32BytesConverter(resp, "uint64")
 	assert.Equal(t, uint64(400), expectResp)
