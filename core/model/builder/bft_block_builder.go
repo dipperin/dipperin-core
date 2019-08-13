@@ -119,7 +119,7 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 		panic("can't get current block when call NewBlockFromLastBlock")
 	}
 	curHeight := curBlock.Number()
-	pbft_log.Debug("build wait pack block", "height", curHeight+1)
+	pbft_log.Log.Debug("build wait pack block", "height", curHeight+1)
 
 	pubKey := builder.MsgSigner.PublicKey()
 	coinbaseAddr = cs_crypto.GetNormalAddress(*pubKey)
@@ -222,7 +222,7 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 
 	log.Info("the block build calculated block stateRoot is:", "blockNumber", block.Number(), "stateRoot", root.Hex())
 	block.SetStateRoot(root)
-	pbft_log.Debug("build block", "preBlock root", curBlock.StateRoot().Hex(), "process result", root.Hex(), "this block", block.StateRoot())
+	pbft_log.Log.Debug("build block", "preBlock root", curBlock.StateRoot().Hex(), "process result", root.Hex(), "this block", block.StateRoot())
 
 	// deal register
 	register, err := builder.ChainReader.BuildRegisterProcessor(curBlock.GetRegisterRoot())
@@ -232,7 +232,7 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 	}
 	registerRoot := register.Finalise()
 	block.SetRegisterRoot(registerRoot)
-	pbft_log.Debug("build block", "block id", block.Hash().Hex(), "transaction", block.TxCount())
+	pbft_log.Log.Debug("build block", "block id", block.Hash().Hex(), "transaction", block.TxCount())
 	return block
 }
 

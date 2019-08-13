@@ -111,7 +111,7 @@ func (g *ProposalGenerator) GenEmptyBlock() (*model.Block, error) {
 	//avoid hash error
 	block.RefreshHashCache()
 
-	ver_halt_check_log.Info("the GenEmptyBlock block hash is:", "hash", block.Hash().Hex())
+	ver_halt_check_log.Log.Info("the GenEmptyBlock block hash is:", "hash", block.Hash().Hex())
 	return block, nil
 }
 

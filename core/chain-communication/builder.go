@@ -64,7 +64,7 @@ type BroadcastDelegate struct {
 }
 
 func (delegate *BroadcastDelegate) BroadcastMinedBlock(block model.AbstractBlock) {
-	pbft_log.Debug("BroadcastBlock", "block id", block.Hash().Hex(), "txs", block.TxCount())
+	pbft_log.Log.Debug("BroadcastBlock", "block id", block.Hash().Hex(), "txs", block.TxCount())
 	delegate.blockBroadcaster.BroadcastBlock(block) //IBLT-method
 }
 

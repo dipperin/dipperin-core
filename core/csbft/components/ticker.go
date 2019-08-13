@@ -95,7 +95,7 @@ func (t *timeoutTicker) Chan() <-chan TimeoutInfo {
 // The timeoutRoutine is always available to read from tickChan, so this won't block.
 // The scheduling may fail if the timeoutRoutine has already scheduled a timeout for a later height/round/step.
 func (t *timeoutTicker) ScheduleTimeout(ti TimeoutInfo) {
-	pbft_log.Debug("Schedule Timeout", "timeout info", ti, "is running", t.BaseService.IsRunning())
+	pbft_log.Log.Debug("Schedule Timeout", "timeout info", ti, "is running", t.BaseService.IsRunning())
 	t.tickChan <- ti
 }
 
@@ -120,18 +120,18 @@ func (t *timeoutTicker) timeoutRoutine() {
 	for {
 		select {
 		case newti := <-t.tickChan:
-			pbft_log.Debug("Received tick", "old_ti", ti, "new_ti", newti)
+			pbft_log.Log.Debug("Received tick", "old_ti", ti, "new_ti", newti)
 			// ignore tickers for old height/round/step
 			if newti.Height < ti.Height {
-				pbft_log.Warn("height too low, ignore ticker")
+				pbft_log.Log.Warn("height too low, ignore ticker")
 				continue
 			} else if newti.Height == ti.Height {
 				if newti.Round < ti.Round {
-					pbft_log.Warn("round too low, ignore ticker")
+					pbft_log.Log.Warn("round too low, ignore ticker")
 					continue
 				} else if newti.Round == ti.Round {
 					if ti.Step > 0 && newti.Step < ti.Step {
-						pbft_log.Warn("step must higher than latest, ignore ticker", "new step", newti.Step, "cur step", ti.Step)
+						pbft_log.Log.Warn("step must higher than latest, ignore ticker", "new step", newti.Step, "cur step", ti.Step)
 						continue
 					}
 				}
@@ -142,9 +142,9 @@ func (t *timeoutTicker) timeoutRoutine() {
 			// NOTE time.Timer allows duration to be non-positive
 			ti = newti
 			t.timer.Reset(ti.Duration)
-			pbft_log.Info("ticker reset", "dur", ti.Duration, "height", ti.Height, "round", ti.Round, "step", ti.Step)
+			pbft_log.Log.Info("ticker reset", "dur", ti.Duration, "height", ti.Height, "round", ti.Round, "step", ti.Step)
 		case <-t.timer.C:
-			pbft_log.Info("ticker timed out", "dur", ti.Duration, "height", ti.Height, "round", ti.Round, "step", ti.Step)
+			pbft_log.Log.Info("ticker timed out", "dur", ti.Duration, "height", ti.Height, "round", ti.Round, "step", ti.Step)
 			// go routine here guarantees timeoutRoutine doesn't block.
 			// Determinism comes from playback in the receiveRoutine.
 			// We can eliminate it by merging the timeoutRoutine into receiveRoutine

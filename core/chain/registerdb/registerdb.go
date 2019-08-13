@@ -137,7 +137,7 @@ func (register RegisterDB) Process(block model.AbstractBlock) (err error) {
 			if err := register.deleteRegisterData(sender); err != nil {
 				return err
 			}
-			pbft_log.Info("deletedRegisterData", "sender", sender)
+			pbft_log.Log.Info("deletedRegisterData", "sender", sender)
 			return nil
 
 		case common.AddressTypeStake:
@@ -150,7 +150,7 @@ func (register RegisterDB) Process(block model.AbstractBlock) (err error) {
 			if err := register.saveRegisterData(sender); err != nil {
 				return err
 			}
-			pbft_log.Info("savedRegisterData", "sender", sender)
+			pbft_log.Log.Info("savedRegisterData", "sender", sender)
 			return nil
 
 		default:

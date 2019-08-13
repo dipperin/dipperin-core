@@ -27,7 +27,7 @@ import (
 )
 
 func (suite *chainWriterSuite) TestChainState_BuildStateProcessor(t *check.C) {
-	mpt_log.InitMptLogger(log.LvlDebug, "state_writer", true)
+	mpt_log.InitMptLogger(mpt_log.LogConf, "state_writer")
 
 	testAccount1 := tests.AccFactory.GetAccount(0)
 	suite.txBuilder.Amount = big.NewInt(100)

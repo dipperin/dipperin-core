@@ -2,23 +2,8 @@ package mem_manage
 
 import (
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"sync"
 )
-
-var l log.Logger
-
-const (
-	MemoryLogType     = log.LoggerConsole
-	MemoryLogLevel    = log.LvlInfo
-	MemoryLogFilePath = ""
-	MemoryLogDirName  = "vm_memory"
-	MemoryLogName     = "vm_memory"
-)
-
-func init() {
-	l = log.GetInitLogger(MemoryLogType, MemoryLogLevel, MemoryLogFilePath, MemoryLogDirName, MemoryLogName, nil)
-}
 
 //memory pool abstract interface
 type MemPoolInterface interface {

@@ -154,7 +154,7 @@ func (p *BlockPool) NewHeight(h uint64) {
 
 // modify the height and empty blocks
 func (p *BlockPool) doNewHeight(h uint64) {
-	pbft_log.Info("Update pool height", "original height", p.height, "new height", h)
+	pbft_log.Log.Info("Update pool height", "original height", p.height, "new height", h)
 	if h < p.height {
 		log.Warn("call block pool change to new height, but new height is lower than cur block pool height", "pool height", p.height, "new h", h)
 		return
@@ -162,7 +162,7 @@ func (p *BlockPool) doNewHeight(h uint64) {
 
 	p.height = h
 	p.blocks = []model.AbstractBlock{}
-	pbft_log.Debug("block pool", "len", len(p.blocks))
+	pbft_log.Log.Debug("block pool", "len", len(p.blocks))
 }
 
 func (p *BlockPool) AddBlock(b model.AbstractBlock) error {
@@ -193,9 +193,9 @@ Exclude duplicate blocks based on hashExclude duplicate blocks based on hash.
 func (p *BlockPool) doAddBlock(nb newBlockWithResultErr) {
 	b := nb.block
 
-	pbft_log.Debug("Pool received a block of height", "height", b.Number(), "pool height", p.height)
+	pbft_log.Log.Debug("Pool received a block of height", "height", b.Number(), "pool height", p.height)
 	if b.Number() != p.height {
-		pbft_log.Debug("receive invalid height block", "b", b.Number(), "p", p.height)
+		pbft_log.Log.Debug("receive invalid height block", "b", b.Number(), "p", p.height)
 
 		nb.resultChan <- errors.New("invalid height block")
 		return
@@ -203,16 +203,16 @@ func (p *BlockPool) doAddBlock(nb newBlockWithResultErr) {
 	for _, oldB := range p.blocks {
 		// delete repeated block
 		if oldB.Hash().IsEqual(b.Hash()) {
-			//pbft_log.Info("receive dul block")
+			//pbft_log.Log.Info("receive dul block")
 
 			nb.resultChan <- errors.New("dul block")
 			return
 		}
-		pbft_log.Info("the oldB in block pool", "blockHash", oldB.Hash().Hex())
+		pbft_log.Log.Info("the oldB in block pool", "blockHash", oldB.Hash().Hex())
 	}
-	pbft_log.Info("the add block in block pool", "blockHash", b.Hash().Hex())
+	pbft_log.Log.Info("the add block in block pool", "blockHash", b.Hash().Hex())
 	p.blocks = append(p.blocks, b)
-	pbft_log.Debug("pool length", "height", p.height, "len", len(p.blocks))
+	pbft_log.Log.Debug("pool length", "height", p.height, "len", len(p.blocks))
 
 	// send result
 	nb.resultChan <- nil
@@ -223,8 +223,8 @@ func (p *BlockPool) doAddBlock(nb newBlockWithResultErr) {
 	}
 }
 func (p *BlockPool) GetProposalBlock() model.AbstractBlock {
-	//pbft_log.Info("[GetProposalBlock] start~~~~~~~~~~~~~~~")
-	//defer pbft_log.Info("[GetProposalBlock] end~~~~~~~~~~~~~~~")
+	//pbft_log.Log.Info("[GetProposalBlock] start~~~~~~~~~~~~~~~")
+	//defer pbft_log.Log.Info("[GetProposalBlock] end~~~~~~~~~~~~~~~")
 	resultC := make(chan model.AbstractBlock)
 	p.getBlock(&blockPoolGetter{
 		resultChan: resultC,
@@ -253,9 +253,9 @@ If the hash is passed, it means that the block matching the master is obtained.
 */
 func (p *BlockPool) doGetBlock(getter *blockPoolGetter) {
 	var result model.AbstractBlock = nil
-	pbft_log.Info("~~~~~~~~~~~~~~~~~~~~~~~~~~get Block From blockPool~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-	pbft_log.Info("doGetBlock the blockPool len is:", "len", len(p.blocks))
-	pbft_log.Info("want get block hash is:", "id", getter.blockHash.Hex())
+	pbft_log.Log.Info("~~~~~~~~~~~~~~~~~~~~~~~~~~get Block From blockPool~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+	pbft_log.Log.Info("doGetBlock the blockPool len is:", "len", len(p.blocks))
+	pbft_log.Log.Info("want get block hash is:", "id", getter.blockHash.Hex())
 	// proposer get first block
 	if getter.blockHash.IsEqual(common.Hash{}) {
 		if len(p.blocks) == 0 {
@@ -266,7 +266,7 @@ func (p *BlockPool) doGetBlock(getter *blockPoolGetter) {
 		// get match hash block
 	} else {
 		for _, b := range p.blocks {
-			pbft_log.Info("block in block Pool", "id", b.Hash().Hex())
+			pbft_log.Log.Info("block in block Pool", "id", b.Hash().Hex())
 			if b.Hash().IsEqual(getter.blockHash) {
 				result = b
 				break

@@ -39,7 +39,7 @@ func (d *BFTCacheDataDecoder) DecodeSeenCommits(data []byte) (result []model.Abs
 
 	var from []*model.VoteMsg
 	if err = rlp.DecodeBytes(data, &from); err != nil {
-		pbft_log.Error("Decode seen commits error", "err", err)
+		pbft_log.Log.Error("Decode seen commits error", "err", err)
 		return []model.AbstractVerification{}, err
 	}
 

@@ -133,7 +133,7 @@ func (fc *FakeFullChain) GetSeenCommit(height uint64) []model.AbstractVerificati
 }
 
 func (fc *FakeFullChain) SaveBlock(block model.AbstractBlock, seenCommits []model.AbstractVerification) error {
-	pbft_log.Debug("save block", "height", block.Number())
+	pbft_log.Log.Debug("save block", "height", block.Number())
 	fc.Blocks = block
 	fc.Height = block.Number()
 	fc.commits = seenCommits

@@ -72,7 +72,7 @@ func (s *server) ReceiveMsg(workerID WorkerId, code uint64, msg interface{}) {
 func (s *server) onSubmitBlock(workerID WorkerId, work minemsg.Work) {
 
 	block := s.getCurWorkBlockFunc()
-	pbft_log.Debug("onSubmitBlock", "block id", block.Number(), "block txs", block.TxCount())
+	pbft_log.Log.Debug("onSubmitBlock", "block id", block.Number(), "block txs", block.TxCount())
 	if err := work.FillSealResult(block); err != nil {
 		log.Warn("fill seal result failed", "err", err)
 		return

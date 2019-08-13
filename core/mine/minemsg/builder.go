@@ -42,7 +42,7 @@ func (builder *DefaultWorkBuilder) BuildWorks(newBlock model.AbstractBlock, work
 		newHeader := *header
 		binary.BigEndian.PutUint32(newHeader.Nonce[:4], uint32(i))
 
-		pbft_log.Info("BuildWorks", "verRoot", newHeader.VerificationRoot.Hex(), "register root", newHeader.RegisterRoot)
+		pbft_log.Log.Info("BuildWorks", "verRoot", newHeader.VerificationRoot.Hex(), "register root", newHeader.RegisterRoot)
 		works = append(works, &DefaultWork{BlockHeader: newHeader})
 	}
 	workMsgCode = NewDefaultWorkMsg
