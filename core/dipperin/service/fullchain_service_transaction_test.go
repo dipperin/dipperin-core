@@ -201,6 +201,7 @@ func TestMercuryFullChainService_SendTransactions(t *testing.T) {
 		GasLimit: g_testData.TestGasLimit,
 	}
 
+	fmt.Println(csChain.GetChainConfig())
 	// No error
 	num, err := service.SendTransactions(address, []model.RpcTransaction{tx})
 	assert.NoError(t, err)
