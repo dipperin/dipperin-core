@@ -74,7 +74,6 @@ func defaultChainConfig() *ChainConfig {
 	c := &ChainConfig{
 		//DeriveShaType:         DeriveShaTypeByHash,
 		SupportHardwareWallet: false,
-		ChainId:               big.NewInt(1),
 		Version:               uint64(0),
 		// verify segment size
 		SlotSize: uint64(110),
@@ -105,10 +104,17 @@ func defaultChainConfig() *ChainConfig {
 	switch os.Getenv(BootEnvTagName) {
 	case "mercury":
 		c.NetworkID = 99
+		c.ChainId = big.NewInt(1)
+	case "venus":
+		c.NetworkID = 100
+		c.ChainId = big.NewInt(2)
 	case "test":
-		c.NetworkID = 1
+		c.NetworkID = 1600
+		c.ChainId = big.NewInt(1600)
 	case "local":
 		c.VerifierNumber = 4
+		c.NetworkID = 1601
+		c.ChainId = big.NewInt(1601)
 	}
 
 	return c
@@ -218,6 +224,8 @@ func InitBootNodes(dataDir string) {
 	case "mercury":
 		//log.Agent("use mercury boot env")
 		initMercuryBoots(dataDir)
+	case "venus":
+		initVenusBoots(dataDir)
 	default:
 		//log.Agent("use local boot env")
 		log.Info("use local boot env")
@@ -284,6 +292,18 @@ func initMercuryBoots(dataDir string) {
 	// The difference here is that the boot of the mercury may be manually started by the external network, so need to support both the file and the add
 	//KBucketNodes = LoadBootNodesFromFile(dataDir)
 	KBucketNodes = append(KBucketNodes, mercuryKBoots()...)
+}
+
+// Fixme add Venus Network
+// load from file + static nodes
+func initVenusBoots(dataDir string) {
+	// The difference here is that the boot of the mercury may be manually started by the external network, so need to support both the file and the add
+	//VerifierBootNodes = LoadVerifierBootNodesFromFile(dataDir)
+	VerifierBootNodes = append(VerifierBootNodes, NewVenusVBoots()...)
+
+	// The difference here is that the boot of the mercury may be manually started by the external network, so need to support both the file and the add
+	//KBucketNodes = LoadBootNodesFromFile(dataDir)
+	KBucketNodes = append(KBucketNodes, venusKBoots()...)
 }
 
 func LoadBootNodesFromFile(dataDir string) (bootNodes []*enode.Node) {

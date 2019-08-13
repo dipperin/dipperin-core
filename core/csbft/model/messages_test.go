@@ -34,7 +34,7 @@ func createBlock(number uint64, txs []*model.Transaction) *model.Block {
 }
 
 func createRegisterTX(nonce uint64, amount *big.Int) *model.Transaction {
-	fs1 := model.NewMercurySigner(big.NewInt(1))
+	fs1 := model.NewSigner(big.NewInt(1))
 	tx := model.NewRegisterTransaction(nonce, amount, g_testData.TestGasPrice, g_testData.TestGasLimit)
 	alicePriv := "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232031"
 	key, _ := crypto.HexToECDSA(alicePriv)
@@ -43,7 +43,7 @@ func createRegisterTX(nonce uint64, amount *big.Int) *model.Transaction {
 }
 
 func createCannelTX(nonce uint64) *model.Transaction {
-	fs1 := model.NewMercurySigner(big.NewInt(1))
+	fs1 := model.NewSigner(big.NewInt(1))
 	tx := model.NewCancelTransaction(nonce, g_testData.TestGasPrice, g_testData.TestGasLimit)
 	alicePriv := "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232031"
 	key, _ := crypto.HexToECDSA(alicePriv)

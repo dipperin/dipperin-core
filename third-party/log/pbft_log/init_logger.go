@@ -16,7 +16,7 @@ var LogConf = log.LoggerConfig{
 }
 
 func InitPBFTLogger(conf log.LoggerConfig, nodeName string) {
-	if os.Getenv("boots_env") == "mercury" {
+	if os.Getenv("boots_env") == "venus" {
 		LogConf.LogLevel = log.LvlWarn
 	}
 	Log = log.SetInitLogger(conf, nodeName)

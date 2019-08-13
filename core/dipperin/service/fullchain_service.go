@@ -115,8 +115,9 @@ type MsgSigner interface {
 	GetAddress() common.Address
 }
 
-func MakeFullChainService(config *DipperinConfig) *MercuryFullChainService {
-	return &MercuryFullChainService{
+func MakeFullChainService(config *DipperinConfig) *VenusFullChainService {
+	// Fixme if user would like to connect to the mercury network, better to return error.
+	return &VenusFullChainService{
 		DipperinConfig: config,
 		TxValidator:    middleware.NewTxValidatorForRpcService(config.ChainReader),
 	}
@@ -146,7 +147,7 @@ type DipperinConfig struct {
 }
 
 // deal mercury api things
-type MercuryFullChainService struct {
+type VenusFullChainService struct {
 	*DipperinConfig
 	localWorker mineworker.Worker
 	TxValidator TxValidator
@@ -154,16 +155,16 @@ type MercuryFullChainService struct {
 
 // startBloomHandlers starts a batch of goroutines to accept bloom bit database
 // retrievals from possibly a range of filters and serving the data to satisfy.
-func (service *MercuryFullChainService) startBloomHandlers(sectionSize uint64) {
+func (service *VenusFullChainService) startBloomHandlers(sectionSize uint64) {
 	for i := 0; i < chain_state.BloomServiceThreads; i++ {
-		//log.Info("MercuryFullChainService#startBloomHandlers start")
+		//log.Info("VenusFullChainService#startBloomHandlers start")
 		go func() {
 			for {
 				select {
 				case request := <-service.DipperinConfig.ChainIndex.BloomRequests:
-					//log.Info("MercuryFullChainService#startBloomHandlers", "request", request)
+					//log.Info("VenusFullChainService#startBloomHandlers", "request", request)
 					task := <-request
-					//log.Info("MercuryFullChainService#startBloomHandlers", "request task", task)
+					//log.Info("VenusFullChainService#startBloomHandlers", "request task", task)
 					task.Bitsets = make([][]byte, len(task.Sections))
 					for i, section := range task.Sections {
 						//head := rawdb.ReadCanonicalHash(eth.chainDb, (section+1)*sectionSize-1)
@@ -183,7 +184,7 @@ func (service *MercuryFullChainService) startBloomHandlers(sectionSize uint64) {
 							task.Error = g_error.ErrBloombitsNotFound
 						}
 					}
-					//log.Info("MercuryFullChainService#startBloomHandlers", "request task final", task)
+					//log.Info("VenusFullChainService#startBloomHandlers", "request task final", task)
 					request <- task
 				}
 			}
@@ -191,24 +192,24 @@ func (service *MercuryFullChainService) startBloomHandlers(sectionSize uint64) {
 	}
 }
 
-func (service *MercuryFullChainService) RemoteHeight() uint64 {
+func (service *VenusFullChainService) RemoteHeight() uint64 {
 	_, h := service.NormalPm.BestPeer().GetHead()
 	return h
 }
 
-func (service *MercuryFullChainService) GetSyncStatus() bool {
+func (service *VenusFullChainService) GetSyncStatus() bool {
 	return service.NormalPm.IsSync()
 }
 
-func (service *MercuryFullChainService) CurrentBlock() model.AbstractBlock {
+func (service *VenusFullChainService) CurrentBlock() model.AbstractBlock {
 	return service.ChainReader.CurrentBlock()
 }
 
-func (service *MercuryFullChainService) GetBlockByNumber(number uint64) (model.AbstractBlock, error) {
+func (service *VenusFullChainService) GetBlockByNumber(number uint64) (model.AbstractBlock, error) {
 	return service.ChainReader.GetBlockByNumber(number), nil
 }
 
-func (service *MercuryFullChainService) GetBlockHashByNumber(number uint64) common.Hash {
+func (service *VenusFullChainService) GetBlockHashByNumber(number uint64) common.Hash {
 	if number > service.CurrentBlock().Number() {
 		log.Info("GetBlockHashByNumber failed, can't get future block")
 		return common.Hash{}
@@ -217,23 +218,23 @@ func (service *MercuryFullChainService) GetBlockHashByNumber(number uint64) comm
 	return block.Hash()
 }
 
-func (service *MercuryFullChainService) GetBlockByHash(hash common.Hash) (model.AbstractBlock, error) {
+func (service *VenusFullChainService) GetBlockByHash(hash common.Hash) (model.AbstractBlock, error) {
 	return service.ChainReader.GetBlockByHash(hash), nil
 }
 
-func (service *MercuryFullChainService) GetBlockNumber(hash common.Hash) *uint64 {
+func (service *VenusFullChainService) GetBlockNumber(hash common.Hash) *uint64 {
 	return service.ChainReader.GetBlockNumber(hash)
 }
 
-func (service *MercuryFullChainService) GetGenesis() (model.AbstractBlock, error) {
+func (service *VenusFullChainService) GetGenesis() (model.AbstractBlock, error) {
 	return service.ChainReader.Genesis(), nil
 }
 
-func (service *MercuryFullChainService) GetBlockBody(hash common.Hash) model.AbstractBody {
+func (service *VenusFullChainService) GetBlockBody(hash common.Hash) model.AbstractBody {
 	return service.ChainReader.GetBody(hash)
 }
 
-func (service *MercuryFullChainService) CurrentBalance(address common.Address) *big.Int {
+func (service *VenusFullChainService) CurrentBalance(address common.Address) *big.Int {
 	curState, err := service.ChainReader.CurrentState()
 	if err != nil {
 		log.Warn("get current state failed", "err", err)
@@ -247,7 +248,7 @@ func (service *MercuryFullChainService) CurrentBalance(address common.Address) *
 	log.Info("call current balance", "address", address.Hex(), "balance", balance)
 	return balance
 }
-func (service *MercuryFullChainService) CurrentStake(address common.Address) *big.Int {
+func (service *VenusFullChainService) CurrentStake(address common.Address) *big.Int {
 	log.Debug("call current balance", "address", address.Hex())
 	curState, err := service.ChainReader.CurrentState()
 	if err != nil {
@@ -263,7 +264,7 @@ func (service *MercuryFullChainService) CurrentStake(address common.Address) *bi
 	return stake
 }
 
-func (service *MercuryFullChainService) Start() error {
+func (service *VenusFullChainService) Start() error {
 	if service.MineMaster != nil && !service.MineMaster.CurrentCoinbaseAddress().IsEmpty() {
 		if service.localWorker == nil {
 			time.Sleep(500 * time.Millisecond)
@@ -286,7 +287,7 @@ func (service *MercuryFullChainService) Start() error {
 	return nil
 }
 
-func (service *MercuryFullChainService) startTxsMetrics() {
+func (service *VenusFullChainService) startTxsMetrics() {
 	g_timer.SetPeriodAndRun(func() {
 		pending, queued := service.TxPool.Stats()
 		g_metrics.Set(g_metrics.PendingTxCountInPool, "", float64(pending))
@@ -294,13 +295,13 @@ func (service *MercuryFullChainService) startTxsMetrics() {
 	}, 5*time.Second)
 }
 
-func (service *MercuryFullChainService) Stop() {
+func (service *VenusFullChainService) Stop() {
 	if service.MineMaster != nil {
 		service.MineMaster.Stop()
 	}
 }
 
-func (service *MercuryFullChainService) checkWalletIdentifier(walletIdentifier *accounts.WalletIdentifier) error {
+func (service *VenusFullChainService) checkWalletIdentifier(walletIdentifier *accounts.WalletIdentifier) error {
 	if walletIdentifier.WalletType != accounts.SoftWallet {
 		return errors.New("wallet type error")
 	}
@@ -317,7 +318,7 @@ func (service *MercuryFullChainService) checkWalletIdentifier(walletIdentifier *
 }
 
 //set CoinBase Address
-func (service *MercuryFullChainService) SetMineCoinBase(addr common.Address) error {
+func (service *VenusFullChainService) SetMineCoinBase(addr common.Address) error {
 	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfMineMaster {
 		return errors.New("the node isn't mineMaster")
 	}
@@ -335,7 +336,7 @@ func (service *MercuryFullChainService) SetMineCoinBase(addr common.Address) err
 	return nil
 }
 
-func (service *MercuryFullChainService) SetMineGasConfig(gasFloor, gasCeil uint64) error {
+func (service *VenusFullChainService) SetMineGasConfig(gasFloor, gasCeil uint64) error {
 	if gasFloor < gasCeil {
 		return errors.New("gasFloor should greater than gasCeil")
 	}
@@ -343,7 +344,7 @@ func (service *MercuryFullChainService) SetMineGasConfig(gasFloor, gasCeil uint6
 	return nil
 }
 
-func (service *MercuryFullChainService) EstablishWallet(walletIdentifier accounts.WalletIdentifier, password, passPhrase string) (string, error) {
+func (service *VenusFullChainService) EstablishWallet(walletIdentifier accounts.WalletIdentifier, password, passPhrase string) (string, error) {
 	err := service.checkWalletIdentifier(&walletIdentifier)
 	if err != nil {
 		log.Info("the err1 is :", "err", err)
@@ -375,7 +376,7 @@ func (service *MercuryFullChainService) EstablishWallet(walletIdentifier account
 	return mnemonic, nil
 }
 
-func (service *MercuryFullChainService) OpenWallet(walletIdentifier accounts.WalletIdentifier, password string) error {
+func (service *VenusFullChainService) OpenWallet(walletIdentifier accounts.WalletIdentifier, password string) error {
 	err := service.checkWalletIdentifier(&walletIdentifier)
 	if err != nil {
 		return err
@@ -403,7 +404,7 @@ func (service *MercuryFullChainService) OpenWallet(walletIdentifier accounts.Wal
 	return nil
 }
 
-func (service *MercuryFullChainService) CloseWallet(walletIdentifier accounts.WalletIdentifier) error {
+func (service *VenusFullChainService) CloseWallet(walletIdentifier accounts.WalletIdentifier) error {
 	err := service.checkWalletIdentifier(&walletIdentifier)
 	if err != nil {
 		return err
@@ -443,7 +444,7 @@ func (service *MercuryFullChainService) CloseWallet(walletIdentifier accounts.Wa
 	return nil
 }
 
-func (service *MercuryFullChainService) RestoreWallet(walletIdentifier accounts.WalletIdentifier, password, passPhrase, mnemonic string) error {
+func (service *VenusFullChainService) RestoreWallet(walletIdentifier accounts.WalletIdentifier, password, passPhrase, mnemonic string) error {
 	err := service.checkWalletIdentifier(&walletIdentifier)
 	if err != nil {
 		return err
@@ -483,7 +484,7 @@ func (service *MercuryFullChainService) RestoreWallet(walletIdentifier accounts.
 	return nil
 }
 
-func (service *MercuryFullChainService) ListWallet() ([]accounts.WalletIdentifier, error) {
+func (service *VenusFullChainService) ListWallet() ([]accounts.WalletIdentifier, error) {
 	walletIdentifiers, err := service.WalletManager.ListWalletIdentifier()
 	if err != nil {
 		log.Info("the listWallet err is:", "err", err)
@@ -492,7 +493,7 @@ func (service *MercuryFullChainService) ListWallet() ([]accounts.WalletIdentifie
 	return walletIdentifiers, nil
 }
 
-func (service *MercuryFullChainService) ListWalletAccount(walletIdentifier accounts.WalletIdentifier) ([]accounts.Account, error) {
+func (service *VenusFullChainService) ListWalletAccount(walletIdentifier accounts.WalletIdentifier) ([]accounts.Account, error) {
 	err := service.checkWalletIdentifier(&walletIdentifier)
 	if err != nil {
 		return []accounts.Account{}, err
@@ -506,8 +507,8 @@ func (service *MercuryFullChainService) ListWalletAccount(walletIdentifier accou
 	return tmpWallet.Accounts()
 }
 
-func (service *MercuryFullChainService) SetBftSigner(address common.Address) error {
-	log.Info("MercuryFullChainService SetWalletAccountAddress run")
+func (service *VenusFullChainService) SetBftSigner(address common.Address) error {
+	log.Info("VenusFullChainService SetWalletAccountAddress run")
 	service.MsgSigner.SetBaseAddress(address)
 	/*if service.nodeContext.NodeConf().NodeType == chain_config.NodeTypeOfMineMaster {
 		service.nodeContext.SetMineCoinBase(address)
@@ -515,7 +516,7 @@ func (service *MercuryFullChainService) SetBftSigner(address common.Address) err
 	return nil
 }
 
-func (service *MercuryFullChainService) AddAccount(walletIdentifier accounts.WalletIdentifier, derivationPath string) (accounts.Account, error) {
+func (service *VenusFullChainService) AddAccount(walletIdentifier accounts.WalletIdentifier, derivationPath string) (accounts.Account, error) {
 	err := service.checkWalletIdentifier(&walletIdentifier)
 	if err != nil {
 		return accounts.Account{}, err
@@ -545,7 +546,7 @@ func (service *MercuryFullChainService) AddAccount(walletIdentifier accounts.Wal
 	return account, nil
 }
 
-/*func (service *MercuryFullChainService) SyncUsedAccounts(walletIdentifier accounts.WalletIdentifier, MaxChangeValue, MaxIndex uint32) error {
+/*func (service *VenusFullChainService) SyncUsedAccounts(walletIdentifier accounts.WalletIdentifier, MaxChangeValue, MaxIndex uint32) error {
 	err := service.checkWalletIdentifier(&walletIdentifier)
 	if err != nil {
 		return err
@@ -553,17 +554,17 @@ func (service *MercuryFullChainService) AddAccount(walletIdentifier accounts.Wal
 	return nil
 }*/
 
-func (service *MercuryFullChainService) getSendTxInfo(from common.Address, nonce *uint64) (accounts.Wallet, uint64, error) {
+func (service *VenusFullChainService) getSendTxInfo(from common.Address, nonce *uint64) (accounts.Wallet, uint64, error) {
 	//find wallet according to address
 	tmpWallet, err := service.WalletManager.FindWalletFromAddress(from)
 	if err != nil {
-		log.Error("MercuryFullChainService#getSendTxInfo FindWalletFromAddress", "err", err)
+		log.Error("VenusFullChainService#getSendTxInfo FindWalletFromAddress", "err", err)
 		return nil, 0, err
 	}
 	//generate transaction
 	state, err := service.ChainReader.CurrentState()
 	if err != nil {
-		log.Error("MercuryFullChainService#getSendTxInfo  CurrentState", "err", err)
+		log.Error("VenusFullChainService#getSendTxInfo  CurrentState", "err", err)
 		return nil, 0, err
 	}
 
@@ -596,7 +597,7 @@ func (service *MercuryFullChainService) getSendTxInfo(from common.Address, nonce
 
 //send single tx
 
-func (service *MercuryFullChainService) signTxAndSend(tmpWallet accounts.Wallet, from common.Address, tx *model.Transaction, usedNonce uint64) (*model.Transaction, error) {
+func (service *VenusFullChainService) signTxAndSend(tmpWallet accounts.Wallet, from common.Address, tx *model.Transaction, usedNonce uint64) (*model.Transaction, error) {
 	fromAccount := accounts.Account{Address: from}
 	//get chainId
 	signedTx, err := tmpWallet.SignTx(fromAccount, tx, service.ChainConfig.ChainId)
@@ -629,7 +630,7 @@ func (service *MercuryFullChainService) signTxAndSend(tmpWallet accounts.Wallet,
 }
 
 //send multiple-txs
-func (service *MercuryFullChainService) SendTransactions(from common.Address, rpcTxs []model.RpcTransaction) (int, error) {
+func (service *VenusFullChainService) SendTransactions(from common.Address, rpcTxs []model.RpcTransaction) (int, error) {
 	//start := time.Now()
 	tmpWallet, err := service.WalletManager.FindWalletFromAddress(from)
 	if err != nil {
@@ -664,7 +665,7 @@ func (service *MercuryFullChainService) SendTransactions(from common.Address, rp
 }
 
 //
-func (service *MercuryFullChainService) NewSendTransactions(txs []model.Transaction) (int, error) {
+func (service *VenusFullChainService) NewSendTransactions(txs []model.Transaction) (int, error) {
 	temtxs := make([]model.AbstractTransaction, 0)
 	for _, item := range txs {
 		temtx := item
@@ -681,7 +682,7 @@ func (service *MercuryFullChainService) NewSendTransactions(txs []model.Transact
 }
 
 //send a normal transaction
-func (service *MercuryFullChainService) SendTransaction(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (common.Hash, error) {
+func (service *VenusFullChainService) SendTransaction(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (common.Hash, error) {
 	//start:=time.Now()
 	// automatic transfer need this
 	if from.IsEqual(common.Address{}) {
@@ -712,7 +713,7 @@ func (service *MercuryFullChainService) SendTransaction(from, to common.Address,
 }
 
 //send a register transaction
-func (service *MercuryFullChainService) SendRegisterTransaction(from common.Address, stake, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
+func (service *VenusFullChainService) SendRegisterTransaction(from common.Address, stake, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
 	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfVerifier {
 		return common.Hash{}, errors.New("the node isn't verifier")
 	}
@@ -733,7 +734,7 @@ func (service *MercuryFullChainService) SendRegisterTransaction(from common.Addr
 	return txHash, nil
 }
 
-func (service *MercuryFullChainService) getLuckProof(addr common.Address) (common.Hash, []byte, uint64, error) {
+func (service *VenusFullChainService) getLuckProof(addr common.Address) (common.Hash, []byte, uint64, error) {
 	tmpWallet, err := service.WalletManager.FindWalletFromAddress(addr)
 	if err != nil {
 		return common.Hash{}, []byte{}, 0, err
@@ -751,7 +752,7 @@ func (service *MercuryFullChainService) getLuckProof(addr common.Address) (commo
 	return luck, proof, blockNumber, nil
 }
 
-func (service *MercuryFullChainService) CurrentElectPriority(addr common.Address) (uint64, error) {
+func (service *VenusFullChainService) CurrentElectPriority(addr common.Address) (uint64, error) {
 	luck, _, _, err := service.getLuckProof(addr)
 	if err != nil {
 		return 0, err
@@ -791,7 +792,7 @@ func (service *MercuryFullChainService) CurrentElectPriority(addr common.Address
 	return priority, nil
 }
 
-func (service *MercuryFullChainService) CurrentReputation(addr common.Address) (uint64, error) {
+func (service *VenusFullChainService) CurrentReputation(addr common.Address) (uint64, error) {
 	state, err := service.ChainReader.CurrentState()
 	if err != nil {
 		return 0, err
@@ -806,7 +807,7 @@ func (service *MercuryFullChainService) CurrentReputation(addr common.Address) (
 	return reputation, nil
 }
 
-func (service *MercuryFullChainService) MineTxCount() int {
+func (service *VenusFullChainService) MineTxCount() int {
 	if service.MineMaster != nil {
 		return service.MineMaster.MineTxCount()
 	}
@@ -814,7 +815,7 @@ func (service *MercuryFullChainService) MineTxCount() int {
 }
 
 //send a evidence transaction
-func (service *MercuryFullChainService) SendEvidenceTransaction(from, target common.Address, gasPrice *big.Int, gasLimit uint64, voteA *model.VoteMsg, voteB *model.VoteMsg, nonce *uint64) (common.Hash, error) {
+func (service *VenusFullChainService) SendEvidenceTransaction(from, target common.Address, gasPrice *big.Int, gasLimit uint64, voteA *model.VoteMsg, voteB *model.VoteMsg, nonce *uint64) (common.Hash, error) {
 	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfVerifier {
 		return common.Hash{}, errors.New("the node isn't verifier")
 	}
@@ -837,7 +838,7 @@ func (service *MercuryFullChainService) SendEvidenceTransaction(from, target com
 }
 
 //Send redemption transaction
-func (service *MercuryFullChainService) SendUnStakeTransaction(from common.Address, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
+func (service *VenusFullChainService) SendUnStakeTransaction(from common.Address, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
 	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfVerifier {
 		return common.Hash{}, errors.New("the node isn't verifier")
 	}
@@ -859,7 +860,7 @@ func (service *MercuryFullChainService) SendUnStakeTransaction(from common.Addre
 }
 
 //send a cancellation transaction
-func (service *MercuryFullChainService) SendCancelTransaction(from common.Address, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
+func (service *VenusFullChainService) SendCancelTransaction(from common.Address, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
 	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfVerifier {
 		return common.Hash{}, errors.New("the node isn't verifier")
 	}
@@ -881,7 +882,7 @@ func (service *MercuryFullChainService) SendCancelTransaction(from common.Addres
 }
 
 //get address nonce from chain
-func (service *MercuryFullChainService) GetTransactionNonce(addr common.Address) (nonce uint64, err error) {
+func (service *VenusFullChainService) GetTransactionNonce(addr common.Address) (nonce uint64, err error) {
 	state, err := service.ChainReader.CurrentState()
 	if err != nil {
 		return 0, err
@@ -894,7 +895,7 @@ func (service *MercuryFullChainService) GetTransactionNonce(addr common.Address)
 }
 
 //get address nonce from wallet
-func (service *MercuryFullChainService) GetAddressNonceFromWallet(address common.Address) (nonce uint64, err error) {
+func (service *VenusFullChainService) GetAddressNonceFromWallet(address common.Address) (nonce uint64, err error) {
 	//find wallet according to address
 	tmpWallet, err := service.WalletManager.FindWalletFromAddress(address)
 	if err != nil {
@@ -904,7 +905,7 @@ func (service *MercuryFullChainService) GetAddressNonceFromWallet(address common
 }
 
 // wallet initiates a transaction
-func (service *MercuryFullChainService) NewTransaction(transaction model.Transaction) (txHash common.Hash, err error) {
+func (service *VenusFullChainService) NewTransaction(transaction model.Transaction) (txHash common.Hash, err error) {
 
 	//todo delete after test
 	log.Info("NewTransaction ~~~~~~~~~~~~~~~~~~~~~~~~~~~~", "txId", transaction.CalTxId().Hex())
@@ -928,7 +929,7 @@ func (service *MercuryFullChainService) NewTransaction(transaction model.Transac
 }
 
 // consult a transaction
-func (service *MercuryFullChainService) Transaction(hash common.Hash) (transaction *model.Transaction, blockHash common.Hash, blockNumber uint64, txIndex uint64, err error) {
+func (service *VenusFullChainService) Transaction(hash common.Hash) (transaction *model.Transaction, blockHash common.Hash, blockNumber uint64, txIndex uint64, err error) {
 
 	tx, blockHash, blockNum, txIndex := service.ChainReader.GetTransaction(hash)
 
@@ -939,25 +940,25 @@ func (service *MercuryFullChainService) Transaction(hash common.Hash) (transacti
 }
 
 //Test get verifiers of this round
-func (service *MercuryFullChainService) GetVerifiers(slotNum uint64) (addresses []common.Address) {
+func (service *VenusFullChainService) GetVerifiers(slotNum uint64) (addresses []common.Address) {
 	addresses = service.ChainReader.GetVerifiers(slotNum)
 	log.Debug("Get verifiers addresses", "slot", slotNum, "Length", len(addresses), "addresses", addresses)
 	return addresses
 }
 
-func (service *MercuryFullChainService) GetSlot(block model.AbstractBlock) *uint64 {
+func (service *VenusFullChainService) GetSlot(block model.AbstractBlock) *uint64 {
 	return service.ChainReader.GetSlot(block)
 }
 
-func (service *MercuryFullChainService) GetCurVerifiers() []common.Address {
+func (service *VenusFullChainService) GetCurVerifiers() []common.Address {
 	return service.ChainReader.GetCurrVerifiers()
 }
 
-func (service *MercuryFullChainService) GetNextVerifiers() []common.Address {
+func (service *VenusFullChainService) GetNextVerifiers() []common.Address {
 	return service.ChainReader.GetNextVerifiers()
 }
 
-func (service *MercuryFullChainService) VerifierStatus(addr common.Address) (verifierState string, stake *big.Int, balance *big.Int, reputation uint64, isCurrentVerifier bool, err error) {
+func (service *VenusFullChainService) VerifierStatus(addr common.Address) (verifierState string, stake *big.Int, balance *big.Int, reputation uint64, isCurrentVerifier bool, err error) {
 	status := []string{"Not Registered", "Registered", "Canceled", "Unstaked"}
 	verifierState = status[0]
 	state, err := service.ChainReader.CurrentState()
@@ -1016,7 +1017,7 @@ func (service *MercuryFullChainService) VerifierStatus(addr common.Address) (ver
 	return
 }
 
-func (service *MercuryFullChainService) isCurrentVerifier(address common.Address) bool {
+func (service *VenusFullChainService) isCurrentVerifier(address common.Address) bool {
 	vers := service.ChainReader.GetCurrVerifiers()
 	for v := range vers {
 		if vers[v].IsEqual(address) {
@@ -1026,7 +1027,7 @@ func (service *MercuryFullChainService) isCurrentVerifier(address common.Address
 	return false
 }
 
-func (service *MercuryFullChainService) GetCurrentConnectPeers() map[string]common.Address {
+func (service *VenusFullChainService) GetCurrentConnectPeers() map[string]common.Address {
 	if service.PbftPm != nil {
 		return service.PbftPm.GetCurrentConnectPeers()
 	} else {
@@ -1035,7 +1036,7 @@ func (service *MercuryFullChainService) GetCurrentConnectPeers() map[string]comm
 }
 
 // start mine
-func (service *MercuryFullChainService) StartMine() error {
+func (service *VenusFullChainService) StartMine() error {
 	if service.MineMaster == nil {
 		return errors.New("current node is not mine master")
 	}
@@ -1049,7 +1050,7 @@ func (service *MercuryFullChainService) StartMine() error {
 }
 
 // stop mine
-func (service *MercuryFullChainService) StopMine() error {
+func (service *VenusFullChainService) StopMine() error {
 	if service.MineMaster == nil {
 		return errors.New("current node is not mine master")
 	}
@@ -1063,7 +1064,7 @@ func (service *MercuryFullChainService) StopMine() error {
 }
 
 // check if is mining
-func (service *MercuryFullChainService) Mining() bool {
+func (service *VenusFullChainService) Mining() bool {
 	if service.MineMaster != nil {
 		return service.MineMaster.Mining()
 	}
@@ -1071,7 +1072,7 @@ func (service *MercuryFullChainService) Mining() bool {
 }
 
 // debug
-func (service *MercuryFullChainService) Metrics(raw bool) (map[string]interface{}, error) {
+func (service *VenusFullChainService) Metrics(raw bool) (map[string]interface{}, error) {
 	/*// Create a rate formatter
 	units := []string{"", "K", "M", "G", "T", "E", "P"}
 	round := func(value float64, prec int) string {
@@ -1205,7 +1206,7 @@ func (service *MercuryFullChainService) Metrics(raw bool) (map[string]interface{
 }
 
 // add peer
-func (service *MercuryFullChainService) AddPeer(url string) error {
+func (service *VenusFullChainService) AddPeer(url string) error {
 	server := service.P2PServer
 	if server == nil {
 		return errors.New("no p2p server running")
@@ -1221,7 +1222,7 @@ func (service *MercuryFullChainService) AddPeer(url string) error {
 }
 
 // remove peer
-func (service *MercuryFullChainService) RemovePeer(url string) error {
+func (service *VenusFullChainService) RemovePeer(url string) error {
 	server := service.P2PServer
 	if server == nil {
 		return errors.New("no p2p server running")
@@ -1236,13 +1237,13 @@ func (service *MercuryFullChainService) RemovePeer(url string) error {
 	return nil
 }
 
-func (service *MercuryFullChainService) CsPmInfo() (*p2p.CsPmPeerInfo, error) {
+func (service *VenusFullChainService) CsPmInfo() (*p2p.CsPmPeerInfo, error) {
 	pm := service.NormalPm.(*chain_communication.CsProtocolManager)
 	return pm.ShowPmInfo(), nil
 }
 
 // AddTrustedPeer allows a remote node to always connect, even if slots are full
-func (service *MercuryFullChainService) AddTrustedPeer(url string) error {
+func (service *VenusFullChainService) AddTrustedPeer(url string) error {
 	server := service.P2PServer
 	if server == nil {
 		return errors.New("no p2p server running")
@@ -1259,7 +1260,7 @@ func (service *MercuryFullChainService) AddTrustedPeer(url string) error {
 
 // RemoveTrustedPeer removes a remote node from the trusted peer set, but it
 // does not disconnect it automatically.
-func (service *MercuryFullChainService) RemoveTrustedPeer(url string) error {
+func (service *VenusFullChainService) RemoveTrustedPeer(url string) error {
 	server := service.P2PServer
 	if server == nil {
 		return errors.New("no p2p server running")
@@ -1274,7 +1275,7 @@ func (service *MercuryFullChainService) RemoveTrustedPeer(url string) error {
 	return nil
 }
 
-func (service *MercuryFullChainService) Peers() ([]*p2p.PeerInfo, error) {
+func (service *VenusFullChainService) Peers() ([]*p2p.PeerInfo, error) {
 	server := service.P2PServer
 	if server == nil {
 		return nil, errors.New("no p2p server running")
@@ -1282,11 +1283,11 @@ func (service *MercuryFullChainService) Peers() ([]*p2p.PeerInfo, error) {
 	return server.PeersInfo(), nil
 }
 
-func (service *MercuryFullChainService) GetChainConfig() chain_config.ChainConfig {
+func (service *VenusFullChainService) GetChainConfig() chain_config.ChainConfig {
 	return service.ChainConfig
 }
 
-func (service *MercuryFullChainService) GetContractInfo(eData *contract.ExtraDataForContract) (interface{}, error) {
+func (service *VenusFullChainService) GetContractInfo(eData *contract.ExtraDataForContract) (interface{}, error) {
 	state, err := service.ChainReader.CurrentState()
 	if err != nil {
 		return nil, err
@@ -1300,7 +1301,7 @@ func (service *MercuryFullChainService) GetContractInfo(eData *contract.ExtraDat
 	return info, err
 }
 
-func (service *MercuryFullChainService) GetContract(contractAddr common.Address) (interface{}, error) {
+func (service *VenusFullChainService) GetContract(contractAddr common.Address) (interface{}, error) {
 	state, err := service.ChainReader.CurrentState()
 	if err != nil {
 		return nil, err
@@ -1320,7 +1321,7 @@ func (service *MercuryFullChainService) GetContract(contractAddr common.Address)
 	return nContractV.Interface(), nil
 }
 
-func (service *MercuryFullChainService) GetBlockDiffVerifierInfo(blockNumber uint64) (map[economy_model.VerifierType][]common.Address, error) {
+func (service *VenusFullChainService) GetBlockDiffVerifierInfo(blockNumber uint64) (map[economy_model.VerifierType][]common.Address, error) {
 	if blockNumber < 2 {
 		return map[economy_model.VerifierType][]common.Address{}, g_error.BlockNumberError
 	}
@@ -1330,36 +1331,36 @@ func (service *MercuryFullChainService) GetBlockDiffVerifierInfo(blockNumber uin
 	return service.ChainReader.GetEconomyModel().GetDiffVerifierAddress(preBlock, block)
 }
 
-func (service *MercuryFullChainService) GetVerifierDIPReward(blockNumber uint64) (map[economy_model.VerifierType]*big.Int, error) {
+func (service *VenusFullChainService) GetVerifierDIPReward(blockNumber uint64) (map[economy_model.VerifierType]*big.Int, error) {
 	block, _ := service.GetBlockByNumber(blockNumber)
 	return service.ChainReader.GetEconomyModel().GetVerifierDIPReward(block)
 }
 
-func (service *MercuryFullChainService) GetMineMasterDIPReward(blockNumber uint64) (*big.Int, error) {
+func (service *VenusFullChainService) GetMineMasterDIPReward(blockNumber uint64) (*big.Int, error) {
 	block, _ := service.GetBlockByNumber(blockNumber)
 	return service.ChainReader.GetEconomyModel().GetMineMasterDIPReward(block)
 }
 
-func (service *MercuryFullChainService) GetBlockYear(blockNumber uint64) (uint64, error) {
+func (service *VenusFullChainService) GetBlockYear(blockNumber uint64) (uint64, error) {
 	return service.ChainReader.GetEconomyModel().GetBlockYear(blockNumber)
 }
 
-func (service *MercuryFullChainService) GetOneBlockTotalDIPReward(blockNumber uint64) (*big.Int, error) {
+func (service *VenusFullChainService) GetOneBlockTotalDIPReward(blockNumber uint64) (*big.Int, error) {
 	if blockNumber == 0 {
 		return big.NewInt(0), nil
 	}
 	return service.ChainReader.GetEconomyModel().GetOneBlockTotalDIPReward(blockNumber)
 }
 
-func (service *MercuryFullChainService) GetInvestorInfo() map[common.Address]*big.Int {
+func (service *VenusFullChainService) GetInvestorInfo() map[common.Address]*big.Int {
 	return service.ChainReader.GetEconomyModel().GetInvestorInitBalance()
 }
 
-func (service *MercuryFullChainService) GetDeveloperInfo() map[common.Address]*big.Int {
+func (service *VenusFullChainService) GetDeveloperInfo() map[common.Address]*big.Int {
 	return service.ChainReader.GetEconomyModel().GetDeveloperInitBalance()
 }
 
-func (service *MercuryFullChainService) GetAddressLockMoney(address common.Address) (*big.Int, error) {
+func (service *VenusFullChainService) GetAddressLockMoney(address common.Address) (*big.Int, error) {
 	currentBlock := service.CurrentBlock()
 	if currentBlock == nil {
 		return big.NewInt(0), g_error.BlockIsNilError
@@ -1368,31 +1369,31 @@ func (service *MercuryFullChainService) GetAddressLockMoney(address common.Addre
 	return service.ChainReader.GetEconomyModel().GetAddressLockMoney(address, currentBlock.Number())
 }
 
-func (service *MercuryFullChainService) GetInvestorLockDIP(address common.Address, blockNumber uint64) (*big.Int, error) {
+func (service *VenusFullChainService) GetInvestorLockDIP(address common.Address, blockNumber uint64) (*big.Int, error) {
 	return service.ChainReader.GetEconomyModel().GetInvestorLockDIP(address, blockNumber)
 }
 
-func (service *MercuryFullChainService) GetDeveloperLockDIP(address common.Address, blockNumber uint64) (*big.Int, error) {
+func (service *VenusFullChainService) GetDeveloperLockDIP(address common.Address, blockNumber uint64) (*big.Int, error) {
 	return service.ChainReader.GetEconomyModel().GetDeveloperLockDIP(address, blockNumber)
 }
 
-func (service *MercuryFullChainService) GetFoundationInfo(usage economy_model.FoundationDIPUsage) map[common.Address]*big.Int {
+func (service *VenusFullChainService) GetFoundationInfo(usage economy_model.FoundationDIPUsage) map[common.Address]*big.Int {
 	return service.ChainReader.GetEconomyModel().GetFoundation().GetFoundationInfo(usage)
 }
 
-func (service *MercuryFullChainService) GetMaintenanceLockDIP(address common.Address, blockNumber uint64) (*big.Int, error) {
+func (service *VenusFullChainService) GetMaintenanceLockDIP(address common.Address, blockNumber uint64) (*big.Int, error) {
 	return service.ChainReader.GetEconomyModel().GetFoundation().GetMaintenanceLockDIP(address, blockNumber)
 }
 
-func (service *MercuryFullChainService) GetReMainRewardLockDIP(address common.Address, blockNumber uint64) (*big.Int, error) {
+func (service *VenusFullChainService) GetReMainRewardLockDIP(address common.Address, blockNumber uint64) (*big.Int, error) {
 	return service.ChainReader.GetEconomyModel().GetFoundation().GetReMainRewardLockDIP(address, blockNumber)
 }
 
-func (service *MercuryFullChainService) GetEarlyTokenLockDIP(address common.Address, blockNumber uint64) (*big.Int, error) {
+func (service *VenusFullChainService) GetEarlyTokenLockDIP(address common.Address, blockNumber uint64) (*big.Int, error) {
 	return service.ChainReader.GetEconomyModel().GetFoundation().GetEarlyTokenLockDIP(address, blockNumber)
 }
 
-func (service *MercuryFullChainService) GetMineMasterEDIPReward(blockNumber uint64, tokenDecimals int) (*big.Int, error) {
+func (service *VenusFullChainService) GetMineMasterEDIPReward(blockNumber uint64, tokenDecimals int) (*big.Int, error) {
 	block, _ := service.GetBlockByNumber(blockNumber)
 	DIPReward, err := service.ChainReader.GetEconomyModel().GetMineMasterDIPReward(block)
 	if err != nil {
@@ -1401,7 +1402,7 @@ func (service *MercuryFullChainService) GetMineMasterEDIPReward(blockNumber uint
 	return service.ChainReader.GetEconomyModel().GetFoundation().GetMineMasterEDIPReward(DIPReward, blockNumber, tokenDecimals)
 }
 
-func (service *MercuryFullChainService) GetVerifierEDIPReward(blockNumber uint64, tokenDecimals int) (map[economy_model.VerifierType]*big.Int, error) {
+func (service *VenusFullChainService) GetVerifierEDIPReward(blockNumber uint64, tokenDecimals int) (map[economy_model.VerifierType]*big.Int, error) {
 	block, _ := service.GetBlockByNumber(blockNumber)
 	DIPReward, err := service.ChainReader.GetEconomyModel().GetVerifierDIPReward(block)
 	if err != nil {
@@ -1411,7 +1412,7 @@ func (service *MercuryFullChainService) GetVerifierEDIPReward(blockNumber uint64
 }
 
 // notify wallet
-func (service *MercuryFullChainService) NewBlock(ctx context.Context) (*rpc.Subscription, error) {
+func (service *VenusFullChainService) NewBlock(ctx context.Context) (*rpc.Subscription, error) {
 	notifier, supported := rpc.NotifierFromContext(ctx)
 	if !supported {
 		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
@@ -1478,7 +1479,7 @@ type SubBlockTxResp struct {
 }
 
 // notify wallet
-func (service *MercuryFullChainService) SubscribeBlock(ctx context.Context) (*rpc.Subscription, error) {
+func (service *VenusFullChainService) SubscribeBlock(ctx context.Context) (*rpc.Subscription, error) {
 	notifier, supported := rpc.NotifierFromContext(ctx)
 	if !supported {
 		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
@@ -1533,7 +1534,7 @@ func (service *MercuryFullChainService) SubscribeBlock(ctx context.Context) (*rp
 }
 
 // stop this node service
-func (service *MercuryFullChainService) StopDipperin() {
+func (service *VenusFullChainService) StopDipperin() {
 	service.Node.Stop()
 	go func() {
 		time.Sleep(1 * time.Second)
@@ -1541,7 +1542,7 @@ func (service *MercuryFullChainService) StopDipperin() {
 	}()
 }
 
-func (service *MercuryFullChainService) GetContractAddressByTxHash(txHash common.Hash) (common.Address, error) {
+func (service *VenusFullChainService) GetContractAddressByTxHash(txHash common.Hash) (common.Address, error) {
 	_, blockHash, blockNumber, _, err := service.Transaction(txHash)
 	if err != nil {
 		return common.Address{}, err
@@ -1559,7 +1560,7 @@ func (service *MercuryFullChainService) GetContractAddressByTxHash(txHash common
 	return common.Address{}, g_error.ErrReceiptNotFound
 }
 
-func (service *MercuryFullChainService) GetABI(contractAddr common.Address) (*utils.WasmAbi, error) {
+func (service *VenusFullChainService) GetABI(contractAddr common.Address) (*utils.WasmAbi, error) {
 	stateRoot := service.CurrentBlock().StateRoot()
 	stateDB, err := service.ChainReader.AccountStateDB(stateRoot)
 	if err != nil {
@@ -1577,9 +1578,9 @@ func (service *MercuryFullChainService) GetABI(contractAddr common.Address) (*ut
 	return &abi, nil
 }
 
-func (service *MercuryFullChainService) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, addresses []common.Address, topics [][]common.Hash) ([]*model2.Log, error) {
-	log.Info("MercuryFullChainService#GetLogs", "blockHash", blockHash, "fromBlock", fromBlock, "toBlock", toBlock)
-	log.Info("MercuryFullChainService#GetLogs", "addresses", addresses, "topics", topics)
+func (service *VenusFullChainService) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, addresses []common.Address, topics [][]common.Hash) ([]*model2.Log, error) {
+	log.Info("VenusFullChainService#GetLogs", "blockHash", blockHash, "fromBlock", fromBlock, "toBlock", toBlock)
+	log.Info("VenusFullChainService#GetLogs", "addresses", addresses, "topics", topics)
 	var filter *chain_state.Filter
 	if !blockHash.IsEmpty() {
 		// Block filter requested, construct a single-shot filter
@@ -1599,14 +1600,14 @@ func (service *MercuryFullChainService) GetLogs(blockHash common.Hash, fromBlock
 		}
 		// Construct the range filter
 		filter = chain_state.NewRangeFilter(service.ChainReader, service.ChainIndex, int64(begin), int64(end), addresses, topics)
-		log.Info("MercuryFullChainService#GetLogs", "begin", begin, "end", end)
+		log.Info("VenusFullChainService#GetLogs", "begin", begin, "end", end)
 	}
 	// Run the filter and return all the logs
 	cx, cancel := context.WithTimeout(context.Background(), time.Second*150)
 	defer cancel()
 	logs, err := filter.Logs(cx)
 	if err != nil {
-		log.Info("MercuryFullChainService#GetLogs", "logs", logs, "err", err)
+		log.Info("VenusFullChainService#GetLogs", "logs", logs, "err", err)
 		return nil, err
 	}
 	return service.convertLogs(logs)
@@ -1614,7 +1615,7 @@ func (service *MercuryFullChainService) GetLogs(blockHash common.Hash, fromBlock
 
 // convertLogs is a helper that will return an empty log array in case the given logs array is nil,
 // otherwise the given logs array is returned.
-func (service *MercuryFullChainService) convertLogs(logs []*model2.Log) ([]*model2.Log, error) {
+func (service *VenusFullChainService) convertLogs(logs []*model2.Log) ([]*model2.Log, error) {
 	if logs == nil {
 		return []*model2.Log{}, nil
 	}
@@ -1641,7 +1642,7 @@ func (service *MercuryFullChainService) convertLogs(logs []*model2.Log) ([]*mode
 	return logs, nil
 }
 
-func (service *MercuryFullChainService) GetTxActualFee(txHash common.Hash) (*big.Int, error) {
+func (service *VenusFullChainService) GetTxActualFee(txHash common.Hash) (*big.Int, error) {
 	receipt, err := service.GetReceiptByTxHash(txHash)
 	if err != nil {
 		log.Info("GetTxActualFee GetConvertReceiptByTxHash error", "err", err)
@@ -1658,7 +1659,7 @@ func (service *MercuryFullChainService) GetTxActualFee(txHash common.Hash) (*big
 	return actualFee, nil
 }
 
-func (service *MercuryFullChainService) GetReceiptsByBlockNum(num uint64) (model2.Receipts, error) {
+func (service *VenusFullChainService) GetReceiptsByBlockNum(num uint64) (model2.Receipts, error) {
 	block, err := service.GetBlockByNumber(num)
 	if err != nil {
 		return nil, err
@@ -1684,7 +1685,7 @@ func (service *MercuryFullChainService) GetReceiptsByBlockNum(num uint64) (model
 	return receipts, nil
 }
 
-func (service *MercuryFullChainService) GetReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
+func (service *VenusFullChainService) GetReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
 	_, blockHash, blockNumber, _, err := service.Transaction(txHash)
 	if err != nil {
 		return nil, err
@@ -1713,7 +1714,7 @@ func (service *MercuryFullChainService) GetReceiptByTxHash(txHash common.Hash) (
 	return nil, g_error.ErrReceiptNotFound
 }
 
-func (service *MercuryFullChainService) SendTransactionContract(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (common.Hash, error) {
+func (service *VenusFullChainService) SendTransactionContract(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (common.Hash, error) {
 	// check Tx type
 	if to.GetAddressType() != common.AddressTypeContractCall && to.GetAddressType() != common.AddressTypeContractCreate {
 		return common.Hash{}, g_error.ErrInvalidContractType
@@ -1746,7 +1747,7 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 
 	tmpWallet, usedNonce, err := service.getSendTxInfo(from, nonce)
 	if err != nil {
-		log.Error("MercuryFullChainService#SendTransactionContract", "err", err)
+		log.Error("VenusFullChainService#SendTransactionContract", "err", err)
 		return common.Hash{}, err
 	}
 
@@ -1768,7 +1769,7 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 	return txHash, nil
 }
 
-func (service *MercuryFullChainService) GetExtraData(to common.Address, data []byte) ([]byte, error) {
+func (service *VenusFullChainService) GetExtraData(to common.Address, data []byte) ([]byte, error) {
 	if data == nil || len(data) == 0 {
 		return []byte{}, g_error.ErrEmptyTxData
 	}
@@ -1816,7 +1817,7 @@ type CallArgs struct {
 
 // Call executes the given transaction on the state for the given block number.
 // It doesn't make and changes in the state/block chain and is useful to execute and retrieve values.
-func (service *MercuryFullChainService) Call(signedTx model.AbstractTransaction, blockNum uint64) (string, error) {
+func (service *VenusFullChainService) Call(signedTx model.AbstractTransaction, blockNum uint64) (string, error) {
 	// check Tx type
 	if signedTx.To().GetAddressType() != common.AddressTypeContractCall {
 		return "", g_error.ErrInvalidContractType
@@ -1861,7 +1862,7 @@ func (service *MercuryFullChainService) Call(signedTx model.AbstractTransaction,
 
 // EstimateGas returns an estimate of the amount of gas needed to execute the
 // given transaction against the current block.
-func (service *MercuryFullChainService) EstimateGas(signedTx model.AbstractTransaction, blockNum uint64) (hexutil.Uint64, error) {
+func (service *VenusFullChainService) EstimateGas(signedTx model.AbstractTransaction, blockNum uint64) (hexutil.Uint64, error) {
 	log.Info("Service#EstimateGas Start")
 	if signedTx.To().GetAddressType() != common.AddressTypeContractCreate && signedTx.To().GetAddressType() != common.AddressTypeContractCall {
 		gasUsed, err := model.IntrinsicGas(signedTx.ExtraData(), false, false)
@@ -1929,7 +1930,7 @@ func (service *MercuryFullChainService) EstimateGas(signedTx model.AbstractTrans
 	return hexutil.Uint64(high), nil
 }
 
-func (service *MercuryFullChainService) MakeTmpSignedTx(args CallArgs, blockNum uint64) (model.AbstractTransaction, error) {
+func (service *VenusFullChainService) MakeTmpSignedTx(args CallArgs, blockNum uint64) (model.AbstractTransaction, error) {
 	state, err := service.ChainReader.StateAtByBlockNumber(blockNum)
 	if state == nil || err != nil {
 		return nil, err
@@ -1986,7 +1987,7 @@ func (service *MercuryFullChainService) MakeTmpSignedTx(args CallArgs, blockNum 
 	return signedTx, nil
 }
 
-func (service *MercuryFullChainService) doCall(msg state_processor.Message, txHash common.Hash, blockNum uint64, timeout time.Duration) ([]byte, bool, error) {
+func (service *VenusFullChainService) doCall(msg state_processor.Message, txHash common.Hash, blockNum uint64, timeout time.Duration) ([]byte, bool, error) {
 	defer func(start time.Time) { log.Debug("Executing EVM call finished", "runtime", time.Since(start)) }(time.Now())
 
 	// GetBlock and GetState
@@ -2053,7 +2054,7 @@ func (service *MercuryFullChainService) doCall(msg state_processor.Message, txHa
 	return result, failed, nil
 }
 
-func (service *MercuryFullChainService) CheckConstant(to common.Address, data []byte) (bool, string, *utils.WasmAbi, error) {
+func (service *VenusFullChainService) CheckConstant(to common.Address, data []byte) (bool, string, *utils.WasmAbi, error) {
 	funcName, err := vm.ParseInputForFuncName(data)
 	if err != nil {
 		log.Error("ParseInputForFuncName failed", "err", err)

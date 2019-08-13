@@ -28,7 +28,7 @@ import (
 	"time"
 )
 
-var txSigner = model.NewMercurySigner(chain_config.GetChainConfig().ChainId)
+var txSigner = model.NewSigner(chain_config.GetChainConfig().ChainId)
 
 // 交易builder
 type TxBuilder struct {

@@ -173,8 +173,8 @@ func CreatKeyV() (*ecdsa.PrivateKey, *ecdsa.PrivateKey) {
 }
 func CreatTestTxV() (*model.Transaction, *model.Transaction) {
 	key1, key2 := CreatKeyV()
-	fs1 := model.NewMercurySigner(big.NewInt(1))
-	fs2 := model.NewMercurySigner(big.NewInt(3))
+	fs1 := model.NewSigner(big.NewInt(1))
+	fs2 := model.NewSigner(big.NewInt(3))
 	alice := cs_crypto.GetNormalAddress(key1.PublicKey)
 	bob := cs_crypto.GetNormalAddress(key2.PublicKey)
 	hashkey := []byte("123")

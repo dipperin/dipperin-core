@@ -30,7 +30,7 @@ import (
 func TestDeriveShaByHash_DeriveSha(t *testing.T) {
 	txs1 := CreateSignedTxList(300)
 	try := DeriveSha(Transactions(txs1))
-	ms := NewMercurySigner(big.NewInt(1))
+	ms := NewSigner(big.NewInt(1))
 
 	tree := new(trie.Trie)
 	for i := 0; i < 300; i++ {

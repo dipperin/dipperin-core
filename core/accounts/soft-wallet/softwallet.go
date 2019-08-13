@@ -561,7 +561,7 @@ func (w *SoftWallet) SignTx(account accounts.Account, tx *model.Transaction, cha
 		return nil, err
 	}
 
-	var s model.Signer = model.NewMercurySigner(chainID)
+	var s model.Signer = model.NewSigner(chainID)
 
 	signedTx, err := tx.SignTx(priKeys, s)
 	if err != nil {

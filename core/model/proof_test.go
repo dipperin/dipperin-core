@@ -27,7 +27,7 @@ import (
 func TestNewRegisterTransaction(t *testing.T) {
 	k1, _ := CreateKey()
 	trans := NewRegisterTransaction(1, big.NewInt(50), g_testData.TestGasPrice, g_testData.TestGasLimit)
-	fs := NewMercurySigner(big.NewInt(1))
+	fs := NewSigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(k1, fs)
 	assert.EqualValues(t, signedTx.GetType(), common.AddressTypeStake)
 }

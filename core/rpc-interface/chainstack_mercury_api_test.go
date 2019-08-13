@@ -48,7 +48,7 @@ func TestDipperinMercuryApi(t *testing.T) {
 	mn := NewMockNodeConf(controller)
 	mpeer := NewMockPmAbstractPeer(controller)
 	mpm := NewMockAbstractPbftProtocolManager(controller)
-	api := &DipperinMercuryApi{service: &service.MercuryFullChainService{
+	api := &DipperinVenusApi{service: &service.VenusFullChainService{
 		DipperinConfig: &service.DipperinConfig{
 			NormalPm:           mp,
 			ChainReader:        mc,

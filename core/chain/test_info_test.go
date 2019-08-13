@@ -95,7 +95,7 @@ func createTestStateDB(t *testing.T) (ethdb.Database, common.Hash) {
 
 func createUnNormalTx() *model.Transaction {
 	key1, _ := crypto.HexToECDSA(testPriv1)
-	fs1 := model.NewMercurySigner(big.NewInt(1))
+	fs1 := model.NewSigner(big.NewInt(1))
 	tx := model.NewUnNormalTransaction(0, big.NewInt(1000), big.NewInt(1), model2.TxGas)
 	signedTx, _ := tx.SignTx(key1, fs1)
 	return signedTx

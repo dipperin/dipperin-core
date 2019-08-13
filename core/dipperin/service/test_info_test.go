@@ -193,7 +193,7 @@ func createTxPool(csChain *chain_state.ChainState) *tx_pool.TxPool {
 
 func createSignedTx(nonce uint64, to common.Address, amount *big.Int, extraData []byte, testAccounts []tests.Account) *model.Transaction {
 	verifiers, _ := tests.ChangeVerifierAddress(testAccounts)
-	fs1 := model.NewMercurySigner(big.NewInt(1))
+	fs1 := model.NewSigner(big.NewInt(1))
 	gasLimit := g_testData.TestGasLimit * 500
 	tx := model.NewTransaction(nonce, to, amount, g_testData.TestGasPrice, gasLimit, extraData)
 	signedTx, _ := tx.SignTx(verifiers[0].Pk, fs1)
@@ -201,7 +201,7 @@ func createSignedTx(nonce uint64, to common.Address, amount *big.Int, extraData 
 }
 
 func createSignedTx2(nonce uint64, from *ecdsa.PrivateKey, to common.Address, amount *big.Int) *model.Transaction {
-	fs1 := model.NewMercurySigner(big.NewInt(1))
+	fs1 := model.NewSigner(big.NewInt(1))
 	tx := model.NewTransaction(nonce, to, amount, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	signedTx, _ := tx.SignTx(from, fs1)
 	return signedTx

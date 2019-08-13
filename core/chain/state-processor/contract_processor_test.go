@@ -103,7 +103,7 @@ func TestAccountStateDB_ProcessContract_Error(t *testing.T) {
 }
 
 func TestAccountStateDB_ProcessContractToken(t *testing.T) {
-	singer := model.NewMercurySigner(new(big.Int).SetInt64(int64(1)))
+	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
 
 	ownSK, _ := crypto.GenerateKey()
 	ownPk := ownSK.PublicKey
@@ -270,7 +270,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 }
 
 func TestContractWithNewFeature(t *testing.T) {
-	singer := model.NewMercurySigner(new(big.Int).SetInt64(int64(1)))
+	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
 
 	ownSK, _ := crypto.GenerateKey()
 	ownPk := ownSK.PublicKey
@@ -404,6 +404,7 @@ func processContractCall(t *testing.T, contractAddress common.Address, code []by
 func CreateProcessorAndInitAccount(t *testing.T, addressSlice []common.Address) (*AccountStateDB, error) {
 	db, root := CreateTestStateDB()
 	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
+
 	assert.NoError(t, err)
 	processor.NewAccountState(addressSlice[0])
 	err = processor.AddNonce(addressSlice[0], 0)

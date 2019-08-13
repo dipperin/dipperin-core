@@ -52,7 +52,7 @@ var testRoot = "0x54bbe8ffddc42dd501ab37438c2496d1d3be51d9c562531d56b48ea3bea667
 // testTxPoolConfig is a transaction pool configuration without stateful disk
 // side effects used during testing.
 var testTxPoolConfig TxPoolConfig
-var ms = model.NewMercurySigner(big.NewInt(1))
+var ms = model.NewSigner(big.NewInt(1))
 
 func init() {
 	testTxPoolConfig = DefaultTxPoolConfig
@@ -267,7 +267,7 @@ func TestTxPool_validateTx(t *testing.T) {
 	assert.EqualError(t, err, "tx nonce is invalid")
 
 	unsignedTx3 := model.NewTransaction(1, bobAddr, big.NewInt(5000), g_testData.TestGasPrice, g_testData.TestGasLimit, nil)
-	signedTx3, err := unsignedTx3.SignTx(key1, model.NewMercurySigner(big.NewInt(2)))
+	signedTx3, err := unsignedTx3.SignTx(key1, model.NewSigner(big.NewInt(2)))
 	assert.NoError(t, err)
 	err = pool.validateTx(signedTx3, false)
 	assert.EqualError(t, err, "invalid sender")

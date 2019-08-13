@@ -239,7 +239,7 @@ func (suite *chainWriterSuite) TestChainState_getTopVerifiers(t *check.C) {
 }
 
 func createRegisterTX(nonce uint64, amount *big.Int, account tests.Account) *model.Transaction {
-	fs1 := model.NewMercurySigner(big.NewInt(1))
+	fs1 := model.NewSigner(big.NewInt(1))
 	tx := model.NewRegisterTransaction(nonce, amount, g_testData.TestGasPrice, g_testData.TestGasLimit)
 	signedTx, _ := tx.SignTx(account.Pk, fs1)
 	return signedTx

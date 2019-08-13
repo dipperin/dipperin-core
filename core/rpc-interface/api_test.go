@@ -24,7 +24,7 @@ import (
 
 func TestGetMethodName(t *testing.T) {
 	t.Skip("no run this test")
-	var api interface{} = (*DipperinMercuryApi)(nil)
+	var api interface{} = (*DipperinVenusApi)(nil)
 
 	value := reflect.ValueOf(api)
 	typ := value.Type()

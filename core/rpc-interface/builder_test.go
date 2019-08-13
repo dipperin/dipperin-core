@@ -22,7 +22,7 @@ import (
 )
 
 func TestMakeDipperinMercuryApi(t *testing.T) {
-	assert.NotNil(t, MakeDipperinMercuryApi(nil))
+	assert.NotNil(t, MakeDipperinVenusApi(nil))
 	assert.NotNil(t, MakeDipperinDebugApi(nil))
 	assert.NotNil(t, MakeDipperinP2PApi(nil))
 	assert.NotNil(t, MakeRpcService(&fakeNConf{}, nil, nil))

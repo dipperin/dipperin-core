@@ -35,7 +35,7 @@ func TestDebugTxRlp(t *testing.T) {
 
 func TestTxSize(t *testing.T) {
 	keyAlice, _ := model.CreateKey()
-	ms := model.NewMercurySigner(big.NewInt(1))
+	ms := model.NewSigner(big.NewInt(1))
 	tempTx := model.NewTransaction(uint64(0), factory.BobAddrV, big.NewInt(1000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	tempTx.SignTx(keyAlice, ms)
 	log.Info("the tx size is:", "size", tempTx.Size())
@@ -56,7 +56,7 @@ func TestCalculateMiniTxFee(t *testing.T) {
 	log.Info("the extra data is:", "extraData", hexutil.Encode(extraData))
 	tempTx := model.NewTransaction(uint64(0), factory.BobAddrV, big.NewInt(1000), g_testData.TestGasPrice, g_testData.TestGasLimit, extraData)
 	keyAlice, _ := model.CreateKey()
-	ms := model.NewMercurySigner(big.NewInt(1))
+	ms := model.NewSigner(big.NewInt(1))
 	tempTx.SignTx(keyAlice, ms)
 
 	txData, err := tempTx.EncodeRlpToBytes()
@@ -116,7 +116,7 @@ func TestWASMContactMiniTxFee(t *testing.T) {
 	tempTx := model.NewTransaction(0, to, value, gasPrice, gasLimit.Uint64(), extraData)
 
 	keyAlice, _ := model.CreateKey()
-	ms := model.NewMercurySigner(big.NewInt(1))
+	ms := model.NewSigner(big.NewInt(1))
 	tempTx.SignTx(keyAlice, ms)
 
 	log.Info("the tx extra data size is:", "extraData size", len(tempTx.ExtraData()))

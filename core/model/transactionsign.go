@@ -62,7 +62,7 @@ func MakeSigner(config *chain_config.ChainConfig, blockNumber uint64) Signer {
 	var signer Signer
 	switch {
 	default:
-		signer = MercurySigner{chainId: config.ChainId}
+		signer = DipperinSigner{chainId: config.ChainId}
 	}
 	return signer
 }
@@ -82,68 +82,73 @@ type Signer interface {
 	Equal(Signer) bool
 }
 
-type MercurySigner struct{ chainId *big.Int }
+// Mercury chainId is 1
+// Venus chainId is 2
 
-func NewMercurySigner(chainId *big.Int) MercurySigner {
+type DipperinSigner struct{ chainId *big.Int }
+
+func NewSigner(chainId *big.Int) DipperinSigner {
 	if chainId == nil {
 		chainId = new(big.Int)
 	}
-	return MercurySigner{
+	return DipperinSigner{
 		chainId: chainId,
 	}
 }
 
-func (fs MercurySigner) Equal(s2 Signer) bool {
-	s, ok := s2.(MercurySigner)
-	return ok && fs.chainId.Cmp(s.chainId) == 0
+func (ds DipperinSigner) Equal(s2 Signer) bool {
+	s, ok := s2.(DipperinSigner)
+	return ok && ds.chainId.Cmp(s.chainId) == 0
 }
 
 // GetSignHash will return the VRFHash of the transaction with have the raw transaction data and chainId
-func (fs MercurySigner) GetSignHash(rtx *Transaction) (common.Hash, error) {
-	//log.Debug("MercurySigner GetSignHash","tx",rtx.data)
-	//log.Debug("MercurySigner GetSignHash","chainId",fs.chainId)
-	res, err := rlpHash([]interface{}{rtx.data, fs.chainId})
+func (ds DipperinSigner) GetSignHash(rtx *Transaction) (common.Hash, error) {
+	//log.Debug("DipperinSigner GetSignHash","tx",rtx.data)
+	//log.Debug("DipperinSigner GetSignHash","chainId",fs.chainId)
+	res, err := rlpHash([]interface{}{rtx.data, ds.chainId})
 	return res, err
 }
 
 // SignatureValues returns signature values. This signature
 // needs to be in the [R || S || V] format where V is 0 or 1.
-func (fs MercurySigner) SignatureValues(tx *Transaction, sig []byte) (r, s, v *big.Int, err error) {
+func (ds DipperinSigner) SignatureValues(tx *Transaction, sig []byte) (r, s, v *big.Int, err error) {
 	if len(sig) != 65 {
 		panic(fmt.Sprintf("wrong size for signature: got %d, want 65", len(sig)))
 	}
 	r = new(big.Int).SetBytes(sig[:32])
 	s = new(big.Int).SetBytes(sig[32:64])
 	v = new(big.Int).SetBytes([]byte{sig[64] + 54})
-	if fs.chainId.Sign() != 0 {
-		v.Add(v, big.NewInt(0).Mul(fs.chainId, big.NewInt(2)))
+
+	// Fixme mul 2 is EIP 155 modification, which is used to avoid transaction on ETC reply on ETH, can remove this modification
+	if ds.chainId.Sign() != 0 {
+		v.Add(v, big.NewInt(0).Mul(ds.chainId, big.NewInt(2)))
 	}
 	return r, s, v, nil
 }
 
-func (fs MercurySigner) GetSender(tx *Transaction) (common.Address, error) {
+func (ds DipperinSigner) GetSender(tx *Transaction) (common.Address, error) {
 	//different type use different address type
-	hash, err := fs.GetSignHash(tx)
+	hash, err := ds.GetSignHash(tx)
 	if err != nil {
 		return common.Address{}, err
 	}
 
-	//log.Debug("the MercurySigner GetSender hash is:","hash",hash.Hex())
+	//log.Debug("the DipperinSigner GetSender hash is:","hash",hash.Hex())
 
-	temp := big.NewInt(0).Sub(tx.wit.V, big.NewInt(0).Mul(fs.chainId, big.NewInt(2)))
+	temp := big.NewInt(0).Sub(tx.wit.V, big.NewInt(0).Mul(ds.chainId, big.NewInt(2)))
 	v := big.NewInt(0).Sub(temp, big.NewInt(54))
 
 	return recoverNormalSender(hash, tx.wit.R, tx.wit.S, v)
 }
 
-func (fs MercurySigner) GetSenderPublicKey(tx *Transaction) (*ecdsa.PublicKey, error) {
+func (ds DipperinSigner) GetSenderPublicKey(tx *Transaction) (*ecdsa.PublicKey, error) {
 	//different type use different address type
 	emptyPk := ecdsa.PublicKey{}
-	sigHash, err := fs.GetSignHash(tx)
+	sigHash, err := ds.GetSignHash(tx)
 	if err != nil {
 		return &emptyPk, err
 	}
-	temp := big.NewInt(0).Sub(tx.wit.V, big.NewInt(0).Mul(fs.chainId, big.NewInt(2)))
+	temp := big.NewInt(0).Sub(tx.wit.V, big.NewInt(0).Mul(ds.chainId, big.NewInt(2)))
 	V := big.NewInt(0).Sub(temp, big.NewInt(54))
 	R := tx.wit.R
 	S := tx.wit.S

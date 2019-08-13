@@ -54,7 +54,7 @@ func TestGetChainConfig(t *testing.T) {
 	assert.NoError(t, err)
 
 	chainConfig = defaultChainConfig()
-	assert.Equal(t, uint64(1), chainConfig.NetworkID)
+	assert.Equal(t, uint64(1600), chainConfig.NetworkID)
 
 	err = os.Setenv("boots_env", "mercury")
 	assert.NoError(t, err)

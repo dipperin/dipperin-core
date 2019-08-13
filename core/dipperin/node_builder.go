@@ -85,7 +85,7 @@ type BaseComponent struct {
 	consensusBeforeInsertBlocks BlockValidator
 	defaultMsgDecoder           chain_communication.P2PMsgDecoder
 	verifiersReader             VerifiersReader
-	chainService                *service.MercuryFullChainService
+	chainService                *service.VenusFullChainService
 	walletManager               *accounts.WalletManager
 	msgSigner                   *accounts.WalletSigner
 	bftNode                     *csbftnode.CsBft
@@ -163,7 +163,7 @@ func newBaseComponent(nodeConfig NodeConfig) *BaseComponent {
 		coinbaseAddr:              &atomic.Value{},
 		nodeConfig:                nodeConfig,
 	}
-	b.txSigner = model.NewMercurySigner(b.chainConfig.ChainId)
+	b.txSigner = model.NewSigner(b.chainConfig.ChainId)
 
 	// init block decoder
 	b.blockDecoder = model.MakeDefaultBlockDecoder()
@@ -281,7 +281,8 @@ func (b *BaseComponent) initFullChain() {
 	b.verifiersReader = chain.MakeVerifiersReader(b.fullChain)
 	b.consensusBeforeInsertBlocks = middleware.NewBftBlockValidator(b.fullChain)
 
-	if chain_config.GetCurBootsEnv() != "mercury" {
+	// Add Venus Testnet
+	if chain_config.GetCurBootsEnv() != "mercury" && chain_config.GetCurBootsEnv() != "venus" {
 		debug.Memsize.Add("fullChain", b.fullChain)
 		// TODo confirm if you need
 		//debug.Memsize.Add("consensusBeforeInsertBlocks", consensusBeforeInsertBlocks)
@@ -403,14 +404,14 @@ func (b *BaseComponent) initP2PService() {
 	b.csPm = csPm
 	b.broadcastDelegate = broadcastDelegate
 
-	if chain_config.GetCurBootsEnv() != "mercury" {
+	if chain_config.GetCurBootsEnv() != "mercury" && chain_config.GetCurBootsEnv() != "venus" {
 		debug.Memsize.Add("p2p server", p2pServer)
 	}
 }
 
 func (b *BaseComponent) initRpc() {
 	// load rpc service todo chainService not init
-	rpcApi := rpc_interface.MakeDipperinMercuryApi(b.chainService)
+	rpcApi := rpc_interface.MakeDipperinVenusApi(b.chainService)
 	debugApi := rpc_interface.MakeDipperinDebugApi(b.chainService)
 	p2pApi := rpc_interface.MakeDipperinP2PApi(b.chainService)
 

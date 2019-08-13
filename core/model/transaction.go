@@ -383,7 +383,7 @@ func (tx Transaction) ChainId() *big.Int {
 //todo: currently use default signer ,later need get a way to determine the signer from the tx itself.
 func (tx Transaction) GetSigner() Signer {
 	id := deriveChainId(tx.wit.V)
-	return MercurySigner{id}
+	return DipperinSigner{id}
 }
 
 // Cost returns amount + fee

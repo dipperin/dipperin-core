@@ -41,7 +41,7 @@ var (
 
 func createSignedTx(nonce uint64, amount *big.Int, to common.Address) *model.Transaction {
 	key1, _ := model.CreateKey()
-	fs1 := model.NewMercurySigner(big.NewInt(1))
+	fs1 := model.NewSigner(big.NewInt(1))
 	testTx1 := model.NewTransaction(nonce, to, amount, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	signedTx, _ := testTx1.SignTx(key1, fs1)
 	return signedTx

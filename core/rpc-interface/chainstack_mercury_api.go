@@ -40,12 +40,12 @@ import (
 	"math/big"
 )
 
-type DipperinMercuryApi struct {
-	service *service.MercuryFullChainService
+type DipperinVenusApi struct {
+	service *service.VenusFullChainService
 }
 
 // verify whether the chain is in sync
-func (api *DipperinMercuryApi) GetSyncStatus() bool {
+func (api *DipperinVenusApi) GetSyncStatus() bool {
 	return api.service.GetSyncStatus()
 }
 
@@ -58,7 +58,7 @@ func (api *DipperinMercuryApi) GetSyncStatus() bool {
 // responses:
 //   "200":
 //        "$ref": "#/responses/BlockResp"
-func (api *DipperinMercuryApi) CurrentBlock() (*BlockResp, error) {
+func (api *DipperinVenusApi) CurrentBlock() (*BlockResp, error) {
 
 	blockResp := &BlockResp{
 		Header: model.Header{},
@@ -96,7 +96,7 @@ func (api *DipperinMercuryApi) CurrentBlock() (*BlockResp, error) {
 // responses:
 //   "200":
 //        "$ref": "#/responses/BlockResp"
-func (api *DipperinMercuryApi) GetBlockByNumber(number uint64) (*BlockResp, error) {
+func (api *DipperinVenusApi) GetBlockByNumber(number uint64) (*BlockResp, error) {
 
 	blockResp := &BlockResp{
 		Header: model.Header{},
@@ -107,7 +107,7 @@ func (api *DipperinMercuryApi) GetBlockByNumber(number uint64) (*BlockResp, erro
 	}
 
 	curBlock, err := api.service.GetBlockByNumber(number)
-	log.Info("DipperinMercuryApi#GetBlockByNumber", "curBlock", curBlock)
+	log.Info("DipperinVenusApi#GetBlockByNumber", "curBlock", curBlock)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func (api *DipperinMercuryApi) GetBlockByNumber(number uint64) (*BlockResp, erro
 // responses:
 //   "200":
 //        "$ref": "#/responses/BlockResp"
-func (api *DipperinMercuryApi) GetBlockByHash(hash common.Hash) (*BlockResp, error) {
+func (api *DipperinVenusApi) GetBlockByHash(hash common.Hash) (*BlockResp, error) {
 	blockResp := &BlockResp{
 		Header: model.Header{},
 		Body: model.Body{
@@ -175,7 +175,7 @@ func (api *DipperinMercuryApi) GetBlockByHash(hash common.Hash) (*BlockResp, err
 // responses:
 //   "200":
 //        description: block height
-func (api *DipperinMercuryApi) GetBlockNumber(hash common.Hash) *uint64 {
+func (api *DipperinVenusApi) GetBlockNumber(hash common.Hash) *uint64 {
 	return api.service.GetBlockNumber(hash)
 }
 
@@ -189,7 +189,7 @@ func (api *DipperinMercuryApi) GetBlockNumber(hash common.Hash) *uint64 {
 // responses:
 //   "200":
 //        "$ref": "#/responses/BlockResp"
-func (api *DipperinMercuryApi) GetGenesis() (*BlockResp, error) {
+func (api *DipperinVenusApi) GetGenesis() (*BlockResp, error) {
 	blockResp := &BlockResp{
 		Header: model.Header{},
 		Body: model.Body{
@@ -232,7 +232,7 @@ func (api *DipperinMercuryApi) GetGenesis() (*BlockResp, error) {
 // responses:
 //   "200":
 //        "$ref": "#/responses/Body"
-func (api *DipperinMercuryApi) GetBlockBody(hash common.Hash) *model.Body {
+func (api *DipperinVenusApi) GetBlockBody(hash common.Hash) *model.Body {
 	tmpBody := api.service.GetBlockBody(hash)
 
 	return tmpBody.(*model.Body)
@@ -254,7 +254,7 @@ func (api *DipperinMercuryApi) GetBlockBody(hash common.Hash) *model.Body {
 // responses:
 //   "200":
 //        "$ref": "#/responses/CurBalanceResp"
-func (api *DipperinMercuryApi) CurrentBalance(address common.Address) (resp *CurBalanceResp, err error) {
+func (api *DipperinVenusApi) CurrentBalance(address common.Address) (resp *CurBalanceResp, err error) {
 	balance := api.service.CurrentBalance(address)
 	return &CurBalanceResp{
 		Balance: (*hexutil.Big)(balance),
@@ -277,7 +277,7 @@ func (api *DipperinMercuryApi) CurrentBalance(address common.Address) (resp *Cur
 // responses:
 //   "200":
 //        "$ref": "#/responses/TransactionResp"
-func (api *DipperinMercuryApi) Transaction(hash common.Hash) (resp *TransactionResp, err error) {
+func (api *DipperinVenusApi) Transaction(hash common.Hash) (resp *TransactionResp, err error) {
 
 	tmpResp := TransactionResp{
 		Transaction: &model.Transaction{},
@@ -314,7 +314,7 @@ func (api *DipperinMercuryApi) Transaction(hash common.Hash) (resp *TransactionR
 // responses:
 //   "200":
 //        description: return nonce and the result
-func (api *DipperinMercuryApi) GetTransactionNonce(addr common.Address) (nonce uint64, err error) {
+func (api *DipperinVenusApi) GetTransactionNonce(addr common.Address) (nonce uint64, err error) {
 	return api.service.GetTransactionNonce(addr)
 }
 
@@ -334,7 +334,7 @@ func (api *DipperinMercuryApi) GetTransactionNonce(addr common.Address) (nonce u
 // responses:
 //   "200":
 //        description:return TxHash and the operation result
-func (api *DipperinMercuryApi) NewTransaction(transactionRlpB []byte) (TxHash common.Hash, err error) {
+func (api *DipperinVenusApi) NewTransaction(transactionRlpB []byte) (TxHash common.Hash, err error) {
 	var transaction model.Transaction
 	err = rlp.DecodeBytes(transactionRlpB, &transaction)
 	if err != nil {
@@ -352,7 +352,7 @@ func (api *DipperinMercuryApi) NewTransaction(transactionRlpB []byte) (TxHash co
 }
 
 // call contract
-func (api *DipperinMercuryApi) NewContract(transactionRlpB []byte, blockNum uint64) (resp string, err error) {
+func (api *DipperinVenusApi) NewContract(transactionRlpB []byte, blockNum uint64) (resp string, err error) {
 	var transaction model.Transaction
 	err = rlp.DecodeBytes(transactionRlpB, &transaction)
 	if err != nil {
@@ -367,7 +367,7 @@ func (api *DipperinMercuryApi) NewContract(transactionRlpB []byte, blockNum uint
 	return api.service.Call(&transaction, blockNum)
 }
 
-func (api *DipperinMercuryApi) NewEstimateGas(transactionRlpB []byte) (resp hexutil.Uint64, err error) {
+func (api *DipperinVenusApi) NewEstimateGas(transactionRlpB []byte) (resp hexutil.Uint64, err error) {
 	var transaction model.Transaction
 	err = rlp.DecodeBytes(transactionRlpB, &transaction)
 	if err != nil {
@@ -379,21 +379,21 @@ func (api *DipperinMercuryApi) NewEstimateGas(transactionRlpB []byte) (resp hexu
 	return api.service.EstimateGas(&transaction, blockNum)
 }
 
-//func (apiB *DipperinMercuryApi) RetrieveSingleSC(req *req_params.SingleSCReq) *req_params.RetrieveSingleSCResp {
+//func (apiB *DipperinVenusApi) RetrieveSingleSC(req *req_params.SingleSCReq) *req_params.RetrieveSingleSCResp {
 //	cslog.Info().Msg("fetch a single contract")
 //	return &req_params.RetrieveSingleSCResp{
 //		BaseResp: req_params.NewBaseRespWithErr(nil, "Sent successfully"),
 //	}
 //}
 //
-//func (apiB *DipperinMercuryApi) NewSC(req *req_params.NewSCReq) *req_params.NewSCResp {
+//func (apiB *DipperinVenusApi) NewSC(req *req_params.NewSCReq) *req_params.NewSCResp {
 //	cslog.Info().Msg("create a new smart contract")
 //	return &req_params.NewSCResp{
 //		BaseResp: req_params.NewBaseRespWithErr(nil, "Sent successfully"),
 //	}
 //}
 //
-//func (apiB *DipperinMercuryApi) GetSCConfig(req *req_params.SingleSCReq) *req_params.GetSCConfigResp {
+//func (apiB *DipperinVenusApi) GetSCConfig(req *req_params.SingleSCReq) *req_params.GetSCConfigResp {
 //	cslog.Info().Msg("get contract settings")
 //	return &req_params.GetSCConfigResp{
 //		BaseResp:       req_params.NewBaseRespWithErr(nil, "Sent successfully"),
@@ -401,7 +401,7 @@ func (api *DipperinMercuryApi) NewEstimateGas(transactionRlpB []byte) (resp hexu
 //	}
 //}
 
-//func (apiB *DipperinMercuryApi) GetBlockInfo(req *req_params.GetBlockInfoReq) *req_params.GetBlockInfoResp {
+//func (apiB *DipperinVenusApi) GetBlockInfo(req *req_params.GetBlockInfoReq) *req_params.GetBlockInfoResp {
 //	cslog.Info().Msg("get contract settings")
 //	return &req_params.GetBlockInfoResp{
 //		BaseResp:       req_params.NewBaseRespWithErr(nil, "Sent successfully"),
@@ -409,12 +409,12 @@ func (api *DipperinMercuryApi) NewEstimateGas(transactionRlpB []byte) (resp hexu
 //	}
 //}
 
-//func (apiB *DipperinMercuryApi) GetContractInfo(eData *contract.ExtraDataForContract) (interface{}, error) {
+//func (apiB *DipperinVenusApi) GetContractInfo(eData *contract.ExtraDataForContract) (interface{}, error) {
 //	return apiB.dipperin.GetContractInfo(eData)
 //}
 //
 
-//func (apiB *DipperinMercuryApi) GetContract(contractAddr common.Address) (interface{}, error) {
+//func (apiB *DipperinVenusApi) GetContract(contractAddr common.Address) (interface{}, error) {
 //	return apiB.dipperin.GetContract(contractAddr)
 //}
 
@@ -434,11 +434,11 @@ func (api *DipperinMercuryApi) NewEstimateGas(transactionRlpB []byte) (resp hexu
 // responses:
 //   "200":
 //        description: return the operation result
-func (api *DipperinMercuryApi) SetMineCoinBase(addr common.Address) error {
+func (api *DipperinVenusApi) SetMineCoinBase(addr common.Address) error {
 	return api.service.SetMineCoinBase(addr)
 }
 
-func (api *DipperinMercuryApi) SetMineGasConfig(gasFloor, gasCeil uint64) error {
+func (api *DipperinVenusApi) SetMineGasConfig(gasFloor, gasCeil uint64) error {
 	return api.service.SetMineGasConfig(gasFloor, gasCeil)
 }
 
@@ -452,7 +452,7 @@ func (api *DipperinMercuryApi) SetMineGasConfig(gasFloor, gasCeil uint64) error 
 // responses:
 //   "200":
 //        description: return the operation result
-func (api *DipperinMercuryApi) StartMine() error {
+func (api *DipperinVenusApi) StartMine() error {
 	return api.service.StartMine()
 }
 
@@ -466,7 +466,7 @@ func (api *DipperinMercuryApi) StartMine() error {
 // responses:
 //   "200":
 //        description: return the operation result
-func (api *DipperinMercuryApi) StopMine() error {
+func (api *DipperinVenusApi) StopMine() error {
 	return api.service.StopMine()
 }
 
@@ -496,7 +496,7 @@ func (api *DipperinMercuryApi) StopMine() error {
 // responses:
 //   "200":
 //        description: return mnemonic and the operation result
-func (api *DipperinMercuryApi) EstablishWallet(password, passPhrase string, walletIdentifier accounts.WalletIdentifier) (mnemonic string, err error) {
+func (api *DipperinVenusApi) EstablishWallet(password, passPhrase string, walletIdentifier accounts.WalletIdentifier) (mnemonic string, err error) {
 	return api.service.EstablishWallet(walletIdentifier, password, passPhrase)
 }
 
@@ -521,7 +521,7 @@ func (api *DipperinMercuryApi) EstablishWallet(password, passPhrase string, wall
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinMercuryApi) OpenWallet(password string, walletIdentifier accounts.WalletIdentifier) error {
+func (api *DipperinVenusApi) OpenWallet(password string, walletIdentifier accounts.WalletIdentifier) error {
 	return api.service.OpenWallet(walletIdentifier, password)
 }
 
@@ -541,7 +541,7 @@ func (api *DipperinMercuryApi) OpenWallet(password string, walletIdentifier acco
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinMercuryApi) CloseWallet(walletIdentifier accounts.WalletIdentifier) error {
+func (api *DipperinVenusApi) CloseWallet(walletIdentifier accounts.WalletIdentifier) error {
 	return api.service.CloseWallet(walletIdentifier)
 }
 
@@ -576,7 +576,7 @@ func (api *DipperinMercuryApi) CloseWallet(walletIdentifier accounts.WalletIdent
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinMercuryApi) RestoreWallet(password, mnemonic, passPhrase string, walletIdentifier accounts.WalletIdentifier) error {
+func (api *DipperinVenusApi) RestoreWallet(password, mnemonic, passPhrase string, walletIdentifier accounts.WalletIdentifier) error {
 	return api.service.RestoreWallet(walletIdentifier, password, passPhrase, mnemonic)
 }
 
@@ -590,7 +590,7 @@ func (api *DipperinMercuryApi) RestoreWallet(password, mnemonic, passPhrase stri
 // responses:
 //   "200":
 //        description: return wallet identifier list and the operation result
-func (api *DipperinMercuryApi) ListWallet() ([]accounts.WalletIdentifier, error) {
+func (api *DipperinVenusApi) ListWallet() ([]accounts.WalletIdentifier, error) {
 
 	walletIdentifier, err := api.service.ListWallet()
 	if err != nil {
@@ -600,7 +600,7 @@ func (api *DipperinMercuryApi) ListWallet() ([]accounts.WalletIdentifier, error)
 	return walletIdentifier, nil
 }
 
-//func (api *DipperinMercuryApi) DipperinRpc(v *big.Int) (string, error) {
+//func (api *DipperinVenusApi) DipperinRpc(v *big.Int) (string, error) {
 //    r := fmt.Sprintf("i am dipperin %v", v)
 //    return r, nil
 //    //return "why", errors.New(r)
@@ -616,27 +616,27 @@ func BuildContractExtraData(op string, contractAdr common.Address, params string
 	return erc20Str
 }
 
-func (api *DipperinMercuryApi) GetContractInfo(eData *contract.ExtraDataForContract) (interface{}, error) {
+func (api *DipperinVenusApi) GetContractInfo(eData *contract.ExtraDataForContract) (interface{}, error) {
 	return api.service.GetContractInfo(eData)
 }
 
-func (api *DipperinMercuryApi) GetContract(contractAddr common.Address) (interface{}, error) {
+func (api *DipperinVenusApi) GetContract(contractAddr common.Address) (interface{}, error) {
 	return api.service.GetContract(contractAddr)
 }
 
-func (api *DipperinMercuryApi) ERC20TotalSupply(contractAddr common.Address) (interface{}, error) {
+func (api *DipperinVenusApi) ERC20TotalSupply(contractAddr common.Address) (interface{}, error) {
 	extraData := contract.ExtraDataForContract{ContractAddress: contractAddr, Action: "TotalSupply", Params: "[]"}
 	return api.service.GetContractInfo(&extraData)
 }
 
-func (api *DipperinMercuryApi) ERC20Balance(contractAddr, owner common.Address) (interface{}, error) {
+func (api *DipperinVenusApi) ERC20Balance(contractAddr, owner common.Address) (interface{}, error) {
 	adrStr := fmt.Sprintf("%v", owner)
 	params := util.StringifyJson([]interface{}{adrStr})
 	extraData := contract.ExtraDataForContract{ContractAddress: contractAddr, Action: "BalanceOf", Params: params}
 	return api.service.GetContractInfo(&extraData)
 }
 
-func (api *DipperinMercuryApi) ERC20Allowance(contractAddr, owner, spender common.Address) (interface{}, error) {
+func (api *DipperinVenusApi) ERC20Allowance(contractAddr, owner, spender common.Address) (interface{}, error) {
 	ownerStr := fmt.Sprintf("%v", owner)
 	spenderStr := fmt.Sprintf("%v", spender)
 	params := util.StringifyJson([]interface{}{ownerStr, spenderStr})
@@ -644,7 +644,7 @@ func (api *DipperinMercuryApi) ERC20Allowance(contractAddr, owner, spender commo
 	return api.service.GetContractInfo(&extraData)
 }
 
-func (api *DipperinMercuryApi) ERC20Transfer(contractAddr, from, to common.Address, amount, gasPrice *big.Int, gasLimit uint64) (common.Hash, error) {
+func (api *DipperinVenusApi) ERC20Transfer(contractAddr, from, to common.Address, amount, gasPrice *big.Int, gasLimit uint64) (common.Hash, error) {
 
 	destStr := fmt.Sprintf("%v", to)
 	vStr := fmt.Sprintf("0x%x", amount)
@@ -655,7 +655,7 @@ func (api *DipperinMercuryApi) ERC20Transfer(contractAddr, from, to common.Addre
 	return api.service.SendTransaction(from, contractAddr, big.NewInt(int64(0)), gasPrice, gasLimit, extraData, nil)
 }
 
-func (api *DipperinMercuryApi) ERC20TransferFrom(contractAdr, owner, from, to common.Address, amount, gasPrice *big.Int, gasLimit uint64) (common.Hash, error) {
+func (api *DipperinVenusApi) ERC20TransferFrom(contractAdr, owner, from, to common.Address, amount, gasPrice *big.Int, gasLimit uint64) (common.Hash, error) {
 
 	srcStr := fmt.Sprintf("%v", owner)
 	destStr := fmt.Sprintf("%v", to)
@@ -667,7 +667,7 @@ func (api *DipperinMercuryApi) ERC20TransferFrom(contractAdr, owner, from, to co
 	return api.service.SendTransaction(from, contractAdr, big.NewInt(int64(0)), gasPrice, gasLimit, extraData, nil)
 }
 
-func (api *DipperinMercuryApi) ERC20Approve(contractAdr, from, to common.Address, amount, gasPrice *big.Int, gasLimit uint64) (common.Hash, error) {
+func (api *DipperinVenusApi) ERC20Approve(contractAdr, from, to common.Address, amount, gasPrice *big.Int, gasLimit uint64) (common.Hash, error) {
 
 	adrStr := fmt.Sprintf("%v", to)
 	vStr := fmt.Sprintf("0x%x", amount)
@@ -678,7 +678,7 @@ func (api *DipperinMercuryApi) ERC20Approve(contractAdr, from, to common.Address
 	return api.service.SendTransaction(from, contractAdr, big.NewInt(int64(0)), gasPrice, gasLimit, extraData, nil)
 }
 
-func (api *DipperinMercuryApi) CreateERC20(from common.Address, tokenName, tokenSymbol string, amount *big.Int, decimal int, gasPrice *big.Int, gasLimit uint64) (ERC20Resp, error) {
+func (api *DipperinVenusApi) CreateERC20(from common.Address, tokenName, tokenSymbol string, amount *big.Int, decimal int, gasPrice *big.Int, gasLimit uint64) (ERC20Resp, error) {
 	erc20 := contract.BuiltInERC20Token{}
 	erc20.Owner = from
 	erc20.TokenDecimals = decimal
@@ -704,7 +704,7 @@ func (api *DipperinMercuryApi) CreateERC20(from common.Address, tokenName, token
 	return resp, err
 }
 
-func (api *DipperinMercuryApi) CheckBootNode() ([]string, error) {
+func (api *DipperinVenusApi) CheckBootNode() ([]string, error) {
 	nodes := make([]string, len(chain_config.KBucketNodes))
 	for i, kn := range chain_config.KBucketNodes {
 		nodes[i] = fmt.Sprintf("%s", kn.String())
@@ -728,7 +728,7 @@ func (api *DipperinMercuryApi) CheckBootNode() ([]string, error) {
 // responses:
 //   "200":
 //        description: return account list and the operation result
-func (api *DipperinMercuryApi) ListWalletAccount(walletIdentifier accounts.WalletIdentifier) ([]accounts.Account, error) {
+func (api *DipperinVenusApi) ListWalletAccount(walletIdentifier accounts.WalletIdentifier) ([]accounts.Account, error) {
 
 	tmpAccounts, err := api.service.ListWalletAccount(walletIdentifier)
 
@@ -759,8 +759,8 @@ func (api *DipperinMercuryApi) ListWalletAccount(walletIdentifier accounts.Walle
 // responses:
 //   "200":
 //        description: return account list and the operation result
-func (api *DipperinMercuryApi) SetBftSigner(address common.Address) error {
-	log.Info("DipperinMercuryApi SetBftSigner run")
+func (api *DipperinVenusApi) SetBftSigner(address common.Address) error {
+	log.Info("DipperinVenusApi SetBftSigner run")
 	return api.service.SetBftSigner(address)
 }
 
@@ -785,7 +785,7 @@ func (api *DipperinMercuryApi) SetBftSigner(address common.Address) error {
 // responses:
 //   "200":
 //        description: return the added account and the operation result
-func (api *DipperinMercuryApi) AddAccount(derivationPath string, walletIdentifier accounts.WalletIdentifier) (accounts.Account, error) {
+func (api *DipperinVenusApi) AddAccount(derivationPath string, walletIdentifier accounts.WalletIdentifier) (accounts.Account, error) {
 	return api.service.AddAccount(walletIdentifier, derivationPath)
 }
 
@@ -820,26 +820,26 @@ func (api *DipperinMercuryApi) AddAccount(derivationPath string, walletIdentifie
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinMercuryApi) SendTransaction(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (common.Hash, error) {
+func (api *DipperinVenusApi) SendTransaction(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (common.Hash, error) {
 	return api.service.SendTransaction(from, to, value, gasPrice, gasLimit, data, nonce)
 }
 
-func (api *DipperinMercuryApi) SendTransactionContract(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (common.Hash, error) {
+func (api *DipperinVenusApi) SendTransactionContract(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (common.Hash, error) {
 	return api.service.SendTransactionContract(from, to, value, gasPrice, gasLimit, data, nonce)
 }
 
 //send multiple-txs
-func (api *DipperinMercuryApi) SendTransactions(from common.Address, rpcTxs []model.RpcTransaction) (int, error) {
+func (api *DipperinVenusApi) SendTransactions(from common.Address, rpcTxs []model.RpcTransaction) (int, error) {
 	return api.service.SendTransactions(from, rpcTxs)
 }
 
 //new send multiple-txs
-func (api *DipperinMercuryApi) NewSendTransactions(txs []model.Transaction) (int, error) {
+func (api *DipperinVenusApi) NewSendTransactions(txs []model.Transaction) (int, error) {
 	return api.service.NewSendTransactions(txs)
 }
 
 // get remote node height
-func (api *DipperinMercuryApi) RemoteHeight() uint64 {
+func (api *DipperinVenusApi) RemoteHeight() uint64 {
 	return api.service.RemoteHeight()
 
 }
@@ -870,7 +870,7 @@ func (api *DipperinMercuryApi) RemoteHeight() uint64 {
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinMercuryApi) SendRegisterTransaction(from common.Address, stake, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
+func (api *DipperinVenusApi) SendRegisterTransaction(from common.Address, stake, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
 	return api.service.SendRegisterTransaction(from, stake, gasPrice, gasLimit, nonce)
 }
 
@@ -895,7 +895,7 @@ func (api *DipperinMercuryApi) SendRegisterTransaction(from common.Address, stak
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinMercuryApi) SendUnStakeTransaction(from common.Address, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
+func (api *DipperinVenusApi) SendUnStakeTransaction(from common.Address, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
 	return api.service.SendUnStakeTransaction(from, gasPrice, gasLimit, nonce)
 }
 
@@ -935,7 +935,7 @@ func (api *DipperinMercuryApi) SendUnStakeTransaction(from common.Address, gasPr
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinMercuryApi) SendEvidenceTransaction(from, target common.Address, gasPrice *big.Int, gasLimit uint64, voteA *model.VoteMsg, voteB *model.VoteMsg, nonce *uint64) (common.Hash, error) {
+func (api *DipperinVenusApi) SendEvidenceTransaction(from, target common.Address, gasPrice *big.Int, gasLimit uint64, voteA *model.VoteMsg, voteB *model.VoteMsg, nonce *uint64) (common.Hash, error) {
 	return api.service.SendEvidenceTransaction(from, target, gasPrice, gasLimit, voteA, voteB, nonce)
 }
 
@@ -960,7 +960,7 @@ func (api *DipperinMercuryApi) SendEvidenceTransaction(from, target common.Addre
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinMercuryApi) SendCancelTransaction(from common.Address, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
+func (api *DipperinVenusApi) SendCancelTransaction(from common.Address, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
 	return api.service.SendCancelTransaction(from, gasPrice, gasLimit, nonce)
 }
 
@@ -980,11 +980,11 @@ func (api *DipperinMercuryApi) SendCancelTransaction(from common.Address, gasPri
 // responses:
 //   "200":
 //        description: return verifier address list and the operation result
-func (api *DipperinMercuryApi) GetVerifiersBySlot(slotNum uint64) ([]common.Address, error) {
+func (api *DipperinVenusApi) GetVerifiersBySlot(slotNum uint64) ([]common.Address, error) {
 	return api.service.GetVerifiers(slotNum), nil
 }
 
-func (api *DipperinMercuryApi) GetSlot(block model.AbstractBlock) *uint64 {
+func (api *DipperinVenusApi) GetSlot(block model.AbstractBlock) *uint64 {
 	return api.service.GetSlot(block)
 }
 
@@ -998,7 +998,7 @@ func (api *DipperinMercuryApi) GetSlot(block model.AbstractBlock) *uint64 {
 // responses:
 //   "200":
 //        description: return verifier address list and the operation result
-func (api *DipperinMercuryApi) GetCurVerifiers() []common.Address {
+func (api *DipperinVenusApi) GetCurVerifiers() []common.Address {
 	return api.service.GetCurVerifiers()
 }
 
@@ -1012,7 +1012,7 @@ func (api *DipperinMercuryApi) GetCurVerifiers() []common.Address {
 // responses:
 //   "200":
 //        description: return verifier address list and the operation result
-func (api *DipperinMercuryApi) GetNextVerifiers() []common.Address {
+func (api *DipperinVenusApi) GetNextVerifiers() []common.Address {
 	return api.service.GetNextVerifiers()
 }
 
@@ -1026,7 +1026,7 @@ func (api *DipperinMercuryApi) GetNextVerifiers() []common.Address {
 // responses:
 //   "200":
 //        description: return verifier status and the operation result
-func (api *DipperinMercuryApi) VerifierStatus(address common.Address) (resp *VerifierStatus, err error) {
+func (api *DipperinVenusApi) VerifierStatus(address common.Address) (resp *VerifierStatus, err error) {
 	state, stake, balance, reputation, isCurrentVerifier, err := api.service.VerifierStatus(address)
 	return &VerifierStatus{
 		Status:            state,
@@ -1047,19 +1047,19 @@ func (api *DipperinMercuryApi) VerifierStatus(address common.Address) (resp *Ver
 // responses:
 //   "200":
 //        description: return address stake and the operation result
-func (api *DipperinMercuryApi) CurrentStake(address common.Address) (resp *CurStakeResp, err error) {
+func (api *DipperinVenusApi) CurrentStake(address common.Address) (resp *CurStakeResp, err error) {
 	stake := api.service.CurrentStake(address)
 	return &CurStakeResp{
 		Stake: (*hexutil.Big)(stake),
 	}, nil
 }
 
-func (api *DipperinMercuryApi) CurrentReputation(address common.Address) (uint64, error) {
+func (api *DipperinVenusApi) CurrentReputation(address common.Address) (uint64, error) {
 	return api.service.CurrentReputation(address)
 }
 
 //get current practical verifiers
-func (api *DipperinMercuryApi) GetCurrentConnectPeers() ([]PeerInfoResp, error) {
+func (api *DipperinVenusApi) GetCurrentConnectPeers() ([]PeerInfoResp, error) {
 	peersInfo := make([]PeerInfoResp, 0)
 	tmpInfo := api.service.GetCurrentConnectPeers()
 
@@ -1074,24 +1074,24 @@ func (api *DipperinMercuryApi) GetCurrentConnectPeers() ([]PeerInfoResp, error) 
 }
 
 /*//SyncUsedAccounts
-func (api *DipperinMercuryApi)SyncUsedAccounts(walletIdentifier accounts.WalletIdentifier,MaxChangeValue ,MaxIndex uint32) error{
+func (api *DipperinVenusApi)SyncUsedAccounts(walletIdentifier accounts.WalletIdentifier,MaxChangeValue ,MaxIndex uint32) error{
 	return api.service.SyncUsedAccounts(walletIdentifier,MaxChangeValue,MaxIndex)
 }*/
 
 //get address nonce from wallet
-func (api *DipperinMercuryApi) GetAddressNonceFromWallet(address common.Address) (nonce uint64, err error) {
+func (api *DipperinVenusApi) GetAddressNonceFromWallet(address common.Address) (nonce uint64, err error) {
 	return api.service.GetAddressNonceFromWallet(address)
 }
 
-func (api *DipperinMercuryApi) GetChainConfig() (conf chain_config.ChainConfig, err error) {
+func (api *DipperinVenusApi) GetChainConfig() (conf chain_config.ChainConfig, err error) {
 	return api.service.GetChainConfig(), nil
 }
 
-func (api *DipperinMercuryApi) GetBlockDiffVerifierInfo(blockNumber uint64) (map[economy_model.VerifierType][]common.Address, error) {
+func (api *DipperinVenusApi) GetBlockDiffVerifierInfo(blockNumber uint64) (map[economy_model.VerifierType][]common.Address, error) {
 	return api.service.GetBlockDiffVerifierInfo(blockNumber)
 }
 
-func (api *DipperinMercuryApi) GetVerifierDIPReward(blockNumber uint64) (map[economy_model.VerifierType]*hexutil.Big, error) {
+func (api *DipperinVenusApi) GetVerifierDIPReward(blockNumber uint64) (map[economy_model.VerifierType]*hexutil.Big, error) {
 	reward, err := api.service.GetVerifierDIPReward(blockNumber)
 	if err != nil {
 		return map[economy_model.VerifierType]*hexutil.Big{}, err
@@ -1104,7 +1104,7 @@ func (api *DipperinMercuryApi) GetVerifierDIPReward(blockNumber uint64) (map[eco
 	return result, nil
 }
 
-func (api *DipperinMercuryApi) GetMineMasterDIPReward(blockNumber uint64) (*hexutil.Big, error) {
+func (api *DipperinVenusApi) GetMineMasterDIPReward(blockNumber uint64) (*hexutil.Big, error) {
 	reward, err := api.service.GetMineMasterDIPReward(blockNumber)
 	if err != nil {
 		return nil, nil
@@ -1113,11 +1113,11 @@ func (api *DipperinMercuryApi) GetMineMasterDIPReward(blockNumber uint64) (*hexu
 	return (*hexutil.Big)(reward), nil
 }
 
-func (api *DipperinMercuryApi) GetBlockYear(blockNumber uint64) (uint64, error) {
+func (api *DipperinVenusApi) GetBlockYear(blockNumber uint64) (uint64, error) {
 	return api.service.GetBlockYear(blockNumber)
 }
 
-func (api *DipperinMercuryApi) GetOneBlockTotalDIPReward(blockNumber uint64) (*hexutil.Big, error) {
+func (api *DipperinVenusApi) GetOneBlockTotalDIPReward(blockNumber uint64) (*hexutil.Big, error) {
 	reward, err := api.service.GetOneBlockTotalDIPReward(blockNumber)
 	if err != nil {
 		return nil, err
@@ -1126,7 +1126,7 @@ func (api *DipperinMercuryApi) GetOneBlockTotalDIPReward(blockNumber uint64) (*h
 	return (*hexutil.Big)(reward), nil
 }
 
-func (api *DipperinMercuryApi) GetInvestorInfo() map[string]*hexutil.Big {
+func (api *DipperinVenusApi) GetInvestorInfo() map[string]*hexutil.Big {
 	investorInfo := api.service.GetInvestorInfo()
 
 	result := make(map[string]*hexutil.Big, 0)
@@ -1136,7 +1136,7 @@ func (api *DipperinMercuryApi) GetInvestorInfo() map[string]*hexutil.Big {
 	return result
 }
 
-func (api *DipperinMercuryApi) GetDeveloperInfo() map[string]*hexutil.Big {
+func (api *DipperinVenusApi) GetDeveloperInfo() map[string]*hexutil.Big {
 	developerInfo := api.service.GetDeveloperInfo()
 
 	result := make(map[string]*hexutil.Big, 0)
@@ -1146,11 +1146,11 @@ func (api *DipperinMercuryApi) GetDeveloperInfo() map[string]*hexutil.Big {
 	return result
 }
 
-func (api *DipperinMercuryApi) GetAddressLockMoney(address common.Address) (*big.Int, error) {
+func (api *DipperinVenusApi) GetAddressLockMoney(address common.Address) (*big.Int, error) {
 	return api.service.GetAddressLockMoney(address)
 }
 
-func (api *DipperinMercuryApi) GetInvestorLockDIP(address common.Address, blockNumber uint64) (*hexutil.Big, error) {
+func (api *DipperinVenusApi) GetInvestorLockDIP(address common.Address, blockNumber uint64) (*hexutil.Big, error) {
 	lockValue, err := api.service.GetInvestorLockDIP(address, blockNumber)
 	if err != nil {
 		return nil, err
@@ -1159,7 +1159,7 @@ func (api *DipperinMercuryApi) GetInvestorLockDIP(address common.Address, blockN
 	return (*hexutil.Big)(lockValue), nil
 }
 
-func (api *DipperinMercuryApi) GetDeveloperLockDIP(address common.Address, blockNumber uint64) (*hexutil.Big, error) {
+func (api *DipperinVenusApi) GetDeveloperLockDIP(address common.Address, blockNumber uint64) (*hexutil.Big, error) {
 	lockValue, err := api.service.GetDeveloperLockDIP(address, blockNumber)
 	if err != nil {
 		return nil, err
@@ -1168,7 +1168,7 @@ func (api *DipperinMercuryApi) GetDeveloperLockDIP(address common.Address, block
 	return (*hexutil.Big)(lockValue), nil
 }
 
-func (api *DipperinMercuryApi) GetFoundationInfo(usage economy_model.FoundationDIPUsage) map[string]*hexutil.Big {
+func (api *DipperinVenusApi) GetFoundationInfo(usage economy_model.FoundationDIPUsage) map[string]*hexutil.Big {
 	foundationInfo := api.service.GetFoundationInfo(usage)
 
 	result := make(map[string]*hexutil.Big, 0)
@@ -1178,7 +1178,7 @@ func (api *DipperinMercuryApi) GetFoundationInfo(usage economy_model.FoundationD
 	return result
 }
 
-func (api *DipperinMercuryApi) GetMaintenanceLockDIP(address common.Address, blockNumber uint64) (*hexutil.Big, error) {
+func (api *DipperinVenusApi) GetMaintenanceLockDIP(address common.Address, blockNumber uint64) (*hexutil.Big, error) {
 	lockValue, err := api.service.GetMaintenanceLockDIP(address, blockNumber)
 	if err != nil {
 		return nil, err
@@ -1187,7 +1187,7 @@ func (api *DipperinMercuryApi) GetMaintenanceLockDIP(address common.Address, blo
 	return (*hexutil.Big)(lockValue), nil
 }
 
-func (api *DipperinMercuryApi) GetReMainRewardLockDIP(address common.Address, blockNumber uint64) (*hexutil.Big, error) {
+func (api *DipperinVenusApi) GetReMainRewardLockDIP(address common.Address, blockNumber uint64) (*hexutil.Big, error) {
 	lockValue, err := api.service.GetReMainRewardLockDIP(address, blockNumber)
 	if err != nil {
 		return nil, err
@@ -1196,7 +1196,7 @@ func (api *DipperinMercuryApi) GetReMainRewardLockDIP(address common.Address, bl
 	return (*hexutil.Big)(lockValue), nil
 }
 
-func (api *DipperinMercuryApi) GetEarlyTokenLockDIP(address common.Address, blockNumber uint64) (*hexutil.Big, error) {
+func (api *DipperinVenusApi) GetEarlyTokenLockDIP(address common.Address, blockNumber uint64) (*hexutil.Big, error) {
 	lockValue, err := api.service.GetEarlyTokenLockDIP(address, blockNumber)
 	if err != nil {
 		return nil, err
@@ -1205,7 +1205,7 @@ func (api *DipperinMercuryApi) GetEarlyTokenLockDIP(address common.Address, bloc
 	return (*hexutil.Big)(lockValue), nil
 }
 
-func (api *DipperinMercuryApi) GetMineMasterEDIPReward(blockNumber uint64, tokenDecimals int) (*hexutil.Big, error) {
+func (api *DipperinVenusApi) GetMineMasterEDIPReward(blockNumber uint64, tokenDecimals int) (*hexutil.Big, error) {
 	reward, err := api.service.GetMineMasterEDIPReward(blockNumber, tokenDecimals)
 	if err != nil {
 		return nil, nil
@@ -1214,7 +1214,7 @@ func (api *DipperinMercuryApi) GetMineMasterEDIPReward(blockNumber uint64, token
 	return (*hexutil.Big)(reward), nil
 }
 
-func (api *DipperinMercuryApi) GetVerifierEDIPReward(blockNumber uint64, tokenDecimals int) (map[economy_model.VerifierType]*hexutil.Big, error) {
+func (api *DipperinVenusApi) GetVerifierEDIPReward(blockNumber uint64, tokenDecimals int) (map[economy_model.VerifierType]*hexutil.Big, error) {
 	reward, err := api.service.GetVerifierEDIPReward(blockNumber, tokenDecimals)
 	if err != nil {
 		return map[economy_model.VerifierType]*hexutil.Big{}, err
@@ -1227,43 +1227,43 @@ func (api *DipperinMercuryApi) GetVerifierEDIPReward(blockNumber uint64, tokenDe
 	return result, nil
 }
 
-func (api *DipperinMercuryApi) NewBlock(ctx context.Context) (*rpc.Subscription, error) {
+func (api *DipperinVenusApi) NewBlock(ctx context.Context) (*rpc.Subscription, error) {
 	return api.service.NewBlock(ctx)
 }
 
-func (api *DipperinMercuryApi) SubscribeBlock(ctx context.Context) (*rpc.Subscription, error) {
+func (api *DipperinVenusApi) SubscribeBlock(ctx context.Context) (*rpc.Subscription, error) {
 	return api.service.SubscribeBlock(ctx)
 }
 
-func (api *DipperinMercuryApi) StopDipperin() {
+func (api *DipperinVenusApi) StopDipperin() {
 	api.service.StopDipperin()
 }
 
-func (api *DipperinMercuryApi) GetABI(contractAddr common.Address) (*utils.WasmAbi, error) {
+func (api *DipperinVenusApi) GetABI(contractAddr common.Address) (*utils.WasmAbi, error) {
 	return api.service.GetABI(contractAddr)
 }
 
-func (api *DipperinMercuryApi) GetContractAddressByTxHash(txHash common.Hash) (common.Address, error) {
+func (api *DipperinVenusApi) GetContractAddressByTxHash(txHash common.Hash) (common.Address, error) {
 	return api.service.GetContractAddressByTxHash(txHash)
 }
 
-func (api *DipperinMercuryApi) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, Addresses []common.Address, Topics [][]common.Hash) ([]*model2.Log, error) {
+func (api *DipperinVenusApi) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, Addresses []common.Address, Topics [][]common.Hash) ([]*model2.Log, error) {
 	return api.service.GetLogs(blockHash, fromBlock, toBlock, Addresses, Topics)
 }
 
-func (api *DipperinMercuryApi) GetTxActualFee(txHash common.Hash) (*big.Int, error) {
+func (api *DipperinVenusApi) GetTxActualFee(txHash common.Hash) (*big.Int, error) {
 	return api.service.GetTxActualFee(txHash)
 }
 
-func (api *DipperinMercuryApi) GetReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
+func (api *DipperinVenusApi) GetReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
 	return api.service.GetReceiptByTxHash(txHash)
 }
 
-func (api *DipperinMercuryApi) GetReceiptsByBlockNum(num uint64) (model2.Receipts, error) {
+func (api *DipperinVenusApi) GetReceiptsByBlockNum(num uint64) (model2.Receipts, error) {
 	return api.service.GetReceiptsByBlockNum(num)
 }
 
-func (api *DipperinMercuryApi) CallContract(from, to common.Address, data []byte, blockNum uint64) (string, error) {
+func (api *DipperinVenusApi) CallContract(from, to common.Address, data []byte, blockNum uint64) (string, error) {
 	extraData, err := api.service.GetExtraData(to, data)
 	if err != nil {
 		return "", err
@@ -1293,7 +1293,7 @@ func (api *DipperinMercuryApi) CallContract(from, to common.Address, data []byte
 	return api.service.Call(signedTx, blockNum)
 }
 
-func (api *DipperinMercuryApi) EstimateGas(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (hexutil.Uint64, error) {
+func (api *DipperinVenusApi) EstimateGas(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (hexutil.Uint64, error) {
 	if value == nil {
 		value = new(big.Int).SetUint64(0)
 	}

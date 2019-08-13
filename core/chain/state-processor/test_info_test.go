@@ -65,7 +65,7 @@ func createKey() (*ecdsa.PrivateKey, *ecdsa.PrivateKey) {
 
 func createContractTx(code, abi string, nonce, gasLimit uint64) *model.Transaction {
 	key, _ := createKey()
-	fs := model.NewMercurySigner(big.NewInt(1))
+	fs := model.NewSigner(big.NewInt(1))
 	data := getContractCode(code, abi)
 	to := common.HexToAddress(common.AddressContractCreate)
 	tx := model.NewTransaction(nonce, to, big.NewInt(2000000), testGasPrice, gasLimit, data)
@@ -75,7 +75,7 @@ func createContractTx(code, abi string, nonce, gasLimit uint64) *model.Transacti
 
 func callContractTx(to *common.Address, funcName string, param [][]byte, nonce uint64) *model.Transaction {
 	key, _ := createKey()
-	fs := model.NewMercurySigner(big.NewInt(1))
+	fs := model.NewSigner(big.NewInt(1))
 	data := getContractInput(funcName, param)
 	tx := model.NewTransaction(nonce, *to, big.NewInt(2000000), testGasPrice, testGasLimit, data)
 	tx.SignTx(key, fs)
@@ -245,28 +245,28 @@ func getCreateExtraData(wasmPath, abiPath string, params []string) (extraData []
 //Get a test transaction
 func getTestRegisterTransaction(nonce uint64, key *ecdsa.PrivateKey, amount *big.Int) *model.Transaction {
 	trans := model.NewRegisterTransaction(nonce, amount, g_testData.TestGasPrice, g_testData.TestGasLimit)
-	fs := model.NewMercurySigner(big.NewInt(1))
+	fs := model.NewSigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(key, fs)
 	return signedTx
 }
 
 func getTestCancelTransaction(nonce uint64, key *ecdsa.PrivateKey) *model.Transaction {
 	trans := model.NewCancelTransaction(nonce, g_testData.TestGasPrice, g_testData.TestGasLimit)
-	fs := model.NewMercurySigner(big.NewInt(1))
+	fs := model.NewSigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(key, fs)
 	return signedTx
 }
 
 func getTestUnStakeTransaction(nonce uint64, key *ecdsa.PrivateKey) *model.Transaction {
 	trans := model.NewUnStakeTransaction(nonce, g_testData.TestGasPrice, g_testData.TestGasLimit)
-	fs := model.NewMercurySigner(big.NewInt(1))
+	fs := model.NewSigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(key, fs)
 	return signedTx
 }
 
 func getTestEvidenceTransaction(nonce uint64, key *ecdsa.PrivateKey, target common.Address, voteA, voteB *model.VoteMsg) *model.Transaction {
 	trans := model.NewEvidenceTransaction(nonce, g_testData.TestGasPrice, g_testData.TestGasLimit, &target, voteA, voteB)
-	fs := model.NewMercurySigner(big.NewInt(1))
+	fs := model.NewSigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(key, fs)
 	return signedTx
 }

@@ -51,7 +51,7 @@ func CreateSignedVote(height, round uint64, blockId common.Hash, voteType VoteMs
 
 func CreateSignedTx(nonce uint64, amount *big.Int) *Transaction {
 	key1, _ := CreateKey()
-	fs1 := NewMercurySigner(big.NewInt(1))
+	fs1 := NewSigner(big.NewInt(1))
 	testTx1 := NewTransaction(nonce, bobAddr, amount, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	signedTx, _ := testTx1.SignTx(key1, fs1)
 	return signedTx
@@ -59,7 +59,7 @@ func CreateSignedTx(nonce uint64, amount *big.Int) *Transaction {
 
 func CreateSignedTxList(n int) []*Transaction {
 	keyAlice, _ := CreateKey()
-	ms := NewMercurySigner(big.NewInt(1))
+	ms := NewSigner(big.NewInt(1))
 
 	var res []*Transaction
 	for i := 0; i < n; i++ {
@@ -90,7 +90,7 @@ func CreateBlock(num uint64, preHash common.Hash, txsNum int) *Block {
 
 func createTestTx() (*Transaction, *Transaction) {
 	_, key2 := CreateKey()
-	fs2 := NewMercurySigner(big.NewInt(3))
+	fs2 := NewSigner(big.NewInt(3))
 	hashLock := cs_crypto.Keccak256Hash([]byte("123"))
 	tx1 := CreateSignedTx(10, big.NewInt(100))
 	tx2 := CreateRawLockTx(1, hashLock, big.NewInt(34564), big.NewInt(10000), g_testData.TestGasPrice, g_testData.TestGasLimit, aliceAddr, bobAddr)
