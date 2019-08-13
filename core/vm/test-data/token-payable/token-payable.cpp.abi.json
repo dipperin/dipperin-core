@@ -32,7 +32,12 @@
                 "type": "uint64"
             }
         ],
-        "outputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ],
         "constant": "false",
         "payable": "true",
         "type": "function"
@@ -40,7 +45,12 @@
     {
         "name": "withdraw",
         "inputs": [],
-        "outputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ],
         "constant": "false",
         "payable": "false",
         "type": "function"
@@ -57,7 +67,12 @@
                 "type": "uint64"
             }
         ],
-        "outputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ],
         "constant": "false",
         "payable": "false",
         "type": "function"
@@ -70,7 +85,12 @@
                 "type": "uint64"
             }
         ],
-        "outputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ],
         "constant": "false",
         "payable": "false",
         "type": "function"
@@ -91,7 +111,12 @@
                 "type": "uint64"
             }
         ],
-        "outputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ],
         "constant": "false",
         "payable": "false",
         "type": "function"

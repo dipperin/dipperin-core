@@ -11,21 +11,23 @@ EXPORT void TestToken::init(char* tokenName, char* sym, uint64_t supply){
     DIPC_EMIT_EVENT(Tranfer, "", &owner.get()[0], supply);
 }
 
-PAYABLE void TestToken::transfer(const char* to, uint64_t value){
+PAYABLE bool TestToken::transfer(const char* to, uint64_t value){
+    isZeroAddress(to);
     Address2 callerAddr = caller2();
     std::string callStr = callerAddr.toString();
     std::string toStr = CharToAddress2Str(to);
 
     // check uint64 underflow and over flow
-    DipcAssert((balance.get()[callStr] >= value));
-    DipcAssert(balance.get()[toStr] + value >= balance.get()[toStr]);
+    DipcAssert(balance.get()[callStr] >= value);
+    DipcAssert(balance.get()[toStr] + value > balance.get()[toStr]);
 
     (*balance)[callStr] -=  value;
     (*balance)[toStr] += value;
     DIPC_EMIT_EVENT(Tranfer, &(callStr[0]), to, value);
+    return true;
 }
 
-EXPORT void TestToken::withdraw(){
+EXPORT bool TestToken::withdraw(){
     isOwner();
     Address2 callerAddr = caller2();
     Address2 contractAddr = address2();
@@ -34,46 +36,53 @@ EXPORT void TestToken::withdraw(){
     u256 originBalance = dipc::balance(contractAddr);
     DipcAssert(originBalance > 0);
     DipcAssert(callTransfer2(callerAddr,  originBalance) == 0);
+    return true;
 }
 
-EXPORT void TestToken::approve(const char* spender, uint64_t value){
+EXPORT bool TestToken::approve(const char* spender, uint64_t value){
+    isZeroAddress(spender);
     std::string callerStr= caller2().toString();
     std::string spenderStr = CharToAddress2Str(spender);
    
     // check uint64 underflow and over flow
     DipcAssert(balance.get()[callerStr] >= value);
-    DipcAssert(allowance.get()[callerStr+spenderStr] + value >= allowance.get()[callerStr+spenderStr]);
+    DipcAssert(allowance.get()[callerStr+spenderStr] + value > allowance.get()[callerStr+spenderStr]);
     
     (*allowance)[callerStr+spenderStr] += value;
     DIPC_EMIT_EVENT(Approval, &(callerStr[0]), spender, value);
+    return true;
 }
 
-EXPORT void TestToken::transferFrom(const char* from, const char* to, uint64_t value){
+EXPORT bool TestToken::transferFrom(const char* from, const char* to, uint64_t value){
+    isZeroAddress(to);
     std::string callerStr= caller2().toString();
     std::string fromStr = CharToAddress2Str(from);
     std::string toStr = CharToAddress2Str(to);
 
     // check uint64 underflow and over flow
     DipcAssert(balance.get()[fromStr] >= value);
-    DipcAssert(balance.get()[toStr] + value >= balance.get()[toStr]);
+    DipcAssert(balance.get()[toStr] + value > balance.get()[toStr]);
     DipcAssert(allowance.get()[fromStr+callerStr] >= value);
 
     (*balance)[fromStr] -= value;
     (*balance)[toStr] += value;
     (*allowance)[fromStr +callerStr] -= value; 
     DIPC_EMIT_EVENT(Tranfer, from, to, value);
+    return true;
 }
 
-EXPORT void TestToken::burn(uint64_t value){
+EXPORT bool TestToken::burn(uint64_t value){
     std::string callerStr= caller2().toString();
 
     // check uint64 underflow and over flow
+    DipcAssert(owner.get() != callerStr);
     DipcAssert(balance.get()[callerStr] >= value);
-    DipcAssert(balance.get()[owner.get()] + value >= balance.get()[owner.get()]);
+    DipcAssert(balance.get()[owner.get()] + value > balance.get()[owner.get()]);
 
     (*balance)[callerStr] -= value;
     (*balance)[owner.get()] += value;
     DIPC_EMIT_EVENT(Tranfer, &(callerStr[0]), &(owner.get()[0]), value);
+    return true;
 }
 
 CONSTANT uint64_t TestToken::getBalance(const char* own){

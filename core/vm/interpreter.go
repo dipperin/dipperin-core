@@ -135,7 +135,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 	}
 
 	switch returnType {
-	case "void", "int8", "int16", "int32", "int64":
+	case "void", "bool", "int8", "int16", "int32", "int64":
 		bigRes := new(big.Int)
 		bigRes.SetInt64(res)
 		finalRes := utils.Align32Bytes(math.U256(bigRes).Bytes())

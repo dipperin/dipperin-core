@@ -13,11 +13,11 @@ char sy[7] = "symbol";
 class TestToken : public Contract {
 public: 
     EXPORT void init(char* tokenName, char* symbol, uint64_t supply);
-    PAYABLE void transfer(const char* to, uint64_t value);
-    EXPORT void withdraw();
-    EXPORT void approve(const char* spender, uint64_t value);
-    EXPORT void burn(uint64_t _value);
-    WITHDRAW void transferFrom(const char* from, const char* to, uint64_t value);
+    PAYABLE bool transfer(const char* to, uint64_t value);
+    EXPORT bool withdraw();
+    EXPORT bool approve(const char* spender, uint64_t value);
+    EXPORT bool burn(uint64_t _value);
+    EXPORT bool transferFrom(const char* from, const char* to, uint64_t value);
     CONSTANT uint64_t getBalance(const char* own);
     CONSTANT uint64_t getApproveBalance(const char* from, const char* approved);
     void stop(){
@@ -49,18 +49,12 @@ private:
     inline void isOwner(){
         DipcAssert(owner.get() == caller2().toString());
     }
+
+    inline void isZeroAddress(std::string const& _s){
+        DipcAssert(_s != "0x0");
+    }
 };
-// 没有加这个宏  导致编译wasm的时候没通过也没报错  待优化
-// DIPC_ABI(TestToken, init);
-// DIPC_ABI(TestToken, transfer);
-// DIPC_ABI(TestToken, start);
-// DIPC_ABI(TestToken, stop);
-// DIPC_ABI(TestToken, setName);
-// DIPC_ABI(TestToken, transferFrom);
-// DIPC_ABI(TestToken, getBalance);
-// DIPC_ABI(TestToken, getApproveBalance);
-// DIPC_ABI(TestToken, approve);
-// DIPC_ABI(TestToken, burn);
+
 DIPC_EVENT(Tranfer, const char*, const char*, uint64_t);
 DIPC_EVENT(Approval, const char*, const char*, uint64_t);
 DIPC_EVENT(GetBalance, const char*, const char*, uint64_t);
