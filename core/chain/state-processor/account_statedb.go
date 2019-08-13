@@ -1427,7 +1427,7 @@ func (state *AccountStateDB) GetData(addr common.Address, key string) (data []by
 	if state.smartContractData[addr] != nil {
 		log.Debug("AccountStateDB#GetData", "addr", addr)
 		if state.smartContractData[addr][key] != nil {
-			log.Debug("GetData called","key",key,"restring",string(state.smartContractData[addr][key]),"result",state.smartContractData[addr][key])
+			log.Debug("GetData called", "key", key, "restring", string(state.smartContractData[addr][key]), "result", state.smartContractData[addr][key])
 			return state.smartContractData[addr][key]
 		}
 	}
@@ -1439,7 +1439,7 @@ func (state *AccountStateDB) GetData(addr common.Address, key string) (data []by
 	if err != nil {
 		return
 	}
-	log.Debug("GetData called","key",key,"restring",string(data),"result",data)
+	log.Debug("GetData called", "key", key, "restring", string(data), "result", data)
 	return
 }
 

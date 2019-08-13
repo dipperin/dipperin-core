@@ -337,7 +337,6 @@ func TestContractWithNewFeature(t *testing.T) {
 	err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 2, singer)
 	assert.NoError(t, err)
 
-
 	//gasUsed2 := uint64(0)
 	//  合约调用  transfer方法 转账给alice
 	ownTransferNonce++
