@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
@@ -28,7 +29,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
-	"github.com/dipperin/dipperin-core/core/vm/model"
 )
 
 var txAmount = big.NewInt(10000)
@@ -281,10 +281,10 @@ func TestTxDifference(t *testing.T) {
 }
 
 func TestIntrinsicGas(t *testing.T) {
-	_, err := IntrinsicGas([]byte{1,2,3}, true, true)
+	_, err := IntrinsicGas([]byte{1, 2, 3}, true, true)
 	assert.NoError(t, err)
 
-	_, err = IntrinsicGas([]byte{1,2,3}, false, true)
+	_, err = IntrinsicGas([]byte{1, 2, 3}, false, true)
 	assert.NoError(t, err)
 }
 
@@ -328,9 +328,9 @@ func TestTransaction_AsMessage(t *testing.T) {
 
 func TestTransaction_GetReceipt(t *testing.T) {
 	tx1, _ := createTestTx()
-	assert.Nil(t, tx1. GetReceipt())
+	assert.Nil(t, tx1.GetReceipt())
 
-	receiptPara := ReceiptPara{Logs:[]*model.Log{}}
+	receiptPara := ReceiptPara{Logs: []*model.Log{}}
 	tx1.PaddingReceipt(receiptPara)
 	receipt := tx1.GetReceipt()
 	assert.Equal(t, uint64(0), receipt.CumulativeGasUsed)
