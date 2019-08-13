@@ -1750,7 +1750,7 @@ func (service *MercuryFullChainService) SendTransactionContract(from, to common.
 		return common.Hash{}, err
 	}
 
-	tx := model.NewTransactionSc(usedNonce, &to, value, gasPrice, gasLimit, extraData)
+	tx := model.NewTransaction(usedNonce, to, value, gasPrice, gasLimit, extraData)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
 		pbft_log.Log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
@@ -1976,7 +1976,7 @@ func (service *MercuryFullChainService) MakeTmpSignedTx(args CallArgs, blockNum 
 		return nil, err
 	}
 
-	tmpTx := model.NewTransactionSc(usedNonce, to, value, gasPrice, gas, args.Data)
+	tmpTx := model.NewTransaction(usedNonce, *to, value, gasPrice, gas, args.Data)
 	fromAccount := accounts.Account{Address: from}
 	signedTx, err := tmpWallet.SignTx(fromAccount, tmpTx, service.ChainConfig.ChainId)
 	if err != nil {

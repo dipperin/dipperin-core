@@ -267,6 +267,12 @@ func TestHeader_GetPreHash(t *testing.T) {
 	assert.Equal(t, h.PreHash, result)
 }
 
+func TestHeader_GetTimeStamp(t *testing.T) {
+	h := newTestHeader()
+	result := h.GetTimeStamp()
+	assert.Equal(t, h.TimeStamp, result)
+}
+
 func TestHeader_GetInterLinkRoot(t *testing.T) {
 	h := newTestHeader()
 	result := h.GetInterLinkRoot()
@@ -364,6 +370,16 @@ func TestBody_EncodeRlpToBytes(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestBlock_GasLimit(t *testing.T) {
+	block := CreateBlock(0, common.Hash{}, 1)
+	assert.Equal(t, block.Header().GetGasLimit(), block.GasLimit())
+}
+
+func TestBlock_GasUsed(t *testing.T) {
+	block := CreateBlock(0, common.Hash{}, 1)
+	assert.Equal(t, block.Header().GetGasUsed(), block.GasUsed())
+}
+
 func TestBlock_IsSpecial(t *testing.T) {
 	block := CreateBlock(0, common.Hash{}, 1)
 	assert.Equal(t, false, block.IsSpecial())
@@ -415,16 +431,17 @@ func TestBlock_GetEiBloomBlockData(t *testing.T) {
 	assert.NotNil(t, result)
 }
 
-func TestBlock_SetVerifications(t *testing.T) {
-	block := CreateBlock(0, common.Hash{}, 1)
-	block.SetVerifications([]AbstractVerification{})
-	assert.NotNil(t, block.body.Vers)
-}
-
 func TestBlock_GetVerifications(t *testing.T) {
 	block := CreateBlock(0, common.Hash{}, 1)
 	block.SetVerifications([]AbstractVerification{})
 	result := block.GetVerifications()
+	assert.NotNil(t, result)
+}
+
+func TestBlock_GetReceiptHash(t *testing.T) {
+	block := CreateBlock(0, common.Hash{}, 1)
+	block.SetReceiptHash(common.Hash{})
+	result := block.GetReceiptHash()
 	assert.NotNil(t, result)
 }
 

@@ -68,7 +68,7 @@ func createContractTx(code, abi string, nonce, gasLimit uint64) *model.Transacti
 	fs := model.NewMercurySigner(big.NewInt(1))
 	data := getContractCode(code, abi)
 	to := common.HexToAddress(common.AddressContractCreate)
-	tx := model.NewTransactionSc(nonce, &to, big.NewInt(2000000), testGasPrice, gasLimit, data)
+	tx := model.NewTransaction(nonce, to, big.NewInt(2000000), testGasPrice, gasLimit, data)
 	tx.SignTx(key, fs)
 	return tx
 }
@@ -77,7 +77,7 @@ func callContractTx(to *common.Address, funcName string, param [][]byte, nonce u
 	key, _ := createKey()
 	fs := model.NewMercurySigner(big.NewInt(1))
 	data := getContractInput(funcName, param)
-	tx := model.NewTransactionSc(nonce, to, big.NewInt(2000000), testGasPrice, testGasLimit, data)
+	tx := model.NewTransaction(nonce, *to, big.NewInt(2000000), testGasPrice, testGasLimit, data)
 	tx.SignTx(key, fs)
 	return tx
 }

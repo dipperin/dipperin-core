@@ -64,7 +64,7 @@ func TestAccountStateDB_ProcessContract(t *testing.T) {
 
 func TestAccountStateDB_ProcessContract_Error(t *testing.T) {
 	to := common.HexToAddress(common.AddressContractCreate)
-	tx := model.NewTransactionSc(uint64(0), &to, big.NewInt(100), testGasPrice, testGasLimit, nil)
+	tx := model.NewTransaction(uint64(0), to, big.NewInt(100), testGasPrice, testGasLimit, nil)
 	block := CreateBlock(1, common.Hash{}, []*model.Transaction{tx}, 5*testGasLimit)
 	tmpGasLimit := block.GasLimit()
 	gasUsed := block.GasUsed()
@@ -132,7 +132,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	assert.NoError(t, err)
 
 	addr := common.HexToAddress(common.AddressContractCreate)
-	tx := model.NewTransactionSc(0, &addr, big.NewInt(10), big.NewInt(1), 26427000, data)
+	tx := model.NewTransaction(0, addr, big.NewInt(10), big.NewInt(1), 26427000, data)
 	signCreateTx := getSignedTx(t, ownSK, tx, singer)
 
 	gasLimit := testGasLimit * 10000000000
@@ -299,7 +299,7 @@ func TestContractWithNewFeature(t *testing.T) {
 	assert.NoError(t, err)
 
 	addr := common.HexToAddress(common.AddressContractCreate)
-	tx := model.NewTransactionSc(0, &addr, big.NewInt(0), big.NewInt(1), 26427000, data)
+	tx := model.NewTransaction(0, addr, big.NewInt(0), big.NewInt(1), 26427000, data)
 	signCreateTx := getSignedTx(t, ownSK, tx, singer)
 
 	gasLimit := testGasLimit * 10000000000
@@ -366,7 +366,7 @@ func newContractCallTx(from *common.Address, to *common.Address, gasPrice *big.I
 		return
 	}
 
-	tx = model.NewTransactionSc(nonce, to, nil, gasPrice, gasLimit, extraData)
+	tx = model.NewTransaction(nonce, *to, nil, gasPrice, gasLimit, extraData)
 	return tx, nil
 
 }
