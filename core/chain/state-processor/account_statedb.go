@@ -1416,6 +1416,7 @@ func (state *AccountStateDB) SetData(addr common.Address, key string, value []by
 			delete(state.smartContractData, addr)
 		}
 	}
+
 	log.Debug("SetData result", "key", key, "result", state.smartContractData[addr][key])
 	state.stateChangeList.append(dataChange{Account: &addr, Key: key, Prev: preValue, Current: value, ChangeType: DataChange})
 	return
@@ -1426,10 +1427,8 @@ func (state *AccountStateDB) GetData(addr common.Address, key string) (data []by
 	if state.smartContractData[addr] != nil {
 		log.Debug("AccountStateDB#GetData", "addr", addr)
 		if state.smartContractData[addr][key] != nil {
-			log.Debug("AccountStateDB#GetData", "key", key)
-			result := state.smartContractData[addr][key]
-			log.Debug("AccountStateDB#GetData", "result", result)
-			return result
+			log.Debug("GetData called","key",key,"restring",string(state.smartContractData[addr][key]),"result",state.smartContractData[addr][key])
+			return state.smartContractData[addr][key]
 		}
 	}
 	tier, err := state.getContractTrie(addr)
@@ -1440,6 +1439,7 @@ func (state *AccountStateDB) GetData(addr common.Address, key string) (data []by
 	if err != nil {
 		return
 	}
+	log.Debug("GetData called","key",key,"restring",string(data),"result",data)
 	return
 }
 

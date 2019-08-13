@@ -337,6 +337,7 @@ func TestContractWithNewFeature(t *testing.T) {
 	err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 2, singer)
 	assert.NoError(t, err)
 
+
 	//gasUsed2 := uint64(0)
 	//  合约调用  transfer方法 转账给alice
 	ownTransferNonce++
@@ -404,6 +405,7 @@ func processContractCall(t *testing.T, contractAddress common.Address, code []by
 func CreateProcessorAndInitAccount(t *testing.T, addressSlice []common.Address) (*AccountStateDB, error) {
 	db, root := CreateTestStateDB()
 	processor, err := NewAccountStateDB(root, NewStateStorageWithCache(db))
+
 	assert.NoError(t, err)
 	processor.NewAccountState(addressSlice[0])
 	err = processor.AddNonce(addressSlice[0], 0)
