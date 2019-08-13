@@ -73,7 +73,7 @@ func (state *BlockProcessor) GetBlockHashByNumber(number uint64) common.Hash {
 }
 
 func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel economy_model.EconomyModel) (err error) {
-	mpt_log.Debug("AccountStateDB Process begin~~~~~~~~~~~~~~", "pre state", state.PreStateRoot().Hex(), "blockId", block.Hash().Hex())
+	mpt_log.Log.Debug("AccountStateDB Process begin~~~~~~~~~~~~~~", "pre state", state.PreStateRoot().Hex(), "blockId", block.Hash().Hex())
 
 	state.economyModel = economyModel
 	blockHeader := block.Header().(*model.Header)
@@ -108,26 +108,26 @@ func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel eco
 	if err = state.ProcessExceptTxs(block, economyModel, false); err != nil {
 		return
 	}
-	mpt_log.Debug("AccountStateDB Process end~~~~~~~~~~~~~~~~~", "pre state", state.PreStateRoot().Hex())
+	mpt_log.Log.Debug("AccountStateDB Process end~~~~~~~~~~~~~~~~~", "pre state", state.PreStateRoot().Hex())
 	return
 }
 
 func (state *BlockProcessor) ProcessExceptTxs(block model.AbstractBlock, economyModel economy_model.EconomyModel, isProcessPackageBlock bool) (err error) {
-	mpt_log.Debug("ProcessExceptTxs begin", "pre state", state.PreStateRoot().Hex())
+	mpt_log.Log.Debug("ProcessExceptTxs begin", "pre state", state.PreStateRoot().Hex())
 	state.economyModel = economyModel
 	if block.Number() == 0 {
-		mpt_log.Debug("ProcessExceptTxs bug block num is 0")
+		mpt_log.Log.Debug("ProcessExceptTxs bug block num is 0")
 		return nil
 	}
 
 	// do rewards
 	if err = state.doRewards(block); err != nil {
-		mpt_log.Debug("ProcessExceptTxs doRewards failed", "storageErr", err)
+		mpt_log.Log.Debug("ProcessExceptTxs doRewards failed", "storageErr", err)
 		return
 	}
 	// process commits
 	err = state.processCommitList(block, isProcessPackageBlock)
-	mpt_log.Debug("ProcessExceptTxs finished ---", "pre state", state.PreStateRoot().Hex())
+	mpt_log.Log.Debug("ProcessExceptTxs finished ---", "pre state", state.PreStateRoot().Hex())
 	return
 }
 

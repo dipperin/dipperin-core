@@ -149,14 +149,14 @@ func (broadcaster *BftOuter) onVerifiedResultBlock(msg p2p.Msg, p PmAbstractPeer
 
 	var result model2.VerifyResultRlp
 	if err := msg.Decode(&result); err != nil {
-		pbft_log.Warn("decode v result failed", "err", err)
+		pbft_log.Log.Warn("decode v result failed", "err", err)
 		return err
 	}
 
 	commits := make([]model.AbstractVerification, len(result.SeenCommits))
 	util.InterfaceSliceCopy(commits, result.SeenCommits)
 
-	pbft_log.Debug("Get verified Result", "", result.Block.Number())
+	pbft_log.Log.Debug("Get verified Result", "", result.Block.Number())
 
 	// here will call the save block
 	broadcaster.blockFetcher.DoTask(p.ID(), &model2.VerifyResult{

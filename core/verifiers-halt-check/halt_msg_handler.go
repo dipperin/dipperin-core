@@ -25,7 +25,7 @@ import (
 )
 
 func NewHaltHandler(conf ProposalGeneratorConfig) *VBHaltHandler {
-	ver_halt_check_log.Info("NewHaltHandler start~~~~~~~~~~~~~~~~~~~~~~~~`")
+	ver_halt_check_log.Log.Info("NewHaltHandler start~~~~~~~~~~~~~~~~~~~~~~~~`")
 	return &VBHaltHandler{
 		pgConfig:                 conf,
 		proposalMessagesByOthers: make([]ProposalMsg, 0),
@@ -51,16 +51,16 @@ type VBHaltHandler struct {
 
 // generate proposalMsg
 func (handler *VBHaltHandler) ProposeEmptyBlock() (pm ProposalMsg, err error) {
-	ver_halt_check_log.Info("VBHaltHandler ProposeEmptyBlock start~~~~~~")
+	ver_halt_check_log.Log.Info("VBHaltHandler ProposeEmptyBlock start~~~~~~")
 	handler.proposalMsg, err = GenProposalMsg(handler.pgConfig)
 	if err != nil {
-		ver_halt_check_log.Info("VBHaltHandler GenProposalMsg error", "err", err)
+		ver_halt_check_log.Log.Info("VBHaltHandler GenProposalMsg error", "err", err)
 		return ProposalMsg{}, err
 	}
 	pm = *handler.proposalMsg
 	handler.minProposalMsg = *handler.proposalMsg
 
-	ver_halt_check_log.Info("VBHaltHandler ProposeEmptyBlock end~~~~~~")
+	ver_halt_check_log.Log.Info("VBHaltHandler ProposeEmptyBlock end~~~~~~")
 	return
 }
 
@@ -73,9 +73,9 @@ func (handler *VBHaltHandler) OnNewProposalMsg(msg ProposalMsg) error {
 		}
 	}
 
-	ver_halt_check_log.Info("the received msg is:", "receivedMsg", msg)
-	ver_halt_check_log.Info("the own proposal is:", "ownProposal", handler.proposalMsg)
-	ver_halt_check_log.Info("the own proposal is:", "ownProposal", *handler.proposalMsg)
+	ver_halt_check_log.Log.Info("the received msg is:", "receivedMsg", msg)
+	ver_halt_check_log.Log.Info("the own proposal is:", "ownProposal", handler.proposalMsg)
+	ver_halt_check_log.Log.Info("the own proposal is:", "ownProposal", *handler.proposalMsg)
 
 	// whether the height matches
 	if msg.EmptyBlock.Number() != handler.proposalMsg.EmptyBlock.Number() {
@@ -89,7 +89,7 @@ func (handler *VBHaltHandler) OnNewProposalMsg(msg ProposalMsg) error {
 
 	// select the minimal msg
 	handler.minProposalMsg = selectEmptyProposal(handler.minProposalMsg, msg)
-	ver_halt_check_log.Info("the handler minProposalMsg is:", "hash", handler.minProposalMsg.EmptyBlock.Hash().Hex())
+	ver_halt_check_log.Log.Info("the handler minProposalMsg is:", "hash", handler.minProposalMsg.EmptyBlock.Hash().Hex())
 
 	return nil
 }
@@ -115,11 +115,11 @@ func (handler *VBHaltHandler) HandlerProposalMessages(msg ProposalMsg, selectedP
 	}
 
 	handler.proposalMessagesByOthers = append(handler.proposalMessagesByOthers, msg)
-	ver_halt_check_log.Info("the handler votesLen is:", "len", handler.VotesLen(), "verBootNodeNumber", chainConfig.VerifierBootNodeNumber)
+	ver_halt_check_log.Log.Info("the handler votesLen is:", "len", handler.VotesLen(), "verBootNodeNumber", chainConfig.VerifierBootNodeNumber)
 	if handler.VotesLen() == chainConfig.VerifierBootNodeNumber {
 		//collect all empty block, send the block with minimal hash to verifier
 		//only minimal hash node send the block
-		ver_halt_check_log.Info("the own proposal block hash is:", "hash", handler.proposalMsg.EmptyBlock.Hash(), "minimalHash", handler.minProposalMsg.EmptyBlock.Hash())
+		ver_halt_check_log.Log.Info("the own proposal block hash is:", "hash", handler.proposalMsg.EmptyBlock.Hash(), "minimalHash", handler.minProposalMsg.EmptyBlock.Hash())
 		if handler.proposalMsg.EmptyBlock.Hash() == handler.minProposalMsg.EmptyBlock.Hash() {
 			selectedProposal <- handler.minProposalMsg
 		}
@@ -131,18 +131,18 @@ func (handler *VBHaltHandler) HandlerProposalMessages(msg ProposalMsg, selectedP
 func (handler *VBHaltHandler) HandlerAliveVerVotes(vote model.VoteMsg, currentVerifiers []common.Address) error {
 	err := vote.HaltedVoteValid(currentVerifiers)
 	if err != nil {
-		ver_halt_check_log.Error("the aliveVerifierVote received from alive verifier is invalid", "err", err)
+		ver_halt_check_log.Log.Error("the aliveVerifierVote received from alive verifier is invalid", "err", err)
 		return err
 	}
 
-	ver_halt_check_log.Info("the vote is:", "vote", vote.GetAddress().Hex())
-	//ver_halt_check_log.Info("the own proposal is:","ownProposal",*handler.proposalMsg)
+	ver_halt_check_log.Log.Info("the vote is:", "vote", vote.GetAddress().Hex())
+	//ver_halt_check_log.Log.Info("the own proposal is:","ownProposal",*handler.proposalMsg)
 	if vote.BlockID != handler.proposalMsg.EmptyBlock.Hash() {
-		ver_halt_check_log.Error("the vote block hash error")
+		ver_halt_check_log.Log.Error("the vote block hash error")
 		return g_error.AliveVoteBlockHashError
 	}
 
-	ver_halt_check_log.Info("the vote witness address is:", "address", vote.Witness.Address)
+	ver_halt_check_log.Log.Info("the vote witness address is:", "address", vote.Witness.Address)
 	if _, ok := handler.aliveVerVotes[vote.Witness.Address]; !ok {
 		handler.aliveVerVotes[vote.Witness.Address] = vote
 	}

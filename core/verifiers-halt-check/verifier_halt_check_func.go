@@ -33,12 +33,12 @@ func GenVoteMsg(emptyBlock *model.Block, signFunc SignHashFunc, addr common.Addr
 		Timestamp: time.Now(),
 	}
 
-	ver_halt_check_log.Info("the voteMsg blockID is", "BlockID", vote.BlockID.Hex(), "height", vote.Height)
+	ver_halt_check_log.Log.Info("the voteMsg blockID is", "BlockID", vote.BlockID.Hex(), "height", vote.Height)
 	// sign msg
-	ver_halt_check_log.Info("generate empty vote", "address", addr)
+	ver_halt_check_log.Log.Info("generate empty vote", "address", addr)
 	sign, err := signFunc(vote.Hash().Bytes())
 	if err != nil {
-		ver_halt_check_log.Warn("sign aliveVerifierVote msg failed", "err", err)
+		ver_halt_check_log.Log.Warn("sign aliveVerifierVote msg failed", "err", err)
 		return nil, err
 	}
 	vote.Witness = &model.WitMsg{
@@ -52,13 +52,13 @@ func GenVoteMsg(emptyBlock *model.Block, signFunc SignHashFunc, addr common.Addr
 func checkProposalValid(proposal ProposalMsg) error {
 
 	if proposal.EmptyBlock.Hash() != proposal.VoteMsg.BlockID {
-		ver_halt_check_log.Warn("the proposal empty block hash is different from VoteMsg", "blockHash", proposal.EmptyBlock.Hash().Hex(), "voteMsgBlockId", proposal.VoteMsg.BlockID.Hex())
+		ver_halt_check_log.Log.Warn("the proposal empty block hash is different from VoteMsg", "blockHash", proposal.EmptyBlock.Hash().Hex(), "voteMsgBlockId", proposal.VoteMsg.BlockID.Hex())
 		return g_error.VoteMsgBlockHashNotMatchError
 	}
 
 	err := proposal.VoteMsg.HaltedVoteValid([]common.Address{})
 	if err != nil {
-		ver_halt_check_log.Error("the proposal VoteMsg is invalid", "err", err)
+		ver_halt_check_log.Log.Error("the proposal VoteMsg is invalid", "err", err)
 		return err
 	}
 	return nil

@@ -387,9 +387,9 @@ func TestSystemHaltedCheck_logCurrentVerifier(t *testing.T) {
 		NodeType:        chain_config.NodeTypeOfVerifierBoot,
 		NeedChainReader: mChainR,
 	})
-	logDuration = time.Millisecond
+	LogDuration = time.Millisecond
 	mChainR.EXPECT().GetCurrVerifiers().Return([]common.Address{{0x12}}).AnyTimes()
-	go haltedCheck.logCurrentVerifier()
+	go haltedCheck.LogCurrentVerifier()
 	time.Sleep(2 * time.Millisecond)
 }
 
@@ -403,7 +403,7 @@ func TestSystemHaltedCheck_logConnectedCurrentVerifier(t *testing.T) {
 		CsProtocol: mProtocol,
 	})
 
-	logDuration = time.Millisecond
+	LogDuration = time.Millisecond
 	mProtocol.EXPECT().GetCurrentVerifierPeers().Return(map[string]chain_communication.PmAbstractPeer{
 		"1": newMockPeer(c),
 	}).AnyTimes()
@@ -411,7 +411,7 @@ func TestSystemHaltedCheck_logConnectedCurrentVerifier(t *testing.T) {
 		"1": newMockPeer(c),
 	}).AnyTimes()
 
-	go haltedCheck.logConnectedCurrentVerifier()
+	go haltedCheck.LogConnectedCurrentVerifier()
 	time.Sleep(2 * time.Millisecond)
 }
 

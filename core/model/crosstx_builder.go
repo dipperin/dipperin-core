@@ -34,6 +34,8 @@ func CreateRawLockTx(nonce uint64, lock common.Hash, time *big.Int, amount *big.
 		TimeLock:     time,
 		Amount:       new(big.Int).Set(amount),
 		ExtraData:    data,
+		Price:        gasPrice,
+		GasLimit:     gasLimit,
 	}
 	wit := witness{
 		R:       new(big.Int),

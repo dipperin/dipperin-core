@@ -36,3 +36,6 @@ t_log
 state_machine
 
 core/vm/resolver/builtins/build
+
+dipperin-darwin-10.6-amd64
+dipperin-linux-amd64

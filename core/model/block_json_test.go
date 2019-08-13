@@ -42,8 +42,14 @@ func TestBlock_JSON(t *testing.T) {
 	b1 := CreateBlock(0, common.Hash{}, 1)
 
 	// MarshalJSON
-	_, err1 := b1.MarshalJSON()
+	enc, err1 := b1.MarshalJSON()
 	assert.NoError(t, err1)
+
+	// UnmarshalJSON
+	b1get := &Block{}
+	err2 := b1get.UnmarshalJSON(enc)
+	assert.NoError(t, err2)
+	assert.Equal(t, b1.Hash(), b1get.Hash())
 }
 
 func TestBody_UnmarshalJSON(t *testing.T) {

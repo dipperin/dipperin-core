@@ -278,3 +278,35 @@ func TestTxDifference(t *testing.T) {
 	result := TxDifference([]AbstractTransaction{tx1}, []AbstractTransaction{tx2})
 	assert.NotNil(t, result)
 }
+
+func TestTransaction_AsMessage(t *testing.T) {
+	tx1, tx2 := createTestTx()
+
+	// tx1 as message
+	msg1, err := tx1.AsMessage()
+	assert.NoError(t, err)
+	from, err := tx1.Sender(nil)
+	assert.NoError(t, err)
+	assert.Equal(t, tx1.Nonce(), msg1.Nonce())
+	assert.Equal(t, from, msg1.From())
+	assert.Equal(t, tx1.To(), msg1.To())
+	assert.Equal(t, tx1.GetGasPrice(), msg1.GasPrice())
+	assert.Equal(t, tx1.GetGasLimit(), msg1.Gas())
+	assert.Equal(t, tx1.Amount(), msg1.Value())
+	assert.Equal(t, tx1.ExtraData(), msg1.Data())
+	assert.Equal(t, true, msg1.CheckNonce())
+
+	// tx2 as message
+	msg2, err := tx2.AsMessage()
+	assert.NoError(t, err)
+	from, err = tx2.Sender(nil)
+	assert.NoError(t, err)
+	assert.Equal(t, tx2.Nonce(), msg2.Nonce())
+	assert.Equal(t, from, msg2.From())
+	assert.Equal(t, tx2.To(), msg2.To())
+	assert.Equal(t, tx2.GetGasPrice(), msg2.GasPrice())
+	assert.Equal(t, tx2.GetGasLimit(), msg2.Gas())
+	assert.Equal(t, tx2.Amount(), msg2.Value())
+	assert.Equal(t, tx2.ExtraData(), msg2.Data())
+	assert.Equal(t, true, msg2.CheckNonce())
+}

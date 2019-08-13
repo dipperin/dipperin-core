@@ -13,41 +13,48 @@ const (
 	LoggerConSoleAndFile
 )
 
-func GetInitLogger(loggerType LoggerType, logLevel Lvl, filePath, dirName, logName string, initLog Logger) Logger {
-	var l Logger
-	if initLog == nil {
-		l = &logger{[]interface{}{}, new(swapHandler)}
-	} else {
-		l = initLog
-	}
+type LoggerConfig struct {
+	Type      LoggerType
+	LogLevel  Lvl
+	FilePath  string
+	DirName   string
+	RemoveOld bool
+}
 
+func SetInitLogger(conf LoggerConfig, nodeName string) Logger {
+	l := &logger{[]interface{}{}, new(swapHandler)}
 	var targetDir string
-	if filePath == "" {
-		targetDir = filepath.Join(homeDir(), "tmp", "log", dirName)
+	if conf.FilePath == "" {
+		targetDir = filepath.Join(homeDir(), "tmp", "dp_debug", conf.DirName)
 	} else {
-		targetDir = filePath
+		targetDir = conf.FilePath
 	}
 
 	if !PathExists(targetDir) {
 		os.MkdirAll(targetDir, os.ModePerm)
 	}
+	if nodeName == "" {
+		nodeName = conf.DirName
+	}
 
-	logFilePath := filepath.Join(targetDir, logName)
+	logFilePath := filepath.Join(targetDir, nodeName+".log")
+	if conf.RemoveOld {
+		_ = os.RemoveAll(logFilePath)
+	}
 	fileHandler, err := FileHandler(logFilePath, TerminalFormat())
 	if err != nil {
 		panic(err.Error())
 	}
 
 	var handlers []Handler
-	switch loggerType {
+	switch conf.Type {
 	case LoggerConsole:
-		handlers = append(handlers, LvlFilterHandler(logLevel, StdoutHandler))
+		handlers = append(handlers, LvlFilterHandler(conf.LogLevel, StdoutHandler))
 	case LoggerFile:
-		handlers = append(handlers, LvlFilterHandler(logLevel, fileHandler))
+		handlers = append(handlers, LvlFilterHandler(conf.LogLevel, fileHandler))
 	case LoggerConSoleAndFile:
-		handlers = append(handlers, LvlFilterHandler(logLevel, StdoutHandler), LvlFilterHandler(logLevel, fileHandler))
+		handlers = append(handlers, LvlFilterHandler(conf.LogLevel, StdoutHandler), LvlFilterHandler(conf.LogLevel, fileHandler))
 	}
-
 	l.SetHandler(MultiHandler(handlers...))
 	return l
 }

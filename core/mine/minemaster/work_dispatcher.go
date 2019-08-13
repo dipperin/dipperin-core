@@ -64,7 +64,7 @@ func (dispatcher *workDispatcher) onNewBlock(block model.AbstractBlock) error {
 }
 
 func (dispatcher *workDispatcher) dispatchNewWork() error {
-	pbft_log.Debug("dispatch mine work")
+	pbft_log.Log.Debug("dispatch mine work")
 	workers := dispatcher.getWorkersFunc()
 	workersLen := len(workers)
 	if workersLen == 0 {
@@ -84,13 +84,13 @@ func (dispatcher *workDispatcher) dispatchNewWork() error {
 		w.SendNewWork(workMsgCode, works[i])
 		i++
 	}
-	pbft_log.Debug("finish dispatch mine work")
+	pbft_log.Log.Debug("finish dispatch mine work")
 	log.Info("finish dispatch work")
 	return nil
 }
 
 func (dispatcher *workDispatcher) makeNewWorks(workerLen int) (workMsgCode int, works []minemsg.Work) {
-	pbft_log.Debug("make new works")
+	pbft_log.Log.Debug("make new works")
 	coinBaseAddr := dispatcher.GetCoinbaseAddr()
 	gasFloor := dispatcher.GetGasFloor()
 	gasCeil := dispatcher.GetGasCeil()

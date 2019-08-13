@@ -145,9 +145,10 @@ func TestVM_CreateAndCallWithdraw(t *testing.T) {
 	data, err = rlp.EncodeToBytes([]interface{}{funcName, to, amount})
 	assert.NoError(t, err)
 	resp, _, err = vm.Call(aliceRef, addr, data, gasLimit, value)
-	assert.Equal(t, value, vm.GetStateDB().GetBalance(addr))
-	assert.Equal(t, make([]byte, utils.ALIGN_LENGTH), resp)
+	expectResp := utils.Align32BytesConverter(resp, "bool")
+	assert.Equal(t, true, expectResp)
 	assert.NoError(t, err)
+	assert.Equal(t, value, vm.GetStateDB().GetBalance(addr))
 
 	// call withdraw
 	funcName = []byte("withdraw")
@@ -166,9 +167,10 @@ func TestVM_CreateAndCallWithdraw(t *testing.T) {
 
 	// alice withdraw the contract
 	resp, _, err = vm.Call(aliceRef, addr, data, gasLimit, big.NewInt(0))
-	assert.Equal(t, make([]byte, utils.ALIGN_LENGTH), resp)
-	assert.Equal(t, uint64(0), vm.GetStateDB().GetBalance(addr).Uint64())
+	expectResp = utils.Align32BytesConverter(resp, "bool")
+	assert.Equal(t, true, expectResp)
 	assert.NoError(t, err)
+	assert.Equal(t, uint64(0), vm.GetStateDB().GetBalance(addr).Uint64())
 }
 
 func TestVM_CreateAndCallToken_Transfer(t *testing.T) {
@@ -194,24 +196,31 @@ func TestVM_CreateAndCallToken_Transfer(t *testing.T) {
 	assert.Equal(t, expectAddr, addr)
 	assert.NoError(t, err)
 
-	// vm.Call transfer
+	// vm.Call transfer to zero address(failed)
 	funcName := []byte("transfer")
-	to := []byte(bobAddr.Hex())
+	to := []byte("0x0")
 	amount := utils.Uint64ToBytes(100)
 	data, err = rlp.EncodeToBytes([]interface{}{funcName, to, amount})
 	assert.NoError(t, err)
-
 	resp, _, err = vm.Call(aliceRef, addr, data, gasLimit, value)
-	assert.Equal(t, make([]byte, utils.ALIGN_LENGTH), resp)
+	assert.Equal(t, []byte(nil), resp)
+	assert.Equal(t, "VM execute fail: abort", err.Error())
+
+	// vm.Call transfer to bob
+	to = []byte(bobAddr.Hex())
+	data, err = rlp.EncodeToBytes([]interface{}{funcName, to, amount})
+	assert.NoError(t, err)
+	resp, _, err = vm.Call(aliceRef, addr, data, gasLimit, value)
+	expectResp := utils.Align32BytesConverter(resp, "bool")
+	assert.Equal(t, true, expectResp)
 	assert.NoError(t, err)
 
 	// vm.Call bob getBalance
 	funcName = []byte("getBalance")
 	data, err = rlp.EncodeToBytes([]interface{}{funcName, to})
 	assert.NoError(t, err)
-
 	resp, _, err = vm.Call(aliceRef, addr, data, gasLimit, big.NewInt(0))
-	expectResp := utils.Align32BytesConverter(resp, "uint64")
+	expectResp = utils.Align32BytesConverter(resp, "uint64")
 	assert.Equal(t, uint64(100), expectResp)
 	assert.NoError(t, err)
 
@@ -267,7 +276,8 @@ func TestVM_CreateAndCallToken_TransferFrom(t *testing.T) {
 	data, err = rlp.EncodeToBytes([]interface{}{funcName, spender, amount2})
 	assert.NoError(t, err)
 	resp, _, err = vm.Call(aliceRef, addr, data, gasLimit, big.NewInt(0))
-	assert.Equal(t, make([]byte, utils.ALIGN_LENGTH), resp)
+	expectResp := utils.Align32BytesConverter(resp, "bool")
+	assert.Equal(t, true, expectResp)
 	assert.NoError(t, err)
 
 	// vm.Call charlie getApproveBalance
@@ -276,7 +286,7 @@ func TestVM_CreateAndCallToken_TransferFrom(t *testing.T) {
 	getApproveData, err := rlp.EncodeToBytes([]interface{}{funcName, from, spender})
 	assert.NoError(t, err)
 	resp, _, err = vm.Call(charlieRef, addr, getApproveData, gasLimit, big.NewInt(0))
-	expectResp := utils.Align32BytesConverter(resp, "uint64")
+	expectResp = utils.Align32BytesConverter(resp, "uint64")
 	assert.Equal(t, uint64(400), expectResp)
 	assert.NoError(t, err)
 
@@ -297,8 +307,8 @@ func TestVM_CreateAndCallToken_TransferFrom(t *testing.T) {
 
 	// vm.Call bob transferFrom 400 which alice approve to bob
 	resp, _, err = vm.Call(bobRef, addr, data, gasLimit, big.NewInt(0))
-	expectResp = utils.Align32BytesConverter(resp, "uint64")
-	assert.Equal(t, make([]byte, utils.ALIGN_LENGTH), resp)
+	expectResp = utils.Align32BytesConverter(resp, "bool")
+	assert.Equal(t, true, expectResp)
 	assert.NoError(t, err)
 
 	// vm.Call charlie getApproveBalance
@@ -332,10 +342,15 @@ func TestVM_CreateAndCallToken_TransferFrom(t *testing.T) {
 	assert.Equal(t, []byte(nil), resp)
 	assert.Equal(t, "VM execute fail: abort", err.Error())
 
+	// vm.Call alice burn the token(failed)
+	resp, _, err = vm.Call(aliceRef, addr, data, gasLimit, big.NewInt(0))
+	assert.Equal(t, []byte(nil), resp)
+	assert.Equal(t, "VM execute fail: abort", err.Error())
+
 	// vm.Call bob burn the token
 	resp, _, err = vm.Call(bobRef, addr, data, gasLimit, big.NewInt(0))
-	expectResp = utils.Align32BytesConverter(resp, "uint64")
-	assert.Equal(t, make([]byte, utils.ALIGN_LENGTH), resp)
+	expectResp = utils.Align32BytesConverter(resp, "bool")
+	assert.Equal(t, true, expectResp)
 	assert.NoError(t, err)
 
 	// vm.Call charlie get alice balance

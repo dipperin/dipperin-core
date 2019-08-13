@@ -268,10 +268,6 @@ func (tx *Transaction) GetGasLimit() uint64 {
 	return tx.data.GasLimit
 }
 
-func (tx *Transaction) SetGasLimit(gasLimit uint64) {
-	tx.data.GasLimit = gasLimit
-}
-
 //DecodeRLP implements rlp.Decoder
 func (tx *Transaction) DecodeRLP(s *rlp.Stream) error {
 	var dtx TransactionRLP
@@ -414,7 +410,6 @@ func (tx *Transaction) EstimateFee() *big.Int {
 }
 
 func (tx *Transaction) AsMessage() (Message, error) {
-	log.Info("Transaction#AsMessage", "gasPrice", tx.data.Price)
 	msg := Message{
 		nonce:      tx.data.AccountNonce,
 		gasLimit:   tx.data.GasLimit,
@@ -626,7 +621,7 @@ type Message struct {
 	checkNonce bool
 }
 
-func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, checkNonce bool) Message {
+/*func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, checkNonce bool) Message {
 	return Message{
 		from:       from,
 		to:         to,
@@ -637,7 +632,7 @@ func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *b
 		data:       data,
 		checkNonce: checkNonce,
 	}
-}
+}*/
 
 func (m Message) From() common.Address { return m.from }
 func (m Message) To() *common.Address  { return m.to }
