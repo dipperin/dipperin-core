@@ -22,7 +22,7 @@ var (
 
 const (
 	abi1 = `[{
-        "name": "init",
+        "func_name": "init",
         "inputs": [],
         "outputs": [],
         "constant": "false",
@@ -30,7 +30,7 @@ const (
     }]`
 
 	abi2 = `[{
-        "name": "init",
+        "func_name": "init",
         "inputs": [
             {
                 "name": "inputName",
@@ -48,7 +48,7 @@ const (
     }]`
 
 	abi3 = `[{
-        "name": "init",
+        "func_name": "init",
         "inputs": [
             {
                 "name": "inputName",
@@ -61,7 +61,7 @@ const (
     }]`
 
 	abi4 = `[{
-        "name": "init",
+        "func_name": "init",
         "inputs": [],
         "outputs": [
             {
@@ -74,7 +74,7 @@ const (
     }]`
 
 	abi5 = `[{
-        "name": "init",
+        "func_name": "init",
         "inputs": [
             {
                 "name": "inputName",
