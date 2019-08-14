@@ -17,7 +17,7 @@ func TestApplyMessage(t *testing.T) {
 	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
 	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
 	tx := createContractTx(WASMPath, AbiPath, 0, testGasLimit)
-	msg, err := tx.AsMessage(true)
+	msg, err := tx.AsMessage(false)
 	assert.NoError(t, err)
 
 	db, root := CreateTestStateDB()
@@ -34,7 +34,7 @@ func TestApplyMessage(t *testing.T) {
 	params := [][]byte{name}
 	to := cs_crypto.CreateContractAddress(aliceAddr, 0)
 	tx = callContractTx(&to, "returnString", params, 1)
-	msg, err = tx.AsMessage(true)
+	msg, err = tx.AsMessage(false)
 	assert.NoError(t, err)
 
 	result, usedGas, failed, _, err = ApplyMessage(testVm, &msg, &gasPool)

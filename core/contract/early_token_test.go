@@ -55,7 +55,6 @@ func (testDB *testAccountDB) SubBalance(addr common.Address, amount *big.Int) er
 	}
 
 	testDB.balance[addr].Sub(testDB.balance[addr], amount)
-
 	return nil
 }
 
@@ -75,13 +74,11 @@ func TestMap(t *testing.T) {
 	testMap := make(map[string]int, 0)
 	testMap["a"] = 1
 	testMap["a"] = 2
-
 	log.Info("the testMap is:", "testMap", testMap)
 }
 
 func TestReflect(t *testing.T) {
 	value := reflect.ValueOf(&testJson{})
-
 	fmt.Printf("the testJson method num is:%v\r\n", value.NumMethod())
 }
 
@@ -95,7 +92,6 @@ func TestJsonEncode(t *testing.T) {
 	}
 
 	encodeResult := util.StringifyJson(test)
-
 	fmt.Printf("the encodeResult is:%v\r\n", encodeResult)
 }
 
@@ -108,7 +104,6 @@ func TestEarlyTokenUnmarshalJSON(t *testing.T) {
 	log.Info("the Token owner is:", "owner", contract.Owner.Hex())
 	value, ok := contract.Balances[contract.Owner.Hex()]
 	assert.EqualValues(t, true, ok)
-
 	log.Info("the value is:", "value", value)
 }
 
@@ -122,7 +117,6 @@ func TestUnmarshalData(t *testing.T) {
 	var contract EarlyRewardContract
 	err = json.Unmarshal(bytes, &contract)
 	assert.NoError(t, err)
-
 }
 
 func TestMakeEarlyRewardContract(t *testing.T) {
@@ -136,15 +130,12 @@ func TestMakeEarlyRewardContract(t *testing.T) {
 
 	decimalBase = big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(DecimalUnits)), nil)
 	initAmount = big.NewInt(0).Mul(economy_model.EarlyTokenAmount, decimalBase)
-
 	testContract, err = MakeEarlyRewardContract(foundation, initAmount, economy_model.InitExchangeRate, tokenName, DecimalUnits, tokenSymbol, owner)
 	assert.NoError(t, err)
 
 	log.Info("the remainder DIP is:", "remainder", big.NewInt(0).Sub(economy_model.EarlyTokenDIP, testContract.NeedDIP))
-
 	log.Info("the initial exchangeRate is:", "initialExchangeRate", economy_model.InitExchangeRate)
 	earlyContractStr := util.StringifyJson(testContract)
-
 	fmt.Printf("the earlyContractStr is:%v\r\n", earlyContractStr)
 }
 
@@ -183,9 +174,7 @@ func TestEarlyRewardContract_SetExchangeRate(t *testing.T) {
 	assert.EqualValues(t, needValue, contract.NeedDIP)
 
 	returnValue := big.NewInt(0).Sub(initialDIP, needValue)
-
 	contractCreatorAddressBalance, err := contract.AccountDB.GetBalance(contract.Owner)
-
 	log.Info("the  returnValue is:", "returnValue", returnValue)
 	assert.NoError(t, err)
 	assert.EqualValues(t, returnValue, contractCreatorAddressBalance)
@@ -202,7 +191,6 @@ func TestEarlyRewardContract_TransferEDIPToDIP(t *testing.T) {
 	assert.Error(t, errF, errors.New("the address isn't NotFoundationAddress"))
 
 	contract.AccountDB = testDB
-
 	rewardAddress := common.HexToAddress("0x0000f01dA91C64eF6202c735e9362010196a556C7fc7")
 	DIPReward := big.NewInt(0).Mul(big.NewInt(1740000000), big.NewInt(consts.GDIPUNIT))
 	blockNumber := uint64(30)
@@ -247,8 +235,12 @@ func TestEarlyRewardContract_Transfer(t *testing.T) {
 		panic(err.Error())
 	}
 
-	errF := contract.TransferEDIPToDIP(economy_model.MaintenanceAddresses[0], (*hexutil.Big)(big.NewInt(0x21fc)))
-	assert.Error(t, errF, errors.New("the address should be normalAddress"))
+	errF := contract.Transfer(bobAddr, (*hexutil.Big)(big.NewInt(0x21fc)))
+	assert.Error(t, errF)
+
+	contract.CurSender = economy_model.MaintenanceAddresses[0]
+	errF = contract.Transfer(common.HexToAddress("1234"), (*hexutil.Big)(big.NewInt(0x21fc)))
+	assert.Equal(t, errors.New("the address should be normalAddress"), errF)
 }
 
 func TestEarlyRewardContract_TransferFrom(t *testing.T) {
@@ -262,7 +254,6 @@ func TestEarlyRewardContract_TransferFrom(t *testing.T) {
 
 	ret = contract.TransferFrom(common.HexToAddress("1234"), economy_model.MaintenanceAddresses[0], (*hexutil.Big)(big.NewInt(0x21fc)))
 	assert.Equal(t, ret, false)
-
 }
 
 func TestEarlyRewardContract_Approve(t *testing.T) {
@@ -373,6 +364,5 @@ func TestEarlyRewardContract_RewardVerifier(t *testing.T) {
 
 	notCommitBalance := contract.BalanceOf(addresses[economy_model.NotCommitVerifier][0]).ToInt()
 	assert.EqualValues(t, big.NewInt(9), notCommitBalance)
-
 	assert.NoError(t, err)
 }

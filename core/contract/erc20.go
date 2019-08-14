@@ -289,9 +289,7 @@ func (token *BuiltInERC20Token) Transfer(toAddress common.Address, hValue *hexut
 	tBalance := token.getBalanceForAddress(toAddress)
 
 	token.Balances[senderAddress.Hex()] = sBalance.Sub(sBalance, value)
-
 	token.Balances[toAddress.Hex()] = tBalance.Add(tBalance, value)
-
 	log.Debug("ERC20 transfer", "from address", senderAddress.Hex(), "to address", toAddress.Hex())
 	// TODO record operation
 

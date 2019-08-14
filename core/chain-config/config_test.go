@@ -49,6 +49,7 @@ func TestGetChainConfig(t *testing.T) {
 	chainConfig := GetChainConfig()
 	assert.Equal(t, uint64(110), chainConfig.SlotSize)
 	assert.Equal(t, 22, chainConfig.VerifierNumber)
+	assert.Equal(t, uint64(2000), chainConfig.NetworkID)
 
 	err := os.Setenv("boots_env", "test")
 	assert.NoError(t, err)
@@ -61,6 +62,18 @@ func TestGetChainConfig(t *testing.T) {
 
 	chainConfig = defaultChainConfig()
 	assert.Equal(t, uint64(99), chainConfig.NetworkID)
+
+	err = os.Setenv("boots_env", "local")
+	assert.NoError(t, err)
+
+	chainConfig = defaultChainConfig()
+	assert.Equal(t, uint64(1601), chainConfig.NetworkID)
+
+	err = os.Setenv("boots_env", "venus")
+	assert.NoError(t, err)
+
+	chainConfig = defaultChainConfig()
+	assert.Equal(t, uint64(100), chainConfig.NetworkID)
 }
 
 func TestGetCurBootsEnv(t *testing.T) {
@@ -95,6 +108,14 @@ func TestInitBootNodes(t *testing.T) {
 	assert.Equal(t, 1, len(KBucketNodes))
 
 	err = os.Setenv("boots_env", "mercury")
+	assert.NoError(t, err)
+	VerifierBootNodes = []*enode.Node{}
+	KBucketNodes = []*enode.Node{}
+	InitBootNodes("")
+	assert.Equal(t, 4, len(VerifierBootNodes))
+	assert.Equal(t, 1, len(KBucketNodes))
+
+	err = os.Setenv("boots_env", "venus")
 	assert.NoError(t, err)
 	VerifierBootNodes = []*enode.Node{}
 	KBucketNodes = []*enode.Node{}

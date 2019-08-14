@@ -148,7 +148,7 @@ func GetContractMethodArgs(cType string, mName string) ([]reflect.Type, error) {
 }
 
 // convert infomation to contract object
-func ParseContractFromBytes(cTypeStr string, cb []byte) (interface{}, error) {
+/*func ParseContractFromBytes(cTypeStr string, cb []byte) (interface{}, error) {
 	ct, ctErr := GetContractTempByType(cTypeStr)
 	if ctErr != nil {
 		return nil, ctErr
@@ -160,7 +160,7 @@ func ParseContractFromBytes(cTypeStr string, cb []byte) (interface{}, error) {
 		return nil, err
 	}
 	return nContract.Interface(), nil
-}
+}*/
 
 //type ERC20ExtraData struct {
 //	// contract address

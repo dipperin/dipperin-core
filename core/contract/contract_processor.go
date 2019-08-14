@@ -75,6 +75,7 @@ func (p *Processor) Process(tx model.AbstractTransaction) (err error) {
 	// modify contract
 	if err == nil {
 		// TODO: check the type of contract address
+
 		err = p.contractDB.PutContract(eData.ContractAddress, result)
 	}
 
