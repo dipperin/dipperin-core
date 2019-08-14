@@ -1,6 +1,6 @@
 [
     {
-        "name": "init",
+        "func_name": "init",
         "inputs": [],
         "outputs": [],
         "constant": "false",
@@ -8,7 +8,7 @@
         "type": "function"
     },
     {
-        "name": "libTest",
+        "func_name": "libTest",
         "inputs": [],
         "outputs": [],
         "constant": "false",

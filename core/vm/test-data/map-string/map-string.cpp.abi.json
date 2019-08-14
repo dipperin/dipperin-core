@@ -1,13 +1,13 @@
 [
     {
-        "name": "init",
+        "func_name": "init",
         "inputs": [],
         "outputs": [],
         "constant": "false",
         "type": "function"
     },
     {
-        "name": "setBalance",
+        "func_name": "setBalance",
         "inputs": [
             {
                 "name": "",
@@ -23,7 +23,7 @@
         "type": "function"
     },
     {
-        "name": "getBalance",
+        "func_name": "getBalance",
         "inputs": [
             {
                 "name": "",

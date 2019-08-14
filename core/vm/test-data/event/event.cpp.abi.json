@@ -1,13 +1,13 @@
 [
     {
-        "name": "init",
+        "func_name": "init",
         "inputs": [],
         "outputs": [],
         "constant": "false",
         "type": "function"
     },
     {
-        "name": "returnString",
+        "func_name": "returnString",
         "inputs": [
             {
                 "name": "name",
@@ -24,7 +24,7 @@
         "type": "function"
     },
     {
-        "name": "returnInt",
+        "func_name": "returnInt",
         "inputs": [
             {
                 "name": "name",
@@ -41,7 +41,7 @@
         "type": "function"
     },
     {
-        "name": "returnUint",
+        "func_name": "returnUint",
         "inputs": [
             {
                 "name": "name",
@@ -58,7 +58,7 @@
         "type": "function"
     },
     {
-        "name": "topic",
+        "func_name": "topic",
         "inputs": [
             {
                 "type": "string"

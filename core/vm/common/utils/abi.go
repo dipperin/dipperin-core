@@ -9,7 +9,7 @@ type WasmAbi struct {
 }
 
 type AbiStruct struct {
-	Name     string         `json:"name"`
+	Name     string         `json:"func_name"`
 	Inputs   []InputParam   `json:"inputs"`
 	Outputs  []OutputsParam `json:"outputs"`
 	Constant string         `json:"constant"`

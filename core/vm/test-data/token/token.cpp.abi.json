@@ -1,6 +1,6 @@
 [
     {
-        "name": "init",
+        "func_name": "init",
         "inputs": [
             {
                 "name": "tokenName",
@@ -20,21 +20,21 @@
         "type": "function"
     },
     {
-        "name": "stop",
+        "func_name": "stop",
         "inputs": [],
         "outputs": [],
         "constant": "false",
         "type": "function"
     },
     {
-        "name": "start",
+        "func_name": "start",
         "inputs": [],
         "outputs": [],
         "constant": "false",
         "type": "function"
     },
     {
-        "name": "setName",
+        "func_name": "setName",
         "inputs": [
             {
                 "name": "_name",
@@ -46,7 +46,7 @@
         "type": "function"
     },
     {
-        "name": "transfer",
+        "func_name": "transfer",
         "inputs": [
             {
                 "name": "to",
@@ -62,7 +62,7 @@
         "type": "function"
     },
     {
-        "name": "transferFrom",
+        "func_name": "transferFrom",
         "inputs": [
             {
                 "name": "from",
@@ -82,7 +82,7 @@
         "type": "function"
     },
     {
-        "name": "approve",
+        "func_name": "approve",
         "inputs": [
             {
                 "name": "spender",
@@ -98,7 +98,7 @@
         "type": "function"
     },
     {
-        "name": "burn",
+        "func_name": "burn",
         "inputs": [
             {
                 "name": "_value",
@@ -110,7 +110,7 @@
         "type": "function"
     },
     {
-        "name": "getBalance",
+        "func_name": "getBalance",
         "inputs": [
             {
                 "name": "own",
@@ -127,7 +127,7 @@
         "type": "function"
     },
     {
-        "name": "Tranfer",
+        "func_name": "Tranfer",
         "inputs": [
             {
                 "type": "string"
@@ -142,7 +142,7 @@
         "type": "event"
     },
     {
-        "name": "Approval",
+        "func_name": "Approval",
         "inputs": [
             {
                 "type": "string"

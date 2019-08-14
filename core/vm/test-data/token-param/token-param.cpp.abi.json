@@ -1,6 +1,6 @@
 [
     {
-        "name": "init",
+        "func_name": "init",
         "inputs": [
             {
                 "name": "tokenName",
@@ -21,7 +21,7 @@
         "type": "function"
     },
     {
-        "name": "transfer",
+        "func_name": "transfer",
         "inputs": [
             {
                 "name": "to",
@@ -38,7 +38,7 @@
         "type": "function"
     },
     {
-        "name": "approve",
+        "func_name": "approve",
         "inputs": [
             {
                 "name": "spender",
@@ -55,7 +55,7 @@
         "type": "function"
     },
     {
-        "name": "transferFrom",
+        "func_name": "transferFrom",
         "inputs": [
             {
                 "name": "from",
@@ -76,7 +76,7 @@
         "type": "function"
     },
     {
-        "name": "getBalance",
+        "func_name": "getBalance",
         "inputs": [
             {
                 "name": "own",
@@ -94,7 +94,7 @@
         "type": "function"
     },
     {
-        "name": "getApproveBalance",
+        "func_name": "getApproveBalance",
         "inputs": [
             {
                 "name": "from",
@@ -116,7 +116,7 @@
         "type": "function"
     },
     {
-        "name": "Tranfer",
+        "func_name": "Tranfer",
         "inputs": [
             {
                 "type": "string"
@@ -131,7 +131,7 @@
         "type": "event"
     },
     {
-        "name": "Approval",
+        "func_name": "Approval",
         "inputs": [
             {
                 "type": "string"
@@ -146,7 +146,7 @@
         "type": "event"
     },
     {
-        "name": "GetBalance",
+        "func_name": "GetBalance",
         "inputs": [
             {
                 "type": "string"
