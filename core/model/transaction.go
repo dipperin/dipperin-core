@@ -404,7 +404,7 @@ func (tx *Transaction) EstimateFee() *big.Int {
 	return fee
 }
 
-func (tx *Transaction) AsMessage() (Message, error) {
+func (tx *Transaction) AsMessage(checkNonce bool) (Message, error) {
 	msg := Message{
 		nonce:      tx.data.AccountNonce,
 		gasLimit:   tx.data.GasLimit,
@@ -412,7 +412,7 @@ func (tx *Transaction) AsMessage() (Message, error) {
 		to:         tx.data.Recipient,
 		amount:     tx.data.Amount,
 		data:       tx.data.ExtraData,
-		checkNonce: true,
+		checkNonce: checkNonce,
 	}
 
 	var err error

@@ -127,7 +127,7 @@ type AbstractTransaction interface {
 	EstimateFee() *big.Int
 	GetGasPrice() *big.Int
 	GetGasLimit() uint64
-	AsMessage() (Message, error)
+	AsMessage(checkNonce bool) (Message, error)
 	PaddingReceipt(parameters ReceiptPara)
 	PaddingActualTxFee(fee *big.Int)
 	GetReceipt() *model.Receipt

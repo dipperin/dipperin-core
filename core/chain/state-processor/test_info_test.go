@@ -389,7 +389,7 @@ func (tx fakeTransaction) GetGasLimit() uint64 {
 	return g_testData.TestGasLimit
 }
 
-func (tx fakeTransaction) AsMessage() (model.Message, error) {
+func (tx fakeTransaction) AsMessage(checkNonce bool) (model.Message, error) {
 	panic("implement me")
 }
 

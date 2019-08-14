@@ -292,7 +292,7 @@ func TestTransaction_AsMessage(t *testing.T) {
 	tx1, tx2 := createTestTx()
 
 	// tx1 as message
-	msg1, err := tx1.AsMessage()
+	msg1, err := tx1.AsMessage(true)
 	assert.NoError(t, err)
 	from, err := tx1.Sender(nil)
 	assert.NoError(t, err)
@@ -309,7 +309,7 @@ func TestTransaction_AsMessage(t *testing.T) {
 	assert.Equal(t, uint64(100), msg1.Gas())
 
 	// tx2 as message
-	msg2, err := tx2.AsMessage()
+	msg2, err := tx2.AsMessage(true)
 	assert.NoError(t, err)
 	from, err = tx2.Sender(nil)
 	assert.NoError(t, err)

@@ -1832,7 +1832,7 @@ func (service *VenusFullChainService) Call(signedTx model.AbstractTransaction, b
 		return "", g_error.ErrFunctionCalledNotConstant
 	}
 
-	msg, err := signedTx.AsMessage()
+	msg, err := signedTx.AsMessage(false)
 	if err != nil {
 		return "", err
 	}
@@ -1891,7 +1891,7 @@ func (service *VenusFullChainService) EstimateGas(signedTx model.AbstractTransac
 	capacity = high
 
 	txHash := signedTx.CalTxId()
-	msg, err := signedTx.AsMessage()
+	msg, err := signedTx.AsMessage(false)
 	if err != nil {
 		log.Error("EstimateGas#AsMessage failed", "err", err)
 		return hexutil.Uint64(0), err
