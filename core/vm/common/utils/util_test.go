@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
@@ -10,7 +11,7 @@ import (
 
 const (
 	abiStr = `[{
-        "name": "test",
+        "func_name": "test",
         "inputs": [
             {
                 "name": "inputName",
@@ -23,7 +24,7 @@ const (
     }]`
 
 	abi1 = `[{
-        "name": "init",
+        "func_name": "init",
         "inputs": [],
         "outputs": [
             {
@@ -36,7 +37,7 @@ const (
     }]`
 
 	abi2 = `[{
-        "name": "init",
+        "func_name": "init",
         "inputs": [],
         "outputs": [],
         "constant": "false",
@@ -44,7 +45,7 @@ const (
     }]`
 
 	abi3 = `[{
-        "name": "init",
+        "func_name": "init",
         "inputs": [
             {
                 "name": "inputName",
@@ -159,6 +160,8 @@ func TestParseCreateContractData(t *testing.T) {
 	WASMPath := g_testData.GetWASMPath("token-const", g_testData.CoreVmTestData)
 	AbiPath := g_testData.GetAbiPath("token-const", g_testData.CoreVmTestData)
 	code, abi := g_testData.GetCodeAbi(WASMPath, AbiPath)
+	fmt.Println("code", WASMPath)
+	fmt.Println("abi", AbiPath)
 
 	data, err := ParseCreateContractData(nil)
 	assert.Equal(t, []byte(nil), data)
