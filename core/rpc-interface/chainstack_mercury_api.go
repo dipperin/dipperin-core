@@ -1251,6 +1251,18 @@ func (api *DipperinVenusApi) GetLogs(blockHash common.Hash, fromBlock, toBlock u
 	return api.service.GetLogs(blockHash, fromBlock, toBlock, Addresses, Topics)
 }
 
+//func (api *DipperinVenusApi) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, Addresses []common.Address, Topics [][]string) ([]*model2.Log, error) {
+//	var tps [][]common.Hash
+//	for _,ts  := range  Topics{
+//		var tp []common.Hash
+//		for _, t := range ts {
+//			tp = append(tp, common.BytesToHash(crypto.Keccak256([]byte(t))))
+//		}
+//		tps = append(tps, tp)
+//	}
+//	return api.service.GetLogs(blockHash, fromBlock, toBlock, Addresses, tps)
+//}
+
 func (api *DipperinVenusApi) GetTxActualFee(txHash common.Hash) (*big.Int, error) {
 	return api.service.GetTxActualFee(txHash)
 }
