@@ -1,8 +1,10 @@
 package contract
 
 import (
+	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"math/big"
@@ -51,4 +53,41 @@ func newTestToken() *BuiltInERC20Token {
 	}
 	token.Owner = aliceAddr
 	return &token
+}
+
+type testAccountDB struct {
+	balance map[common.Address]*big.Int
+}
+
+func (testDB *testAccountDB) GetBalance(addr common.Address) (*big.Int, error) {
+	return testDB.balance[addr], nil
+}
+func (testDB *testAccountDB) AddBalance(addr common.Address, amount *big.Int) error {
+	if _, ok := testDB.balance[addr]; !ok {
+		testDB.balance[addr] = big.NewInt(0)
+	}
+	testDB.balance[addr].Add(testDB.balance[addr], amount)
+	return nil
+}
+
+func (testDB *testAccountDB) SubBalance(addr common.Address, amount *big.Int) error {
+	cmpResult := testDB.balance[addr].Cmp(amount)
+	if cmpResult == -1 {
+		return errors.New("the balance is not enough")
+	}
+
+	testDB.balance[addr].Sub(testDB.balance[addr], amount)
+	return nil
+}
+
+var testDB = &testAccountDB{
+	balance: make(map[common.Address]*big.Int, 0),
+}
+
+type testJson struct {
+	BuiltInERC20Token
+	Element1 *big.Int `json:"element_1"`
+	element4 economy_model.Foundation
+	Element2 []int   `json:"element_2"`
+	Element3 []int64 `json:"element_3"`
 }
