@@ -11,7 +11,7 @@ import (
 
 const (
 	abiStr = `[{
-        "func_name": "test",
+        "name": "test",
         "inputs": [
             {
                 "name": "inputName",
@@ -24,7 +24,7 @@ const (
     }]`
 
 	abi1 = `[{
-        "func_name": "init",
+        "name": "init",
         "inputs": [],
         "outputs": [
             {
@@ -37,7 +37,7 @@ const (
     }]`
 
 	abi2 = `[{
-        "func_name": "init",
+        "name": "init",
         "inputs": [],
         "outputs": [],
         "constant": "false",
@@ -45,7 +45,7 @@ const (
     }]`
 
 	abi3 = `[{
-        "func_name": "init",
+        "name": "init",
         "inputs": [
             {
                 "name": "inputName",

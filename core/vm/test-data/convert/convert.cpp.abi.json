@@ -1,27 +1,27 @@
 [
     {
-        "func_name": "init",
+        "name": "init",
         "inputs": [],
         "outputs": [],
         "constant": "false",
         "type": "function"
     },
     {
-        "func_name": "toString",
+        "name": "toString",
         "inputs": [],
         "outputs": [],
         "constant": "false",
         "type": "function"
     },
     {
-        "func_name": "getBlockInfo",
+        "name": "getBlockInfo",
         "inputs": [],
         "outputs": [],
         "constant": "false",
         "type": "function"
     },
     {
-        "func_name": "transferTest",
+        "name": "transferTest",
         "inputs": [
             {
                 "name": "to",
@@ -37,21 +37,21 @@
         "type": "function"
     },
     {
-        "func_name": "rlpTest",
+        "name": "rlpTest",
         "inputs": [],
         "outputs": [],
         "constant": "false",
         "type": "function"
     },
     {
-        "func_name": "printTest",
+        "name": "printTest",
         "inputs": [],
         "outputs": [],
         "constant": "false",
         "type": "function"
     },
     {
-        "func_name": "int64",
+        "name": "int64",
         "inputs": [
             {
                 "type": "string"
@@ -63,7 +63,7 @@
         "type": "event"
     },
     {
-        "func_name": "uint64",
+        "name": "uint64",
         "inputs": [
             {
                 "type": "string"
@@ -75,7 +75,7 @@
         "type": "event"
     },
     {
-        "func_name": "string",
+        "name": "string",
         "inputs": [
             {
                 "type": "string"
