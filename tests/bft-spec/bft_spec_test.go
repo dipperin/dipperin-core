@@ -29,7 +29,7 @@ import (
 
 func TestNormalBft(t *testing.T) {
 	vCount := 22
-	pbft_log.InitPbftLogger(log.LvlDebug, "bft_spec", true)
+	log.SetInitLogger(log.DefaultLogConf,"bft_spec")
 	cluster := tests.NewBftCluster(tests.AccFactory.GenAccounts(vCount))
 
 	nrs := cluster.NewRoundMsg(vCount, 1, 1)
