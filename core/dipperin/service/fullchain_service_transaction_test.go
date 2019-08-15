@@ -7,13 +7,13 @@ import (
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/vm-log-search"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -65,7 +65,7 @@ func TestMercuryFullChainService_ContractTransaction(t *testing.T) {
 	err := csChain.SaveBftBlock(block, votes)
 	assert.NoError(t, err)
 
-	chainIndex := chain_state.NewBloomIndexer(csChain, csChain.GetDB(), chain_state.BloomBitsBlocks, chain_state.BloomConfirms)
+	chainIndex := vm_log_search.NewBloomIndexer(csChain, csChain.GetDB(), vm_log_search.BloomBitsBlocks, vm_log_search.BloomConfirms)
 	config := &DipperinConfig{
 		ChainReader: csChain,
 		ChainIndex:  chainIndex,
