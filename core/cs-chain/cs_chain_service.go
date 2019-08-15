@@ -31,7 +31,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/hashicorp/golang-lru"
 	"math/big"
 	"sort"
@@ -207,14 +206,14 @@ func (cs *CsChainService) SaveBlock(block model.AbstractBlock, seenCommits []mod
 
 	curHeight := cs.CurrentBlock().Number()
 	g_metrics.Set(g_metrics.CurChainHeight, "", float64(curHeight))
-	pbft_log.Log.Debug("Save Block Success", "block height", block.Number(), "chain height", curHeight)
+	log.PBft.Debug("Save Block Success", "block height", block.Number(), "chain height", curHeight)
 	return nil
 }
 
 func (cs *CsChainService) checkBftBlock(block model.AbstractBlock, seenCommits []model.AbstractVerification) error {
 	// todo this can be optimized in middleware
 	if block.Number() <= cs.CurrentBlock().Number() {
-		pbft_log.Log.Debug("fullChain#SaveBlock  Save previous height", "chain height", cs.CurrentBlock().Number(), "block height", block.Number())
+		log.PBft.Debug("fullChain#SaveBlock  Save previous height", "chain height", cs.CurrentBlock().Number(), "block height", block.Number())
 		if cs.CurrentBlock().Number()-block.Number() > numLowBlockToReturnErr {
 			return g_error.ErrAlreadyHaveThisBlock
 		}
@@ -232,7 +231,7 @@ func (cs *CsChainService) saveBftBlock(block model.AbstractBlock, seenCommits []
 	case nil:
 
 		if err := cs.CacheDB.SaveSeenCommits(block.Number(), common.Hash{}, seenCommits); err != nil {
-			pbft_log.Log.Error("save seenCommits failed", "err", err)
+			log.PBft.Error("save seenCommits failed", "err", err)
 			return err
 		}
 

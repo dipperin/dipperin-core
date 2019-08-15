@@ -23,7 +23,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/bloom"
 	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/witch_log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 	"sort"
@@ -388,10 +387,10 @@ func (b *Block) GetEiBloomBlockData(reqEstimator *iblt.HybridEstimator) *BloomBl
 	if len(txs) > DefaultTxs {
 		fmt.Println("1")
 		// run multiple procedure
-		witch_log.Log.Info("start MapWork")
+		log.Witch.Info("start MapWork")
 		mapWorkEstimator := newMapWorkHybridEstimator(estimator)
 		if err := RunWorkMap(mapWorkEstimator, txs); err != nil {
-			witch_log.Log.Info("RunWorkMap by mapWorkEstimator failed", "err", err)
+			log.Witch.Info("RunWorkMap by mapWorkEstimator failed", "err", err)
 		}
 	} else {
 		for _, tx := range txs {
@@ -406,7 +405,7 @@ func (b *Block) GetEiBloomBlockData(reqEstimator *iblt.HybridEstimator) *BloomBl
 		// run multiple procedure
 		mapWorkBloom := newMapWorkInvBloom(invBloom)
 		if err := RunWorkMap(mapWorkBloom, txs); err != nil {
-			witch_log.Log.Info("RunWorkMap by mapWorkBloom failed", "err", err)
+			log.Witch.Info("RunWorkMap by mapWorkBloom failed", "err", err)
 		}
 	} else {
 		for _, tx := range txs {
@@ -417,7 +416,7 @@ func (b *Block) GetEiBloomBlockData(reqEstimator *iblt.HybridEstimator) *BloomBl
 
 	diff := time.Now().Sub(startAt)
 	if diff > time.Second {
-		witch_log.Log.Info("GetEiBloomBlockData", "cost", diff, "len", len(txs), "num", b.Number())
+		log.Witch.Info("GetEiBloomBlockData", "cost", diff, "len", len(txs), "num", b.Number())
 	}
 
 	invBloomRLP, err := rlp.EncodeToBytes(invBloom)

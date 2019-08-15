@@ -33,7 +33,6 @@ import (
 	"testing"
 	//"github.com/ethereum/go-ethereum/node"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -133,7 +132,7 @@ func (fc *FakeFullChain) GetSeenCommit(height uint64) []model.AbstractVerificati
 }
 
 func (fc *FakeFullChain) SaveBlock(block model.AbstractBlock, seenCommits []model.AbstractVerification) error {
-	pbft_log.Log.Debug("save block", "height", block.Number())
+	log.PBft.Debug("save block", "height", block.Number())
 	fc.Blocks = block
 	fc.Height = block.Number()
 	fc.commits = seenCommits

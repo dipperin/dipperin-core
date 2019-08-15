@@ -72,7 +72,7 @@ func (pm *BaseProtocolManager) handleMsg(p PmAbstractPeer) error {
 
 	if err != nil {
 		log.Info("base protocol read msg from peer failed", "err", err, "peer name", p.NodeName())
-		pmLog.Info("base protocol read msg from peer failed", "node", p.NodeName(), "err", err)
+		log.Pm.Info("base protocol read msg from peer failed", "node", p.NodeName(), "err", err)
 		return err
 	}
 

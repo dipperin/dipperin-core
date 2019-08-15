@@ -25,7 +25,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/mpt_log"
 	"reflect"
 )
 
@@ -73,7 +72,7 @@ func (state *BlockProcessor) GetBlockHashByNumber(number uint64) common.Hash {
 }
 
 func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel economy_model.EconomyModel) (err error) {
-	mpt_log.Log.Debug("AccountStateDB Process begin~~~~~~~~~~~~~~", "pre state", state.PreStateRoot().Hex(), "blockId", block.Hash().Hex())
+	log.Mpt.Debug("AccountStateDB Process begin~~~~~~~~~~~~~~", "pre state", state.PreStateRoot().Hex(), "blockId", block.Hash().Hex())
 
 	state.economyModel = economyModel
 	blockHeader := block.Header().(*model.Header)
@@ -108,26 +107,26 @@ func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel eco
 	if err = state.ProcessExceptTxs(block, economyModel, false); err != nil {
 		return
 	}
-	mpt_log.Log.Debug("AccountStateDB Process end~~~~~~~~~~~~~~~~~", "pre state", state.PreStateRoot().Hex())
+	log.Mpt.Debug("AccountStateDB Process end~~~~~~~~~~~~~~~~~", "pre state", state.PreStateRoot().Hex())
 	return
 }
 
 func (state *BlockProcessor) ProcessExceptTxs(block model.AbstractBlock, economyModel economy_model.EconomyModel, isProcessPackageBlock bool) (err error) {
-	mpt_log.Log.Debug("ProcessExceptTxs begin", "pre state", state.PreStateRoot().Hex())
+	log.Mpt.Debug("ProcessExceptTxs begin", "pre state", state.PreStateRoot().Hex())
 	state.economyModel = economyModel
 	if block.Number() == 0 {
-		mpt_log.Log.Debug("ProcessExceptTxs bug block num is 0")
+		log.Mpt.Debug("ProcessExceptTxs bug block num is 0")
 		return nil
 	}
 
 	// do rewards
 	if err = state.doRewards(block); err != nil {
-		mpt_log.Log.Debug("ProcessExceptTxs doRewards failed", "storageErr", err)
+		log.Mpt.Debug("ProcessExceptTxs doRewards failed", "storageErr", err)
 		return
 	}
 	// process commits
 	err = state.processCommitList(block, isProcessPackageBlock)
-	mpt_log.Log.Debug("ProcessExceptTxs finished ---", "pre state", state.PreStateRoot().Hex())
+	log.Mpt.Debug("ProcessExceptTxs finished ---", "pre state", state.PreStateRoot().Hex())
 	return
 }
 

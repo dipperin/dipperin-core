@@ -29,9 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
-	//"gutils/csbft"
-	//"dipperin-monitor/deploy/deploy_agent/msg"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
+
 	"time"
 )
 
@@ -116,7 +114,7 @@ func newFakeCsBft(p1 *FakePeer) *FakeCsBft {
 }
 
 func TestCsBftFetcher_FetchBlock(t *testing.T) {
-	pbft_log.InitPBFTLogger(pbft_log.LogConf, "fetcher_test")
+	log.PBft.Logger = log.SetInitLogger(log.DefaultLogConf, "fetcher_test")
 	_, addr := CreateKey()
 	alice, bob := newFakePeer("alice", "bob")
 
@@ -149,7 +147,7 @@ func TestCsBftFetcher_FetchBlock(t *testing.T) {
 }
 
 func TestCsBftFetcher_onFetchBlock(t *testing.T) {
-	pbft_log.InitPBFTLogger(pbft_log.LogConf, "fetcher_test")
+	log.PBft.Logger = log.SetInitLogger(log.DefaultLogConf, "fetcher_test")
 	alice, bob := newFakePeer("alice", "bob")
 	//I'm Alice
 	fetcherA := NewFetcher(newFakeCsBft(bob))

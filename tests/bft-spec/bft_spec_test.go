@@ -23,7 +23,6 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

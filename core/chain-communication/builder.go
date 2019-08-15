@@ -21,7 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
+	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 const (
@@ -64,7 +64,7 @@ type BroadcastDelegate struct {
 }
 
 func (delegate *BroadcastDelegate) BroadcastMinedBlock(block model.AbstractBlock) {
-	pbft_log.Log.Debug("BroadcastBlock", "block id", block.Hash().Hex(), "txs", block.TxCount())
+	log.PBft.Debug("BroadcastBlock", "block id", block.Hash().Hex(), "txs", block.TxCount())
 	delegate.blockBroadcaster.BroadcastBlock(block) //IBLT-method
 }
 

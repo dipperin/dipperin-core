@@ -24,7 +24,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/rlp"
 )
@@ -137,7 +136,7 @@ func (register RegisterDB) Process(block model.AbstractBlock) (err error) {
 			if err := register.deleteRegisterData(sender); err != nil {
 				return err
 			}
-			pbft_log.Log.Info("deletedRegisterData", "sender", sender)
+			log.PBft.Info("deletedRegisterData", "sender", sender)
 			return nil
 
 		case common.AddressTypeStake:
@@ -150,7 +149,7 @@ func (register RegisterDB) Process(block model.AbstractBlock) (err error) {
 			if err := register.saveRegisterData(sender); err != nil {
 				return err
 			}
-			pbft_log.Log.Info("savedRegisterData", "sender", sender)
+			log.PBft.Info("savedRegisterData", "sender", sender)
 			return nil
 
 		default:

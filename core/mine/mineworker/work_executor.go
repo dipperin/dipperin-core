@@ -20,7 +20,6 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/health-info-log"
 )
 
 func NewDefaultWorkExecutor(work *minemsg.DefaultWork, submitter workSubmitter) *defaultWorkExecutor {
@@ -80,7 +79,7 @@ func (executor *defaultWorkExecutor) ChangeNonce() bool {
 			executor.curWork.ResultNonce = executor.curWork.BlockHeader.Nonce
 			log.Info("ChangeNonce successful")
 			//fmt.Println(executor.curWork.BlockHeader.String())
-			health_info_log.Log.Info("found nonce", "height", executor.curWork.BlockHeader.Number)
+			log.Health.Info("found nonce", "height", executor.curWork.BlockHeader.Number)
 			return true
 		}
 	} else {

@@ -28,13 +28,13 @@ import (
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/mpt_log"
 	"reflect"
 )
 
 func TestERC20Check(t *testing.T) {
 	return
-	mpt_log.InitMptLogger(log.LvlDebug, "TestERC20Check", true)
+	log.Mpt.Logger = log.SetInitLogger(log.DefaultLogConf, "TestERC20Check")
+
 	dataDir := "/home/qydev/tmp/dipperin_apps/node/full_chain_data"
 	kvDB, err := ethdb.NewLDBDatabase(dataDir, 0, 0)
 	assert.NoError(t, err)

@@ -22,7 +22,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"reflect"
 )
@@ -72,7 +71,7 @@ func (s *server) ReceiveMsg(workerID WorkerId, code uint64, msg interface{}) {
 func (s *server) onSubmitBlock(workerID WorkerId, work minemsg.Work) {
 
 	block := s.getCurWorkBlockFunc()
-	pbft_log.Log.Debug("onSubmitBlock", "block id", block.Number(), "block txs", block.TxCount())
+	log.PBft.Debug("onSubmitBlock", "block id", block.Number(), "block txs", block.TxCount())
 	if err := work.FillSealResult(block); err != nil {
 		log.Warn("fill seal result failed", "err", err)
 		return

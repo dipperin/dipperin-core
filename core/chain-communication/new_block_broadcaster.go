@@ -24,7 +24,6 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/hashicorp/golang-lru"
@@ -98,7 +97,7 @@ func (broadcaster *NewBlockBroadcaster) getPeersWithoutBlock(block model.Abstrac
 // broadcast new block
 func (broadcaster *NewBlockBroadcaster) BroadcastBlock(block model.AbstractBlock) {
 	log.Info("new block broadcaster BroadcastBlock", "num", block.Number())
-	pbft_log.Log.Debug("broadcast block", "num", block.Number(), "txs", block.TxCount())
+	log.PBft.Debug("broadcast block", "num", block.Number(), "txs", block.TxCount())
 	peers := broadcaster.getPeersWithoutBlock(block)
 
 	var vPeers []PmAbstractPeer
@@ -135,14 +134,14 @@ func (broadcaster *NewBlockBroadcaster) broadcastBlock(block model.AbstractBlock
 	for i := range peers {
 		receiver := broadcaster.getReceiver(peers[i])
 		receiver.asyncSendBlock(block)
-		pbft_log.Log.Debug("broadcast block", "to", peers[i].NodeName(), "type", peers[i].NodeType(), "num", block.Number(), "txs", block.TxCount())
+		log.PBft.Debug("broadcast block", "to", peers[i].NodeName(), "type", peers[i].NodeType(), "num", block.Number(), "txs", block.TxCount())
 	}
 }
 
 func (broadcaster *NewBlockBroadcaster) onNewBlock(msg p2p.Msg, p PmAbstractPeer) error {
 	g_metrics.Add(g_metrics.ReceivedWaitVBlockCount, "", 1)
 
-	pbft_log.Log.Debug("receive new block", "from", p.NodeName())
+	log.PBft.Debug("receive new block", "from", p.NodeName())
 	var block model.Block
 	err := msg.Decode(&block)
 	if err != nil {
@@ -287,7 +286,7 @@ func (r *blockReceiver) sendBlock(block model.AbstractBlock, getPeer getPeerFunc
 	r.markBlock(block)
 
 	if peer := getPeer(); peer != nil {
-		pbft_log.Log.Debug("send block", "block", block.Number(), "peer", peer.NodeName())
+		log.PBft.Debug("send block", "block", block.Number(), "peer", peer.NodeName())
 		return peer.SendMsg(NewBlockV1Msg, block)
 	}
 

@@ -22,7 +22,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"math/big"
 )
 
@@ -58,7 +57,7 @@ func (state *AccountStateDB) Stake(addr common.Address, amount *big.Int) error {
 	if err != nil {
 		return err
 	}
-	pbft_log.Log.Info("stake money", "address", addr.Hex(), "amount", amount)
+	log.PBft.Info("stake money", "address", addr.Hex(), "amount", amount)
 	return nil
 }
 
@@ -83,7 +82,7 @@ func (state *AccountStateDB) UnStake(addr common.Address) error {
 	if err != nil {
 		return err
 	}
-	pbft_log.Log.Info("unStake", "address", addr.Hex(), "amount", amount)
+	log.PBft.Info("unStake", "address", addr.Hex(), "amount", amount)
 	return nil
 }
 
@@ -114,7 +113,7 @@ func (state *AccountStateDB) MoveStakeToAddress(fromAdd common.Address, toAdd co
 	if err != nil {
 		return err
 	}
-	pbft_log.Log.Debug("move stake", "from", fromAdd.Hex(), "to", toAdd.Hex(), "amount", amount)
+	log.PBft.Debug("move stake", "from", fromAdd.Hex(), "to", toAdd.Hex(), "amount", amount)
 	return nil
 }
 
@@ -150,7 +149,7 @@ func (state *AccountStateDB) processStakeTx(tx model.AbstractTransaction) (err e
 	if err != nil {
 		return
 	}
-	pbft_log.Log.Info("success process a register transaction", "Tx hash", tx.CalTxId().Hex())
+	log.PBft.Info("success process a register transaction", "Tx hash", tx.CalTxId().Hex())
 
 	//TODO add receipt?
 	return
@@ -190,7 +189,7 @@ func (state *AccountStateDB) processCancelTx(tx model.AbstractTransaction, num u
 	if err != nil {
 		return
 	}
-	pbft_log.Log.Info("success process a cancel transaction", "Tx hash", tx.CalTxId().Hex())
+	log.PBft.Info("success process a cancel transaction", "Tx hash", tx.CalTxId().Hex())
 
 	//TODO add receipt return?
 	return
@@ -232,7 +231,7 @@ func (state *AccountStateDB) processUnStakeTx(tx model.AbstractTransaction) (err
 	if err != nil {
 		return
 	}
-	pbft_log.Log.Info("success process a unStake transaction", "Tx hash", tx.CalTxId().Hex())
+	log.PBft.Info("success process a unStake transaction", "Tx hash", tx.CalTxId().Hex())
 
 	//TODO add receipt return?
 	return

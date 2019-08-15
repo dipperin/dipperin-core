@@ -356,7 +356,7 @@ func (r *txReceiver) asyncSendTxs(txs []model.AbstractTransaction) {
 		//for _, tx := range txs {
 		//	r.knownTxs.Add(tx.CalTxId())
 		//}
-		pmLog.Info("asyncSendTxs finished", "p", r.peerName)
+		log.Pm.Info("asyncSendTxs finished", "p", r.peerName)
 	default:
 		log.Info("Dropping transaction propagation", "count", len(txs))
 	}
@@ -372,7 +372,7 @@ func (r *txReceiver) broadcast(getPeer getPeerFunc) error {
 		case txs := <-r.queuedTxs:
 			if err := r.sendTxs(txs, getPeer); err != nil {
 				log.Error("send txs err", "peer id", r.peerName, "err", err)
-				pmLog.Info("send txs to peer", "n", r.peerName)
+				log.Pm.Info("send txs to peer", "n", r.peerName)
 				return err
 			}
 		case <-timer.C:

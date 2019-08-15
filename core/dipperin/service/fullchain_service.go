@@ -45,7 +45,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
@@ -604,7 +603,7 @@ func (service *VenusFullChainService) signTxAndSend(tmpWallet accounts.Wallet, f
 	if err != nil {
 		return nil, err
 	}
-	pbft_log.Log.Debug("Sign and send transaction", "txid", signedTx.CalTxId().Hex())
+	log.PBft.Debug("Sign and send transaction", "txid", signedTx.CalTxId().Hex())
 	if err := service.TxValidator.Valid(signedTx); err != nil {
 		log.Error("Transaction not valid", "error", err)
 		return nil, err
@@ -702,11 +701,11 @@ func (service *VenusFullChainService) SendTransaction(from, to common.Address, v
 	tx := model.NewTransaction(usedNonce, to, value, gasPrice, gasLimit, data)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
-		pbft_log.Log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
+		log.PBft.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
 		return common.Hash{}, err
 	}
 
-	pbft_log.Log.Info("send transaction", "txId", signTx.CalTxId().Hex())
+	log.PBft.Info("send transaction", "txId", signTx.CalTxId().Hex())
 	txHash := signTx.CalTxId()
 	log.Info("the Sendnot enough balance errorTransaction txId is: ", "txId", txHash.Hex(), "txSize", signTx.Size())
 	return txHash, nil
@@ -1754,7 +1753,7 @@ func (service *VenusFullChainService) SendTransactionContract(from, to common.Ad
 	tx := model.NewTransaction(usedNonce, to, value, gasPrice, gasLimit, extraData)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
-		pbft_log.Log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
+		log.PBft.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
 		log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
 		return common.Hash{}, err
 	}
@@ -1763,7 +1762,7 @@ func (service *VenusFullChainService) SendTransactionContract(from, to common.Ad
 	//log.Info("send transaction", "gasPrice", signTx.GetGasPrice())
 	//log.Info("send transaction", "gas limit", signTx.GetGasLimit())
 	/*	signJson, _ := json.Marshal(signTx)
-		pbft_log.Log.Info("send transaction", "signTx json", string(signJson))*/
+		log.PBft.Info("send transaction", "signTx json", string(signJson))*/
 	txHash := signTx.CalTxId()
 	log.Info("the SendTransaction txId is: ", "txId", txHash.Hex(), "txSize", signTx.Size())
 	return txHash, nil

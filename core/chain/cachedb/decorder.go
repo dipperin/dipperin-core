@@ -20,7 +20,7 @@ import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
@@ -39,7 +39,7 @@ func (d *BFTCacheDataDecoder) DecodeSeenCommits(data []byte) (result []model.Abs
 
 	var from []*model.VoteMsg
 	if err = rlp.DecodeBytes(data, &from); err != nil {
-		pbft_log.Log.Error("Decode seen commits error", "err", err)
+		log.PBft.Error("Decode seen commits error", "err", err)
 		return []model.AbstractVerification{}, err
 	}
 

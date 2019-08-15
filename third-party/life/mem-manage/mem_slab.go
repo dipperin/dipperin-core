@@ -3,6 +3,7 @@ package mem_manage
 import (
 	"errors"
 	"fmt"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/willf/bitset"
 	"math"
 	"sort"
@@ -158,7 +159,7 @@ func (c *SlabClass) AddSlab(slabSize uint) error {
 }
 
 func (c *SlabClass) MallocChunks(number uint, slabSize uint) (offset []uint, err error) {
-	//l.Debug("malloc chunks from slab class","number",number,"chunkSize",c.chunkSize,"slabNumber",c.SlabNumber(),"emptyChunkNumber",c.emptyChunkNumber)
+	//log.VmMem.Debug("malloc chunks from slab class","number",number,"chunkSize",c.chunkSize,"slabNumber",c.SlabNumber(),"emptyChunkNumber",c.emptyChunkNumber)
 	if slabSize == 0 {
 		slabSize = c.defaultSlabSize
 	}
@@ -191,7 +192,7 @@ func (c *SlabClass) MallocChunks(number uint, slabSize uint) (offset []uint, err
 	}
 
 	c.emptyChunkNumber -= number
-	//l.Debug("the malloc addr is:","addr",offset)
+	//log.VmMem.Debug("the malloc addr is:","addr",offset)
 	return offset, nil
 }
 
@@ -228,8 +229,8 @@ func (c *SlabClass) findAddrPos(offset []uint, f func(slabIndex int, addr uint) 
 }
 
 func (c *SlabClass) FreeChunks(offset []uint) (error, []uint) {
-	//l.Debug("the free offset is:","offsets",offset)
-	//l.Debug("free chunks from slab class","chunkSize",c.chunkSize,"slabNumber",c.SlabNumber(),"emptyChunkNumber",c.emptyChunkNumber)
+	//log.VmMem.Debug("the free offset is:","offsets",offset)
+	//log.VmMem.Debug("free chunks from slab class","chunkSize",c.chunkSize,"slabNumber",c.SlabNumber(),"emptyChunkNumber",c.emptyChunkNumber)
 	//free chunk from slab
 	f := func(slabIndex int, addr uint) error {
 		//l.Info("the slabClass empty chunk number is:","number",c.emptyChunkNumber)
@@ -296,7 +297,7 @@ func (m *SlabMemory) SlabNumber() uint {
 }
 
 func (m *SlabMemory) Malloc(size int, slabSize uint) (int, error) {
-	l.Debug("[**malloc from slab**]", "size", size, "len(slabClass)", len(m.slabClasses), "maxChunkSize", m.MaxChunkSize())
+	log.VmMem.Debug("[**malloc from slab**]", "size", size, "len(slabClass)", len(m.slabClasses), "maxChunkSize", m.MaxChunkSize())
 	if size <= 0 {
 		panic(fmt.Errorf("wrong Size=%d", size))
 	}
@@ -317,7 +318,7 @@ func (m *SlabMemory) Malloc(size int, slabSize uint) (int, error) {
 }
 
 func (m *SlabMemory) Free(offset int) (err error) {
-	l.Debug("[**free from slab**]", "offset", offset)
+	log.VmMem.Debug("[**free from slab**]", "offset", offset)
 	for _, slabClass := range m.slabClasses {
 		err, _ = slabClass.FreeChunks([]uint{uint(offset)})
 		if err == nil {

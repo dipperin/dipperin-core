@@ -26,7 +26,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log/ver_halt_check_log"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/ethereum/go-ethereum/event"
 	"sync/atomic"
@@ -189,7 +189,7 @@ func (systemHaltedCheck *SystemHaltedCheck) onCurrentBlockNumberRequest(msg p2p.
 
 	err := p.SendMsg(chain_communication.CurrentBlockNumberResponse, &response)
 	if err != nil {
-		ver_halt_check_log.Log.Warn("send msg error", "msgCode", chain_communication.CurrentBlockNumberResponse, "err", err)
+		log.Halt.Warn("send msg error", "msgCode", chain_communication.CurrentBlockNumberResponse, "err", err)
 	}
 
 	return nil
@@ -200,7 +200,7 @@ func (systemHaltedCheck *SystemHaltedCheck) onCurrentBlockNumberResponse(msg p2p
 	var blockNumberResponse getHeightResponse
 	err := msg.Decode(&blockNumberResponse)
 	if err != nil {
-		ver_halt_check_log.Log.Error("blockNumberResponse decode error", "err", err)
+		log.Halt.Error("blockNumberResponse decode error", "err", err)
 		return err
 	}
 
@@ -224,27 +224,27 @@ func (systemHaltedCheck *SystemHaltedCheck) checkPeerHeight() error {
 
 	chainConfig := chain_config.GetChainConfig()
 	bootNodes := systemHaltedCheck.csProtocol.GetVerifierBootNode()
-	ver_halt_check_log.Log.Info("the bootNodes number is:", "number", len(bootNodes))
+	log.Halt.Info("the bootNodes number is:", "number", len(bootNodes))
 	if len(bootNodes) != chainConfig.VerifierBootNodeNumber-1 {
 		atomic.StoreUint32(&systemHaltedCheck.SynStatus, notSynchronized)
 		return nil
 	}
 
 	currentVerifier := systemHaltedCheck.csProtocol.GetCurrentVerifierPeers()
-	ver_halt_check_log.Log.Info("connect current verifier number is:", "number", len(currentVerifier))
+	log.Halt.Info("connect current verifier number is:", "number", len(currentVerifier))
 
 	tickHandler := func() {
 		for _, peer := range bootNodes {
 			err := peer.SendMsg(chain_communication.CurrentBlockNumberRequest, "")
 			if err != nil {
-				ver_halt_check_log.Log.Warn("send CurrentBlockNumberRequest error", "err", err, "ToNodeName", peer.NodeName())
+				log.Halt.Warn("send CurrentBlockNumberRequest error", "err", err, "ToNodeName", peer.NodeName())
 			}
 		}
 
 		for _, peer := range currentVerifier {
 			err := peer.SendMsg(chain_communication.CurrentBlockNumberRequest, "")
 			if err != nil {
-				ver_halt_check_log.Log.Warn("send CurrentBlockNumberRequest error", "err", err, "ToNodeName", peer.NodeName())
+				log.Halt.Warn("send CurrentBlockNumberRequest error", "err", err, "ToNodeName", peer.NodeName())
 			}
 		}
 	}
@@ -259,8 +259,8 @@ func (systemHaltedCheck *SystemHaltedCheck) checkPeerHeight() error {
 			} else if heightResponse.NodeType == chain_config.NodeTypeOfVerifierBoot {
 				systemHaltedCheck.otherBootNodeHeight[heightResponse.NodeName] = heightResponse.Response.Height
 			}
-			ver_halt_check_log.Log.Info("the connected verBootNode peer block height is:", "verBootNode", systemHaltedCheck.otherBootNodeHeight)
-			ver_halt_check_log.Log.Info("the connected verifier peer block height is:", "verifier", systemHaltedCheck.verifierHeight)
+			log.Halt.Info("the connected verBootNode peer block height is:", "verBootNode", systemHaltedCheck.otherBootNodeHeight)
+			log.Halt.Info("the connected verifier peer block height is:", "verifier", systemHaltedCheck.verifierHeight)
 		case <-systemHaltedCheck.quit:
 			return nil
 		}
@@ -271,22 +271,22 @@ func (systemHaltedCheck *SystemHaltedCheck) onProposeEmptyBlockMsg(msg p2p.Msg, 
 	// check msg from verifier boot node
 	address := p.RemoteVerifierAddress()
 	if !model.CheckAddressIsVerifierBootNode(address) {
-		ver_halt_check_log.Log.Warn("the msg sender Address isn't verifier boot node")
+		log.Halt.Warn("the msg sender Address isn't verifier boot node")
 		return nil
 	}
 
 	var proposal ProposalMsg
 	err := msg.Decode(&proposal)
 	if err != nil {
-		ver_halt_check_log.Log.Warn("decode proposal msg error")
+		log.Halt.Warn("decode proposal msg error")
 		return g_error.ProposalMsgDecodeError
 	}
-	ver_halt_check_log.Log.Info("receive an empty block proposal", "proposal", proposal.EmptyBlock.Hash().Hex(), "height", proposal.EmptyBlock.Number(), "nodeName", p.NodeName())
+	log.Halt.Info("receive an empty block proposal", "proposal", proposal.EmptyBlock.Hash().Hex(), "height", proposal.EmptyBlock.Number(), "nodeName", p.NodeName())
 
 	// in case no coroutine reads emptyBlockInfo so that it is blocked
 	select {
 	case systemHaltedCheck.proposalInfoMsg <- proposal:
-		ver_halt_check_log.Log.Info("received proposal~~~~", "proposal", proposal.EmptyBlock.Hash().Hex(), "fromNodeName", p.NodeName(), "height", proposal.EmptyBlock.Number())
+		log.Halt.Info("received proposal~~~~", "proposal", proposal.EmptyBlock.Hash().Hex(), "fromNodeName", p.NodeName(), "height", proposal.EmptyBlock.Number())
 	case <-time.After(100 * time.Millisecond):
 	}
 
@@ -299,23 +299,23 @@ func (systemHaltedCheck *SystemHaltedCheck) onSendMinimalHashBlock(msg p2p.Msg, 
 
 	err := msg.Decode(&selectedProposal)
 	if err != nil {
-		ver_halt_check_log.Log.Warn("decode minimal block msg error")
+		log.Halt.Warn("decode minimal block msg error")
 		return g_error.MinimalBlockDecodeError
 	}
 
-	ver_halt_check_log.Log.Info("received minimal hash block", "blockHash", selectedProposal.EmptyBlock.Hash().Hex(), "nodeName", p.NodeName())
+	log.Halt.Info("received minimal hash block", "blockHash", selectedProposal.EmptyBlock.Hash().Hex(), "nodeName", p.NodeName())
 	// new AliveVerHaltHandler to valid and response the minimal hash block
 	aliveVerHandler := NewAliveVerHaltHandler(systemHaltedCheck.haltCheckStateHandle.walletSigner.SignHash, systemHaltedCheck.haltCheckStateHandle.walletSigner.GetAddress())
 	vote, err := aliveVerHandler.OnMinimalHashBlock(selectedProposal)
 	if err != nil {
-		ver_halt_check_log.Log.Warn("generateEmptyVoteMsg failed", "err", err)
+		log.Halt.Warn("generateEmptyVoteMsg failed", "err", err)
 		return nil
 	}
 
-	ver_halt_check_log.Log.Info("send the vote for minimal hash empty Block", "vote", vote)
+	log.Halt.Info("send the vote for minimal hash empty Block", "vote", vote)
 	err = p.SendMsg(chain_communication.SendMinimalHashBlockResponse, &vote)
 	if err != nil {
-		ver_halt_check_log.Log.Warn("SendMinimalHashBlockResponse error ", "nodeName", p.NodeName())
+		log.Halt.Warn("SendMinimalHashBlockResponse error ", "nodeName", p.NodeName())
 	}
 
 	return nil
@@ -326,11 +326,11 @@ func (systemHaltedCheck *SystemHaltedCheck) onSendMinimalHashBlockResponse(msg p
 	var vote model.VoteMsg
 	err := msg.Decode(&vote)
 	if err != nil {
-		ver_halt_check_log.Log.Warn("decode aliveVerifierVote msg error")
+		log.Halt.Warn("decode aliveVerifierVote msg error")
 		return g_error.VoteMsgDecodeError
 	}
 
-	ver_halt_check_log.Log.Info("receive the vote from alive verifier", "vote", vote, "nodeName", p.NodeName())
+	log.Halt.Info("receive the vote from alive verifier", "vote", vote, "nodeName", p.NodeName())
 	// in case no coroutine reads systemHaltedCheck.vote so that it is blocked
 	select {
 	case systemHaltedCheck.aliveVerifierVote <- vote:
@@ -350,10 +350,10 @@ Collect all the proposals and insert the block into the chain and broadcast it a
 // verifier boot node propose an empty block when check the verifiers is halted
 func (systemHaltedCheck *SystemHaltedCheck) proposeEmptyBlock() (err error) {
 
-	ver_halt_check_log.Log.Info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~proposeEmptyBlock start")
+	log.Halt.Info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~proposeEmptyBlock start")
 	proposalConfig, err := systemHaltedCheck.haltCheckStateHandle.GenProposalConfig(model.VerBootNodeVoteMessage)
 	if err != nil {
-		ver_halt_check_log.Log.Info("proposeEmptyBlock generate proposal config error", "err", err)
+		log.Halt.Info("proposeEmptyBlock generate proposal config error", "err", err)
 		return err
 	}
 
@@ -368,19 +368,19 @@ func (systemHaltedCheck *SystemHaltedCheck) proposeEmptyBlock() (err error) {
 		systemHaltedCheck.haltHandler = NewHaltHandler(proposalConfig)
 		proposal, err = systemHaltedCheck.haltHandler.ProposeEmptyBlock()
 		if err != nil {
-			ver_halt_check_log.Log.Info("proposeEmptyBlock error", "err", err)
+			log.Halt.Info("proposeEmptyBlock error", "err", err)
 			return err
 		}
 	}
 
-	ver_halt_check_log.Log.Info("the proposalMsg is:", "proposalMsg", systemHaltedCheck.haltHandler.proposalMsg)
-	ver_halt_check_log.Log.Info("propose empty block header is:", "header", systemHaltedCheck.haltHandler.proposalMsg.EmptyBlock.Header().Hash().Hex())
+	log.Halt.Info("the proposalMsg is:", "proposalMsg", systemHaltedCheck.haltHandler.proposalMsg)
+	log.Halt.Info("propose empty block header is:", "header", systemHaltedCheck.haltHandler.proposalMsg.EmptyBlock.Header().Hash().Hex())
 
 	atomic.StoreUint32(&systemHaltedCheck.startEmptyProcessFlag, processEmptyBlock)
 
 	errChan := make(chan error, 0)
 	go func() {
-		ver_halt_check_log.Log.Info("the connect ver boot node number is:", "number", len(systemHaltedCheck.csProtocol.GetVerifierBootNode()))
+		log.Halt.Info("the connect ver boot node number is:", "number", len(systemHaltedCheck.csProtocol.GetVerifierBootNode()))
 		//propose empty block to other verifier boot node
 		for _, node := range systemHaltedCheck.csProtocol.GetVerifierBootNode() {
 			if !model.CheckAddressIsVerifierBootNode(node.RemoteVerifierAddress()) {
@@ -388,10 +388,10 @@ func (systemHaltedCheck *SystemHaltedCheck) proposeEmptyBlock() (err error) {
 				return
 			}
 
-			ver_halt_check_log.Log.Info("send empty block propose is:", "propose", proposal.EmptyBlock.Hash().Hex(), "height", proposal.EmptyBlock.Number(), "ToNodeName", node.NodeName())
+			log.Halt.Info("send empty block propose is:", "propose", proposal.EmptyBlock.Hash().Hex(), "height", proposal.EmptyBlock.Number(), "ToNodeName", node.NodeName())
 			err := node.SendMsg(chain_communication.ProposeEmptyBlockMsg, &proposal)
 			if err != nil {
-				ver_halt_check_log.Log.Error("send propose empty block msg error", "err", err, "nodeName", node.NodeName())
+				log.Halt.Error("send propose empty block msg error", "err", err, "nodeName", node.NodeName())
 				errChan <- err
 				return
 			}
@@ -406,27 +406,27 @@ func (systemHaltedCheck *SystemHaltedCheck) proposeEmptyBlock() (err error) {
 		case proposal := <-systemHaltedCheck.proposalInfoMsg:
 			err := systemHaltedCheck.haltHandler.HandlerProposalMessages(proposal, systemHaltedCheck.selectedProposal)
 			if err != nil {
-				ver_halt_check_log.Log.Info("handler proposal messages err is:", "err", err)
+				log.Halt.Info("handler proposal messages err is:", "err", err)
 				// The received ms ms received error received by the processing received,
 				// the error of handling proposal msg received,
 				// should be returned until waitOtherPropose expires
 			} else {
-				ver_halt_check_log.Log.Info("handle proposal empty block end")
+				log.Halt.Info("handle proposal empty block end")
 				return nil
 			}
 
 		case <-waitOtherPropose.C:
 			//proposal empty block fail
-			ver_halt_check_log.Log.Info("proposeEmptyBlock over time")
+			log.Halt.Info("proposeEmptyBlock over time")
 			systemHaltedCheck.proposalFail <- true
 			return g_error.WaitEmptyBlockExpireError
 		case <-systemHaltedCheck.stopEmptyProcess:
-			ver_halt_check_log.Log.Info("stop proposeEmptyBlock")
+			log.Halt.Info("stop proposeEmptyBlock")
 			return nil
 		case <-systemHaltedCheck.quit:
 			return nil
 		case readErr := <-errChan:
-			ver_halt_check_log.Log.Info("proposeEmptyBlock err", "err", readErr)
+			log.Halt.Info("proposeEmptyBlock err", "err", readErr)
 			//proposal empty block fail
 			systemHaltedCheck.proposalFail <- true
 			return readErr
@@ -439,13 +439,13 @@ func (systemHaltedCheck *SystemHaltedCheck) sendMinimalHashBlock(proposal Propos
 	errChan := make(chan error, 0)
 	//send selected block to verifiers
 	go func() {
-		ver_halt_check_log.Log.Info("sendMinimalHashBlock the currentVerifier peer number is:", "number", len(systemHaltedCheck.csProtocol.GetCurrentVerifierPeers()))
+		log.Halt.Info("sendMinimalHashBlock the currentVerifier peer number is:", "number", len(systemHaltedCheck.csProtocol.GetCurrentVerifierPeers()))
 		for _, node := range systemHaltedCheck.csProtocol.GetCurrentVerifierPeers() {
 			//todo: check whether the peer in peerSet is currentVerifier. If the finder ensures the peerSet is normal ,then there is no need to check
-			ver_halt_check_log.Log.Info("sendMinimalHashBlock the block hash is:", "hash", proposal.EmptyBlock.Hash(), "toNodeName", node.NodeName())
+			log.Halt.Info("sendMinimalHashBlock the block hash is:", "hash", proposal.EmptyBlock.Hash(), "toNodeName", node.NodeName())
 			err := node.SendMsg(chain_communication.SendMinimalHashBlock, &proposal)
 			if err != nil {
-				ver_halt_check_log.Log.Error("send propose empty block msg error", "err", err, "nodeName", node.NodeName())
+				log.Halt.Error("send propose empty block msg error", "err", err, "nodeName", node.NodeName())
 				errChan <- err
 				return
 			}
@@ -473,7 +473,7 @@ func (systemHaltedCheck *SystemHaltedCheck) sendMinimalHashBlock(proposal Propos
 			}
 			return nil
 		case <-systemHaltedCheck.stopEmptyProcess:
-			ver_halt_check_log.Log.Info("stop sendMinimalHashBlock")
+			log.Halt.Info("stop sendMinimalHashBlock")
 			return nil
 		case <-systemHaltedCheck.quit:
 			return nil
@@ -487,10 +487,10 @@ func (systemHaltedCheck *SystemHaltedCheck) sendMinimalHashBlock(proposal Propos
 }
 
 func (systemHaltedCheck *SystemHaltedCheck) handleFinalEmptyBlock(proposal ProposalMsg, votes map[common.Address]model.VoteMsg) error {
-	//ver_halt_check_log.Log.Info("handleFinalEmptyBlock the votes is:","votes",votes)
+	//log.Halt.Info("handleFinalEmptyBlock the votes is:","votes",votes)
 	err := systemHaltedCheck.haltCheckStateHandle.SaveFinalEmptyBlock(proposal, votes)
 	if err != nil {
-		ver_halt_check_log.Log.Info("verifier boot node save final empty block failed", "err", err)
+		log.Halt.Info("verifier boot node save final empty block failed", "err", err)
 		return err
 	}
 
@@ -508,12 +508,12 @@ Check if the chain runs normally
 */
 func (systemHaltedCheck *SystemHaltedCheck) checkVerClusterStatus() error {
 
-	ver_halt_check_log.Log.Info("the systemHaltedCheck NodeType is:", "NodeType", systemHaltedCheck.nodeType)
+	log.Halt.Info("the systemHaltedCheck NodeType is:", "NodeType", systemHaltedCheck.nodeType)
 	if systemHaltedCheck.nodeType != chain_config.NodeTypeOfVerifierBoot {
 		return nil
 	}
 
-	ver_halt_check_log.Log.Info("checkVerClusterStatus start~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+	log.Halt.Info("checkVerClusterStatus start~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
 	newBlockChan := make(chan model.Block, 0)
 	//blockSub := systemHaltedCheck.haltCheckStateHandle.chainReader.SubscribeBlockEvent(newBlockChan)
@@ -523,10 +523,10 @@ func (systemHaltedCheck *SystemHaltedCheck) checkVerClusterStatus() error {
 	for {
 		select {
 		case <-timer.C:
-			ver_halt_check_log.Log.Info("check system halt")
+			log.Halt.Info("check system halt")
 			go systemHaltedCheck.proposeEmptyBlock()
 		case newBlock := <-newBlockChan:
-			ver_halt_check_log.Log.Info("receive new block ", "blockNumber", newBlock.Number())
+			log.Halt.Info("receive new block ", "blockNumber", newBlock.Number())
 			g_metrics.Set(g_metrics.CurBlockNumberGauge, "", float64(newBlock.Number()))
 			//receive new block from verifiers before haltDuration expire
 			if atomic.LoadUint32(&systemHaltedCheck.startEmptyProcessFlag) == processEmptyBlock {
@@ -538,7 +538,7 @@ func (systemHaltedCheck *SystemHaltedCheck) checkVerClusterStatus() error {
 			go systemHaltedCheck.sendMinimalHashBlock(minimalBlockProposal)
 		case <-systemHaltedCheck.proposalFail:
 			//repeat proposal when propose empty block fail
-			ver_halt_check_log.Log.Info("repeat proposal empty block")
+			log.Halt.Info("repeat proposal empty block")
 			go systemHaltedCheck.proposeEmptyBlock()
 		case <-systemHaltedCheck.quit:
 			blockSub.Unsubscribe()
@@ -552,7 +552,7 @@ func (systemHaltedCheck *SystemHaltedCheck) LogCurrentVerifier() {
 
 	tickHandler := func() {
 		currentVerifiers := systemHaltedCheck.haltCheckStateHandle.chainReader.GetCurrVerifiers()
-		ver_halt_check_log.Log.Info("the current verifiers is:", "ver", currentVerifiers)
+		log.Halt.Info("the current verifiers is:", "ver", currentVerifiers)
 	}
 	tick := g_timer.SetPeriodAndRun(tickHandler, LogDuration)
 	defer g_timer.StopWork(tick)
@@ -564,14 +564,14 @@ func (systemHaltedCheck *SystemHaltedCheck) LogConnectedCurrentVerifier() {
 
 	tickHandler := func() {
 		currentVerifierPeers := systemHaltedCheck.csProtocol.GetCurrentVerifierPeers()
-		ver_halt_check_log.Log.Info("the connected current and nex verifier peer is:")
+		log.Halt.Info("the connected current and nex verifier peer is:")
 		for _, peer := range currentVerifierPeers {
-			ver_halt_check_log.Log.Info("connected current verifier is:", "nodeName", peer.NodeName())
+			log.Halt.Info("connected current verifier is:", "nodeName", peer.NodeName())
 		}
 
 		nextVerifierPeers := systemHaltedCheck.csProtocol.GetNextVerifierPeers()
 		for _, peer := range nextVerifierPeers {
-			ver_halt_check_log.Log.Info("connected next verifier is:", "nodeName", peer.NodeName())
+			log.Halt.Info("connected next verifier is:", "nodeName", peer.NodeName())
 		}
 	}
 	tick := g_timer.SetPeriodAndRun(tickHandler, LogDuration)
@@ -581,16 +581,16 @@ func (systemHaltedCheck *SystemHaltedCheck) LogConnectedCurrentVerifier() {
 }
 
 func (systemHaltedCheck *SystemHaltedCheck) loop() {
-	ver_halt_check_log.Log.Info("systemHaltedCheck loop start~~~~~~~~~~~~~~~~~")
-	//go systemHaltedCheck.ver_halt_check_log.LogConnectedCurrentVerifier()
-	//go systemHaltedCheck.ver_halt_check_log.LogCurrentVerifier()
+	log.Halt.Info("systemHaltedCheck loop start~~~~~~~~~~~~~~~~~")
+	//go systemHaltedCheck.log.HaltConnectedCurrentVerifier()
+	//go systemHaltedCheck.log.HaltCurrentVerifier()
 	go systemHaltedCheck.checkPeerHeight()
 	go systemHaltedCheck.checkVerClusterStatus()
-	ver_halt_check_log.Log.Info("systemHaltedCheck loop end~~~~~~~~~~~~~~~~~")
+	log.Halt.Info("systemHaltedCheck loop end~~~~~~~~~~~~~~~~~")
 }
 
 func (systemHaltedCheck *SystemHaltedCheck) Start() error {
-	ver_halt_check_log.Log.Info("SystemHaltedCheck start~~~~~~~~~~~~~~~", "NodeType", systemHaltedCheck.nodeType)
+	log.Halt.Info("SystemHaltedCheck start~~~~~~~~~~~~~~~", "NodeType", systemHaltedCheck.nodeType)
 	if systemHaltedCheck.nodeType != chain_config.NodeTypeOfVerifierBoot {
 		return nil
 	}

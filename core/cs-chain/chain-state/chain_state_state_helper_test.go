@@ -20,14 +20,13 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/mpt_log"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/check.v1"
 	"math/big"
 )
 
 func (suite *chainWriterSuite) TestChainState_BuildStateProcessor(t *check.C) {
-	mpt_log.InitMptLogger(mpt_log.LogConf, "state_writer")
+	log.Mpt.Logger = log.SetInitLogger(log.DefaultLogConf, "state_writer")
 
 	testAccount1 := tests.AccFactory.GetAccount(0)
 	suite.txBuilder.Amount = big.NewInt(100)
