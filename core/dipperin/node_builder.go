@@ -46,6 +46,7 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/p2p/nat"
 	"github.com/dipperin/dipperin-core/third-party/p2p/netutil"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"github.com/dipperin/dipperin-core/third-party/vm-log-search"
 	"os"
 	"path/filepath"
 	"strings"
@@ -194,7 +195,7 @@ func (b *BaseComponent) buildDipperinConfig() {
 	b.DipperinConfig.MineMasterServer = b.mineMasterServer
 	b.DipperinConfig.DefaultAccount = b.defaultAccountAddress
 	b.DipperinConfig.MsgSigner = b.msgSigner
-	b.DipperinConfig.ChainIndex = chain_state.NewBloomIndexer(b.DipperinConfig.ChainReader, b.fullChain.CacheChainState.ChainState.GetDB(), chain_state.BloomBitsBlocks, chain_state.BloomConfirms)
+	b.DipperinConfig.ChainIndex = vm_log_search.NewBloomIndexer(b.DipperinConfig.ChainReader, b.fullChain.CacheChainState.ChainState.GetDB(), vm_log_search.BloomBitsBlocks, vm_log_search.BloomConfirms)
 }
 
 func (b *BaseComponent) buildBftConfig() {
