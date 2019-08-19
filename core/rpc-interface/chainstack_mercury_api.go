@@ -1243,6 +1243,10 @@ func (api *DipperinVenusApi) GetABI(contractAddr common.Address) (*utils.WasmAbi
 	return api.service.GetABI(contractAddr)
 }
 
+func (api *DipperinVenusApi) GetCode(contractAddr common.Address) ([]byte, error) {
+	return api.service.GetCode(contractAddr)
+}
+
 func (api *DipperinVenusApi) GetContractAddressByTxHash(txHash common.Hash) (common.Address, error) {
 	return api.service.GetContractAddressByTxHash(txHash)
 }
