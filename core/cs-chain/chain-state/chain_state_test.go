@@ -17,6 +17,7 @@
 package chain_state
 
 import (
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
 	"github.com/stretchr/testify/assert"
@@ -37,10 +38,13 @@ func TestNewChainState(t *testing.T) {
 
 	_, err = cs.CurrentState()
 	assert.Error(t, err)
+
 	_, err = cs.StateAtByBlockNumber(11)
 	assert.Error(t, err)
-
 	assert.NotNil(t, cs)
+
+	_, err = cs.AccountStateDB(common.Hash{})
+	assert.NoError(t, err)
 }
 
 func TestChainState_initConfigAndDB(t *testing.T) {

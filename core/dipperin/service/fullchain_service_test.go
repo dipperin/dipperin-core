@@ -27,12 +27,12 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	contract2 "github.com/dipperin/dipperin-core/core/contract"
-	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/dipperin/dipperin-core/third-party/vm-log-search"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -717,7 +717,7 @@ func TestMercuryFullChainService_Start(t *testing.T) {
 		MineMaster:       fakeMaster{},
 		MineMasterServer: fakeMasterServer{},
 		NodeConf:         fakeNodeConfig{},
-		ChainIndex:       chain_state.NewBloomIndexer(nil, db, 12, 6),
+		ChainIndex:       vm_log_search.NewBloomIndexer(nil, db, 12, 6),
 	}
 	service := MakeFullChainService(&config)
 	err := service.Start()

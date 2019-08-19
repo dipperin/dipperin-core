@@ -215,7 +215,6 @@ func TestWriteTxLookupEntries(t *testing.T) {
 	assert.Equal(t, uint64(0), txIndex)
 
 	txHash = b.GetTransactions()[1].CalTxId()
-
 	bHash, bIndex, txIndex = db.GetTxLookupEntry(txHash)
 
 	assert.Equal(t, b.Hash(), bHash)
