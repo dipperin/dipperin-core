@@ -35,7 +35,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/contract"
-	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/mine/minemaster"
@@ -48,6 +47,7 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
+	vm_log_search "github.com/dipperin/dipperin-core/third-party/vm-log-search"
 	"math/big"
 	"os"
 	"strings"
@@ -127,7 +127,7 @@ type DipperinConfig struct {
 
 	Broadcaster    Broadcaster
 	ChainReader    middleware.ChainInterface
-	ChainIndex     *chain_state.ChainIndexer
+	ChainIndex     *vm_log_search.ChainIndexer
 	TxPool         TxPool
 	MineMaster     minemaster.Master
 	WalletManager  *accounts.WalletManager
@@ -155,7 +155,7 @@ type VenusFullChainService struct {
 // startBloomHandlers starts a batch of goroutines to accept bloom bit database
 // retrievals from possibly a range of filters and serving the data to satisfy.
 func (service *VenusFullChainService) startBloomHandlers(sectionSize uint64) {
-	for i := 0; i < chain_state.BloomServiceThreads; i++ {
+	for i := 0; i < vm_log_search.BloomServiceThreads; i++ {
 		//log.Info("VenusFullChainService#startBloomHandlers start")
 		go func() {
 			for {
@@ -1580,13 +1580,13 @@ func (service *VenusFullChainService) GetABI(contractAddr common.Address) (*util
 func (service *VenusFullChainService) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, addresses []common.Address, topics [][]common.Hash) ([]*model2.Log, error) {
 	log.Info("VenusFullChainService#GetLogs", "blockHash", blockHash, "fromBlock", fromBlock, "toBlock", toBlock)
 	log.Info("VenusFullChainService#GetLogs", "addresses", addresses, "topics", topics)
-	var filter *chain_state.Filter
+	var filter *vm_log_search.Filter
 	if !blockHash.IsEmpty() {
 		// Block filter requested, construct a single-shot filter
 		if num := service.GetBlockNumber(blockHash); num == nil {
 			return nil, g_error.BlockHashNotFound
 		}
-		filter = chain_state.NewBlockFilter(service.ChainIndex, service.ChainReader, blockHash, addresses, topics)
+		filter = vm_log_search.NewBlockFilter(service.ChainIndex, service.ChainReader, blockHash, addresses, topics)
 	} else {
 		// Convert the RPC block numbers into internal representations
 		begin := fromBlock
@@ -1598,7 +1598,7 @@ func (service *VenusFullChainService) GetLogs(blockHash common.Hash, fromBlock, 
 			return nil, g_error.BeginNumLargerError
 		}
 		// Construct the range filter
-		filter = chain_state.NewRangeFilter(service.ChainReader, service.ChainIndex, int64(begin), int64(end), addresses, topics)
+		filter = vm_log_search.NewRangeFilter(service.ChainReader, service.ChainIndex, int64(begin), int64(end), addresses, topics)
 		log.Info("VenusFullChainService#GetLogs", "begin", begin, "end", end)
 	}
 	// Run the filter and return all the logs
