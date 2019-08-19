@@ -34,7 +34,7 @@ func (caller *rpcCaller) TransferEDIPToDIP(c *cli.Context) {
 	}
 
 	if len(cParams) != 4 {
-		l.Error("EarlyTokenTransferEDIPToDIP needs at least：from, eDIPValue,gasPrice,gasLimit")
+		l.Error("EarlyTokenTransferEDIPToDIP needs at least：from,eDIPValue,gasPrice,gasLimit")
 		return
 	}
 
@@ -84,7 +84,7 @@ func (caller *rpcCaller) SetExchangeRate(c *cli.Context) {
 	}
 
 	if len(cParams) != 4 {
-		l.Error("SetExchangeRate needs at least：from, exchangeRate,gasPrice,gasLimit")
+		l.Error("SetExchangeRate needs at least：from,exchangeRate,gasPrice,gasLimit")
 		return
 	}
 
@@ -94,7 +94,10 @@ func (caller *rpcCaller) SetExchangeRate(c *cli.Context) {
 		return
 	}
 
-	exChangeRate := cParams[1]
+	value, err := strconv.Atoi(cParams[1])
+	if err != nil {
+		l.Error("the parameter exChangeRate invalid", "err", err)
+	}
 
 	gasPrice, err := MoneyValueToCSCoin(cParams[2])
 	if err != nil {
@@ -106,11 +109,6 @@ func (caller *rpcCaller) SetExchangeRate(c *cli.Context) {
 	if err != nil {
 		l.Error("the parameter gasLimit invalid", "err", err)
 		return
-	}
-
-	value, err := strconv.Atoi(exChangeRate)
-	if err != nil {
-		l.Error("the parameter exChangeRate invalid", "err", err)
 	}
 
 	//svStr := fmt.Sprintf("0x%x", value)

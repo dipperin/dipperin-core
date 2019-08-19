@@ -23,28 +23,35 @@ import (
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 	"path/filepath"
 )
+
+func CheckRegistration() bool {
+	confPath := filepath.Join(util.HomeDir(), ".dipperin", "registration")
+	exist, _ := soft_wallet.PathExists(confPath)
+	return exist
+}
 
 //check address format
 func CheckAndChangeHexToAddress(address string) (common.Address, error) {
 	// Ignore 0x
 	if len(address)-2 != common.AddressLength*2 {
 		log.Error("the address is:", "len", len(address), "addr", address)
-		return common.Address{}, errors.New("address length is invalid")
+		return common.Address{}, g_error.ErrInvalidAddressLen
 	}
 
 	if address[:2] != "0x" && address[:2] != "0X" {
-		return common.Address{}, errors.New("address prefix should be 0x or 0X")
+		return common.Address{}, g_error.ErrInvalidAddressPrefix
 	}
 
 	commonAddress := common.HexToAddress(address)
-
 	addressType := commonAddress.GetAddressTypeStr()
 	if addressType == "UnKnown" {
-		return common.Address{}, errors.New("the address type error")
+		return common.Address{}, g_error.UnknownTxTypeErr
 	}
 
 	return commonAddress, nil

@@ -29,6 +29,7 @@ import (
 	"testing"
 
 	"github.com/urfave/cli"
+	"os"
 )
 
 func Test_getP2pRpcMethodByName(t *testing.T) {
@@ -39,28 +40,27 @@ func Test_rpcCaller_AddPeer(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	app := cli.NewApp()
-
-	app.Flags = []cli.Flag{
-		cli.StringFlag{Name: "m", Usage: "operation"},
-		cli.StringFlag{Name: "p", Usage: "parameters"},
+	app := getRpcTestApp()
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		c.AddPeer(context)
 	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 
 	app.Action = func(c *cli.Context) {
 		client = NewMockRpcClient(ctrl)
 		caller := &rpcCaller{}
 		caller.AddPeer(c)
 
-		c.Set("m", "test")
 		c.Set("p", "")
 		caller.AddPeer(c)
 
 		c.Set("p", "test")
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("test"))
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
 		caller.AddPeer(c)
 
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			*result.(*error) = errors.New("test")
+			*result.(*error) = testErr
 			return nil
 		})
 		caller.AddPeer(c)
@@ -68,8 +68,7 @@ func Test_rpcCaller_AddPeer(t *testing.T) {
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 		caller.AddPeer(c)
 	}
-
-	app.Run([]string{"xxx", "AddPeer"})
+	assert.NoError(t, app.Run([]string{os.Args[0], "AddPeer"}))
 	client = nil
 }
 
@@ -77,11 +76,12 @@ func Test_rpcCaller_Peers(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	app := cli.NewApp()
-
-	app.Flags = []cli.Flag{
-		cli.StringFlag{Name: "p", Usage: "parameters"},
+	app := getRpcTestApp()
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		c.Peers(context)
 	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 
 	app.Action = func(c *cli.Context) {
 		client = NewMockRpcClient(ctrl)
@@ -97,8 +97,7 @@ func Test_rpcCaller_Peers(t *testing.T) {
 		})
 		caller.Peers(c)
 	}
-
-	app.Run([]string{"xxx", "Peers"})
+	assert.NoError(t, app.Run([]string{os.Args[0], "Peers"}))
 	client = nil
 }
 
@@ -106,13 +105,7 @@ func Test_rpcCaller_Debug(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	app := cli.NewApp()
-
-	app.Flags = []cli.Flag{
-		cli.StringFlag{Name: "m", Usage: "operation"},
-		cli.StringFlag{Name: "p", Usage: "parameters"},
-	}
-
+	app := getRpcTestApp()
 	app.Action = func(c *cli.Context) {
 		client = NewMockRpcClient(ctrl)
 		caller := &rpcCaller{}
@@ -152,7 +145,6 @@ func Test_rpcCaller_Debug(t *testing.T) {
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(nil)
 		caller.Debug(c)
 	}
-
-	app.Run([]string{"xxx"})
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 	client = nil
 }

@@ -70,7 +70,7 @@ func (caller *rpcCaller) AnnounceERC20(c *cli.Context) {
 	}
 
 	if !isParamValid(cParams, 7) {
-		l.Error("parameters need：owner_address, token_name, token_symbol, token_total_supply, decimal, gasPrice,gasLimit")
+		l.Error("parameters need：owner_address,token_name,token_symbol,token_total_supply,decimal,gasPrice,gasLimit")
 		return
 	}
 
@@ -113,9 +113,7 @@ func (caller *rpcCaller) AnnounceERC20(c *cli.Context) {
 	}
 
 	var resp rpc_interface.ERC20Resp
-	//create contract, dest address must equal to contract address in transaction
-
-	if err := client.Call(&resp, getDipperinRpcMethodByName("CreateERC20"), owner, tokenName, tokenSymbol, tokenTotalSupply, decimal, gasPrice, gasLimit); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName("CreateERC20"), owner, tokenName, tokenSymbol, tokenTotalSupply, decimal, gasPrice, gasLimit); err != nil {
 		l.Error("AnnounceERC20 failed", "err", err)
 		return
 	}
@@ -142,7 +140,7 @@ func (caller *rpcCaller) ERC20TotalSupply(c *cli.Context) {
 	}
 
 	var resp *big.Int
-	if err := client.Call(&resp, getDipperinRpcMethodByName("ERC20TotalSupply"), contractAdr); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName("ERC20TotalSupply"), contractAdr); err != nil {
 		l.Error("call GetContractInfo", "err", err)
 		return
 	}
@@ -161,7 +159,7 @@ func (caller *rpcCaller) ERC20Transfer(c *cli.Context) {
 	}
 
 	if !isParamValid(cParams, 6) {
-		l.Error("parameters need：contract address, owner, to_address, amount, gasPrice,gasLimit")
+		l.Error("parameters need：contract address, owner, to_address, amount, gasPrice, gasLimit")
 		return
 	}
 
@@ -186,7 +184,6 @@ func (caller *rpcCaller) ERC20Transfer(c *cli.Context) {
 	//get decimal
 	decimal := getERC20Decimal(contractAdr)
 	value, err := DecimalToInter(cParams[3], decimal)
-	//value, err := MoneyValueToCSCoin(cParams[3])
 	if err != nil {
 		l.Error("the parameter value invalid", "err", err)
 		return
@@ -206,7 +203,7 @@ func (caller *rpcCaller) ERC20Transfer(c *cli.Context) {
 
 	//send transaction
 	var resp common.Hash
-	if err := client.Call(&resp, getDipperinRpcMethodByName("ERC20Transfer"), contractAdr, owner, toAdr, value, gasPrice, gasLimit); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName("ERC20Transfer"), contractAdr, owner, toAdr, value, gasPrice, gasLimit); err != nil {
 		l.Error("ERC20Transfer failed", "err", err)
 		return
 	}
@@ -252,7 +249,6 @@ func (caller *rpcCaller) ERC20TransferFrom(c *cli.Context) {
 	//get decimal
 	decimal := getERC20Decimal(contractAdr)
 	value, err := DecimalToInter(cParams[4], decimal)
-	//value, err := MoneyValueToCSCoin(cParams[4])
 	if err != nil {
 		l.Error("the parameter value invalid", "err", err)
 		return
@@ -272,7 +268,7 @@ func (caller *rpcCaller) ERC20TransferFrom(c *cli.Context) {
 
 	//send transaction
 	var resp common.Hash
-	if err := client.Call(&resp, getDipperinRpcMethodByName("ERC20TransferFrom"), contractAdr, owner, fromAdr, toAdr, value, gasPrice, gasLimit); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName("ERC20TransferFrom"), contractAdr, owner, fromAdr, toAdr, value, gasPrice, gasLimit); err != nil {
 		l.Error("ERC20TransferFrom failed", "err", err)
 		return
 	}
@@ -301,7 +297,7 @@ func (caller *rpcCaller) ERC20TokenName(c *cli.Context) {
 
 	//send transaction
 	var resp string
-	if err := client.Call(&resp, getDipperinRpcMethodByName("GetContractInfo"), &extraData); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName("GetContractInfo"), &extraData); err != nil {
 		l.Error("call GetContractInfo", "err", err)
 		return
 	}
@@ -330,7 +326,7 @@ func (caller *rpcCaller) ERC20TokenSymbol(c *cli.Context) {
 
 	//send transaction
 	var resp string
-	if err := client.Call(&resp, getDipperinRpcMethodByName("GetContractInfo"), &extraData); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName("GetContractInfo"), &extraData); err != nil {
 		l.Error("call GetContractInfo", "err", err)
 		return
 	}
@@ -384,21 +380,11 @@ func (caller *rpcCaller) ERC20TokenDecimals(c *cli.Context) {
 
 	//send transaction
 	var resp int
-	if err := client.Call(&resp, getDipperinRpcMethodByName("GetContractInfo"), &extraData); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName("GetContractInfo"), &extraData); err != nil {
 		l.Error("call GetContractInfo", "err", err)
 		return
 	}
 	l.Info("contract info", "token decimals", resp)
-}
-
-func convert(raw []byte) int {
-	l := len(raw)
-	sum := 0
-	for i := 0; i < l; i++ {
-		sum = sum << 8
-		sum += int(uint8(raw[i]))
-	}
-	return sum
 }
 
 func (caller *rpcCaller) ERC20GetInfo(c *cli.Context) {
@@ -421,24 +407,22 @@ func (caller *rpcCaller) ERC20GetInfo(c *cli.Context) {
 
 	var resp interface{}
 
-	if err := client.Call(&resp, getDipperinRpcMethodByName("GetContract"), contractAdr); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName("GetContract"), contractAdr); err != nil {
 		l.Error("call GetContract", "err", err)
 		return
 	}
 
 	decimal := getERC20Decimal(contractAdr)
 	unit := getERC20Symbol(contractAdr)
-
 	if ct, ok := resp.(map[string]interface{}); ok {
-		ts := common.FromHex(ct["token_total_supply"].(string))
-		num := convert(ts)
-		numBig := big.NewInt(int64(num))
+		source := ct["token_total_supply"].(string)
+		num, _ := strconv.ParseInt(source, 10, 64)
+		numBig := big.NewInt(num)
 		tokenNum, _ := InterToDecimal((*hexutil.Big)(numBig), decimal)
 		l.Info("contract:", "owner", ct["owner"], "\nname", ct["token_name"], "\nsymbol", ct["token_symbol"], "\ndecimal", ct["token_decimals"], "\ntotal supply", tokenNum+unit)
 		return
 	}
-	l.Error("call GetContract fail", "err", resp)
-
+	l.Error("call ERC20GetInfo fail", "err", resp)
 }
 
 func (caller *rpcCaller) ERC20Allowance(c *cli.Context) {
@@ -472,7 +456,7 @@ func (caller *rpcCaller) ERC20Allowance(c *cli.Context) {
 	}
 
 	var resp *big.Int
-	if err := client.Call(&resp, getDipperinRpcMethodByName("ERC20Allowance"), contractAdr, owner, spender); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName("ERC20Allowance"), contractAdr, owner, spender); err != nil {
 		l.Error("call GetContractInfo", "err", err)
 		return
 	}
@@ -491,7 +475,7 @@ func (caller *rpcCaller) ERC20Approve(c *cli.Context) {
 	}
 
 	if !isParamValid(cParams, 6) {
-		l.Error("parameters need：contract address, owner, to_address, amount,gasPrice,gasLimit")
+		l.Error("parameters need：contract address, owner, to_address, amount,gasPrice, gasLimit")
 		return
 	}
 
@@ -516,7 +500,6 @@ func (caller *rpcCaller) ERC20Approve(c *cli.Context) {
 	//get decimal
 	decimal := getERC20Decimal(contractAdr)
 	value, err := DecimalToInter(cParams[3], decimal)
-	//value, err := MoneyValueToCSCoin(cParams[3])
 	if err != nil {
 		l.Error("the parameter value invalid", "err", err)
 		return
@@ -582,7 +565,7 @@ func (caller *rpcCaller) ERC20Balance(c *cli.Context) {
 
 	//send transaction
 	var resp *hexutil.Big
-	if err := client.Call(&resp, getDipperinRpcMethodByName("ERC20Balance"), contractAdr, owner); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName("ERC20Balance"), contractAdr, owner); err != nil {
 		l.Error("call GetContractInfo", "err", err)
 		return
 	}

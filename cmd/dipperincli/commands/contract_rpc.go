@@ -40,9 +40,6 @@ func (caller *rpcCaller) GetContractAddressByTxHash(c *cli.Context) {
 }
 
 func (caller *rpcCaller) CallContract(c *cli.Context) {
-	if checkSync() {
-		return
-	}
 	mName, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
 		l.Error("getRpcMethodAndParam error", "err", err)
@@ -54,7 +51,7 @@ func (caller *rpcCaller) CallContract(c *cli.Context) {
 	}
 	from, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
-		l.Error("call  the from address is invalid", "err", err)
+		l.Error("call the from address is invalid", "err", err)
 		return
 	}
 	to, err := CheckAndChangeHexToAddress(cParams[1])
@@ -117,10 +114,6 @@ func (caller *rpcCaller) CallContract(c *cli.Context) {
 }
 
 func (caller *rpcCaller) EstimateGas(c *cli.Context) {
-	if checkSync() {
-		return
-	}
-
 	var (
 		resp interface{}
 		err  error

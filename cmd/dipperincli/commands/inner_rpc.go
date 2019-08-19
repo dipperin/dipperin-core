@@ -55,7 +55,7 @@ func (caller *rpcCaller) GetBlockDiffVerifierInfo(c *cli.Context) {
 	}
 
 	var resp map[economy_model.VerifierType][]common.Address
-	if err := client.Call(&resp, getDipperinRpcMethodByName(mName), blockNumber); err != nil {
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), blockNumber); err != nil {
 		l.Error("call failed", "err", err)
 		return
 	}
@@ -104,9 +104,9 @@ func (caller *rpcCaller) CheckVerifierType(c *cli.Context) {
 	numberStart := uint64(slot) * config.SlotSize
 	numberEnd := numberStart + config.SlotSize - 1
 
-	//get currentBlockNumber
+	// get currentBlockNumber
 	var respBlock rpc_interface.BlockResp
-	if err := client.Call(&respBlock, getDipperinRpcMethodByName("CurrentBlock")); err != nil {
+	if err = client.Call(&respBlock, getDipperinRpcMethodByName("CurrentBlock")); err != nil {
 		l.Error("look up for current block", "err", err)
 		return
 	}
@@ -129,7 +129,7 @@ func (caller *rpcCaller) CheckVerifierType(c *cli.Context) {
 	for i := numberStart; i <= numberEnd; i++ {
 		findType := false
 		var resp map[economy_model.VerifierType][]common.Address
-		if err := client.Call(&resp, getDipperinRpcMethodByName("GetBlockDiffVerifierInfo"), i); err != nil {
+		if err = client.Call(&resp, getDipperinRpcMethodByName("GetBlockDiffVerifierInfo"), i); err != nil {
 			l.Error("call failed", "err", err)
 			return
 		}

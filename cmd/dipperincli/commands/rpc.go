@@ -184,8 +184,10 @@ func RpcCall(c *cli.Context) {
 	}
 	// when use method := c.Args()[0],the command line `tx SendTransactionContract -p xxxx --abi` lead the node stop
 	method := c.Args().First()
+	fmt.Println(c.Args())
 	if len(c.Args()) == 0 {
 		l.Info("RpcCall params assign err, can't find the method")
+		return
 	}
 
 	rvf := callerRv.MethodByName(method)
@@ -636,7 +638,6 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 
 //check transaction from transaction hash
 func (caller *rpcCaller) Transaction(c *cli.Context) {
-
 	if checkSync() {
 		return
 	}
@@ -646,6 +647,7 @@ func (caller *rpcCaller) Transaction(c *cli.Context) {
 		l.Error("getRpcMethodAndParam error")
 		return
 	}
+
 	if len(cParams) < 1 {
 		l.Error("Transaction need：txHash")
 		return
@@ -666,6 +668,7 @@ func (caller *rpcCaller) Transaction(c *cli.Context) {
 		l.Error("Call Transaction", "err", err)
 		return
 	}
+
 	printTransactionInfo(resp)
 }
 
@@ -675,23 +678,27 @@ func (caller *rpcCaller) GetReceiptByTxHash(c *cli.Context) {
 		l.Error("GetReceiptByTxHash  getRpcMethodAndParam error")
 		return
 	}
+
 	if len(cParams) < 1 {
 		l.Error("GetReceiptByTxHash need：txHash")
 		return
 	}
+
 	tmpHash, err := hexutil.Decode(cParams[0])
 	if err != nil {
 		l.Error("GetReceiptByTxHash decode error")
 		return
 	}
+
 	var hash common.Hash
-	_ = copy(hash[:], tmpHash)
+	copy(hash[:], tmpHash)
 
 	var resp model.Receipt
 	if err = client.Call(&resp, getDipperinRpcMethodByName("GetReceiptByTxHash"), hash); err != nil {
 		l.Error("Call GetReceiptByTxHash", "err", err)
 		return
 	}
+
 	fmt.Println(resp.String())
 }
 
@@ -752,6 +759,7 @@ func (caller *rpcCaller) GetReceiptsByBlockNum(c *cli.Context) {
 	blockNum, err := strconv.Atoi(cParams[0])
 	if err != nil {
 		l.Error("the blockNumber error")
+		return
 	}
 
 	var resp model.Receipts
@@ -1508,7 +1516,6 @@ func (caller *rpcCaller) CurrentReputation(c *cli.Context) {
 }
 
 func (caller *rpcCaller) GetCurVerifiers(c *cli.Context) {
-
 	if checkSync() {
 		return
 	}
@@ -1719,10 +1726,4 @@ func RemoveRegistration() {
 		l.Error("can't remove record registration")
 		return
 	}
-}
-
-func CheckRegistration() bool {
-	confPath := filepath.Join(util.HomeDir(), ".dipperin", "registration")
-	exist, _ := soft_wallet.PathExists(confPath)
-	return exist
 }

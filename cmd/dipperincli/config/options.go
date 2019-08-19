@@ -87,7 +87,6 @@ func optionCompleterNew(args []string, long bool) []prompt.Suggest {
 		)
 	}
 	log.Debug("optionCompleterNew", "suggests1", suggests)
-
 	return prompt.FilterContains(suggests, strings.TrimLeft(args[l-1], "--"), true)
 }
 
