@@ -35,7 +35,6 @@ var (
 
 func loadDefaultAccountStake() {
 	var resp rpc_interface.CurBalanceResp
-
 	if err := client.Call(&resp, getDipperinRpcMethodByName("CurrentStake"), defaultAccount); err != nil {
 		l.Error("call get current deposit error", "err", err)
 		return

@@ -494,6 +494,8 @@ func (pm *CsProtocolManager) selfPmType() int {
 	if nodeType == chain_config.NodeTypeOfVerifierBoot {
 
 		curNodeID := pm.P2PServer.Self().ID().String()
+		//log.Info("the node id is:","curNodeId",curNodeID)
+
 		for _, n := range pm.verifierBootNodes {
 			if curNodeID == n.ID().String() {
 				pm.pmType.Store(boot)

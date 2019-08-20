@@ -1577,6 +1577,36 @@ func (service *VenusFullChainService) GetABI(contractAddr common.Address) (*util
 	return &abi, nil
 }
 
+func (service *VenusFullChainService) GetCode(contractAddr common.Address) ([]byte, error) {
+	stateRoot := service.CurrentBlock().StateRoot()
+	stateDB, err := service.ChainReader.AccountStateDB(stateRoot)
+	if err != nil {
+		return nil, err
+	}
+
+	fullState := state_processor.NewFullState(stateDB)
+	dataCode := fullState.GetCode(contractAddr)
+	if dataCode == nil {
+		return nil, errors.New("empty code")
+	}
+	return dataCode, nil
+}
+
+func (service *VenusFullChainService) GetRecentGasPriceMedian(contractAddr common.Address) ([]byte, error) {
+	stateRoot := service.CurrentBlock().StateRoot()
+	stateDB, err := service.ChainReader.AccountStateDB(stateRoot)
+	if err != nil {
+		return nil, err
+	}
+
+	fullState := state_processor.NewFullState(stateDB)
+	dataCode := fullState.GetCode(contractAddr)
+	if dataCode == nil {
+		return nil, errors.New("empty code")
+	}
+	return dataCode, nil
+}
+
 func (service *VenusFullChainService) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, addresses []common.Address, topics [][]common.Hash) ([]*model2.Log, error) {
 	log.Info("VenusFullChainService#GetLogs", "blockHash", blockHash, "fromBlock", fromBlock, "toBlock", toBlock)
 	log.Info("VenusFullChainService#GetLogs", "addresses", addresses, "topics", topics)

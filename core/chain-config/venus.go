@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	venusHostIP       = "172.16.5.15"
+	venusHostIP       = "14.17.65.122"
 	InitVenusBootPort = 10000
 )
 

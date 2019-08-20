@@ -17,14 +17,13 @@
 package commands
 
 import (
-	"math/big"
-	"reflect"
-	"testing"
-
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
 )
 
 func TestGetUnit(t *testing.T) {
@@ -42,7 +41,6 @@ func TestGetUnit(t *testing.T) {
 }
 
 func TestMoneyValueToCSCoin(t *testing.T) {
-
 	value, err := MoneyValueToCSCoin("0.001")
 	assert.Error(t, err)
 	assert.Nil(t, value)
@@ -120,6 +118,41 @@ func TestCSCoinToMoneyValue(t *testing.T) {
 	assert.Equal(t, "3069DIP", moneyValue5)
 }
 
+func TestMoneyWithUnit(t *testing.T) {
+	assert.Equal(t, "100WU", MoneyWithUnit("100"))
+	assert.Equal(t, "100dip", MoneyWithUnit("100dip"))
+	assert.Equal(t, "100aaa", MoneyWithUnit("100aaa"))
+	assert.Equal(t, "100.00WU", MoneyWithUnit("100.00"))
+}
+
+func TestParseWalletPathAndName(t *testing.T) {
+	gotPath, gotName := ParseWalletPathAndName("A.B")
+	assert.Equal(t, "A.B", gotPath)
+	assert.Equal(t, "A.B", gotName)
+
+	gotPath, gotName = ParseWalletPathAndName("A/B")
+	assert.Equal(t, "A/B", gotPath)
+	assert.Equal(t, "B", gotName)
+}
+
+func TestCheckAndChangeHexToAddress(t *testing.T) {
+	addr, err := CheckAndChangeHexToAddress("1234")
+	assert.Equal(t, g_error.ErrInvalidAddressLen, err)
+	assert.Equal(t, common.Address{}, addr)
+
+	addr, err = CheckAndChangeHexToAddress("0000005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
+	assert.Equal(t, g_error.ErrInvalidAddressPrefix, err)
+	assert.Equal(t, common.Address{}, addr)
+
+	addr, err = CheckAndChangeHexToAddress("0x12345586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
+	assert.Equal(t, g_error.UnknownTxTypeErr, err)
+	assert.Equal(t, common.Address{}, addr)
+
+	addr, err = CheckAndChangeHexToAddress(from)
+	assert.NoError(t, err)
+	assert.Equal(t, common.HexToAddress(from), addr)
+}
+
 func TestDecimalToInter(t *testing.T) {
 	moneyValue1 := "0.001"
 	moneyValue2 := "7.89"
@@ -190,84 +223,6 @@ func TestInterToDecimal(t *testing.T) {
 	assert.Equal(t, "30690", moneyValue5)
 }
 
-/*func closeWallet(){
-	log.Info("close wallet~~~~~~~~~~~~~~~~~~")
-}
-
-func receiveExitSignal(exit chan int) {
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(
-		sigCh,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGQUIT,
-		syscall.SIGKILL,
-	)
-
-	log.Info("receiveExitSignal start ~~~~~~~~~~~~~~`")
-	for {
-		select {
-		case <-exit:
-			fmt.Printf("exit ~~~~~~~~~~~~~~~~~")
-			log.Info("exit ~~~~~~~~~~~~~~")
-			closeWallet()
-			return
-		case s := <-sigCh:
-			log.Info("receive signal", "signal", s)
-			fmt.Printf("receive signal")
-			closeWallet()
-			return
-		}
-	}
-}*/
-
-func TestCheckAndChangeHexToAddress(t *testing.T) {
-	type args struct {
-		address string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    common.Address
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := CheckAndChangeHexToAddress(tt.args.address)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("CheckAndChangeHexToAddress() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("CheckAndChangeHexToAddress() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestParseWalletPathAndName(t *testing.T) {
-	type args struct {
-		inputPath string
-	}
-	tests := []struct {
-		name     string
-		args     args
-		wantPath string
-		wantName string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotPath, gotName := ParseWalletPathAndName(tt.args.inputPath)
-			if gotPath != tt.wantPath {
-				t.Errorf("ParseWalletPathAndName() gotPath = %v, want %v", gotPath, tt.wantPath)
-			}
-			if gotName != tt.wantName {
-				t.Errorf("ParseWalletPathAndName() gotName = %v, want %v", gotName, tt.wantName)
-			}
-		})
-	}
+func TestCheckRegistration(t *testing.T) {
+	assert.Equal(t, false, CheckRegistration())
 }

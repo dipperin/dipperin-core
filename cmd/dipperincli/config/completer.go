@@ -75,7 +75,6 @@ func DipperinCliCompleterNew(d prompt.Document) []prompt.Suggest {
 	} else if len(args) == 2 {
 		return optionCompleterNew(args,true)
 	}*/
-
 	if len(args) == 2 {
 		return optionCompleterNew(args, true)
 	} else if strings.HasPrefix(w, "-") {

@@ -28,6 +28,8 @@ func Test_optionCompleter(t *testing.T) {
 	assert.Equal(t, optionCompleterNew([]string{"--test1"}, true), []prompt.Suggest{{Text: "--help", Description: ""}})
 	assert.Equal(t, optionCompleterNew([]string{"rpc", "-test"}, false), []prompt.Suggest{})
 	assert.Equal(t, optionCompleterNew([]string{"rpc", "--test"}, true), []prompt.Suggest{})
+	assert.Equal(t, optionCompleterNew([]string{"tx", "-test", ""}, false), txPromptFlags)
+	assert.Equal(t, optionCompleterNew([]string{"chain", "--test", ""}, true), commonFlags)
 }
 
 //func Test_callMethod(t *testing.T) {
