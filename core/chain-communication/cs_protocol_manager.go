@@ -1045,7 +1045,7 @@ func (pm *CsProtocolManager) PrintPeerHealthCheck() {
 	curLen := len(curPeers)
 	nextLen := len(nextPeers)
 	vBootLen := len(vBootPeers)
-	log.PBft.Info("pm print cur peers info", "normal", norLen, "cur vers", curLen, "next vers", nextLen, "v boots", vBootLen)
+	log.Health.Info("pm print cur peers info", "normal", norLen, "cur vers", curLen, "next vers", nextLen, "v boots", vBootLen)
 
 	g_metrics.Set(g_metrics.NorPeerSetGauge, "", float64(norLen))
 	g_metrics.Set(g_metrics.CurPeerSetGauge, "", float64(curLen))
