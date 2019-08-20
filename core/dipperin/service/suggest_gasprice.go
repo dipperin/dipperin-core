@@ -1,14 +1,14 @@
 package service
 
 import (
-	"math/big"
-	"sync"
-	"sort"
-	"github.com/dipperin/dipperin-core/common/consts"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/model"
-	"fmt"
+	"math/big"
+	"sort"
+	"sync"
 )
 
 var maxPrice = big.NewInt(500 * consts.GDIPUNIT)
@@ -139,9 +139,11 @@ type getBlockPricesResult struct {
 
 type transactionsByGasPrice []*model.Transaction
 
-func (t transactionsByGasPrice) Len() int           { return len(t) }
-func (t transactionsByGasPrice) Swap(i, j int)      { t[i], t[j] = t[j], t[i] }
-func (t transactionsByGasPrice) Less(i, j int) bool { return t[i].GetGasPrice().Cmp(t[j].GetGasPrice()) < 0 }
+func (t transactionsByGasPrice) Len() int      { return len(t) }
+func (t transactionsByGasPrice) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
+func (t transactionsByGasPrice) Less(i, j int) bool {
+	return t[i].GetGasPrice().Cmp(t[j].GetGasPrice()) < 0
+}
 
 // getBlockPrices calculates the lowest transaction gas price in a given block
 // and sends it to the result channel. If the block is empty, price is nil.

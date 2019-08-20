@@ -1,12 +1,12 @@
 package service
 
 import (
-	"testing"
-	config2 "github.com/dipperin/dipperin-core/common/config"
-	"math/big"
-	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/core/model"
 	"fmt"
+	config2 "github.com/dipperin/dipperin-core/common/config"
+	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
 )
 
 func TestNewOracle(t *testing.T) {
