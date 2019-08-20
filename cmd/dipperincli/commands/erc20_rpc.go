@@ -159,7 +159,7 @@ func (caller *rpcCaller) ERC20Transfer(c *cli.Context) {
 	}
 
 	if !isParamValid(cParams, 6) {
-		l.Error("parameters need：contract address, owner, to_address, amount, gasPrice, gasLimit")
+		l.Error("parameters need：contract_address,owner,to_address,amount,gasPrice,gasLimit")
 		return
 	}
 
@@ -218,7 +218,7 @@ func (caller *rpcCaller) ERC20TransferFrom(c *cli.Context) {
 	}
 
 	if !isParamValid(cParams, 7) {
-		l.Error("parameters need：contract address, owner, from_address, to_address, amount, gasPrice,gasLimit")
+		l.Error("parameters need：contract_address,owner,from_address,to_address,amount,gasPrice,gasLimit")
 		return
 	}
 
@@ -387,6 +387,16 @@ func (caller *rpcCaller) ERC20TokenDecimals(c *cli.Context) {
 	l.Info("contract info", "token decimals", resp)
 }
 
+func convert(raw []byte) int {
+	l := len(raw)
+	sum := 0
+	for i := 0; i < l; i++ {
+		sum = sum << 8
+		sum += int(uint8(raw[i]))
+	}
+	return sum
+}
+
 func (caller *rpcCaller) ERC20GetInfo(c *cli.Context) {
 	_, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
@@ -395,7 +405,7 @@ func (caller *rpcCaller) ERC20GetInfo(c *cli.Context) {
 	}
 
 	if !isParamValid(cParams, 1) {
-		l.Error("parameters need：contract address")
+		l.Error("parameters need：contract_address")
 		return
 	}
 
@@ -415,9 +425,9 @@ func (caller *rpcCaller) ERC20GetInfo(c *cli.Context) {
 	decimal := getERC20Decimal(contractAdr)
 	unit := getERC20Symbol(contractAdr)
 	if ct, ok := resp.(map[string]interface{}); ok {
-		source := ct["token_total_supply"].(string)
-		num, _ := strconv.ParseInt(source, 10, 64)
-		numBig := big.NewInt(num)
+		ts := common.FromHex(ct["token_total_supply"].(string))
+		num := convert(ts)
+		numBig := big.NewInt(int64(num))
 		tokenNum, _ := InterToDecimal((*hexutil.Big)(numBig), decimal)
 		l.Info("contract:", "owner", ct["owner"], "\nname", ct["token_name"], "\nsymbol", ct["token_symbol"], "\ndecimal", ct["token_decimals"], "\ntotal supply", tokenNum+unit)
 		return
@@ -433,7 +443,7 @@ func (caller *rpcCaller) ERC20Allowance(c *cli.Context) {
 	}
 
 	if !isParamValid(cParams, 3) {
-		l.Error("parameters need：contract address, owner, spender")
+		l.Error("parameters need：contract_address,owner,spender")
 		return
 	}
 
@@ -464,7 +474,8 @@ func (caller *rpcCaller) ERC20Allowance(c *cli.Context) {
 	decimal := getERC20Decimal(contractAdr)
 	ts, _ := InterToDecimal((*hexutil.Big)(resp), decimal)
 	unit := getERC20Symbol(contractAdr)
-	l.Info("contract info", "address", spender, "token allowance is", ts+unit)
+	l.Info("contract info", "address")
+	l.Info("contract info", "token_allowance", ts+unit)
 }
 
 func (caller *rpcCaller) ERC20Approve(c *cli.Context) {
@@ -475,7 +486,7 @@ func (caller *rpcCaller) ERC20Approve(c *cli.Context) {
 	}
 
 	if !isParamValid(cParams, 6) {
-		l.Error("parameters need：contract address, owner, to_address, amount,gasPrice, gasLimit")
+		l.Error("parameters need：contract_address,owner,to_address,amount,gasPrice,gasLimit")
 		return
 	}
 
@@ -547,7 +558,7 @@ func (caller *rpcCaller) ERC20Balance(c *cli.Context) {
 	}
 
 	if !isParamValid(cParams, 2) {
-		l.Error("parameters need：contract address,owner address")
+		l.Error("parameters need：contract_address,owner_address")
 		return
 	}
 

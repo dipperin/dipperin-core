@@ -15,6 +15,7 @@ A programmable financial ecosystem
    Keyconsepts
    Dapps
    Tutorials
+   Contracts
 
 .. toctree::
    :maxdepth: 1
