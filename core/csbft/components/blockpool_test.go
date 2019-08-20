@@ -104,7 +104,7 @@ func TestBlockPool_GetBlockByHash(t *testing.T) {
 	block := blockPool.GetBlockByHash(b1.Hash())
 	assert.Equal(t, b1, block)
 	blockPool.RemoveBlock(b1.Hash())
-	time.Sleep(time.Microsecond * 10)
+	time.Sleep(time.Microsecond * 100)
 	assert.Equal(t, blockPool.IsEmpty(), true)
 }
 

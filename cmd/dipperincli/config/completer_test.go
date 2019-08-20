@@ -138,3 +138,13 @@ func Test_excludeOptions(t *testing.T) {
 	args := []string{"-test1", "test2", "test3"}
 	assert.Equal(t, excludeOptions(args), []string{"test2", "test3"})
 }
+
+func TestCheckModuleMethodIsRight(t *testing.T) {
+	assert.Equal(t, false, CheckModuleMethodIsRight("", ""))
+	assert.Equal(t, true, CheckModuleMethodIsRight("", "-h"))
+	assert.Equal(t, true, CheckModuleMethodIsRight("tx", "SendTx"))
+	assert.Equal(t, true, CheckModuleMethodIsRight("chain", "CurrentBlock"))
+	assert.Equal(t, true, CheckModuleMethodIsRight("verifier", "VerifierStatus"))
+	assert.Equal(t, true, CheckModuleMethodIsRight("personal", "CurrentBalance"))
+	assert.Equal(t, true, CheckModuleMethodIsRight("miner", "StartMine"))
+}

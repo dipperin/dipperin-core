@@ -1,3 +1,19 @@
+// Copyright 2019, Keychain Foundation Ltd.
+// This file is part of the Dipperin-core library.
+//
+// The Dipperin-core library is free software: you can redistribute
+// it and/or modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation, either version 3 of the
+// License, or (at your option) any later version.
+//
+// The Dipperin-core library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 package resolver
 
 // #cgo CXXFLAGS: -std=c++14
@@ -9,7 +25,6 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/math"
-	common2 "github.com/dipperin/dipperin-core/core/vm/common"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
@@ -78,7 +93,7 @@ func (r *Resolver) envPrints(vm *exec.VirtualMachine) int64 {
 		}
 	}
 	str := vm.Memory.Memory[start:end]
-	common2.Log.Debug(string(str))
+	log.Vm.Debug(string(str))
 	log.Info("envPrints called", "string", string(str))
 	return 0
 }
@@ -99,7 +114,7 @@ func envPrintsl(vm *exec.VirtualMachine) int64 {
 	ptr := int(uint32(vm.GetCurrentFrame().Locals[0]))
 	msgLen := int(uint32(vm.GetCurrentFrame().Locals[1]))
 	msg := vm.Memory.Memory[ptr : ptr+msgLen]
-	common2.Log.Debug(string(msg))
+	log.Vm.Debug(string(msg))
 	log.Info("envPrintsl called", "string", string(msg))
 	return 0
 }
@@ -112,7 +127,7 @@ func envPrintslGasCost(vm *exec.VirtualMachine) (uint64, error) {
 //libc printi()
 func envPrinti(vm *exec.VirtualMachine) int64 {
 	num := vm.GetCurrentFrame().Locals[0]
-	common2.Log.Debug(fmt.Sprintf("%d", num))
+	log.Vm.Debug(fmt.Sprintf("%d", num))
 	log.Info("envPrinti called", "int", fmt.Sprintf("%d", num))
 	return 0
 }
@@ -123,7 +138,7 @@ func envPrintiGasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 func envPrintui(vm *exec.VirtualMachine) int64 {
 	num := vm.GetCurrentFrame().Locals[0]
-	common2.Log.Debug(fmt.Sprintf("%d", num))
+	log.Vm.Debug(fmt.Sprintf("%d", num))
 	log.Info("envPrintui called", "uint", fmt.Sprintf("%d", num))
 	return 0
 }
@@ -140,7 +155,7 @@ func envPrinti128(vm *exec.VirtualMachine) int64 {
 	ret := C.printi128(C.uint64_t(lo), C.uint64_t(ho))
 
 	num := C.GoString(ret)
-	common2.Log.Debug(fmt.Sprintf("%s", num))
+	log.Vm.Debug(fmt.Sprintf("%s", num))
 	log.Info("envPrinti128 called", "int128", fmt.Sprintf("%s", num))
 	return 0
 }
@@ -157,7 +172,7 @@ func envPrintui128(vm *exec.VirtualMachine) int64 {
 	ret := C.printui128(C.uint64_t(lo), C.uint64_t(ho))
 
 	num := C.GoString(ret)
-	common2.Log.Debug(fmt.Sprintf("%s", num))
+	log.Vm.Debug(fmt.Sprintf("%s", num))
 	log.Info("envPrintui128 called", "uint128", fmt.Sprintf("%s", num))
 	return 0
 }
@@ -169,7 +184,7 @@ func envPrintui128GasCost(vm *exec.VirtualMachine) (uint64, error) {
 /*func envPrintsf(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
 	float := math.Float32frombits(uint32(pos))
-	common2.Log.Debug(fmt.Sprintf("%g", float))
+	log.Vm.Debug(fmt.Sprintf("%g", float))
 	log.Info("envPrintsf called", "float", fmt.Sprintf("%g", float))
 	return 0
 }
@@ -181,7 +196,7 @@ func envPrintsfGasCost(vm *exec.VirtualMachine) (uint64, error) {
 func envPrintdf(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
 	double := math.Float64frombits(uint64(pos))
-	common2.Log.Debug(fmt.Sprintf("%g", double))
+	log.Vm.Debug(fmt.Sprintf("%g", double))
 	log.Info("envPrintdf called", "double", fmt.Sprintf("%g", double))
 	return 0
 }
@@ -198,7 +213,7 @@ func envPrintdfGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	high := C.uint64_t(binary.LittleEndian.Uint64(vm.Memory.Memory[pos+8 : pos+16]))
 
 	buf := C.GoString(C.__printqf(low, high))
-	common2.Log.Debug(fmt.Sprintf("%s", buf))
+	log.Vm.Debug(fmt.Sprintf("%s", buf))
 	log.Info("envPrintqf called", "longDouble", fmt.Sprintf("%s", buf))
 	return 0
 }
@@ -210,7 +225,7 @@ func envPrintqfGasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 func envPrintn(vm *exec.VirtualMachine) int64 {
 	data := fmt.Sprintf("%d", int(uint32(vm.GetCurrentFrame().Locals[0])))
-	common2.Log.Debug(data)
+	log.Vm.Debug(data)
 	log.Info("envPrintn called", "envPrintn", data)
 	return 0
 }
@@ -223,7 +238,7 @@ func envPrinthex(vm *exec.VirtualMachine) int64 {
 	data := int(uint32(vm.GetCurrentFrame().Locals[0]))
 	dataLen := int(uint32(vm.GetCurrentFrame().Locals[1]))
 	hex := vm.Memory.Memory[data : data+dataLen]
-	common2.Log.Debug(fmt.Sprintf("%x", hex))
+	log.Vm.Debug(fmt.Sprintf("%x", hex))
 	log.Info("envPrinthex called", "hex", fmt.Sprintf("%x", hex))
 	return 0
 }

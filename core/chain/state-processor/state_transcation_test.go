@@ -17,7 +17,7 @@ func TestApplyMessage(t *testing.T) {
 	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
 	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
 	tx := createContractTx(WASMPath, AbiPath, 0, testGasLimit)
-	msg, err := tx.AsMessage()
+	msg, err := tx.AsMessage(false)
 	assert.NoError(t, err)
 
 	db, root := CreateTestStateDB()
@@ -34,7 +34,7 @@ func TestApplyMessage(t *testing.T) {
 	params := [][]byte{name}
 	to := cs_crypto.CreateContractAddress(aliceAddr, 0)
 	tx = callContractTx(&to, "returnString", params, 1)
-	msg, err = tx.AsMessage()
+	msg, err = tx.AsMessage(false)
 	assert.NoError(t, err)
 
 	result, usedGas, failed, _, err = ApplyMessage(testVm, &msg, &gasPool)
@@ -50,7 +50,7 @@ func TestApplyMessage_Error(t *testing.T) {
 	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
 	gasLimit := g_testData.TestGasLimit
 	tx := createContractTx(WASMPath, AbiPath, 0, gasLimit)
-	msg, err := tx.AsMessage()
+	msg, err := tx.AsMessage(true)
 	assert.NoError(t, err)
 
 	db := ethdb.NewMemDatabase()
@@ -69,13 +69,13 @@ func TestApplyMessage_Error(t *testing.T) {
 	assert.Equal(t, g_error.ErrNonceTooLow, err)
 
 	tx = createContractTx(WASMPath, AbiPath, 2, gasLimit)
-	msg, err = tx.AsMessage()
+	msg, err = tx.AsMessage(true)
 	assert.NoError(t, err)
 	_, _, _, _, err = ApplyMessage(testVm, &msg, &gasPool)
 	assert.Equal(t, g_error.ErrNonceTooHigh, err)
 
 	tx = createContractTx(WASMPath, AbiPath, 1, gasLimit)
-	msg, err = tx.AsMessage()
+	msg, err = tx.AsMessage(true)
 	assert.NoError(t, err)
 	_, _, _, _, err = ApplyMessage(testVm, &msg, &gasPool)
 	assert.Equal(t, g_error.ErrInsufficientBalanceForGas, err)
@@ -94,7 +94,7 @@ func TestApplyMessage_Error(t *testing.T) {
 	gasLimit = g_testData.TestGasLimit * 50
 	gasPool = gasLimit * 10
 	tx = createContractTx(WASMPath, AbiPath, 1, gasLimit)
-	msg, err = tx.AsMessage()
+	msg, err = tx.AsMessage(true)
 	assert.NoError(t, err)
 	_, _, _, _, err = ApplyMessage(testVm, &msg, &gasPool)
 	assert.NoError(t, err)
@@ -103,7 +103,7 @@ func TestApplyMessage_Error(t *testing.T) {
 	params := [][]byte{name}
 	to := cs_crypto.CreateContractAddress(aliceAddr, 1)
 	tx = callContractTx(&to, "returnString", params, 2)
-	msg, err = tx.AsMessage()
+	msg, err = tx.AsMessage(true)
 	assert.NoError(t, err)
 	_, _, _, _, err = ApplyMessage(testVm, &msg, &gasPool)
 	assert.Equal(t, g_error.ErrInsufficientBalance, err)
@@ -113,7 +113,7 @@ func BenchmarkApplyMessage_Create(b *testing.B) {
 	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
 	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
 	tx := createContractTx(WASMPath, AbiPath, 0, testGasLimit)
-	msg, err := tx.AsMessage()
+	msg, err := tx.AsMessage(true)
 	assert.NoError(b, err)
 	for i := 0; i < b.N; i++ {
 		db, root := CreateTestStateDB()
@@ -132,7 +132,7 @@ func BenchmarkApplyMessage_Call(b *testing.B) {
 
 	// create tx
 	tx1 := createContractTx(WASMPath, AbiPath, 0, testGasLimit)
-	msg1, err := tx1.AsMessage()
+	msg1, err := tx1.AsMessage(true)
 	assert.NoError(b, err)
 
 	// call tx
@@ -140,7 +140,7 @@ func BenchmarkApplyMessage_Call(b *testing.B) {
 	params := [][]byte{name}
 	to := cs_crypto.CreateContractAddress(aliceAddr, 0)
 	tx2 := callContractTx(&to, "returnString", params, 1)
-	msg2, err := tx2.AsMessage()
+	msg2, err := tx2.AsMessage(true)
 	assert.NoError(b, err)
 
 	for i := 0; i < b.N; i++ {

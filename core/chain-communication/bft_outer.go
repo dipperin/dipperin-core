@@ -23,7 +23,6 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/hashicorp/golang-lru"
 	"sync"
@@ -149,14 +148,14 @@ func (broadcaster *BftOuter) onVerifiedResultBlock(msg p2p.Msg, p PmAbstractPeer
 
 	var result model2.VerifyResultRlp
 	if err := msg.Decode(&result); err != nil {
-		pbft_log.Log.Warn("decode v result failed", "err", err)
+		log.PBft.Warn("decode v result failed", "err", err)
 		return err
 	}
 
 	commits := make([]model.AbstractVerification, len(result.SeenCommits))
 	util.InterfaceSliceCopy(commits, result.SeenCommits)
 
-	pbft_log.Log.Debug("Get verified Result", "", result.Block.Number())
+	log.PBft.Debug("Get verified Result", "", result.Block.Number())
 
 	// here will call the save block
 	broadcaster.blockFetcher.DoTask(p.ID(), &model2.VerifyResult{

@@ -7,13 +7,13 @@ import (
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/vm-log-search"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -21,7 +21,7 @@ import (
 	"testing"
 )
 
-func TestMercuryFullChainService_Call(t *testing.T) {
+func TestVenusFullChainService_Call(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(&config)
@@ -50,7 +50,7 @@ func TestMercuryFullChainService_Call(t *testing.T) {
 	assert.Equal(t, "10000", balance)
 }
 
-func TestMercuryFullChainService_ContractTransaction(t *testing.T) {
+func TestVenusFullChainService_ContractTransaction(t *testing.T) {
 	csChain := createCsChain(nil)
 
 	// create create contract
@@ -65,7 +65,7 @@ func TestMercuryFullChainService_ContractTransaction(t *testing.T) {
 	err := csChain.SaveBftBlock(block, votes)
 	assert.NoError(t, err)
 
-	chainIndex := chain_state.NewBloomIndexer(csChain, csChain.GetDB(), chain_state.BloomBitsBlocks, chain_state.BloomConfirms)
+	chainIndex := vm_log_search.NewBloomIndexer(csChain, csChain.GetDB(), vm_log_search.BloomBitsBlocks, vm_log_search.BloomConfirms)
 	config := &DipperinConfig{
 		ChainReader: csChain,
 		ChainIndex:  chainIndex,
@@ -78,6 +78,12 @@ func TestMercuryFullChainService_ContractTransaction(t *testing.T) {
 	addr, err := service.GetContractAddressByTxHash(tx1.CalTxId())
 	assert.NoError(t, err)
 	assert.Equal(t, contractAddr, addr)
+
+	// get contract code
+	codeByte, _ := g_testData.GetCodeAbi(WASMPath1, AbiPath1)
+	code, err := service.GetCode(addr)
+	assert.NoError(t, err)
+	assert.Equal(t, codeByte, code)
 
 	// get receipt
 	receipt1, err := service.GetReceiptByTxHash(tx1.CalTxId())
@@ -112,14 +118,14 @@ func TestMercuryFullChainService_ContractTransaction(t *testing.T) {
 	assert.Equal(t, receipt1.Logs, logs)
 }
 
-func TestMercuryFullChainService_EstimateGas(t *testing.T) {
+func TestVenusFullChainService_EstimateGas(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(&config)
 
-	WASMPath := g_testData.GetWASMPath("token-const", g_testData.CoreVmTestData)
-	AbiPath := g_testData.GetAbiPath("token-const", g_testData.CoreVmTestData)
-	tx := createContractTx(0, WASMPath, AbiPath, "DIPP,WU,10000", nil)
+	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
+	tx := createContractTx(0, WASMPath, AbiPath, "", nil)
 	block := createBlock(csChain, []*model.Transaction{tx}, nil)
 	votes := createVerifiersVotes(block, csChain.ChainConfig.VerifierNumber, nil)
 	err := csChain.SaveBftBlock(block, votes)
@@ -132,7 +138,7 @@ func TestMercuryFullChainService_EstimateGas(t *testing.T) {
 	assert.Equal(t, receipt.GasUsed, (uint64)(gas))
 }
 
-func TestMercuryFullChainService_MakeTmpSignedTx(t *testing.T) {
+func TestVenusFullChainService_MakeTmpSignedTx(t *testing.T) {
 	manager := createWalletManager(t)
 	defer os.Remove(util.HomeDir() + testPath)
 	account, err := manager.Wallets[0].Accounts()
@@ -169,7 +175,7 @@ func TestMercuryFullChainService_MakeTmpSignedTx(t *testing.T) {
 	assert.Equal(t, sender, address)
 }
 
-func TestMercuryFullChainService_SendTransactions(t *testing.T) {
+func TestVenusFullChainService_SendTransactions(t *testing.T) {
 	manager := createWalletManager(t)
 	defer os.Remove(util.HomeDir() + testPath)
 	account, err := manager.Wallets[0].Accounts()
@@ -226,7 +232,7 @@ func TestMercuryFullChainService_SendTransactions(t *testing.T) {
 	assert.Equal(t, 0, num)
 }
 
-func TestMercuryFullChainService_SendTransaction(t *testing.T) {
+func TestVenusFullChainService_SendTransaction(t *testing.T) {
 	manager := createWalletManager(t)
 	defer os.Remove(util.HomeDir() + testPath)
 	account, err := manager.Wallets[0].Accounts()
@@ -313,7 +319,7 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	assert.NoError(t, err)
 
 	nonce = uint64(8)
-	fs1 := model.NewSigner(big.NewInt(1))
+	fs1 := model.NewSigner(chain_config.GetChainConfig().ChainId)
 	tx = model.NewTransaction(nonce, aliceAddr, value, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	signedTx, _ := tx.SignTx(pk, fs1)
 	hash, err = service.NewTransaction(*signedTx)
@@ -325,7 +331,7 @@ func TestMercuryFullChainService_SendTransaction(t *testing.T) {
 	assert.Equal(t, common.Hash{}, hash)
 }
 
-func TestMercuryFullChainService_SendTransaction_Error(t *testing.T) {
+func TestVenusFullChainService_SendTransaction_Error(t *testing.T) {
 	manager := createWalletManager(t)
 	defer os.Remove(util.HomeDir() + testPath)
 	account, err := manager.Wallets[0].Accounts()

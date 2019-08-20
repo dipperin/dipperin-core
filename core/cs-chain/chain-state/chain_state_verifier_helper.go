@@ -23,7 +23,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 )
 
 func (cs *ChainState) BuildRegisterProcessor(preBlockRegisterRoot common.Hash) (*registerdb.RegisterDB, error) {
@@ -225,17 +224,17 @@ func (cs *ChainState) GetNumBySlot(slot uint64) *uint64 {
 func (cs *ChainState) CalVerifiers(block model.AbstractBlock) []common.Address {
 
 	// get all registration data
-	//pbft_log.Log.Debug("CalVerifiers", "num", block.Number())
+	//log.PBft.Debug("CalVerifiers", "num", block.Number())
 
 	root := block.GetRegisterRoot()
 	log.Info("the register root is:", "root", root.Hex())
 	register, err := cs.BuildRegisterProcessor(root)
 	if err != nil {
-		pbft_log.Log.Debug("BuildRegisterProcessor failed", "err", err)
+		log.PBft.Debug("BuildRegisterProcessor failed", "err", err)
 	}
 	list := register.GetRegisterData()
 	log.Info("the register list len is:", "len", len(list))
-	//pbft_log.Log.Debug("GetRegisterData", "register data", list, "root", root)
+	//log.PBft.Debug("GetRegisterData", "register data", list, "root", root)
 	//log.Info("GetRegisterData", "register data", list, "root", root)
 
 	// get top verifiers
@@ -244,11 +243,11 @@ func (cs *ChainState) CalVerifiers(block model.AbstractBlock) []common.Address {
 	for i := 0; i < len(list); i++ {
 		priority, err := cs.calPriority(list[i], block.Number())
 		if err != nil {
-			pbft_log.Log.Info("calPriority", "err", err)
+			log.PBft.Info("calPriority", "err", err)
 		}
 		topAddress, topPriority = cs.getTopVerifiers(list[i], priority, topAddress, topPriority)
 	}
-	//pbft_log.Log.Info("getTopVerifiers", "topAddress", len(topAddress), "topPriority", topPriority)
+	//log.PBft.Info("getTopVerifiers", "topAddress", len(topAddress), "topPriority", topPriority)
 
 	// angel nodes take the place
 	config := cs.GetChainConfig()
@@ -259,7 +258,7 @@ func (cs *ChainState) CalVerifiers(block model.AbstractBlock) []common.Address {
 		}
 	}
 
-	//pbft_log.Log.Debug("Add cachedVerifiers success", "topAddress", topAddress, "slot", slot+config.SlotMargin)
+	//log.PBft.Debug("Add cachedVerifiers success", "topAddress", topAddress, "slot", slot+config.SlotMargin)
 	return topAddress
 }
 

@@ -23,14 +23,13 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestNormalBft(t *testing.T) {
 	vCount := 22
-	pbft_log.InitPbftLogger(log.LvlDebug, "bft_spec", true)
+	log.SetInitLogger(log.DefaultLogConf, "bft_spec")
 	cluster := tests.NewBftCluster(tests.AccFactory.GenAccounts(vCount))
 
 	nrs := cluster.NewRoundMsg(vCount, 1, 1)

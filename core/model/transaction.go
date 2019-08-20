@@ -92,11 +92,6 @@ func NewTransaction(nonce uint64, to common.Address, amount, gasPrice *big.Int, 
 	return newTransaction(nonce, &to, amount, gasPrice, gasLimit, data)
 }
 
-func NewTransactionSc(nonce uint64, to *common.Address, amount, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
-	tx := newTransaction(nonce, to, amount, gasPrice, gasLimit, data)
-	return tx
-}
-
 func NewContractCreation(nonce uint64, amount *big.Int, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
 	return newTransaction(nonce, nil, amount, gasPrice, gasLimit, data)
 }
@@ -409,7 +404,7 @@ func (tx *Transaction) EstimateFee() *big.Int {
 	return fee
 }
 
-func (tx *Transaction) AsMessage() (Message, error) {
+func (tx *Transaction) AsMessage(checkNonce bool) (Message, error) {
 	msg := Message{
 		nonce:      tx.data.AccountNonce,
 		gasLimit:   tx.data.GasLimit,
@@ -417,7 +412,7 @@ func (tx *Transaction) AsMessage() (Message, error) {
 		to:         tx.data.Recipient,
 		amount:     tx.data.Amount,
 		data:       tx.data.ExtraData,
-		checkNonce: true,
+		checkNonce: checkNonce,
 	}
 
 	var err error

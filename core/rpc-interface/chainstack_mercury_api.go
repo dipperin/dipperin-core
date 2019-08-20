@@ -1243,6 +1243,10 @@ func (api *DipperinVenusApi) GetABI(contractAddr common.Address) (*utils.WasmAbi
 	return api.service.GetABI(contractAddr)
 }
 
+func (api *DipperinVenusApi) GetCode(contractAddr common.Address) ([]byte, error) {
+	return api.service.GetCode(contractAddr)
+}
+
 func (api *DipperinVenusApi) GetContractAddressByTxHash(txHash common.Hash) (common.Address, error) {
 	return api.service.GetContractAddressByTxHash(txHash)
 }
@@ -1250,6 +1254,18 @@ func (api *DipperinVenusApi) GetContractAddressByTxHash(txHash common.Hash) (com
 func (api *DipperinVenusApi) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, Addresses []common.Address, Topics [][]common.Hash) ([]*model2.Log, error) {
 	return api.service.GetLogs(blockHash, fromBlock, toBlock, Addresses, Topics)
 }
+
+//func (api *DipperinVenusApi) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, Addresses []common.Address, Topics [][]string) ([]*model2.Log, error) {
+//	var tps [][]common.Hash
+//	for _,ts  := range  Topics{
+//		var tp []common.Hash
+//		for _, t := range ts {
+//			tp = append(tp, common.BytesToHash(crypto.Keccak256([]byte(t))))
+//		}
+//		tps = append(tps, tp)
+//	}
+//	return api.service.GetLogs(blockHash, fromBlock, toBlock, Addresses, tps)
+//}
 
 func (api *DipperinVenusApi) GetTxActualFee(txHash common.Hash) (*big.Int, error) {
 	return api.service.GetTxActualFee(txHash)

@@ -1,4 +1,4 @@
-package chain_state
+package vm_log_search
 
 import (
 	"context"

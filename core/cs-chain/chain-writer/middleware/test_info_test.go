@@ -384,7 +384,7 @@ func (ft *fakeTx) GetGasLimit() uint64 {
 	return ft.GasLimit
 }
 
-func (ft *fakeTx) AsMessage() (model.Message, error) {
+func (ft *fakeTx) AsMessage(checkNonce bool) (model.Message, error) {
 	panic("implement me")
 }
 

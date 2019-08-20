@@ -16,7 +16,7 @@ func (state *AccountStateDB) ProcessContract(conf *TxProcessConfig, create bool)
 	fullState := &Fullstate{
 		state: state,
 	}
-	msg, err := conf.Tx.AsMessage()
+	msg, err := conf.Tx.AsMessage(true)
 	if err != nil {
 		log.Error("AccountStateDB#ProcessContract", "as Message err", err)
 		return model.ReceiptPara{}, err

@@ -113,7 +113,7 @@ func TestWASMContactMiniTxFee(t *testing.T) {
 	value := big.NewInt(0)
 	gasPrice := big.NewInt(1)
 	gasLimit := big.NewInt(2 * consts.DIP)
-	tempTx := model.NewTransactionSc(0, &to, value, gasPrice, gasLimit.Uint64(), extraData)
+	tempTx := model.NewTransaction(0, to, value, gasPrice, gasLimit.Uint64(), extraData)
 
 	keyAlice, _ := model.CreateKey()
 	ms := model.NewSigner(big.NewInt(1))

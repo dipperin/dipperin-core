@@ -31,6 +31,9 @@ func TestNewMercuryVBoots(t *testing.T) {
 func TestMercuryVBoots(t *testing.T) {
 	node := mercuryVBoots()
 	fmt.Println(node)
+
+	node = venusVBoots()
+	fmt.Println(node)
 }
 
 func TestPkStrToPk(t *testing.T) {

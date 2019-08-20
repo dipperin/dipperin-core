@@ -217,7 +217,7 @@ func FakeContract(t *testing.T) *model.Transaction {
 
 	fs := model.NewSigner(big.NewInt(1))
 	to := common.HexToAddress("0x00120000000000000000000000000000000000000000")
-	tx := model.NewTransactionSc(uint64(11), &to, big.NewInt(0), big.NewInt(1), uint64(20000000), buffer.Bytes())
+	tx := model.NewTransaction(uint64(11), to, big.NewInt(0), big.NewInt(1), uint64(20000000), buffer.Bytes())
 	key, _ := createKey()
 
 	log.Info("the tx receipt is:", "to", tx.To().Hex())

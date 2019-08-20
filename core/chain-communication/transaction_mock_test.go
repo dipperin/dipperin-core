@@ -52,18 +52,18 @@ func (mr *MockAbstractTransactionMockRecorder) Amount() *gomock.Call {
 }
 
 // AsMessage mocks base method
-func (m *MockAbstractTransaction) AsMessage() (model.Message, error) {
+func (m *MockAbstractTransaction) AsMessage(arg0 bool) (model.Message, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AsMessage")
+	ret := m.ctrl.Call(m, "AsMessage", arg0)
 	ret0, _ := ret[0].(model.Message)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AsMessage indicates an expected call of AsMessage
-func (mr *MockAbstractTransactionMockRecorder) AsMessage() *gomock.Call {
+func (mr *MockAbstractTransactionMockRecorder) AsMessage(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AsMessage", reflect.TypeOf((*MockAbstractTransaction)(nil).AsMessage))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AsMessage", reflect.TypeOf((*MockAbstractTransaction)(nil).AsMessage), arg0)
 }
 
 // CalTxId mocks base method

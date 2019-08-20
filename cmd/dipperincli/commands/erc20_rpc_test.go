@@ -22,7 +22,11 @@ import (
 	"os"
 	"testing"
 
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/golang/mock/gomock"
 	"github.com/urfave/cli"
 )
 
@@ -37,302 +41,464 @@ func Test_isParamValid(t *testing.T) {
 	assert.False(t, isParamValid([]string{"", "2"}, 2))
 }
 
-func Test_rpcCaller_AnnounceERC20(t *testing.T) {
+func TestRpcCaller_AnnounceERC20(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	app := getRpcTestApp()
 	app.Action = func(context *cli.Context) {
 		c := &rpcCaller{}
 		c.AnnounceERC20(context)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 
-		wrapRpcArgs(context, "1", "")
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
 		c.AnnounceERC20(context)
 
-		wrapRpcArgs(context, "1", "x,y,z,z,z,z")
+		context.Set("p", "")
 		c.AnnounceERC20(context)
 
-		wrapRpcArgs(context, "1", "0x00005033874289F4F823A896700D94274683535cF0E1,y,z,z,z,z")
+		context.Set("p", "owner_address,name,symbol,supply,decimal,gasPrice,gasLimit")
 		c.AnnounceERC20(context)
 
-		wrapRpcArgs(context, "1", "0x00005033874289F4F823A896700D94274683535cF0E1,y,z,10,z1,z2")
+		context.Set("p", fmt.Sprintf("%s,name,symbol,supply,decimal,gasPrice,gasLimit", from))
 		c.AnnounceERC20(context)
 
-		wrapRpcArgs(context, "1", "0x00005033874289F4F823A896700D94274683535cF0E1,y,z,10,1,z2")
+		context.Set("p", fmt.Sprintf("%s,name,symbol,supply,%s,gasPrice,gasLimit", from, "20"))
 		c.AnnounceERC20(context)
 
-		wrapRpcArgs(context, "1", "0x00005033874289F4F823A896700D94274683535cF0E1,y,z,10,-1,z2")
+		context.Set("p", fmt.Sprintf("%s,name,symbol,supply,%s,gasPrice,gasLimit", from, "18"))
 		c.AnnounceERC20(context)
 
-		assert.Panics(t, func() {
-			wrapRpcArgs(context, "1", "0x00005033874289F4F823A896700D94274683535cF0E1,y,z,10,1,1,210000")
-			c.AnnounceERC20(context)
-		})
+		context.Set("p", fmt.Sprintf("%s,name,symbol,%s,%s,gasPrice,gasLimit", from, "1000", "18"))
+		c.AnnounceERC20(context)
+
+		context.Set("p", fmt.Sprintf("%s,name,symbol,%s,%s,%v,gasLimit", from, "1000", "18", "10wu"))
+		c.AnnounceERC20(context)
+
+		context.Set("p", fmt.Sprintf("%s,name,symbol,%s,%s,%v,%v", from, "1000", "18", "10wu", "100"))
+		client = NewMockRpcClient(ctrl)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
+		c.AnnounceERC20(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+		c.AnnounceERC20(context)
 	}
 	assert.NoError(t, app.Run([]string{os.Args[0], "AnnounceERC20"}))
-
+	client = nil
 }
 
-func Test_rpcCaller_ERC20TotalSupply(t *testing.T) {
+func TestRpcCaller_ERC20Transfer(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	app := getRpcTestApp()
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		c.ERC20Transfer(context)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
+
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		context.Set("p", "")
+		c.ERC20Transfer(context)
+
+		context.Set("p", "contractAddr,owner,to,amount,gasPrice,gasLimit")
+		c.ERC20Transfer(context)
+
+		context.Set("p", fmt.Sprintf("%s,owner,to,amount,gasPrice,gasLimit", contractAddr))
+		c.ERC20Transfer(context)
+
+		context.Set("p", fmt.Sprintf("%s,%s,to,amount,gasPrice,gasLimit", contractAddr, from))
+		c.ERC20Transfer(context)
+
+		client = NewMockRpcClient(ctrl)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.DIPDecimalBits)
+		context.Set("p", fmt.Sprintf("%s,%s,%s,amount,gasPrice,gasLimit", contractAddr, from, to))
+		c.ERC20Transfer(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.DIPDecimalBits)
+		context.Set("p", fmt.Sprintf("%s,%s,%s,%v,gasPrice,gasLimit", contractAddr, from, to, "10"))
+		c.ERC20Transfer(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.DIPDecimalBits)
+		context.Set("p", fmt.Sprintf("%s,%s,%s,%v,%v,gasLimit", contractAddr, from, to, "10", "10wu"))
+		c.ERC20Transfer(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.DIPDecimalBits)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+		context.Set("p", fmt.Sprintf("%s,%s,%s,%v,%v,%v", contractAddr, from, to, "10", "10wu", "100"))
+		c.ERC20Transfer(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.DIPDecimalBits)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
+		c.ERC20Transfer(context)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20Transfer"}))
+	client = nil
+}
+
+func TestRpcCaller_ERC20TransferFrom(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	app := getRpcTestApp()
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		c.ERC20TransferFrom(context)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
+
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		context.Set("p", "")
+		c.ERC20TransferFrom(context)
+
+		context.Set("p", "contractAddr,owner,from,to,amount,gasPrice,gasLimit")
+		c.ERC20TransferFrom(context)
+
+		context.Set("p", fmt.Sprintf("%s,owner,from,to,amount,gasPrice,gasLimit", contractAddr))
+		c.ERC20TransferFrom(context)
+
+		context.Set("p", fmt.Sprintf("%s,%s,from,to,amount,gasPrice,gasLimit", contractAddr, from))
+		c.ERC20TransferFrom(context)
+
+		context.Set("p", fmt.Sprintf("%s,%s,%s,to,amount,gasPrice,gasLimit", contractAddr, from, from))
+		c.ERC20TransferFrom(context)
+
+		client = NewMockRpcClient(ctrl)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.DIPDecimalBits)
+		context.Set("p", fmt.Sprintf("%s,%s,%s,%s,amount,gasPrice,gasLimit", contractAddr, from, from, to))
+		c.ERC20TransferFrom(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.DIPDecimalBits)
+		context.Set("p", fmt.Sprintf("%s,%s,%s,%s,%s,gasPrice,gasLimit", contractAddr, from, from, to, "10"))
+		c.ERC20TransferFrom(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.DIPDecimalBits)
+		context.Set("p", fmt.Sprintf("%s,%s,%s,%s,%s,%s,gasLimit", contractAddr, from, from, to, "10", "10wu"))
+		c.ERC20TransferFrom(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.DIPDecimalBits)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
+		context.Set("p", fmt.Sprintf("%s,%s,%s,%s,%s,%s,%s", contractAddr, from, from, to, "10", "10wu", "100"))
+		c.ERC20TransferFrom(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.DIPDecimalBits)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+		c.ERC20TransferFrom(context)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20TransferFrom"}))
+	client = nil
+}
+
+func TestRpcCaller_ERC20Allowance(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	app := getRpcTestApp()
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		c.ERC20Allowance(context)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
+
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		context.Set("p", "")
+		c.ERC20Allowance(context)
+
+		context.Set("p", "contractAddr,owner,spender")
+		c.ERC20Allowance(context)
+
+		context.Set("p", fmt.Sprintf("%s,owner,spender", contractAddr))
+		c.ERC20Allowance(context)
+
+		context.Set("p", fmt.Sprintf("%s,%s,spender", contractAddr, from))
+		c.ERC20Allowance(context)
+
+		context.Set("p", fmt.Sprintf("%s,%s,%s", contractAddr, from, to))
+		client = NewMockRpcClient(ctrl)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
+		c.ERC20Allowance(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, big.NewInt(1e18))
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.DIPDecimalBits)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, "dip")
+		c.ERC20Allowance(context)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20Allowance"}))
+	client = nil
+}
+
+func TestRpcCaller_ERC20Approve(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	app := getRpcTestApp()
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		c.ERC20Approve(context)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
+
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		context.Set("p", "")
+		c.ERC20Approve(context)
+
+		context.Set("p", "contractAddr,owner,to,amount,gasPrice,gasLimit")
+		c.ERC20Approve(context)
+
+		context.Set("p", fmt.Sprintf("%s,owner,to,amount,gasPrice,gasLimit", contractAddr))
+		c.ERC20Approve(context)
+
+		context.Set("p", fmt.Sprintf("%s,%s,to,amount,gasPrice,gasLimit", contractAddr, from))
+		c.ERC20Approve(context)
+
+		client = NewMockRpcClient(ctrl)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.KUnitDecimalBits)
+		context.Set("p", fmt.Sprintf("%s,%s,%s,amount,gasPrice,gasLimit", contractAddr, from, to))
+		c.ERC20Approve(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.KUnitDecimalBits)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
+		context.Set("p", fmt.Sprintf("%s,%s,%s,%s,gasPrice,gasLimit", contractAddr, from, to, "10"))
+		c.ERC20Approve(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.KUnitDecimalBits)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, big.NewInt(10))
+		context.Set("p", fmt.Sprintf("%s,%s,%s,%s,gasPrice,gasLimit", contractAddr, from, to, "10"))
+		c.ERC20Approve(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.KUnitDecimalBits)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, big.NewInt(1e5))
+		context.Set("p", fmt.Sprintf("%s,%s,%s,%s,gasPrice,gasLimit", contractAddr, from, to, "10"))
+		c.ERC20Approve(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.KUnitDecimalBits)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, big.NewInt(1e5))
+		context.Set("p", fmt.Sprintf("%s,%s,%s,%s,%s,gasLimit", contractAddr, from, to, "10", "1wu"))
+		c.ERC20Approve(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.KUnitDecimalBits)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, big.NewInt(1e5))
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+		context.Set("p", fmt.Sprintf("%s,%s,%s,%s,%s,%s", contractAddr, from, to, "10", "1wu", "100"))
+		c.ERC20Approve(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.KUnitDecimalBits)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, big.NewInt(1e5))
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
+		c.ERC20Approve(context)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20Approve"}))
+	client = nil
+}
+
+func TestRpcCaller_ERC20TotalSupply(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	app := getRpcTestApp()
 	app.Action = func(context *cli.Context) {
 		c := &rpcCaller{}
 		c.ERC20TotalSupply(context)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 
-		wrapRpcArgs(context, "1", "")
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		context.Set("p", "")
+		c.ERC20TotalSupply(context)
+
+		context.Set("p", "contractAddr")
+		c.ERC20TotalSupply(context)
+
+		context.Set("p", contractAddr)
+		client = NewMockRpcClient(ctrl)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
+		c.ERC20TotalSupply(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, big.NewInt(1e18))
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.DIPDecimalBits)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, "dip")
 		c.ERC20TotalSupply(context)
 	}
 	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20TotalSupply"}))
+	client = nil
 }
 
-func Test_rpcCaller_ERC20Transfer(t *testing.T) {
+func TestRpcCaller_ERC20Balance(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	app := getRpcTestApp()
 	app.Action = func(context *cli.Context) {
 		c := &rpcCaller{}
-		c.ERC20Transfer(context)
-
-		wrapRpcArgs(context, "ERC20Transfer", "")
-		c.ERC20Transfer(context)
-
-		wrapRpcArgs(context, "ERC20Transfer", "w")
-		c.ERC20Transfer(context)
-
-		wrapRpcArgs(context, "ERC20Transfer", "w,x,y,z,h")
-		c.ERC20Transfer(context)
-
-		wrapRpcArgs(context, "ERC20Transfer", "0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,x,y,z,h")
-		c.ERC20Transfer(context)
-
-		wrapRpcArgs(context, "ERC20Transfer", "0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,y,z,h")
-		c.ERC20Transfer(context)
-
-		assert.Panics(t, func() {
-			wrapRpcArgs(context, "ERC20Transfer", "0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4,z,h,21000")
-			c.ERC20Transfer(context)
-		})
-		//wrapRpcArgs(context, "1", "0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4,4,0.00001")
-		//c.ERC20Transfer(context)
+		c.ERC20Balance(context)
 	}
-	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20Transfer"}))
-}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 
-func Test_rpcCaller_ERC20TransferFrom(t *testing.T) {
-	app := getRpcTestApp()
 	app.Action = func(context *cli.Context) {
 		c := &rpcCaller{}
-		c.ERC20TransferFrom(context)
+		context.Set("p", "")
+		c.ERC20Balance(context)
 
-		wrapRpcArgs(context, "ERC20TransferFrom", "")
-		c.ERC20TransferFrom(context)
+		context.Set("p", "contractAddr,owner")
+		c.ERC20Balance(context)
 
-		wrapRpcArgs(context, "ERC20TransferFrom", "x")
-		c.ERC20TransferFrom(context)
+		context.Set("p", fmt.Sprintf("%s,owner", contractAddr))
+		c.ERC20Balance(context)
 
-		wrapRpcArgs(context, "ERC20TransferFrom", "0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,v,w,x,y,z")
-		c.ERC20TransferFrom(context)
+		context.Set("p", fmt.Sprintf("%s,%s", contractAddr, from))
+		client = NewMockRpcClient(ctrl)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
+		c.ERC20Balance(context)
 
-		wrapRpcArgs(context, "ERC20TransferFrom", "0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,w,x,y,z")
-		c.ERC20TransferFrom(context)
-
-		wrapRpcArgs(context, "ERC20TransferFrom", "0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,x,y,z")
-		c.ERC20TransferFrom(context)
-
-		assert.Panics(t, func() {
-			wrapRpcArgs(context, "ERC20TransferFrom", "0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,y,z,21000")
-			c.ERC20TransferFrom(context)
-		})
+		balance := big.NewInt(1e18)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, (*hexutil.Big)(balance))
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.DIPDecimalBits)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, "dip")
+		c.ERC20Balance(context)
 	}
-	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20TransferFrom"}))
+	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20Balance"}))
+	client = nil
 }
 
-func Test_rpcCaller_ERC20TokenName(t *testing.T) {
+func TestRpcCaller_ERC20TokenName(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	app := getRpcTestApp()
 	app.Action = func(context *cli.Context) {
 		c := &rpcCaller{}
 		c.ERC20TokenName(context)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 
-		wrapRpcArgs(context, "ERC20TokenName", "")
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		context.Set("p", "")
 		c.ERC20TokenName(context)
 
-		wrapRpcArgs(context, "ERC20TokenName", "x")
+		context.Set("p", "contractAddr")
 		c.ERC20TokenName(context)
 
-		assert.Panics(t, func() {
-			wrapRpcArgs(context, "ERC20TokenName", "0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96")
-			c.ERC20TokenName(context)
-		})
+		context.Set("p", contractAddr)
+		client = NewMockRpcClient(ctrl)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
+		c.ERC20TokenName(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, "name")
+		c.ERC20TokenName(context)
 	}
 	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20TokenName"}))
+	client = nil
 }
 
-func Test_rpcCaller_ERC20TokenSymbol(t *testing.T) {
+func TestRpcCaller_ERC20TokenSymbol(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	app := getRpcTestApp()
 	app.Action = func(context *cli.Context) {
 		c := &rpcCaller{}
 		c.ERC20TokenSymbol(context)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 
-		wrapRpcArgs(context, "ERC20TokenSymbol", "")
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		context.Set("p", "")
 		c.ERC20TokenSymbol(context)
 
-		wrapRpcArgs(context, "ERC20TokenSymbol", "x")
+		context.Set("p", "contractAddr")
 		c.ERC20TokenSymbol(context)
 
-		assert.Panics(t, func() {
-			wrapRpcArgs(context, "ERC20TokenSymbol", "0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96")
-			c.ERC20TokenSymbol(context)
-		})
+		context.Set("p", contractAddr)
+		client = NewMockRpcClient(ctrl)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
+		c.ERC20TokenSymbol(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, "symbol")
+		c.ERC20TokenSymbol(context)
 	}
 	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20TokenSymbol"}))
+	client = nil
 }
 
-func Test_getERC20Symbol(t *testing.T) {
-	assert.Panics(t, func() {
-		getERC20Symbol(common.HexToAddress("0x123"))
-	})
-}
+func TestRpcCaller_ERC20TokenDecimals(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-func Test_getERC20Decimal(t *testing.T) {
-	//type args struct {
-	//	contractAdr common.Address
-	//}
-	//tests := []struct {
-	//	name string
-	//	args args
-	//	want int
-	//}{
-	//	// TODO: Add test cases.
-	//}
-	//for _, tt := range tests {
-	//	t.Run(tt.name, func(t *testing.T) {
-	//		if got := getERC20Decimal(tt.args.contractAdr); got != tt.want {
-	//			t.Errorf("getERC20Decimal() = %v, want %v", got, tt.want)
-	//		}
-	//	})
-	//}
-
-	assert.Panics(t, func() {
-		getERC20Decimal(common.HexToAddress("0x123"))
-	})
-}
-
-func Test_rpcCaller_ERC20TokenDecimals(t *testing.T) {
 	app := getRpcTestApp()
 	app.Action = func(context *cli.Context) {
 		c := &rpcCaller{}
 		c.ERC20TokenDecimals(context)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 
-		wrapRpcArgs(context, "ERC20TokenDecimals", "")
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		context.Set("p", "")
 		c.ERC20TokenDecimals(context)
 
-		wrapRpcArgs(context, "ERC20TokenDecimals", "x")
+		context.Set("p", "contractAddr")
 		c.ERC20TokenDecimals(context)
 
-		assert.Panics(t, func() {
-			wrapRpcArgs(context, "ERC20TokenDecimals", "0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96")
-			c.ERC20TokenDecimals(context)
-		})
+		context.Set("p", contractAddr)
+		client = NewMockRpcClient(ctrl)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
+		c.ERC20TokenDecimals(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, 18)
+		c.ERC20TokenDecimals(context)
 	}
 	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20TokenDecimals"}))
+	client = nil
 }
 
-func Test_convert(t *testing.T) {
-	ret := convert(common.FromHex("123456"))
-	assert.Equal(t, ret, 0x123456)
-}
+func TestRpcCaller_ERC20GetInfo(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-func Test_rpcCaller_ERC20GetInfo(t *testing.T) {
 	app := getRpcTestApp()
 	app.Action = func(context *cli.Context) {
 		c := &rpcCaller{}
 		c.ERC20GetInfo(context)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 
-		wrapRpcArgs(context, "ERC20GetInfo", "")
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		context.Set("p", "")
 		c.ERC20GetInfo(context)
 
-		wrapRpcArgs(context, "ERC20GetInfo", "x")
+		context.Set("p", "contractAddr")
 		c.ERC20GetInfo(context)
 
-		assert.Panics(t, func() {
-			wrapRpcArgs(context, "ERC20GetInfo", "0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96")
-			c.ERC20GetInfo(context)
-		})
+		context.Set("p", contractAddr)
+		client = NewMockRpcClient(ctrl)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).MaxTimes(3)
+		c.ERC20GetInfo(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
+		c.ERC20GetInfo(context)
+
+		mapInterface := make(map[string]interface{})
+		mapInterface["token_total_supply"] = "1000000000000000000"
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, mapInterface)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, consts.DIPDecimalBits)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, "dip")
+		c.ERC20GetInfo(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, mapInterface)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr).MaxTimes(2)
+		c.ERC20GetInfo(context)
 	}
 	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20GetInfo"}))
-}
-
-func Test_rpcCaller_ERC20Allowance(t *testing.T) {
-	app := getRpcTestApp()
-	app.Action = func(context *cli.Context) {
-		c := &rpcCaller{}
-		c.ERC20Allowance(context)
-
-		wrapRpcArgs(context, "ERC20Allowance", "")
-		c.ERC20Allowance(context)
-
-		wrapRpcArgs(context, "ERC20Allowance", "x,y,z")
-		c.ERC20Allowance(context)
-
-		wrapRpcArgs(context, "ERC20Allowance", "0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,y,z")
-		c.ERC20Allowance(context)
-
-		wrapRpcArgs(context, "ERC20Allowance", "0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,z")
-		c.ERC20Allowance(context)
-
-		assert.Panics(t, func() {
-			wrapRpcArgs(context, "ERC20Allowance", "0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96")
-			c.ERC20Allowance(context)
-		})
-	}
-	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20Allowance"}))
-}
-
-func Test_rpcCaller_ERC20Approve(t *testing.T) {
-	app := getRpcTestApp()
-	app.Action = func(context *cli.Context) {
-		c := &rpcCaller{}
-		c.ERC20Approve(context)
-
-		wrapRpcArgs(context, "ERC20Approve", "")
-		c.ERC20Approve(context)
-
-		wrapRpcArgs(context, "ERC20Approve", "v,w,x,y,z")
-		c.ERC20Approve(context)
-
-		wrapRpcArgs(context, "ERC20Approve", "0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,w,x,y,z")
-		c.ERC20Approve(context)
-
-		wrapRpcArgs(context, "ERC20Approve", "0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,x,y,z")
-		c.ERC20Approve(context)
-
-		assert.Panics(t, func() {
-			wrapRpcArgs(context, "ERC20Approve", "0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,y,z,21000")
-			c.ERC20Approve(context)
-		})
-	}
-	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20Approve"}))
-}
-
-func Test_rpcCaller_ERC20Balance(t *testing.T) {
-	app := getRpcTestApp()
-	app.Action = func(context *cli.Context) {
-		c := &rpcCaller{}
-		c.ERC20Balance(context)
-
-		wrapRpcArgs(context, "ERC20Balance", "")
-		c.ERC20Balance(context)
-
-		wrapRpcArgs(context, "ERC20Balance", "x,y")
-		c.ERC20Balance(context)
-
-		wrapRpcArgs(context, "ERC20Balance", "0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,y")
-		c.ERC20Balance(context)
-
-		assert.Panics(t, func() {
-			wrapRpcArgs(context, "ERC20Balance", "0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96,0x0010a0dC0928eA10F28ceB47eb2de950195789eb9E96")
-			c.ERC20Balance(context)
-		})
-	}
-
-	assert.NoError(t, app.Run([]string{os.Args[0], "ERC20Balance"}))
-}
-
-func Test_ERC20Size(t *testing.T) {
-
+	client = nil
 }

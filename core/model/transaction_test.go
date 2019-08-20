@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
@@ -279,11 +280,19 @@ func TestTxDifference(t *testing.T) {
 	assert.NotNil(t, result)
 }
 
+func TestIntrinsicGas(t *testing.T) {
+	_, err := IntrinsicGas([]byte{1, 2, 3}, true, true)
+	assert.NoError(t, err)
+
+	_, err = IntrinsicGas([]byte{1, 2, 3}, false, true)
+	assert.NoError(t, err)
+}
+
 func TestTransaction_AsMessage(t *testing.T) {
 	tx1, tx2 := createTestTx()
 
 	// tx1 as message
-	msg1, err := tx1.AsMessage()
+	msg1, err := tx1.AsMessage(true)
 	assert.NoError(t, err)
 	from, err := tx1.Sender(nil)
 	assert.NoError(t, err)
@@ -296,8 +305,11 @@ func TestTransaction_AsMessage(t *testing.T) {
 	assert.Equal(t, tx1.ExtraData(), msg1.Data())
 	assert.Equal(t, true, msg1.CheckNonce())
 
+	msg1.SetGas(uint64(100))
+	assert.Equal(t, uint64(100), msg1.Gas())
+
 	// tx2 as message
-	msg2, err := tx2.AsMessage()
+	msg2, err := tx2.AsMessage(true)
 	assert.NoError(t, err)
 	from, err = tx2.Sender(nil)
 	assert.NoError(t, err)
@@ -309,4 +321,29 @@ func TestTransaction_AsMessage(t *testing.T) {
 	assert.Equal(t, tx2.Amount(), msg2.Value())
 	assert.Equal(t, tx2.ExtraData(), msg2.Data())
 	assert.Equal(t, true, msg2.CheckNonce())
+
+	msg2.SetGas(uint64(100))
+	assert.Equal(t, uint64(100), msg2.Gas())
+}
+
+func TestTransaction_GetReceipt(t *testing.T) {
+	tx1, _ := createTestTx()
+	assert.Nil(t, tx1.GetReceipt())
+
+	receiptPara := ReceiptPara{Logs: []*model.Log{}}
+	tx1.PaddingReceipt(receiptPara)
+	receipt := tx1.GetReceipt()
+	assert.Equal(t, uint64(0), receipt.CumulativeGasUsed)
+	assert.Equal(t, 0, len(receipt.Logs))
+	assert.Equal(t, []byte(nil), receipt.PostState)
+	assert.Equal(t, model.ReceiptStatusSuccessful, receipt.Status)
+}
+
+func TestTransaction_PaddingActualTxFee(t *testing.T) {
+	tx1, _ := createTestTx()
+	assert.Nil(t, tx1.GetActualTxFee())
+
+	fee := big.NewInt(100)
+	tx1.PaddingActualTxFee(fee)
+	assert.Equal(t, fee, tx1.GetActualTxFee())
 }

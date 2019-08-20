@@ -65,6 +65,9 @@ func (st *StateTransition) useGas(amount uint64) error {
 
 func (st *StateTransition) buyGas() error {
 	msgVal := new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Gas()), st.gasPrice)
+	if !st.msg.CheckNonce() {
+		st.state.AddBalance(st.msg.From(), msgVal)
+	}
 	balance := st.lifeVm.GetStateDB().GetBalance(st.msg.From())
 	log.Info("Call buyGas", "gasLimit", st.msg.Gas(), "gasPrice", st.gasPrice, "moneyUsed", msgVal)
 	log.Info("Balance before buyGas", "balance", balance)

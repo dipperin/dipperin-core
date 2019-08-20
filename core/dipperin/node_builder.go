@@ -41,17 +41,12 @@ import (
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/core/tx-pool"
 	"github.com/dipperin/dipperin-core/core/verifiers-halt-check"
-	common2 "github.com/dipperin/dipperin-core/core/vm/common"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/health-info-log"
-	"github.com/dipperin/dipperin-core/third-party/log/mpt_log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
-	"github.com/dipperin/dipperin-core/third-party/log/ver_halt_check_log"
-	"github.com/dipperin/dipperin-core/third-party/log/witch_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/nat"
 	"github.com/dipperin/dipperin-core/third-party/p2p/netutil"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"github.com/dipperin/dipperin-core/third-party/vm-log-search"
 	"os"
 	"path/filepath"
 	"strings"
@@ -179,13 +174,7 @@ func newBaseComponent(nodeConfig NodeConfig) *BaseComponent {
 	log.InitAgentLog(nodeConfig.DataDir)
 	nodeName := nodeConfig.GetNodeName()
 
-	pbft_log.InitPBFTLogger(pbft_log.LogConf, nodeName)
-	mpt_log.InitMptLogger(mpt_log.LogConf, nodeName)
-	health_info_log.InitHealthInfoLogger(health_info_log.LogConf, nodeName)
-	chain_communication.InitPMLogger(chain_communication.PMLogConf, nodeName)
-	witch_log.InitWitchLogger(witch_log.LogConf, nodeName)
-	ver_halt_check_log.InitVerHaltLogger(ver_halt_check_log.VertHaltLogConf, nodeName)
-	common2.InitVmLogger(common2.LogConf, nodeName)
+	log.InitDPLogger(nodeName)
 	return b
 }
 
@@ -206,7 +195,7 @@ func (b *BaseComponent) buildDipperinConfig() {
 	b.DipperinConfig.MineMasterServer = b.mineMasterServer
 	b.DipperinConfig.DefaultAccount = b.defaultAccountAddress
 	b.DipperinConfig.MsgSigner = b.msgSigner
-	b.DipperinConfig.ChainIndex = chain_state.NewBloomIndexer(b.DipperinConfig.ChainReader, b.fullChain.CacheChainState.ChainState.GetDB(), chain_state.BloomBitsBlocks, chain_state.BloomConfirms)
+	b.DipperinConfig.ChainIndex = vm_log_search.NewBloomIndexer(b.DipperinConfig.ChainReader, b.fullChain.CacheChainState.ChainState.GetDB(), vm_log_search.BloomBitsBlocks, vm_log_search.BloomConfirms)
 }
 
 func (b *BaseComponent) buildBftConfig() {

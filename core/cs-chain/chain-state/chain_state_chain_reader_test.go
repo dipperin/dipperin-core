@@ -196,6 +196,12 @@ func (suite *ChainStateSuite) TestChainState_GetBloomBits(c *check.C) {
 	c.Check(result, check.IsNil)
 }
 
+func (suite *ChainStateSuite) TestChainState_GetBloomLog(c *check.C) {
+	result := suite.chainState.GetBloomLog(suite.block.Hash(), uint64(10))
+
+	c.Check(result, check.NotNil)
+}
+
 func (suite *ChainStateSuite) TestChainState_GetReceipts(c *check.C) {
 	result := suite.chainState.GetReceipts(suite.block.Hash(), suite.block.Number())
 

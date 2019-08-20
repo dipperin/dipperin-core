@@ -21,7 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"sync"
 )
 
@@ -77,7 +77,7 @@ func (rs *NewRoundSet) EnoughAtRound(round uint64) bool {
 	count := len(rs.RoundMessages[round])
 	need := vLen * 2 / 3
 	// should be more than need
-	pbft_log.Log.Info("NewRoundSet#EnoughAtRound   check round msg enough", "round", round, "height", rs.Height, "count", count, "need", need+1, "vLen", vLen)
+	log.PBft.Info("NewRoundSet#EnoughAtRound   check round msg enough", "round", round, "height", rs.Height, "count", count, "need", need+1, "vLen", vLen)
 	// more than 2/3
 	if count > need {
 		return true
@@ -96,7 +96,7 @@ func (rs *NewRoundSet) enoughAtRound(round uint64) bool {
 	count := len(rs.RoundMessages[round])
 	need := vLen * 2 / 3
 	// should be more than need
-	pbft_log.Log.Info("NewRoundSet#EnoughAtRound   check round msg enough", "round", round, "height", rs.Height, "count", count, "need", need+1, "vLen", vLen)
+	log.PBft.Info("NewRoundSet#EnoughAtRound   check round msg enough", "round", round, "height", rs.Height, "count", count, "need", need+1, "vLen", vLen)
 	// more than 2/3
 	if count > need {
 		return true
@@ -114,7 +114,7 @@ func (rs *NewRoundSet) Add(nr *model2.NewRoundMsg) error {
 	defer rs.lock.Unlock()
 
 	if nr.Height != rs.Height {
-		pbft_log.Log.Info("the Height is:", "nr", nr.Height, "rs", rs.Height)
+		log.PBft.Info("the Height is:", "nr", nr.Height, "rs", rs.Height)
 		return errors.New("new round msg height not match")
 	}
 
@@ -127,7 +127,7 @@ func (rs *NewRoundSet) Add(nr *model2.NewRoundMsg) error {
 	}
 
 	if !rs.isCurrentVerifier(nr.Witness.Address) {
-		pbft_log.Log.Info("NewRoundSet#Add Witness.Address is not current verifier address", "address", nr.Witness.Address)
+		log.PBft.Info("NewRoundSet#Add Witness.Address is not current verifier address", "address", nr.Witness.Address)
 		return errors.New("new round msg not from verifier")
 	}
 
@@ -311,11 +311,11 @@ func (vs *VoteSet) AddVote(v *model.VoteMsg) error {
 	defer vs.lock.Unlock()
 
 	if v.Height != vs.Height {
-		pbft_log.Log.Debug("[AddVote] vote not valid", "height", "not valid")
+		log.PBft.Debug("[AddVote] vote not valid", "height", "not valid")
 		return errors.New("vote height not match")
 	}
 	if err := vs.validVote(v); err != nil {
-		pbft_log.Log.Debug("[AddVote] vote not valid", "error", err)
+		log.PBft.Debug("[AddVote] vote not valid", "error", err)
 		return err
 	}
 	//vs.Votes[v.Round] = make(map[common.Address]*VoteMsg)
@@ -325,7 +325,7 @@ func (vs *VoteSet) AddVote(v *model.VoteMsg) error {
 	} else {
 		vs.roundBlockVotes(v.Round)[v.BlockID]++
 	}
-	pbft_log.Log.Debug("[AddVote] success add vote")
+	log.PBft.Debug("[AddVote] success add vote")
 	return nil
 }
 

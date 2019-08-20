@@ -23,7 +23,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"sync/atomic"
@@ -403,17 +402,17 @@ func (pm *CsProtocolManager) handleInsertEventForBft() error {
 			select {
 			case newBlock := <-newBlockChan:
 
-				pbft_log.Log.Debug("[Insert Event]", "blockNumber", newBlock.Number(), "is change point", pm.Chain.IsChangePoint(&newBlock, false), "is current", pm.SelfIsCurrentVerifier(), "is next", pm.SelfIsNextVerifier())
+				log.PBft.Debug("[Insert Event]", "blockNumber", newBlock.Number(), "is change point", pm.Chain.IsChangePoint(&newBlock, false), "is current", pm.SelfIsCurrentVerifier(), "is next", pm.SelfIsNextVerifier())
 
 				slot := pm.Chain.GetSlot(&newBlock)
-				pbft_log.Log.Debug("the current slot is:", "slot", *slot)
+				log.PBft.Debug("the current slot is:", "slot", *slot)
 
 				// should change verifier
 				if pm.Chain.IsChangePoint(&newBlock, false) && *slot > 0 {
-					pbft_log.Log.Debug("[Insert Event] IsChangePoint CallChangeVerifier")
+					log.PBft.Debug("[Insert Event] IsChangePoint CallChangeVerifier")
 					pm.ChangeVerifiers()
 				} else {
-					pbft_log.Log.Debug("[Insert Event] NotChangePoint NotCurrentVerifier")
+					log.PBft.Debug("[Insert Event] NotChangePoint NotCurrentVerifier")
 
 					if pm.vf != nil {
 						pm.vf.findVerifiers()
@@ -421,7 +420,7 @@ func (pm *CsProtocolManager) handleInsertEventForBft() error {
 				}
 				// goes to bft only the current round verifier
 				if pm.SelfIsCurrentVerifier() {
-					pbft_log.Log.Debug("[Insert Event] NotChangePoint IsCurrentVerifier")
+					log.PBft.Debug("[Insert Event] NotChangePoint IsCurrentVerifier")
 					pm.PbftNode.OnEnterNewHeight(newBlock.Number() + 1)
 				}
 

@@ -22,7 +22,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/ver_halt_check_log"
 	"math/big"
 	"time"
 )
@@ -111,7 +110,7 @@ func (g *ProposalGenerator) GenEmptyBlock() (*model.Block, error) {
 	//avoid hash error
 	block.RefreshHashCache()
 
-	ver_halt_check_log.Log.Info("the GenEmptyBlock block hash is:", "hash", block.Hash().Hex())
+	log.Halt.Info("the GenEmptyBlock block hash is:", "hash", block.Hash().Hex())
 	return block, nil
 }
 

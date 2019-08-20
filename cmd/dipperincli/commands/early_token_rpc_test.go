@@ -21,83 +21,97 @@ import (
 	"os"
 	"testing"
 
+	"fmt"
+	"github.com/golang/mock/gomock"
 	"github.com/urfave/cli"
 )
 
-//func TestMain(m *testing.M) {
-//	//m.Run()
-//}
+func TestRpcCaller_TransferEDIPToDIP(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-func wrapRpcArgs(c *cli.Context, m string, p string) {
-
-	//err := c.Set(m)
-	//if err != nil {
-	//	panic(err)
-	//}
-	err := c.Set("p", p)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func addRpcFlags(app *cli.App) {
-	app.Flags = []cli.Flag{
-		cli.StringFlag{Name: "p"},
-	}
-}
-
-func getRpcTestApp() *cli.App {
-	app := cli.NewApp()
-	addRpcFlags(app)
-	return app
-}
-
-func Test_rpcCaller_TransferEDIPToDIP(t *testing.T) {
 	app := getRpcTestApp()
 	app.Action = func(context *cli.Context) {
 		c := &rpcCaller{}
 		c.TransferEDIPToDIP(context)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 
-		wrapRpcArgs(context, "TransferEDIPToDIP", "")
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
 		c.TransferEDIPToDIP(context)
 
-		wrapRpcArgs(context, "TransferEDIPToDIP", "0x00005033874289F4F823A896700D94274683535cF0,e,t")
+		context.Set("p", "")
 		c.TransferEDIPToDIP(context)
 
-		wrapRpcArgs(context, "TransferEDIPToDIP", "0x00005033874289F4F823A896700D94274683535cF0E1,e,t")
+		context.Set("p", "from,eDIPValue,gasPrice,gasLimit")
 		c.TransferEDIPToDIP(context)
 
-		wrapRpcArgs(context, "TransferEDIPToDIP", "0x00005033874289F4F823A896700D94274683535cF0E1,12,t")
+		context.Set("p", fmt.Sprintf("%s,eDIPValue,gasPrice,gasLimit", from))
 		c.TransferEDIPToDIP(context)
 
-		assert.Panics(t, func() {
-			wrapRpcArgs(context, "TransferEDIPToDIP", "0x00005033874289F4F823A896700D94274683535cF0E1,12,1,21000")
-			c.TransferEDIPToDIP(context)
-		})
+		context.Set("p", fmt.Sprintf("%s,%v,gasPrice,gasLimit", from, "10dip"))
+		c.TransferEDIPToDIP(context)
+
+		context.Set("p", fmt.Sprintf("%s,%v,gasPrice,gasLimit", from, "10"))
+		c.TransferEDIPToDIP(context)
+
+		context.Set("p", fmt.Sprintf("%s,%v,%v,gasLimit", from, "10", "1wu"))
+		c.TransferEDIPToDIP(context)
+
+		context.Set("p", fmt.Sprintf("%s,%v,%v,%v", from, "10", "1wu", "1000"))
+		client = NewMockRpcClient(ctrl)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+		c.TransferEDIPToDIP(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
+		c.TransferEDIPToDIP(context)
 	}
 	assert.NoError(t, app.Run([]string{os.Args[0], "TransferEDIPToDIP"}))
+	client = nil
 }
 
-func Test_rpcCaller_SetExchangeRate(t *testing.T) {
+func TestRpcCaller_SetExchangeRate(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	app := getRpcTestApp()
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		c.SetExchangeRate(context)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 
 	app.Action = func(context *cli.Context) {
 		c := &rpcCaller{}
 		c.SetExchangeRate(context)
 
-		wrapRpcArgs(context, "SetExchangeRate", "")
+		context.Set("p", "")
 		c.SetExchangeRate(context)
 
-		wrapRpcArgs(context, "SetExchangeRate", "0x00005033874289F4F823A896700D94274683535cF0,p,y")
+		context.Set("p", "from,exchangeRate,gasPrice,gasLimit")
 		c.SetExchangeRate(context)
 
-		wrapRpcArgs(context, "SetExchangeRate", "0x00005033874289F4F823A896700D94274683535cF0E1,p,y")
+		context.Set("p", fmt.Sprintf("%s,exchangeRate,gasPrice,gasLimit", from))
 		c.SetExchangeRate(context)
 
-		assert.Panics(t, func() {
-			wrapRpcArgs(context, "SetExchangeRate", "0x00005033874289F4F823A896700D94274683535cF0E1,p,1,21000")
-			c.SetExchangeRate(context)
-		})
+		context.Set("p", fmt.Sprintf("%s,%v,gasPrice,gasLimit", from, "10dip"))
+		c.SetExchangeRate(context)
+
+		context.Set("p", fmt.Sprintf("%s,%v,gasPrice,gasLimit", from, "10"))
+		c.SetExchangeRate(context)
+
+		context.Set("p", fmt.Sprintf("%s,%v,%v,gasLimit", from, "10", "1wu"))
+		c.SetExchangeRate(context)
+
+		context.Set("p", fmt.Sprintf("%s,%v,%v,%v", from, "10", "1wu", "1000"))
+		client = NewMockRpcClient(ctrl)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+		c.SetExchangeRate(context)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
+		c.SetExchangeRate(context)
 	}
 	assert.NoError(t, app.Run([]string{os.Args[0], "SetExchangeRate"}))
+	client = nil
 }

@@ -22,7 +22,6 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
 )
@@ -53,7 +52,7 @@ func (cache *CacheDB) GetSeenCommits(blockHeight uint64, blockHash common.Hash) 
 	}
 	if blockHeight > 1 {
 		if len(data) == 0 {
-			pbft_log.Log.Debug("Can not get seen commits", "height", blockHeight)
+			log.PBft.Debug("Can not get seen commits", "height", blockHeight)
 			return nil, errors.New("Can not get seen commits")
 		}
 	}

@@ -87,7 +87,6 @@ func optionCompleterNew(args []string, long bool) []prompt.Suggest {
 		)
 	}
 	log.Debug("optionCompleterNew", "suggests1", suggests)
-
 	return prompt.FilterContains(suggests, strings.TrimLeft(args[l-1], "--"), true)
 }
 
@@ -181,6 +180,7 @@ var txMethods = []prompt.Suggest{
 	{Text: "TransferEDIPToDIP", Description: ""},
 	{Text: "GetContractAddressByTxHash", Description: ""},
 	{Text: "CallContract", Description: ""},
+	{Text: "EstimateGas", Description: ""},
 	{Text: "Transaction", Description: ""},
 }
 
@@ -192,7 +192,6 @@ var chainMethods = []prompt.Suggest{
 	{Text: "GetGenesis", Description: ""},
 	{Text: "Peers", Description: ""},
 	{Text: "SetExchangeRate", Description: ""},
-	{Text: "EstimateGas", Description: ""},
 	{Text: "GetLogs", Description: ""},
 	{Text: "GetReceiptByTxHash", Description: ""},
 	{Text: "GetReceiptsByBlockNum", Description: ""},

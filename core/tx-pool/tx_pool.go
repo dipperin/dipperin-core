@@ -26,7 +26,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"math/big"
 	"sync"
 	"time"
@@ -899,7 +898,7 @@ func (pool *TxPool) addTx(tx model.AbstractTransaction, local bool) error {
 		from, _ := tx.Sender(pool.signer) // already validated
 		pool.promoteExecutables([]common.Address{from})
 	}
-	pbft_log.Log.Debug("Add tx success", "txid", tx.CalTxId().Hex())
+	log.PBft.Debug("Add tx success", "txid", tx.CalTxId().Hex())
 	return nil
 }
 
