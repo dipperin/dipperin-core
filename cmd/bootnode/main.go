@@ -46,6 +46,17 @@ var (
 	runv5       = flag.Bool("v5", false, "run a v5 topic discovery bootnode")
 )
 
+func printBootNodeFlag(){
+	log.Info("the listenAddr is:","listenAddr",*listenAddr)
+	log.Info("the genKey is:","genKey",*genKey)
+	log.Info("the writeAddr is:","writeAddr",*writeAddr)
+	log.Info("the nodeKeyFile is:","nodeKeyFile",*nodeKeyFile)
+	log.Info("the nodeKeyHex is:","nodeKeyHex",*nodeKeyHex)
+	log.Info("the natdesc is:","natdesc",*natdesc)
+	log.Info("the netrestrict is:","netrestrict",*netrestrict)
+	log.Info("the runv5 is:","runv5",*runv5)
+}
+
 func main() {
 	flag.Parse()
 
@@ -95,6 +106,13 @@ func main() {
 				utils.Fatalf("-netrestrict: %v", err)
 			}
 		}
+/*	case "venus":
+		if *netrestrict != "" {
+			restrictList, err = netutil.ParseNetlist(*netrestrict)
+			if err != nil {
+				utils.Fatalf("-netrestrict: %v", err)
+			}
+		}*/
 	case "test":
 		restrictList, _ = netutil.ParseNetlist(chain_config.TestIPWhiteList)
 	}

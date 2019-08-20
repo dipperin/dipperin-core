@@ -214,26 +214,26 @@ func (vf *VFinder) shouldFindVerifiers() error {
 	return nil
 }
 
-// get verifiers from v boot node until got enough peers or got from all v boot
-func (vf *VFinder) getVerifiers(missCur uint, missNext uint) {
-	slot := vf.chain.GetSlot(vf.chain.CurrentBlock())
-	if slot == nil {
-		log.Error("can't get slot for current block", "cur b", vf.chain.CurrentBlock().Number())
-		panic("can't get slot for current block")
-	}
-	req := GetVerifiersReq{
-		CurMiss:  missCur,
-		NextMiss: missNext,
-		Slot:     *slot,
-	}
+	// get verifiers from v boot node until got enough peers or got from all v boot
+	func (vf *VFinder) getVerifiers(missCur uint, missNext uint) {
+		slot := vf.chain.GetSlot(vf.chain.CurrentBlock())
+		if slot == nil {
+			log.Error("can't get slot for current block", "cur b", vf.chain.CurrentBlock().Number())
+			panic("can't get slot for current block")
+		}
+		req := GetVerifiersReq{
+			CurMiss:  missCur,
+			NextMiss: missNext,
+			Slot:     *slot,
+		}
 
-	bPeers := vf.peerManager.GetVerifierBootNode()
-	for _, vb := range bPeers {
-		if ok := vf.getVerifiersFromBoot(req, vb); ok {
-			break
+		bPeers := vf.peerManager.GetVerifierBootNode()
+		for _, vb := range bPeers {
+			if ok := vf.getVerifiersFromBoot(req, vb); ok {
+				break
+			}
 		}
 	}
-}
 
 // get conn info, return true if got enough conn
 func (vf *VFinder) getVerifiersFromBoot(req GetVerifiersReq, peer PmAbstractPeer) (ok bool) {
