@@ -336,7 +336,7 @@ func (r *Resolver) envTimestamp(vm *exec.VirtualMachine) int64 {
 	return time
 }
 
-// define: void coinbase(char addr[20]);
+// define: void coinbase(char addr[22]);
 func (r *Resolver) envCoinbase(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
 	coinBase := r.Service.GetCoinBase()
@@ -367,7 +367,7 @@ func (r *Resolver) envBalance(vm *exec.VirtualMachine) int64 {
 	return 0
 }
 
-// define: void origin(char addr[20]);
+// define: void origin(char addr[22]);
 func (r *Resolver) envOrigin(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
 	address := r.Service.GetOrigin()
@@ -375,7 +375,7 @@ func (r *Resolver) envOrigin(vm *exec.VirtualMachine) int64 {
 	return 0
 }
 
-// define: void caller(char addr[20]);
+// define: void caller(char addr[22]);
 func (r *Resolver) envCaller(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
 	caller := r.Service.Caller().Address()
@@ -400,7 +400,7 @@ func (r *Resolver) envCallValue(vm *exec.VirtualMachine) int64 {
 	return 0
 }
 
-// define: void address(char hash[20]);
+// define: void address(char hash[22]);
 func (r *Resolver) envAddress(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
 	address := r.Service.Address()
