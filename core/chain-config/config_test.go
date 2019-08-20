@@ -46,12 +46,15 @@ func TestLoadDefaultBootID(t *testing.T) {
 }
 
 func TestGetChainConfig(t *testing.T) {
-	chainConfig := GetChainConfig()
+	err := os.Setenv("boots_env", "")
+	assert.NoError(t, err)
+
+	chainConfig := defaultChainConfig()
 	assert.Equal(t, uint64(110), chainConfig.SlotSize)
 	assert.Equal(t, 22, chainConfig.VerifierNumber)
 	assert.Equal(t, uint64(2000), chainConfig.NetworkID)
 
-	err := os.Setenv("boots_env", "test")
+	err = os.Setenv("boots_env", "test")
 	assert.NoError(t, err)
 
 	chainConfig = defaultChainConfig()
