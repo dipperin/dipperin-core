@@ -33,6 +33,7 @@ func TestOracle_SuggestPrice(t *testing.T) {
 		Percentile: 60,
 		Default:    big.NewInt(config2.DEFAULT_GAS_PRICE),
 	}
+
 	oracle := NewOracle(csChain, config)
 	gasPrice, err := oracle.SuggestPrice()
 	assert.NoError(t, err)
