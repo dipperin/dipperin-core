@@ -22,19 +22,7 @@ class YourContractName : public Contract {
 ## Step 2: Deploy a Contract
 
 Dipperin currently offers two ways to deploy and call smart contracts through both command line and wallet. A contract is deployed through sending contract transactions.
-
-The `gasUsed` value of a contract transaction is divided into three parts, `fixedGasUsed` is built in the system, `f(txExtraData)` is calculated according to the `extraData` inside the transaction, plus the gas consumed by vm when executing the contract instruction:
-
-​               `totalGasUsed = fixedGasUsed + f(txExtraData) + f1(contractInstructions)`
-
-For contracted transactions, the built-in `fixedGasUsed` values for contract creation and contract calls are different:
-
-| Parameters       | System Default Value | Remarks                                                      |
-| ---------------- | -------------------- | ------------------------------------------------------------ |
-| fixedGasUsed     | 53000                | This is the `fixedGasUsed` for the contract creation transaction. |
-| fixedGasUsed     | 21000                | This is the `fixedGasUsed` for the contract call transaction. |
-| TxDataZeroGas    | 4                    | When the data is 0, the `gasUsed` of unit bytes              |
-| TxDataNonZeroGas | 68                   | When the data is not 0, the `gasUsed` of unit bytes          |
+     |
 
 ### Deploy a Contract from Console
 
@@ -81,7 +69,7 @@ tx SendTransactionContract -p ${callAddress},${contractAddress},${value},${gasPr
 
 to call the contract function。The meaning of each parameter is the same as above。
 
-See [Command Line Tool]() for details.
+See [Command Line Tool](../design/commands.md) for details.
 
 ### Deploy and Call a Contract from Wallet
 
