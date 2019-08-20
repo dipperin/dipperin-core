@@ -82,19 +82,19 @@ func createVerifiersVotes(block model.AbstractBlock, votesNum int, testAccounts 
 	return
 }
 
-func insertBlockToChain(t *testing.T, chain *chain_state.ChainState, num int) {
+func insertBlockToChain(t *testing.T, chain *chain_state.ChainState, num int, txs []*model.Transaction) {
 	curNum := int(chain.CurrentBlock().Number())
 	config := chain_config.GetChainConfig()
 	for i := curNum; i < curNum+num; i++ {
 		curBlock := chain.CurrentBlock()
 		var block model.AbstractBlock
 		if curBlock.Number() == 0 {
-			block = createBlock(chain, nil, nil)
+			block = createBlock(chain, txs, nil)
 		} else {
 
 			// votes for curBlock on chain
 			curBlockVotes := createVerifiersVotes(curBlock, config.VerifierNumber*2/3+1, nil)
-			block = createBlock(chain, nil, curBlockVotes)
+			block = createBlock(chain, txs, curBlockVotes)
 		}
 
 		// votes for build block
@@ -204,6 +204,14 @@ func createSignedTx2(nonce uint64, from *ecdsa.PrivateKey, to common.Address, am
 	fs1 := model.NewSigner(big.NewInt(1))
 	tx := model.NewTransaction(nonce, to, amount, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	signedTx, _ := tx.SignTx(from, fs1)
+	return signedTx
+}
+
+func createSignedTx3(nonce uint64, amount, gasPrice *big.Int) *model.Transaction {
+	verifiers, _ := tests.ChangeVerifierAddress(nil)
+	fs1 := model.NewSigner(big.NewInt(1))
+	tx := model.NewTransaction(nonce, aliceAddr, amount, gasPrice, g_testData.TestGasLimit, []byte{})
+	signedTx, _ := tx.SignTx(verifiers[0].Pk, fs1)
 	return signedTx
 }
 

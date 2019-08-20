@@ -184,7 +184,6 @@ func RpcCall(c *cli.Context) {
 	}
 	// when use method := c.Args()[0],the command line `tx SendTransactionContract -p xxxx --abi` lead the node stop
 	method := c.Args().First()
-	fmt.Println(c.Args())
 	if len(c.Args()) == 0 {
 		l.Info("RpcCall params assign err, can't find the method")
 		return

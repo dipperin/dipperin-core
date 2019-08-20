@@ -473,7 +473,7 @@ func TestMakeFullChainService_checkWalletIdentifier(t *testing.T) {
 
 func TestVenusFullChainService_GetVerifierReward(t *testing.T) {
 	csChain := createCsChain(nil)
-	insertBlockToChain(t, csChain, 1)
+	insertBlockToChain(t, csChain, 1, nil)
 
 	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
@@ -512,7 +512,7 @@ func TestVenusFullChainService_VerifierStatus(t *testing.T) {
 func TestVenusFullChainService_GetBlockDiffVerifierInfo(t *testing.T) {
 	csChain := createCsChain(nil)
 
-	insertBlockToChain(t, csChain, 2)
+	insertBlockToChain(t, csChain, 2, nil)
 
 	config := DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(&config)
@@ -813,7 +813,7 @@ func TestVenusFullChainService_SetMineCoinBase(t *testing.T) {
 
 func TestVenusFullChainService_GetMineMasterReward(t *testing.T) {
 	csChain := createCsChain(nil)
-	insertBlockToChain(t, csChain, 1)
+	insertBlockToChain(t, csChain, 1, nil)
 
 	config := DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(&config)
