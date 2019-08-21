@@ -207,14 +207,6 @@ func createSignedTx2(nonce uint64, from *ecdsa.PrivateKey, to common.Address, am
 	return signedTx
 }
 
-func createSignedTx3(nonce uint64, amount, gasPrice *big.Int) *model.Transaction {
-	verifiers, _ := tests.ChangeVerifierAddress(nil)
-	fs1 := model.NewSigner(big.NewInt(1))
-	tx := model.NewTransaction(nonce, aliceAddr, amount, gasPrice, g_testData.TestGasLimit, []byte{})
-	signedTx, _ := tx.SignTx(verifiers[0].Pk, fs1)
-	return signedTx
-}
-
 func createContractTx(nonce uint64, WASMPath, AbiPath, input string, testAccounts []tests.Account) *model.Transaction {
 	codeByte, abiByte := g_testData.GetCodeAbi(WASMPath, AbiPath)
 	var data []byte
@@ -514,4 +506,12 @@ func (pool fakeTxPool) AddRemote(tx model.AbstractTransaction) error {
 
 func (pool fakeTxPool) Stats() (int, int) {
 	panic("implement me")
+}
+
+type fakeMsgSigner struct{ addr common.Address }
+
+func (f *fakeMsgSigner) SetBaseAddress(address common.Address) {}
+
+func (f *fakeMsgSigner) GetAddress() common.Address {
+	return f.addr
 }

@@ -1247,6 +1247,10 @@ func (api *DipperinVenusApi) GetCode(contractAddr common.Address) ([]byte, error
 	return api.service.GetCode(contractAddr)
 }
 
+func (api *DipperinVenusApi) SuggestGasPrice() (*big.Int, error) {
+	return api.service.SuggestGasPrice()
+}
+
 func (api *DipperinVenusApi) GetContractAddressByTxHash(txHash common.Hash) (common.Address, error) {
 	return api.service.GetContractAddressByTxHash(txHash)
 }

@@ -272,8 +272,12 @@ func TestDipperinMercuryApi(t *testing.T) {
 	_, err = api.GetLogs(common.Hash{}, uint64(100), uint64(0), nil, nil)
 	assert.Equal(t, g_error.BeginNumLargerError, err)
 
-	// get receipts
+	// suggest gasPrice
 	mb.EXPECT().Hash().Return(common.Hash{}).AnyTimes()
+	_, err = api.SuggestGasPrice()
+	assert.NoError(t, err)
+
+	// get receipts
 	mc.EXPECT().GetReceipts(common.Hash{}, uint64(1)).Return(nil).AnyTimes()
 	_, err = api.GetContractAddressByTxHash(common.Hash{})
 	assert.Equal(t, g_error.ErrReceiptIsNil, err)

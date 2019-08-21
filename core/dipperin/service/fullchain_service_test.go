@@ -575,14 +575,6 @@ func TestVenusFullChainService_OpenWallet(t *testing.T) {
 	assert.Equal(t, accounts.ErrWalletPathError, err)
 }
 
-type fakeMsgSigner struct{ addr common.Address }
-
-func (f *fakeMsgSigner) SetBaseAddress(address common.Address) {}
-
-func (f *fakeMsgSigner) GetAddress() common.Address {
-	return f.addr
-}
-
 func TestVenusFullChainService_CloseWallet(t *testing.T) {
 	manager := createWalletManager(t)
 	config := &DipperinConfig{
@@ -992,6 +984,16 @@ func TestVenusFullChainService_StopDipperin(t *testing.T) {
 
 	service.StopDipperin()
 	time.Sleep(time.Millisecond * 100)
+}
+
+func TestVenusFullChainService_SuggestGasPrice(t *testing.T) {
+	csChain := createCsChain(nil)
+	config := &DipperinConfig{ChainReader: csChain}
+	service := MakeFullChainService(config)
+
+	gasPrice, err := service.SuggestGasPrice()
+	assert.NoError(t, err)
+	assert.Equal(t, big.NewInt(1), gasPrice)
 }
 
 func TestVenusFullChainService_Metrics(t *testing.T) {
