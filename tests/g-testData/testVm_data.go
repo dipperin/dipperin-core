@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/util"
 	"io/ioutil"
-	"os"
+	"log"
+	"os/exec"
 	"path/filepath"
+	"regexp"
 )
 
 var testCorePath = "src/github.com/dipperin/dipperin-core/core/vm/test-data"
@@ -23,13 +25,25 @@ var contractPath = map[ContractPathType]string{
 	DIPCTestContract: testDIPCPath,
 }
 
+func getGoPath()string{
+	cmd := exec.Command("go","env")
+	str,_ := cmd.Output()
+
+	pattern := `GOPATH="(.*?)"{1}?`
+	regular1,_ := regexp.Compile(pattern)
+	out := regular1.FindStringSubmatch(string(str))
+	return string(out[1])
+}
+
 func GetWASMPath(fileName string, pathType ContractPathType) string {
 	var tmpPath string
 	if pathType == CoreVmTestData {
-		tmpPath = os.Getenv("GOPATH")
+		tmpPath = getGoPath()
+		log.Println("get WASM path",tmpPath)
 	} else {
 		tmpPath = util.HomeDir()
 	}
+	log.Println("the tmpPath is:",tmpPath)
 	path := filepath.Join(tmpPath, contractPath[pathType])
 	return filepath.Join(path, fmt.Sprintf("%s/%s.wasm", fileName, fileName))
 }
@@ -37,7 +51,7 @@ func GetWASMPath(fileName string, pathType ContractPathType) string {
 func GetAbiPath(fileName string, pathType ContractPathType) string {
 	var tmpPath string
 	if pathType == CoreVmTestData {
-		tmpPath = os.Getenv("GOPATH")
+		tmpPath = getGoPath()
 	} else {
 		tmpPath = util.HomeDir()
 	}
