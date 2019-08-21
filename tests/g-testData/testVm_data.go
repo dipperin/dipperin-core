@@ -25,9 +25,9 @@ var contractPath = map[ContractPathType]string{
 
 func GetWASMPath(fileName string, pathType ContractPathType) string {
 	var tmpPath string
-	if pathType == CoreVmTestData{
+	if pathType == CoreVmTestData {
 		tmpPath = os.Getenv("GOPATH")
-	}else {
+	} else {
 		tmpPath = util.HomeDir()
 	}
 	path := filepath.Join(tmpPath, contractPath[pathType])
@@ -36,9 +36,9 @@ func GetWASMPath(fileName string, pathType ContractPathType) string {
 
 func GetAbiPath(fileName string, pathType ContractPathType) string {
 	var tmpPath string
-	if pathType == CoreVmTestData{
+	if pathType == CoreVmTestData {
 		tmpPath = os.Getenv("GOPATH")
-	}else {
+	} else {
 		tmpPath = util.HomeDir()
 	}
 	path := filepath.Join(tmpPath, contractPath[pathType])

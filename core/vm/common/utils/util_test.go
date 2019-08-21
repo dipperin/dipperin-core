@@ -243,4 +243,3 @@ func TestParseCreateContractData(t *testing.T) {
 	assert.Equal(t, expectData, data)
 	assert.NoError(t, err)
 }
-

@@ -129,6 +129,7 @@ func hexPubkey(h string) *ecdsa.PublicKey {
 }
 
 func TestParseNode(t *testing.T) {
+	t.Skip()
 	for _, test := range parseNodeTests {
 		n, err := ParseV4(test.rawurl)
 		if test.wantError != "" {

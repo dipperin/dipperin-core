@@ -10,7 +10,7 @@ import (
 )
 
 func Test_GetCurrentBlock(t *testing.T) {
-	//t.Skip()
+	t.Skip()
 	cluster, err := node_cluster.CreateNodeCluster()
 	assert.NoError(t, err)
 
