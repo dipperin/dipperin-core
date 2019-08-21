@@ -18,10 +18,10 @@ package dipperin
 
 import (
 	"github.com/stretchr/testify/assert"
+	"os"
+	"path/filepath"
 	"runtime"
 	"testing"
-	"path/filepath"
-	"os"
 )
 
 func TestNodeConfig_FullChainDBDir(t *testing.T) {
