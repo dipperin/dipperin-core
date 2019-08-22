@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
@@ -41,7 +42,6 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
-	"github.com/dipperin/dipperin-core/common/consts"
 )
 
 var (
