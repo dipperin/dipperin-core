@@ -135,6 +135,9 @@ func InterToDecimal(csCoinValue *hexutil.Big, unitBit int) (string, error) {
 
 	coinValue := csCoinValue.ToInt().String()
 	coinValueLen := len(coinValue)
+	if unitBit == 0 {
+		return coinValue, nil
+	}
 
 	//remove 0 of the tail
 	zeroNumber := 0

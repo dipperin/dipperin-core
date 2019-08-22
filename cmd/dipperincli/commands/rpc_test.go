@@ -756,6 +756,35 @@ func TestRpcCaller_GetReceiptByTxHash(t *testing.T) {
 	client = nil
 }
 
+func TestRpcCaller_SuggestGasPrice(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	app := getRpcTestApp()
+	app.Action = func(c *cli.Context) {
+		caller := &rpcCaller{}
+		caller.SuggestGasPrice(c)
+	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
+
+	app.Action = func(c *cli.Context) {
+		client = NewMockRpcClient(ctrl)
+		caller := &rpcCaller{}
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
+		caller.SuggestGasPrice(c)
+
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+		caller.SuggestGasPrice(c)
+
+		gas := rpc_interface.CurBalanceResp{Balance: (*hexutil.Big)(big.NewInt(100))}
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, gas)
+		caller.SuggestGasPrice(c)
+	}
+
+	assert.NoError(t, app.Run([]string{os.Args[0], "SuggestGasPrice"}))
+	client = nil
+}
+
 func TestRpcCaller_GetReceiptsByBlockNum(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

@@ -172,8 +172,8 @@ tx GetContractAddressByTxHash -p 0xb57c391ee4993a1b05712806eff7646c014e29882a206
 
 Estimate gas:
 ```
-chain EstimateGas -p [from],[value],[gasPrice],[gasLimit] --abi [abiPath] --wasm [wasmPath] --is-create --input [params]
-chain EstimateGas -p 0x0000661A3c6c0955B5E6dbf935f0891aAA1112b9E9ca,0dip,1wu,5000000 --abi /home/qydev/testData/token-payable/token.cpp.abi.json --wasm /home/qydev/testData/token-payable/token.wasm --is-create --input liu,wjw,123456
+tx EstimateGas -p [from],[value],[gasPrice],[gasLimit] --abi [abiPath] --wasm [wasmPath] --is-create --input [params]
+tx EstimateGas -p 0x0000661A3c6c0955B5E6dbf935f0891aAA1112b9E9ca,0dip,1wu,5000000 --abi /home/qydev/testData/token-payable/token.cpp.abi.json --wasm /home/qydev/testData/token-payable/token.wasm --is-create --input liu,wjw,123456
 ```
 
 Call contract:
@@ -204,6 +204,11 @@ chain CurrentBlock
 Get genesis block:
 ```
 chain GetGenesis
+```
+
+Suggest gas price
+```
+chain SuggestGasPrice
 ```
 
 Get block by number:
