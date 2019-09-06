@@ -103,7 +103,8 @@ func InitCsLogger(logLevel Lvl, filePath string, withConsole bool, withFile bool
 	var handlers []Handler
 	if withFile {
 		logFilePath := filepath.Join(targetDir, "dipperin.log")
-		fileHandler, err := FileHandler(logFilePath, TerminalFormat())
+		fileHandler, err := FileHandler(logFilePath, LogfmtFormat())
+		//fileHandler, err := FileHandler(logFilePath, TerminalFormat())
 		if err != nil {
 			panic(err.Error())
 		}
