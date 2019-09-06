@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_communication
 
 import (
@@ -25,7 +24,7 @@ import (
 )
 
 var (
-	fetchTimeout  = 5 * time.Second
+	fetchTimeout = 5 * time.Second
 )
 
 const (
@@ -77,6 +76,7 @@ type ibltTask struct {
 	data   *bloomBlockDataRLP
 	time   time.Time
 }
+
 //
 //
 //// Make Ei Block Fetcher

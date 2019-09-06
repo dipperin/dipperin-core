@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package state_machine
 
 import (
@@ -27,8 +26,6 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/health-info-log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"time"
 )
 
@@ -39,14 +36,14 @@ type StateHandler struct {
 
 	bs        *BftState
 	blockPool *components.BlockPool
-	ticker      components.TimeoutTicker
+	ticker    components.TimeoutTicker
 
-	newHeightChan    chan uint64
-	newRoundChan     chan *model2.NewRoundMsg
-	poolNotEmptyChan chan struct{}
-	newProposalChan  chan *model2.Proposal
-	preVoteChan      chan *model.VoteMsg
-	voteChan         chan *model.VoteMsg
+	newHeightChan        chan uint64
+	newRoundChan         chan *model2.NewRoundMsg
+	poolNotEmptyChan     chan struct{}
+	newProposalChan      chan *model2.Proposal
+	preVoteChan          chan *model.VoteMsg
+	voteChan             chan *model.VoteMsg
 	getProposalBlockChan chan getProposalBlockMsg
 }
 
@@ -65,23 +62,23 @@ type ReqRoundMsg struct {
 }
 
 type getProposalBlockMsg struct {
-	hash common.Hash
+	hash       common.Hash
 	resultChan chan model.AbstractBlock
 }
 
 func NewStateHandler(bftConfig *BftConfig, timeConfig Config, blockPool *components.BlockPool) *StateHandler {
 	h := &StateHandler{
-		bs:               &BftState{Height: 0, BlockPoolNotEmpty: false},
-		timeoutConfig:    timeConfig,
-		blockPool:        blockPool,
-		newHeightChan:    make(chan uint64, 5),
-		newRoundChan:     make(chan *model2.NewRoundMsg, 5),
-		poolNotEmptyChan: make(chan struct{}, 5),
-		newProposalChan:  make(chan *model2.Proposal, 5),
-		preVoteChan:      make(chan *model.VoteMsg, 5),
-		voteChan:         make(chan *model.VoteMsg, 5),
+		bs:                   &BftState{Height: 0, BlockPoolNotEmpty: false},
+		timeoutConfig:        timeConfig,
+		blockPool:            blockPool,
+		newHeightChan:        make(chan uint64, 5),
+		newRoundChan:         make(chan *model2.NewRoundMsg, 5),
+		poolNotEmptyChan:     make(chan struct{}, 5),
+		newProposalChan:      make(chan *model2.Proposal, 5),
+		preVoteChan:          make(chan *model.VoteMsg, 5),
+		voteChan:             make(chan *model.VoteMsg, 5),
 		getProposalBlockChan: make(chan getProposalBlockMsg),
-		ticker:      components.NewTimeoutTicker(),
+		ticker:               components.NewTimeoutTicker(),
 	}
 	h.BftConfig = bftConfig
 
@@ -96,7 +93,7 @@ func NewStateHandler(bftConfig *BftConfig, timeConfig Config, blockPool *compone
 }
 
 func (h *StateHandler) OnStart() error {
-	pbft_log.Info("StateHandler OnStart~~~~~~~~~~~~~~~~~")
+	log.PBft.Info("StateHandler OnStart~~~~~~~~~~~~~~~~~")
 	h.ticker = components.NewTimeoutTicker()
 	h.ticker.Start()
 	go h.loop()
@@ -130,20 +127,21 @@ func (h *StateHandler) loop() {
 			// timeout event
 		case toutInfo := <-h.ticker.Chan():
 			h.OnTimeout(toutInfo)
-		case m := <- h.getProposalBlockChan:
+		case m := <-h.getProposalBlockChan:
 			h.onGetProposalBlock(m)
 		case <-h.Quit():
-			pbft_log.Info("state handler stopped")
+			log.PBft.Info("state handler stopped")
 			return
 		}
 	}
 }
 
 func (h *StateHandler) OnNewHeight(height uint64) {
-	pbft_log.Info("[StateHandler-OnNewHeight]", "height", height)
+	log.PBft.Info("[**********************start new Block************************]")
+	log.PBft.Info("[StateHandler-OnNewHeight]", "height", height)
 	round := uint64(0)
 	chainHeight := h.ChainReader.CurrentBlock().Number()
-	if height != chainHeight +1 {
+	if height != chainHeight+1 {
 		return
 	}
 
@@ -159,7 +157,7 @@ func (h *StateHandler) OnNewHeight(height uint64) {
 	h.blockPool.NewHeight(height)
 
 	Block := h.ChainReader.CurrentBlock()
-	pbft_log.Debug("New Height Called", "height", height, "chain height", Block.Number())
+	log.PBft.Debug("New Height Called", "height", height, "chain height", Block.Number())
 	// check where it is a change point, add verifiers list and set round as 0
 	if h.ChainReader.IsChangePoint(Block, false) {
 		verifiers := h.ChainReader.GetNextVerifiers()
@@ -168,11 +166,11 @@ func (h *StateHandler) OnNewHeight(height uint64) {
 	}
 
 	h.bs.OnNewHeight(height, round+1, h.ChainReader.GetCurrVerifiers())
-	pbft_log.Debug(fmt.Sprintf("EnterNewHeight (H: %v, R: %v, S: %v)",h.bs.Height,h.bs.Round,h.bs.Step))
+	log.PBft.Debug(fmt.Sprintf("EnterNewHeight (H: %v, R: %v, S: %v)", h.bs.Height, h.bs.Round, h.bs.Step))
 }
 
 func (h *StateHandler) OnNewRound(nRound *model2.NewRoundMsg) {
-	pbft_log.Info("[StateHandler-OnNewRound]", "address", nRound.Witness.Address.Hex(), "round", nRound.Round,"Height",nRound.Height)
+	log.PBft.Info("[StateHandler-OnNewRound]", "address", nRound.Witness.Address.Hex(), "round", nRound.Round, "Height", nRound.Height)
 	preStep := h.bs.Step
 	preRound := h.bs.Round
 	h.bs.OnNewRound(nRound)
@@ -182,48 +180,48 @@ func (h *StateHandler) OnNewRound(nRound *model2.NewRoundMsg) {
 	switch {
 	case preStep == model2.RoundStepNewRound && curStep == model2.RoundStepPropose:
 		//fmt.Println("enter","id",reflect.ValueOf(h.bs).Pointer())
-		if preRound != curRound{
-			pbft_log.Info("[StateHandler-OnNewRound]:onEnterNewRound catch up round")
+		if preRound != curRound {
+			log.PBft.Info("[StateHandler-OnNewRound]:onEnterNewRound catch up round")
 		}
-		pbft_log.Info("[StateHandler-OnNewRound]:onEnterPropose", "pre", preStep, "new", curStep)
+		log.PBft.Info("[StateHandler-OnNewRound]:onEnterPropose", "pre", preStep, "new", curStep)
 		h.onEnterPropose()
 	case preStep == model2.RoundStepNewRound && curStep == model2.RoundStepPreVote:
-		pbft_log.Info("[StateHandler-OnNewRound]: onEnterPrevote","pre", preStep, "new", curStep)
+		log.PBft.Info("[StateHandler-OnNewRound]: onEnterPrevote", "pre", preStep, "new", curStep)
 		h.onEnterPrevote()
 	default:
-		pbft_log.Info("[StateHandler-OnNewRound]:on new round", "pre", preStep, "new", curStep)
+		log.PBft.Info("[StateHandler-OnNewRound]:on new round", "pre", preStep, "new", curStep)
 	}
 }
 
 func (h *StateHandler) OnBlockPoolNotEmpty() {
-	pbft_log.Info("[StateHandler-OnBlockPoolNotEmpty]")
+	log.PBft.Info("[StateHandler-OnBlockPoolNotEmpty]")
 	preStep := h.bs.Step
 	h.bs.OnBlockPoolNotEmpty()
 	curStep := h.bs.Step
 	//Fixme
 	switch {
 	case preStep == model2.RoundStepNewHeight && curStep == model2.RoundStepNewRound:
-		pbft_log.Info("[StateHandler-OnBlockPoolNotEmpty]:onEnterNewRound")
+		log.PBft.Info("[StateHandler-OnBlockPoolNotEmpty]:onEnterNewRound")
 		h.onEnterNewRound()
 	default:
-		pbft_log.Info("[StateHandler-OnBlockPoolNotEmpty]:block pool not empty", "pre", preStep, "new", curStep)
+		log.PBft.Info("[StateHandler-OnBlockPoolNotEmpty]:block pool not empty", "pre", preStep, "new", curStep)
 	}
 }
 
 func (h *StateHandler) OnNewProposal(proposal *model2.Proposal) {
-	pbft_log.Info("[StateHandler-OnNewProposal]","block",proposal.BlockID.Hex())
+	log.PBft.Info("[StateHandler-OnNewProposal]", "block", proposal.BlockID.Hex())
 	if !h.bs.validProposal(proposal) {
 		return
 	}
-	pbft_log.Info("[StateHandler-OnNewProposal] proposal accepted, try fetching block","block",proposal.BlockID.Hex())
+	log.PBft.Info("[StateHandler-OnNewProposal] proposal accepted, try fetching block", "block", proposal.BlockID.Hex())
 	block := h.fetchProposalBlock(proposal.BlockID, proposal.Witness.Address)
 	if block == nil || block.IsSpecial() {
-		pbft_log.Info("[StateHandler-OnNewProposal] fetch block failed","block",proposal.BlockID.Hex())
+		log.PBft.Info("[StateHandler-OnNewProposal] fetch block failed", "block", proposal.BlockID.Hex())
 		return
 	}
 
 	if err := h.Validator.FullValid(block); err != nil {
-		pbft_log.Info("[StateHandler-OnNewProposal] proposed block not valide","block",proposal.BlockID.Hex())
+		log.PBft.Info("[StateHandler-OnNewProposal] proposed block not valide", "block", proposal.BlockID.Hex())
 		return
 	}
 
@@ -234,15 +232,15 @@ func (h *StateHandler) OnNewProposal(proposal *model2.Proposal) {
 	//fixme Add other cases
 	switch {
 	case preStep == model2.RoundStepPropose && curStep == model2.RoundStepPreVote:
-		pbft_log.Info("[StateHandler-OnNewProposal]:onEnterPrevote")
+		log.PBft.Info("[StateHandler-OnNewProposal]:onEnterPrevote")
 		h.onEnterPrevote()
 	default:
-		pbft_log.Info("[StateHandler-OnNewProposal]:block pool not empty", "pre", preStep, "new", curStep)
+		log.PBft.Info("[StateHandler-OnNewProposal]:block pool not empty", "pre", preStep, "new", curStep)
 	}
 }
 
 func (h *StateHandler) OnPreVote(pv *model.VoteMsg) {
-	pbft_log.Info("[StateHandler-OnPreVote]")
+	log.PBft.Info("[StateHandler-OnPreVote]")
 	preStep := h.bs.Step
 	h.bs.OnPreVote(pv)
 	curStep := h.bs.Step
@@ -251,37 +249,38 @@ func (h *StateHandler) OnPreVote(pv *model.VoteMsg) {
 	case preStep == model2.RoundStepPreVote && curStep == model2.RoundStepPreCommit:
 		h.onEnterPrecommit()
 	default:
-		pbft_log.Info("[StateHandler-OnPreVote]:on prevote", "pre", preStep, "new", curStep)
+		log.PBft.Info("[StateHandler-OnPreVote]:on prevote", "pre", preStep, "new", curStep)
 	}
 }
 
 func (h *StateHandler) OnVote(v *model.VoteMsg) {
-	pbft_log.Debug("[StateHandler-OnVote]: handle new vote")
+	log.PBft.Debug("[StateHandler-OnVote]: handle new vote")
 	blockId, commits := h.bs.OnVote(v)
 	if commits != nil {
-		pbft_log.Info("the commit 0 is:","round",commits[0].GetRound(),"height",commits[0].GetHeight(),"blockId",commits[0].GetBlockId().Hex(),"address",commits[0].GetAddress().Hex())
+		log.PBft.Info("the commit 0 is:", "round", commits[0].GetRound(), "height", commits[0].GetHeight(), "blockId", commits[0].GetBlockId().Hex(), "address", commits[0].GetAddress().Hex())
 		block := h.bs.ProposalBlock.GetBlock(commits[0].GetRound())
 
 		if block == nil {
-			pbft_log.Info("not find the block in the state proposalBlockSet ")
+			log.PBft.Info("not find the block in the state proposalBlockSet ")
 			block = h.fetchProposalBlock(blockId, h.bs.proposerAtRound(commits[0].GetRound()))
 		}
 
 		if block != nil {
-			pbft_log.Info("[StateHandler-OnVote]:finalBlock","blockNumber",block.Number())
+			log.PBft.Info("[StateHandler-OnVote]:finalBlock", "blockNumber", block.Number())
 			h.finalBlock(block, commits)
-			pbft_log.Info("=========================================================================")
+			log.PBft.Info("==================================pbft save block end=======================================")
+			log.PBft.Info("")
 		}
 	}
 }
 
 func (h *StateHandler) OnTimeout(toutInfo components.TimeoutInfo) {
-	pbft_log.Info("[StateHandler-OnTimeout]","height",toutInfo.Height,"round",toutInfo.Round,"step",toutInfo.Step,"duration",toutInfo.Duration)
+	log.PBft.Info("[StateHandler-OnTimeout]", "height", toutInfo.Height, "round", toutInfo.Round, "step", toutInfo.Step, "duration", toutInfo.Duration)
 	if toutInfo.Height != h.bs.Height || toutInfo.Round != h.bs.Round {
 		return
 	}
-	health_info_log.Info("pbft state handler timeout","height",toutInfo.Height,"round",toutInfo.Round,"step",toutInfo.Step,"duration",toutInfo.Duration)
-	//pbft_log.Info("Get timeout", "timeout info", toutInfo)
+	log.Health.Info("pbft state handler timeout", "height", toutInfo.Height, "round", toutInfo.Round, "step", toutInfo.Step, "duration", toutInfo.Duration)
+	//log.PBft.Info("Get timeout", "timeout info", toutInfo)
 	switch toutInfo.Step {
 	case model2.RoundStepPropose:
 		h.addTimeoutCount("RoundStepPropose")
@@ -321,7 +320,7 @@ func (h *StateHandler) broadcastNewRoundMsg() {
 		Sign:    sign,
 	}
 
-	pbft_log.Info("StateHandler#broadcastNewRoundMsg")
+	log.PBft.Info("StateHandler#broadcastNewRoundMsg")
 	h.Sender.BroadcastMsg(uint64(model2.TypeOfNewRoundMsg), msg)
 	h.OnNewRound(msg)
 }
@@ -335,7 +334,6 @@ func (h *StateHandler) curProposer() (result common.Address) {
 	index := int(h.bs.Round) % vLen
 	return h.bs.CurVerifiers[index]
 }
-
 
 // broadcast new round msg
 func (h *StateHandler) broadcastReqRoundMsg(adds []common.Address) {
@@ -361,14 +359,14 @@ func (h *StateHandler) fetchProposalBlock(blockId common.Hash, from common.Addre
 func (h *StateHandler) onEnterNewRound() {
 	h.ticker.ScheduleTimeout(components.TimeoutInfo{Duration: h.timeoutConfig.WaitNewRound, Height: h.bs.Height, Round: h.bs.Round, Step: model2.RoundStepNewRound})
 
-	pbft_log.Debug(fmt.Sprintf("EnterNewRound (H: %v, R: %v, S: %v)",h.bs.Height,h.bs.Round,h.bs.Step))
+	log.PBft.Debug(fmt.Sprintf("EnterNewRound (H: %v, R: %v, S: %v)", h.bs.Height, h.bs.Round, h.bs.Step))
 	h.broadcastNewRoundMsg()
 }
 
 func (h *StateHandler) onEnterPropose() {
 	h.ticker.ScheduleTimeout(components.TimeoutInfo{Duration: h.timeoutConfig.ProposalTimeout, Height: h.bs.Height, Round: h.bs.Round, Step: model2.RoundStepPropose})
 
-	pbft_log.Debug(fmt.Sprintf("EnterPropose (H: %v, R: %v, S: %v)",h.bs.Height,h.bs.Round,h.bs.Step))
+	log.PBft.Debug(fmt.Sprintf("EnterPropose (H: %v, R: %v, S: %v)", h.bs.Height, h.bs.Round, h.bs.Step))
 
 	//fmt.Println("iscu","id",reflect.ValueOf(h.bs).Pointer(),"round",h.bs.Round,"iscu",h.isCurProposer())
 	if !h.isCurProposer() {
@@ -378,27 +376,29 @@ func (h *StateHandler) onEnterPropose() {
 	//fmt.Println("on enter proposal","id",reflect.ValueOf(h.bs).Pointer())
 	//Pick a valid block
 	block := h.bs.LockedBlock
+	//log.PBft.Info("[onEnterPropose] the block is:","block",block)
 	if block == nil {
 
 		block = h.blockPool.GetProposalBlock()
 		for block != nil && !block.IsSpecial() {
 			err := h.Validator.FullValid(block)
 			if err == nil {
-				pbft_log.Info(fmt.Sprintf("StateHandler#broadcastProposal  Get a good block from pool. CurMiss (H: %v, R: %v, S:%s)", h.bs.Height, h.bs.Round, h.bs.Step))
+				log.PBft.Info(fmt.Sprintf("StateHandler#broadcastProposal  Get a good block from pool. CurMiss (H: %v, R: %v, S:%s)", h.bs.Height, h.bs.Round, h.bs.Step))
 				break
 			} else {
-				pbft_log.Error("StateHandler#broadcastProposal  valid propose block failed", "block hash", block.Hash().Hex(), "result", err)
+				log.PBft.Error("StateHandler#broadcastProposal  valid propose block failed", "block hash", block.Hash().Hex(), "result", err)
 			}
 			block = h.blockPool.GetProposalBlock()
 		}
 
 		//No valid block in pool
 		if block == nil {
-			pbft_log.Info(fmt.Sprintf("StateHandler#broadcastProposal  No valid block in pool, stop propose. CurMiss (H: %v, R: %v, S:%s)", h.bs.Height, h.bs.Round, h.bs.Step))
+			log.PBft.Info(fmt.Sprintf("StateHandler#broadcastProposal  No valid block in pool, stop propose. CurMiss (H: %v, R: %v, S:%s)", h.bs.Height, h.bs.Round, h.bs.Step))
 			return
 		}
 	}
 
+	//log.PBft.Info("[onEnterPropose] get the proposal block is:","block",block)
 
 	msg := model2.Proposal{
 		Height:    h.bs.Height,
@@ -428,21 +428,21 @@ func (h *StateHandler) onEnterPropose() {
 	case preStep == model2.RoundStepPropose && curStep == model2.RoundStepPreVote:
 		h.onEnterPrevote()
 	default:
-		pbft_log.Info("propose time out", "pre", preStep, "new", curStep)
+		log.PBft.Info("propose time out", "pre", preStep, "new", curStep)
 	}
 }
 
 //New functions
 func (h *StateHandler) finalBlock(block model.AbstractBlock, commits []model.AbstractVerification) {
-	health_info_log.Info("enter final block", "num", block.Number())
+	log.Health.Info("enter final block", "num", block.Number())
 	err := h.ChainReader.SaveBlock(block, commits)
 	if err != nil {
-		health_info_log.Warn("pbft save block failed", "err", err)
+		log.Health.Warn("pbft save block failed", "err", err)
 		if err.Error() != g_error.ErrAlreadyHaveThisBlock.Error() {
 			return
 		}
 	}
-	health_info_log.Info("pbft save block success, broadcast it", "block", block.Number())
+	log.Health.Info("pbft save block success, broadcast it", "block", block.Number())
 	// broadcast result
 	h.Sender.BroadcastEiBlock(block)
 	// change to new height, clear block pool
@@ -453,7 +453,7 @@ func (h *StateHandler) onEnterPrevote() {
 	h.ticker.ScheduleTimeout(components.TimeoutInfo{Duration: h.timeoutConfig.WaitNewRound, Height: h.bs.Height, Round: h.bs.Round, Step: model2.RoundStepPreVote})
 	voteMsg := h.bs.makePrevote()
 
-	pbft_log.Debug(fmt.Sprintf("EnterPrevote (H: %v, R: %v, S: %v)",h.bs.Height,h.bs.Round,h.bs.Step))
+	log.PBft.Debug(fmt.Sprintf("EnterPrevote (H: %v, R: %v, S: %v)", h.bs.Height, h.bs.Round, h.bs.Step))
 
 	if voteMsg != nil {
 		h.signAndPrevote(voteMsg)
@@ -461,9 +461,11 @@ func (h *StateHandler) onEnterPrevote() {
 }
 
 func (h *StateHandler) onNewRoundTimeout() {
-	pbft_log.Info("[StateHandler-onNewRoundTimeout]")
+	log.PBft.Info("[StateHandler-onNewRoundTimeout]")
 	//Ignore this timeout when already entered other steps.
-	if h.bs.Step != model2.RoundStepNewRound{ return }
+	if h.bs.Step != model2.RoundStepNewRound {
+		return
+	}
 
 	reqAddresses := h.bs.getNewRoundReqList()
 	h.broadcastReqRoundMsg(reqAddresses)
@@ -481,54 +483,54 @@ func (h *StateHandler) onEnterPrecommit() {
 	h.ticker.ScheduleTimeout(components.TimeoutInfo{Duration: h.timeoutConfig.WaitNewRound, Height: h.bs.Height, Round: h.bs.Round, Step: model2.RoundStepPreCommit})
 	voteMsg := h.bs.makeVote()
 
-	pbft_log.Debug(fmt.Sprintf("EnterPrecommit (H: %v, R: %v, S: %v)",h.bs.Height,h.bs.Round,h.bs.Step))
+	log.PBft.Debug(fmt.Sprintf("EnterPrecommit (H: %v, R: %v, S: %v)", h.bs.Height, h.bs.Round, h.bs.Step))
 	if voteMsg != nil {
 		h.signAndVote(voteMsg)
 	}
 }
 
 func (h *StateHandler) onProposeTimeout() {
-	pbft_log.Info("[StateHandler-onProposeTimeout]")
+	log.PBft.Info("[StateHandler-onProposeTimeout]")
 	preStep := h.bs.Step
 	h.bs.OnProposeTimeout()
 	curStep := h.bs.Step
 
 	switch {
 	case preStep == model2.RoundStepPropose && curStep == model2.RoundStepNewRound:
-		pbft_log.Info("[StateHandler-onProposeTimeout]:onEnterNewRound")
+		log.PBft.Info("[StateHandler-onProposeTimeout]:onEnterNewRound")
 		h.onEnterNewRound()
 	default:
-		pbft_log.Info("[StateHandler-onProposeTimeout]:block pool not empty", "pre", preStep, "new", curStep)
+		log.PBft.Info("[StateHandler-onProposeTimeout]:block pool not empty", "pre", preStep, "new", curStep)
 	}
 }
 
 func (h *StateHandler) onPreVoteTimeout() {
-	pbft_log.Info("[StateHandler-onPreVoteTimeout]")
+	log.PBft.Info("[StateHandler-onPreVoteTimeout]")
 	preStep := h.bs.Step
 	h.bs.OnPreVoteTimeout()
 	curStep := h.bs.Step
 
 	switch {
 	case preStep == model2.RoundStepPreVote && curStep == model2.RoundStepNewRound:
-		pbft_log.Info("[StateHandler-onPreVoteTimeout]:onEnterNewRound")
+		log.PBft.Info("[StateHandler-onPreVoteTimeout]:onEnterNewRound")
 		h.onEnterNewRound()
 	default:
-		pbft_log.Info("[StateHandler-onPreVoteTimeout]: prevote time out", "pre", preStep, "new", curStep)
+		log.PBft.Info("[StateHandler-onPreVoteTimeout]: prevote time out", "pre", preStep, "new", curStep)
 	}
 }
 
 func (h *StateHandler) onPreCommitTimeout() {
-	pbft_log.Info("[StateHandler-onPreCommitTimeout]")
+	log.PBft.Info("[StateHandler-onPreCommitTimeout]")
 	preStep := h.bs.Step
 	h.bs.OnPreCommitTimeout()
 	curStep := h.bs.Step
 
 	switch {
 	case preStep == model2.RoundStepPreCommit && curStep == model2.RoundStepNewRound:
-		pbft_log.Info("[StateHandler-onPreCommitTimeout]:onEnterNewRound")
+		log.PBft.Info("[StateHandler-onPreCommitTimeout]:onEnterNewRound")
 		h.onEnterNewRound()
 	default:
-		pbft_log.Info("[StateHandler-onPreCommitTimeout]:precommit time out", "pre", preStep, "new", curStep)
+		log.PBft.Info("[StateHandler-onPreCommitTimeout]:precommit time out", "pre", preStep, "new", curStep)
 	}
 }
 
@@ -608,10 +610,10 @@ func (h *StateHandler) GetProposalBlock(hash common.Hash) model.AbstractBlock {
 	}
 	result := make(chan model.AbstractBlock)
 	h.getProposalBlockChan <- getProposalBlockMsg{
-		hash: hash,
+		hash:       hash,
 		resultChan: result,
 	}
-	return <- result
+	return <-result
 }
 
 func (h *StateHandler) onGetProposalBlock(msg getProposalBlockMsg) {
@@ -642,6 +644,6 @@ func (h *StateHandler) GetRoundMsg(height, round uint64) *model2.NewRoundMsg {
 	return msg
 }
 
-func (h *StateHandler) SetFetcher(fetcher components.Fetcher){
+func (h *StateHandler) SetFetcher(fetcher components.Fetcher) {
 	h.Fetcher = fetcher
 }

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package g_error
 
 import "errors"
@@ -55,28 +54,27 @@ var (
 	//ErrAlreadyHaveThisBlock is returned when
 	ErrAlreadyHaveThisBlock = errors.New("already have this block")
 
-	ErrBlockHeightTooLow = errors.New("block height too low")
+	ErrBlockHeightTooLow                   = errors.New("block height too low")
 	ErrBlockHeightIsCurrentAndIsNotSpecial = errors.New("block height is the same as current block height and isn't empty block")
-	ErrBlockSizeTooLarge = errors.New("block size too large")
-
+	ErrBlockSizeTooLarge                   = errors.New("block size too large")
 
 	ErrBlockNotFound     = errors.New("block not found")
 	ErrCurrentBlockIsNil = errors.New("current block is nil")
 
-	ErrPreBlockIsNil = errors.New("pre block cannot be null")
+	ErrPreBlockIsNil        = errors.New("pre block cannot be null")
 	ErrPreBlockHashNotMatch = errors.New("pre block hash not match")
 
 	ErrSpecialInvalidCoinBase = errors.New("invalid special block CoinBase address")
-	ErrInvalidDiff = errors.New("invalid difficulty for this block")
-	ErrWrongHashDiff = errors.New("block hash not valid for difficulty")
+	ErrInvalidDiff            = errors.New("invalid difficulty for this block")
+	ErrWrongHashDiff          = errors.New("block hash not valid for difficulty")
 
-
-	ErrNotGetPk = errors.New("can not get pk from header")
-	ErrSeedNotMatch = errors.New("block seed not match")
+	ErrNotGetPk        = errors.New("can not get pk from header")
+	ErrSeedNotMatch    = errors.New("block seed not match")
 	ErrPkNotIsCoinBase = errors.New("pk not belongs to CoinBase")
 
-
-	ErrBlockVer		= errors.New("block version not accept")
+	ErrBlockVer       = errors.New("block version not accept")
 	ErrBlockTimeStamp = errors.New("the block time stamp is invalid")
 
+	ErrReceiptIsNil    = errors.New("the transaction receipt is nil")
+	ErrReceiptNotFound = errors.New("the transaction receipt not found")
 )

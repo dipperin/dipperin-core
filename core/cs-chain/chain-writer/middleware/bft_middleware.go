@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package middleware
 
 import (
@@ -50,14 +49,8 @@ func NewBftBlockContextWithoutVotes(b model.AbstractBlock, chain ChainInterface)
 	return bc
 }
 
-
-
-
-
-
-
 func NewBftBlockValidator(chain ChainInterface) *BftBlockValidator {
-	return &BftBlockValidator{ Chain: chain }
+	return &BftBlockValidator{Chain: chain}
 }
 
 type BftBlockValidator struct {
@@ -72,15 +65,17 @@ func (v *BftBlockValidator) Valid(b model.AbstractBlock) error {
 		c.Use(ValidateBlockDifficulty(c))
 	}
 	c.Use(ValidateBlockVersion(c))
-	c.Use(ValidateBlockSize(c))
+	//c.Use(ValidateBlockSize(c))
 	c.Use(ValidateBlockHash(c))
 	c.Use(ValidateBlockCoinBase(c))
 	c.Use(ValidateSeed(c))
 	c.Use(ValidateBlockTime(c))
+	c.Use(ValidateGasLimit(c))
 	c.Use(ValidateBlockTxs(c))
 	c.Use(ValidateVotesForBFT(c))
 
 	c.Use(ValidStateRoot(c))
+	c.Use(ValidGasUsedAndReceipts(c))
 	c.Use(ValidBlockVerifier(c))
 	return c.Process()
 }

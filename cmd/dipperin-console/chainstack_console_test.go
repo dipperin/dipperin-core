@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package dipperin_console
 
 import (
@@ -66,7 +65,7 @@ func TestNewConsole1(t *testing.T) {
 	historyFilePath = "/tmp/aaa/cs_command_history.txt"
 	os.RemoveAll(filepath.Dir(historyFilePath))
 	assert.Panics(t, func() {
-		NewConsole(func(command string) {}, config.DipperinCliCompleter)
+		NewConsole(func(command string) {}, config.DipperinCliCompleterNew)
 	})
 }
 

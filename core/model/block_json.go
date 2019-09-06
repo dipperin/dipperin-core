@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
@@ -29,54 +28,75 @@ import (
 
 func (h Header) MarshalJSON() ([]byte, error) {
 	type Header struct {
-		Version          hexutil.Uint64    `json:"version"  gencodec:"required"`
-		Number           hexutil.Uint64    `json:"number"  gencodec:"required"`
-		PreHash          common.Hash       `json:"pre_hash"  gencodec:"required"`
-		Seed             common.Hash       `json:"seed"  gencodec:"required"`
-		Diff             common.Difficulty `json:"diff"  gencodec:"required"`
-		TimeStamp        *hexutil.Big      `json:"timestamp"  gencodec:"required"`
-		CoinBase         common.Address    `json:"coinbase"  gencodec:"required"`
-		Nonce            common.BlockNonce `json:"nonce"  gencodec:"required"`
-		Bloom            iblt.BloomRLP     `json:"Bloom"        gencodec:"required"`
-		TransactionRoot  common.Hash       `json:"txs_root"   gencodec:"required"`
-		StateRoot        common.Hash       `json:"state_root" gencodec:"required"`
-		HeaderRoot       common.Hash       `json:"header_root"  gencodec:"required"`
-		VerificationRoot common.Hash       `json:"verification_root"  gencodec:"required"`
-		InterLinksRoot   common.Hash       `json:"interlink_root"  gencodec:"required"`
+		Version     hexutil.Uint64    `json:"version"  gencodec:"required"`
+		Number      hexutil.Uint64    `json:"number"  gencodec:"required"`
+		Seed        common.Hash       `json:"seed"  gencodec:"required"`
+		Proof       []byte            `json:"proof"  gencodec:"required"`
+		MinerPubKey []byte            `json:"miner_pub_key"  gencodec:"required"`
+		PreHash     common.Hash       `json:"pre_hash"  gencodec:"required"`
+		Diff        common.Difficulty `json:"diff"  gencodec:"required"`
+		TimeStamp   *hexutil.Big      `json:"timestamp"  gencodec:"required"`
+		CoinBase    common.Address    `json:"coinbase"  gencodec:"required"`
+		GasLimit    hexutil.Uint64    `json:"gasLimit"         gencodec:"required"`
+		GasUsed     hexutil.Uint64    `json:"gasUsed"          gencodec:"required"`
+		Nonce       common.BlockNonce `json:"nonce"  gencodec:"required"`
+		Bloom       iblt.BloomRLP     `json:"Bloom"        gencodec:"required"`
+		//BloomLog         model.Bloom       `json:"bloom_log" gencodec:"required"`
+		TransactionRoot  common.Hash `json:"txs_root"   gencodec:"required"`
+		StateRoot        common.Hash `json:"state_root" gencodec:"required"`
+		VerificationRoot common.Hash `json:"verification_root"  gencodec:"required"`
+		InterlinkRoot    common.Hash `json:"interlink_root"  gencodec:"required"`
+		RegisterRoot     common.Hash `json:"register_root"  gencodec:"required"`
+		ReceiptHash      common.Hash `json:"receiptsRoot"     gencodec:"required"`
 	}
+
 	var enc Header
 	enc.Version = hexutil.Uint64(h.Version)
 	enc.Number = hexutil.Uint64(h.Number)
-	enc.PreHash = h.PreHash
 	enc.Seed = h.Seed
+	enc.Proof = h.Proof
+	enc.MinerPubKey = h.MinerPubKey
+	enc.PreHash = h.PreHash
+
 	enc.Diff = h.Diff
 	enc.TimeStamp = (*hexutil.Big)(h.TimeStamp)
 	enc.CoinBase = h.CoinBase
+	enc.GasLimit = (hexutil.Uint64)(h.GasLimit)
+	enc.GasUsed = (hexutil.Uint64)(h.GasUsed)
 	enc.Nonce = h.Nonce
 	enc.Bloom = *h.Bloom.BloomRLP()
 	enc.TransactionRoot = h.TransactionRoot
 	enc.StateRoot = h.StateRoot
 	enc.VerificationRoot = h.VerificationRoot
-	enc.InterLinksRoot = h.InterlinkRoot
+	enc.InterlinkRoot = h.InterlinkRoot
+	enc.RegisterRoot = h.RegisterRoot
+	enc.ReceiptHash = h.ReceiptHash
+	//enc.BloomLog = h.BloomLogs
 	return json.Marshal(&enc)
 }
 
 func (h *Header) UnmarshalJSON(input []byte) error {
 	type Header struct {
-		Version          *hexutil.Uint64    `json:"version"  gencodec:"required"`
-		Number           *hexutil.Uint64    `json:"number"  gencodec:"required"`
-		PreHash          *common.Hash       `json:"pre_hash"  gencodec:"required"`
-		Seed             *common.Hash       `json:"seed"  gencodec:"required"`
-		Diff             *common.Difficulty `json:"diff"  gencodec:"required"`
-		TimeStamp        *hexutil.Big       `json:"timestamp"  gencodec:"required"`
-		CoinBase         *common.Address    `json:"coinbase"  gencodec:"required"`
-		Nonce            *common.BlockNonce `json:"nonce"  gencodec:"required"`
-		Bloom            *iblt.BloomRLP     `json:"Bloom"        gencodec:"required"`
-		TransactionRoot  *common.Hash       `json:"txs_root"   gencodec:"required"`
-		StateRoot        *common.Hash       `json:"state_root" gencodec:"required"`
-		HeaderRoot       *common.Hash       `json:"header_root"  gencodec:"required"`
-		VerificationRoot *common.Hash       `json:"verification_root"  gencodec:"required"`
-		InterLinksRoot   *common.Hash       `json:"interlink_root"  gencodec:"required"`
+		Version     *hexutil.Uint64    `json:"version"  gencodec:"required"`
+		Number      *hexutil.Uint64    `json:"number"  gencodec:"required"`
+		Seed        *common.Hash       `json:"seed"  gencodec:"required"`
+		Proof       *[]byte            `json:"proof"  gencodec:"required"`
+		MinerPubKey *[]byte            `json:"miner_pub_key"  gencodec:"required"`
+		PreHash     *common.Hash       `json:"pre_hash"  gencodec:"required"`
+		Diff        *common.Difficulty `json:"diff"  gencodec:"required"`
+		TimeStamp   *hexutil.Big       `json:"timestamp"  gencodec:"required"`
+		CoinBase    *common.Address    `json:"coinbase"  gencodec:"required"`
+		GasLimit    *hexutil.Uint64    `json:"gasLimit"         gencodec:"required"`
+		GasUsed     *hexutil.Uint64    `json:"gasUsed"          gencodec:"required"`
+		Nonce       *common.BlockNonce `json:"nonce"  gencodec:"required"`
+		Bloom       *iblt.BloomRLP     `json:"Bloom"        gencodec:"required"`
+		//BloomLog         *model.Bloom       `json:"bloom_log" gencodec:"required"`
+		TransactionRoot  *common.Hash `json:"txs_root"   gencodec:"required"`
+		StateRoot        *common.Hash `json:"state_root" gencodec:"required"`
+		VerificationRoot *common.Hash `json:"verification_root"  gencodec:"required"`
+		InterlinkRoot    *common.Hash `json:"interlink_root"  gencodec:"required"`
+		RegisterRoot     *common.Hash `json:"register_root"  gencodec:"required"`
+		ReceiptHash      *common.Hash `json:"receiptsRoot"     gencodec:"required"`
 	}
 	var dec Header
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -90,16 +110,24 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'number' for Header")
 	}
 	h.Number = uint64(*dec.Number)
-	if dec.PreHash == nil {
-		return errors.New("missing required field 'prehash' for Header")
-	}
-	h.PreHash = *dec.PreHash
 	if dec.Seed == nil {
 		return errors.New("missing required field 'seed' for Header")
 	}
 	h.Seed = *dec.Seed
+	if dec.Proof == nil {
+		return errors.New("missing required field 'proof' for Header")
+	}
+	h.Proof = *dec.Proof
+	if dec.MinerPubKey == nil {
+		return errors.New("missing required field 'minerPubKey' for Header")
+	}
+	h.MinerPubKey = *dec.MinerPubKey
+	if dec.PreHash == nil {
+		return errors.New("missing required field 'preHash' for Header")
+	}
+	h.PreHash = *dec.PreHash
 	if dec.Diff == nil {
-		return errors.New("missing required field 'difficulty' for Header")
+		return errors.New("missing required field 'difficult' for Header")
 	}
 	h.Diff = *dec.Diff
 	if dec.TimeStamp == nil {
@@ -107,9 +135,17 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 	}
 	h.TimeStamp = (*big.Int)(dec.TimeStamp)
 	if dec.CoinBase == nil {
-		return errors.New("missing required field 'coinbase' for Header")
+		return errors.New("missing required field 'coinBase' for Header")
 	}
 	h.CoinBase = *dec.CoinBase
+	if dec.GasLimit == nil {
+		return errors.New("missing required field 'gasLimit' for Header")
+	}
+	h.GasLimit = uint64(*dec.GasLimit)
+	if dec.GasUsed == nil {
+		return errors.New("missing required field 'gasUsed' for Header")
+	}
+	h.GasUsed = uint64(*dec.GasUsed)
 	if dec.Nonce == nil {
 		return errors.New("missing required field 'nonce' for Header")
 	}
@@ -119,22 +155,34 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 	}
 	h.Bloom = iblt.NewBloom(dec.Bloom.Config)
 	dec.Bloom.CBloom(h.Bloom)
+	//if dec.BloomLog == nil {
+	//	return errors.New("missing required field 'bloomLog' for Header")
+	//}
+	//h.BloomLogs = *dec.BloomLog
 	if dec.TransactionRoot == nil {
 		return errors.New("missing required field 'transactionRoot' for Header")
 	}
 	h.TransactionRoot = *dec.TransactionRoot
 	if dec.StateRoot == nil {
-		return errors.New("missing required field 'stateRoot ' for Header")
+		return errors.New("missing required field 'stateRoot' for Header")
 	}
 	h.StateRoot = *dec.StateRoot
 	if dec.VerificationRoot == nil {
 		return errors.New("missing required field 'verificationRoot' for Header")
 	}
 	h.VerificationRoot = *dec.VerificationRoot
-	if dec.InterLinksRoot == nil {
+	if dec.InterlinkRoot == nil {
 		return errors.New("missing required field 'interlinkRoot' for Header")
 	}
-	h.InterlinkRoot = *dec.InterLinksRoot
+	h.InterlinkRoot = *dec.InterlinkRoot
+	if dec.RegisterRoot == nil {
+		return errors.New("missing required field 'registerRoot' for Header")
+	}
+	h.RegisterRoot = *dec.RegisterRoot
+	if dec.ReceiptHash == nil {
+		return errors.New("missing required field 'receiptHash' for Header")
+	}
+	h.ReceiptHash = *dec.ReceiptHash
 	return nil
 }
 
@@ -177,7 +225,6 @@ func (b *Body) UnmarshalJSON(input []byte) error {
 	return blockJsonHandler.DecodeBody(b, input)
 }
 
-
 var blockJsonHandler BlockJsonHandler
 
 func init() {
@@ -193,7 +240,7 @@ type BlockJsonHandler interface {
 	DecodeBody(to *Body, input []byte) error
 }
 
-type PBFTBlockJsonHandler struct {}
+type PBFTBlockJsonHandler struct{}
 
 func (h *PBFTBlockJsonHandler) DecodeBody(to *Body, input []byte) error {
 	var from PBFTBody
@@ -210,5 +257,3 @@ func (h *PBFTBlockJsonHandler) DecodeBody(to *Body, input []byte) error {
 	to.Inters = from.Inters
 	return nil
 }
-
-

@@ -22,13 +22,13 @@ import (
 )
 
 func TestDipperinDebugApi_Metrics(t *testing.T) {
-	api := &DipperinDebugApi{ service: &fakeDS{} }
+	api := &DipperinDebugApi{service: &fakeDS{}}
 	_, err := api.Metrics(true)
 	assert.NoError(t, err)
 	api.PrintGos()
 }
 
-type fakeDS struct {}
+type fakeDS struct{}
 
 func (fds *fakeDS) Metrics(raw bool) (map[string]interface{}, error) {
 	return nil, nil

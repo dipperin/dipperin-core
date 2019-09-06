@@ -24,20 +24,16 @@ import (
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
-	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"math/big"
 	"sync"
 	"time"
 
+	"github.com/dipperin/dipperin-core/common/g-timer"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 	"math"
 	"sort"
-	"github.com/dipperin/dipperin-core/common/g-timer"
-	"github.com/dipperin/dipperin-core/common/g-error"
-	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 )
 
 //go:generate mockgen -destination=./block_chain_mock_test.go -package=tx_pool github.com/dipperin/dipperin-core/core/tx-pool BlockChain
@@ -121,6 +117,7 @@ func (pool *TxPool) Reset(oldHead, newHead *model.Header) {
 	defer pool.mu.Unlock()
 	pool.reset(oldHead, newHead)
 }
+
 // TODO
 func (pool *TxPool) reset(oldHead, newHead *model.Header) {
 	// If we're reorging an old state, reinject all dropped transactions
@@ -357,9 +354,9 @@ func (pool *TxPool) enqueueTx(hash common.Hash, tx model.AbstractTransaction) (b
 func (pool *TxPool) validateTx(tx model.AbstractTransaction, local bool) error {
 
 	// Heuristic limit, reject transactions over 32KB to prevent DOS attacks
-	if err := middleware.ValidTxSize(tx); err != nil {
+	/*	if err := middleware.ValidTxSize(tx); err != nil {
 		return g_error.ErrTxOverSize
-	}
+	}*/
 	// Transactions can't be negative. This may never happen using RLP decoded
 	// transactions but may occur if you create a transaction using the RPC.
 	if tx.Amount().Sign() < 0 {
@@ -376,9 +373,16 @@ func (pool *TxPool) validateTx(tx model.AbstractTransaction, local bool) error {
 	//log.Info("[validateTx] the local is:", "local", local)
 	//log.Info("[validateTx] the pool.config.MinFee is: ", "mineFee", pool.config.MinFee)
 	//log.Info("[validateTx] the tx.fee is: ", "txFee", tx.Fee())
-	if !local && economy_model.GetMinimumTxFee(tx.Size()).Cmp(tx.Fee()) > 0 {
-		return fmt.Errorf("tx fee is too low, need: %v got: %v", pool.config.MinFee, tx.Fee())
+
+	gas, err := model.IntrinsicGas(tx.ExtraData(), tx.GetType() == common.AddressTypeContractCreate, true)
+	if err != nil {
+		return err
 	}
+
+	if gas > tx.GetGasLimit() {
+		return fmt.Errorf("gas limit is to low, need:%v got:%v", gas, tx.GetGasLimit())
+	}
+
 	// Ensure the transaction adheres to nonce ordering
 	curNonce, err := pool.currentState.GetNonce(from)
 	//log.Info("the curNonce is:", "curNonce", curNonce)
@@ -424,14 +428,14 @@ func (pool *TxPool) add(tx model.AbstractTransaction, local bool) (bool, error) 
 		// If the new transaction is underpriced, don't accept it
 		if !local && pool.feeList.UnderPriced(tx, pool.locals) {
 
-			log.Debug("Discarding underpriced transaction", "hash", hash, "fee", tx.Fee())
+			log.Debug("Discarding underpriced transaction", "hash", hash, "gasPrice", tx.GetGasPrice())
 
 			return false, errors.New("transaction items too much")
 		}
 		// New transaction is better than worse ones, make room for it
 		drop := pool.feeList.Discard(pool.all.Count()-int(pool.config.GlobalSlots+pool.config.GlobalQueue-1), pool.locals)
 		for _, tx := range drop {
-			log.Debug("Discarding freshly underpriced transaction", "hash", tx.CalTxId(), "fee", tx.Fee())
+			log.Debug("Discarding freshly underpriced transaction", "hash", tx.CalTxId(), "gasPrice", tx.GetGasPrice())
 			pool.removeTx(tx.CalTxId(), false)
 		}
 	}
@@ -754,7 +758,6 @@ func (pool *TxPool) promoteExecutables(accounts []common.Address) {
 			}
 		}
 	}
-
 }
 
 // demoteUnexecutables removes invalid and processed transactions from the pools
@@ -765,7 +768,7 @@ func (pool *TxPool) demoteUnexecutables() {
 	for addr, list := range pool.pending {
 		nonce, _ := pool.currentState.GetNonce(addr)
 
-		// Drop all transactions that are deemed too old (low nonce)
+		// Drop all transbuild dipperin-core failedactions that are deemed too old (low nonce)
 		for _, tx := range list.FilterNonce(nonce) {
 			hash := tx.CalTxId()
 			log.Debug("Removed old pending transaction", "hash", hash)
@@ -895,7 +898,7 @@ func (pool *TxPool) addTx(tx model.AbstractTransaction, local bool) error {
 		from, _ := tx.Sender(pool.signer) // already validated
 		pool.promoteExecutables([]common.Address{from})
 	}
-	pbft_log.Debug("Add tx success", "txid", tx.CalTxId().Hex())
+	log.PBft.Debug("Add tx success", "txid", tx.CalTxId().Hex())
 	return nil
 }
 

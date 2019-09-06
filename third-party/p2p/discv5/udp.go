@@ -25,11 +25,11 @@ import (
 	"time"
 
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p/nat"
 	"github.com/dipperin/dipperin-core/third-party/p2p/netutil"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 )
 
 const Version = 4

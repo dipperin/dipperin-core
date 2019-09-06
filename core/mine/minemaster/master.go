@@ -14,18 +14,17 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package minemaster
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-event"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 	"time"
-	"fmt"
-	"github.com/dipperin/dipperin-core/common/g-event"
 )
 
 var waitTimeout = 20 * time.Second
@@ -34,12 +33,12 @@ func newMaster(config MineConfig) *master {
 	m := &master{
 		MineConfig: config,
 
-		workers: map[WorkerId]WorkerForMaster{},
-		registerWorkerChan: make(chan WorkerForMaster),
+		workers:              map[WorkerId]WorkerForMaster{},
+		registerWorkerChan:   make(chan WorkerForMaster),
 		unRegisterWorkerChan: make(chan WorkerId),
-		onNewBlockChan: make(chan model.AbstractBlock),
-		startTimerChan: make(chan struct{}),
-		timeoutChan: make(chan struct{}),
+		onNewBlockChan:       make(chan model.AbstractBlock),
+		startTimerChan:       make(chan struct{}),
+		timeoutChan:          make(chan struct{}),
 	}
 	return m
 }
@@ -47,20 +46,20 @@ func newMaster(config MineConfig) *master {
 type master struct {
 	MineConfig
 
-	workers         map[WorkerId]WorkerForMaster
+	workers map[WorkerId]WorkerForMaster
 
 	workDispatcher dispatcher
-	workManager workManager
+	workManager    workManager
 
 	// control the reception of OnNewBlock to prevent the repeated launch of reset task
 	curNewBlockHeight uint64
 
-	registerWorkerChan chan WorkerForMaster
+	registerWorkerChan   chan WorkerForMaster
 	unRegisterWorkerChan chan WorkerId
-	onNewBlockChan chan model.AbstractBlock
-	startTimerChan chan struct{}
-	timeoutChan chan struct{}
-	stopChan chan struct{}
+	onNewBlockChan       chan model.AbstractBlock
+	startTimerChan       chan struct{}
+	timeoutChan          chan struct{}
+	stopChan             chan struct{}
 
 	stopTimerFunc func()
 }
@@ -102,7 +101,7 @@ func (ms *master) loop() {
 
 	for {
 		select {
-		case b := <- newBlockInsertChan:
+		case b := <-newBlockInsertChan:
 			ms.doOnNewBlock(&b)
 
 		case worker := <-ms.registerWorkerChan:
@@ -112,17 +111,17 @@ func (ms *master) loop() {
 			//}
 			ms.workers[worker.GetId()] = worker
 
-		case wId := <- ms.unRegisterWorkerChan:
+		case wId := <-ms.unRegisterWorkerChan:
 			log.Info("un register worker", "w id", wId)
 			if ms.workers[wId] != nil {
 				ms.workers[wId].Stop()
 			}
 			delete(ms.workers, wId)
 
-		case block := <- ms.onNewBlockChan:
+		case block := <-ms.onNewBlockChan:
 			ms.doOnNewBlock(block)
 
-		case <- ms.startTimerChan:
+		case <-ms.startTimerChan:
 			log.Info("start mine wait timer")
 			ms.stopWait()
 
@@ -134,7 +133,7 @@ func (ms *master) loop() {
 				ms.timeoutChan <- struct{}{}
 			}, waitTimeout)
 
-		case <- ms.timeoutChan:
+		case <-ms.timeoutChan:
 			//log.Info("on timeout chan")
 			ms.stopWait()
 			log.Warn("wait block verified timeout, dispatch a new work")
@@ -142,7 +141,7 @@ func (ms *master) loop() {
 				log.Error(fmt.Sprintf("master dispatch work failed, err: %v, w len: %v", err, len(ms.workers)))
 			}
 
-		case <- ms.stopChan:
+		case <-ms.stopChan:
 			//log.Info("on stop chan")
 
 			ms.stopWait()
@@ -180,7 +179,6 @@ func (ms *master) Start() {
 	go ms.loop()
 	// wait local worker connect
 
-
 	log.Info("start mine workers", "worker len", len(ms.workers))
 	for _, w := range ms.workers {
 		w.Start()
@@ -213,6 +211,11 @@ func (ms *master) SetCoinbaseAddress(addr common.Address) {
 	ms.CoinbaseAddress.Store(addr)
 }
 
+func (ms *master) SetMineGasConfig(gasFloor, gasCeil uint64) {
+	ms.GasFloor.Store(gasFloor)
+	ms.GasCeil.Store(gasCeil)
+}
+
 func (ms *master) stopped() bool {
 	return util.StopChanClosed(ms.stopChan)
 }
@@ -228,6 +231,7 @@ func (ms *master) OnNewBlock(block model.AbstractBlock) {
 //
 func (ms *master) doOnNewBlock(block model.AbstractBlock) {
 	log.Info("on new block chan", "new block", block.Number(), "cur block height", ms.curNewBlockHeight)
+
 	if block.Number() <= ms.curNewBlockHeight {
 		return
 	}

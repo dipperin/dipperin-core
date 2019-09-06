@@ -20,7 +20,6 @@ import (
 	"encoding/binary"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 )
 
 func MakeDefaultWorkBuilder() *DefaultWorkBuilder {
@@ -42,7 +41,7 @@ func (builder *DefaultWorkBuilder) BuildWorks(newBlock model.AbstractBlock, work
 		newHeader := *header
 		binary.BigEndian.PutUint32(newHeader.Nonce[:4], uint32(i))
 
-		pbft_log.Info("BuildWorks", "verRoot", newHeader.VerificationRoot.Hex(), "register root", newHeader.RegisterRoot)
+		log.PBft.Info("BuildWorks", "verRoot", newHeader.VerificationRoot.Hex(), "register root", newHeader.RegisterRoot)
 		works = append(works, &DefaultWork{BlockHeader: newHeader})
 	}
 	workMsgCode = NewDefaultWorkMsg

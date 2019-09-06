@@ -17,16 +17,15 @@
 package registerdb
 
 import (
+	"bytes"
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/rlp"
-	"bytes"
-	"github.com/dipperin/dipperin-core/core/chain-config"
 )
 
 var (
@@ -124,10 +123,9 @@ func (register RegisterDB) GetRegisterData() []common.Address {
 }
 
 func (register RegisterDB) Process(block model.AbstractBlock) (err error) {
-	//log.Debug("r db process", "tx len", block.TxCount(), "block num", block.Number())
+	log.Debug("r db process", "tx len", block.TxCount(), "block num", block.Number())
 	//　get all register data
-	if err := block.TxIterator(func(index int, tx model.AbstractTransaction) (error) {
-		//log.Debug("r db tx type", "t", tx.GetType(), "block num", block.Number())
+	if err := block.TxIterator(func(index int, tx model.AbstractTransaction) error {
 		switch tx.GetType() {
 		case common.AddressTypeCancel:
 			sender, innerError := tx.Sender(tx.GetSigner())
@@ -138,7 +136,7 @@ func (register RegisterDB) Process(block model.AbstractBlock) (err error) {
 			if err := register.deleteRegisterData(sender); err != nil {
 				return err
 			}
-			pbft_log.Info("deletedRegisterData", "sender", sender)
+			log.PBft.Info("deletedRegisterData", "sender", sender)
 			return nil
 
 		case common.AddressTypeStake:
@@ -151,7 +149,7 @@ func (register RegisterDB) Process(block model.AbstractBlock) (err error) {
 			if err := register.saveRegisterData(sender); err != nil {
 				return err
 			}
-			pbft_log.Info("savedRegisterData", "sender", sender)
+			log.PBft.Info("savedRegisterData", "sender", sender)
 			return nil
 
 		default:

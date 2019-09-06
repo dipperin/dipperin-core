@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package debug
 
 import (
@@ -85,6 +84,9 @@ func Setup(ctx *cli.Context) error {
 			return err
 		}
 	}
+
+	log.Info("the pprofFlag is:", "pprofFlag", ctx.GlobalBool(pprofFlag.Name))
+	log.Info("the pprofPortFlag is:", "pprofPortFlag", ctx.GlobalInt(pprofPortFlag.Name))
 
 	// pprof server
 	if ctx.GlobalBool(pprofFlag.Name) {

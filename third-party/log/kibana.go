@@ -1,18 +1,18 @@
 package log
 
-const(
-	CsTypeShow = "show"
+const (
+	CsTypeShow  = "show"
 	CsTypeDebug = "debug"
 )
 
 // log a tps tag
 func TagShowTps(msg string, ctx ...interface{}) {
-	ctx = append(ctx, "cs-type", CsTypeShow, "cs-item", "tps","env", "filebeat")
+	ctx = append(ctx, "cs-type", CsTypeShow, "cs-item", "tps", "env", "filebeat")
 	Agent(msg, ctx...)
 }
 
 func TagShowIPs(msg string, ctx ...interface{}) {
-	ctx = append(ctx, "cs-type", CsTypeShow, "cs-item", "ip","env", "filebeat")
+	ctx = append(ctx, "cs-type", CsTypeShow, "cs-item", "ip", "env", "filebeat")
 	Agent(msg, ctx...)
 }
 

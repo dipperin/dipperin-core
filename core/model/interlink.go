@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
@@ -59,7 +58,7 @@ func NewInterLink(preBlockLinks InterLink, curBlock AbstractBlock) InterLink {
 	}
 
 	//fmt.Println("maxLevel", maxLevel)
-	for i := 1; i <= maxLevel; i ++ {
+	for i := 1; i <= maxLevel; i++ {
 		if i < bound {
 			newLinks[i] = curBlock.PreHash()
 		} else {

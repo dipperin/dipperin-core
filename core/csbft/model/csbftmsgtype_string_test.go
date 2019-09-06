@@ -37,7 +37,6 @@ func TestCsBftMsgType_String(t *testing.T) {
 	}
 }
 
-
 func TestCsBftMsgType_String2(t *testing.T) {
 	n := CsBftMsgType(1)
 	n.String()

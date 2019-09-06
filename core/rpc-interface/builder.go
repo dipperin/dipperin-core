@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package rpc_interface
 
 import (
-	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/dipperin/dipperin-core/core/dipperin/service"
+	"github.com/dipperin/dipperin-core/third-party/rpc"
 )
 
-func MakeDipperinMercuryApi(service *service.MercuryFullChainService) *DipperinMercuryApi {
-	return &DipperinMercuryApi{service: service}
+func MakeDipperinVenusApi(service *service.VenusFullChainService) *DipperinVenusApi {
+	return &DipperinVenusApi{service: service}
 }
 
 func MakeDipperinDebugApi(service debugAPI) *DipperinDebugApi {
@@ -46,6 +45,6 @@ func MakeRpcService(conf nodeConf, apis []rpc.API, allowHosts []string) *Service
 		httpEndpoint: conf.HttpEndpoint(),
 		wsEndpoint:   conf.WsEndpoint(),
 		apis:         apis,
-		allowHosts: allowHosts,
+		allowHosts:   allowHosts,
 	}
 }

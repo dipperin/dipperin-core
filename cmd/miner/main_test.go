@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package main
 
 import (
@@ -35,20 +34,20 @@ func Test_action(t *testing.T) {
 	app := cli.NewApp()
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name: masterFlagName,
+			Name:  masterFlagName,
 			Usage: "master info",
 		},
 		cli.StringFlag{
-			Name: coinbaseFlagName,
+			Name:  coinbaseFlagName,
 			Usage: "coinbase",
 		},
 		cli.IntFlag{
-			Name: minerCountFlagName,
+			Name:  minerCountFlagName,
 			Usage: "number of miners",
 			Value: 1,
 		},
 		cli.StringFlag{
-			Name: config.P2PListenerFlagName,
+			Name:  config.P2PListenerFlagName,
 			Usage: "p2p port",
 			Value: ":62060",
 		},

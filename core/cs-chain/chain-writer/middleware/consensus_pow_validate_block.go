@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package middleware
 
 import (
@@ -23,10 +22,10 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 	"reflect"
 	"time"
@@ -41,7 +40,7 @@ import (
 	m.Use(UpdateState(bc))
 	m.Use(InsertBlock(bc))
 
- */
+*/
 func ValidateBlockNumber(c *BlockContext) Middleware {
 	return func() error {
 		if c.Chain == nil || c.Block == nil {
@@ -79,7 +78,7 @@ func ValidateBlockHash(c *BlockContext) Middleware {
 	return func() error {
 		preBlock := c.Chain.GetBlockByNumber(c.Block.Number() - 1)
 		preRv := reflect.ValueOf(preBlock)
-		if  !preRv.IsValid() || preRv.IsNil() {
+		if !preRv.IsValid() || preRv.IsNil() {
 			return g_error.ErrPreBlockIsNil
 		}
 
@@ -95,7 +94,7 @@ func ValidateBlockHash(c *BlockContext) Middleware {
 	}
 }
 
-func ValidateBlockSize(c *BlockContext) Middleware {
+/*func ValidateBlockSize(c *BlockContext) Middleware {
 	return func() error {
 		bb, err := rlp.EncodeToBytes(c.Block)
 		if err != nil {
@@ -106,7 +105,7 @@ func ValidateBlockSize(c *BlockContext) Middleware {
 		}
 		return c.Next()
 	}
-}
+}*/
 
 func ValidateBlockDifficulty(c *BlockContext) Middleware {
 	return func() error {
@@ -130,13 +129,15 @@ func ValidateBlockDifficulty(c *BlockContext) Middleware {
 
 		targetDiff := model.NewCalNewWorkDiff(preSpanBlock, findBlock, c.Block.Number()-1)
 		//targetDiff := model.CalNewWorkDiff(preSpanBlock, lastBlock)
-		//log.Info("the two Diff is:", "calc", targetDiff.Hex(), "block", c.Block.Difficulty().Hex())
 		if !targetDiff.Equal(c.Block.Difficulty()) {
 			return g_error.ErrInvalidDiff
 		}
 
 		// valid block hash for difficulty
+		log.Info("ValidateBlockDifficulty", "calculate difficulty", c.Block.RefreshHashCache().Hex(), "block difficulty", c.Block.Difficulty().DiffToTarget().Hex())
 		if !c.Block.RefreshHashCache().ValidHashForDifficulty(c.Block.Difficulty()) {
+			log.Error("ValidateBlockDifficulty failed")
+			fmt.Println(c.Block.Header().(*model.Header).String())
 			return g_error.ErrWrongHashDiff
 		}
 		return c.Next()
@@ -160,6 +161,7 @@ func ValidateSeed(c *BlockContext) Middleware {
 		block := c.Block
 		preBlockHeight := block.Number() - 1
 		preBlock := c.Chain.GetBlockByNumber(preBlockHeight)
+		log.Info("ValidateSeed#preBlock", "preBlock", preBlock)
 
 		seed := preBlock.Header().GetSeed().Bytes()
 		proof := block.Header().GetProof()
@@ -193,13 +195,39 @@ func ValidateBlockVersion(c *BlockContext) Middleware {
 	}
 }
 
-
 func ValidateBlockTime(c *BlockContext) Middleware {
 	return func() error {
 		blockTime := c.Block.Timestamp().Int64()
 		if time.Now().Add(c.Chain.GetChainConfig().BlockTimeRestriction).UnixNano() < blockTime {
 			return g_error.ErrBlockTimeStamp
 		}
+		return c.Next()
+	}
+}
+
+// valid gas limit
+func ValidateGasLimit(c *BlockContext) Middleware {
+	return func() error {
+		if c.Block.IsSpecial() {
+			return c.Next()
+
+		}
+		currentGasLimit := c.Block.Header().GetGasLimit()
+		// Verify that the gas limit is <= 2^63-1
+		if currentGasLimit > chain_config.MaxGasLimit {
+			return errors.New(fmt.Sprintf("invalid gasLimit: have %v, max %v", currentGasLimit, chain_config.MaxGasLimit))
+		}
+		parentGasLimit := c.Chain.GetLatestNormalBlock().Header().GetGasLimit()
+		diff := int64(currentGasLimit) - int64(parentGasLimit)
+		if diff < 0 {
+			diff *= -1
+		}
+		limit := parentGasLimit / model2.GasLimitBoundDivisor
+
+		if uint64(diff) >= limit || currentGasLimit < model2.MinGasLimit {
+			return errors.New(fmt.Sprintf("invalid gas limit: have %d, want %d += %d", currentGasLimit, parentGasLimit, limit))
+		}
+
 		return c.Next()
 	}
 }

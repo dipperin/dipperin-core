@@ -207,7 +207,7 @@ func TestBaseProtocolManager_handleMsg2(t *testing.T) {
 	_, r, err := rlp.EncodeToReader(data)
 	assert.NoError(t, err)
 
-	msg := p2p.Msg{Code: VerifyBlockHashResultMsg, Size: ProtocolMaxMsgSize*10, Payload: r}
+	msg := p2p.Msg{Code: VerifyBlockHashResultMsg, Size: ProtocolMaxMsgSize * 10, Payload: r}
 
 	mPeer.EXPECT().ReadMsg().Return(msg, nil)
 	assert.EqualError(t, bpm.handleMsg(mPeer), msgTooLargeErr.Error())

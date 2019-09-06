@@ -17,16 +17,14 @@
 package model
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
-
 
 func TestNewRand2(t *testing.T) {
 	nr := NewRand()
 	assert.NotNil(t, nr)
 }
-
 
 func TestSeed2(t *testing.T) {
 	Seed(1)
@@ -58,10 +56,6 @@ func TestAllFunctions(t *testing.T) {
 	RandPerm(2)
 
 }
-
-
-
-
 
 /*
 

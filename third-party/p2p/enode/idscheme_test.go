@@ -23,11 +23,11 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enr"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 )
 
 var (

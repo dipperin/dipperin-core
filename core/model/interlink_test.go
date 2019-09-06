@@ -17,12 +17,12 @@
 package model
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"fmt"
 )
 
 func TestNewInterLink(t *testing.T) {

@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_state
 
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
@@ -165,11 +165,24 @@ func (cs *ChainState) GetTransaction(txHash common.Hash) (model.AbstractTransact
 	return cs.ChainDB.GetTransaction(txHash)
 }
 
+func (cs *ChainState) GetReceipts(hash common.Hash, number uint64) model2.Receipts {
+	return cs.ChainDB.GetReceipts(hash, number)
+}
+
+func (cs *ChainState) GetBloomLog(hash common.Hash, number uint64) model2.Bloom {
+	receipts := cs.ChainDB.GetReceipts(hash, number)
+	return model2.CreateBloom(receipts)
+}
+
+func (cs *ChainState) GetBloomBits(head common.Hash, bit uint, section uint64) []byte {
+	return cs.ChainDB.GetBloomBits(head, bit, section)
+}
+
 func (cs *ChainState) GetLatestNormalBlock() model.AbstractBlock {
 	findBlock := cs.CurrentBlock()
 	for {
 		if findBlock.IsSpecial() {
-			findBlock = cs.GetBlockByNumber(findBlock.Number()-1)
+			findBlock = cs.GetBlockByNumber(findBlock.Number() - 1)
 		} else {
 			break
 		}

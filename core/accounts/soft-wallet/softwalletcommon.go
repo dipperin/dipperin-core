@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package soft_wallet
 
 import (
@@ -23,7 +22,7 @@ import (
 )
 
 //clear sensitive data
-func ClearSensitiveData(sensitiveData interface{}){
+func ClearSensitiveData(sensitiveData interface{}) {
 
 	getValue := reflect.ValueOf(sensitiveData)
 

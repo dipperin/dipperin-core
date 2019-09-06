@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package debug
 
 import (
@@ -267,4 +266,3 @@ func (h *HandlerT) StopGoTrace() error {
 	h.traceFile = ""
 	return nil
 }
-

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_communication
 
 import (
@@ -66,8 +65,8 @@ type eiBlockTransport struct {
 	// here is to determine if it is for wait verify
 	wvTs bool
 
-	peerID                 string
-	peerName               string
+	peerID   string
+	peerName string
 	//knownBlocks            mapset.Set
 	knownBlocks            *lru.Cache
 	queuedEiBroadcastMsg   chan *eiBroadcastMsg
@@ -79,6 +78,7 @@ type eiBlockTransport struct {
 	queuedEiBlockBloomMsg   chan *model.BloomBlockData
 	queuedWvEiBlockBloomMsg chan *model.BloomBlockData
 }
+
 //
 //func newEiBlockTransport(wvTs bool, id, name string) *eiBlockTransport {
 //	knownBlocks, _ := lru.New(800)

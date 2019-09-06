@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package state_processor
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/ethereum/go-ethereum/rlp"
-	"math/big"
-	"sort"
 	"io"
+	"math/big"
+	"reflect"
+	"sort"
 )
 
 // journalEntry is a modification entry in the state change journal that can be
@@ -89,10 +90,6 @@ func (scl *StateChangeList) DecodeRLP(s *rlp.Stream) (err error) {
 			var change timeLockChange
 			rlp.DecodeBytes(state.StateChange, &change)
 			scl.append(change)
-		//case ContractRootChange:
-		//	var change contractRootChange
-		//	rlp.DecodeBytes(state.StateChange, &change)
-		//	scl.append(change)
 		case DataRootChange:
 			var change dataRootChange
 			rlp.DecodeBytes(state.StateChange, &change)
@@ -121,6 +118,26 @@ func (scl *StateChangeList) DecodeRLP(s *rlp.Stream) (err error) {
 			var change deleteAccountChange
 			rlp.DecodeBytes(state.StateChange, &change)
 			scl.append(change)
+		case AbiChange:
+			var change abiChange
+			rlp.DecodeBytes(state.StateChange, &change)
+			scl.append(change)
+		case CodeChange:
+			var change codeChange
+			rlp.DecodeBytes(state.StateChange, &change)
+			scl.append(change)
+		case DataChange:
+			var change dataChange
+			rlp.DecodeBytes(state.StateChange, &change)
+			scl.append(change)
+		case LogsChange:
+			var change logsChange
+			rlp.DecodeBytes(state.StateChange, &change)
+			scl.append(change)
+		case ContractChange:
+			var change contractChange
+			rlp.DecodeBytes(state.StateChange, &change)
+			scl.append(change)
 		default:
 			panic("no type")
 		}
@@ -138,7 +155,6 @@ func (scl *StateChangeList) EncodeRLP(w io.Writer) error {
 		s.StateChange, _ = rlp.EncodeToBytes(change)
 		sList = append(sList, s)
 	}
-
 
 	err := rlp.Encode(w, sList)
 	if err != nil {
@@ -248,7 +264,7 @@ func (scl *StateChangeList) length() int {
 }
 
 const (
-	NewAccountChange   = iota
+	NewAccountChange = iota
 	BalanceChange
 	NonceChange
 	HashLockChange
@@ -261,7 +277,11 @@ const (
 	VerifyNumChange
 	PerformanceChange
 	LastElectChange
-
+	AbiChange
+	CodeChange
+	DataChange
+	ContractChange
+	LogsChange
 	DeleteAccountChange
 )
 
@@ -299,12 +319,6 @@ type (
 		Current    *big.Int
 		ChangeType uint64
 	}
-	//contractRootChange struct {
-	//	Account    *common.Address
-	//	Prev       common.Hash
-	//	Current    common.Hash
-	//	ChangeType uint64
-	//}
 	dataRootChange struct {
 		Account    *common.Address
 		Prev       common.Hash
@@ -341,7 +355,58 @@ type (
 		Current    uint64
 		ChangeType uint64
 	}
+	abiChange struct {
+		Account    *common.Address
+		Prev       []byte
+		Current    []byte
+		ChangeType uint64
+	}
+	codeChange struct {
+		Account    *common.Address
+		Prev       []byte
+		Current    []byte
+		ChangeType uint64
+	}
+	dataChange struct {
+		Account    *common.Address
+		Key        string
+		Prev       []byte
+		Current    []byte
+		ChangeType uint64
+	}
+	contractChange struct {
+		Account    *common.Address
+		Prev       reflect.Value
+		Current    reflect.Value
+		ChangeType uint64
+	}
+	logsChange struct {
+		TxHash     *common.Hash
+		Prev       []*model.Log
+		Current    []*model.Log
+		ChangeType uint64
+	}
 )
+
+func (lc logsChange) revert(s *AccountStateDB) {
+	s.logs[*lc.TxHash] = lc.Prev
+}
+
+func (lc logsChange) dirtied() *common.Address {
+	return nil
+}
+
+func (lc logsChange) recover(s *AccountStateDB) {
+	s.logs[*lc.TxHash] = lc.Current
+}
+
+func (lc logsChange) getType() int {
+	return int(lc.ChangeType)
+}
+
+func (lc logsChange) digest(sc StateChange) StateChange {
+	panic("Add logs can't use digest function")
+}
 
 func (sc deleteAccountChange) revert(s *AccountStateDB) {
 	s.newAccountState(*sc.Account)
@@ -382,10 +447,6 @@ func (sc newAccountChange) digest(change StateChange) StateChange {
 	panic("creat same account twice ")
 }
 
-
-
-
-
 func (sc lastElectChange) revert(s *AccountStateDB) {
 	s.setLastElect(*sc.Account, sc.Prev)
 }
@@ -410,11 +471,6 @@ func (sc lastElectChange) digest(change StateChange) StateChange {
 	return nil
 }
 
-
-
-
-
-
 func (sc verifyNumChange) revert(s *AccountStateDB) {
 	s.setVerifyNum(*sc.Account, sc.Prev)
 }
@@ -438,10 +494,6 @@ func (sc verifyNumChange) digest(change StateChange) StateChange {
 	return nil
 }
 
-
-
-
-
 func (sc commitNumChange) revert(s *AccountStateDB) {
 	s.setCommitNum(*sc.Account, sc.Prev)
 }
@@ -463,9 +515,6 @@ func (sc commitNumChange) digest(change StateChange) StateChange {
 	}
 	return nil
 }
-
-
-
 
 func (sc performanceChange) revert(s *AccountStateDB) {
 	s.setPerformance(*sc.Account, sc.Prev)
@@ -490,9 +539,6 @@ func (sc performanceChange) digest(change StateChange) StateChange {
 	return nil
 }
 
-
-
-
 func (sc stakeChange) revert(s *AccountStateDB) {
 	s.setStake(*sc.Account, sc.Prev)
 }
@@ -515,10 +561,6 @@ func (sc stakeChange) digest(change StateChange) StateChange {
 	}
 	return nil
 }
-
-
-
-
 
 func (sc dataRootChange) revert(s *AccountStateDB) {
 	s.setDataRoot(*sc.Account, sc.Prev)
@@ -543,7 +585,6 @@ func (sc dataRootChange) digest(change StateChange) StateChange {
 	return nil
 }
 
-
 func (sc timeLockChange) revert(s *AccountStateDB) {
 	s.setTimeLock(*sc.Account, sc.Prev)
 }
@@ -566,10 +607,6 @@ func (sc timeLockChange) digest(change StateChange) StateChange {
 	}
 	return nil
 }
-
-
-
-
 
 func (sc hashLockChange) revert(s *AccountStateDB) {
 	s.setHashLock(*sc.Account, sc.Prev)
@@ -594,10 +631,6 @@ func (sc hashLockChange) digest(change StateChange) StateChange {
 	return nil
 }
 
-
-
-
-
 func (sc balanceChange) revert(s *AccountStateDB) {
 	s.setBalance(*sc.Account, sc.Prev)
 }
@@ -621,10 +654,6 @@ func (sc balanceChange) digest(change StateChange) StateChange {
 	return nil
 }
 
-
-
-
-
 func (sc nonceChange) revert(s *AccountStateDB) {
 	s.setNonce(*sc.Account, sc.Prev)
 }
@@ -644,6 +673,99 @@ func (sc nonceChange) digest(change StateChange) StateChange {
 	if change.getType() == NonceChange {
 		c := change.(nonceChange)
 		return nonceChange{Account: sc.Account, Prev: c.Prev, Current: sc.Current, ChangeType: NonceChange}
+	}
+	return nil
+}
+
+func (sc abiChange) revert(s *AccountStateDB) {
+	s.setAbi(*sc.Account, sc.Prev)
+}
+
+func (sc abiChange) recover(s *AccountStateDB) {
+	s.setAbi(*sc.Account, sc.Current)
+}
+
+func (sc abiChange) dirtied() *common.Address {
+	return sc.Account
+}
+
+func (sc abiChange) getType() int {
+	return int(sc.ChangeType)
+}
+func (sc abiChange) digest(change StateChange) StateChange {
+	if change.getType() == AbiChange {
+		c := change.(abiChange)
+		return abiChange{Account: sc.Account, Prev: c.Prev, Current: sc.Current, ChangeType: AbiChange}
+	}
+	return nil
+}
+
+func (sc codeChange) revert(s *AccountStateDB) {
+	s.setCode(*sc.Account, sc.Prev)
+}
+
+func (sc codeChange) recover(s *AccountStateDB) {
+	s.setCode(*sc.Account, sc.Current)
+}
+
+func (sc codeChange) dirtied() *common.Address {
+	return sc.Account
+}
+
+func (sc codeChange) getType() int {
+	return int(sc.ChangeType)
+}
+func (sc codeChange) digest(change StateChange) StateChange {
+	if change.getType() == CodeChange {
+		c := change.(codeChange)
+		return codeChange{Account: sc.Account, Prev: c.Prev, Current: sc.Current, ChangeType: CodeChange}
+	}
+	return nil
+}
+
+func (sc dataChange) revert(s *AccountStateDB) {
+	s.SetData(*sc.Account, sc.Key, sc.Prev)
+}
+
+func (sc dataChange) recover(s *AccountStateDB) {
+	s.SetData(*sc.Account, sc.Key, sc.Current)
+}
+
+func (sc dataChange) dirtied() *common.Address {
+	return sc.Account
+}
+
+func (sc dataChange) getType() int {
+	return int(sc.ChangeType)
+}
+func (sc dataChange) digest(change StateChange) StateChange {
+	if change.getType() == DataChange {
+		c := change.(dataChange)
+		return dataChange{Account: sc.Account, Key: c.Key, Prev: c.Prev, Current: sc.Current, ChangeType: DataChange}
+	}
+	return nil
+}
+
+func (c contractChange) revert(s *AccountStateDB) {
+	s.PutContract(*c.Account, c.Prev)
+}
+
+func (c contractChange) dirtied() *common.Address {
+	return c.Account
+}
+
+func (c contractChange) recover(s *AccountStateDB) {
+	s.PutContract(*c.Account, c.Current)
+}
+
+func (c contractChange) getType() int {
+	return int(c.ChangeType)
+}
+
+func (c contractChange) digest(sc StateChange) StateChange {
+	if sc.getType() == ContractChange {
+		c := sc.(contractChange)
+		return contractChange{Account: c.Account, Prev: c.Prev, Current: c.Current, ChangeType: ContractChange}
 	}
 	return nil
 }

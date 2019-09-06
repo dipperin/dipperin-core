@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package commands
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
-	"fmt"
 	"github.com/urfave/cli"
 	"strings"
 )
@@ -34,7 +33,6 @@ func getP2pRpcMethodByName(mName string) string {
 
 func (caller *rpcCaller) AddPeer(c *cli.Context) {
 	mName, cParams, err := getRpcMethodAndParam(c)
-
 	if err != nil {
 		l.Error("getRpcMethodAndParam error")
 		return
@@ -46,7 +44,7 @@ func (caller *rpcCaller) AddPeer(c *cli.Context) {
 	}
 
 	var resp error
-	if err := client.Call(&resp, getP2pRpcMethodByName(mName), cParams[0]); err != nil {
+	if err = client.Call(&resp, getP2pRpcMethodByName(mName), cParams[0]); err != nil {
 		l.Error("add peer error", "err", err)
 		return
 	}
@@ -61,15 +59,14 @@ func (caller *rpcCaller) AddPeer(c *cli.Context) {
 
 func (caller *rpcCaller) Peers(c *cli.Context) {
 	mName, _, err := getRpcMethodAndParam(c)
-
 	if err != nil {
 		l.Error("getRpcMethodAndParam error")
 		return
 	}
 
 	var resp []*p2p.PeerInfo
-	if err := client.Call(&resp, getP2pRpcMethodByName(mName)); err != nil {
-		l.Error("add peer error", "err", err)
+	if err = client.Call(&resp, getP2pRpcMethodByName(mName)); err != nil {
+		l.Error("get peers error", "err", err)
 		return
 	}
 
@@ -79,7 +76,6 @@ func (caller *rpcCaller) Peers(c *cli.Context) {
 }
 
 func (caller *rpcCaller) Debug(c *cli.Context) {
-
 	var respBlock rpc_interface.BlockResp
 	if err := client.Call(&respBlock, getDipperinRpcMethodByName("CurrentBlock")); err != nil {
 		l.Error("look up for current block", "err", err)
@@ -87,7 +83,6 @@ func (caller *rpcCaller) Debug(c *cli.Context) {
 	}
 
 	printBlockInfo(respBlock)
-
 	var resp p2p.CsPmPeerInfo
 	if err := client.Call(&resp, getP2pRpcMethodByName("CsPmInfo")); err != nil {
 		l.Error("add peer error", "err", err)
@@ -99,5 +94,5 @@ func (caller *rpcCaller) Debug(c *cli.Context) {
 	fmt.Println("next v len:", len(resp.NextVerifier))
 	fmt.Println("v boot len:", len(resp.VerifierBoot))
 
-	fmt.Println(resp.String())
+	//fmt.Println(resp.String())
 }

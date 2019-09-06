@@ -113,8 +113,6 @@ func TestTxPool_InvBloom(t *testing.T) {
 		aliceInvBloom.Bloom().Digest(k.Bytes())
 		arr = append(arr, v)
 	}
-	aliceBlockRLP, err := rlp.EncodeToBytes(arr)
-	assert.NoError(t, err)
 
 	// Alice then sends its IBLT to Bob
 	aInvBloomRLP, err := rlp.EncodeToBytes(aliceInvBloom)
@@ -143,10 +141,8 @@ func TestTxPool_InvBloom(t *testing.T) {
 	}
 
 	tempGraphene := iblt.NewGraphene(bReceivedInvBLoom.InvBloomConfig(), bReceivedInvBLoom.BloomConfig())
-	fmt.Println("==========tempGraphene.InvBloom()==========", bReceivedInvBLoom.InvBloom(), bobInvBloom.InvBloom())
 	alice, bob, err := tempGraphene.InvBloom().Subtract(bReceivedInvBLoom.InvBloom(), bobInvBloom.InvBloom()).ListRLP()
 	//res, err := aliceBloom.FilterListRLP(bobMap)
-	fmt.Println("==========alice, bob==========", alice, bob)
 	assert.NoError(t, err)
 
 	assertTransactionInMap(t, bob, bobMap)
@@ -157,9 +153,4 @@ func TestTxPool_InvBloom(t *testing.T) {
 	assert.Equal(t, aliceNumTx, len(alice))
 
 	assertTransactionInMap(t, alice, aliceMap)
-
-	fmt.Printf("sync %d entries using: %d bytes\n", aliceNumTx, len(aInvBloomRLP))
-	fmt.Printf("naively sending the whole block's transaction uses: %d bytes\n", len(aliceBlockRLP))
-	//fmt.Println(bobInvBloom.Bloom())
-	fmt.Println(bobInvBloom.InvBloom().Config())
 }

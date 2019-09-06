@@ -18,18 +18,19 @@ package model
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/rlp"
-	"testing"
 	"github.com/stretchr/testify/assert"
 	"math/big"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"testing"
 )
 
 func TestDeriveShaByHash_DeriveSha(t *testing.T) {
 	txs1 := CreateSignedTxList(300)
 	try := DeriveSha(Transactions(txs1))
-	ms := NewMercurySigner(big.NewInt(1))
+	ms := NewSigner(big.NewInt(1))
 
 	tree := new(trie.Trie)
 	for i := 0; i < 300; i++ {
@@ -41,7 +42,7 @@ func TestDeriveShaByHash_DeriveSha(t *testing.T) {
 	assert.Equal(t, try, get)
 
 	key1, _ := crypto.HexToECDSA(alicePriv)
-	tryTx1 := NewTransaction(uint64(1), bobAddr, big.NewInt(1000), big.NewInt(10000), []byte{})
+	tryTx1 := NewTransaction(uint64(1), bobAddr, big.NewInt(1000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	tryTx1.SignTx(key1, ms)
 	enc1 := tree.Get(tryTx1.CalTxId().Bytes())
 	getTx1 := new(Transaction)
@@ -54,7 +55,7 @@ func TestDeriveShaByHash_DeriveSha(t *testing.T) {
 
 	assert.Equal(t, tryTx1.CalTxId(), getTx1.CalTxId())
 
-	tryTx2 := NewTransaction(uint64(1000), bobAddr, big.NewInt(10000), big.NewInt(10), []byte{})
+	tryTx2 := NewTransaction(uint64(1000), bobAddr, big.NewInt(10000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	enc2 := tree.Get(tryTx2.CalTxId().Bytes())
 	assert.Equal(t, len(enc2), 0)
 }

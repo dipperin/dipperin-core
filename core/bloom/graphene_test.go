@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package iblt
 
 import (
@@ -140,7 +139,7 @@ func TestGraphene_Recover(t *testing.T) {
 
 	isCorrect := 0
 
-	for _,b := range a {
+	for _, b := range a {
 		if string(b) == "1" || string(b) == "2" {
 			isCorrect++
 		}

@@ -17,6 +17,8 @@
 package service
 
 import (
+	"crypto/ecdsa"
+	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/address-util"
 	"github.com/dipperin/dipperin-core/common/util"
@@ -33,15 +35,16 @@ import (
 	"github.com/dipperin/dipperin-core/core/mine/minemaster"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/tx-pool"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"net"
 	"testing"
-	"crypto/ecdsa"
-	"errors"
 )
 
 const (
@@ -52,7 +55,7 @@ const (
 var (
 	alicePriv = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232031"
 	aliceAddr = common.HexToAddress("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
-	testErr = errors.New("test error")
+	testErr   = errors.New("test error")
 )
 
 func createBlock(chain *chain_state.ChainState, txs []*model.Transaction, votes []model.AbstractVerification) model.AbstractBlock {
@@ -67,8 +70,8 @@ func createBlock(chain *chain_state.ChainState, txs []*model.Transaction, votes 
 	return bb.Build()
 }
 
-func createVerifiersVotes(block model.AbstractBlock, votesNum int) (votes []model.AbstractVerification) {
-	testVerifierAccounts, _ := tests.ChangeVerifierAddress(nil)
+func createVerifiersVotes(block model.AbstractBlock, votesNum int, testAccounts []tests.Account) (votes []model.AbstractVerification) {
+	testVerifierAccounts, _ := tests.ChangeVerifierAddress(testAccounts)
 	for i := 0; i < votesNum; i++ {
 		voteA := model.NewVoteMsg(block.Number(), uint64(0), block.Hash(), model.VoteMessage)
 		sign, _ := crypto.Sign(voteA.Hash().Bytes(), testVerifierAccounts[i].Pk)
@@ -79,23 +82,23 @@ func createVerifiersVotes(block model.AbstractBlock, votesNum int) (votes []mode
 	return
 }
 
-func insertBlockToChain(t *testing.T, chain *chain_state.ChainState, num int) {
+func insertBlockToChain(t *testing.T, chain *chain_state.ChainState, num int, txs []*model.Transaction) {
 	curNum := int(chain.CurrentBlock().Number())
 	config := chain_config.GetChainConfig()
 	for i := curNum; i < curNum+num; i++ {
 		curBlock := chain.CurrentBlock()
 		var block model.AbstractBlock
 		if curBlock.Number() == 0 {
-			block = createBlock(chain, nil, nil)
+			block = createBlock(chain, txs, nil)
 		} else {
 
 			// votes for curBlock on chain
-			curBlockVotes := createVerifiersVotes(curBlock, config.VerifierNumber*2/3+1)
-			block = createBlock(chain, nil, curBlockVotes)
+			curBlockVotes := createVerifiersVotes(curBlock, config.VerifierNumber*2/3+1, nil)
+			block = createBlock(chain, txs, curBlockVotes)
 		}
 
 		// votes for build block
-		votes := createVerifiersVotes(block, config.VerifierNumber*2/3+1)
+		votes := createVerifiersVotes(block, config.VerifierNumber*2/3+1, nil)
 		err := chain.SaveBftBlock(block, votes)
 		assert.NoError(t, err)
 		assert.Equal(t, uint64(i+1), chain.CurrentBlock().Number())
@@ -119,7 +122,7 @@ func createERC20() (*model.Transaction, common.Address) {
 	contractAdr, _ := address_util.GenERC20Address()
 	extra.ContractAddress = contractAdr
 
-	tx := createSignedTx(0, aliceAddr, big.NewInt(0), util.StringifyJsonToBytes(extra))
+	tx := createSignedTx(0, aliceAddr, big.NewInt(0), util.StringifyJsonToBytes(extra), nil)
 
 	return tx, contractAdr
 }
@@ -152,7 +155,7 @@ func createCsChainService(accounts []tests.Account) *cs_chain.CsChainService {
 	tests.NewGenesisEnv(chainState.GetChainDB(), chainState.GetStateStorage(), accounts)
 
 	serviceConfig := &cs_chain.CsChainServiceConfig{
-		CacheDB:          cachedb.NewCacheDB(chainState.GetDB()),
+		CacheDB: cachedb.NewCacheDB(chainState.GetDB()),
 	}
 	return &cs_chain.CsChainService{
 		CsChainServiceConfig: serviceConfig,
@@ -188,22 +191,36 @@ func createTxPool(csChain *chain_state.ChainState) *tx_pool.TxPool {
 	return tx_pool.NewTxPool(txConfig, *config, csChain)
 }
 
-func createSignedTx(nonce uint64, to common.Address, amount *big.Int, extraData []byte) *model.Transaction {
-	verifiers, _ := tests.ChangeVerifierAddress(nil)
-	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewTransaction(nonce, to, amount, testFee, extraData)
+func createSignedTx(nonce uint64, to common.Address, amount *big.Int, extraData []byte, testAccounts []tests.Account) *model.Transaction {
+	verifiers, _ := tests.ChangeVerifierAddress(testAccounts)
+	fs1 := model.NewSigner(big.NewInt(1))
+	gasLimit := g_testData.TestGasLimit * 500
+	tx := model.NewTransaction(nonce, to, amount, g_testData.TestGasPrice, gasLimit, extraData)
 	signedTx, _ := tx.SignTx(verifiers[0].Pk, fs1)
 	return signedTx
 }
 
 func createSignedTx2(nonce uint64, from *ecdsa.PrivateKey, to common.Address, amount *big.Int) *model.Transaction {
-	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewTransaction(nonce, to, amount, testFee, []byte{})
+	fs1 := model.NewSigner(big.NewInt(1))
+	tx := model.NewTransaction(nonce, to, amount, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	signedTx, _ := tx.SignTx(from, fs1)
 	return signedTx
 }
 
-type fakeValidator struct{
+func createContractTx(nonce uint64, WASMPath, AbiPath, input string, testAccounts []tests.Account) *model.Transaction {
+	codeByte, abiByte := g_testData.GetCodeAbi(WASMPath, AbiPath)
+	var data []byte
+	if input == "" {
+		data, _ = rlp.EncodeToBytes([]interface{}{codeByte, abiByte})
+	} else {
+		data, _ = rlp.EncodeToBytes([]interface{}{codeByte, abiByte, input})
+	}
+	extraData, _ := utils.ParseCreateContractData(data)
+	to := common.HexToAddress(common.AddressContractCreate)
+	return createSignedTx(nonce, to, g_testData.TestValue, extraData, testAccounts)
+}
+
+type fakeValidator struct {
 	err error
 }
 
@@ -383,6 +400,10 @@ type fakeMaster struct {
 	isMine bool
 }
 
+func (m fakeMaster) SetMineGasConfig(gasFloor, gasCeil uint64) {
+	panic("implement me")
+}
+
 func (m fakeMaster) Start() {
 	return
 }
@@ -449,7 +470,7 @@ func (s fakeMasterServer) SetMineMasterPeer(peer chain_communication.PmAbstractP
 	panic("implement me")
 }
 
-type fakeNode struct {}
+type fakeNode struct{}
 
 func (fakeNode) Start() error {
 	panic("implement me")
@@ -465,7 +486,7 @@ type fakeTxPool struct {
 
 func (pool fakeTxPool) AddRemotes(txs []model.AbstractTransaction) []error {
 	var errs []error
-	for i:=0; i<len(txs); i++ {
+	for i := 0; i < len(txs); i++ {
 		errs = append(errs, pool.err)
 	}
 	return errs
@@ -473,7 +494,7 @@ func (pool fakeTxPool) AddRemotes(txs []model.AbstractTransaction) []error {
 
 func (pool fakeTxPool) AddLocals(txs []model.AbstractTransaction) []error {
 	var errs []error
-	for i:=0; i<len(txs); i++ {
+	for i := 0; i < len(txs); i++ {
 		errs = append(errs, pool.err)
 	}
 	return errs
@@ -485,4 +506,12 @@ func (pool fakeTxPool) AddRemote(tx model.AbstractTransaction) error {
 
 func (pool fakeTxPool) Stats() (int, int) {
 	panic("implement me")
+}
+
+type fakeMsgSigner struct{ addr common.Address }
+
+func (f *fakeMsgSigner) SetBaseAddress(address common.Address) {}
+
+func (f *fakeMsgSigner) GetAddress() common.Address {
+	return f.addr
 }

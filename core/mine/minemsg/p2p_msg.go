@@ -14,24 +14,23 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package minemsg
 
 import "github.com/dipperin/dipperin-core/common"
 
 const (
 	// msg sent to worker by master
-	StartMineMsg = 0x1
-	StopMineMsg = 0x2
+	StartMineMsg     = 0x1
+	StopMineMsg      = 0x2
 	WaitForCommitMsg = 0x3
 
 	// work msg(one dispatch, one submit)
-	NewDefaultWorkMsg = 0x10
+	NewDefaultWorkMsg    = 0x10
 	SubmitDefaultWorkMsg = 0x11
 
 	// msg sent to master by worker
-	RegisterMsg = 0x50
-	UnRegisterMsg = 0x51
+	RegisterMsg           = 0x50
+	UnRegisterMsg         = 0x51
 	SetCurrentCoinbaseMsg = 0x52
 )
 

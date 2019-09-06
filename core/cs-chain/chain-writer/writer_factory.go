@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_writer
 
 import (
-	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"fmt"
+	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"reflect"
 )
 
@@ -38,10 +37,12 @@ func (f *ChainWriterFactory) SetChain(chain middleware.ChainInterface) {
 func (f *ChainWriterFactory) NewWriter(context interface{}) ChainWriter {
 	switch c := context.(type) {
 	case *middleware.BlockContext:
+		// just for test
 		return NewPowChainWriter(c, f.chain)
 	case *middleware.BftBlockContext:
 		return NewBftChainWriter(c, f.chain)
 	case *middleware.BftBlockContextWithoutVotes:
+		// just for test
 		return NewBftChainWriterWithoutVotes(c, f.chain)
 	}
 

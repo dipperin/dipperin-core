@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package mineworker
 
 import (
@@ -32,7 +31,7 @@ type RemoteConnector struct {
 	peer chain_communication.PmAbstractPeer
 
 	// set when build
-	worker Worker
+	worker   Worker
 	receiver msgReceiver
 }
 
@@ -45,7 +44,7 @@ func (conn *RemoteConnector) SetMineMasterPeer(peer chain_communication.PmAbstra
 }
 
 func (conn *RemoteConnector) Register() error {
-	return conn.peer.SendMsg(minemsg.RegisterMsg, minemsg.Register{ Coinbase: conn.worker.CurrentCoinbaseAddress() })
+	return conn.peer.SendMsg(minemsg.RegisterMsg, minemsg.Register{Coinbase: conn.worker.CurrentCoinbaseAddress()})
 }
 
 func (conn *RemoteConnector) UnRegister() {

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_writer
 
 import (
+	"github.com/dipperin/dipperin-core/tests/g-mockFile"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -28,13 +28,12 @@ import (
 func TestNewPowChainWriter(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
-	mc := NewMockChainInterface(controller)
+	mc := g_mockFile.NewMockChainInterface(controller)
 	mb := NewMockAbstractBlock(controller)
 	mb.EXPECT().IsSpecial().Return(true)
 	//mb.EXPECT().Version().Return(uint64(100))
 	mb.EXPECT().Number().Return(uint64(1))
 	mc.EXPECT().GetBlockByNumber(gomock.Any()).Return(nil).AnyTimes()
 
-	assert.Error(t, NewPowChainWriter(&middleware.BlockContext{ Block: mb, Chain: mc }, mc).SaveBlock())
+	assert.Error(t, NewPowChainWriter(&middleware.BlockContext{Block: mb, Chain: mc}, mc).SaveBlock())
 }
-

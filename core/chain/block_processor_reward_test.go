@@ -17,11 +17,11 @@
 package chain
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/core/contract"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestBlockProcessor_RewardByzantiumVerifier_Error(t *testing.T) {
@@ -31,19 +31,19 @@ func TestBlockProcessor_RewardByzantiumVerifier_Error(t *testing.T) {
 	// GetDiffVerifierAddress error
 	processor, err := NewBlockProcessor(fakeAccountDBChain{}, common.Hash{}, fakeStateStorage{})
 	assert.NoError(t, err)
-	processor.economyModel = fakeEconomyModel{addrErr:EconomyErr}
+	processor.economyModel = fakeEconomyModel{addrErr: EconomyErr}
 	err = processor.RewardByzantiumVerifier(block, &earlyTokenContract)
 	assert.Equal(t, EconomyErr, err)
 
 	// GetVerifierDIPReward error
 	processor, err = NewBlockProcessor(fakeAccountDBChain{}, common.Hash{}, fakeStateStorage{})
 	assert.NoError(t, err)
-	processor.economyModel = fakeEconomyModel{DIPErr:EconomyErr}
+	processor.economyModel = fakeEconomyModel{DIPErr: EconomyErr}
 	err = processor.RewardByzantiumVerifier(block, &earlyTokenContract)
 	assert.Equal(t, EconomyErr, err)
 
 	// AddBalance error
-	processor, err = NewBlockProcessor(fakeAccountDBChain{}, common.Hash{}, fakeStateStorage{setErr:TrieError})
+	processor, err = NewBlockProcessor(fakeAccountDBChain{}, common.Hash{}, fakeStateStorage{setErr: TrieError})
 	assert.NoError(t, err)
 	processor.economyModel = fakeEconomyModel{}
 	err = processor.RewardByzantiumVerifier(block, &earlyTokenContract)
@@ -51,8 +51,8 @@ func TestBlockProcessor_RewardByzantiumVerifier_Error(t *testing.T) {
 
 	// NewAccountState error
 	processor, err = NewBlockProcessor(fakeAccountDBChain{}, common.Hash{}, fakeStateStorage{
-		getErr:TrieError,
-		setErr:TrieError,
+		getErr: TrieError,
+		setErr: TrieError,
 	})
 	assert.NoError(t, err)
 	processor.economyModel = fakeEconomyModel{}
@@ -74,12 +74,12 @@ func TestBlockProcessor_RewardCoinBase_Error(t *testing.T) {
 	// GetMineMasterCSKReward error
 	processor, err := NewBlockProcessor(fakeAccountDBChain{}, common.Hash{}, fakeStateStorage{})
 	assert.NoError(t, err)
-	processor.economyModel = fakeEconomyModel{DIPErr:EconomyErr}
+	processor.economyModel = fakeEconomyModel{DIPErr: EconomyErr}
 	err = processor.RewardCoinBase(block, &earlyTokenContract)
 	assert.Equal(t, EconomyErr, err)
 
 	// AddBalance error
-	processor, err = NewBlockProcessor(fakeAccountDBChain{}, common.Hash{}, fakeStateStorage{setErr:TrieError})
+	processor, err = NewBlockProcessor(fakeAccountDBChain{}, common.Hash{}, fakeStateStorage{setErr: TrieError})
 	assert.NoError(t, err)
 	processor.economyModel = fakeEconomyModel{}
 	err = processor.RewardCoinBase(block, &earlyTokenContract)
@@ -87,8 +87,8 @@ func TestBlockProcessor_RewardCoinBase_Error(t *testing.T) {
 
 	// NewAccountState error
 	processor, err = NewBlockProcessor(fakeAccountDBChain{}, common.Hash{}, fakeStateStorage{
-		getErr:TrieError,
-		setErr:TrieError,
+		getErr: TrieError,
+		setErr: TrieError,
 	})
 	assert.NoError(t, err)
 	processor.economyModel = fakeEconomyModel{}

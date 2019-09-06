@@ -17,14 +17,15 @@
 package model
 
 import (
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"testing"
 
+	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"math/big"
 	"time"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"errors"
 )
 
 func createBlock(number uint64, txs []*model.Transaction) *model.Block {
@@ -33,8 +34,8 @@ func createBlock(number uint64, txs []*model.Transaction) *model.Block {
 }
 
 func createRegisterTX(nonce uint64, amount *big.Int) *model.Transaction {
-	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewRegisterTransaction(nonce, amount, big.NewInt(10000))
+	fs1 := model.NewSigner(big.NewInt(1))
+	tx := model.NewRegisterTransaction(nonce, amount, g_testData.TestGasPrice, g_testData.TestGasLimit)
 	alicePriv := "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232031"
 	key, _ := crypto.HexToECDSA(alicePriv)
 	signedTx, _ := tx.SignTx(key, fs1)
@@ -42,43 +43,41 @@ func createRegisterTX(nonce uint64, amount *big.Int) *model.Transaction {
 }
 
 func createCannelTX(nonce uint64) *model.Transaction {
-	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewCancelTransaction(nonce, big.NewInt(10000))
+	fs1 := model.NewSigner(big.NewInt(1))
+	tx := model.NewCancelTransaction(nonce, g_testData.TestGasPrice, g_testData.TestGasLimit)
 	alicePriv := "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232031"
 	key, _ := crypto.HexToECDSA(alicePriv)
 	signedTx, _ := tx.SignTx(key, fs1)
 	return signedTx
 }
 
-
 func TestNewRoundMsgWithSign2(t *testing.T) {
 	addr := common.HexToAddress("0x3f3d")
-	NewRoundMsgWithSign(1,1, func(hash []byte) (b []byte, e error) {return}, addr)
+	NewRoundMsgWithSign(1, 1, func(hash []byte) (b []byte, e error) { return }, addr)
 }
 
 func TestNewRoundMsgWithSign3(t *testing.T) {
 	addr := common.HexToAddress("0x3f3d")
-	NewRoundMsgWithSign(1,1, func(hash []byte) (b []byte, e error) {return b, errors.New("Error")}, addr)
+	NewRoundMsgWithSign(1, 1, func(hash []byte) (b []byte, e error) { return b, errors.New("Error") }, addr)
 }
 
 func TestNewRoundMsg_Valid2(t *testing.T) {
 	addr := common.HexToAddress("0x3f3d")
-	nrmws := NewRoundMsgWithSign(1,1, func(hash []byte) (b []byte, e error) {return}, addr)
+	nrmws := NewRoundMsgWithSign(1, 1, func(hash []byte) (b []byte, e error) { return }, addr)
 	nrmws.Valid()
 }
 
 func TestNewRoundMsg_Valid3(t *testing.T) {
 	addr := common.HexToAddress("0x3f3d")
-	nrmws := NewRoundMsgWithSign(1,1, func(hash []byte) (b []byte, e error) {return}, addr)
+	nrmws := NewRoundMsgWithSign(1, 1, func(hash []byte) (b []byte, e error) { return }, addr)
 	nrmws.Witness = nil
 	nrmws.Valid()
 }
 
-
 func TestNewProposalWithSign2(t *testing.T) {
 	addr := common.HexToAddress("0x3f3d")
 	blockID := common.HexToHash("0x9d7d96bfb791080316de884d1f43947764742a7cda226d076b4d42964d00ac92")
-	npws := NewProposalWithSign(1,1, blockID,func(hash []byte) (b []byte, e error) {return}, addr)
+	npws := NewProposalWithSign(1, 1, blockID, func(hash []byte) (b []byte, e error) { return }, addr)
 	npws.Hash()
 
 	tx1 := createRegisterTX(0, big.NewInt(10000))
@@ -90,6 +89,6 @@ func TestNewProposalWithSign2(t *testing.T) {
 func TestNewProposalWithSign3(t *testing.T) {
 	addr := common.HexToAddress("0x3f3d")
 	blockID := common.HexToHash("0x9d7d96bfb791080316de884d1f43947764742a7cda226d076b4d42964d00ac92")
-	NewProposalWithSign(1,1, blockID,func(hash []byte) (b []byte, e error) {return b, errors.New("Error")}, addr)
+	NewProposalWithSign(1, 1, blockID, func(hash []byte) (b []byte, e error) { return b, errors.New("Error") }, addr)
 
 }

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package general
 
 import (
@@ -63,7 +62,7 @@ func json2KV(key string, json gjson.Result, result map[string]interface{}) {
 				json2KV(key+"."+strconv.Itoa(index), value, result)
 			}
 
-			index ++
+			index++
 			return true
 		})
 

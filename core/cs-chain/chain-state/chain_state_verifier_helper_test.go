@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_state
 
 import (
@@ -22,12 +21,14 @@ import (
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/check.v1"
 	"math/big"
 )
 
 var testFee = economy_model.GetMinimumTxFee(20001)
+
 func (suite *chainWriterSuite) TestChainState_BuildRegisterProcessor(t *check.C) {
 	config := suite.chainState.ChainConfig
 	cv := suite.chainState.GetCurrVerifiers()
@@ -36,7 +37,7 @@ func (suite *chainWriterSuite) TestChainState_BuildRegisterProcessor(t *check.C)
 	acc1 := tests.AccFactory.GetAccount(0)
 	// send coins to this address so that it can initiate a registration transaction
 	suite.txBuilder.To = acc1.Address()
-	suite.txBuilder.Amount = big.NewInt(0).Add(economy_model.MiniPledgeValue,testFee)
+	suite.txBuilder.Amount = big.NewInt(0).Add(economy_model.MiniPledgeValue, testFee)
 	suite.blockBuilder.Txs = []*model.Transaction{suite.txBuilder.Build()}
 	b1 := suite.blockBuilder.Build()
 	assert.Equal(t, 1, b1.TxCount())
@@ -48,7 +49,7 @@ func (suite *chainWriterSuite) TestChainState_BuildRegisterProcessor(t *check.C)
 	assert.NoError(t, err)
 	acc1B, err := b1S.GetBalance(acc1.Address())
 	assert.NoError(t, err)
-	assert.Equal(t, big.NewInt(0).Add(economy_model.MiniPledgeValue,testFee), acc1B)
+	assert.Equal(t, big.NewInt(0).Add(economy_model.MiniPledgeValue, testFee), acc1B)
 
 	suite.txBuilder.To = common.HexToAddress(common.AddressStake)
 	suite.txBuilder.Pk = acc1.Pk
@@ -177,6 +178,8 @@ func (suite *chainWriterSuite) TestChainState_CalVerifiers(t *check.C) {
 	config := suite.chainState.ChainConfig
 	ver, _ := tests.ChangeVerifierAddress(nil)
 	tx := createRegisterTX(0, economy_model.MiniPledgeValue, ver[1])
+	//sender,_ := tx.Sender(nil)
+	//log.Info("the register tx sender address is:","addr",sender.Hex())
 	suite.blockBuilder.PreBlock = suite.chainState.CurrentBlock()
 	suite.blockBuilder.Txs = []*model.Transaction{tx}
 	block := suite.blockBuilder.Build()
@@ -185,7 +188,7 @@ func (suite *chainWriterSuite) TestChainState_CalVerifiers(t *check.C) {
 	assert.NoError(t, err)
 
 	verifiers := suite.chainState.CalVerifiers(block)
-	assert.Equal(t, ver[1].Address(), verifiers[0])
+	assert.Equal(t, ver[1].Address().Hex(), verifiers[0].Hex())
 	assert.Len(t, verifiers, config.VerifierNumber)
 
 	var txs []*model.Transaction
@@ -212,13 +215,13 @@ func (suite *chainWriterSuite) TestChainState_getTopVerifiers(t *check.C) {
 
 	// create topAddress
 	var topAddress []common.Address
-	for i:=0; i<config.VerifierNumber; i++ {
+	for i := 0; i < config.VerifierNumber; i++ {
 		topAddress = append(topAddress, ver[i].Address())
 	}
 
 	// create topPriority
 	var topPriority []uint64
-	for i:=0; i<config.VerifierNumber; i++ {
+	for i := 0; i < config.VerifierNumber; i++ {
 		topPriority = append(topPriority, uint64(2*config.VerifierNumber-i))
 	}
 
@@ -236,8 +239,8 @@ func (suite *chainWriterSuite) TestChainState_getTopVerifiers(t *check.C) {
 }
 
 func createRegisterTX(nonce uint64, amount *big.Int, account tests.Account) *model.Transaction {
-	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewRegisterTransaction(nonce, amount, testFee)
+	fs1 := model.NewSigner(big.NewInt(1))
+	tx := model.NewRegisterTransaction(nonce, amount, g_testData.TestGasPrice, g_testData.TestGasLimit)
 	signedTx, _ := tx.SignTx(account.Pk, fs1)
 	return signedTx
 }

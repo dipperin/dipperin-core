@@ -14,19 +14,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package tx_pool
 
 import (
+	"errors"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
-	"fmt"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"errors"
 )
 
 var path = "./transaction.out"

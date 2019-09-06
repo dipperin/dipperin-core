@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_config
 
 import "github.com/dipperin/dipperin-core/common"
@@ -90,4 +89,10 @@ var LocalVerifierAddress = []common.Address{
 
 	common.HexToAddress("0x00005966FFECc91F26BF9b6BB2b7E09A0d00465e2940"),
 	common.HexToAddress("0x0000C2C56C661b64F6Ed59056281A084D7CDC4512A80"),
+}
+
+// For Venus TestNet
+var VenusVerifierAddress = []common.Address{
+	common.HexToAddress("0x000078b33598Be2b405206F44B018557e6F851FD230C"),
+	common.HexToAddress("0x0000A7b583021662C419Eefe7c0ac1e0d274057409Ad"),
 }

@@ -29,20 +29,25 @@ func TestValidateVotes(t *testing.T) {
 	_, _, _, passChain := getTxTestEnv(t)
 	passChain.slot = 1
 	assert.Error(t, ValidateVotes(&BftBlockContext{
-		BlockContext: BlockContext{ Chain: passChain },
+		BlockContext: BlockContext{Chain: passChain},
 	})())
 
 	a := NewAccount()
-	v := a.getVoteMsg(1, 1, common.Hash{}, model.VoteMessage)
-	passChain.verifiers = []common.Address{a.Address()}
-	assert.Error(t, ValidateVotes(&BftBlockContext{
-		BlockContext: BlockContext{ Chain: passChain, Block: &fakeBlock{ vs: []model.AbstractVerification{v} } },
-		Votes: []model.AbstractVerification{v},
+	b := NewAccount()
+	va := a.getVoteMsg(1, 1, common.Hash{}, model.VoteMessage)
+	vb := b.getVoteMsg(1, 1, common.Hash{}, model.VoteMessage)
+	passChain.verifiers = []common.Address{a.Address(), b.Address()}
+	//passChain.VerificationRoot =
+	fb := fakeBlock{vs: []model.AbstractVerification{va, vb}}
+	fb.SetVerifications(fb.vs)
+	assert.NoError(t, ValidateVotes(&BftBlockContext{
+		BlockContext: BlockContext{Chain: passChain, Block: &fb},
+		Votes:        []model.AbstractVerification{va, vb},
 	})())
 
 	assert.Error(t, ValidateVotes(&BftBlockContext{
-		BlockContext: BlockContext{ Chain: passChain, Block: &fakeBlock{ vs: []model.AbstractVerification{v}, hash: common.Hash{0x12} } },
-		Votes: []model.AbstractVerification{v},
+		BlockContext: BlockContext{Chain: passChain, Block: &fakeBlock{vs: []model.AbstractVerification{va}, hash: common.Hash{0x12}}},
+		Votes:        []model.AbstractVerification{va},
 	})())
 }
 
@@ -56,23 +61,23 @@ func TestValidateVotesForBFT(t *testing.T) {
 func Test_validateVotes(t *testing.T) {
 	_, _, _, passChain := getTxTestEnv(t)
 	passChain.slot = 1
-	assert.Error(t, validateVotes(&fakeBlock{ num: 1 }, passChain))
-	assert.Error(t, validateVotes(&fakeBlock{ vRoot: common.HexToHash("0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421") }, passChain))
+	assert.Error(t, validateVotes(&fakeBlock{num: 1}, passChain))
+	assert.Error(t, validateVotes(&fakeBlock{vRoot: common.HexToHash("0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")}, passChain))
 
-	a := &Account{ Pk: crypto.HexToECDSAErrPanic("fe10ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91") }
+	a := &Account{Pk: crypto.HexToECDSAErrPanic("fe10ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91")}
 	v := a.getVoteMsg(1, 1, common.Hash{}, model.VoteMessage)
-	passChain.verifiers = []common.Address{ a.Address() }
+	passChain.verifiers = []common.Address{a.Address()}
 	passChain.block.hash = common.Hash{0x12}
 	assert.Error(t, validateVotes(&fakeBlock{
 		vRoot: common.HexToHash("0x231153ba3f22bb7ab9586adf88d46cf1cbeba8ae9966bcac9d6ea163144a9536"),
-		vs: []model.AbstractVerification{v},
+		vs:    []model.AbstractVerification{v},
 	}, passChain))
 }
 
 func Test_validVotesForBlock(t *testing.T) {
 	_, _, _, passChain := getTxTestEnv(t)
 	passChain.slot = 1
-	a := &Account{ Pk: crypto.HexToECDSAErrPanic("fe10ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91") }
+	a := &Account{Pk: crypto.HexToECDSAErrPanic("fe10ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91")}
 	v := a.getVoteMsg(1, 1, common.Hash{}, model.VoteMessage)
 	assert.Error(t, validVotesForBlock([]model.AbstractVerification{v, v}, &fakeBlock{}, []common.Address{a.Address()}))
 

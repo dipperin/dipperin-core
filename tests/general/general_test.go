@@ -14,21 +14,20 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package general
 
 import (
-	"github.com/ethereum/go-ethereum/rlp"
-	"testing"
-	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/stretchr/testify/assert"
-	"sort"
 	"fmt"
-	"reflect"
-	"github.com/dipperin/dipperin-core/common/hexutil"
-	"strings"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/stretchr/testify/assert"
+	"reflect"
+	"sort"
+	"strings"
+	"testing"
 )
 
 func TestLogger(t *testing.T) {
@@ -51,7 +50,7 @@ type user struct {
 }
 
 func TestSliceSort(t *testing.T) {
-	users := []*user{ nil, {id: 1}, nil, nil, {id: 3}, {id: 2} }
+	users := []*user{nil, {id: 1}, nil, nil, {id: 3}, {id: 2}}
 	sort.Slice(users, func(i, j int) bool {
 		if reflect.ValueOf(users[i]).IsNil() {
 			return false

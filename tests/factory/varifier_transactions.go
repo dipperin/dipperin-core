@@ -14,26 +14,26 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package factory
 
 import (
+	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
+	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"math/big"
-	"crypto/ecdsa"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/core/economy-model"
+	"github.com/ethereum/go-ethereum/ethdb"
+	"math/big"
 )
 
 /*
 ChainReader test set
- */
+*/
 func NewFakeReader(block *model.Block) *fakeChainReader {
 	return &fakeChainReader{
 		currentBlock: block,
@@ -54,17 +54,17 @@ func (chain *fakeChainReader) GetLastChangePoint(block model.AbstractBlock) *uin
 
 func (chain *fakeChainReader) GetSlot(block model.AbstractBlock) *uint64 {
 	slotSize := chain_config.GetChainConfig().SlotSize
-	slot := block.Number()/slotSize
+	slot := block.Number() / slotSize
 	return &slot
 }
 
-func (chain *fakeChainReader) IsChangePoint(block model.AbstractBlock,isProcessPackageBlock bool) bool {
+func (chain *fakeChainReader) IsChangePoint(block model.AbstractBlock, isProcessPackageBlock bool) bool {
 	return true
 }
 
 func (chain *fakeChainReader) GetSlotByNum(num uint64) *uint64 {
 	slotSize := chain_config.GetChainConfig().SlotSize
-	slot := num/slotSize
+	slot := num / slotSize
 	return &slot
 }
 
@@ -76,10 +76,9 @@ func (chain *fakeChainReader) CurrentBlock() model.AbstractBlock {
 	return block2
 }
 
-func (chain *fakeChainReader)GetLatestNormalBlock() model.AbstractBlock{
+func (chain *fakeChainReader) GetLatestNormalBlock() model.AbstractBlock {
 	return nil
 }
-
 
 func (chain *fakeChainReader) GetBlockByNumber(number uint64) model.AbstractBlock {
 	slotSize := chain_config.GetChainConfig().SlotSize
@@ -103,12 +102,13 @@ func newFakeEconomyModel() *fakeEconomyModel {
 	return &fakeEconomyModel{}
 }
 
-type fakeEconomyModel struct {}
-func (em fakeEconomyModel) GetBlockYear(blockNumber uint64) (uint64,error){
+type fakeEconomyModel struct{}
+
+func (em fakeEconomyModel) GetBlockYear(blockNumber uint64) (uint64, error) {
 	panic("implement me")
 }
 
-func (em fakeEconomyModel) GetOneBlockTotalDIPReward(blockNumber uint64) (*big.Int, error){
+func (em fakeEconomyModel) GetOneBlockTotalDIPReward(blockNumber uint64) (*big.Int, error) {
 	panic("implement me")
 }
 
@@ -144,7 +144,7 @@ func (em fakeEconomyModel) CheckAddressType(address common.Address) economy_mode
 	panic("implement me")
 }
 
-func (em fakeEconomyModel) GetDiffVerifierAddress(preBlock,Block model.AbstractBlock) (map[economy_model.VerifierType][]common.Address, error) {
+func (em fakeEconomyModel) GetDiffVerifierAddress(preBlock, Block model.AbstractBlock) (map[economy_model.VerifierType][]common.Address, error) {
 	panic("implement me")
 }
 
@@ -173,15 +173,15 @@ func CreatKeyV() (*ecdsa.PrivateKey, *ecdsa.PrivateKey) {
 }
 func CreatTestTxV() (*model.Transaction, *model.Transaction) {
 	key1, key2 := CreatKeyV()
-	fs1 := model.NewMercurySigner(big.NewInt(1))
-	fs2 := model.NewMercurySigner(big.NewInt(3))
+	fs1 := model.NewSigner(big.NewInt(1))
+	fs2 := model.NewSigner(big.NewInt(3))
 	alice := cs_crypto.GetNormalAddress(key1.PublicKey)
 	bob := cs_crypto.GetNormalAddress(key2.PublicKey)
 	hashkey := []byte("123")
 	hashlock := cs_crypto.Keccak256Hash(hashkey)
-	testtx1 := model.NewTransaction(10, common.HexToAddress("0121321432423534534534"), big.NewInt(10000), big.NewInt(10), []byte{})
+	testtx1 := model.NewTransaction(10, common.HexToAddress("0121321432423534534534"), big.NewInt(10000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	testtx1.SignTx(key1, fs1)
-	testtx2 := model.CreateRawLockTx(1, hashlock, big.NewInt(34564), big.NewInt(10000), big.NewInt(100), alice, bob)
+	testtx2 := model.CreateRawLockTx(1, hashlock, big.NewInt(34564), big.NewInt(10000), g_testData.TestGasPrice, g_testData.TestGasLimit, alice, bob)
 	testtx2.SignTx(key2, fs2)
 	return testtx1, testtx2
 }

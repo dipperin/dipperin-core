@@ -33,6 +33,7 @@ type Master interface {
 	Stop()
 	CurrentCoinbaseAddress() common.Address
 	SetCoinbaseAddress(addr common.Address)
+	SetMineGasConfig(gasFloor, gasCeil uint64)
 	OnNewBlock(block model.AbstractBlock)
 	Workers() map[WorkerId]WorkerForMaster
 
@@ -140,7 +141,7 @@ type rewardDistributor interface {
 //}
 
 type BlockBuilder interface {
-	BuildWaitPackBlock(coinbaseAddr common.Address) model.AbstractBlock
+	BuildWaitPackBlock(coinbaseAddr common.Address, gasFloor, gasCeil uint64) model.AbstractBlock
 }
 
 type BlockBroadcaster interface {
@@ -148,9 +149,25 @@ type BlockBroadcaster interface {
 }
 
 type MineConfig struct {
+	GasFloor         *atomic.Value // Target gas floor for mined blocks.
+	GasCeil          *atomic.Value // Target gas ceiling for mined blocks.
 	CoinbaseAddress  *atomic.Value
 	BlockBuilder     BlockBuilder
 	BlockBroadcaster BlockBroadcaster
+}
+
+func (conf *MineConfig) GetGasFloor() (result uint64) {
+	if v := conf.GasFloor.Load(); v != nil {
+		return v.(uint64)
+	}
+	return
+}
+
+func (conf *MineConfig) GetGasCeil() (result uint64) {
+	if v := conf.GasCeil.Load(); v != nil {
+		return v.(uint64)
+	}
+	return
 }
 
 func (conf *MineConfig) GetCoinbaseAddr() (result common.Address) {

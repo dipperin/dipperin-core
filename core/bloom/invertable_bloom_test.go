@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package iblt
 
 import (
-	"github.com/dipperin/dipperin-core/common"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"sort"
@@ -129,7 +128,7 @@ func TestInvBloom_Delete(t *testing.T) {
 	assert.True(t, b.Delete(tmp))
 
 	tmp = NewData(defaultBucketConfig.DataLen)
-	tmp.SetBytes([]byte{1, 1, 1,})
+	tmp.SetBytes([]byte{1, 1, 1})
 
 	assert.False(t, b.Delete(tmp))
 	// Assumes safe deletion
@@ -145,7 +144,7 @@ func TestInvBloom_Delete(t *testing.T) {
 }
 
 func generateRandomKV(size int) map[common.Hash]Data {
-	rand.Seed(time.Now().Unix()+rand.Int63())
+	rand.Seed(time.Now().Unix() + rand.Int63())
 
 	KV := make(map[common.Hash]Data)
 

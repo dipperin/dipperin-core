@@ -14,23 +14,22 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package main
 
 import (
 	"context"
+	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/rpc-interface"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"time"
-	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/core/rpc-interface"
-	"github.com/dipperin/dipperin-core/core/chain-config"
 )
 
 type HaHa struct {
 	ID uint
 }
 
-type TestApi struct {}
+type TestApi struct{}
 
 func (api *TestApi) SubscribeBlock(ctx context.Context) (*rpc.Subscription, error) {
 	notifier, supported := rpc.NotifierFromContext(ctx)
@@ -48,7 +47,7 @@ func (api *TestApi) SubscribeBlock(ctx context.Context) (*rpc.Subscription, erro
 			select {
 			case <-time.NewTicker(2 * time.Second).C:
 				log.Info("notify client")
-				notifier.Notify(rpcSub.ID, HaHa{ ID: 123 })
+				notifier.Notify(rpcSub.ID, HaHa{ID: 123})
 				//if rV, err := rlp.EncodeToBytes(b); err != nil {
 				//	log.Error("block can't encode to bytes", "err", err)
 				//} else {
@@ -87,17 +86,16 @@ func main() {
 }
 
 type fakeNodeConf struct {
-
 }
 
-func (c *fakeNodeConf)IpcEndpoint() string {
+func (c *fakeNodeConf) IpcEndpoint() string {
 	return "/tmp/rpc_sub_test"
 }
 
-func (c *fakeNodeConf)HttpEndpoint() string {
+func (c *fakeNodeConf) HttpEndpoint() string {
 	return ":10001"
 }
 
-func (c *fakeNodeConf)WsEndpoint() string {
+func (c *fakeNodeConf) WsEndpoint() string {
 	return ":10002"
 }

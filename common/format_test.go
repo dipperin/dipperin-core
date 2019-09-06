@@ -26,27 +26,27 @@ func TestPrettyDuration_String(t *testing.T) {
 	}{
 		{
 			name: "lengt > 4",
-			d: 1,
+			d:    1,
 			want: "1ns",
 		},
 		{
 			name: "ns",
-			d: 123,
+			d:    123,
 			want: "123ns",
 		},
 		{
 			name: "µs",
-			d: 1200,
+			d:    1200,
 			want: "1.2µs",
 		},
 		{
 			name: "ms",
-			d: 1234567,
+			d:    1234567,
 			want: "1.234ms",
 		},
 		{
 			name: "s",
-			d: 1200000000,
+			d:    1200000000,
 			want: "1.2s",
 		},
 	}

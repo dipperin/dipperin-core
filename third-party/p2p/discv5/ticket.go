@@ -27,8 +27,8 @@ import (
 
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/mclock"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 const (

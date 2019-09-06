@@ -1,5 +1,7 @@
 module github.com/dipperin/dipperin-core
 
+replace github.com/go-interpreter/wagon v0.0.0 => github.com/perlin-network/wagon v0.3.1-0.20180825141017-f8cb99b55a39
+
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
@@ -11,8 +13,9 @@ require (
 	github.com/deckarep/golang-set v1.7.1
 	github.com/ethereum/go-ethereum v1.8.21
 	github.com/fjl/memsize v0.0.0-20180929194037-2a09253e352a
+	github.com/go-interpreter/wagon v0.0.0
 	github.com/go-stack/stack v1.8.0
-	github.com/golang/mock v1.2.0
+	github.com/golang/mock v1.3.1
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db
 	github.com/hashicorp/golang-lru v0.5.0
 	github.com/huin/goupnp v1.0.0
@@ -29,6 +32,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/nicksnyder/go-i18n v1.10.0 // indirect
 	github.com/pelletier/go-toml v1.2.0 // indirect
+	github.com/perlin-network/life v0.0.0-20190723115110-3091ed0c1be8
 	github.com/pkg/term v0.0.0-20190109203006-aa71e9d9e942 // indirect
 	github.com/prometheus/client_golang v0.9.2
 	github.com/rs/cors v1.6.0
@@ -37,9 +41,12 @@ require (
 	github.com/tidwall/gjson v1.1.5
 	github.com/tidwall/match v1.0.1 // indirect
 	github.com/urfave/cli v1.20.0
-	golang.org/x/crypto v0.0.0-20190122013713-64072686203f
-	golang.org/x/net v0.0.0-20181201002055-351d144fa1fc
-	golang.org/x/sys v0.0.0-20190121090251-770c60269bf0
+	github.com/vmihailenco/msgpack v4.0.4+incompatible
+	github.com/willf/bitset v1.1.10
+	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
+	golang.org/x/net v0.0.0-20190603091049-60506f45cf65
+	golang.org/x/sys v0.0.0-20190606165138-5da285871e9c
+	google.golang.org/appengine v1.6.1 // indirect
 	gopkg.in/alecthomas/kingpin.v3-unstable v3.0.0-20180810215634-df19058c872c // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127
 	gopkg.in/karalabe/cookiejar.v2 v2.0.0-20150724131613-8dcd6a7f4951

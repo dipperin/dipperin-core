@@ -24,10 +24,10 @@ import (
 
 func Test_newSstack(t *testing.T) {
 	p := New(func(a interface{}, i int) {})
-	for i := 0; i < blockSize + 3; i++ {
+	for i := 0; i < blockSize+3; i++ {
 		p.Push(i, 1)
 	}
-	for i := 0; i < blockSize + 3; i++ {
+	for i := 0; i < blockSize+3; i++ {
 		p.PopItem()
 	}
 }

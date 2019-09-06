@@ -20,6 +20,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -107,7 +108,7 @@ func TestBroadcastDelegate_BroadcastTx(t *testing.T) {
 	mockPeerManager.EXPECT().GetPeers().Return(nil)
 
 	tx := model.NewTransaction(11, common.StringToAddress("dsad"), big.NewInt(11),
-		big.NewInt(1), nil)
+		g_testData.TestGasPrice, g_testData.TestGasLimit, nil)
 
 	bd.BroadcastTx([]model.AbstractTransaction{tx})
 

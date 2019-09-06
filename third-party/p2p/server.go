@@ -29,8 +29,9 @@ import (
 	"time"
 
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-metrics"
 	"github.com/dipperin/dipperin-core/common/mclock"
-	"github.com/ethereum/go-ethereum/event"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p/discover"
 	"github.com/dipperin/dipperin-core/third-party/p2p/discv5"
@@ -38,9 +39,8 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/p2p/enr"
 	"github.com/dipperin/dipperin-core/third-party/p2p/nat"
 	"github.com/dipperin/dipperin-core/third-party/p2p/netutil"
+	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/common/g-metrics"
 )
 
 const (

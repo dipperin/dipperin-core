@@ -23,7 +23,6 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/hashicorp/golang-lru"
 	"sync"
@@ -31,14 +30,14 @@ import (
 )
 
 type NewBftOuterConfig struct {
-	Chain    Chain
-	Pm       PeerManager
+	Chain Chain
+	Pm    PeerManager
 }
 
 func NewBftOuter(config *NewBftOuterConfig) *BftOuter {
 	b := &BftOuter{
 		NewBftOuterConfig: config,
-		handlers:    make(map[uint64]func(msg p2p.Msg, p PmAbstractPeer) error),
+		handlers:          make(map[uint64]func(msg p2p.Msg, p PmAbstractPeer) error),
 	}
 	b.handlers[GetVerifyResultMsg] = b.onGetVerifiedResult
 	b.handlers[VerifyBlockHashResultMsg] = b.onVerifiedResultBlockHash
@@ -70,7 +69,7 @@ func (broadcaster *BftOuter) MsgHandlers() map[uint64]func(msg p2p.Msg, p PmAbst
 func (broadcaster *BftOuter) BroadcastVerifiedBlock(vr *model2.VerifyResult) {
 	peers := broadcaster.getPeersWithoutBlock(vr.Block.Hash())
 	log.Info("broadcast verified block", "p len", len(peers))
-	log.Info("broadcast verified block hash", "hash",vr.Block.Hash().Hex())
+	log.Info("broadcast verified block hash", "hash", vr.Block.Hash().Hex())
 
 	for i := range peers {
 		receiver := broadcaster.getReceiver(peers[i])
@@ -149,14 +148,14 @@ func (broadcaster *BftOuter) onVerifiedResultBlock(msg p2p.Msg, p PmAbstractPeer
 
 	var result model2.VerifyResultRlp
 	if err := msg.Decode(&result); err != nil {
-		pbft_log.Warn("decode v result failed", "err", err)
+		log.PBft.Warn("decode v result failed", "err", err)
 		return err
 	}
 
 	commits := make([]model.AbstractVerification, len(result.SeenCommits))
 	util.InterfaceSliceCopy(commits, result.SeenCommits)
 
-	pbft_log.Debug("Get verified Result", "", result.Block.Number())
+	log.PBft.Debug("Get verified Result", "", result.Block.Number())
 
 	// here will call the save block
 	broadcaster.blockFetcher.DoTask(p.ID(), &model2.VerifyResult{

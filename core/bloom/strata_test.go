@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package iblt
 
 import (
@@ -30,7 +29,7 @@ func TestEstimator_TrailingZeros(t *testing.T) {
 
 	h.SetBytes([]byte{0, 0, 0, 1})
 
-	for i := 0; i < 26; i ++ {
+	for i := 0; i < 26; i++ {
 		zeros := e.TrailingZeros(h)
 		assert.EqualValues(t, 8*len(h)-i-1, zeros)
 		h.lsh()
@@ -64,7 +63,7 @@ func TestEstimator_DecodeData(t *testing.T) {
 	}
 
 	diff := e1.DecodeData(e2)
-	assert.True(t, int(float32(diff)*1.45) > (aSize + bSize))
+	assert.True(t, int(float32(diff)*1.45) > (aSize+bSize))
 }
 
 //added by caiqingfeng 2019.1.21

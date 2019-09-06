@@ -47,7 +47,6 @@ var websocketJSONCodec = websocket.Codec{
 	Unmarshal: func(msg []byte, payloadType byte, v interface{}) error {
 		dec := json.NewDecoder(bytes.NewReader(msg))
 		dec.UseNumber()
-
 		return dec.Decode(v)
 	},
 }

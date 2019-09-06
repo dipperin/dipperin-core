@@ -17,16 +17,16 @@
 package state_processor
 
 import (
-	"testing"
-	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestManageState(t *testing.T) {
 	db := ethdb.NewMemDatabase()
 	storage := NewStateStorageWithCache(db)
-	accountDB, err := NewAccountStateDB(common.Hash{} ,storage)
+	accountDB, err := NewAccountStateDB(common.Hash{}, storage)
 	assert.NoError(t, err)
 
 	manageState := ManageState(accountDB)
@@ -35,7 +35,7 @@ func TestManageState(t *testing.T) {
 	manageState.SetState(accountDB)
 	nonce := manageState.NewNonce(aliceAddr)
 	assert.Equal(t, uint64(0), nonce)
-	assert.True(t, 	manageState.HasAccount(aliceAddr))
+	assert.True(t, manageState.HasAccount(aliceAddr))
 
 	nonce = manageState.NewNonce(aliceAddr)
 	assert.Equal(t, uint64(1), nonce)
@@ -59,7 +59,7 @@ func TestManageState(t *testing.T) {
 func TestManagedState_NewNonce(t *testing.T) {
 	db := ethdb.NewMemDatabase()
 	storage := NewStateStorageWithCache(db)
-	accountDB, err := NewAccountStateDB(common.Hash{} ,storage)
+	accountDB, err := NewAccountStateDB(common.Hash{}, storage)
 	assert.NoError(t, err)
 
 	err = accountDB.NewAccountState(aliceAddr)
@@ -69,7 +69,6 @@ func TestManagedState_NewNonce(t *testing.T) {
 	assert.NotNil(t, manageState)
 	nonce := manageState.NewNonce(aliceAddr)
 	assert.Equal(t, uint64(0), nonce)
-
 
 	manageState.AddNonce(aliceAddr, 5)
 	nonce = manageState.NewNonce(aliceAddr)

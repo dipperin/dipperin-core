@@ -23,7 +23,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/cachedb"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/cs-chain"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
@@ -31,6 +30,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -62,25 +62,21 @@ func TestMakeBftBlockBuilder(t *testing.T) {
 	mps.EXPECT().Evaluate(gomock.Any(), gomock.Any()).Return(seed, proof, nil).AnyTimes()
 	mtpool.EXPECT().Pending().Return(map[common.Address][]model.AbstractTransaction{
 		tb.From(): {tb.Build()},
-	}, nil)
+	}, nil).AnyTimes()
 	mts.EXPECT().GetSender(gomock.Any()).Return(tb.From(), nil).AnyTimes()
 	mts.EXPECT().Equal(gomock.Any()).Return(true).AnyTimes()
-	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}))
+	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}, 1e1, 1e1))
 
 	tb.Nonce = 99
 	mtpool.EXPECT().Pending().Return(map[common.Address][]model.AbstractTransaction{
 		tb.From(): {tb.Build()},
-	}, nil)
+	}, nil).AnyTimes()
 	mtpool.EXPECT().RemoveTxs(gomock.Any()).AnyTimes()
-	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}))
-
-	assert.Panics(t, func() {
-		builder.BuildWaitPackBlock(common.Address{})
-	})
+	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}, 1e1, 1e1))
 
 	builder.ChainReader = &fakeChainReader{}
 	assert.Panics(t, func() {
-		builder.BuildWaitPackBlock(common.Address{0x12})
+		builder.BuildWaitPackBlock(common.Address{0x12}, 1e1, 1e1)
 	})
 }
 
@@ -139,7 +135,7 @@ func TestBftBlockBuilder_BuildWaitPackBlock(t *testing.T) {
 	}, nil)
 	mts.EXPECT().GetSender(gomock.Any()).Return(tb.From(), nil).AnyTimes()
 	mts.EXPECT().Equal(gomock.Any()).Return(true).AnyTimes()
-	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}))
+	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}, 1e1, 1e1))
 }
 
 func TestBftBlockBuilder_GetDifficulty(t *testing.T) {
@@ -168,8 +164,67 @@ func TestBftBlockBuilder_GetDifficulty(t *testing.T) {
 	mts.EXPECT().GetSender(gomock.Any()).Return(tb.From(), nil).AnyTimes()
 	mts.EXPECT().Equal(gomock.Any()).Return(true).AnyTimes()
 
-	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}))
+	assert.NotNil(t, builder.BuildWaitPackBlock(common.Address{0x12}, 1e1, 1e1))
 	assert.NotNil(t, builder.GetDifficulty())
+}
+
+func creatBlockWithGasLimitAndGasUsed(gasUsed, gasLimit, number uint64) *model.Block {
+	header := &model.Header{
+		GasUsed:  gasUsed,
+		GasLimit: gasLimit,
+		Number:   number,
+	}
+	return model.NewBlock(header, nil, nil)
+}
+
+func TestGasLimitAdjust(t *testing.T) {
+	/*	controller := gomock.NewController(t)
+		defer controller.Finish()*/
+	var blockNumber uint64
+	gasLimit := uint64(chain_config.BlockGasLimit)
+	gasUsed := uint64(0)
+	gasInfo := make(map[uint64]uint64, 11)
+	for {
+		Block := creatBlockWithGasLimitAndGasUsed(gasUsed, gasLimit, blockNumber)
+		log.Info("the gas info", "blockNum", Block.Number(), "gasLimit", Block.GasLimit(), "gasUsed", Block.GasUsed())
+		if blockNumber%360 == 0 {
+			gasInfo[blockNumber] = Block.GasLimit()
+		}
+
+		blockNumber++
+		gasLimit = CalcGasLimit(Block, 2e5, 2e10)
+		//gasLimit = CalcGasLimit(Block,Block.GasLimit(),Block.GasLimit())
+		log.Info("the actual gasLimit after change is:", "gasLimit", gasLimit)
+		log.Info("the gasLimit change value is:", "change", int64(gasLimit)-int64(Block.GasLimit()))
+		if blockNumber%5 != 0 {
+			gasUsed = uint64(0)
+		} else {
+			gasUsed = gasLimit
+		}
+
+		log.Info("")
+		log.Info("********************next block***********************")
+		log.Info("********************next block***********************")
+		log.Info("")
+
+		/*if blockNumber == 1 {
+			break
+		}*/
+		//break
+		/*		if gasLimit == 5000{
+				log.Info("the gasLimit is out of the MLimit")
+				break
+			}*/
+		if blockNumber == 20000 {
+			break
+		}
+	}
+
+	log.Info("the gasInfo sample is:")
+	for key, value := range gasInfo {
+		blockSize := value * 110 / (21000 * 1024 * 1024)
+		log.Info("point:", "key", key, "value", value, "blockSize", blockSize)
+	}
 }
 
 type fakeChainReader struct {
@@ -184,10 +239,6 @@ func (f *fakeChainReader) GetBlockByNumber(number uint64) model.AbstractBlock {
 }
 
 func (f *fakeChainReader) GetVerifiers(round uint64) []common.Address {
-	panic("implement me")
-}
-
-func (f *fakeChainReader) StateAtByBlockNumber(num uint64) (*state_processor.AccountStateDB, error) {
 	panic("implement me")
 }
 

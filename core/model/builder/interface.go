@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package builder
 
 import (
@@ -23,20 +22,18 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 )
 
 type AbstractBlockBuilder interface {
-	BuildWaitPackBlock(coinbaseAddr common.Address) model.AbstractBlock
+	BuildWaitPackBlock(coinbaseAddr common.Address, gasFloor, gasCeil uint64) model.AbstractBlock
 }
 
 type Chain interface {
 	CurrentBlock() model.AbstractBlock
 	GetBlockByNumber(number uint64) model.AbstractBlock
 	GetVerifiers(round uint64) []common.Address
-	StateAtByBlockNumber(num uint64) (*state_processor.AccountStateDB, error)
 
 	IsChangePoint(block model.AbstractBlock, isProcessPackageBlock bool) bool
 	GetLastChangePoint(block model.AbstractBlock) *uint64

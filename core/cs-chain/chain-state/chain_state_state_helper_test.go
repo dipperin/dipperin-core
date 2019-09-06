@@ -14,28 +14,26 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_state
 
 import (
-	"gopkg.in/check.v1"
-	"github.com/dipperin/dipperin-core/tests"
-	"math/big"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log/mpt_log"
+	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/check.v1"
+	"math/big"
 )
 
 func (suite *chainWriterSuite) TestChainState_BuildStateProcessor(t *check.C) {
-	mpt_log.InitMptLogger(log.LvlDebug, "state_writer", true)
+	log.Mpt.Logger = log.SetInitLogger(log.DefaultLogConf, "state_writer")
 
 	testAccount1 := tests.AccFactory.GetAccount(0)
 	suite.txBuilder.Amount = big.NewInt(100)
 	suite.txBuilder.Pk = suite.env.DefaultVerifiers()[0].Pk
 	suite.txBuilder.To = testAccount1.Address()
 
-	suite.blockBuilder.Txs = []*model.Transaction{ suite.txBuilder.Build() }
+	suite.blockBuilder.Txs = []*model.Transaction{suite.txBuilder.Build()}
 
 	block := suite.blockBuilder.Build()
 	log.Info("block txs", "len", block.TxCount())

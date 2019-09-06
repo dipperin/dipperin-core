@@ -19,8 +19,8 @@ package enode
 import (
 	"testing"
 
-	"github.com/dipperin/dipperin-core/third-party/p2p/enr"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/p2p/enr"
 )
 
 func newLocalNodeForTesting() (*LocalNode, *DB) {

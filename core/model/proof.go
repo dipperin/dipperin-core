@@ -18,9 +18,9 @@ package model
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 )
 
 type Proofs struct {
@@ -36,16 +36,17 @@ Name
 CalledBy
 Parameters
 Return
- */
-func NewRegisterTransaction(nonce uint64, amount *big.Int, fee *big.Int) *Transaction {
+*/
+func NewRegisterTransaction(nonce uint64, amount *big.Int, gasPrice *big.Int, gasLimit uint64) *Transaction {
 	target := common.HexToAddress(common.AddressStake)
-	txData := txData{
+	extraData := txData{
 		AccountNonce: nonce,
 		Recipient:    &target,
 		//HashLock:    common.HexToHash(""),
 		TimeLock:  new(big.Int),
 		Amount:    new(big.Int),
-		Fee:       new(big.Int),
+		GasLimit:  gasLimit,
+		Price:     gasPrice,
 		ExtraData: []byte{},
 	}
 	wit := witness{
@@ -55,25 +56,24 @@ func NewRegisterTransaction(nonce uint64, amount *big.Int, fee *big.Int) *Transa
 		HashKey: nil,
 	}
 	if amount != nil {
-		txData.Amount.Set(amount)
+		extraData.Amount.Set(amount)
 	}
-	if fee != nil {
-		txData.Fee.Set(fee)
-	}
-	return &Transaction{data: txData, wit: wit}
+
+	return &Transaction{data: extraData, wit: wit}
 }
 
-func NewEvidenceTransaction(nonce uint64, fee *big.Int, target *common.Address, voteA *VoteMsg, voteB *VoteMsg) *Transaction {
+func NewEvidenceTransaction(nonce uint64, gasPrice *big.Int, gasLimit uint64, target *common.Address, voteA *VoteMsg, voteB *VoteMsg) *Transaction {
 	var emptyHash common.Hash
 	proofs := Proofs{voteA, voteB, emptyHash, nil, 0}
 	data, _ := rlp.EncodeToBytes(proofs)
 	to := cs_crypto.GetEvidenceAddress(*target)
-	txData := txData{
+	extraData := txData{
 		AccountNonce: nonce,
 		Recipient:    &to,
 		TimeLock:     new(big.Int),
 		Amount:       new(big.Int),
-		Fee:          new(big.Int),
+		GasLimit:     gasLimit,
+		Price:        gasPrice,
 		ExtraData:    data,
 	}
 	wit := witness{
@@ -82,20 +82,18 @@ func NewEvidenceTransaction(nonce uint64, fee *big.Int, target *common.Address, 
 		V:       new(big.Int),
 		HashKey: nil,
 	}
-	if fee != nil {
-		txData.Fee.Set(fee)
-	}
-	return &Transaction{data: txData, wit: wit}
+	return &Transaction{data: extraData, wit: wit}
 }
 
-func NewUnStakeTransaction(nonce uint64, fee *big.Int) *Transaction {
+func NewUnStakeTransaction(nonce uint64, gasPrice *big.Int, gasLimit uint64) *Transaction {
 	target := common.HexToAddress(common.AddressUnStake)
-	txData := txData{
+	extraData := txData{
 		AccountNonce: nonce,
 		Recipient:    &target,
 		TimeLock:     new(big.Int),
 		Amount:       new(big.Int),
-		Fee:          new(big.Int),
+		GasLimit:     gasLimit,
+		Price:        gasPrice,
 		ExtraData:    []byte{},
 	}
 	wit := witness{
@@ -104,20 +102,18 @@ func NewUnStakeTransaction(nonce uint64, fee *big.Int) *Transaction {
 		V:       new(big.Int),
 		HashKey: nil,
 	}
-	if fee != nil {
-		txData.Fee.Set(fee)
-	}
-	return &Transaction{data: txData, wit: wit}
+	return &Transaction{data: extraData, wit: wit}
 }
 
-func NewCancelTransaction(nonce uint64, fee *big.Int) *Transaction {
+func NewCancelTransaction(nonce uint64, gasPrice *big.Int, gasLimit uint64) *Transaction {
 	target := common.HexToAddress(common.AddressCancel)
-	txData := txData{
+	extraData := txData{
 		AccountNonce: nonce,
 		Recipient:    &target,
 		TimeLock:     new(big.Int),
 		Amount:       new(big.Int),
-		Fee:          new(big.Int),
+		GasLimit:     gasLimit,
+		Price:        gasPrice,
 		ExtraData:    []byte{},
 	}
 	wit := witness{
@@ -126,21 +122,19 @@ func NewCancelTransaction(nonce uint64, fee *big.Int) *Transaction {
 		V:       new(big.Int),
 		HashKey: nil,
 	}
-	if fee != nil {
-		txData.Fee.Set(fee)
-	}
-	return &Transaction{data: txData, wit: wit}
+	return &Transaction{data: extraData, wit: wit}
 }
 
-func NewUnNormalTransaction(nonce uint64, amount *big.Int, fee *big.Int) *Transaction {
-	target := common.HexToAddress("0x00090000000000000000000000000000000000000000")
-	txData := txData{
+func NewUnNormalTransaction(nonce uint64, amount *big.Int, gasPrice *big.Int, gasLimit uint64) *Transaction {
+	target := common.HexToAddress(common.AddressUnNormal)
+	extraData := txData{
 		AccountNonce: nonce,
 		Recipient:    &target,
 		//HashLock:    common.HexToHash(""),
 		TimeLock:  new(big.Int),
 		Amount:    new(big.Int),
-		Fee:       new(big.Int),
+		GasLimit:  gasLimit,
+		Price:     gasPrice,
 		ExtraData: []byte{},
 	}
 	wit := witness{
@@ -150,10 +144,7 @@ func NewUnNormalTransaction(nonce uint64, amount *big.Int, fee *big.Int) *Transa
 		HashKey: nil,
 	}
 	if amount != nil {
-		txData.Amount.Set(amount)
+		extraData.Amount.Set(amount)
 	}
-	if fee != nil {
-		txData.Fee.Set(fee)
-	}
-	return &Transaction{data: txData, wit: wit}
+	return &Transaction{data: extraData, wit: wit}
 }

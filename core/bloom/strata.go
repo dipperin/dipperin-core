@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package iblt
 
 import (
@@ -26,7 +25,7 @@ import (
 // each element is inserted to an IBLT corresponding to its level of key
 type StrataEstimator struct {
 	//number of data
-	count  uint
+	count uint
 
 	// slice of IBLTs whose number is equal to the number of layers
 	strata []*InvBloom
@@ -35,7 +34,7 @@ type StrataEstimator struct {
 
 type EstimatorConfig struct {
 	// number of layers of strata
-	StrataNum  uint
+	StrataNum uint
 	// Configuration of IBLT for each layer
 	IBLTConfig InvBloomConfig
 }
@@ -97,7 +96,7 @@ func (e StrataEstimator) NewDataHash() DataHash {
 // Calculate the difference of two StrataEstimator
 func (e *StrataEstimator) DecodeData(r *StrataEstimator) uint {
 	count := uint(0)
-	for i := int(e.config.StrataNum - 1); i >= 0; i -- {
+	for i := int(e.config.StrataNum - 1); i >= 0; i-- {
 		t := NewInvBloom(e.config.IBLTConfig)
 		t.Subtract(e.strata[i], r.strata[i])
 		a, b := make(map[common.Hash]Data), make(map[common.Hash]Data)
@@ -105,7 +104,7 @@ func (e *StrataEstimator) DecodeData(r *StrataEstimator) uint {
 		// For loop until the decode of the subtraction of certain layer fails
 		// and estimate the total difference. If it succeeds until the end
 		// of the for loop, then the difference is directly the sum.
-		if ! t.Decode(a, b) {
+		if !t.Decode(a, b) {
 			return (1 << uint(i+1)) * count
 		}
 
@@ -122,8 +121,8 @@ func (e StrataEstimator) TrailingZeros(h DataHash) uint {
 	copy(t, h)
 
 	res := uint(0)
-	length := uint(len(t)<<3)
-	for ; !t.Lsb() && res < length; res ++ {
+	length := uint(len(t) << 3)
+	for ; !t.Lsb() && res < length; res++ {
 		t.lsh()
 	}
 

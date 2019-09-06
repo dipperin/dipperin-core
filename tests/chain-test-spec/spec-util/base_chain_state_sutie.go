@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package spec_util
 
 import (
@@ -24,9 +23,10 @@ import (
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
 	"github.com/dipperin/dipperin-core/core/economy-model"
-	"github.com/dipperin/dipperin-core/tests"
-	"math/big"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/tests"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"math/big"
 )
 
 var testFee = economy_model.GetMinimumTxFee(50)
@@ -62,6 +62,8 @@ func (suite *BaseChainSuite) SetupTest() {
 		PreBlock:   suite.ChainState.CurrentBlock(),
 		MinerPk:    suite.Env.Miner().Pk,
 	}
+
+	log.Info("the suit preBlock is~~~~:", "preBlock", suite.ChainState.CurrentBlock())
 }
 
 func (suite *BaseChainSuite) TearDownTest() {

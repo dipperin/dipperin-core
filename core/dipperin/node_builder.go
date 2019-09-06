@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package dipperin
 
 import (
@@ -28,7 +27,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/cachedb"
-	"github.com/dipperin/dipperin-core/core/dipperin/service"
 	"github.com/dipperin/dipperin-core/core/cs-chain"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
@@ -36,6 +34,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/csbft/components"
 	"github.com/dipperin/dipperin-core/core/csbft/csbftnode"
 	"github.com/dipperin/dipperin-core/core/csbft/state-machine"
+	"github.com/dipperin/dipperin-core/core/dipperin/service"
 	"github.com/dipperin/dipperin-core/core/mine/minemaster"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/model/builder"
@@ -43,17 +42,11 @@ import (
 	"github.com/dipperin/dipperin-core/core/tx-pool"
 	"github.com/dipperin/dipperin-core/core/verifiers-halt-check"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/bloom_log"
-	"github.com/dipperin/dipperin-core/third-party/log/health-info-log"
-	"github.com/dipperin/dipperin-core/third-party/log/mpt_log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
-	"github.com/dipperin/dipperin-core/third-party/log/pm_log"
-	"github.com/dipperin/dipperin-core/third-party/log/ver_halt_check_log"
-	"github.com/dipperin/dipperin-core/third-party/log/witch_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/nat"
 	"github.com/dipperin/dipperin-core/third-party/p2p/netutil"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"github.com/dipperin/dipperin-core/third-party/vm-log-search"
 	"os"
 	"path/filepath"
 	"strings"
@@ -61,14 +54,14 @@ import (
 )
 
 type BlockValidator interface {
-	Valid(block model.AbstractBlock) (error)
-	FullValid(block model.AbstractBlock) (error)
+	Valid(block model.AbstractBlock) error
+	FullValid(block model.AbstractBlock) error
 }
 
 type BaseComponent struct {
 	nodeConfig           NodeConfig
 	chainConfig          *chain_config.ChainConfig
-	DipperinConfig     *service.DipperinConfig
+	DipperinConfig       *service.DipperinConfig
 	csChainServiceConfig *cs_chain.CsChainServiceConfig
 	bftConfig            *state_machine.BftConfig
 	pmConf               *chain_communication.CsProtocolManagerConfig
@@ -76,7 +69,7 @@ type BaseComponent struct {
 	verHaltCheckConfig   *verifiers_halt_check.HaltCheckConf
 
 	prometheusServer *g_metrics.PrometheusMetricsServer
-	cacheDB                     *cachedb.CacheDB
+	//cacheDB                     *cachedb.CacheDB
 	fullChain                   *cs_chain.CsChainService
 	txPool                      *tx_pool.TxPool
 	rpcService                  *rpc_interface.Service
@@ -87,7 +80,7 @@ type BaseComponent struct {
 	consensusBeforeInsertBlocks BlockValidator
 	defaultMsgDecoder           chain_communication.P2PMsgDecoder
 	verifiersReader             VerifiersReader
-	chainService                *service.MercuryFullChainService
+	chainService                *service.VenusFullChainService
 	walletManager               *accounts.WalletManager
 	msgSigner                   *accounts.WalletSigner
 	bftNode                     *csbftnode.CsBft
@@ -139,7 +132,7 @@ func NewBftNode(nodeConfig NodeConfig) (n Node) {
 	if baseComponent.nodeConfig.ExtraServiceFunc != nil {
 		eApis, eServices := baseComponent.nodeConfig.ExtraServiceFunc(ExtraServiceFuncConfig{
 			DipperinConfig: *baseComponent.DipperinConfig,
-			ChainService:     baseComponent.chainService,
+			ChainService:   baseComponent.chainService,
 		})
 		nodeServices = append(nodeServices, eServices...)
 		baseComponent.rpcService.AddApis(eApis)
@@ -156,16 +149,16 @@ func newBaseComponent(nodeConfig NodeConfig) *BaseComponent {
 	promeS := g_metrics.NewPrometheusMetricsServer(nodeConfig.GetPMetricsPort())
 	g_metrics.InitCSMetrics()
 	b := &BaseComponent{
-		prometheusServer: promeS,
+		prometheusServer:          promeS,
 		chainConfig:               chain_config.GetChainConfig(),
-		DipperinConfig:          &service.DipperinConfig{},
+		DipperinConfig:            &service.DipperinConfig{},
 		csChainServiceConfig:      &cs_chain.CsChainServiceConfig{},
 		defaultPriorityCalculator: model.DefaultPriorityCalculator,
 		defaultMsgDecoder:         chain_communication.MakeDefaultMsgDecoder(),
 		coinbaseAddr:              &atomic.Value{},
 		nodeConfig:                nodeConfig,
 	}
-	b.txSigner = model.NewMercurySigner(b.chainConfig.ChainId)
+	b.txSigner = model.NewSigner(b.chainConfig.ChainId)
 
 	// init block decoder
 	b.blockDecoder = model.MakeDefaultBlockDecoder()
@@ -181,20 +174,7 @@ func newBaseComponent(nodeConfig NodeConfig) *BaseComponent {
 	log.InitAgentLog(nodeConfig.DataDir)
 	nodeName := nodeConfig.GetNodeName()
 
-	if os.Getenv("boots_env") == "mercury" {
-		pbft_log.InitPbftLogger(log.LvlWarn, nodeName, true)
-		health_info_log.InitHealthLogger(log.LvlWarn, nodeName, true)
-		mpt_log.InitMptLogger(log.LvlWarn, nodeName, true)
-	} else {
-		pbft_log.InitPbftLogger(log.LvlDebug, nodeName, true)
-		health_info_log.InitHealthLogger(log.LvlDebug, nodeName, true)
-		mpt_log.InitMptLogger(log.LvlInfo, nodeName, true)
-	}
-	pm_log.InitPMLogger(log.LvlInfo, nodeName, true)
-	bloom_log.InitLogger(log.LvlError, nodeName, true)
-	witch_log.InitWitchLogger(log.LvlInfo, nodeName, true)
-	ver_halt_check_log.InitHaltLogger(log.LvlInfo, nodeName, true)
-
+	log.InitDPLogger(nodeName)
 	return b
 }
 
@@ -215,6 +195,7 @@ func (b *BaseComponent) buildDipperinConfig() {
 	b.DipperinConfig.MineMasterServer = b.mineMasterServer
 	b.DipperinConfig.DefaultAccount = b.defaultAccountAddress
 	b.DipperinConfig.MsgSigner = b.msgSigner
+	b.DipperinConfig.ChainIndex = vm_log_search.NewBloomIndexer(b.DipperinConfig.ChainReader, b.fullChain.CacheChainState.ChainState.GetDB(), vm_log_search.BloomBitsBlocks, vm_log_search.BloomConfirms)
 }
 
 func (b *BaseComponent) buildBftConfig() {
@@ -258,6 +239,8 @@ func (b *BaseComponent) buildCommunicationConfig() {
 
 func (b *BaseComponent) buildMineConfig(modelConfig builder.ModelConfig) minemaster.MineConfig {
 	return minemaster.MineConfig{
+		GasFloor:         &atomic.Value{},
+		GasCeil:          &atomic.Value{},
 		CoinbaseAddress:  b.coinbaseAddr,
 		BlockBuilder:     builder.MakeBftBlockBuilder(modelConfig),
 		BlockBroadcaster: b.broadcastDelegate,
@@ -266,20 +249,19 @@ func (b *BaseComponent) buildMineConfig(modelConfig builder.ModelConfig) minemas
 
 func (b *BaseComponent) builderModelConfig() builder.ModelConfig {
 	return builder.ModelConfig{
-		ChainReader:                 b.fullChain,
-		TxPool:                      b.txPool,
-		PriorityCalculator:          b.defaultPriorityCalculator,
-		MsgSigner: b.msgSigner,
-		ChainConfig:                 *b.chainConfig,
+		ChainReader:        b.fullChain,
+		TxPool:             b.txPool,
+		PriorityCalculator: b.defaultPriorityCalculator,
+		MsgSigner:          b.msgSigner,
+		ChainConfig:        *b.chainConfig,
 	}
 }
-
 
 func (b *BaseComponent) initFullChain() {
 	// init full chain
 	b.fullChain = cs_chain.NewCsChainService(b.csChainServiceConfig, chain_state.NewChainState(&chain_state.ChainStateConfig{
-		ChainConfig: b.chainConfig,
-		DataDir:     b.nodeConfig.DataDir,
+		ChainConfig:   b.chainConfig,
+		DataDir:       b.nodeConfig.DataDir,
 		WriterFactory: chain_writer.NewChainWriterFactory(),
 	}))
 	b.csChainServiceConfig.CacheDB = cachedb.NewCacheDB(b.fullChain.GetDB())
@@ -288,7 +270,8 @@ func (b *BaseComponent) initFullChain() {
 	b.verifiersReader = chain.MakeVerifiersReader(b.fullChain)
 	b.consensusBeforeInsertBlocks = middleware.NewBftBlockValidator(b.fullChain)
 
-	if chain_config.GetCurBootsEnv() != "mercury" {
+	// Add Venus Testnet
+	if chain_config.GetCurBootsEnv() != "mercury" && chain_config.GetCurBootsEnv() != "venus" {
 		debug.Memsize.Add("fullChain", b.fullChain)
 		// TODo confirm if you need
 		//debug.Memsize.Add("consensusBeforeInsertBlocks", consensusBeforeInsertBlocks)
@@ -312,6 +295,7 @@ func (b *BaseComponent) initTxPool() {
 
 func (b *BaseComponent) initChainService() {
 	b.DipperinConfig.ChainReader = b.fullChain
+	//b.DipperinConfig.ChainIndex =
 	// init service
 	b.chainService = service.MakeFullChainService(b.DipperinConfig)
 }
@@ -320,7 +304,7 @@ func (b *BaseComponent) initWalletManager() {
 	tmpLog := log.New()
 	tmpLog.SetHandler(log.StdoutHandler)
 	var err error
-	log.Info("the nodeType is:","nodeType",b.nodeConfig.NodeType)
+	log.Info("the nodeType is:", "nodeType", b.nodeConfig.NodeType)
 	// No need to create or open a default wallet when the normal node starts
 	if b.nodeConfig.NodeType == chain_config.NodeTypeOfNormal {
 		if b.walletManager, err = accounts.NewWalletManager(b.chainService); err != nil {
@@ -409,14 +393,14 @@ func (b *BaseComponent) initP2PService() {
 	b.csPm = csPm
 	b.broadcastDelegate = broadcastDelegate
 
-	if chain_config.GetCurBootsEnv() != "mercury" {
+	if chain_config.GetCurBootsEnv() != "mercury" && chain_config.GetCurBootsEnv() != "venus" {
 		debug.Memsize.Add("p2p server", p2pServer)
 	}
 }
 
 func (b *BaseComponent) initRpc() {
 	// load rpc service todo chainService not init
-	rpcApi := rpc_interface.MakeDipperinMercuryApi(b.chainService)
+	rpcApi := rpc_interface.MakeDipperinVenusApi(b.chainService)
 	debugApi := rpc_interface.MakeDipperinDebugApi(b.chainService)
 	p2pApi := rpc_interface.MakeDipperinP2PApi(b.chainService)
 
@@ -460,6 +444,8 @@ func (b *BaseComponent) initMineMaster() {
 	}
 
 	mineConfig := b.buildMineConfig(b.builderModelConfig())
+	mineConfig.GasFloor.Store(uint64(chain_config.BlockGasLimit))
+	mineConfig.GasCeil.Store(uint64(chain_config.BlockGasLimit))
 	// chain service not init here
 	mineMaster, mineMasterServer := minemaster.MakeMineMaster(mineConfig)
 	minePm := chain_communication.NewMineProtocolManager(mineMasterServer)
@@ -504,14 +490,14 @@ func (b *BaseComponent) setBftAfterP2PInit() {
 func (b *BaseComponent) initVerHaltCheck() {
 	b.buildHaltCheckConfig()
 	b.verHaltCheck = verifiers_halt_check.MakeSystemHaltedCheck(b.verHaltCheckConfig)
-	b.csPm.RegisterCommunicationService(b.verHaltCheck,b.verHaltCheck)
+	b.csPm.RegisterCommunicationService(b.verHaltCheck, b.verHaltCheck)
 }
 
 func (b *BaseComponent) getNodeServices() []NodeService {
 	// these services may have nil
 	return filterNilService([]NodeService{
 		b.chainService, b.bftNode, b.walletManager, b.csPm,
-		b.p2pServer, b.rpcService,b.txPool, b.prometheusServer,
+		b.p2pServer, b.rpcService, b.txPool, b.prometheusServer, b.DipperinConfig.ChainIndex,
 	})
 }
 

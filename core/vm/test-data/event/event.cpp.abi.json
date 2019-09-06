@@ -1,0 +1,69 @@
+[
+    {
+        "name": "init",
+        "inputs": [],
+        "outputs": [],
+        "constant": "false",
+        "type": "function"
+    },
+    {
+        "name": "returnString",
+        "inputs": [
+            {
+                "name": "name",
+                "type": "string"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "constant": "true",
+        "type": "function"
+    },
+    {
+        "name": "returnInt",
+        "inputs": [
+            {
+                "name": "name",
+                "type": "string"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "int64"
+            }
+        ],
+        "constant": "true",
+        "type": "function"
+    },
+    {
+        "name": "returnUint",
+        "inputs": [
+            {
+                "name": "name",
+                "type": "string"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "constant": "true",
+        "type": "function"
+    },
+    {
+        "name": "topic",
+        "inputs": [
+            {
+                "type": "string"
+            }
+        ],
+        "type": "event"
+    }
+]
