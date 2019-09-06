@@ -165,7 +165,6 @@ type VerifiersReader interface {
 	ShouldChangeVerifier() bool
 }
 
-
 //go:generate mockgen -destination=./peer_manager_mock_test.go -package=chain_communication -self_package=github.com/dipperin/dipperin-core/core/chain-communication github.com/dipperin/dipperin-core/core/chain-communication PeerManager
 type PeerManager interface {
 	GetPeers() map[string]PmAbstractPeer

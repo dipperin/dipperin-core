@@ -1168,7 +1168,6 @@ func (api *DipperinVenusApi) GetDeveloperLockDIP(address common.Address, blockNu
 	return (*hexutil.Big)(lockValue), nil
 }
 
-
 func (api *DipperinVenusApi) GetFoundationInfo(usage economy_model.FoundationDIPUsage) map[string]*hexutil.Big {
 	foundationInfo := api.service.GetFoundationInfo(usage)
 
