@@ -45,7 +45,7 @@ const (
 
 var (
 	checkSynStatusDuration = 1 * time.Minute
-	checkVerHaltDuration   = 2 * time.Minute
+	checkVerHaltDuration   = 5 * time.Minute
 	//checkVerHaltDuration         = 30 * time.Second
 	waitProposalResponseDuration = 1 * time.Minute
 	waitVerifierVote             = 1 * time.Minute
@@ -321,7 +321,7 @@ func (systemHaltedCheck *SystemHaltedCheck) onSendMinimalHashBlock(msg p2p.Msg, 
 	return nil
 }
 
-// verifier bootNode receive the vote form the alive verifiers
+// verifier bootNode receive the vote from the alive verifiers
 func (systemHaltedCheck *SystemHaltedCheck) onSendMinimalHashBlockResponse(msg p2p.Msg, p chain_communication.PmAbstractPeer) error {
 	var vote model.VoteMsg
 	err := msg.Decode(&vote)
@@ -446,7 +446,8 @@ func (systemHaltedCheck *SystemHaltedCheck) sendMinimalHashBlock(proposal Propos
 			err := node.SendMsg(chain_communication.SendMinimalHashBlock, &proposal)
 			if err != nil {
 				log.Halt.Error("send propose empty block msg error", "err", err, "nodeName", node.NodeName())
-				errChan <- err
+				//treat it as bad node when send error
+				//errChan <- err
 				return
 			}
 		}

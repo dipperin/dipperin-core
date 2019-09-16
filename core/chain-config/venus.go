@@ -29,7 +29,7 @@ func NewVenusVBoots() []*enode.Node {
 		pkByte, _ := hexutil.Decode(env_conf.MercuryVerBootPublicKey[i])
 		cs_crypto.ToECDSAPub(pkByte)
 
-		n := enode.NewV4(cs_crypto.ToECDSAPub(pkByte), net.ParseIP(venusHostIP), InitVenusBootPort+(i+1)*3, InitVenusBootPort+(i+1)*3)
+		n := enode.NewV4(cs_crypto.ToECDSAPub(pkByte), net.ParseIP(venusHostIP), InitVenusBootPort+i*3, InitVenusBootPort+i*3)
 		vBoots = append(vBoots, n)
 	}
 	return vBoots
