@@ -127,8 +127,8 @@ func InitDPLogger(nodeName string) {
 		v.conf.Type = LoggerFile
 		if os.Getenv("boots_env") == "venus" {
 			switch k {
-			case "mpt", "health_info", "vm_memory", "witch":
-				//case "mpt", "vm_memory", "witch":
+			//case "mpt", "health_info", "vm_memory", "witch":
+			case "mpt", "vm_memory", "witch":
 				v.conf.LogLevel = LvlWarn
 			}
 		}

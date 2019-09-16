@@ -90,6 +90,7 @@ func (bs *BftState) OnNewProposal(p *model2.Proposal, block model.AbstractBlock)
 	}
 
 	if !p.BlockID.IsEqual(block.Hash()) {
+		log.PBft.Error("the proposal block error","p.BlockID",p.BlockID.Hex(),"blockId",block.Hash().Hex())
 		return
 	}
 
@@ -117,8 +118,10 @@ func (bs *BftState) OnPreVote(pv *model.VoteMsg) {
 
 	roundBlock := bs.PreVotes.VotesEnough(pv.Round)
 	//fmt.Println("onprevote","who",reflect.ValueOf(bs).Pointer(),"pv",roundBlock)
+	log.PBft.Info("the round info is:","pv.Round",pv.Round,"bs.Round",bs.Round,"bs.LockedRound",bs.LockedRound)
 	// Release block lock
 	if bs.LockedBlock != nil && !roundBlock.IsEqual(common.Hash{}) && pv.Round >= bs.Round && bs.LockedRound < pv.Round {
+		log.PBft.Info("the locked and round Block is:","lockedBlock",bs.LockedBlock.Hash().Hex(),"roundBlock",roundBlock.Hex())
 		if !bs.LockedBlock.Hash().IsEqual(roundBlock) {
 			bs.LockedBlock = nil
 		}
@@ -135,6 +138,8 @@ func (bs *BftState) OnPreVote(pv *model.VoteMsg) {
 				log.PBft.Debug("[BftState-LockBlock]", "LockedRound", bs.LockedRound, "block", block.Hash().Hex())
 				bs.enterPreCommit(pv.Round)
 			}
+		}else{
+			log.PBft.Error("the proposal Block is nil")
 		}
 	}
 }
@@ -162,7 +167,7 @@ func (bs *BftState) OnVote(v *model.VoteMsg) (common.Hash, []model.AbstractVerif
 
 	// select correct voteMsgs
 	resultVotes := bs.Votes.FinalVerifications(v.Round)
-	log.PBft.Error("[BftState-OnVote] can final block", "voteRound", v.Round, "ownRound", bs.Round)
+	log.PBft.Info("[BftState-OnVote] can final block", "voteRound", v.Round, "ownRound", bs.Round)
 	return maj32Block, resultVotes
 }
 
