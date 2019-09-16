@@ -37,6 +37,7 @@ Record the latest round value of all nodes at the current height
 type NewRoundSet struct {
 	Height        uint64
 	maj32         uint64
+	halfUp        uint64
 	RoundMessages map[uint64]map[common.Address]*model2.NewRoundMsg
 	verifiers     []common.Address
 	lock          sync.Mutex
@@ -47,6 +48,7 @@ func NewNRoundSet(height uint64, vers []common.Address) *NewRoundSet {
 		RoundMessages: make(map[uint64]map[common.Address]*model2.NewRoundMsg),
 		Height:        height,
 		maj32:         0,
+		halfUp:        0,
 		verifiers:     vers}
 }
 
@@ -341,6 +343,31 @@ func (rs NewRoundSet) hasMaj32(round uint64) bool {
 	}
 
 	return false
+}
+
+func (rs NewRoundSet) hasHalfUp(round uint64) bool  {
+	if rs.RoundMessages[round] == nil {
+		return false
+	}
+	num := len(rs.RoundMessages[round])
+	bakRound := round
+	result := false
+	for {
+		bakRound++
+		if bak := rs.RoundMessages[bakRound]; bak != nil {
+			if len(bak) > num && len(bak) > int(len(rs.verifiers))/2 {
+				rs.halfUp = bakRound
+				result = true
+			}
+		} else{
+			break
+		}
+	}
+	if num > int(len(rs.verifiers)/2) && rs.halfUp < round {
+		rs.halfUp = round
+		result = true
+	}
+	return result
 }
 
 /*

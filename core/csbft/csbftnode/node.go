@@ -270,14 +270,22 @@ func (bft *CsBft) OnNewP2PMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer)
 		}
 		log.PBft.Info("[Node-OnNewMsg] receive req new round", "node", p.NodeName(), "height", m.Height, "round", m.Round)
 
-		msg := bft.stateHandler.GetRoundMsg(m.Height, m.Round)
-		log.PBft.Debug("[Node-OnNewMsg] response", "msg == nil", msg == nil)
-		if msg != nil {
-			log.PBft.Info("[Node-OnNewMsg]  response round request", "to", p.NodeName(), "height", m.Height, "round", m.Round)
+		round := m.Round
+		for msg := bft.stateHandler.GetRoundMsg(m.Height, round);msg != nil ; round++  {
+			log.PBft.Info("[Node-OnNewMsg]  response round request", "to", p.NodeName(), "height", m.Height, "round", round)
 			if err := p.SendMsg(uint64(model2.TypeOfNewRoundMsg), msg); err != nil {
 				log.PBft.Error("response round request error", "err", err)
 			}
 		}
+
+		//msg := bft.stateHandler.GetRoundMsg(m.Height, m.Round)
+		//log.PBft.Debug("[Node-OnNewMsg] response", "msg == nil", msg == nil)
+		//if msg != nil {
+		//	log.PBft.Info("[Node-OnNewMsg]  response round request", "to", p.NodeName(), "height", m.Height, "round", m.Round)
+		//	if err := p.SendMsg(uint64(model2.TypeOfNewRoundMsg), msg); err != nil {
+		//		log.PBft.Error("response round request error", "err", err)
+		//	}
+		//}
 	default:
 		panic(fmt.Sprintf("unknown csbft msg, code: %v", msg.Code))
 	}
