@@ -26,7 +26,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
-
 	//"time"
 	//"fmt"
 )
@@ -87,8 +86,8 @@ func Test_onNewTx(t *testing.T) {
 	config := &NewTxBroadcasterConfig{
 		TxPool:        mockTxPool,
 		P2PMsgDecoder: mockDecoder,
-		NodeConf: mockNodeConf,
-		Pm: mockPM,
+		NodeConf:      mockNodeConf,
+		Pm:            mockPM,
 	}
 
 	ntb := makeNewTxBroadcaster(config)
@@ -211,7 +210,7 @@ func Test_syncTxs(t *testing.T) {
 	mockPM := NewMockPeerManager(ctrl)
 	config := &NewTxBroadcasterConfig{
 		TxPool: mockTxPool,
-		Pm: mockPM,
+		Pm:     mockPM,
 	}
 
 	ntb := makeNewTxBroadcaster(config)
@@ -249,7 +248,7 @@ func Test_txSyncLoop(t *testing.T) {
 	mockPM := NewMockPeerManager(ctrl)
 	config := &NewTxBroadcasterConfig{
 		TxPool: mockTxPool,
-		Pm: mockPM,
+		Pm:     mockPM,
 	}
 
 	ntb := makeNewTxBroadcaster(config)

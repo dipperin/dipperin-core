@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package json_kv
 
 import (
@@ -28,21 +27,21 @@ import (
 
 type erc20 struct {
 	// todo special characters cause conversion errors
-	Owners  []string `json:"owne.rs"`
+	Owners  []string            `json:"owne.rs"`
 	Balance map[string]*big.Int `json:"balance"`
-	Name    string `json:"name"`
-	Name2    string `json:"name2"`
-	Dis     uint64 `json:"dis"`
+	Name    string              `json:"name"`
+	Name2   string              `json:"name2"`
+	Dis     uint64              `json:"dis"`
 }
 
-var kvResult = map[string]string {
-	"owne.rs^0":`"0x321aa"`,
-	"owne.rs^1":`"0xaf871"`,
-	"balance.0x123": "999999999999999999999999999999999999999999999999999999999999999999999",
+var kvResult = map[string]string{
+	"owne.rs^0":      `"0x321aa"`,
+	"owne.rs^1":      `"0xaf871"`,
+	"balance.0x123":  "999999999999999999999999999999999999999999999999999999999999999999999",
 	"balance.0x1231": "123321",
-	"name": `"\njk\""`,
-	"name2": `"asdfdsf"`,
-	"dis": "10002",
+	"name":           `"\njk\""`,
+	"name2":          `"asdfdsf"`,
+	"dis":            "10002",
 }
 
 func buildTestStruct() erc20 {
@@ -53,9 +52,9 @@ func buildTestStruct() erc20 {
 			"0x123":  veryBig,
 			"0x1231": big.NewInt(123321),
 		},
-		Name: "\njk\"",
+		Name:  "\njk\"",
 		Name2: "asdfdsf",
-		Dis:  10002,
+		Dis:   10002,
 	}
 	return c
 }
@@ -113,51 +112,51 @@ func TestJson2kv(t *testing.T) {
 }
 
 func TestInvalidJsonKey(t *testing.T) {
-	assert.True(t, invalidJsonKey("sdf" + objSegS))
-	assert.True(t, invalidJsonKey("sdf" + arrSegS))
+	assert.True(t, invalidJsonKey("sdf"+objSegS))
+	assert.True(t, invalidJsonKey("sdf"+arrSegS))
 	assert.False(t, invalidJsonKey("sdf"))
 }
 
 func TestKV2JsonStr(t *testing.T) {
-	kv := map[string]string {
-		"owne.rs^0":`"0x321aa"`,
-		"owne.rs^1":`"0xaf871"`,
-		"owne.rs^5": `"0x111"`,
-		"balance.0x123": "999999999999999999999999999999999999999999999999999999999999999999999",
+	kv := map[string]string{
+		"owne.rs^0":      `"0x321aa"`,
+		"owne.rs^1":      `"0xaf871"`,
+		"owne.rs^5":      `"0x111"`,
+		"balance.0x123":  "999999999999999999999999999999999999999999999999999999999999999999999",
 		"balance.0x1231": "123321",
-		"name": `"\njk\""`,
-		"name2": `"asdfdsf"`,
-		"dis": "10002",
+		"name":           `"\njk\""`,
+		"name2":          `"asdfdsf"`,
+		"dis":            "10002",
 	}
 
 	_, err := KV2JsonStr(kv)
 
 	assert.Error(t, err)
 
-	kv2 := map[string]string {
-		"owne.rs^0":`"0x321aa"`,
-		"owne.rs^1":`"0xaf871"`,
-		"owne.rs^-1": `"0x111"`,
-		"balance.0x123": "999999999999999999999999999999999999999999999999999999999999999999999",
+	kv2 := map[string]string{
+		"owne.rs^0":      `"0x321aa"`,
+		"owne.rs^1":      `"0xaf871"`,
+		"owne.rs^-1":     `"0x111"`,
+		"balance.0x123":  "999999999999999999999999999999999999999999999999999999999999999999999",
 		"balance.0x1231": "123321",
-		"name": `"\njk\""`,
-		"name2": `"asdfdsf"`,
-		"dis": "10002",
+		"name":           `"\njk\""`,
+		"name2":          `"asdfdsf"`,
+		"dis":            "10002",
 	}
 
 	_, err = KV2JsonStr(kv2)
 
 	assert.Error(t, err)
 
-	kv3 := map[string]string {
-		"owne.rs^0^0":`"0x321aa"`,
-		"owne.rs^0^1":`"0x321aa"`,
-		"owne.rs^1":`"0xaf871"`,
-		"balance.0x123": "999999999999999999999999999999999999999999999999999999999999999999999",
+	kv3 := map[string]string{
+		"owne.rs^0^0":    `"0x321aa"`,
+		"owne.rs^0^1":    `"0x321aa"`,
+		"owne.rs^1":      `"0xaf871"`,
+		"balance.0x123":  "999999999999999999999999999999999999999999999999999999999999999999999",
 		"balance.0x1231": "123321",
-		"name": `"\njk\""`,
-		"name2": `"asdfdsf"`,
-		"dis": "10002",
+		"name":           `"\njk\""`,
+		"name2":          `"asdfdsf"`,
+		"dis":            "10002",
 	}
 
 	s1, err := KV2JsonStr(kv3)
@@ -170,15 +169,15 @@ func TestKV2JsonStr(t *testing.T) {
 
 	assert.True(t, reflect.DeepEqual(kv3, rKv3))
 
-	kv4 := map[string]string {
-		"owne.rs^0.a":`"0x321aa"`,
-		"owne.rs^0.b":`"0x321aa"`,
-		"owne.rs^1":`"0xaf871"`,
-		"balance.0x123": "999999999999999999999999999999999999999999999999999999999999999999999",
+	kv4 := map[string]string{
+		"owne.rs^0.a":    `"0x321aa"`,
+		"owne.rs^0.b":    `"0x321aa"`,
+		"owne.rs^1":      `"0xaf871"`,
+		"balance.0x123":  "999999999999999999999999999999999999999999999999999999999999999999999",
 		"balance.0x1231": "123321",
-		"name": `"\njk\""`,
-		"name2": `"asdfdsf"`,
-		"dis": "10002",
+		"name":           `"\njk\""`,
+		"name2":          `"asdfdsf"`,
+		"dis":            "10002",
 	}
 
 	s2, err := KV2JsonStr(kv4)
@@ -191,16 +190,16 @@ func TestKV2JsonStr(t *testing.T) {
 
 	assert.True(t, reflect.DeepEqual(kv4, rKv4))
 
-	kv5 := map[string]string {
-		"owne.rs^0":`"0x321aa"`,
-		"owne.rs^1":`"0xaf871"`,
-		"owne.rs^2^0": `"0x111"`,
-		"owne.rs^2^5": `"0x111"`,
-		"balance.0x123": "999999999999999999999999999999999999999999999999999999999999999999999",
+	kv5 := map[string]string{
+		"owne.rs^0":      `"0x321aa"`,
+		"owne.rs^1":      `"0xaf871"`,
+		"owne.rs^2^0":    `"0x111"`,
+		"owne.rs^2^5":    `"0x111"`,
+		"balance.0x123":  "999999999999999999999999999999999999999999999999999999999999999999999",
 		"balance.0x1231": "123321",
-		"name": `"\njk\""`,
-		"name2": `"asdfdsf"`,
-		"dis": "10002",
+		"name":           `"\njk\""`,
+		"name2":          `"asdfdsf"`,
+		"dis":            "10002",
 	}
 
 	_, err = KV2JsonStr(kv5)
@@ -208,5 +207,3 @@ func TestKV2JsonStr(t *testing.T) {
 	assert.Error(t, err)
 
 }
-
-

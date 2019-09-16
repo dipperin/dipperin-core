@@ -14,24 +14,24 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package middleware
 
 import (
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 )
 
 func NewBlockContext(block model.AbstractBlock, chain ChainInterface) *BlockContext {
 	return &BlockContext{
-		MiddlewareContext: MiddlewareContext{ index: -1 },
-		Block: block,
-		Chain: chain,
+		MiddlewareContext: MiddlewareContext{index: -1},
+		Block:             block,
+		Chain:             chain,
 	}
 }
 
 /*
 visit chain, db, state_root through processor
- */
+*/
 type BlockContext struct {
 	MiddlewareContext
 
@@ -39,19 +39,22 @@ type BlockContext struct {
 	Block model.AbstractBlock
 	// chain
 	Chain ChainInterface
+
+	//add block receipts
+	receipts model2.Receipts
 }
 
 // basic middleware, can be comprised by other middleware
 type MiddlewareContext struct {
 	// index of middleware, initial value=-1
-	index int8
+	index       int8
 	middlewares MiddlewareChain
 }
 
 /*
 the core function of middleware,
 called only once after the registration of each middleware
- */
+*/
 func (mc *MiddlewareContext) Next() error {
 	mc.index++
 	// this loop in middleware can go to the end even if next is not called
@@ -64,7 +67,7 @@ func (mc *MiddlewareContext) Next() error {
 	return nil
 }
 
-func (mc *MiddlewareContext) Middleware() Middleware{
+func (mc *MiddlewareContext) Middleware() Middleware {
 	return mc.middlewares.Last()
 }
 
@@ -80,7 +83,7 @@ func (mc *MiddlewareContext) Process(m ...Middleware) error {
 type Middleware func() error
 type MiddlewareChain []Middleware
 
-func (c MiddlewareChain) Last() Middleware{
+func (c MiddlewareChain) Last() Middleware {
 	if length := len(c); length > 0 {
 		return c[length-1]
 	}

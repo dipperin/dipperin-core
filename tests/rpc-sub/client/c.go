@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package main
 
 import (
@@ -35,15 +34,15 @@ func csSubscribe(c *rpc.Client, ctx context.Context, channel interface{}, args .
 
 func main() {
 	//client, err := rpc.Dial("ws://localhost:10002")
-	client, err := rpc.Dial("ws://"+chain_config.TestServer +"+:10002")
-	log.Info("the err is:","err",err)
+	client, err := rpc.Dial("ws://" + chain_config.TestServer + "+:10002")
+	log.Info("the err is:", "err", err)
 	if err != nil {
 		panic(err)
 	}
 
 	xx := make(chan HaHa)
 	sub, err := csSubscribe(client, context.Background(), xx, "subscribeBlock")
-	log.Info("the err is:","err",err)
+	log.Info("the err is:", "err", err)
 	if err != nil {
 		panic(err)
 	}

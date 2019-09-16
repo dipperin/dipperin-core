@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package dipperin_console
 
 import (
-	"os"
-	"fmt"
-	"sync"
 	"bufio"
+	"fmt"
 	"io"
+	"os"
+	"sync"
 	"unicode/utf8"
 )
 
@@ -33,8 +32,8 @@ const (
 type ConsoleHistory struct {
 	historyFilePath string
 	historyFile     *os.File
-	historyMutex      sync.RWMutex
-	historyStrs []string
+	historyMutex    sync.RWMutex
+	historyStrs     []string
 }
 
 // NewLineHistory setting history
@@ -54,7 +53,7 @@ func NewConsoleHistory(filePath string) (ch *ConsoleHistory, err error) {
 func (ch *ConsoleHistory) AddHistoryItem(s string) {
 	sLen := len(ch.historyStrs)
 	if sLen != 0 {
-		if s == ch.historyStrs[sLen - 1] {
+		if s == ch.historyStrs[sLen-1] {
 			return
 		}
 	}
@@ -77,8 +76,6 @@ func (ch *ConsoleHistory) DoWriteHistory() (err error) {
 	if err != nil {
 		return fmt.Errorf("write to history file error, %s", err)
 	}
-
-
 
 	for _, item := range ch.historyStrs {
 		_, err := fmt.Fprintln(ch.historyFile, item)

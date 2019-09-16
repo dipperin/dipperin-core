@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package iblt
 
 import (
@@ -63,7 +62,7 @@ func (config BucketConfig) String() string {
 }
 
 // To add an element d in an empty bucket.
-func (b *Bucket) Put(d Data) (*Bucket) {
+func (b *Bucket) Put(d Data) *Bucket {
 	b.DataSum.SetBytes(d)
 
 	h := hash(b.DataSum.Bytes())

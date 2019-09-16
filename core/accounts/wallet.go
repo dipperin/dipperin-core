@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package accounts
 
 import (
+	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
 	"math/big"
-	"crypto/ecdsa"
 )
 
 type WalletType int
@@ -36,15 +35,15 @@ const (
 
 //wallet status
 const (
-	Opened  = "Opened"
-	Closed  = "Closed"
+	Opened = "Opened"
+	Closed = "Closed"
 )
 
-type WalletIdentifier struct{
-	WalletType			`json:"walletType"`
+type WalletIdentifier struct {
+	WalletType `json:"walletType"`
 	//wallet file path
-	Path   string  	   `json:"path"`
-	WalletName string  `json:"walletName"`
+	Path       string `json:"path"`
+	WalletName string `json:"walletName"`
 }
 
 type Account struct {
@@ -56,40 +55,40 @@ type AddressInfoReader interface {
 	GetTransactionNonce(addr common.Address) (nonce uint64, err error)
 }
 
-type Wallet interface{
+type Wallet interface {
 
 	//get wallet identifier include type and file path
-	GetWalletIdentifier() (WalletIdentifier,error)
+	GetWalletIdentifier() (WalletIdentifier, error)
 
 	//get wallet status to judge if is locked
 	Status() (string, error)
 
 	//establish wallet according to password,return mnemonic
-	Establish(path,name,password,passPhrase string) (string,error)
+	Establish(path, name, password, passPhrase string) (string, error)
 
 	//restore wallet from mnemonic
-	RestoreWallet(path,name,password,passPhrase,mnemonic string,GetAddressRelatedInfo AddressInfoReader) (err error)
+	RestoreWallet(path, name, password, passPhrase, mnemonic string, GetAddressRelatedInfo AddressInfoReader) (err error)
 
 	//open
-	Open(path,name,password string) error
+	Open(path, name, password string) error
 
 	//close
 	Close() error
 
 	//padding address nonce
-	PaddingAddressNonce(GetAddressRelatedInfo AddressInfoReader)(err error)
+	PaddingAddressNonce(GetAddressRelatedInfo AddressInfoReader) (err error)
 
 	//get address nonce
-	GetAddressNonce(address common.Address)(nonce uint64,err error)
+	GetAddressNonce(address common.Address) (nonce uint64, err error)
 
 	//set address nonce
-	SetAddressNonce(address common.Address,nonce uint64)(err error)
+	SetAddressNonce(address common.Address, nonce uint64) (err error)
 
 	//return the accounts in the wallet
 	Accounts() ([]Account, error)
 
 	//check if the account is in the wallet
-	Contains(account Account) (bool,error)
+	Contains(account Account) (bool, error)
 
 	//generate new account according to the derived path
 	Derive(path DerivationPath, pin bool) (Account, error)
@@ -101,7 +100,7 @@ type Wallet interface{
 	SignHash(account Account, hash []byte) ([]byte, error)
 
 	//get pk form account
-	GetPKFromAddress(account Account)(*ecdsa.PublicKey,error)
+	GetPKFromAddress(account Account) (*ecdsa.PublicKey, error)
 
 	//get sk form address
 	GetSKFromAddress(address common.Address) (*ecdsa.PrivateKey, error)
@@ -110,6 +109,5 @@ type Wallet interface{
 	SignTx(account Account, tx *model.Transaction, chainID *big.Int) (*model.Transaction, error)
 
 	//generate vrf proof
-	Evaluate(account Account, seed []byte) (index [32]byte, proof []byte,err error)
+	Evaluate(account Account, seed []byte) (index [32]byte, proof []byte, err error)
 }
-

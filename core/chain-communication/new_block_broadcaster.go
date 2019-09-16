@@ -24,7 +24,6 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/hashicorp/golang-lru"
@@ -98,7 +97,7 @@ func (broadcaster *NewBlockBroadcaster) getPeersWithoutBlock(block model.Abstrac
 // broadcast new block
 func (broadcaster *NewBlockBroadcaster) BroadcastBlock(block model.AbstractBlock) {
 	log.Info("new block broadcaster BroadcastBlock", "num", block.Number())
-	pbft_log.Debug("broadcast block", "num", block.Number(), "txs", block.TxCount())
+	log.PBft.Debug("broadcast block", "num", block.Number(), "txs", block.TxCount())
 	peers := broadcaster.getPeersWithoutBlock(block)
 
 	var vPeers []PmAbstractPeer
@@ -131,24 +130,26 @@ func (broadcaster *NewBlockBroadcaster) getTransferPeers(peers []PmAbstractPeer)
 	return peers[:transferLen]
 }
 
-
 func (broadcaster *NewBlockBroadcaster) broadcastBlock(block model.AbstractBlock, peers []PmAbstractPeer) {
 	for i := range peers {
 		receiver := broadcaster.getReceiver(peers[i])
 		receiver.asyncSendBlock(block)
-		pbft_log.Debug("broadcast block", "to", peers[i].NodeName(), "type", peers[i].NodeType(), "num", block.Number(), "txs", block.TxCount())
+		log.PBft.Debug("broadcast block", "to", peers[i].NodeName(), "type", peers[i].NodeType(), "num", block.Number(), "txs", block.TxCount())
 	}
 }
 
 func (broadcaster *NewBlockBroadcaster) onNewBlock(msg p2p.Msg, p PmAbstractPeer) error {
 	g_metrics.Add(g_metrics.ReceivedWaitVBlockCount, "", 1)
 
-	pbft_log.Debug("receive new block", "from", p.NodeName())
+	log.PBft.Debug("receive new block", "from", p.NodeName())
 	var block model.Block
 	err := msg.Decode(&block)
 	if err != nil {
 		return err
 	}
+	//receiptHash := block.GetReceiptHash()
+	//bloomLog := block.GetBloomLog()
+	//log.Info("NewBlockBroadcaster#onNewBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receiptHash, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
 
 	// load blockReceiver
 	broadcaster.getReceiver(p).markBlock(&block)
@@ -285,7 +286,7 @@ func (r *blockReceiver) sendBlock(block model.AbstractBlock, getPeer getPeerFunc
 	r.markBlock(block)
 
 	if peer := getPeer(); peer != nil {
-		pbft_log.Debug("send block", "block", block.Number(), "peer", peer.NodeName())
+		log.PBft.Debug("send block", "block", block.Number(), "peer", peer.NodeName())
 		return peer.SendMsg(NewBlockV1Msg, block)
 	}
 

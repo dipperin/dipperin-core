@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package factory
 
 import (
@@ -23,15 +22,16 @@ import (
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"math/big"
 )
 
 type FBlock struct {
-	coinbase common.Address
-	number uint64
-	perHash common.Hash
+	coinbase  common.Address
+	number    uint64
+	perHash   common.Hash
 	difficult common.Difficulty
 	txs       []*model.Transaction
 	vers      []model.AbstractVerification
@@ -107,7 +107,6 @@ func NewFTx(prkStr *ecdsa.PrivateKey, nonce uint64) *FTx {
 	}
 }
 
-
 func (receiver *FTx) CreateTx(toAddress common.Address, amount *big.Int, fee *big.Int, data []byte) *FTx {
 	tx := FactoryCreateTx(receiver.prk, receiver.nonce, toAddress, amount, fee, data)
 	receiver.nonce++
@@ -143,9 +142,9 @@ func factoryCreatePrivateKey(prkStr string) *ecdsa.PrivateKey {
 func FactoryCreateTx(senderPrk *ecdsa.PrivateKey, nonce uint64, toAddress common.Address,
 	amount *big.Int, fee *big.Int, data []byte) *model.Transaction {
 
-	signer := model.NewMercurySigner(chain_config.GetChainConfig().ChainId)
+	signer := model.NewSigner(chain_config.GetChainConfig().ChainId)
 
-	tx := model.NewTransaction(nonce, toAddress, amount, fee, data)
+	tx := model.NewTransaction(nonce, toAddress, amount, g_testData.TestGasPrice, g_testData.TestGasLimit, data)
 
 	tmpTx, err := tx.SignTx(senderPrk, signer)
 
@@ -195,7 +194,7 @@ func (receiver *FAddress) Alloc() map[common.Address]*big.Int {
 	tmpMap := make(map[common.Address]*big.Int)
 
 	for i := 0; i < receiver.count; i++ {
-		tmpMap[receiver.addressList[0]] = big.NewInt(100 * consts.DIP)
+		tmpMap[receiver.addressList[0]] = big.NewInt(0).Mul(big.NewInt(100), big.NewInt(consts.DIP))
 	}
 
 	return tmpMap

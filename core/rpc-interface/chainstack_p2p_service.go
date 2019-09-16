@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package rpc_interface
 
 import "github.com/dipperin/dipperin-core/third-party/p2p"
 
-//go:generate mockgen -destination=./p2p_api_mock_test.go -package=rpc_interface github.com/caiqingfeng/dipperin-core/core/rpc-interface P2PAPI
+//go:generate mockgen -destination=./p2p_api_mock_test.go -package=rpc_interface github.com/dipperin/dipperin-core/core/rpc-interface P2PAPI
 type P2PAPI interface {
 	AddPeer(url string) error
 	RemovePeer(url string) error
-	AddTrustedPeer(url string)  error
-	RemoveTrustedPeer(url string)  error
+	AddTrustedPeer(url string) error
+	RemoveTrustedPeer(url string) error
 	Peers() ([]*p2p.PeerInfo, error)
 	CsPmInfo() (*p2p.CsPmPeerInfo, error)
 }
@@ -56,4 +55,3 @@ func (api *DipperinP2PApi) Peers() ([]*p2p.PeerInfo, error) {
 func (api *DipperinP2PApi) CsPmInfo() (*p2p.CsPmPeerInfo, error) {
 	return api.service.CsPmInfo()
 }
-

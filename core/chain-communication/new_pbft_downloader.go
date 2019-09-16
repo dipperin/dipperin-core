@@ -23,7 +23,6 @@ import (
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/ethereum/go-ethereum/rlp"
 	"sync/atomic"
@@ -162,14 +161,14 @@ func (fd *NewPbftDownloader) onBlocks(msg p2p.Msg, p PmAbstractPeer) error {
 }
 
 func (fd *NewPbftDownloader) Start() error {
-	pbft_log.Debug("Start New PBFT Downloader")
+	log.PBft.Debug("Start New PBFT Downloader")
 	go fd.loop()
 	return nil
 }
 
 func (fd *NewPbftDownloader) loop() {
 	tickHandler := func() {
-		pbft_log.Debug("pbft downloader call download")
+		log.PBft.Debug("pbft downloader call download")
 		if fd.getBestPeer() == nil {
 			log.Warn("downloader can't get best peer, do nothing")
 			return
@@ -218,7 +217,7 @@ func (fd *NewPbftDownloader) getBestPeer() PmAbstractPeer {
 //run synchronise
 func (fd *NewPbftDownloader) runSync() {
 	log.Info("bft downloader run sync")
-	pbft_log.Debug("bft downloader run sync")
+	log.PBft.Debug("bft downloader run sync")
 
 	if !atomic.CompareAndSwapInt32(&fd.synchronising, 0, 1) {
 		log.Info("downloader is busy")
@@ -314,16 +313,16 @@ func (fd *NewPbftDownloader) importBlockResults(list []*catchupRlp) error {
 		util.InterfaceSliceCopy(commits, b.SeenCommit)
 
 		if len(commits) > 0 {
-			pbft_log.Debug("pbft download call save block", "block height", b.Block.Number(), "commits", len(commits), "commits", commits[0].GetBlockId().Hex())
+			log.PBft.Debug("pbft download call save block", "block height", b.Block.Number(), "commits", len(commits), "commits", commits[0].GetBlockId().Hex())
 		} else {
-			pbft_log.Warn("commits is empty", "height", b.Block.Number())
+			log.PBft.Warn("commits is empty", "height", b.Block.Number())
 		}
 
 		if err := fd.Chain.SaveBlock(b.Block, commits); err != nil {
 			//skip the block if the height is same as current block and it isn't the empty block
-			if err == g_error.ErrBlockHeightIsCurrentAndIsNotSpecial{
+			if err == g_error.ErrBlockHeightIsCurrentAndIsNotSpecial {
 				continue
-			}else{
+			} else {
 				return err
 			}
 		}

@@ -18,11 +18,16 @@ package chaindb
 
 import (
 	"encoding/binary"
+	"errors"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
+	"math/big"
 )
 
 type ChainDB struct {
@@ -258,6 +263,121 @@ func (chainDB *ChainDB) SaveBlock(block model.AbstractBlock) {
 func (chainDB *ChainDB) DeleteBlock(hash common.Hash, number uint64) {
 	chainDB.DeleteHeader(hash, number)
 	chainDB.DeleteBody(hash, number)
+}
+
+//add receipts save get and delete
+func (chainDB *ChainDB) SaveReceipts(hash common.Hash, number uint64, receipts model2.Receipts) error {
+	// Convert the receipts into their storage form and serialize them
+	storageReceipts := make([]*model2.ReceiptForStorage, len(receipts))
+	for i, receipt := range receipts {
+		storageReceipts[i] = (*model2.ReceiptForStorage)(receipt)
+	}
+	bytes, err := rlp.EncodeToBytes(storageReceipts)
+	if err != nil {
+		log.Crit("Failed to encode block receipts", "err", err)
+		return err
+	}
+	// Store the flattened receipt slice
+	if err := chainDB.db.Put(blockReceiptsKey(number, hash), bytes); err != nil {
+		log.Crit("Failed to store block receipts", "err", err)
+		return err
+	}
+	return nil
+}
+
+func (chainDB *ChainDB) GetReceipts(hash common.Hash, number uint64) model2.Receipts {
+	// Retrieve the flattened receipt slice
+	data, _ := chainDB.db.Get(blockReceiptsKey(number, hash))
+	if len(data) == 0 {
+		return nil
+	}
+
+	// Convert the receipts from their storage form to their internal representation
+	var storageReceipts []*model2.ReceiptForStorage
+	if err := rlp.DecodeBytes(data, &storageReceipts); err != nil {
+		log.Error("Invalid receipt array RLP", "hash", hash, "err", err)
+		return nil
+	}
+
+	receipts := make(model2.Receipts, len(storageReceipts))
+	for i, receipt := range storageReceipts {
+		receipts[i] = (*model2.Receipt)(receipt)
+	}
+
+	// complement receipts
+	block := chainDB.GetBlock(hash, number)
+	err := DeriveFields(receipts, block)
+	if err != nil {
+		log.Error("DeriveFields failed", "err", err)
+		return nil
+	}
+	return receipts
+}
+
+// DeriveFields fills the receipts with their computed fields based on consensus
+// data and contextual infos like containing block and transactions.
+func DeriveFields(r model2.Receipts, block model.AbstractBlock) error {
+	logIndex := uint(0)
+	txs := block.GetTransactions()
+	number := block.Number()
+	hash := block.Hash()
+	if len(txs) != len(r) {
+		return errors.New(fmt.Sprintf("length of txs and receipts not match txs:%v, receipts:%v", len(txs), len(r)))
+	}
+	for i := 0; i < len(r); i++ {
+		// The transaction hash can be retrieved from the transaction itself
+		r[i].TxHash = txs[i].CalTxId()
+
+		// block location fields
+		r[i].BlockHash = hash
+		r[i].BlockNumber = new(big.Int).SetUint64(number)
+		r[i].TransactionIndex = uint(i)
+
+		// The contract address can be derived from the transaction itself
+		if txs[i].GetType() == common.AddressTypeContractCreate {
+			callerAddress, err := txs[i].Sender(nil)
+			if err != nil {
+				return err
+			}
+			r[i].ContractAddress = cs_crypto.CreateContractAddress(callerAddress, txs[i].Nonce())
+		} else {
+			r[i].ContractAddress = *txs[i].To()
+		}
+
+		// The used gas can be calculated based on previous r
+		if i == 0 {
+			r[i].GasUsed = r[i].CumulativeGasUsed
+		} else {
+			r[i].GasUsed = r[i].CumulativeGasUsed - r[i-1].CumulativeGasUsed
+		}
+		// The derived log fields can simply be set from the block and transaction
+		for j := 0; j < len(r[i].Logs); j++ {
+			r[i].Logs[j].BlockNumber = number
+			r[i].Logs[j].BlockHash = hash
+			r[i].Logs[j].TxHash = r[i].TxHash
+			r[i].Logs[j].TxIndex = uint(i)
+			r[i].Logs[j].Index = logIndex
+			logIndex++
+		}
+	}
+	return nil
+}
+
+func (chainDB *ChainDB) GetBloomBits(head common.Hash, bit uint, section uint64) []byte {
+	bloomBits, err := chainDB.db.Get(bloomBitsKey(bit, section, head))
+	if err != nil {
+		log.Error("ChainDB#GetBloomBits err", "hash", head, "err", err)
+		return nil
+	}
+	return bloomBits
+}
+
+func BatchSaveBloomBits(db DatabaseWriter, head common.Hash, bit uint, section uint64, bits []byte) error {
+	if err := db.Put(bloomBitsKey(bit, section, head), bits); err != nil {
+		log.Error("Failed to store bloom bits", "err", err)
+		return err
+	}
+	return nil
 }
 
 /*func (chainDB *ChainDB) FindCommonAncestor(a, b model.AbstractHeader) model.AbstractHeader {

@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package contract
 
 import (
-	"io"
-	"encoding/json"
-	"sync"
-	"reflect"
 	"bytes"
-	"fmt"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
+	"reflect"
+	"sync"
 )
 
 // codec struct

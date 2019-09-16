@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package cs_chain
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/chaindb"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
@@ -26,7 +26,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/dipperin/dipperin-core/core/chain"
 )
 
 type BftChainState interface {
@@ -72,7 +71,7 @@ type StateReader interface {
 
 type VerifierHelper interface {
 	CurrentSeed() (common.Hash, uint64)
-	IsChangePoint(block model.AbstractBlock,isProcessPackageBlock bool) bool
+	IsChangePoint(block model.AbstractBlock, isProcessPackageBlock bool) bool
 	GetLastChangePoint(block model.AbstractBlock) *uint64
 	GetSlotByNum(num uint64) *uint64
 	GetSlot(block model.AbstractBlock) *uint64
@@ -97,15 +96,15 @@ type ChainHelper interface {
 	GetChainDB() chaindb.Database
 }
 
-//go:generate mockgen -destination=./cachedb_mock_test.go -package=cs_chain github.com/caiqingfeng/dipperin-core/core/cs-chain CacheDB
+//go:generate mockgen -destination=./cachedb_mock_test.go -package=cs_chain github.com/dipperin/dipperin-core/core/cs-chain CacheDB
 type CacheDB interface {
 	GetSeenCommits(blockHeight uint64, blockHash common.Hash) (result []model.AbstractVerification, err error)
 	SaveSeenCommits(blockHeight uint64, blockHash common.Hash, commits []model.AbstractVerification) error
 }
 
-//go:generate mockgen -destination=./txpool_mock_test.go -package=cs_chain github.com/caiqingfeng/dipperin-core/core/cs-chain TxPool
+//go:generate mockgen -destination=./txpool_mock_test.go -package=cs_chain github.com/dipperin/dipperin-core/core/cs-chain TxPool
 type TxPool interface {
 	Reset(oldHead, newHead *model.Header)
 }
 
-//go:generate mockgen -destination=./state_storage_mock_test.go -package=cs_chain github.com/caiqingfeng/dipperin-core/core/chain/state-processor StateStorage
+//go:generate mockgen -destination=./state_storage_mock_test.go -package=cs_chain github.com/dipperin/dipperin-core/core/chain/state-processor StateStorage

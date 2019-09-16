@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package dipperin
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"os"
+	"path/filepath"
+	"runtime"
+	"testing"
 )
 
 func TestNodeConfig_FullChainDBDir(t *testing.T) {
@@ -29,7 +31,7 @@ func TestNodeConfig_FullChainDBDir(t *testing.T) {
 }
 
 func TestNodeConfig_GetAllowHosts(t *testing.T) {
-	nodeConfig := NodeConfig{AllowHosts:[]string{}}
+	nodeConfig := NodeConfig{AllowHosts: []string{}}
 	result := nodeConfig.GetAllowHosts()
 	assert.Equal(t, []string{}, result)
 }
@@ -87,7 +89,7 @@ func TestNodeConfig_HttpEndpoint(t *testing.T) {
 	result := nodeConfig.HttpEndpoint()
 	assert.Equal(t, "", result)
 
-	nodeConfig = NodeConfig{HTTPHost:"host"}
+	nodeConfig = NodeConfig{HTTPHost: "host"}
 	result = nodeConfig.HttpEndpoint()
 	assert.Equal(t, "host:0", result)
 }
@@ -98,17 +100,27 @@ func TestNodeConfig_IpcEndpoint(t *testing.T) {
 	assert.Equal(t, "", result)
 
 	nodeConfig = NodeConfig{
-		IPCPath:"path",
+		IPCPath: "path",
 	}
+
 	result = nodeConfig.IpcEndpoint()
-	//assert.Equal(t, "/tmp/path", result)
+	if runtime.GOOS == "windows" {
+		assert.Equal(t, `\\.\pipe\`+nodeConfig.IPCPath, result)
+	} else {
+		assert.Equal(t, filepath.Join(os.TempDir(), nodeConfig.IPCPath), result)
+	}
 
 	nodeConfig = NodeConfig{
-		IPCPath:"path",
-		DataDir:"dir",
+		IPCPath: "path",
+		DataDir: "dir",
 	}
 	result = nodeConfig.IpcEndpoint()
-	assert.Equal(t, "dir/path", result)
+	if runtime.GOOS == "windows" {
+		assert.Equal(t, `\\.\pipe\`+nodeConfig.IPCPath, result)
+	} else {
+		assert.Equal(t, "dir/path", result)
+	}
+
 }
 
 func TestNodeConfig_LightChainDBDir(t *testing.T) {
@@ -128,7 +140,7 @@ func TestNodeConfig_SoftWalletFile(t *testing.T) {
 	result := nodeConfig.SoftWalletFile()
 	assert.Equal(t, "CSWallet", result)
 
-	nodeConfig = NodeConfig{SoftWalletPath:"path"}
+	nodeConfig = NodeConfig{SoftWalletPath: "path"}
 	result = nodeConfig.SoftWalletFile()
 	assert.Equal(t, "path", result)
 }
@@ -144,7 +156,7 @@ func TestNodeConfig_WsEndpoint(t *testing.T) {
 	result := nodeConfig.WsEndpoint()
 	assert.Equal(t, "", result)
 
-	nodeConfig = NodeConfig{WSHost:"host"}
+	nodeConfig = NodeConfig{WSHost: "host"}
 	result = nodeConfig.WsEndpoint()
 	assert.Equal(t, "host:0", result)
 }

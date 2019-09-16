@@ -106,9 +106,9 @@ func TestEncryptWalletContent(t *testing.T) {
 }
 
 func TestDecryptWalletContent(t *testing.T) {
-	plain,err := DecryptWalletContent(testWalletCipher,testIv[:],encKey)
-	assert.NoError(t,err)
-	assert.Equal(t,testWalletPlain[:],plain)
+	plain, err := DecryptWalletContent(testWalletCipher, testIv[:], encKey)
+	assert.NoError(t, err)
+	assert.Equal(t, testWalletPlain[:], plain)
 
 	errWalletCipher := WalletCipher{
 		Cipher:    "12324",
@@ -119,7 +119,7 @@ func TestDecryptWalletContent(t *testing.T) {
 
 	errWalletCipher.Cipher = "123244"
 	_, err = DecryptWalletContent(errWalletCipher, testIv[:], encKey)
-	assert.Equal(t,accounts.ErrAESDecryption ,err)
+	assert.Equal(t, accounts.ErrAESDecryption, err)
 
 	errWalletCipher.Cipher = testWalletCipher.Cipher
 	_, err = DecryptWalletContent(errWalletCipher, testIv[:], encKey)
@@ -127,21 +127,20 @@ func TestDecryptWalletContent(t *testing.T) {
 
 	errWalletCipher.MacCipher = "123244"
 	_, err = DecryptWalletContent(errWalletCipher, testIv[:], encKey)
-	assert.Equal(t,accounts.ErrAESDecryption ,err)
+	assert.Equal(t, accounts.ErrAESDecryption, err)
 }
 
 func TestCheckPassword(t *testing.T) {
 	err := CheckPassword("")
-	assert.Equal(t,errors.New("password is nil"),err)
+	assert.Equal(t, errors.New("password is nil"), err)
 }
 
 func TestCheckDerivedPathValid(t *testing.T) {
-	result,_:=CheckDerivedPathValid(accounts.DerivationPath{0x12,0x12})
-	assert.Equal(t,false,result)
+	result, _ := CheckDerivedPathValid(accounts.DerivationPath{0x12, 0x12})
+	assert.Equal(t, false, result)
 }
 
 func TestCheckWalletPath(t *testing.T) {
 	err := CheckWalletPath("/tmp")
-	assert.Error(t,err)
+	assert.Error(t, err)
 }
-

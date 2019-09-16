@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_writer
 
 import "github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
@@ -28,6 +27,6 @@ type AbstractChainWriterFactory interface {
 	SetChain(chain middleware.ChainInterface)
 }
 
-//go:generate mockgen -destination=./chain_interface_mock_test.go -package=chain_writer github.com/caiqingfeng/dipperin-core/core/cs-chain/chain-writer/middleware ChainInterface
+//go:generate mockgen -destination=./chain_interface_mock_test.go -package=chain_writer github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware ChainInterface
 
-//go:generate mockgen -destination=./block_mock_test.go -package=chain_writer github.com/caiqingfeng/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=./block_mock_test.go -package=chain_writer github.com/dipperin/dipperin-core/core/model AbstractBlock

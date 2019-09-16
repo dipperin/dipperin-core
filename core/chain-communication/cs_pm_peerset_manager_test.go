@@ -980,9 +980,9 @@ func TestCsPmPeerSetManager_collectAllPeers(t *testing.T) {
 	mPs3 := NewMockAbstractPeerSet(ctrl)
 
 	psm := &CsPmPeerSetManager{
-		basePeers: mPs1,
-		currentVerifierPeers:mPs2,
-		nextVerifierPeers:mPs3,
+		basePeers:            mPs1,
+		currentVerifierPeers: mPs2,
+		nextVerifierPeers:    mPs3,
 	}
 
 	mPs1.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{})

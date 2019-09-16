@@ -14,38 +14,35 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package main
 
 import (
+	"errors"
+	"fmt"
+	"github.com/c-bata/go-prompt"
+	"github.com/dipperin/dipperin-core/cmd/dipperin-console"
+	"github.com/dipperin/dipperin-core/cmd/dipperin-prompts"
 	"github.com/dipperin/dipperin-core/cmd/dipperin/config"
 	service2 "github.com/dipperin/dipperin-core/cmd/dipperin/service"
-	"github.com/dipperin/dipperin-core/cmd/dipperin-console"
 	"github.com/dipperin/dipperin-core/cmd/dipperincli/commands"
 	config2 "github.com/dipperin/dipperin-core/cmd/dipperincli/config"
 	"github.com/dipperin/dipperin-core/cmd/dipperincli/service"
 	"github.com/dipperin/dipperin-core/cmd/utils/debug"
+	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
+	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/dipperin"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"errors"
-	"fmt"
-	"github.com/c-bata/go-prompt"
 	"github.com/urfave/cli"
+	"io/ioutil"
+	_ "net/http/pprof"
 	"os"
+	"os/signal"
+	"path/filepath"
 	"runtime"
 	"sort"
 	"strings"
-	"path/filepath"
-	"github.com/dipperin/dipperin-core/common/util"
-	"io/ioutil"
-	"github.com/dipperin/dipperin-core/cmd/dipperin-prompts"
-	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"syscall"
-	"os/signal"
-)
-
-const (
-	Version = "0.0.1"
 )
 
 var (
@@ -56,7 +53,7 @@ var (
 	BackendFName = "backend"
 )
 
-func main(){
+func main() {
 	log.InitLogger(log.LvlInfo)
 	//cslog.InitLogger(zap.InfoLevel, "", true)
 	app = newApp()
@@ -66,15 +63,15 @@ func main(){
 func newApp() (nApp *cli.App) {
 	nApp = cli.NewApp()
 	nApp.Name = "DipperinCli"
-	nApp.Version = Version
+	nApp.Version = chain_config.Version
 	nApp.Author = "dipperin"
-	nApp.Copyright = "(c) 2016-2018 dipperin."
+	nApp.Copyright = "(c) 2016-2019 dipperin."
 	nApp.Usage = "Dipperin commandline tool for " + runtime.GOOS + "/" + runtime.GOARCH
 	nApp.Description = ``
 
 	nApp.Action = appAction
 	nApp.Flags = append(config.Flags, debug.Flags...)
-	nApp.Flags = append(nApp.Flags, cli.BoolFlag{ Name: BackendFName, Usage: "set cli run without console" })
+	nApp.Flags = append(nApp.Flags, cli.BoolFlag{Name: BackendFName, Usage: "set cli run without console"})
 	nApp.Commands = commands.CliCommands
 
 	sort.Sort(cli.FlagsByName(nApp.Flags))
@@ -83,16 +80,18 @@ func newApp() (nApp *cli.App) {
 }
 
 type startConf struct {
-	NodeName string `json:"node_name"`
-	NodeType int `json:"node_type"`
-	DataDir string `json:"data_dir"`
+	NodeName    string `json:"node_name"`
+	NodeType    int    `json:"node_type"`
+	DataDir     string `json:"data_dir"`
 	P2PListener string `json:"p2p_listener"`
-	HTTPPort string `json:"http_port"`
-	WSPort string `json:"ws_port"`
+	HTTPPort    string `json:"http_port"`
+	WSPort      string `json:"ws_port"`
 }
 
 func initStartFlag() *startConf {
+	//TODO
 	startConfPath := filepath.Join(util.HomeDir(), ".dipperin", "start_conf.json")
+	//startConfPath := filepath.Join(util.HomeDir(), ".dipperin", "start_conf2.json")
 	fb, err := ioutil.ReadFile(startConfPath)
 	var conf startConf
 	if err != nil {
@@ -117,8 +116,8 @@ func doPrompts(conf *startConf, saveTo string) {
 
 	// write to file
 	exist, _ := soft_wallet.PathExists(saveTo)
-	if !exist{
-		os.MkdirAll(filepath.Dir(saveTo),0766)
+	if !exist {
+		os.MkdirAll(filepath.Dir(saveTo), 0766)
 	}
 
 	ioutil.WriteFile(saveTo, util.StringifyJsonToBytes(conf), 0644)
@@ -164,6 +163,13 @@ func appAction(c *cli.Context) {
 		log.Error("debug setup failed", "err", err)
 	}
 
+	log.Info("network info", "name", os.Getenv("boots_env"))
+
+	if os.Getenv("boots_env") == "mercury" {
+		log.Error("the Mercury testnet is not stopped forever, please try set boots_env = venus.")
+		// return
+	}
+
 	err := startNode(c)
 	if err != nil {
 		panicInfo := "start node error err: " + err.Error()
@@ -174,7 +180,7 @@ func appAction(c *cli.Context) {
 
 	commands.InitRpcClient(port)
 
-	commands.InitAccountInfo(c.Int("node_type"),path,pwd,passPhrase)
+	commands.InitAccountInfo(c.Int("node_type"), path, pwd, passPhrase)
 
 	// Non-command line background startup
 	if c.Bool(BackendFName) {
@@ -187,7 +193,7 @@ func appAction(c *cli.Context) {
 		return
 	}
 
-	csConsole := dipperin_console.NewConsole(Executor(c), config2.DipperinCliCompleter)
+	csConsole := dipperin_console.NewConsole(Executor(c), config2.DipperinCliCompleterNew)
 
 	defer func() {
 		if node != nil {
@@ -200,12 +206,13 @@ func appAction(c *cli.Context) {
 		closeApp()
 	}()
 
+	commands.PrintCommandsModuleName()
 	commands.PrintDefaultAccountStake()
 
 	go commands.CheckDownloaderSyncStatus()
 
 	//Use the format of block subscription instead of timing printing
-/*	if nodeType == "verifier" {
+	/*	if nodeType == "verifier" {
 		commands.AsyncLogElectionTx()
 	}*/
 
@@ -253,13 +260,29 @@ func Executor(c *cli.Context) prompt.Executor {
 			return
 		}
 
-		cmdArgs := strings.Split(command," ")
+		cmdArgs := strings.Split(strings.TrimSpace(command), " ")
 		if len(cmdArgs) == 0 {
+			return
+		} else if len(cmdArgs) == 1 && cmdArgs[0] != "-h" && cmdArgs[0] != "--help" {
+			fmt.Println("Please assign the method you want to call!")
 			return
 		}
 		s := []string{os.Args[0]}
 		s = append(s, cmdArgs...)
-		c.App.Run(s)
+		//fmt.Println("s final:",s)
+		//s = []string{"dipperincli", "tx", "SendTransactionContract", "--abi"}
+		//s = []string{"dipperincli", "tx", "SendTransactionContract"}
+		if len(cmdArgs) >= 2 {
+			if config2.CheckModuleMethodIsRight(cmdArgs[0], cmdArgs[1]) {
+				err := c.App.Run(s)
+				log.Info("Executor", "err", err)
+			} else {
+				fmt.Println("module", cmdArgs[0], "has not method", cmdArgs[1])
+			}
+		} else {
+			err := c.App.Run(s)
+			log.Info("Executor", "err", err)
+		}
 	}
 }
 

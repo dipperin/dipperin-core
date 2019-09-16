@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package economy_model
 
 import (
@@ -26,12 +25,12 @@ import (
 type VerifierType uint
 
 const (
-	MasterVerifier    VerifierType = iota
+	MasterVerifier VerifierType = iota
 	CommitVerifier
 	NotCommitVerifier
 )
 
-//go:generate mockgen -destination=./../verifiers-halt-check/economy_model_mock_test.go -package=verifiers_halt_check github.com/caiqingfeng/dipperin-core/core/economy-model EconomyModel
+//go:generate mockgen -destination=./../verifiers-halt-check/economy_model_mock_test.go -package=verifiers_halt_check github.com/dipperin/dipperin-core/core/economy-model EconomyModel
 type EconomyModel interface {
 	GetMineMasterDIPReward(block model.AbstractBlock) (*big.Int, error)
 	GetVerifierDIPReward(block model.AbstractBlock) (map[VerifierType]*big.Int, error)
@@ -44,10 +43,10 @@ type EconomyModel interface {
 	GetFoundation() Foundation
 	CheckAddressType(address common.Address) EconomyModelAddress
 
-	GetDiffVerifierAddress(preBlock,block model.AbstractBlock) (map[VerifierType][]common.Address, error)
+	GetDiffVerifierAddress(preBlock, block model.AbstractBlock) (map[VerifierType][]common.Address, error)
 
-	GetAddressLockMoney(address common.Address,blockNumber uint64) (*big.Int,error)
+	GetAddressLockMoney(address common.Address, blockNumber uint64) (*big.Int, error)
 
-	GetBlockYear(blockNumber uint64) (uint64,error)
+	GetBlockYear(blockNumber uint64) (uint64, error)
 	GetOneBlockTotalDIPReward(blockNumber uint64) (*big.Int, error)
 }

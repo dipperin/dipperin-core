@@ -24,8 +24,8 @@ const (
 	//NewTransportCount       = "new_transport_count"
 	//DeleteTransportCount    = "delete_transport_count"
 
-	ReceivedHashCount       = "v_block_hash_count"
-	ReceivedBlockCount      = "v_block_block_count"
+	ReceivedHashCount  = "v_block_hash_count"
+	ReceivedBlockCount = "v_block_block_count"
 	//FailedInsertBlockCount  = "failed_insert_block_count"
 
 	// peers metrics
@@ -46,17 +46,17 @@ const (
 
 	// BFT fetch block
 	FetchBlockGoCount = "pbft_fetch_block_go_count"
-	BftCurStateGauge = "pbft_state"
-	BftCurRoundGauge = "pbft_round"
-	BftTimeoutCount = "pbft_timeout"
+	BftCurStateGauge  = "pbft_state"
+	BftCurRoundGauge  = "pbft_round"
+	BftTimeoutCount   = "pbft_timeout"
 
 	// v halt check
 	CurBlockNumberGauge = "verBootNodeBlockNumber"
 
 	PendingTxCountInPool = "pending_tx_count_in_pool"
-	QueuedTxCountInPool = "queued_tx_count_in_pool"
+	QueuedTxCountInPool  = "queued_tx_count_in_pool"
 
-	CurChainHeight = "cur_height"
+	CurChainHeight         = "cur_height"
 	FailedInsertBlockCount = "failed_insert_block_count"
 )
 

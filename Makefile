@@ -33,3 +33,12 @@ tidy:
 ## cover: get test coverage
 cover:
 	@./cs.sh cover $(show)
+
+## cross compiling
+compile:
+	@./cs.sh compile
+
+
+## compile resolver softFloat
+softFloat:
+	 @./build_deps.sh

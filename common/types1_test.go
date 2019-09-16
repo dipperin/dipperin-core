@@ -14,20 +14,25 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package common
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/util"
-	"testing"
-	"fmt"
-	"math/big"
 	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
 )
 
 func TestBlockNonceFromInt(t *testing.T) {
 	fmt.Println(BlockNonceFromInt(1))
+}
+
+func TestHash_ValidHashForDifficulty(t *testing.T) {
+	hash := HexToHash("0xd0b3bc1c37915fb1d582dcfe98ea62328656141a099bbc46f6a3b9a38c01a9de")
+	diff := HexToHash("0x0000566611000000000000000000000000000000000000000000000000000000")
+	fmt.Println(hash.Cmp(diff))
 }
 
 //type tBig struct {

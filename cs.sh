@@ -10,6 +10,8 @@
 #                                                                                   #
 #####################################################################################
 
+export GOPROXY=https://goproxy.io
+
 root=`pwd`
 
 GoPath=$HOME/go/src/
@@ -59,12 +61,10 @@ fi
 }
 
 run_test () {
-
 #    is_jenkins="yes" go test -p 1 -cover ./... -coverprofile=size_coverage.out
     is_jenkins="yes" go test -p 1 -cover ./core/... ./common/... ./cmd/...
 
     return $?
-
 }
 
 jks_test () {
@@ -100,9 +100,11 @@ build_ci() {
     #rm ~/go/bin/dipperin;
     cd ${monitor_path}/cmd/dipperin; go install
 
-    #rm ~/go/bin/dipperincli;
+    rm ~/go/bin/dipperincli;
+    # echo 'build dipperincli'
+    # cd ${monitor_path}/cmd/dipperincli; go install
     echo 'build dipperincli'
-    cd ${monitor_path}/cmd/dipperincli; go install
+    cd ${root}/cmd/dipperincli; go install
 
     #rm ~/go/bin/bootnode;
     echo 'build bootnode'
@@ -120,7 +122,6 @@ build_ci() {
 
 build_install() {
     echo 'build dipperin'
-
     cd ${root}/cmd/dipperin; go install
 
     echo 'build dipperincli'
@@ -138,6 +139,18 @@ build_install() {
     cd ${root}
 
     return $?
+}
+
+cross_compile() {
+    echo 'cross compile dipperin start'
+    docker pull karalabe/xgo-latest
+    go get github.com/karalabe/xgo
+    cd ~/go/src/github.com/dipperin/dipperin-core/cmd/dipperin
+
+    DEST=$HOME/go/bin/
+    GOPATH=$HOME/go/ xgo -go 1.11.1 --dest=${DEST} --targets=linux/amd64,windows/amd64,darwin/amd64 .
+    echo 'cross compile dipperin end'
+    ls
 }
 
 update_vendor () {
@@ -203,6 +216,16 @@ main () {
                 cover $2
         };;
 
+        compile )
+            {
+                cross_compile
+        };;
+
+        travisTest )
+            {
+                travis_test
+        };;
+
     esac
 
     exit $?
@@ -215,7 +238,7 @@ echo "
 #                                                                                   #
 #                                                                                   #
 #                                                                                   #
-#                               Dipperin Shell Script                             #
+#                               Dipperin Shell Script                               #
 #                                                                                   #
 #                                                                                   #
 #                                                                                   #

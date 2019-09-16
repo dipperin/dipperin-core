@@ -14,32 +14,31 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package dipperin
 
 import (
+	"crypto/ecdsa"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/cs-chain"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
+	"os"
 	"path/filepath"
 	"runtime"
 	"sync"
-	"os"
-	"crypto/ecdsa"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"fmt"
-	"github.com/dipperin/dipperin-core/core/cs-chain"
 )
 
 const (
 	nodeInfoDirName = "app_nodes_info"
 
-	staticNodes     = "static-nodes.json"
-	trustedNodes    = "trusted-nodes.json"
+	staticNodes  = "static-nodes.json"
+	trustedNodes = "trusted-nodes.json"
 )
 
 // DefaultDataDir is the default data directory to use for the databases and other
@@ -195,9 +194,8 @@ func MakeVerifiersReader(fullChain cs_chain.Chain) *ChainVerifiersReader {
 
 type ChainVerifiersReader struct {
 	fullChain cs_chain.Chain
-	lock sync.Mutex
+	lock      sync.Mutex
 }
-
 
 func (verifier *ChainVerifiersReader) CurrentVerifiers() []common.Address {
 	return verifier.fullChain.GetCurrVerifiers()

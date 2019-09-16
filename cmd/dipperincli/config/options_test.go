@@ -24,15 +24,17 @@ import (
 )
 
 func Test_optionCompleter(t *testing.T) {
-	assert.Equal(t, optionCompleter([]string{}, false), optionHelp)
-	assert.Equal(t, optionCompleter([]string{"--test1"}, true), []prompt.Suggest{{Text: "--help", Description: ""}})
-	assert.Equal(t, optionCompleter([]string{"rpc", "-test"}, false), []prompt.Suggest{})
-	assert.Equal(t, optionCompleter([]string{"rpc", "--test"}, true), []prompt.Suggest{})
+	assert.Equal(t, optionCompleterNew([]string{}, false), optionHelp)
+	assert.Equal(t, optionCompleterNew([]string{"--test1"}, true), []prompt.Suggest{{Text: "--help", Description: ""}})
+	assert.Equal(t, optionCompleterNew([]string{"rpc", "-test"}, false), []prompt.Suggest{})
+	assert.Equal(t, optionCompleterNew([]string{"rpc", "--test"}, true), []prompt.Suggest{})
+	assert.Equal(t, optionCompleterNew([]string{"tx", "-test", ""}, false), txPromptFlags)
+	assert.Equal(t, optionCompleterNew([]string{"chain", "--test", ""}, true), commonFlags)
 }
 
-func Test_callMethod(t *testing.T) {
-	assert.Equal(t, callMethod([]string{}, false), optionHelp)
-	assert.Equal(t, callMethod([]string{}, true), []prompt.Suggest{{Text: "--help", Description: ""}})
-	assert.Equal(t, callMethod([]string{"rpc", "-test1", "-test2"}, false), []prompt.Suggest{})
-	assert.Equal(t, callMethod([]string{"rpc", "--test1", "--test2"}, true), []prompt.Suggest{})
-}
+//func Test_callMethod(t *testing.T) {
+//	assert.Equal(t, callMethod([]string{}, false), optionHelp)
+//	assert.Equal(t, callMethod([]string{}, true), []prompt.Suggest{{Text: "--help", Description: ""}})
+//	assert.Equal(t, callMethod([]string{"rpc", "-test1", "-test2"}, false), []prompt.Suggest{})
+//	assert.Equal(t, callMethod([]string{"rpc", "--test1", "--test2"}, true), []prompt.Suggest{})
+//}

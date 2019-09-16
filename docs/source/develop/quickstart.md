@@ -63,7 +63,7 @@ Use git shell run commands below, and copy source code to your go path
 
 You can't run the tests if you don't put source code in your home folder.
 
-(`$HOME` means home folder, example `C:\User\qydev`)
+(`$HOME` means home folder, example `C:\Users\qydev`)
 
 ```
 $ mkdir -p $HOME\go\src\github.com\dipperin
@@ -105,7 +105,7 @@ WebSocket and/or IPC transports.
 - dipperincli
 
 Our chain CLI client with console. It has all features of `dipperin`, and provides a easy way to start the node.
-You can give commands to node in command line console, like starting mining `rpc -m StartMine` or querying current block `rpc -m CurrentBlock`
+You can give commands to node in command line console, like starting mining `miner StartMine` or querying current block `chain CurrentBlock`
 
 - bootnode
 
@@ -134,7 +134,7 @@ and `:wq` for save and quit the file.
 
 - Windows
 
-(`$HOME` means home folder, example `C:\User\qydev`)
+(`$HOME` means home folder, example `C:\Users\qydev`)
 
 ```
 $ set PATH=%PATH%;$HOME\go\bin
@@ -153,13 +153,13 @@ $ dipperincli -h
 - Mac & Linux
 
 ```shell
-$ boots_env=mercury dipperincli
+$ boots_env=venus dipperincli
 ```
 
 - Windows
 
 ```shell
-$ set boots_env=mercury
+$ set boots_env=venus
 $ dipperincli
 ```
 

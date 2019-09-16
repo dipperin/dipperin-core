@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 	"math/big"
 )
 
@@ -36,11 +36,15 @@ type AbstractHeader interface {
 	SetVerificationRoot(newRoot common.Hash)
 	GetSeed() common.Hash
 	GetProof() []byte
-	GetMinerPubKey() (*ecdsa.PublicKey)
+	GetGasLimit() uint64
+	GetGasUsed() uint64
+	GetMinerPubKey() *ecdsa.PublicKey
+	GetTimeStamp() *big.Int
 	GetInterLinkRoot() common.Hash
 	GetDifficulty() common.Difficulty
 	GetRegisterRoot() common.Hash
 	SetRegisterRoot(root common.Hash)
+	//GetBloomLog() model.Bloom
 	//IsEqual(header *Header) bool
 }
 
@@ -49,10 +53,12 @@ type AbstractBody interface {
 	GetTxByIndex(i int) AbstractTransaction
 	EncodeRlpToBytes() ([]byte, error)
 	GetInterLinks() InterLink
+	//GetReceipts() ([]*model.Receipt, error)
 }
 
-//go:generate mockgen -destination=./../economy-model/block_mock_test.go -package=economy_model github.com/caiqingfeng/dipperin-core/core/model AbstractBlock
-//go:generate mockgen -destination=./../../cmd/utils/ver-halt-check/block_mock_test.go -package=ver_halt_check github.com/caiqingfeng/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=./../cs-chain/chain-writer/block_mock_test.go -package=chain_writer github.com/dipperin/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=./../economy-model/block_mock_test.go -package=economy_model github.com/dipperin/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=./../rpc-interface/block_mock_test.go -package=rpc_interface github.com/dipperin/dipperin-core/core/model AbstractBlock
 type AbstractBlock interface {
 	Version() uint64
 	Number() uint64
@@ -63,7 +69,7 @@ type AbstractBlock interface {
 	RefreshHashCache() common.Hash
 	Hash() common.Hash
 	EncodeRlpToBytes() ([]byte, error)
-	TxIterator(cb func(int, AbstractTransaction) (error)) (error)
+	TxIterator(cb func(int, AbstractTransaction) error) error
 	TxRoot() common.Hash
 	Timestamp() *big.Int
 	Nonce() common.BlockNonce
@@ -90,8 +96,13 @@ type AbstractBlock interface {
 	GetBlockTxsBloom() *iblt.Bloom
 	VerificationRoot() common.Hash
 	SetVerifications(vs []AbstractVerification)
-	VersIterator(func(int, AbstractVerification, AbstractBlock) error) (error)
-	GetVerifications() ([]AbstractVerification)
+	VersIterator(func(int, AbstractVerification, AbstractBlock) error) error
+	GetVerifications() []AbstractVerification
+	SetReceiptHash(receiptHash common.Hash)
+	GetReceiptHash() common.Hash
+	//GetBloomLog() model.Bloom
+	//SetBloomLog(bloom model.Bloom)
+	//GasLimit() uint64
 }
 
 type PriofityCalculator interface {
@@ -99,11 +110,11 @@ type PriofityCalculator interface {
 	GetReputation(uint64, *big.Int, uint64) (uint64, error)
 }
 
+//go:generate mockgen -destination=./../chain-communication/transaction_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/model AbstractTransaction
 type AbstractTransaction interface {
 	Size() common.StorageSize
 	Amount() *big.Int
 	CalTxId() common.Hash
-	Fee() *big.Int
 	Nonce() uint64
 	To() *common.Address
 	Sender(singer Signer) (common.Address, error)
@@ -114,10 +125,17 @@ type AbstractTransaction interface {
 	ExtraData() []byte
 	Cost() *big.Int
 	EstimateFee() *big.Int
+	GetGasPrice() *big.Int
+	GetGasLimit() uint64
+	AsMessage(checkNonce bool) (Message, error)
+	PaddingReceipt(parameters ReceiptPara)
+	PaddingActualTxFee(fee *big.Int)
+	GetReceipt() *model.Receipt
+	GetActualTxFee() (fee *big.Int)
 }
 
-//go:generate mockgen -destination=./../economy-model/verification_mock_test.go -package=economy_model github.com/caiqingfeng/dipperin-core/core/model AbstractVerification
-//go:generate mockgen -destination=./../../cmd/utils/ver-halt-check/verification_mock_test.go -package=ver_halt_check github.com/caiqingfeng/dipperin-core/core/model AbstractVerification
+//go:generate mockgen -destination=./../economy-model/verification_mock_test.go -package=economy_model github.com/dipperin/dipperin-core/core/model AbstractVerification
+//go:generate mockgen -destination=./../../cmd/utils/ver-halt-check/verification_mock_test.go -package=ver_halt_check github.com/dipperin/dipperin-core/core/model AbstractVerification
 type AbstractVerification interface {
 	GetHeight() uint64
 	GetRound() uint64

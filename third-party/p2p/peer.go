@@ -29,8 +29,8 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enr"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 var (
@@ -312,6 +312,8 @@ func countMatchingProtocols(protocols []Protocol, caps []Cap) int {
 	n := 0
 	for _, cap := range caps {
 		for _, proto := range protocols {
+			log.Info("the local server protocol info is:", "name", proto.Name, "version", proto.Version)
+			log.Info("the remote server protocol info is:", "name", cap.Name, "version", cap.Version)
 			if proto.Name == cap.Name && proto.Version == cap.Version {
 				n++
 			}
@@ -474,7 +476,6 @@ func (p *Peer) Info() *PeerInfo {
 	}
 	return info
 }
-
 
 type CsPeerInfo struct {
 	ID              string `json:"id"`

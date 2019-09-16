@@ -1,9 +1,9 @@
 package log
 
 import (
-	"os"
-    "sync"
 	"flag"
+	"os"
+	"sync"
 )
 
 var agentLog Logger
@@ -14,18 +14,18 @@ func InitAgentLog(dataDir string) {
 }
 
 func Agent(msg string, ctx ...interface{}) {
-    if agentLog != nil {
-        agentLog.Info(msg, ctx...)
-        return
-    }
-
-    mutex.Lock()
-    defer mutex.Unlock()
-
-    if IsTestEnv() && agentLog == nil {
-    	InitAgentLog(defaultDir)
+	if agentLog != nil {
+		agentLog.Info(msg, ctx...)
+		return
 	}
-    agentLog.Info(msg, ctx...)
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	if IsTestEnv() && agentLog == nil {
+		InitAgentLog(defaultDir)
+	}
+	agentLog.Info(msg, ctx...)
 }
 
 // 判断是否是测试环境

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package service
 
 import (
@@ -36,13 +35,13 @@ func StartNode(c *cli.Context, async bool, logToConsole bool, logToFile bool) (d
 	// make a node
 	nodeConf := getNodeConf(c)
 
-	log.Info("the nodeConf nodeType is:","nodeType",nodeConf.NodeType)
-	log.Info("the nodeConf SoftWalletPath is:","SoftWalletPath",nodeConf.SoftWalletPath)
+	log.Info("the nodeConf nodeType is:", "nodeType", nodeConf.NodeType)
+	log.Info("the nodeConf SoftWalletPath is:", "SoftWalletPath", nodeConf.SoftWalletPath)
 	//normal not need wallet password
-	if nodeConf.NodeType != chain_config.NodeTypeOfNormal{
-		if nodeConf.SoftWalletPassword == ""{
+	if nodeConf.NodeType != chain_config.NodeTypeOfNormal {
+		if nodeConf.SoftWalletPassword == "" {
 			log.Error("please input password to establish or open wallet")
-			return nil,errors.New("please input password to establish or open wallet")
+			return nil, errors.New("please input password to establish or open wallet")
 		}
 	}
 
@@ -117,13 +116,13 @@ func getNodeConf(c *cli.Context) dipperin.NodeConfig {
 	nodeConf.AllowHosts = c.StringSlice(config.AllowHostsFlagName)
 	nodeConf.PMetricsPort = c.Int(config.MetricsPortFlagName)
 
-	if c.Int(config.IsStartMine) == 0{
-		nodeConf.IsStartMine =false
-	}else{
-		nodeConf.IsStartMine =true
+	if c.Int(config.IsStartMine) == 0 {
+		nodeConf.IsStartMine = false
+	} else {
+		nodeConf.IsStartMine = true
 	}
 
-	log.Info("getNodeConf the node type is:","nodeType",nodeConf.NodeType)
+	log.Info("getNodeConf the node type is:", "nodeType", nodeConf.NodeType)
 
 	return nodeConf
 }

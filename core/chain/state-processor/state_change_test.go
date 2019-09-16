@@ -14,80 +14,168 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package state_processor
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
-	"testing"
-	"math/big"
 	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"math/big"
+	"reflect"
+	"testing"
 )
-
-func TestStateChange(t *testing.T) {
-	db := ethdb.NewMemDatabase()
-	tdb := NewStateStorageWithCache(db)
-	processor, _ := NewAccountStateDB(common.Hash{}, tdb)
-	processor.NewAccountState(aliceAddr)
-	processor.NewAccountState(bobAddr)
-	for i := 0; i < 100; i++ {
-		processor.AddBalance(aliceAddr, big.NewInt(int64(i)))
-	}
-	for j := 0; j < 100; j++ {
-		processor.AddNonce(bobAddr, uint64(j))
-	}
-	enc, _ := rlp.EncodeToBytes(big.NewInt(1000000))
-	processor.blockStateTrie.TryUpdate(GetBalanceKey(aliceAddr), enc)
-	//processor.stateChangeList.recover(processor)
-	newscl := processor.stateChangeList.digest()
-	processor.stateChangeList = newscl
-	processor.stateChangeList.recover(processor)
-	alicebalance, err := processor.GetBalance(aliceAddr)
-	assert.NoError(t, err)
-	assert.Equal(t, alicebalance, big.NewInt(4950))
-	bobnonce, err := processor.GetNonce(bobAddr)
-	assert.NoError(t, err)
-	assert.Equal(t, bobnonce, uint64(4950))
-
-}
 
 func TestStateChangeList_DecodeRLP(t *testing.T) {
 	db := ethdb.NewMemDatabase()
 	tdb := NewStateStorageWithCache(db)
 	processor, _ := NewAccountStateDB(common.Hash{}, tdb)
-	processor.NewAccountState(aliceAddr)
-	processor.NewAccountState(bobAddr)
+
+	// create accounts
 	processor.NewAccountState(charlieAddr)
 	processor.AddBalance(charlieAddr, big.NewInt(500))
 	processor.DeleteAccountState(charlieAddr)
-	for i := 0; i < 100; i++ {
-		processor.AddBalance(aliceAddr, big.NewInt(int64(i)))
-	}
+	processor.NewAccountState(aliceAddr)
+	processor.NewAccountState(bobAddr)
+
+	// add nonce, stake, balance
 	for j := 0; j < 100; j++ {
 		processor.AddNonce(bobAddr, uint64(j))
 	}
-	sclsent := processor.stateChangeList.digest()
 
-	enc, err := rlp.EncodeToBytes(sclsent)
+	// snapShot
+	snapShot := processor.Snapshot()
+	for i := 0; i < 100; i++ {
+		processor.AddStake(aliceAddr, big.NewInt(int64(i)))
+		processor.AddBalance(aliceAddr, big.NewInt(int64(i)))
+	}
+
+	// set info
+	for i := 0; i < 5; i++ {
+		processor.SetCode(aliceAddr, []byte{123})
+		processor.SetAbi(aliceAddr, []byte{123})
+		processor.SetDataRoot(aliceAddr, common.HexToHash("dataRoot"))
+		processor.SetData(aliceAddr, "key", []byte("value"))
+		processor.SetTimeLock(aliceAddr, big.NewInt(500))
+		processor.SetHashLock(aliceAddr, common.HexToHash("hashLock"))
+		processor.SetVerifyNum(aliceAddr, uint64(100))
+		processor.SetCommitNum(aliceAddr, uint64(100))
+		processor.SetPerformance(aliceAddr, uint64(100))
+		processor.SetLastElect(aliceAddr, uint64(100))
+		processor.PutContract(aliceAddr, reflect.ValueOf(&erc20{}))
+	}
+
+	// encode state change list
+	sclSent := processor.stateChangeList.digest()
+	enc, err := rlp.EncodeToBytes(sclSent)
 	assert.NoError(t, err)
 
-	var sclget StateChangeList
-	err2 := rlp.DecodeBytes(enc, &sclget)
+	// decode state change list
+	var sclGet StateChangeList
+	err2 := rlp.DecodeBytes(enc, &sclGet)
 	assert.NoError(t, err2)
 
 	processor2, _ := NewAccountStateDB(common.Hash{}, tdb)
-	processor2.stateChangeList = &sclget
+	processor2.stateChangeList = &sclGet
 	processor2.stateChangeList.recover(processor2)
-	_, charlieerr := processor2.GetAccountState(charlieAddr)
-	assert.Equal(t, charlieerr, g_error.AccountNotExist)
-	alicebalance, err := processor2.GetBalance(aliceAddr)
-	assert.NoError(t, err)
-	assert.Equal(t, alicebalance, big.NewInt(4950))
-	bobnonce, err := processor2.GetNonce(bobAddr)
-	assert.NoError(t, err)
-	assert.Equal(t, bobnonce, uint64(4950))
 
+	// assert accounts
+	_, charlieErr := processor2.GetAccountState(charlieAddr)
+	assert.Equal(t, charlieErr, g_error.AccountNotExist)
+	aliceBalance, err := processor2.GetBalance(aliceAddr)
+	assert.NoError(t, err)
+	assert.Equal(t, aliceBalance, big.NewInt(4950))
+	aliceStake, err := processor2.GetBalance(aliceAddr)
+	assert.NoError(t, err)
+	assert.Equal(t, aliceStake, big.NewInt(4950))
+	bobNonce, err := processor2.GetNonce(bobAddr)
+	assert.NoError(t, err)
+	assert.Equal(t, bobNonce, uint64(4950))
+
+	// revert to snap shot
+	processor.RevertToSnapshot(snapShot)
+
+	// assert accounts
+	assert.Equal(t, false, processor.IsEmptyAccount(aliceAddr))
+	assert.Equal(t, false, processor.IsEmptyAccount(bobAddr))
+	assert.Equal(t, true, processor.IsEmptyAccount(charlieAddr))
+	aliceBalance, err = processor.GetBalance(aliceAddr)
+	assert.NoError(t, err)
+	assert.Equal(t, aliceBalance, big.NewInt(0))
+	aliceStake, err = processor.GetBalance(aliceAddr)
+	assert.NoError(t, err)
+	assert.Equal(t, aliceStake, big.NewInt(0))
+	bobNonce, err = processor.GetNonce(bobAddr)
+	assert.NoError(t, err)
+	assert.Equal(t, bobNonce, uint64(4950))
+}
+
+func TestStateChangeList_AccountState(t *testing.T) {
+	db := ethdb.NewMemDatabase()
+	tdb := NewStateStorageWithCache(db)
+	processor, _ := NewAccountStateDB(common.Hash{}, tdb)
+
+	// create accounts
+	snapShot := processor.Snapshot()
+	processor.NewAccountState(aliceAddr)
+	processor.AddBalance(aliceAddr, big.NewInt(500))
+	processor.NewAccountState(aliceAddr)
+	assert.Panics(t, func() {
+		processor.stateChangeList.digest()
+	})
+
+	processor.RevertToSnapshot(snapShot)
+	assert.Equal(t, true, processor.IsEmptyAccount(aliceAddr))
+	snapShot = processor.Snapshot()
+
+	// delete accounts
+	processor.NewAccountState(aliceAddr)
+	processor.AddBalance(aliceAddr, big.NewInt(500))
+	processor.DeleteAccountState(aliceAddr)
+	processor.DeleteAccountState(aliceAddr)
+	assert.Panics(t, func() {
+		processor.stateChangeList.digest()
+	})
+
+	processor.RevertToSnapshot(snapShot)
+	assert.Equal(t, true, processor.IsEmptyAccount(aliceAddr))
+}
+
+func TestStateChangeList_Logs(t *testing.T) {
+	db := ethdb.NewMemDatabase()
+	tdb := NewStateStorageWithCache(db)
+	processor, _ := NewAccountStateDB(common.Hash{}, tdb)
+
+	// create accounts
+	snapShot := processor.Snapshot()
+	txHash := common.HexToHash("txHash")
+	log := &model.Log{TxHash: txHash}
+	processor.NewAccountState(aliceAddr)
+	for i := 0; i < 50; i++ {
+		processor.AddLog(log)
+	}
+	snapShot = processor.Snapshot()
+	assert.Equal(t, 50, len(processor.GetLogs(txHash)))
+	for i := 0; i < 50; i++ {
+		processor.AddLog(log)
+	}
+	assert.Equal(t, 100, len(processor.GetLogs(txHash)))
+	processor.RevertToSnapshot(snapShot)
+	assert.Equal(t, 50, len(processor.GetLogs(txHash)))
+
+	// encode state change list
+	enc, err := rlp.EncodeToBytes(processor.stateChangeList)
+	assert.NoError(t, err)
+
+	// decode state change list
+	var sclGet StateChangeList
+	err2 := rlp.DecodeBytes(enc, &sclGet)
+	assert.NoError(t, err2)
+
+	processor2, _ := NewAccountStateDB(common.Hash{}, tdb)
+	processor2.stateChangeList = &sclGet
+	processor2.stateChangeList.recover(processor2)
+	assert.Equal(t, 50, len(processor2.GetLogs(txHash)))
 }

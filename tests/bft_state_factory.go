@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package tests
 
 import (
-	"github.com/dipperin/dipperin-core/core/csbft/state-machine"
-	"github.com/dipperin/dipperin-core/core/csbft/model"
-	"math/big"
-	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/bloom"
+	"github.com/dipperin/dipperin-core/core/csbft/model"
+	"github.com/dipperin/dipperin-core/core/csbft/state-machine"
 	model2 "github.com/dipperin/dipperin-core/core/model"
+	model3 "github.com/dipperin/dipperin-core/core/vm/model"
+	"math/big"
 	"sync/atomic"
 )
 
@@ -38,7 +38,7 @@ func NewBftCluster(verifiers []Account) *BftCluster {
 		s.OnBlockPoolNotEmpty()
 		states = append(states, s)
 	}
-	return &BftCluster{ BftStates: states, Verifiers: verifiers }
+	return &BftCluster{BftStates: states, Verifiers: verifiers}
 }
 
 type BftCluster struct {
@@ -88,13 +88,27 @@ func (bc *BftCluster) StatesIter(cb func(*state_machine.BftState)) {
 	}
 }
 
-
-
 type FakeBlockForBft struct {
-	Num uint64
+	Num   uint64
 	PHash common.Hash
 
-	hash atomic.Value	`rlp:"-"`
+	hash atomic.Value `rlp:"-"`
+}
+
+func (fb *FakeBlockForBft) SetReceiptHash(receiptHash common.Hash) {
+	panic("implement me")
+}
+
+func (fb *FakeBlockForBft) GetReceiptHash() common.Hash {
+	panic("implement me")
+}
+
+func (fb *FakeBlockForBft) GetBloomLog() model3.Bloom {
+	panic("implement me")
+}
+
+func (fb *FakeBlockForBft) SetBloomLog(bloom model3.Bloom) {
+	panic("implement me")
 }
 
 func (fb *FakeBlockForBft) Version() uint64 {
@@ -139,7 +153,7 @@ func (fb *FakeBlockForBft) EncodeRlpToBytes() ([]byte, error) {
 	panic("implement me")
 }
 
-func (fb *FakeBlockForBft) TxIterator(cb func(int, model2.AbstractTransaction) (error)) (error) {
+func (fb *FakeBlockForBft) TxIterator(cb func(int, model2.AbstractTransaction) error) error {
 	panic("implement me")
 }
 
@@ -247,11 +261,10 @@ func (fb *FakeBlockForBft) SetVerifications(vs []model2.AbstractVerification) {
 	panic("implement me")
 }
 
-func (fb *FakeBlockForBft) VersIterator(func(int, model2.AbstractVerification, model2.AbstractBlock) error) (error) {
+func (fb *FakeBlockForBft) VersIterator(func(int, model2.AbstractVerification, model2.AbstractBlock) error) error {
 	panic("implement me")
 }
 
-func (fb *FakeBlockForBft) GetVerifications() ([]model2.AbstractVerification) {
+func (fb *FakeBlockForBft) GetVerifications() []model2.AbstractVerification {
 	panic("implement me")
 }
-

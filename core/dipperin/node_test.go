@@ -17,9 +17,9 @@
 package dipperin
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"errors"
+	"github.com/stretchr/testify/assert"
+	"testing"
 	"time"
 )
 
@@ -28,7 +28,7 @@ type fakeNodeService struct {
 }
 
 func (s fakeNodeService) Start() error {
-	time.Sleep(time.Millisecond*100)
+	time.Sleep(time.Millisecond * 100)
 	return s.err
 }
 
@@ -43,14 +43,14 @@ func TestNewCsNode(t *testing.T) {
 
 	csNode.Stop()
 
-	csNode.AddService(fakeNodeService{err:errors.New("test error")})
+	csNode.AddService(fakeNodeService{err: errors.New("test error")})
 	err = csNode.Start()
 	assert.Error(t, err)
 	csNode.Wait()
 }
 
 func TestCsNode_Start(t *testing.T) {
-	chokeTimeout = time.Millisecond*50
+	chokeTimeout = time.Millisecond * 50
 	csNode := NewCsNode([]NodeService{})
 	err := csNode.Start()
 	assert.NoError(t, err)

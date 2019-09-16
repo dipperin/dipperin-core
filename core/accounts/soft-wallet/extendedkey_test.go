@@ -841,11 +841,11 @@ func TestMaximumDepth(t *testing.T) {
 	}
 }
 
-func TestExtendedKey(t *testing.T){
+func TestExtendedKey(t *testing.T) {
 	testSk := "xprv9wTYmMFdV23N2TdNG573QoEsfRrWKQgWeibmLntzniatZvR9BmLnvSxqu53Kw1UmYPxLgboyZQaXwTCg8MSY3H2EU4pWcQDnRnrVA1xe8fs"
-	key ,err:= NewKeyFromString(testSk)
-	assert.NoError(t,err)
-	assert.Equal(t,uint8(2),key.Depth())
-	assert.Equal(t,true,key.IsPrivate())
-	assert.Equal(t,uint32(1545328200),key.ParentFingerprint())
+	key, err := NewKeyFromString(testSk)
+	assert.NoError(t, err)
+	assert.Equal(t, uint8(2), key.Depth())
+	assert.Equal(t, true, key.IsPrivate())
+	assert.Equal(t, uint32(1545328200), key.ParentFingerprint())
 }

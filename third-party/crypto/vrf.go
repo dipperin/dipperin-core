@@ -1,28 +1,29 @@
 package crypto
 
 import (
-	"crypto/ecdsa"
 	"bytes"
-	"github.com/dipperin/dipperin-core/common/hexutil"
-	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/crypto/secp256k1"
-	"math/big"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/binary"
-	"crypto/hmac"
 	"errors"
-	"crypto/rand"
-	"crypto/elliptic"
+	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/third-party/crypto/secp256k1"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"math/big"
 )
+
 var (
 	//curve = elliptic.P256()
 	//params = curve.Params()
-	curve  = secp256k1.S256()
+	curve = secp256k1.S256()
 
 	// ErrInvalidVRF occurs when the VRF does not validate.
 	// ErrEvalVRF occurs when unable to generate proof.
-	ErrInvalidVRF	= errors.New("invalid VRF proof")
-	ErrEvalVRF		= errors.New("failed to evaluate vrf")
+	ErrInvalidVRF = errors.New("invalid VRF proof")
+	ErrEvalVRF    = errors.New("failed to evaluate vrf")
 )
 
 // hashToCurve hashes m to a curve point
@@ -103,7 +104,6 @@ func Evaluate(sk *ecdsa.PrivateKey, seed []byte) (index [32]byte, proof []byte) 
 	//r := sk.D.Bytes()
 	//ri := sk.D
 
-
 	nilIndex := [32]byte{}
 	// Prover chooses r <-- [1,N-1]
 	//r, _, _, err := elliptic.GenerateKey(curve, rand.Reader)
@@ -155,7 +155,6 @@ func Evaluate(sk *ecdsa.PrivateKey, seed []byte) (index [32]byte, proof []byte) 
 	buf.Write(make([]byte, 32-len(t.Bytes())))
 	buf.Write(t.Bytes())
 	buf.Write(vrf)
-
 
 	return index, buf.Bytes()
 }

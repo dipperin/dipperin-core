@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_state
 
 import (
@@ -34,7 +33,7 @@ func TestChainState(t *testing.T) { check.TestingT(t) }
 type ChainStateSuite struct {
 	BaseChainSuite
 	//chainState *ChainState
-	block      model.AbstractBlock
+	block model.AbstractBlock
 }
 
 var _ = check.Suite(&ChainStateSuite{})
@@ -87,7 +86,7 @@ func (suite *ChainStateSuite) TestChainState_Genesis(c *check.C) {
 
 	c.Check(genesis, check.NotNil)
 
-	c.Check(genesis.Number(),  check.Equals, uint64(0))
+	c.Check(genesis.Number(), check.Equals, uint64(0))
 
 	c.Check(genesis.Hash().IsEmpty(), check.Equals, false)
 }
@@ -95,7 +94,7 @@ func (suite *ChainStateSuite) TestChainState_Genesis(c *check.C) {
 func (suite *ChainStateSuite) TestChainState_CurrentBlock(c *check.C) {
 	curBlock := suite.chainState.CurrentBlock()
 
-	c.Check(curBlock.Number(),  check.Equals, suite.block.Number())
+	c.Check(curBlock.Number(), check.Equals, suite.block.Number())
 
 	c.Check(curBlock.Hash().IsEmpty(), check.Equals, false)
 }
@@ -103,7 +102,7 @@ func (suite *ChainStateSuite) TestChainState_CurrentBlock(c *check.C) {
 func (suite *ChainStateSuite) TestChainState_CurrentHeader(c *check.C) {
 	curHeader := suite.chainState.CurrentHeader()
 
-	c.Check(curHeader.GetNumber(),  check.Equals, suite.block.Number())
+	c.Check(curHeader.GetNumber(), check.Equals, suite.block.Number())
 
 	c.Check(curHeader.Hash().IsEmpty(), check.Equals, false)
 }
@@ -113,7 +112,7 @@ func (suite *ChainStateSuite) TestChainState_GetBlock(c *check.C) {
 
 	c.Check(block, check.NotNil)
 
-	c.Check(block.Number(),  check.Equals, suite.block.Number())
+	c.Check(block.Number(), check.Equals, suite.block.Number())
 
 	c.Check(block.Hash().IsEqual(suite.block.Hash()), check.Equals, true)
 
@@ -127,7 +126,7 @@ func (suite *ChainStateSuite) TestChainState_GetBlockByHash(c *check.C) {
 
 	c.Check(block, check.NotNil)
 
-	c.Check(block.Number(),  check.Equals, suite.block.Number())
+	c.Check(block.Number(), check.Equals, suite.block.Number())
 
 	c.Check(block.Hash().IsEqual(suite.block.Hash()), check.Equals, true)
 }
@@ -137,7 +136,7 @@ func (suite *ChainStateSuite) TestChainState_GetBlockByNumber(c *check.C) {
 
 	c.Check(block, check.NotNil)
 
-	c.Check(block.Number(),  check.Equals, suite.block.Number())
+	c.Check(block.Number(), check.Equals, suite.block.Number())
 
 	c.Check(block.Hash().IsEqual(suite.block.Hash()), check.Equals, true)
 }
@@ -189,6 +188,24 @@ func (suite *ChainStateSuite) TestChainState_GetBlockNumber(c *check.C) {
 	result := suite.chainState.GetBlockNumber(suite.block.Hash())
 
 	c.Check(*result, check.Equals, suite.block.Number())
+}
+
+func (suite *ChainStateSuite) TestChainState_GetBloomBits(c *check.C) {
+	result := suite.chainState.GetBloomBits(suite.block.Hash(), uint(10), uint64(10))
+
+	c.Check(result, check.IsNil)
+}
+
+func (suite *ChainStateSuite) TestChainState_GetBloomLog(c *check.C) {
+	result := suite.chainState.GetBloomLog(suite.block.Hash(), uint64(10))
+
+	c.Check(result, check.NotNil)
+}
+
+func (suite *ChainStateSuite) TestChainState_GetReceipts(c *check.C) {
+	result := suite.chainState.GetReceipts(suite.block.Hash(), suite.block.Number())
+
+	c.Check(result, check.NotNil)
 }
 
 func (suite *ChainStateSuite) TestChainState_GetLatestNormalBlock(c *check.C) {

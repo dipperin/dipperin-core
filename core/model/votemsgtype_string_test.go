@@ -17,8 +17,8 @@
 package model
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestVoteMsgType_String(t *testing.T) {

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package cs_chain
 
 import (
@@ -36,14 +35,14 @@ const (
 	headerCacheLimit   = 512
 	numberCacheLimit   = 2048
 	verifierCacheLimit = 12
-	slotCacheLimit = 1024 * 5
+	slotCacheLimit     = 1024 * 5
 
 	// test env have not enough mem
 	bodyCacheLimitTestEnv   = 30
 	blockCacheLimitTestEnv  = 30
 	headerCacheLimitTestEnv = 60
 	numberCacheLimitTestEnv = 512
-	slotCacheLimitTestEnv = 1024
+	slotCacheLimitTestEnv   = 1024
 )
 
 func NewCacheChainState(cs *chain_state.ChainState) (*CacheChainState, error) {
@@ -73,7 +72,7 @@ func NewCacheChainState(cs *chain_state.ChainState) (*CacheChainState, error) {
 		headerCache:     headerCache,
 		numberCache:     numberCache,
 		cachedVerifiers: cachedVerifiers,
-		slotCache: slotCache,
+		slotCache:       slotCache,
 	}
 
 	return ccs, nil
@@ -88,7 +87,7 @@ type CacheChainState struct {
 	bodyRLPCache    *lru.Cache
 	headerCache     *lru.Cache
 	cachedVerifiers *lru.Cache
-	slotCache *lru.Cache
+	slotCache       *lru.Cache
 
 	genesisBlock  model.AbstractBlock
 	currentBlock  atomic.Value

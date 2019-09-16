@@ -31,7 +31,7 @@ func TestMakeLocalWorker(t *testing.T) {
 }
 
 func TestMakeRemoteWorker(t *testing.T) {
-	w,c := MakeRemoteWorker(common.HexToAddress("0x123"), 1)
+	w, c := MakeRemoteWorker(common.HexToAddress("0x123"), 1)
 	assert.NotNil(t, w)
 	assert.NotNil(t, c)
 }

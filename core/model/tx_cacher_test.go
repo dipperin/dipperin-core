@@ -17,10 +17,10 @@
 package model
 
 import (
-	"testing"
-	"runtime"
 	"github.com/stretchr/testify/assert"
 	"math/big"
+	"runtime"
+	"testing"
 )
 
 func TestNewTxCacher(t *testing.T) {

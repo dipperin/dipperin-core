@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_writer
 
 import (
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 type BftChainWriter struct {
@@ -42,11 +41,14 @@ func (cw *BftChainWriter) SaveBlock() error {
 		c.Use(middleware.ValidateBlockDifficulty(&c.BlockContext))
 	}
 	c.Use(middleware.ValidateBlockVersion(&c.BlockContext))
-	c.Use(middleware.ValidateBlockSize(&c.BlockContext))
+	//c.Use(middleware.ValidateBlockSize(&c.BlockContext))
 	c.Use(middleware.ValidateBlockHash(&c.BlockContext))
 	c.Use(middleware.ValidateBlockCoinBase(&c.BlockContext))
 	c.Use(middleware.ValidateSeed(&c.BlockContext))
 	c.Use(middleware.ValidateBlockTime(&c.BlockContext))
+
+	//add gas limit check
+	c.Use(middleware.ValidateGasLimit(&c.BlockContext))
 
 	c.Use(middleware.ValidateBlockTxs(&c.BlockContext))
 	c.Use(middleware.ValidateVotes(c))
@@ -54,6 +56,7 @@ func (cw *BftChainWriter) SaveBlock() error {
 	c.Use(middleware.UpdateStateRoot(&c.BlockContext))
 
 	c.Use(middleware.UpdateBlockVerifier(&c.BlockContext))
+	c.Use(middleware.ValidGasUsedAndReceipts(&c.BlockContext))
 	c.Use(middleware.InsertBlock(&c.BlockContext))
 
 	// after insert block, update verifier
@@ -87,7 +90,7 @@ func (cw *BftChainWriterWithoutVotes) SaveBlock() error {
 		c.Use(middleware.ValidateBlockDifficulty(&c.BlockContext))
 	}
 	c.Use(middleware.ValidateBlockVersion(&c.BlockContext))
-	c.Use(middleware.ValidateBlockSize(&c.BlockContext))
+	//c.Use(middleware.ValidateBlockSize(&c.BlockContext))
 	c.Use(middleware.ValidateBlockHash(&c.BlockContext))
 	c.Use(middleware.ValidateBlockCoinBase(&c.BlockContext))
 	c.Use(middleware.ValidateSeed(&c.BlockContext))

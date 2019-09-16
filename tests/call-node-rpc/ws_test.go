@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package call_node_rpc
 
 import (
 	"context"
+	"fmt"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"testing"
-	"fmt"
 	"time"
-	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 func TestWs(t *testing.T) {
@@ -45,19 +44,19 @@ func csSubscribe(c *rpc.Client, ctx context.Context, channel interface{}, args .
 	return c.Subscribe(ctx, "dipperin", channel, args...)
 }
 
-func TestSubscribe(t *testing.T){
+func TestSubscribe(t *testing.T) {
 	return
 	client, err := rpc.Dial("ws://localhost:10002")
 	defer client.Close()
-	//client, err := rpc.Dial("ws://10.200.0.139:10002")
-	log.Info("the err is:","err",err)
+	//client, err := rpc.Dial("ws://${TestServer}:10002")
+	log.Info("the err is:", "err", err)
 	if err != nil {
 		panic(err)
 	}
 
 	xx := make(chan HaHa)
 	sub, err := csSubscribe(client, context.Background(), xx, "subscribeBlock")
-	log.Info("the err is:","err",err)
+	log.Info("the err is:", "err", err)
 	if err != nil {
 		panic(err)
 	}

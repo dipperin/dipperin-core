@@ -22,7 +22,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"reflect"
 )
@@ -72,7 +71,7 @@ func (s *server) ReceiveMsg(workerID WorkerId, code uint64, msg interface{}) {
 func (s *server) onSubmitBlock(workerID WorkerId, work minemsg.Work) {
 
 	block := s.getCurWorkBlockFunc()
-	pbft_log.Debug("onSubmitBlock", "block id", block.Number(), "block txs", block.TxCount())
+	log.PBft.Debug("onSubmitBlock", "block id", block.Number(), "block txs", block.TxCount())
 	if err := work.FillSealResult(block); err != nil {
 		log.Warn("fill seal result failed", "err", err)
 		return
@@ -85,6 +84,10 @@ func (s *server) onSubmitBlock(workerID WorkerId, work minemsg.Work) {
 		//s.UnRegisterWorker(workerID)
 		return
 	}
+
+	receiptHash := block.GetReceiptHash()
+	//bloomLog := block.GetBloomLog()
+	log.Info("server#onSubmitBlock", "receipts", receiptHash)
 
 	//fmt.Println("mine master prepare broadcast block", util.StringifyJson(block), block.Hash())
 	//log.Info("mine master receive new work", "block hash", block.Hash().Hex(), "block number", block.Number())

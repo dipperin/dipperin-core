@@ -14,32 +14,30 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package csbftnode
 
 import (
-	"testing"
 	"crypto/ecdsa"
-	"math/big"
-	"github.com/dipperin/dipperin-core/core/bloom"
-	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/model"
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
-	"net"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/csbft/components"
 	"github.com/dipperin/dipperin-core/core/csbft/state-machine"
+	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"math/big"
+	"net"
+	"testing"
 	//"github.com/ethereum/go-ethereum/node"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 )
 
 // New fakeMsgSender
-type FackMsgSender struct{
-
+type FackMsgSender struct {
 }
 
 func (fms *FackMsgSender) BroadcastMsg(msgCode uint64, msg interface{}) {
@@ -54,11 +52,10 @@ func (fms *FackMsgSender) BroadcastEiBlock(block model.AbstractBlock) {
 	fmt.Println("broadcast block")
 }
 
-
 // New FakeValidtor
 type FakeValidtor struct{}
 
-func (FakeValidtor) FullValid(block model.AbstractBlock) (error) {
+func (FakeValidtor) FullValid(block model.AbstractBlock) error {
 	return nil
 }
 
@@ -71,7 +68,7 @@ func TestCsBft_AddPeer2(t *testing.T) {
 	sks, _ := CreateKey()
 	fs := newFackSigner(sks[1])
 	fetcher := components.NewFetcher(nil)
-	config := &state_machine.BftConfig{fc,fetcher,fs,&FackMsgSender{}, &FakeValidtor{}}
+	config := &state_machine.BftConfig{fc, fetcher, fs, &FackMsgSender{}, &FakeValidtor{}}
 
 	node1 := NewCsBft(config)
 	node1.SetFetcher(fetcher)
@@ -79,13 +76,12 @@ func TestCsBft_AddPeer2(t *testing.T) {
 	err := node1.Start()
 	assert.NoError(t, err)
 	adderr := node1.AddPeer(nil)
-	assert.NoError(t,adderr)
+	assert.NoError(t, adderr)
 	//node1.FastSync()
 	//assert.Equal(t, node1.FastSync(), true)
 	//fmt.Println(node1.blockPool)
 	//node1.OnNewWaitVerifyBlock()
 	node1.Stop()
-
 
 }
 
@@ -110,8 +106,6 @@ func CreateKey() (keys []*ecdsa.PrivateKey, adds []common.Address) {
 	return []*ecdsa.PrivateKey{key1, key2, key3, key4}, add
 }
 
-
-
 //-----------------
 // Fake fullchain
 
@@ -130,7 +124,7 @@ type FakeFullChain struct {
 	Validators []common.Address
 	Blocks     model.AbstractBlock
 	commits    []model.AbstractVerification
-	notify  func(height uint64)
+	notify     func(height uint64)
 }
 
 func (fc *FakeFullChain) GetSeenCommit(height uint64) []model.AbstractVerification {
@@ -138,7 +132,7 @@ func (fc *FakeFullChain) GetSeenCommit(height uint64) []model.AbstractVerificati
 }
 
 func (fc *FakeFullChain) SaveBlock(block model.AbstractBlock, seenCommits []model.AbstractVerification) error {
-	pbft_log.Debug("save block","height",block.Number())
+	log.PBft.Debug("save block", "height", block.Number())
 	fc.Blocks = block
 	fc.Height = block.Number()
 	fc.commits = seenCommits
@@ -159,7 +153,7 @@ func (fc *FakeFullChain) IsChangePoint(block model.AbstractBlock, isProcessPacka
 
 func (fc *FakeFullChain) GetNextVerifiers() []common.Address {
 	_, v := CreateKey()
-	if fc.Height==9{
+	if fc.Height == 9 {
 		return nil
 	}
 	return v
@@ -170,7 +164,7 @@ func (fc *FakeFullChain) GetCurrVerifiers() []common.Address {
 	return v
 }
 
-func (fc *FakeFullChain) SetNewHeightNotifier(nc func(height uint64)){
+func (fc *FakeFullChain) SetNewHeightNotifier(nc func(height uint64)) {
 	fc.notify = nc
 }
 
@@ -182,7 +176,21 @@ type FakeBlock struct {
 	Headers    model.AbstractHeader
 }
 
+func (fb *FakeBlock) GetBloomLog() model2.Bloom {
+	panic("implement me")
+}
 
+func (fb *FakeBlock) SetBloomLog(bloom model2.Bloom) {
+	panic("implement me")
+}
+
+func (fb *FakeBlock) SetReceiptHash(receiptHash common.Hash) {
+	panic("implement me")
+}
+
+func (fb *FakeBlock) GetReceiptHash() common.Hash {
+	panic("implement me")
+}
 
 func (fb *FakeBlock) IsSpecial() bool {
 	panic("implement me")
@@ -236,7 +244,7 @@ func (fb *FakeBlock) EncodeRlpToBytes() ([]byte, error) {
 	panic("implement me")
 }
 
-func (fb *FakeBlock) TxIterator(cb func(int, model.AbstractTransaction) (error)) (error) {
+func (fb *FakeBlock) TxIterator(cb func(int, model.AbstractTransaction) error) error {
 	panic("implement me")
 }
 
@@ -300,11 +308,11 @@ func (fb *FakeBlock) SetVerifications(vs []model.AbstractVerification) {
 	panic("implement me")
 }
 
-func (fb *FakeBlock) VersIterator(func(int, model.AbstractVerification, model.AbstractBlock) error) (error) {
+func (fb *FakeBlock) VersIterator(func(int, model.AbstractVerification, model.AbstractBlock) error) error {
 	panic("implement me")
 }
 
-func (fb *FakeBlock) GetVerifications() ([]model.AbstractVerification) {
+func (fb *FakeBlock) GetVerifications() []model.AbstractVerification {
 	panic("implement me")
 }
 
@@ -335,7 +343,6 @@ func (fb *FakeBlock) VerificationRoot() common.Hash {
 func (fb *FakeBlock) TxCount() int {
 	panic("implement me")
 }
-
 
 type fakeSigner struct {
 	baseAddr   common.Address
@@ -424,7 +431,7 @@ func (p *tPeer) NodeType() uint64 {
 }
 
 func (p *tPeer) SendMsg(msgCode uint64, msg interface{}) error {
-	fmt.Println("send","code",msgCode)
+	fmt.Println("send", "code", msgCode)
 	return nil
 }
 

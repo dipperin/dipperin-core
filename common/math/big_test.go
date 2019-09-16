@@ -22,7 +22,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
-
 )
 
 func TestHexOrDecimal256(t *testing.T) {

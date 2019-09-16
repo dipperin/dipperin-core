@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package dipperin
 
 import (
+	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/mine/mineworker"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
-	"errors"
 	"path/filepath"
 )
 
@@ -39,7 +38,7 @@ func NewMinerNode(master string, coinbase string, minerCount int, p2pListenAddr 
 	}
 	// init p2p
 	p2pConf := DefaultMinerP2PConf()
-	p2pConf.StaticNodes = []*enode.Node{ masterNode }
+	p2pConf.StaticNodes = []*enode.Node{masterNode}
 	minerKeyPath := filepath.Join(util.HomeDir(), "dipperin_miner", coinbase)
 	p2pConf.PrivateKey = loadNodeKeyFromFile(minerKeyPath)
 	p2pConf.ListenAddr = p2pListenAddr
@@ -53,6 +52,6 @@ func NewMinerNode(master string, coinbase string, minerCount int, p2pListenAddr 
 	p2pServer.Protocols = append(p2pServer.Protocols, minePm.GetProtocol())
 
 	// init miner
-	n = NewCsNode([]NodeService{ p2pServer })
+	n = NewCsNode([]NodeService{p2pServer})
 	return
 }

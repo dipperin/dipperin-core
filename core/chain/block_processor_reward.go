@@ -14,28 +14,27 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/core/contract"
-	"github.com/dipperin/dipperin-core/common/g-error"
 )
 
 //Reward Verifiers, current block reward previous block
-func (state *BlockProcessor) RewardByzantiumVerifier(Block model.AbstractBlock, earlyContract *contract.EarlyRewardContract) (err error){
+func (state *BlockProcessor) RewardByzantiumVerifier(Block model.AbstractBlock, earlyContract *contract.EarlyRewardContract) (err error) {
 	//use economy model calculate the verifier reward
 	//should use preBlock as the parameter
-	preBlock := state.fullChain.GetBlockByNumber(Block.Number()-1)
-	rewards,err := state.economyModel.GetVerifierDIPReward(preBlock)
-	if err !=nil{
+	preBlock := state.fullChain.GetBlockByNumber(Block.Number() - 1)
+	rewards, err := state.economyModel.GetVerifierDIPReward(preBlock)
+	if err != nil {
 		return err
 	}
-	rewardAddress,err := state.economyModel.GetDiffVerifierAddress(preBlock,Block)
-	if err !=nil{
+	rewardAddress, err := state.economyModel.GetDiffVerifierAddress(preBlock, Block)
+	if err != nil {
 		return err
 	}
 
@@ -55,18 +54,18 @@ func (state *BlockProcessor) RewardByzantiumVerifier(Block model.AbstractBlock, 
 	}
 
 	//reward earlyToken
-	err = earlyContract.RewardVerifier(rewards, preBlock.Number(),rewardAddress)
-	if err != nil{
+	err = earlyContract.RewardVerifier(rewards, preBlock.Number(), rewardAddress)
+	if err != nil {
 		return err
 	}
 
 	/*	storageErr = Block.VersIterator(func(i int, verification model.AbstractVerification, block model.AbstractBlock) (error) {
-			innerErr := state.rewardVerifier(verification)
-			if innerErr != nil{
-				return innerErr
-			}
-			return nil
-		})*/
+		innerErr := state.rewardVerifier(verification)
+		if innerErr != nil{
+			return innerErr
+		}
+		return nil
+	})*/
 
 	return
 }

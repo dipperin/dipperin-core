@@ -18,12 +18,13 @@ package model
 
 import (
 	"crypto/ecdsa"
-	"math/big"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"time"
 	"errors"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"math/big"
+	"time"
 )
 
 var (
@@ -50,19 +51,21 @@ func CreateSignedVote(height, round uint64, blockId common.Hash, voteType VoteMs
 
 func CreateSignedTx(nonce uint64, amount *big.Int) *Transaction {
 	key1, _ := CreateKey()
-	fs1 := NewMercurySigner(big.NewInt(1))
-	testTx1 := NewTransaction(nonce, bobAddr, amount, big.NewInt(10000), []byte{})
+	fs1 := NewSigner(big.NewInt(1))
+	testTx1 := NewTransaction(nonce, bobAddr, amount, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	signedTx, _ := testTx1.SignTx(key1, fs1)
 	return signedTx
 }
 
 func CreateSignedTxList(n int) []*Transaction {
 	keyAlice, _ := CreateKey()
-	ms := NewMercurySigner(big.NewInt(1))
+	ms := NewSigner(big.NewInt(1))
 
 	var res []*Transaction
 	for i := 0; i < n; i++ {
-		tempTx := NewTransaction(uint64(i), bobAddr, big.NewInt(1000), big.NewInt(10000), []byte{})
+		tempTx := NewTransaction(uint64(i), bobAddr, big.NewInt(1000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
+		gasUsed, _ := IntrinsicGas(tempTx.ExtraData(), false, false)
+		tempTx.PaddingActualTxFee(big.NewInt(0).Mul(big.NewInt(int64(gasUsed)), g_testData.TestGasPrice))
 		tempTx.SignTx(keyAlice, ms)
 		res = append(res, tempTx)
 	}
@@ -87,10 +90,10 @@ func CreateBlock(num uint64, preHash common.Hash, txsNum int) *Block {
 
 func createTestTx() (*Transaction, *Transaction) {
 	_, key2 := CreateKey()
-	fs2 := NewMercurySigner(big.NewInt(3))
+	fs2 := NewSigner(big.NewInt(3))
 	hashLock := cs_crypto.Keccak256Hash([]byte("123"))
 	tx1 := CreateSignedTx(10, big.NewInt(100))
-	tx2 := CreateRawLockTx(1, hashLock, big.NewInt(34564), big.NewInt(10000), big.NewInt(10000), aliceAddr, bobAddr)
+	tx2 := CreateRawLockTx(1, hashLock, big.NewInt(34564), big.NewInt(10000), g_testData.TestGasPrice, g_testData.TestGasLimit, aliceAddr, bobAddr)
 	tx2.SignTx(key2, fs2)
 	return tx1, tx2
 }

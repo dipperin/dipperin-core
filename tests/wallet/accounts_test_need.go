@@ -31,11 +31,12 @@ var TestSeed = []byte{0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02
 	0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02}
 var TestAddress = common.Address{0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12,
 	0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12}
+
 //签名hash值
 var TestHashData = [32]byte{0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04,
-0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04,
-0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04,
-0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04}
+	0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04,
+	0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04,
+	0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04}
 
 var TestWalletName = "testSoftWallet1"
 var Path = filepath.Join(util.HomeDir(), "/tmp/testSoftWallet1")
@@ -74,7 +75,6 @@ func EstablishSoftWallet(path, walletName string) (*soft_wallet.SoftWallet, erro
 
 func GetTestWalletManager() (testWallet *soft_wallet.SoftWallet, manager *accounts.WalletManager, err error) {
 
-
 	testWallet, err = EstablishSoftWallet(Path, TestWalletName)
 	if err != nil {
 		return nil, nil, err
@@ -87,17 +87,17 @@ func GetTestWalletManager() (testWallet *soft_wallet.SoftWallet, manager *accoun
 	return testWallet, walletManager, nil
 }
 
-func GetTestWalletSigner()(*accounts.WalletSigner,error){
-	testWallet,testWalletManager,err:=GetTestWalletManager()
-	if err!=nil{
-		return nil,err
+func GetTestWalletSigner() (*accounts.WalletSigner, error) {
+	testWallet, testWalletManager, err := GetTestWalletManager()
+	if err != nil {
+		return nil, err
 	}
 
-	testAccounts,err := testWallet.Accounts()
-	if err != nil{
-		return nil,err
+	testAccounts, err := testWallet.Accounts()
+	if err != nil {
+		return nil, err
 	}
 
-	testSigner:=accounts.MakeWalletSigner(testAccounts[0].Address,testWalletManager)
-	return testSigner,nil
+	testSigner := accounts.MakeWalletSigner(testAccounts[0].Address, testWalletManager)
+	return testSigner, nil
 }

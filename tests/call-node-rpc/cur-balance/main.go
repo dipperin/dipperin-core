@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package main
 
 import (
@@ -22,13 +21,13 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
-	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/third-party/rpc"
 )
 
 func main() {
 	//c, err := rpc.Dial(fmt.Sprintf("ws://%v:%v", "localhost", 8005))
-	//c, err := rpc.Dial(fmt.Sprintf("http://%v:%v", "10.200.0.139", 3035))
+	//c, err := rpc.Dial(fmt.Sprintf("http://%v:%v", "${TestServer}", 3035))
 	c, err := rpc.Dial(fmt.Sprintf("http://%v:%v", "szly", 3035))
 	if err != nil {
 		panic(err)
@@ -43,7 +42,6 @@ func main() {
 	}
 	log.Info("current balance", "balance", curAddr.Hex(), resp.Balance.ToInt().String())
 }
-
 
 func getDefaultAccount(c *rpc.Client) common.Address {
 	var resp []accounts.WalletIdentifier

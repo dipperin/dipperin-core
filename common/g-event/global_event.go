@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package g_event
 
-import(
-	"github.com/ethereum/go-ethereum/event"
+import (
 	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/ethereum/go-ethereum/event"
 )
 
 const (

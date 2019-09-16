@@ -18,6 +18,7 @@ package minemaster
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests/factory"
 	"github.com/dipperin/dipperin-core/tests/peer"
@@ -42,18 +43,24 @@ func Test_newWorkDispatcher(t *testing.T) {
 }
 
 type fakeBlockBuilder struct {
-
 }
 
-func (b *fakeBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address) model.AbstractBlock {
+func (b *fakeBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, gasFloor, gasCeil uint64) model.AbstractBlock {
 	return block
 }
 
 func Test_workDispatcher_onNewBlock(t *testing.T) {
 	testMineConfig = MineConfig{
 		CoinbaseAddress: &atomic.Value{},
-		BlockBuilder: &fakeBlockBuilder{},
+		BlockBuilder:    &fakeBlockBuilder{},
+		GasFloor:        &atomic.Value{},
+		GasCeil:         &atomic.Value{},
 	}
+
+	gasFloor := chain_config.BlockGasLimit
+	gasCeil := chain_config.BlockGasLimit
+	testMineConfig.GasFloor.Store(uint64(gasFloor))
+	testMineConfig.GasCeil.Store(uint64(gasCeil))
 
 	nwd := newWorkDispatcher(testMineConfig, fakeGetWorkersFunc)
 

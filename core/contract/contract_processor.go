@@ -14,41 +14,40 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package contract
 
 import (
 	"bufio"
 	"bytes"
+	"errors"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"reflect"
-	"errors"
-	"fmt"
 )
 
 var (
-	CanNotParseContractErr = errors.New("cannot parse transaction extra data")
-	ContractAdrEmptyErr = errors.New("contract address can't be empty")
+	CanNotParseContractErr      = errors.New("cannot parse transaction extra data")
+	ContractAdrEmptyErr         = errors.New("contract address can't be empty")
 	ContractWithoutValidatorErr = errors.New("no found validator method，cannot create contract")
-	ContractValidatorRetNilErr = errors.New("contract validator method return nothing")
-	ContractMethodRetNilErr = errors.New("contract method return nothing")
-	ContractMethodFailErr = errors.New("contract method return false")
+	ContractValidatorRetNilErr  = errors.New("contract validator method return nothing")
+	ContractMethodRetNilErr     = errors.New("contract method return nothing")
+	ContractMethodFailErr       = errors.New("contract method return false")
 )
 
 func NewProcessor(cDB ContractDB, blockHeight uint64) *Processor {
-	return &Processor{ contractDB: cDB, blockHeight: blockHeight }
+	return &Processor{contractDB: cDB, blockHeight: blockHeight}
 }
 
 type Processor struct {
-	contractDB ContractDB
-	accountDB  AccountDB
+	contractDB  ContractDB
+	accountDB   AccountDB
 	blockHeight uint64
 }
 
-func (p *Processor)SetAccountDB(db AccountDB){
+func (p *Processor) SetAccountDB(db AccountDB) {
 	p.accountDB = db
 }
 
@@ -76,6 +75,7 @@ func (p *Processor) Process(tx model.AbstractTransaction) (err error) {
 	// modify contract
 	if err == nil {
 		// TODO: check the type of contract address
+
 		err = p.contractDB.PutContract(eData.ContractAddress, result)
 	}
 

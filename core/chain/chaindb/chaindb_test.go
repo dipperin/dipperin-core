@@ -18,8 +18,13 @@ package chaindb
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"testing"
+	"github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/tests/factory"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
 )
 
 func TestChainDB_InsertBlock(t *testing.T) {
@@ -210,7 +215,6 @@ func TestWriteTxLookupEntries(t *testing.T) {
 	assert.Equal(t, uint64(0), txIndex)
 
 	txHash = b.GetTransactions()[1].CalTxId()
-
 	bHash, bIndex, txIndex = db.GetTxLookupEntry(txHash)
 
 	assert.Equal(t, b.Hash(), bHash)
@@ -264,4 +268,85 @@ func TestReadTransaction(t *testing.T) {
 func TestChainDB_DB(t *testing.T) {
 	db := newChainDB()
 	assert.NotNil(t, db.DB())
+}
+
+func TestChainDB_Receipts(t *testing.T) {
+	db := newChainDB()
+	receipt1 := model.NewReceipt([]byte{}, false, g_testData.TestGasLimit, nil)
+	receipt2 := model.NewReceipt([]byte{}, false, g_testData.TestGasLimit*3, nil)
+	receipts := []*model.Receipt{receipt1, receipt2}
+
+	block := createBlock(1)
+	db.SaveBlock(block)
+
+	err := db.SaveReceipts(block.Hash(), 1, model.Receipts{})
+	assert.NoError(t, err)
+
+	err = db.SaveReceipts(block.Hash(), 1, receipts)
+	assert.NoError(t, err)
+
+	result := db.GetReceipts(block.Hash(), 1)
+	DeriveFields(receipts, block)
+	assert.NoError(t, err)
+	assert.Equal(t, receipts[0].BlockNumber, result[0].BlockNumber)
+	assert.Equal(t, receipts[0].BlockHash, result[0].BlockHash)
+	assert.Equal(t, receipts[0].TransactionIndex, result[0].TransactionIndex)
+	assert.Equal(t, receipts[0].ContractAddress, result[0].ContractAddress)
+	assert.Equal(t, receipts[0].GasUsed, result[0].GasUsed)
+	assert.Equal(t, len(receipts[0].Logs), len(result[0].Logs))
+}
+
+func TestChainDB_Receipts_Error(t *testing.T) {
+	fakeDB := NewChainDB(fakeDataBase{}, newDecoder())
+	b := createBlock(22)
+
+	fakeDB.SaveReceipts(b.Hash(), b.Number(), model.Receipts{})
+	fakeDB.GetReceipts(b.Hash(), b.Number())
+}
+
+func TestDeriveFields(t *testing.T) {
+	log := &model.Log{Address: factory.AliceAddrV}
+	receipt1 := model.NewReceipt([]byte{}, false, g_testData.TestGasLimit, []*model.Log{log})
+	receipt2 := model.NewReceipt([]byte{}, false, g_testData.TestGasLimit*3, []*model.Log{log})
+	receipts := []*model.Receipt{receipt1, receipt2}
+	block := createBlock(1)
+
+	err := DeriveFields([]*model.Receipt{receipt1}, block)
+	assert.Error(t, err)
+
+	expectAddr := cs_crypto.CreateContractAddress(factory.AliceAddrV, 0)
+	err = DeriveFields(receipts, block)
+	assert.NoError(t, err)
+	assert.Equal(t, big.NewInt(1), receipts[0].BlockNumber)
+	assert.Equal(t, block.Hash(), receipts[0].BlockHash)
+	assert.Equal(t, uint(0), receipts[0].TransactionIndex)
+	assert.Equal(t, expectAddr, receipts[0].ContractAddress)
+	assert.Equal(t, g_testData.TestGasLimit, receipts[0].GasUsed)
+	assert.Equal(t, 1, len(receipts[0].Logs))
+
+	assert.Equal(t, big.NewInt(1), receipts[1].BlockNumber)
+	assert.Equal(t, block.Hash(), receipts[1].BlockHash)
+	assert.Equal(t, uint(1), receipts[1].TransactionIndex)
+	assert.Equal(t, factory.BobAddrV, receipts[1].ContractAddress)
+	assert.Equal(t, g_testData.TestGasLimit*2, receipts[1].GasUsed)
+	assert.Equal(t, 1, len(receipts[1].Logs))
+}
+
+func TestBloomBits(t *testing.T) {
+	db := newChainDB()
+	head := common.HexToHash("head")
+	bit := uint(10)
+	section := uint64(5)
+	err := BatchSaveBloomBits(db.db, head, bit, section, []byte{123})
+	assert.NoError(t, err)
+	assert.Equal(t, []byte{123}, db.GetBloomBits(head, bit, section))
+}
+
+func TestBloomBits_Error(t *testing.T) {
+	fakeDB := NewChainDB(fakeDataBase{}, newDecoder())
+	head := common.HexToHash("head")
+	bit := uint(10)
+	section := uint64(5)
+	BatchSaveBloomBits(fakeDB.db, head, bit, section, []byte{123})
+	fakeDB.GetBloomBits(head, bit, section)
 }

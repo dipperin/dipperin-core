@@ -26,12 +26,11 @@ func TestClearSensitiveData(t *testing.T) {
 	assert.NoError(t, err)
 
 	ClearSensitiveData(testKey)
-	assert.Equal(t,ExtendedKey{},*testKey)
+	assert.Equal(t, ExtendedKey{}, *testKey)
 
 	testWalletInfo := NewHdWalletInfo()
 
-	testWalletInfo.Seed = []byte{0x00,0x01,0x02,0x03}
+	testWalletInfo.Seed = []byte{0x00, 0x01, 0x02, 0x03}
 	ClearSensitiveData(&testWalletInfo)
-	assert.Equal(t,(*WalletInfo)(nil),testWalletInfo)
+	assert.Equal(t, (*WalletInfo)(nil), testWalletInfo)
 }
-

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package util
 
 import (
@@ -40,25 +39,15 @@ func TestWriteDebugStack(t *testing.T) {
 	defer tfClean()
 
 	err := WriteDebugStack(tf)
-
 	assert.NoError(t, err)
 
 	err = WriteDebugStack("./test/test.log")
-
 	assert.NoError(t, err)
-
 	assert.FileExists(t, "./test/test.log")
 
 	err = os.Remove("./test/test.log")
-
 	assert.NoError(t, err)
 
 	err = os.Remove("./test")
-
 	assert.NoError(t, err)
-
-	err = WriteDebugStack("/test/test.log")
-
-	assert.Error(t, err)
-
 }

@@ -27,9 +27,9 @@ import (
 	"strconv"
 
 	"github.com/dipperin/dipperin-core/common/math"
-	"github.com/dipperin/dipperin-core/third-party/p2p/enr"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/p2p/enr"
 )
 
 var incompleteNodeURL = regexp.MustCompile("(?i)^(?:enode://)?([0-9a-f]+)$")

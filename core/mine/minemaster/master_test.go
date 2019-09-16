@@ -259,6 +259,16 @@ func Test_master_OnNewBlock(t *testing.T) {
 	nM.OnNewBlock(block)
 }
 
+func Test_master_GetPerformance(t *testing.T) {
+	dispatch := mockDispatch{curBlock: nil}
+
+	nM := testMasterBuilder(testMineConfig)
+
+	nM.setWorkDispatcher(&dispatch)
+
+	assert.Equal(t, nM.GetPerformance(common.HexToAddress("0x1234")), uint64(0x0))
+}
+
 func Test_master_doOnNewBlock(t *testing.T) {
 	dispatch := mockDispatch{curBlock: nil}
 
@@ -283,16 +293,6 @@ func Test_master_doOnNewBlock(t *testing.T) {
 	g_event.Send(g_event.NewBlockInsertEvent, *block)
 
 	nM.Stop()
-}
-
-func Test_master_GetPerformance(t *testing.T) {
-	dispatch := mockDispatch{curBlock: nil}
-
-	nM := testMasterBuilder(testMineConfig)
-
-	nM.setWorkDispatcher(&dispatch)
-
-	assert.Equal(t, nM.GetPerformance(common.HexToAddress("0x1234")), uint64(0x0))
 }
 
 func Test_master_GetReward(t *testing.T) {

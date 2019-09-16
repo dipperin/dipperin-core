@@ -18,17 +18,17 @@ package chain_config
 
 import (
 	"fmt"
-	"net"
-	"os"
-	"testing"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain-config/env-conf"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/stretchr/testify/assert"
-	"path/filepath"
 	"io/ioutil"
+	"net"
+	"os"
+	"path/filepath"
+	"testing"
 )
 
 func TestLoadDefaultBootID(t *testing.T) {
@@ -46,21 +46,37 @@ func TestLoadDefaultBootID(t *testing.T) {
 }
 
 func TestGetChainConfig(t *testing.T) {
-	chainConfig := GetChainConfig()
+	err := os.Setenv("boots_env", "")
+	assert.NoError(t, err)
+
+	chainConfig := defaultChainConfig()
 	assert.Equal(t, uint64(110), chainConfig.SlotSize)
 	assert.Equal(t, 22, chainConfig.VerifierNumber)
+	assert.Equal(t, uint64(2000), chainConfig.NetworkID)
 
-	err := os.Setenv("boots_env", "test")
+	err = os.Setenv("boots_env", "test")
 	assert.NoError(t, err)
 
 	chainConfig = defaultChainConfig()
-	assert.Equal(t, uint64(1), chainConfig.NetworkID)
+	assert.Equal(t, uint64(1600), chainConfig.NetworkID)
 
 	err = os.Setenv("boots_env", "mercury")
 	assert.NoError(t, err)
 
 	chainConfig = defaultChainConfig()
 	assert.Equal(t, uint64(99), chainConfig.NetworkID)
+
+	err = os.Setenv("boots_env", "local")
+	assert.NoError(t, err)
+
+	chainConfig = defaultChainConfig()
+	assert.Equal(t, uint64(1601), chainConfig.NetworkID)
+
+	err = os.Setenv("boots_env", "venus")
+	assert.NoError(t, err)
+
+	chainConfig = defaultChainConfig()
+	assert.Equal(t, uint64(100), chainConfig.NetworkID)
 }
 
 func TestGetCurBootsEnv(t *testing.T) {
@@ -95,6 +111,14 @@ func TestInitBootNodes(t *testing.T) {
 	assert.Equal(t, 1, len(KBucketNodes))
 
 	err = os.Setenv("boots_env", "mercury")
+	assert.NoError(t, err)
+	VerifierBootNodes = []*enode.Node{}
+	KBucketNodes = []*enode.Node{}
+	InitBootNodes("")
+	assert.Equal(t, 4, len(VerifierBootNodes))
+	assert.Equal(t, 1, len(KBucketNodes))
+
+	err = os.Setenv("boots_env", "venus")
 	assert.NoError(t, err)
 	VerifierBootNodes = []*enode.Node{}
 	KBucketNodes = []*enode.Node{}

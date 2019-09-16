@@ -1,0 +1,89 @@
+[
+    {
+        "name": "init",
+        "inputs": [],
+        "outputs": [],
+        "constant": "false",
+        "type": "function"
+    },
+    {
+        "name": "toString",
+        "inputs": [],
+        "outputs": [],
+        "constant": "false",
+        "type": "function"
+    },
+    {
+        "name": "getBlockInfo",
+        "inputs": [],
+        "outputs": [],
+        "constant": "false",
+        "type": "function"
+    },
+    {
+        "name": "transferTest",
+        "inputs": [
+            {
+                "name": "to",
+                "type": "string"
+            },
+            {
+                "name": "amount",
+                "type": "uint64"
+            }
+        ],
+        "outputs": [],
+        "constant": "false",
+        "type": "function"
+    },
+    {
+        "name": "rlpTest",
+        "inputs": [],
+        "outputs": [],
+        "constant": "false",
+        "type": "function"
+    },
+    {
+        "name": "printTest",
+        "inputs": [],
+        "outputs": [],
+        "constant": "false",
+        "type": "function"
+    },
+    {
+        "name": "int64",
+        "inputs": [
+            {
+                "type": "string"
+            },
+            {
+                "type": "int64"
+            }
+        ],
+        "type": "event"
+    },
+    {
+        "name": "uint64",
+        "inputs": [
+            {
+                "type": "string"
+            },
+            {
+                "type": "uint64"
+            }
+        ],
+        "type": "event"
+    },
+    {
+        "name": "string",
+        "inputs": [
+            {
+                "type": "string"
+            },
+            {
+                "type": "string"
+            }
+        ],
+        "type": "event"
+    }
+]

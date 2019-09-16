@@ -22,10 +22,10 @@ import (
 	"io"
 
 	"github.com/dipperin/dipperin-core/common/math"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enr"
 	"github.com/ethereum/go-ethereum/rlp"
 	"golang.org/x/crypto/sha3"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 )
 
 // List of known secure identity schemes.

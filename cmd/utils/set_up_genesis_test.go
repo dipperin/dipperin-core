@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package utils
 
 import (
@@ -27,11 +26,6 @@ import (
 
 func TestSetupGenesis(t *testing.T) {
 	defer os.RemoveAll("/tmp/test_genesis")
-
-	assert.Panics(t, func() {
-		SetupGenesis("/dev/test_genesis", chain_config.GetChainConfig())
-	})
-
 	SetupGenesis("/tmp/test_genesis", chain_config.GetChainConfig())
 }
 

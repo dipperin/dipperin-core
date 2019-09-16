@@ -14,25 +14,24 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package trie
 
 import (
-	"github.com/ethereum/go-ethereum/ethdb"
-	"testing"
-	"github.com/dipperin/dipperin-core/common"
-	"path/filepath"
-	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/common/util"
-	trie2 "github.com/dipperin/dipperin-core/third-party/trie"
-	"math/big"
-	"github.com/tidwall/gjson"
-	"strconv"
-	"os"
 	"fmt"
-	"reflect"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	trie2 "github.com/dipperin/dipperin-core/third-party/trie"
+	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
+	"math/big"
+	"os"
+	"path/filepath"
+	"reflect"
+	"strconv"
+	"testing"
 )
 
 type ContractBase struct {
@@ -42,30 +41,30 @@ type ContractBase struct {
 type BuiltInERC20Token struct {
 	ContractBase
 
-	Owner            common.Address `json:"owner"`
-	TokenName        string `json:"token_name"`
-	TokenDecimals    uint `json:"token_decimals"`
-	TokenSymbol      string `json:"token_symbol"`
-	TokenTotalSupply *big.Int `json:"token_total_supply"`
-	Balances         map[string]*big.Int `json:"balances"`
+	Owner            common.Address                 `json:"owner"`
+	TokenName        string                         `json:"token_name"`
+	TokenDecimals    uint                           `json:"token_decimals"`
+	TokenSymbol      string                         `json:"token_symbol"`
+	TokenTotalSupply *big.Int                       `json:"token_total_supply"`
+	Balances         map[string]*big.Int            `json:"balances"`
 	Allowed          map[string]map[string]*big.Int `json:"allowed"`
 }
 
 func newERC20(owner common.Address) *BuiltInERC20Token {
 	c := &BuiltInERC20Token{
-		Owner: owner,
-		TokenName: owner.Hex() + "_x",
-		TokenDecimals: 18,
-		TokenSymbol: "ccc",
+		Owner:            owner,
+		TokenName:        owner.Hex() + "_x",
+		TokenDecimals:    18,
+		TokenSymbol:      "ccc",
 		TokenTotalSupply: big.NewInt(200000000000),
-		Balances:         map[string]*big.Int{
+		Balances: map[string]*big.Int{
 			"0x123213": big.NewInt(89498),
 			"0x123211": big.NewInt(89498),
 		},
-		Allowed:          map[string]map[string]*big.Int{
-			"0x1231232": { "0x321312": big.NewInt(2313) },
-			"0x1231231": { "0x321315": big.NewInt(231334) },
-			"0x1231211": { "0x1321315": big.NewInt(23134) },
+		Allowed: map[string]map[string]*big.Int{
+			"0x1231232": {"0x321312": big.NewInt(2313)},
+			"0x1231231": {"0x321315": big.NewInt(231334)},
+			"0x1231211": {"0x1321315": big.NewInt(23134)},
 		},
 	}
 	return c
@@ -125,7 +124,7 @@ func TestLargeDataIterator(t *testing.T) {
 }
 
 func getContractKey(addr common.Address, ck string) []byte {
-	return append(addr.Bytes(), []byte("_ERC20_" + ck)...)
+	return append(addr.Bytes(), []byte("_ERC20_"+ck)...)
 }
 
 func getContractValue(v interface{}) []byte {
@@ -177,7 +176,7 @@ func json2KV(key string, json gjson.Result, result map[string]interface{}) {
 				json2KV(key+"."+strconv.Itoa(index), value, result)
 			}
 
-			index ++
+			index++
 			return true
 		})
 
@@ -185,5 +184,3 @@ func json2KV(key string, json gjson.Result, result map[string]interface{}) {
 		result[key] = json.Value()
 	}
 }
-
-

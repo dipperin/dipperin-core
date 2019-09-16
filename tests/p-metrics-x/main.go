@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package main
 
 import (
 	"github.com/dipperin/dipperin-core/common/g-metrics"
 	"github.com/prometheus/client_golang/prometheus"
-	"time"
 	"math/rand"
+	"time"
 )
 
 func main() {
@@ -30,12 +29,12 @@ func main() {
 	timeoutCount := prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "time_out_count",
 		Help: "mem info",
-	}, []string{ "count" })
+	}, []string{"count"})
 	prometheus.MustRegister(timeoutCount)
 	for {
 		rand.Seed(time.Now().UnixNano())
 		x := rand.Intn(100)
-		if x % 2 == 0 {
+		if x%2 == 0 {
 			timeoutCount.WithLabelValues("prepare").Add(1)
 		} else {
 			timeoutCount.WithLabelValues("prevote").Add(1)

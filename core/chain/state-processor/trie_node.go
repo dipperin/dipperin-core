@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package state_processor
 
 import (
+	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
 	"sync"
-	"errors"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 )
 
 type NodeSet struct {

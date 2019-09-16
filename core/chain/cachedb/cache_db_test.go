@@ -17,13 +17,13 @@
 package cachedb
 
 import (
+	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/ethereum/go-ethereum/ethdb"
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 	"time"
-	"errors"
 )
 
 var (

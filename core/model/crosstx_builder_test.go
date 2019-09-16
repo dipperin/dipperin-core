@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 )
 
 func TestGetLockAddress(t *testing.T) {
@@ -38,11 +38,11 @@ func TestGetLockAddress(t *testing.T) {
 
 func TestCreateRawLockTx(t *testing.T) {
 	key1, _ := CreateKey()
-	fs := NewMercurySigner(big.NewInt(1))
+	fs := NewSigner(big.NewInt(1))
 
 	hashKey := []byte("123")
 	hashLock := cs_crypto.Keccak256Hash(hashKey)
-	tx := CreateRawLockTx(1, hashLock, big.NewInt(34564), big.NewInt(10000), big.NewInt(100), aliceAddr, bobAddr)
+	tx := CreateRawLockTx(1, hashLock, big.NewInt(34564), big.NewInt(10000), big.NewInt(1), model.TxGas, aliceAddr, bobAddr)
 	tx.SignTx(key1, fs)
 
 	testAlice, _ := fs.GetSender(tx)
@@ -53,8 +53,8 @@ func TestCreateRawLockTx(t *testing.T) {
 
 func TestCreateRawRefundTx(t *testing.T) {
 	key1, _ := CreateKey()
-	fs := NewMercurySigner(big.NewInt(1))
-	tx := CreateRawRefundTx(1, big.NewInt(10000), big.NewInt(100), aliceAddr, bobAddr)
+	fs := NewSigner(big.NewInt(1))
+	tx := CreateRawRefundTx(1, big.NewInt(10000), big.NewInt(1), model.TxGas, aliceAddr, bobAddr)
 	tx.SignTx(key1, fs)
 
 	testAlice, _ := fs.GetSender(tx)
@@ -64,11 +64,11 @@ func TestCreateRawRefundTx(t *testing.T) {
 
 func TestCreateRawClaimTx(t *testing.T) {
 	_, key2 := CreateKey()
-	fs := NewMercurySigner(big.NewInt(1))
+	fs := NewSigner(big.NewInt(1))
 
 	hashKey := []byte("123")
 	hashLock, _ := rlpHash(hashKey)
-	tx := CreateRawClaimTx(1, hashKey, big.NewInt(10000), big.NewInt(100), aliceAddr, bobAddr)
+	tx := CreateRawClaimTx(1, hashKey, big.NewInt(10000), big.NewInt(1), model.TxGas, aliceAddr, bobAddr)
 	tx.SignTx(key2, fs)
 
 	testBob, _ := fs.GetSender(tx)

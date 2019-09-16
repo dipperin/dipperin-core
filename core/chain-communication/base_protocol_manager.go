@@ -14,23 +14,21 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_communication
 
 import (
 	"errors"
-	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pm_log"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
-	"sync"
 	"fmt"
-	"math/big"
+	"github.com/dipperin/dipperin-core/common"
 	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"math/big"
+	"sync"
 )
 
-//go:generate mockgen -destination=./node_conf_mock_test.go -package=chain_communication github.com/caiqingfeng/dipperin-core/core/chain-communication NodeConf
+//go:generate mockgen -destination=./node_conf_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication NodeConf
 type NodeConf interface {
 	GetNodeType() int
 	GetNodeName() string
@@ -74,7 +72,7 @@ func (pm *BaseProtocolManager) handleMsg(p PmAbstractPeer) error {
 
 	if err != nil {
 		log.Info("base protocol read msg from peer failed", "err", err, "peer name", p.NodeName())
-		pm_log.Info("base protocol read msg from peer failed", "node", p.NodeName(), "err", err)
+		log.Pm.Info("base protocol read msg from peer failed", "node", p.NodeName(), "err", err)
 		return err
 	}
 

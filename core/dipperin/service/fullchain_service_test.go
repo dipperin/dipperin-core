@@ -19,29 +19,29 @@ package service
 import (
 	"context"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/core/chain"
-	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	contract2 "github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/dipperin/dipperin-core/third-party/vm-log-search"
+	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"os"
 	"testing"
 	"time"
-	"github.com/dipperin/dipperin-core/common/g-error"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 )
 
-var testFee = economy_model.GetMinimumTxFee(1000)
-
-func TestMercuryFullChainService_NormalPM(t *testing.T) {
+func TestVenusFullChainService_NormalPM(t *testing.T) {
 	config := &DipperinConfig{NormalPm: fakePeerManager{}}
 	service := MakeFullChainService(config)
 
@@ -52,7 +52,7 @@ func TestMercuryFullChainService_NormalPM(t *testing.T) {
 	assert.True(t, result)
 }
 
-func TestMercuryFullChainService_AddAccount(t *testing.T) {
+func TestVenusFullChainService_AddAccount(t *testing.T) {
 	manager := createWalletManager(t)
 	defer os.RemoveAll(util.HomeDir() + testPath)
 	config := &DipperinConfig{
@@ -93,7 +93,7 @@ func TestMercuryFullChainService_AddAccount(t *testing.T) {
 	assert.Equal(t, accounts.Account{}, account)
 }
 
-func TestMercuryFullChainService_AddPeer(t *testing.T) {
+func TestVenusFullChainService_AddPeer(t *testing.T) {
 	config := &DipperinConfig{}
 	service := MakeFullChainService(config)
 
@@ -114,7 +114,7 @@ func TestMercuryFullChainService_AddPeer(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestMercuryFullChainService_RemovePeer(t *testing.T) {
+func TestVenusFullChainService_RemovePeer(t *testing.T) {
 	config := &DipperinConfig{}
 	service := MakeFullChainService(config)
 
@@ -132,7 +132,7 @@ func TestMercuryFullChainService_RemovePeer(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestMercuryFullChainService_GetCurrentConnectPeers(t *testing.T) {
+func TestVenusFullChainService_GetCurrentConnectPeers(t *testing.T) {
 	config := &DipperinConfig{}
 	service := MakeFullChainService(config)
 
@@ -140,7 +140,7 @@ func TestMercuryFullChainService_GetCurrentConnectPeers(t *testing.T) {
 	assert.Equal(t, make(map[string]common.Address, 0), peers)
 }
 
-func TestMercuryFullChainService_CurrentBalance(t *testing.T) {
+func TestVenusFullChainService_CurrentBalance(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
@@ -154,14 +154,14 @@ func TestMercuryFullChainService_CurrentBalance(t *testing.T) {
 	assert.Nil(t, service.CurrentBalance(verifiers[0]))
 }
 
-func TestMercuryFullChainService_CurrentBlock(t *testing.T) {
+func TestVenusFullChainService_CurrentBlock(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
 	assert.Equal(t, uint64(0), service.CurrentBlock().Number())
 }
 
-func TestMercuryFullChainService_CurrentStake(t *testing.T) {
+func TestVenusFullChainService_CurrentStake(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
@@ -177,7 +177,7 @@ func TestMercuryFullChainService_CurrentStake(t *testing.T) {
 
 }
 
-func TestMercuryFullChainService_CurrentReputation(t *testing.T) {
+func TestVenusFullChainService_CurrentReputation(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := &DipperinConfig{
 		ChainReader:        csChain,
@@ -199,7 +199,7 @@ func TestMercuryFullChainService_CurrentReputation(t *testing.T) {
 	assert.Equal(t, uint64(0), reputation)
 }
 
-func TestMercuryFullChainService_CurrentElectPriority(t *testing.T) {
+func TestVenusFullChainService_CurrentElectPriority(t *testing.T) {
 	manager := createWalletManager(t)
 	defer os.Remove(util.HomeDir() + testPath)
 	account, err := manager.Wallets[0].Accounts()
@@ -229,7 +229,7 @@ func TestMercuryFullChainService_CurrentElectPriority(t *testing.T) {
 	assert.Equal(t, uint64(0), reputation)
 }
 
-func TestMercuryFullChainService_GetAddressNonceFromWallet(t *testing.T) {
+func TestVenusFullChainService_GetAddressNonceFromWallet(t *testing.T) {
 	manager := createWalletManager(t)
 	defer os.Remove(util.HomeDir() + testPath)
 	config := &DipperinConfig{
@@ -249,9 +249,9 @@ func TestMercuryFullChainService_GetAddressNonceFromWallet(t *testing.T) {
 	assert.Equal(t, uint64(0), nonce)
 }
 
-func TestMercuryFullChainService_GetTransactionNonce(t *testing.T) {
+func TestVenusFullChainService_GetTransactionNonce(t *testing.T) {
 	csChain := createCsChain(nil)
-	config := &DipperinConfig{ChainReader:csChain}
+	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
 
 	nonce, err := service.GetTransactionNonce(chain.VerifierAddress[0])
@@ -267,7 +267,7 @@ func TestMercuryFullChainService_GetTransactionNonce(t *testing.T) {
 	assert.Equal(t, uint64(0), nonce)
 }
 
-func TestMercuryFullChainService_GetBlockBody(t *testing.T) {
+func TestVenusFullChainService_GetBlockBody(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
@@ -276,7 +276,7 @@ func TestMercuryFullChainService_GetBlockBody(t *testing.T) {
 	assert.NotNil(t, service.GetBlockBody(hash))
 }
 
-func TestMercuryFullChainService_GetBlockByHash(t *testing.T) {
+func TestVenusFullChainService_GetBlockByHash(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
@@ -287,7 +287,7 @@ func TestMercuryFullChainService_GetBlockByHash(t *testing.T) {
 	assert.Equal(t, hash, block.Hash())
 }
 
-func TestMercuryFullChainService_GetBlockByNumber(t *testing.T) {
+func TestVenusFullChainService_GetBlockByNumber(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
@@ -297,7 +297,7 @@ func TestMercuryFullChainService_GetBlockByNumber(t *testing.T) {
 	assert.Equal(t, uint64(0), block.Number())
 }
 
-func TestMercuryFullChainService_GetBlockNumber(t *testing.T) {
+func TestVenusFullChainService_GetBlockNumber(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
@@ -307,14 +307,14 @@ func TestMercuryFullChainService_GetBlockNumber(t *testing.T) {
 	assert.Equal(t, &number, service.GetBlockNumber(hash))
 }
 
-func TestMercuryFullChainService_GetChainConfig(t *testing.T) {
+func TestVenusFullChainService_GetChainConfig(t *testing.T) {
 	config := &DipperinConfig{ChainConfig: *chain_config.GetChainConfig()}
 	service := MakeFullChainService(config)
 
 	assert.NotNil(t, service.GetChainConfig())
 }
 
-func TestMercuryFullChainService_GetBlockYear(t *testing.T) {
+func TestVenusFullChainService_GetBlockYear(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
@@ -324,11 +324,11 @@ func TestMercuryFullChainService_GetBlockYear(t *testing.T) {
 	assert.Equal(t, uint64(0), year)
 }
 
-func TestMercuryFullChainService_GetContract(t *testing.T) {
+func TestVenusFullChainService_GetContract(t *testing.T) {
 	csChain := createCsChain(nil)
 	tx, contractID := createERC20()
 	block := createBlock(csChain, []*model.Transaction{tx}, nil)
-	votes := createVerifiersVotes(block, csChain.ChainConfig.VerifierNumber)
+	votes := createVerifiersVotes(block, csChain.ChainConfig.VerifierNumber, nil)
 	err := csChain.SaveBftBlock(block, votes)
 	assert.NoError(t, err)
 
@@ -340,7 +340,7 @@ func TestMercuryFullChainService_GetContract(t *testing.T) {
 	assert.Nil(t, contract)
 }
 
-func TestMercuryFullChainService_GetContractInfo(t *testing.T) {
+func TestVenusFullChainService_GetContractInfo(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
@@ -350,7 +350,7 @@ func TestMercuryFullChainService_GetContractInfo(t *testing.T) {
 	assert.Nil(t, contract)
 }
 
-func TestMercuryFullChainService_GetCurVerifiers(t *testing.T) {
+func TestVenusFullChainService_GetCurVerifiers(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
@@ -359,7 +359,7 @@ func TestMercuryFullChainService_GetCurVerifiers(t *testing.T) {
 	assert.Equal(t, chain.VerifierAddress[0], verifiers[0])
 }
 
-func TestMercuryFullChainService_GetNextVerifiers(t *testing.T) {
+func TestVenusFullChainService_GetNextVerifiers(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
@@ -368,7 +368,7 @@ func TestMercuryFullChainService_GetNextVerifiers(t *testing.T) {
 	assert.Equal(t, chain.VerifierAddress[0], verifiers[0])
 }
 
-func TestMercuryFullChainService_GetVerifiers(t *testing.T) {
+func TestVenusFullChainService_GetVerifiers(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
@@ -377,7 +377,7 @@ func TestMercuryFullChainService_GetVerifiers(t *testing.T) {
 	assert.Equal(t, chain.VerifierAddress[0], verifiers[0])
 }
 
-func TestMercuryFullChainService_GetGenesis(t *testing.T) {
+func TestVenusFullChainService_GetGenesis(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
@@ -387,7 +387,7 @@ func TestMercuryFullChainService_GetGenesis(t *testing.T) {
 	assert.Equal(t, uint64(0), genesis.Number())
 }
 
-func TestMercuryFullChainService_GetSlot(t *testing.T) {
+func TestVenusFullChainService_GetSlot(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
@@ -397,7 +397,7 @@ func TestMercuryFullChainService_GetSlot(t *testing.T) {
 	assert.Equal(t, &expect, slot)
 }
 
-func TestMercuryFullChainService_ListWallet(t *testing.T) {
+func TestVenusFullChainService_ListWallet(t *testing.T) {
 	manager := createWalletManager(t)
 	defer os.Remove(util.HomeDir() + testPath)
 	config := &DipperinConfig{
@@ -425,7 +425,7 @@ func TestMercuryFullChainService_ListWallet(t *testing.T) {
 	assert.Equal(t, []accounts.WalletIdentifier{}, wallet)
 }
 
-func TestMercuryFullChainService_ListWalletAccount(t *testing.T) {
+func TestVenusFullChainService_ListWalletAccount(t *testing.T) {
 	manager := createWalletManager(t)
 	defer os.Remove(util.HomeDir() + testPath)
 	config := &DipperinConfig{
@@ -471,9 +471,9 @@ func TestMakeFullChainService_checkWalletIdentifier(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestMercuryFullChainService_GetVerifierReward(t *testing.T) {
+func TestVenusFullChainService_GetVerifierReward(t *testing.T) {
 	csChain := createCsChain(nil)
-	insertBlockToChain(t, csChain, 1)
+	insertBlockToChain(t, csChain, 1, nil)
 
 	config := &DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(config)
@@ -491,7 +491,7 @@ func TestMercuryFullChainService_GetVerifierReward(t *testing.T) {
 	assert.NotNil(t, reward)
 }
 
-func TestMercuryFullChainService_VerifierStatus(t *testing.T) {
+func TestVenusFullChainService_VerifierStatus(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := DipperinConfig{
 		ChainReader:        csChain,
@@ -504,15 +504,15 @@ func TestMercuryFullChainService_VerifierStatus(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "Not Registered", state)
 	assert.Equal(t, big.NewInt(0), stake)
-	assert.Equal(t, big.NewInt(9999000000000), balance)
+	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(9999000000000), big.NewInt(consts.GDIPUNIT)), balance)
 	assert.Equal(t, uint64(0), reputation)
 	assert.Equal(t, true, isCurrent)
 }
 
-func TestMercuryFullChainService_GetBlockDiffVerifierInfo(t *testing.T) {
+func TestVenusFullChainService_GetBlockDiffVerifierInfo(t *testing.T) {
 	csChain := createCsChain(nil)
 
-	insertBlockToChain(t, csChain, 2)
+	insertBlockToChain(t, csChain, 2, nil)
 
 	config := DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(&config)
@@ -526,7 +526,7 @@ func TestMercuryFullChainService_GetBlockDiffVerifierInfo(t *testing.T) {
 	assert.NotNil(t, info)
 }
 
-func TestMercuryFullChainService_SetBftSigner(t *testing.T) {
+func TestVenusFullChainService_SetBftSigner(t *testing.T) {
 	manager := createWalletManager(t)
 	defer os.Remove(util.HomeDir() + testPath)
 	config := &DipperinConfig{
@@ -545,7 +545,7 @@ func TestMercuryFullChainService_SetBftSigner(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestMercuryFullChainService_OpenWallet(t *testing.T) {
+func TestVenusFullChainService_OpenWallet(t *testing.T) {
 	manager := createWalletManager(t)
 	defer os.Remove(util.HomeDir() + testPath)
 	config := &DipperinConfig{
@@ -562,20 +562,20 @@ func TestMercuryFullChainService_OpenWallet(t *testing.T) {
 	err := service.OpenWallet(*createWalletIdentifier(), "123")
 	assert.NoError(t, err)
 
-	identifier := &accounts.WalletIdentifier{WalletType:123}
+	identifier := &accounts.WalletIdentifier{WalletType: 123}
 	err = service.OpenWallet(*identifier, "123")
 	assert.Equal(t, "wallet type error", err.Error())
 
 	identifier = &accounts.WalletIdentifier{
-		WalletType:accounts.SoftWallet,
-		Path:"t",
-		WalletName:"name",
+		WalletType: accounts.SoftWallet,
+		Path:       "t",
+		WalletName: "name",
 	}
 	err = service.OpenWallet(*identifier, "123")
 	assert.Equal(t, accounts.ErrWalletPathError, err)
 }
 
-type fakeMsgSigner struct { addr common.Address }
+type fakeMsgSigner struct{ addr common.Address }
 
 func (f *fakeMsgSigner) SetBaseAddress(address common.Address) {}
 
@@ -583,12 +583,12 @@ func (f *fakeMsgSigner) GetAddress() common.Address {
 	return f.addr
 }
 
-func TestMercuryFullChainService_CloseWallet(t *testing.T) {
+func TestVenusFullChainService_CloseWallet(t *testing.T) {
 	manager := createWalletManager(t)
 	config := &DipperinConfig{
 		NodeConf:      fakeNodeConfig{nodeType: chain_config.NodeTypeOfMineMaster},
 		WalletManager: manager,
-		MsgSigner: &fakeMsgSigner{},
+		MsgSigner:     &fakeMsgSigner{},
 	}
 	service := MakeFullChainService(config)
 
@@ -600,7 +600,7 @@ func TestMercuryFullChainService_CloseWallet(t *testing.T) {
 	identifier := createWalletIdentifier()
 	err := service.CloseWallet(*identifier)
 	assert.NoError(t, err)
-	assert.NoError(t, os.RemoveAll(util.HomeDir() + testPath))
+	assert.NoError(t, os.RemoveAll(util.HomeDir()+testPath))
 
 	// wallet contains coinbase
 	manager = createWalletManager(t)
@@ -608,7 +608,7 @@ func TestMercuryFullChainService_CloseWallet(t *testing.T) {
 	account, err := manager.Wallets[0].Accounts()
 	assert.NoError(t, err)
 	config.WalletManager = manager
-	config.MsgSigner = &fakeMsgSigner{addr:account[0].Address}
+	config.MsgSigner = &fakeMsgSigner{addr: account[0].Address}
 	service = MakeFullChainService(config)
 	err = service.CloseWallet(*identifier)
 	assert.Equal(t, "this wallet contains coinbase, can not close", err.Error())
@@ -624,11 +624,12 @@ func TestMercuryFullChainService_CloseWallet(t *testing.T) {
 	assert.Equal(t, "wallet type error", err.Error())
 }
 
-func TestMercuryFullChainService_RestoreWallet(t *testing.T) {
+func TestVenusFullChainService_RestoreWallet(t *testing.T) {
 	wallet, err := soft_wallet.NewSoftWallet()
 	assert.NoError(t, err)
 
 	memory, err := wallet.Establish(util.HomeDir()+testPath, "testSoftWallet", "123", "")
+	defer os.RemoveAll(util.HomeDir() + testPath)
 	assert.NoError(t, err)
 
 	manager, err := accounts.NewWalletManager(&fakeGetAccountInfo{}, wallet)
@@ -640,7 +641,7 @@ func TestMercuryFullChainService_RestoreWallet(t *testing.T) {
 		ChainReader:   createCsChain(nil),
 	}
 	service := MakeFullChainService(config)
-	assert.NoError(t, os.RemoveAll(util.HomeDir() + testPath))
+	assert.NoError(t, os.RemoveAll(util.HomeDir()+testPath))
 
 	// No error
 	go func() {
@@ -652,16 +653,16 @@ func TestMercuryFullChainService_RestoreWallet(t *testing.T) {
 
 	err = service.RestoreWallet(*createWalletIdentifier(), "123", "", memory)
 	assert.NoError(t, err)
-	assert.NoError(t, os.RemoveAll(util.HomeDir() + testPath))
+	assert.NoError(t, os.RemoveAll(util.HomeDir()+testPath))
 }
 
-func TestMercuryFullChainService_RestoreWallet_Error(t *testing.T) {
+func TestVenusFullChainService_RestoreWallet_Error(t *testing.T) {
 	manager := createWalletManager(t)
 	defer os.RemoveAll(util.HomeDir() + testPath)
 	config := &DipperinConfig{
 		NodeConf:      fakeNodeConfig{nodeType: chain_config.NodeTypeOfMineMaster},
 		WalletManager: manager,
-		MsgSigner: &fakeMsgSigner{},
+		MsgSigner:     &fakeMsgSigner{},
 	}
 	service := MakeFullChainService(config)
 
@@ -670,13 +671,12 @@ func TestMercuryFullChainService_RestoreWallet_Error(t *testing.T) {
 	err := service.RestoreWallet(identifier, "123", "", "")
 	assert.Equal(t, accounts.ErrWalletPathError, err)
 
-
 	identifier.WalletType = 123
 	err = service.RestoreWallet(identifier, "123", "", "")
 	assert.Equal(t, "wallet type error", err.Error())
 }
 
-func TestMercuryFullChainService_EstablishWallet(t *testing.T) {
+func TestVenusFullChainService_EstablishWallet(t *testing.T) {
 	manager := &accounts.WalletManager{
 		Event:        make(chan accounts.WalletEvent, 0),
 		HandleResult: make(chan bool, 0),
@@ -696,39 +696,42 @@ func TestMercuryFullChainService_EstablishWallet(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, memory)
 
-	identifier = &accounts.WalletIdentifier{WalletType:123}
+	identifier = &accounts.WalletIdentifier{WalletType: 123}
 	memory, err = service.EstablishWallet(*identifier, "123", "")
 	assert.Equal(t, "wallet type error", err.Error())
 	assert.Equal(t, "", memory)
 
 	identifier = &accounts.WalletIdentifier{
-		WalletType:accounts.SoftWallet,
-		Path:"t",
-		WalletName:"name",
+		WalletType: accounts.SoftWallet,
+		Path:       "t",
+		WalletName: "name",
 	}
 	memory, err = service.EstablishWallet(*identifier, "123", "")
 	assert.Equal(t, accounts.ErrWalletPathError, err)
 	assert.Equal(t, "", memory)
 }
 
-func TestMercuryFullChainService_Start(t *testing.T) {
+func TestVenusFullChainService_Start(t *testing.T) {
+	db, _ := ethdb.NewLDBDatabase("/tmp/db", 0, 0)
+	defer db.Close()
 	config := DipperinConfig{
 		MineMaster:       fakeMaster{},
 		MineMasterServer: fakeMasterServer{},
 		NodeConf:         fakeNodeConfig{},
+		ChainIndex:       vm_log_search.NewBloomIndexer(nil, db, 12, 6),
 	}
 	service := MakeFullChainService(&config)
 	err := service.Start()
 	assert.NoError(t, err)
 }
 
-func TestMercuryFullChainService_Stop(t *testing.T) {
+func TestVenusFullChainService_Stop(t *testing.T) {
 	config := DipperinConfig{MineMaster: fakeMaster{}}
 	service := MakeFullChainService(&config)
 	service.Stop()
 }
 
-func TestMercuryFullChainService_Mining(t *testing.T) {
+func TestVenusFullChainService_Mining(t *testing.T) {
 	config := DipperinConfig{}
 	service := MakeFullChainService(&config)
 	assert.Equal(t, false, service.Mining())
@@ -738,7 +741,7 @@ func TestMercuryFullChainService_Mining(t *testing.T) {
 	assert.Equal(t, false, service.Mining())
 }
 
-func TestMercuryFullChainService_MineTxCount(t *testing.T) {
+func TestVenusFullChainService_MineTxCount(t *testing.T) {
 	config := DipperinConfig{}
 	service := MakeFullChainService(&config)
 	assert.Equal(t, 0, service.MineTxCount())
@@ -748,7 +751,7 @@ func TestMercuryFullChainService_MineTxCount(t *testing.T) {
 	assert.Equal(t, 1, service.MineTxCount())
 }
 
-func TestMercuryFullChainService_StartMine(t *testing.T) {
+func TestVenusFullChainService_StartMine(t *testing.T) {
 	config := DipperinConfig{}
 	service := MakeFullChainService(&config)
 	err := service.StartMine()
@@ -764,7 +767,7 @@ func TestMercuryFullChainService_StartMine(t *testing.T) {
 	err = service.StartMine()
 	assert.NoError(t, err)
 }
-func TestMercuryFullChainService_StopMine(t *testing.T) {
+func TestVenusFullChainService_StopMine(t *testing.T) {
 	config := DipperinConfig{}
 	service := MakeFullChainService(&config)
 	err := service.StopMine()
@@ -781,7 +784,7 @@ func TestMercuryFullChainService_StopMine(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestMercuryFullChainService_SetMineCoinBase(t *testing.T) {
+func TestVenusFullChainService_SetMineCoinBase(t *testing.T) {
 	config := &DipperinConfig{
 		NodeConf: &fakeNodeConfig{nodeType: chain_config.NodeTypeOfVerifier},
 	}
@@ -802,15 +805,15 @@ func TestMercuryFullChainService_SetMineCoinBase(t *testing.T) {
 	}
 	service = MakeFullChainService(config)
 	err = service.SetMineCoinBase(aliceAddr)
-	assert.Equal(t,"can not find the target wallet of this address, or the wallet is not open" ,err.Error())
+	assert.Equal(t, "can not find the target wallet of this address, or the wallet is not open", err.Error())
 
 	err = service.SetMineCoinBase(account[0].Address)
 	assert.NoError(t, err)
 }
 
-func TestMercuryFullChainService_GetMineMasterReward(t *testing.T) {
+func TestVenusFullChainService_GetMineMasterReward(t *testing.T) {
 	csChain := createCsChain(nil)
-	insertBlockToChain(t, csChain, 1)
+	insertBlockToChain(t, csChain, 1, nil)
 
 	config := DipperinConfig{ChainReader: csChain}
 	service := MakeFullChainService(&config)
@@ -828,7 +831,7 @@ func TestMercuryFullChainService_GetMineMasterReward(t *testing.T) {
 	assert.NotNil(t, reward)
 }
 
-func TestMercuryFullChainService_getSendTxInfo_Error(t *testing.T) {
+func TestVenusFullChainService_getSendTxInfo_Error(t *testing.T) {
 	manager := createWalletManager(t)
 	defer os.Remove(util.HomeDir() + testPath)
 	account, err := manager.Wallets[0].Accounts()
@@ -840,19 +843,19 @@ func TestMercuryFullChainService_getSendTxInfo_Error(t *testing.T) {
 	config := &DipperinConfig{
 		NodeConf:      fakeNodeConfig{},
 		WalletManager: manager,
-		ChainReader:csChain,
+		ChainReader:   csChain,
 	}
 	service := MakeFullChainService(config)
 
 	// FindWalletFromAddress error
 	wallet, nonce, err := service.getSendTxInfo(common.HexToAddress("123"), nil)
-	assert.Equal(t, accounts.ErrNotFindWallet ,err)
+	assert.Equal(t, accounts.ErrNotFindWallet, err)
 	assert.Equal(t, uint64(0), nonce)
 	assert.Nil(t, wallet)
 
 	// CurrentState error
 	wallet, nonce, err = service.getSendTxInfo(account[0].Address, nil)
-	assert.Equal(t, "current block is nil" ,err.Error())
+	assert.Equal(t, "current block is nil", err.Error())
 	assert.Equal(t, uint64(0), nonce)
 	assert.Nil(t, wallet)
 
@@ -861,17 +864,17 @@ func TestMercuryFullChainService_getSendTxInfo_Error(t *testing.T) {
 	config.ChainReader = csChain
 	service = MakeFullChainService(config)
 	wallet, nonce, err = service.getSendTxInfo(account[0].Address, nil)
-	assert.Equal(t, g_error.AccountNotExist ,err)
+	assert.Equal(t, g_error.AccountNotExist, err)
 	assert.Equal(t, uint64(0), nonce)
 	assert.Nil(t, wallet)
 }
 
-func TestMercuryFullChainService_Transaction(t *testing.T) {
+func TestVenusFullChainService_Transaction(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := DipperinConfig{ChainReader: csChain}
-	service := MercuryFullChainService{
+	service := VenusFullChainService{
 		DipperinConfig: &config,
-		TxValidator:      fakeValidator{},
+		TxValidator:    fakeValidator{},
 	}
 
 	tx, blockHash, blockNum, txIndex, err := service.Transaction(common.Hash{})
@@ -883,39 +886,39 @@ func TestMercuryFullChainService_Transaction(t *testing.T) {
 	assert.Equal(t, uint64(0), txIndex)
 }
 
-func TestMercuryFullChainService_NewSendTransactions(t *testing.T) {
+func TestVenusFullChainService_NewSendTransactions(t *testing.T) {
 	csChain := createCsChain(nil)
 	config := DipperinConfig{ChainReader: csChain, TxPool: fakeTxPool{}}
-	service := MercuryFullChainService{
+	service := VenusFullChainService{
 		DipperinConfig: &config,
-		TxValidator:      fakeValidator{},
+		TxValidator:    fakeValidator{},
 	}
 
-	tx := createSignedTx(0, aliceAddr, big.NewInt(1000), []byte{})
+	tx := createSignedTx(0, aliceAddr, big.NewInt(1000), []byte{}, nil)
 	txLen, err := service.NewSendTransactions([]model.Transaction{*tx})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, txLen)
 
 	// tx pool AddLocals failed
-	config.TxPool = fakeTxPool{err:testErr}
-	service.DipperinConfig= &config
+	config.TxPool = fakeTxPool{err: testErr}
+	service.DipperinConfig = &config
 	txLen, err = service.NewSendTransactions([]model.Transaction{*tx})
 	assert.Equal(t, testErr, err)
 	assert.Equal(t, 0, txLen)
 }
 
-func TestMercuryFullChainService_signTxAndSend_Error(t *testing.T) {
+func TestVenusFullChainService_signTxAndSend_Error(t *testing.T) {
 	manager := createWalletManager(t)
 	defer os.Remove(util.HomeDir() + testPath)
 	account, err := manager.Wallets[0].Accounts()
 
 	config := DipperinConfig{
-		WalletManager:manager,
-		TxPool:fakeTxPool{err:testErr},
+		WalletManager: manager,
+		TxPool:        fakeTxPool{err: testErr},
 	}
-	service := MercuryFullChainService{
-		DipperinConfig:&config,
-		TxValidator:fakeValidator{},
+	service := VenusFullChainService{
+		DipperinConfig: &config,
+		TxValidator:    fakeValidator{},
 	}
 
 	sk, err := crypto.HexToECDSA(alicePriv)
@@ -927,238 +930,15 @@ func TestMercuryFullChainService_signTxAndSend_Error(t *testing.T) {
 	assert.Nil(t, result)
 	assert.Equal(t, accounts.ErrInvalidAddress, err)
 
+	// SignTx
+	//tx2 := createSignedTx2(0, sk, aliceAddr, big.NewInt(1000))
+	//result,err = service.signTxAndSend(manager.Wallets[0], aliceAddr, tx2, 0)
+	//assert.NoError(t, err)
+
 	// AddRemotes error
 	result, err = service.signTxAndSend(manager.Wallets[0], account[0].Address, tx, 0)
 	assert.Nil(t, result)
 	assert.Equal(t, testErr, err)
-}
-
-func TestMercuryFullChainService_SendTransactions(t *testing.T) {
-	manager := createWalletManager(t)
-	defer os.Remove(util.HomeDir() + testPath)
-	account, err := manager.Wallets[0].Accounts()
-	assert.NoError(t, err)
-
-	address := account[0].Address
-	pk, err := manager.Wallets[0].GetSKFromAddress(address)
-	testAccount := tests.NewAccount(pk, address)
-	testAccounts := []tests.Account{*testAccount}
-
-	csChain := createCsChain(testAccounts)
-	config := &DipperinConfig{
-		WalletManager: manager,
-		ChainReader:   csChain,
-		TxPool:        createTxPool(csChain),
-		ChainConfig:   *chain_config.GetChainConfig(),
-	}
-
-	service := MercuryFullChainService{
-		DipperinConfig: config,
-		TxValidator:      fakeValidator{},
-	}
-
-	tx := model.RpcTransaction{
-		To:             aliceAddr,
-		Value:          big.NewInt(100),
-		TransactionFee: testFee,
-		Nonce:          uint64(0),
-	}
-
-	// No error
-	num, err := service.SendTransactions(address, []model.RpcTransaction{tx})
-	assert.NoError(t, err)
-	assert.Equal(t, 1, num)
-
-	// tx pool AddLocals failed
-	num, err = service.SendTransactions(address, []model.RpcTransaction{tx, tx})
-	assert.Equal(t, "this transaction already in tx pool", err.Error())
-	assert.Equal(t, 0, num)
-
-	// Valid tx error
-	service = MercuryFullChainService{
-		DipperinConfig: config,
-		TxValidator:      fakeValidator{err:testErr},
-	}
-	num, err = service.SendTransactions(address, []model.RpcTransaction{tx})
-	assert.Equal(t, testErr, err)
-	assert.Equal(t, 0, num)
-
-	// FindWalletFromAddress error
-	num, err = service.SendTransactions(common.HexToAddress("123"), []model.RpcTransaction{tx})
-	assert.Equal(t, accounts.ErrNotFindWallet, err)
-	assert.Equal(t, 0, num)
-}
-
-func TestMercuryFullChainService_SendTransaction(t *testing.T) {
-	manager := createWalletManager(t)
-	defer os.Remove(util.HomeDir() + testPath)
-	account, err := manager.Wallets[0].Accounts()
-	assert.NoError(t, err)
-
-	address := account[0].Address
-	pk, err := manager.Wallets[0].GetSKFromAddress(address)
-	testAccount := tests.NewAccount(pk, address)
-	testAccounts := []tests.Account{*testAccount}
-
-	serviceChain := createCsChainService(testAccounts)
-	txPool := createTxPool(serviceChain.ChainState)
-	serviceChain.TxPool = txPool
-
-	broadcaster := chain_communication.NewBroadcastDelegate(txPool, fakeNodeConfig{}, fakePeerManager{}, serviceChain, fakePbftNode{})
-	config := &DipperinConfig{
-		NodeConf:      fakeNodeConfig{nodeType: chain_config.NodeTypeOfVerifier},
-		WalletManager: manager,
-		ChainReader:   serviceChain,
-		TxPool:        txPool,
-		ChainConfig:   *chain_config.GetChainConfig(),
-		Broadcaster:   broadcaster,
-	}
-
-	service := MercuryFullChainService{
-		DipperinConfig: config,
-		TxValidator:      fakeValidator{},
-	}
-
-	nonce := uint64(0)
-	value := big.NewInt(100)
-	txFee := testFee
-	hash, err := service.SendRegisterTransaction(address, value, txFee, &nonce)
-	assert.NoError(t, err)
-	assert.NotNil(t, hash)
-
-	nonce = uint64(1)
-	hash, err = service.SendCancelTransaction(address, txFee, &nonce)
-	assert.NoError(t, err)
-	assert.NotNil(t, hash)
-
-	nonce = uint64(2)
-	hash, err = service.SendUnStakeTransaction(address, txFee, &nonce)
-	assert.NoError(t, err)
-	assert.NotNil(t, hash)
-
-	nonce = uint64(3)
-	vote := &model.VoteMsg{}
-	hash, err = service.SendEvidenceTransaction(address, aliceAddr, testFee, vote, vote, &nonce)
-	assert.NoError(t, err)
-	assert.NotNil(t, hash)
-
-	nonce = uint64(4)
-	hash, err = service.SendTransaction(address, aliceAddr, value, txFee, []byte{}, &nonce)
-	assert.NoError(t, err)
-	assert.NotNil(t, hash)
-
-	nonce = uint64(5)
-	hash, err = service.SendTransaction(common.Address{}, aliceAddr, value, txFee, []byte{}, &nonce)
-	assert.Equal(t, "no default account in this node",  err.Error())
-	assert.Equal(t, common.Hash{}, hash)
-
-	nonce = uint64(6)
-	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewTransaction(nonce, aliceAddr, value, txFee, []byte{})
-	signedTx, _ := tx.SignTx(pk, fs1)
-	hash, err = service.NewTransaction(*signedTx)
-	assert.NoError(t, err)
-	assert.NotNil(t, hash)
-
-	hash, err = service.NewTransaction(*signedTx)
-	assert.Equal(t, "this transaction already in tx pool", err.Error())
-	assert.Equal(t, common.Hash{}, hash)
-}
-
-func TestMercuryFullChainService_SendTransaction_Error(t *testing.T) {
-	manager := createWalletManager(t)
-	defer os.Remove(util.HomeDir() + testPath)
-	account, err := manager.Wallets[0].Accounts()
-	assert.NoError(t, err)
-
-	address := account[0].Address
-	pk, err := manager.Wallets[0].GetSKFromAddress(address)
-	testAccount := tests.NewAccount(pk, address)
-	testAccounts := []tests.Account{*testAccount}
-	csChain := createCsChainService(testAccounts)
-
-	config := &DipperinConfig{
-		NodeConf:      fakeNodeConfig{nodeType: chain_config.NodeTypeOfVerifier},
-		WalletManager: manager,
-		ChainReader:  csChain ,
-		ChainConfig:   *chain_config.GetChainConfig(),
-		TxPool:createTxPool(csChain.ChainState),
-	}
-
-	service := MercuryFullChainService{
-		DipperinConfig: config,
-		TxValidator:      fakeValidator{err:testErr},
-	}
-
-	// signTxAndSend-valid error
-	nonce := uint64(0)
-	value := big.NewInt(100)
-	txFee := testFee
-	hash, err := service.SendRegisterTransaction(address, value, txFee, &nonce)
-	assert.Equal(t, testErr, err)
-	assert.Equal(t, common.Hash{}, hash)
-
-	hash, err = service.SendCancelTransaction(address, txFee, &nonce)
-	assert.Equal(t, testErr, err)
-	assert.Equal(t, common.Hash{}, hash)
-
-	hash, err = service.SendUnStakeTransaction(address, txFee, &nonce)
-	assert.Equal(t, testErr, err)
-	assert.Equal(t, common.Hash{}, hash)
-
-	vote := &model.VoteMsg{}
-	hash, err = service.SendEvidenceTransaction(address, aliceAddr, testFee, vote, vote, &nonce)
-	assert.Equal(t, testErr, err)
-	assert.Equal(t, common.Hash{}, hash)
-
-	hash, err = service.SendTransaction(address, aliceAddr, value, txFee, []byte{}, &nonce)
-	assert.Equal(t, testErr, err)
-	assert.Equal(t, common.Hash{}, hash)
-
-	hash, err = service.NewTransaction(*createSignedTx(nonce, aliceAddr, value, []byte{}))
-	assert.Equal(t, testErr, err)
-	assert.Equal(t, common.Hash{}, hash)
-
-	// getSendTxInfo error
-	fakeAddr := common.HexToAddress("123")
-	hash, err = service.SendRegisterTransaction(fakeAddr, value, txFee, &nonce)
-	assert.Equal(t, accounts.ErrNotFindWallet, err)
-	assert.Equal(t, common.Hash{}, hash)
-
-	hash, err = service.SendCancelTransaction(fakeAddr, txFee, &nonce)
-	assert.Equal(t, accounts.ErrNotFindWallet, err)
-	assert.Equal(t, common.Hash{}, hash)
-
-	hash, err = service.SendUnStakeTransaction(fakeAddr, txFee, &nonce)
-	assert.Equal(t, accounts.ErrNotFindWallet, err)
-	assert.Equal(t, common.Hash{}, hash)
-
-	hash, err = service.SendEvidenceTransaction(fakeAddr, aliceAddr, testFee, vote, vote, &nonce)
-	assert.Equal(t, accounts.ErrNotFindWallet, err)
-	assert.Equal(t, common.Hash{}, hash)
-
-	hash, err = service.SendTransaction(fakeAddr, aliceAddr, value, txFee, []byte{}, &nonce)
-	assert.Equal(t, accounts.ErrNotFindWallet, err)
-	assert.Equal(t, common.Hash{}, hash)
-
-	// Type error
-	config.NodeConf = fakeNodeConfig{nodeType: chain_config.NodeTypeOfMineMaster}
-	service.DipperinConfig = config
-	hash, err = service.SendRegisterTransaction(address, value, txFee, &nonce)
-	assert.Equal(t, "the node isn't verifier", err.Error())
-	assert.Equal(t, common.Hash{}, hash)
-
-	hash, err = service.SendCancelTransaction(address, txFee, &nonce)
-	assert.Equal(t, "the node isn't verifier", err.Error())
-	assert.Equal(t, common.Hash{}, hash)
-
-	hash, err = service.SendUnStakeTransaction(address, txFee, &nonce)
-	assert.Equal(t, "the node isn't verifier", err.Error())
-	assert.Equal(t, common.Hash{}, hash)
-
-	hash, err = service.SendEvidenceTransaction(address, aliceAddr, testFee, vote, vote, &nonce)
-	assert.Equal(t, "the node isn't verifier", err.Error())
-	assert.Equal(t, common.Hash{}, hash)
 }
 
 func TestMakeFullChainService_EconomyModel(t *testing.T) {
@@ -1172,7 +952,7 @@ func TestMakeFullChainService_EconomyModel(t *testing.T) {
 
 	reward, err = service.GetOneBlockTotalDIPReward(1)
 	assert.NoError(t, err)
-	assert.Equal(t, big.NewInt(2e10), reward)
+	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(2e10), big.NewInt(consts.GDIPUNIT)), reward)
 
 	info := service.GetInvestorInfo()
 	assert.NotNil(t, info)
@@ -1206,15 +986,15 @@ func TestMakeFullChainService_EconomyModel(t *testing.T) {
 
 }
 
-func TestMercuryFullChainService_StopDipperin(t *testing.T) {
+func TestVenusFullChainService_StopDipperin(t *testing.T) {
 	config := DipperinConfig{Node: fakeNode{}}
 	service := MakeFullChainService(&config)
 
 	service.StopDipperin()
-	time.Sleep(time.Millisecond*100)
+	time.Sleep(time.Millisecond * 100)
 }
 
-func TestMercuryFullChainService_Metrics(t *testing.T) {
+func TestVenusFullChainService_Metrics(t *testing.T) {
 	config := DipperinConfig{}
 	service := MakeFullChainService(&config)
 

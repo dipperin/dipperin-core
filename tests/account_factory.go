@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package tests
 
 import "github.com/dipperin/dipperin-core/third-party/crypto"
@@ -22,21 +21,21 @@ import "github.com/dipperin/dipperin-core/third-party/crypto"
 var AccFactory = &AccountFactory{}
 
 var defaultAccounts = []Account{
-	{ Pk: crypto.HexToECDSAErrPanic("fe10ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91") },
-	{ Pk: crypto.HexToECDSAErrPanic("fe20ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91") },
-	{ Pk: crypto.HexToECDSAErrPanic("fe30ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91") },
-	{ Pk: crypto.HexToECDSAErrPanic("fe40ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91") },
-	{ Pk: crypto.HexToECDSAErrPanic("fe50ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91") },
-	{ Pk: crypto.HexToECDSAErrPanic("fe60ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91") },
-	{ Pk: crypto.HexToECDSAErrPanic("fe70ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91") },
-	{ Pk: crypto.HexToECDSAErrPanic("fe80ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91") },
-	{ Pk: crypto.HexToECDSAErrPanic("fe90ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91") },
-	{ Pk: crypto.HexToECDSAErrPanic("fea0ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91") },
-	{ Pk: crypto.HexToECDSAErrPanic("feb0ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91") },
+	{Pk: crypto.HexToECDSAErrPanic("fe10ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91")},
+	{Pk: crypto.HexToECDSAErrPanic("fe20ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91")},
+	{Pk: crypto.HexToECDSAErrPanic("fe30ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91")},
+	{Pk: crypto.HexToECDSAErrPanic("fe40ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91")},
+	{Pk: crypto.HexToECDSAErrPanic("fe50ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91")},
+	{Pk: crypto.HexToECDSAErrPanic("fe60ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91")},
+	{Pk: crypto.HexToECDSAErrPanic("fe70ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91")},
+	{Pk: crypto.HexToECDSAErrPanic("fe80ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91")},
+	{Pk: crypto.HexToECDSAErrPanic("fe90ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91")},
+	{Pk: crypto.HexToECDSAErrPanic("fea0ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91")},
+	{Pk: crypto.HexToECDSAErrPanic("feb0ee89565549d616d43c4e71b61d46a963fdb69489093a57cacf06836ecd91")},
 }
 
 // get or gen account
-type AccountFactory struct {}
+type AccountFactory struct{}
 
 // gen account
 func (acc *AccountFactory) GenAccount() Account {
@@ -44,7 +43,7 @@ func (acc *AccountFactory) GenAccount() Account {
 	if err != nil {
 		panic(err)
 	}
-	return Account{ Pk: pk }
+	return Account{Pk: pk}
 }
 
 // gen x accounts
@@ -54,7 +53,7 @@ func (acc *AccountFactory) GenAccounts(x int) (r []Account) {
 		if err != nil {
 			panic(err)
 		}
-		r = append(r, Account{ Pk: pk })
+		r = append(r, Account{Pk: pk})
 	}
 	return
 }

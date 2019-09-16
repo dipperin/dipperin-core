@@ -32,7 +32,7 @@ func TestUpdateBlockVerifier(t *testing.T) {
 	assert.Error(t, ValidBlockVerifier(ivc)())
 
 	vc := &BlockContext{
-		Block: &fakeBlock{ registerRoot: common.HexToHash("0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421") },
+		Block: &fakeBlock{registerRoot: common.HexToHash("0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")},
 		Chain: passChain,
 	}
 	assert.NoError(t, UpdateBlockVerifier(vc)())
@@ -44,4 +44,3 @@ func TestUpdateBlockVerifier(t *testing.T) {
 	passChain.slot = 1
 	assert.NoError(t, NextRoundVerifier(vc)())
 }
-

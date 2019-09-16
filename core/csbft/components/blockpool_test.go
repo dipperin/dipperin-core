@@ -14,20 +14,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package components
 
 import (
-	"testing"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/stretchr/testify/assert"
-	"time"
-	"github.com/dipperin/dipperin-core/core/model"
-	"math/big"
 	"github.com/dipperin/dipperin-core/core/bloom"
+	"github.com/dipperin/dipperin-core/core/model"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
+	"time"
 )
-
-
 
 func TestBlockPool_Start(t *testing.T) {
 	blockPool := NewBlockPool(1, FakePoolEventNotifier{})
@@ -45,7 +43,6 @@ func TestBlockPool_Start(t *testing.T) {
 }
 
 type BlockpoolconfigImpl struct {
-
 }
 
 func (BlockpoolconfigImpl) CurrentBlock() model.AbstractBlock {
@@ -54,7 +51,7 @@ func (BlockpoolconfigImpl) CurrentBlock() model.AbstractBlock {
 
 func TestBlockPool_Start2(t *testing.T) {
 	blockpool := NewBlockPool(1, FakePoolEventNotifier{})
-	blockpool.SetNodeConfig( BlockpoolconfigImpl{})
+	blockpool.SetNodeConfig(BlockpoolconfigImpl{})
 
 	b1 := &FakeBlock{
 		Height:     uint64(1),
@@ -74,7 +71,7 @@ func TestBlockPool_Start2(t *testing.T) {
 }
 
 func TestBlockPool_Stop(t *testing.T) {
-	blockPool :=  NewBlockPool(1, FakePoolEventNotifier{})
+	blockPool := NewBlockPool(1, FakePoolEventNotifier{})
 	b1 := &FakeBlock{
 		Height:     uint64(1),
 		HeaderHash: common.HexToHash("0x232"),
@@ -85,14 +82,12 @@ func TestBlockPool_Stop(t *testing.T) {
 	assert.Equal(t, err.Error(), "block pool not running")
 	assert.Equal(t, blockPool.IsEmpty(), true)
 
-
 	blockPool.SetPoolEventNotifier(FakePoolEventNotifier{})
 	time.Sleep(time.Microsecond * 1)
 	blockPool.Stop()
 	blockPool.Stop()
 	assert.Equal(t, blockPool.IsEmpty(), true)
 }
-
 
 func TestBlockPool_GetBlockByHash(t *testing.T) {
 	blockPool := NewBlockPool(1, FakePoolEventNotifier{})
@@ -109,7 +104,7 @@ func TestBlockPool_GetBlockByHash(t *testing.T) {
 	block := blockPool.GetBlockByHash(b1.Hash())
 	assert.Equal(t, b1, block)
 	blockPool.RemoveBlock(b1.Hash())
-	time.Sleep(time.Microsecond * 10)
+	time.Sleep(time.Microsecond * 100)
 	assert.Equal(t, blockPool.IsEmpty(), true)
 }
 
@@ -154,9 +149,7 @@ func TestBlockPool_AddBlock(t *testing.T) {
 		Headers:    nil,
 	}
 	blockPool.AddBlock(b1)
-	assert.Equal(t,0,len(blockPool.blocks))
-
-
+	assert.Equal(t, 0, len(blockPool.blocks))
 
 }
 
@@ -170,6 +163,22 @@ type FakeBlock struct {
 	Height     uint64
 	HeaderHash common.Hash
 	Headers    model.AbstractHeader
+}
+
+func (fb *FakeBlock) GetBloomLog() model2.Bloom {
+	panic("implement me")
+}
+
+func (fb *FakeBlock) SetBloomLog(bloom model2.Bloom) {
+	panic("implement me")
+}
+
+func (fb *FakeBlock) SetReceiptHash(receiptHash common.Hash) {
+	panic("implement me")
+}
+
+func (fb *FakeBlock) GetReceiptHash() common.Hash {
+	panic("implement me")
 }
 
 func (fb *FakeBlock) IsSpecial() bool {
@@ -224,7 +233,7 @@ func (fb *FakeBlock) EncodeRlpToBytes() ([]byte, error) {
 	panic("implement me")
 }
 
-func (fb *FakeBlock) TxIterator(cb func(int, model.AbstractTransaction) (error)) (error) {
+func (fb *FakeBlock) TxIterator(cb func(int, model.AbstractTransaction) error) error {
 	panic("implement me")
 }
 
@@ -296,11 +305,11 @@ func (fb *FakeBlock) SetVerifications(vs []model.AbstractVerification) {
 	panic("implement me")
 }
 
-func (fb *FakeBlock) VersIterator(func(int, model.AbstractVerification, model.AbstractBlock) error) (error) {
+func (fb *FakeBlock) VersIterator(func(int, model.AbstractVerification, model.AbstractBlock) error) error {
 	panic("implement me")
 }
 
-func (fb *FakeBlock) GetVerifications() ([]model.AbstractVerification) {
+func (fb *FakeBlock) GetVerifications() []model.AbstractVerification {
 	panic("implement me")
 }
 

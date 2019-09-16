@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package address_util
 
 import (
@@ -51,7 +50,7 @@ func TestPubKeyToAddress(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				p: "04760c4460e5336ac9bbd87952a3c7ec4363fc0a97bd31c86430806e287b437fd1b01abc6e1db640cf3106b520344af1d58b00b57823db3e1407cbc433e1b6d04d",
+				p:           "04760c4460e5336ac9bbd87952a3c7ec4363fc0a97bd31c86430806e287b437fd1b01abc6e1db640cf3106b520344af1d58b00b57823db3e1407cbc433e1b6d04d",
 				addressType: 1,
 			},
 			want: common.HexToAddress("0x00015891906FeF64a5AE924c7FC5ED48C0f64a55fCE1"),

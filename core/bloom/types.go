@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package iblt
 
 import (
@@ -165,7 +164,7 @@ func (d DataHash) Xor(a, b DataHash) DataHash {
 }
 
 func (d DataHash) Lsh(n int) DataHash {
-	for i := 0; i < n; i ++ {
+	for i := 0; i < n; i++ {
 		d.lsh()
 	}
 

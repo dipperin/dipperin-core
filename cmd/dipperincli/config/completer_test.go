@@ -17,45 +17,134 @@
 package config
 
 import (
+	"fmt"
 	"github.com/c-bata/go-prompt"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
+	"strings"
 	"testing"
 )
 
 func TestDipperinCliCompleter(t *testing.T) {
+	log.InitLogger(log.LvlDebug)
 	d := prompt.Document{}
 
-	assert.Equal(t, DipperinCliCompleter(d), nilSuggest)
+	assert.Equal(t, DipperinCliCompleterNew(d), nilSuggest)
 
 	b := prompt.NewBuffer()
 	b.InsertText("test", false, true)
 
 	d = *b.Document()
 
-	assert.Equal(t, DipperinCliCompleter(d), []prompt.Suggest{})
+	assert.Equal(t, DipperinCliCompleterNew(d), []prompt.Suggest{})
 
 	b = prompt.NewBuffer()
-	b.InsertText("rpc -test", false, true)
+	b.InsertText("miner -test", false, true)
 
 	d = *b.Document()
 
-	assert.Equal(t, DipperinCliCompleter(d), []prompt.Suggest{})
+	assert.Equal(t, DipperinCliCompleterNew(d), []prompt.Suggest{})
 
 	b = prompt.NewBuffer()
-	b.InsertText("RPC", false, true)
+	b.InsertText("miner.A -A -F", false, true)
 
 	d = *b.Document()
 
-	assert.Equal(t, DipperinCliCompleter(d), []prompt.Suggest{{Text:"-h", Description:""}, {Text:"--help", Description:""}})
+	DipperinCliCompleterNew(d)
+	//assert.Equal(t, DipperinCliCompleterNew(d), []prompt.Suggest{})
+
+	b = prompt.NewBuffer()
+	b.InsertText("miner ", false, true)
+
+	d = *b.Document()
+
+	assert.Equal(t, DipperinCliCompleterNew(d), []prompt.Suggest{prompt.Suggest{Text: "SetMineGasConfig", Description: ""}, prompt.Suggest{Text: "SetMineCoinBase", Description: ""}, prompt.Suggest{Text: "StartMine", Description: ""}, prompt.Suggest{Text: "StopMine", Description: ""}})
+}
+
+func TestDipperinCliCompleterNew(t *testing.T) {
+	log.InitLogger(log.LvlDebug)
+	d := prompt.Document{}
+
+	args := strings.Split("tx ", " ")
+	fmt.Println(len(args))
+	b := prompt.NewBuffer()
+	b.InsertText("tx ", false, true)
+
+	d = *b.Document()
+
+	suggest := DipperinCliCompleterNew(d)
+	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+
+	args = strings.Split("tx SendTx ", " ")
+	fmt.Println(len(args))
+	b = prompt.NewBuffer()
+	b.InsertText("tx SendTx ", false, true)
+
+	d = *b.Document()
+
+	suggest = DipperinCliCompleterNew(d)
+	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+
+	args = strings.Split("tx SendTx -", " ")
+	fmt.Println(len(args))
+	b = prompt.NewBuffer()
+	b.InsertText("tx SendTx -", false, true)
+
+	d = *b.Document()
+
+	suggest = DipperinCliCompleterNew(d)
+	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+
+	args = strings.Split("tx SendTransactionContract --abi ", " ")
+	fmt.Println(len(args), strings.TrimLeft(args[len(args)-1], "--"))
+	for _, arg := range args {
+		fmt.Println(strings.TrimLeft(arg, "--"))
+	}
+	b = prompt.NewBuffer()
+	b.InsertText("tx SendTransactionContract --abi ", false, true)
+
+	d = *b.Document()
+
+	suggest = DipperinCliCompleterNew(d)
+	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+
+	b = prompt.NewBuffer()
+	b.InsertText("rpc.Add -A -F", false, true)
+
+	d = *b.Document()
+
+	suggest = DipperinCliCompleterNew(d)
+	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+
+	b = prompt.NewBuffer()
+	b.InsertText("rp", false, true)
+
+	d = *b.Document()
+
+	suggest = DipperinCliCompleterNew(d)
+	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+	//assert.Equal(t, DipperinCliCompleterNew(d), []prompt.Suggest{})
 }
 
 func Test_argumentsCompleter(t *testing.T) {
-	assert.Equal(t, argumentsCompleter([]string{"test"}), []prompt.Suggest{})
-	assert.Equal(t, argumentsCompleter([]string{"rpc", "a"}), []prompt.Suggest{})
-	assert.Equal(t, argumentsCompleter([]string{"rpc", "a", "b"}), nilSuggest)
+	assert.Equal(t, argumentsCompleterNew([]string{"test"}), []prompt.Suggest{})
+	assert.Equal(t, argumentsCompleterNew([]string{"miner", "a"}), []prompt.Suggest{})
+	assert.Equal(t, argumentsCompleterNew([]string{"miner", "a", "b"}), nilSuggest)
+	fmt.Println(argumentsCompleterNew([]string{"miner", "-a", "b"}))
+	assert.Equal(t, argumentsCompleterNew([]string{"tx", "-p"}), []prompt.Suggest{})
 }
 
 func Test_excludeOptions(t *testing.T) {
 	args := []string{"-test1", "test2", "test3"}
 	assert.Equal(t, excludeOptions(args), []string{"test2", "test3"})
+}
+
+func TestCheckModuleMethodIsRight(t *testing.T) {
+	assert.Equal(t, false, CheckModuleMethodIsRight("", ""))
+	assert.Equal(t, true, CheckModuleMethodIsRight("", "-h"))
+	assert.Equal(t, true, CheckModuleMethodIsRight("tx", "SendTx"))
+	assert.Equal(t, true, CheckModuleMethodIsRight("chain", "CurrentBlock"))
+	assert.Equal(t, true, CheckModuleMethodIsRight("verifier", "VerifierStatus"))
+	assert.Equal(t, true, CheckModuleMethodIsRight("personal", "CurrentBalance"))
+	assert.Equal(t, true, CheckModuleMethodIsRight("miner", "StartMine"))
 }

@@ -14,24 +14,22 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package bft_spec
 
 import (
-	"testing"
-	"github.com/dipperin/dipperin-core/tests"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
-	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/core/csbft/state-machine"
-	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/csbft/model"
+	"github.com/dipperin/dipperin-core/core/csbft/state-machine"
 	model2 "github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/tests"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestNormalBft(t *testing.T) {
 	vCount := 22
-	pbft_log.InitPbftLogger(log.LvlDebug, "bft_spec", true)
+	log.SetInitLogger(log.DefaultLogConf, "bft_spec")
 	cluster := tests.NewBftCluster(tests.AccFactory.GenAccounts(vCount))
 
 	nrs := cluster.NewRoundMsg(vCount, 1, 1)
@@ -43,7 +41,7 @@ func TestNormalBft(t *testing.T) {
 		assert.Equal(t, model.RoundStepPropose, state.Step)
 	})
 
-	block := &tests.FakeBlockForBft{ Num: 1, PHash: common.HexToHash("0x123") }
+	block := &tests.FakeBlockForBft{Num: 1, PHash: common.HexToHash("0x123")}
 	ps := cluster.NewProposal(vCount, 1, block)
 	cluster.StatesIter(func(state *state_machine.BftState) {
 		for _, p := range ps {
@@ -65,7 +63,7 @@ func TestNormalBft(t *testing.T) {
 	cluster.StatesIter(func(state *state_machine.BftState) {
 		for i, v := range vs2 {
 			rBlock, rVers := state.OnVote(v)
-			if i == vs2Len - 1 {
+			if i == vs2Len-1 {
 
 				// Get the result of the vote
 				assert.Equal(t, block.Hash(), rBlock)

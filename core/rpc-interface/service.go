@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package rpc_interface
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"net"
-	"fmt"
 	"strings"
 	"time"
 )
@@ -35,10 +34,10 @@ type Service struct {
 	ipcListener net.Listener // IPC RPC listener socket to serve API requests
 	ipcHandler  *rpc.Server  // IPC RPC request handler to process the API requests
 
-	httpEndpoint  string       // HTTP endpoint (interface + port) to listen at (empty = HTTP disabled)
+	httpEndpoint string // HTTP endpoint (interface + port) to listen at (empty = HTTP disabled)
 	//httpWhitelist []string     // HTTP RPC modules to allow through this endpoint
-	httpListener  net.Listener // HTTP RPC listener socket to server API requests
-	httpHandler   *rpc.Server  // HTTP RPC request handler to process the API requests
+	httpListener net.Listener // HTTP RPC listener socket to server API requests
+	httpHandler  *rpc.Server  // HTTP RPC request handler to process the API requests
 
 	wsEndpoint string       // Websocket endpoint (interface + port) to listen at (empty = websocket disabled)
 	wsListener net.Listener // Websocket RPC listener socket to server API requests
@@ -103,9 +102,9 @@ func (service *Service) startHTTP(endpoint string, apis []rpc.API, modules []str
 		return nil
 	}
 	listener, handler, err := rpc.StartHTTPEndpoint(endpoint, apis, modules, cors, vhosts, rpc.HTTPTimeouts{
-		ReadTimeout: 5 * time.Second,
+		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 5 * time.Second,
-		IdleTimeout: 50 * time.Second,
+		IdleTimeout:  50 * time.Second,
 	})
 	if err != nil {
 		return err

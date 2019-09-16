@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
-	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/common"
 	"errors"
-	"time"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"time"
 )
 
 func NewRoundMsgWithSign(height uint64, round uint64, signer SignHashFunc, addr common.Address) *NewRoundMsg {
@@ -69,14 +68,14 @@ func (r NewRoundMsg) Valid() error {
 }
 
 func NewProposalWithSign(h, r uint64, blockID common.Hash, hashFunc SignHashFunc, addr common.Address) *Proposal {
-	p := &Proposal{ Height: h, Round: r, BlockID: blockID, Timestamp: time.Now() }
+	p := &Proposal{Height: h, Round: r, BlockID: blockID, Timestamp: time.Now()}
 	sign, err := hashFunc(p.Hash().Bytes())
 	if err != nil {
 		log.Warn("sign new proposal msg failed", "err", err)
 		return nil
 	}
 	p.Witness = &model.WitMsg{
-		Sign: sign,
+		Sign:    sign,
 		Address: addr,
 	}
 	return p

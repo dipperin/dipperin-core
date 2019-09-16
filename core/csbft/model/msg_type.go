@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 type CsBftMsgType uint64
@@ -28,5 +27,5 @@ const (
 	TypeOfFetchBlockReqMsg  CsBftMsgType = 0x110
 	TypeOfFetchBlockRespMsg CsBftMsgType = 0x111
 	TypeOfSyncBlockMsg      CsBftMsgType = 0x112
-	TypeOfReqNewRoundMsg CsBftMsgType = 0x113
+	TypeOfReqNewRoundMsg    CsBftMsgType = 0x113
 )

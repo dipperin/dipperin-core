@@ -17,17 +17,19 @@
 package model
 
 import (
+	"container/heap"
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/math"
+	"github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
 	"math/big"
 	"sort"
 	"sync/atomic"
-	"container/heap"
-
-	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 type Transaction struct {
@@ -37,25 +39,64 @@ type Transaction struct {
 	hash atomic.Value
 	size atomic.Value
 	from atomic.Value
+
+	//add receipt cache
+	receipt atomic.Value
+	//add actual tx usedFee
+	actualTxFee atomic.Value
 }
 
 type RpcTransaction struct {
-	To             common.Address
-	Value          *big.Int
-	TransactionFee *big.Int
-	Data           []byte
-	Nonce          uint64
+	To       common.Address
+	Value    *big.Int
+	GasPrice *big.Int
+	GasLimit uint64
+	Data     []byte
+	Nonce    uint64
 }
 
-func NewTransaction(nonce uint64, to common.Address, amount *big.Int, fee *big.Int, data []byte) *Transaction {
-	return newTransaction(nonce, &to, amount, fee, data)
+// IntrinsicGas computes the 'intrinsic gas' for a message with the given data.
+func IntrinsicGas(data []byte, contractCreation, homestead bool) (uint64, error) {
+	// Set the starting gas for the raw transaction
+	var gas uint64
+	if contractCreation && homestead {
+		gas = model.TxGasContractCreation
+	} else {
+		gas = model.TxGas
+	}
+	// Bump the required gas by the amount of transactional data
+	if len(data) > 0 {
+		// Zero and non-zero bytes are priced differently
+		var nz uint64
+		for _, byt := range data {
+			if byt != 0 {
+				nz++
+			}
+		}
+		// Make sure we don't exceed uint64 for all data combinations
+		if (math.MaxUint64-gas)/model.TxDataNonZeroGas < nz {
+			return 0, g_error.ErrOutOfGas
+		}
+		gas += nz * model.TxDataNonZeroGas
+
+		z := uint64(len(data)) - nz
+		if (math.MaxUint64-gas)/model.TxDataZeroGas < z {
+			return 0, g_error.ErrOutOfGas
+		}
+		gas += z * model.TxDataZeroGas
+	}
+	return gas, nil
 }
 
-func NewContractCreation(nonce uint64, amount *big.Int, fee *big.Int, data []byte) *Transaction {
-	return newTransaction(nonce, nil, amount, fee, data)
+func NewTransaction(nonce uint64, to common.Address, amount, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
+	return newTransaction(nonce, &to, amount, gasPrice, gasLimit, data)
 }
 
-func newTransaction(nonce uint64, to *common.Address, amount *big.Int, fee *big.Int, data []byte) *Transaction {
+func NewContractCreation(nonce uint64, amount *big.Int, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
+	return newTransaction(nonce, nil, amount, gasPrice, gasLimit, data)
+}
+
+func newTransaction(nonce uint64, to *common.Address, amount, gasPrice *big.Int, gasLimit uint64, data []byte) *Transaction {
 	if len(data) > 0 {
 		data = common.CopyBytes(data)
 	}
@@ -65,8 +106,10 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, fee *big.
 		HashLock:     nil,
 		TimeLock:     new(big.Int),
 		Amount:       new(big.Int),
-		Fee:          new(big.Int),
-		ExtraData:    data,
+		//Fee:          new(big.Int),
+		Price:     gasPrice,
+		GasLimit:  gasLimit,
+		ExtraData: data,
 	}
 	wit := witness{
 		R:       new(big.Int),
@@ -77,9 +120,7 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, fee *big.
 	if amount != nil {
 		txdata.Amount.Set(amount)
 	}
-	if fee != nil {
-		txdata.Fee.Set(fee)
-	}
+
 	return &Transaction{data: txdata, wit: wit}
 }
 
@@ -139,49 +180,49 @@ func (tx Transaction) String() string {
 	} else {
 		to = fmt.Sprintf("%x", tx.data.Recipient[:])
 	}
-	enc, _ := rlp.EncodeToBytes(&tx)
 	return fmt.Sprintf(`
-	TX(0x%x)
+	TXID:	  %s
 	Type:     %s
 	From:     0x%s
 	To:       0x%s
 	Nonce:    %v
+	GasPrice: %v
+	GasLimit: %v
 	Hashlock: %v
 	Timelock: %#x
 	Value:    %d CSC
-	Fee:      %d CSC
 	Data:     0x%x
 	V:        %#x
 	R:        %#x
 	S:        %#x
 	HashKey:  0x%x    
-	Hex:      %x
 `,
-		tx.CalTxId(),
+		tx.CalTxId().Hex(),
 		tx.data.Recipient.GetAddressTypeStr(),
 		from,
 		to,
 		tx.data.AccountNonce,
+		tx.data.Price,
+		tx.data.GasLimit,
 		tx.data.HashLock,
 		tx.data.TimeLock,
 		tx.data.Amount,
-		tx.data.Fee,
 		tx.data.ExtraData,
 		tx.wit.V,
 		tx.wit.R,
 		tx.wit.S,
 		tx.wit.HashKey,
-		enc,
 	)
 }
 
 type txData struct {
 	AccountNonce uint64          `json:"nonce"    gencodec:"required"`
-	Recipient    *common.Address `json:"to"       rlp:"nil"` // nil means contract creation
+	Recipient    *common.Address `json:"to"       rlp:"nil"`
 	HashLock     *common.Hash    `json:"hashLock" rlp:"nil"`
-	TimeLock     *big.Int        `json:"timeLock" gencodec:"required"`
+	TimeLock     *big.Int        `json:"timeLock22" gencodec:"required"`
 	Amount       *big.Int        `json:"Value"    gencodec:"required"`
-	Fee          *big.Int        `json:"fee"      gencodec:"required"`
+	Price        *big.Int        `json:"gasPrice" gencodec:"required"`
+	GasLimit     uint64          `json:"gas"      gencodec:"required"`
 	ExtraData    []byte          `json:"input"    gencodec:"required"`
 }
 
@@ -206,11 +247,20 @@ func (tx *Transaction) EncodeRLP(w io.Writer) error {
 		tx.wit,
 	})
 }
+
 func (tx *Transaction) EncodeRlpToBytes() ([]byte, error) {
 	return rlp.EncodeToBytes(TransactionRLP{
 		tx.data,
 		tx.wit,
 	})
+}
+
+func (tx *Transaction) GetGasPrice() *big.Int {
+	return tx.data.Price
+}
+
+func (tx *Transaction) GetGasLimit() uint64 {
+	return tx.data.GasLimit
 }
 
 //DecodeRLP implements rlp.Decoder
@@ -232,13 +282,16 @@ func (tx *Transaction) HashLock() *common.Hash { return tx.data.HashLock }
 func (tx *Transaction) TimeLock() *big.Int     { return new(big.Int).Set(tx.data.TimeLock) }
 func (tx *Transaction) ExtraData() []byte      { return tx.data.ExtraData }
 func (tx *Transaction) Amount() *big.Int       { return new(big.Int).Set(tx.data.Amount) }
-func (tx *Transaction) Fee() *big.Int          { return new(big.Int).Set(tx.data.Fee) }
+
+//func (tx *Transaction) Fee() *big.Int          { return new(big.Int).Set(tx.data.Fee) }
 func (tx *Transaction) RawSignatureValues() (*big.Int, *big.Int, *big.Int) {
 	return new(big.Int).Set(tx.wit.V), new(big.Int).Set(tx.wit.R), new(big.Int).Set(tx.wit.S)
 }
+
 func (tx *Transaction) HashKey() []byte {
 	return tx.wit.HashKey
 }
+
 func (tx *Transaction) To() *common.Address {
 	if tx.data.Recipient == nil {
 		return nil
@@ -330,12 +383,14 @@ func (tx Transaction) ChainId() *big.Int {
 //todo: currently use default signer ,later need get a way to determine the signer from the tx itself.
 func (tx Transaction) GetSigner() Signer {
 	id := deriveChainId(tx.wit.V)
-	return MercurySigner{id}
+	return DipperinSigner{id}
 }
 
 // Cost returns amount + fee
 func (tx *Transaction) Cost() *big.Int {
-	return new(big.Int).Add(tx.data.Fee, tx.data.Amount)
+	total := new(big.Int).Mul(tx.data.Price, new(big.Int).SetUint64(tx.data.GasLimit))
+	total.Add(total, tx.data.Amount)
+	return total
 }
 
 func (tx *Transaction) EstimateFee() *big.Int {
@@ -347,6 +402,55 @@ func (tx *Transaction) EstimateFee() *big.Int {
 	rate := big.NewInt(int64(1))
 	fee := big.NewInt(0).Mul(big.NewInt(int64(size)), rate)
 	return fee
+}
+
+func (tx *Transaction) AsMessage(checkNonce bool) (Message, error) {
+	msg := Message{
+		nonce:      tx.data.AccountNonce,
+		gasLimit:   tx.data.GasLimit,
+		gasPrice:   new(big.Int).Set(tx.data.Price),
+		to:         tx.data.Recipient,
+		amount:     tx.data.Amount,
+		data:       tx.data.ExtraData,
+		checkNonce: checkNonce,
+	}
+
+	var err error
+	msg.from, err = tx.Sender(tx.GetSigner())
+	return msg, err
+}
+
+type ReceiptPara struct {
+	Root              []byte
+	HandlerResult     bool
+	CumulativeGasUsed uint64
+	Logs              []*model.Log
+}
+
+func (tx *Transaction) PaddingActualTxFee(fee *big.Int) {
+	tx.actualTxFee.Store(fee)
+}
+
+func (tx *Transaction) GetActualTxFee() (fee *big.Int) {
+	if feeLoad := tx.actualTxFee.Load(); feeLoad != nil {
+		return feeLoad.(*big.Int)
+	}
+	log.Error("the transaction fee cache is nil")
+	return nil
+}
+
+func (tx *Transaction) PaddingReceipt(parameters ReceiptPara) {
+	log.Info("Call PaddingReceipt", "handlerResult", parameters.HandlerResult)
+	receipt := model.NewReceipt(parameters.Root, parameters.HandlerResult, parameters.CumulativeGasUsed, parameters.Logs)
+	tx.receipt.Store(receipt)
+}
+
+func (tx *Transaction) GetReceipt() *model.Receipt {
+	if receiptLoad := tx.receipt.Load(); receiptLoad != nil {
+		return receiptLoad.(*model.Receipt)
+	}
+	log.Error("the receipt cache is nil")
+	return nil
 }
 
 // Transactions is a Transaction slice type for basic sorting.
@@ -406,7 +510,7 @@ func (self txSorter) Less(i, j int) bool { return self.by(self.blocks[i], self.b
 type TxByFee []AbstractTransaction
 
 func (s TxByFee) Len() int           { return len(s) }
-func (s TxByFee) Less(i, j int) bool { return s[i].Fee().Cmp(s[j].Fee()) > 0 }
+func (s TxByFee) Less(i, j int) bool { return s[i].GetGasPrice().Cmp(s[j].GetGasPrice()) > 0 }
 func (s TxByFee) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
 func (s *TxByFee) Push(x interface{}) {
@@ -417,7 +521,7 @@ func (s *TxByFee) Pop() interface{} {
 	old := *s
 	n := len(old)
 	x := old[n-1]
-	*s = old[0: n-1]
+	*s = old[0 : n-1]
 	return x
 }
 
@@ -441,12 +545,28 @@ func NewTransactionsByFeeAndNonce(signer Signer, txs map[common.Address][]Abstra
 	heads := make(TxByFee, 0, len(txs))
 	for from, accTxs := range txs {
 		log.Info("NewTransactionsByFeeAndNonce ", "from", from, "len(heads)", len(heads))
-		heads = append(heads, accTxs[0])
-		// Ensure the sender address is from the signer
-		acc, _ := accTxs[0].Sender(signer)
-		txs[acc] = accTxs[1:]
-		if from != acc {
+		// 此处 ethereum　的写法,假设from != acc这种异常情况出现，txs map会被新增acc字段交易或将原acc字段替换成from的相关交易
+		//　导致txs 异常．此外会导致range 不确定性，修改的acc　txs有可能遍历到，也有可能遍历不到
+		//　因此统一修改逻辑为:当出现此异常时，将此from的txs直接删除，heads里也不处理此类交易．
+		/*		heads = append(heads, accTxs[0])
+				// Ensure the sender address is from the signer
+				acc, _ := accTxs[0].Sender(signer)
+				txs[acc] = accTxs[1:]
+				if from != acc {
+					delete(txs, from)
+				}*/
+		if len(accTxs) == 0 {
+			log.Warn("theaccTxs is nil")
 			delete(txs, from)
+		} else {
+			acc, _ := accTxs[0].Sender(signer)
+			if from != acc {
+				log.Warn("the tx sender and from is different")
+				delete(txs, from)
+			} else {
+				heads = append(heads, accTxs[0])
+				txs[acc] = accTxs[1:]
+			}
 		}
 	}
 	heap.Init(&heads)
@@ -483,4 +603,40 @@ func (t *TransactionsByFeeAndNonce) Shift() {
 // and hence all subsequent ones should be discarded from the same account.
 func (t *TransactionsByFeeAndNonce) Pop() {
 	heap.Pop(&t.heads)
+}
+
+type Message struct {
+	to         *common.Address
+	from       common.Address
+	nonce      uint64
+	amount     *big.Int
+	gasLimit   uint64
+	gasPrice   *big.Int
+	data       []byte
+	checkNonce bool
+}
+
+/*func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, checkNonce bool) Message {
+	return Message{
+		from:       from,
+		to:         to,
+		nonce:      nonce,
+		amount:     amount,
+		gasLimit:   gasLimit,
+		gasPrice:   gasPrice,
+		data:       data,
+		checkNonce: checkNonce,
+	}
+}*/
+
+func (m Message) From() common.Address { return m.from }
+func (m Message) To() *common.Address  { return m.to }
+func (m Message) GasPrice() *big.Int   { return m.gasPrice }
+func (m Message) Value() *big.Int      { return m.amount }
+func (m Message) Gas() uint64          { return m.gasLimit }
+func (m Message) Nonce() uint64        { return m.nonce }
+func (m Message) Data() []byte         { return m.data }
+func (m Message) CheckNonce() bool     { return m.checkNonce }
+func (m *Message) SetGas(gas uint64) {
+	m.gasLimit = gas
 }
