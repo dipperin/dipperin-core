@@ -25,12 +25,12 @@ var contractPath = map[ContractPathType]string{
 	DIPCTestContract: testDIPCPath,
 }
 
-func getGoPath()string{
-	cmd := exec.Command("go","env")
-	str,_ := cmd.Output()
+func getGoPath() string {
+	cmd := exec.Command("go", "env")
+	str, _ := cmd.Output()
 
 	pattern := `GOPATH="(.*?)"{1}?`
-	regular1,_ := regexp.Compile(pattern)
+	regular1, _ := regexp.Compile(pattern)
 	out := regular1.FindStringSubmatch(string(str))
 	return string(out[1])
 }
@@ -39,11 +39,11 @@ func GetWASMPath(fileName string, pathType ContractPathType) string {
 	var tmpPath string
 	if pathType == CoreVmTestData {
 		tmpPath = getGoPath()
-		log.Println("get WASM path",tmpPath)
+		log.Println("get WASM path", tmpPath)
 	} else {
 		tmpPath = util.HomeDir()
 	}
-	log.Println("the tmpPath is:",tmpPath)
+	log.Println("the tmpPath is:", tmpPath)
 	path := filepath.Join(tmpPath, contractPath[pathType])
 	return filepath.Join(path, fmt.Sprintf("%s/%s.wasm", fileName, fileName))
 }
