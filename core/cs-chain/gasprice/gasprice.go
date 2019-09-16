@@ -1,8 +1,8 @@
-package service
+package gasprice
 
 import (
-	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/config"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/model"
@@ -13,10 +13,16 @@ import (
 
 var maxPrice = big.NewInt(500 * consts.GDIPUNIT)
 
-type Config struct {
+type GasPriceConfig struct {
 	Blocks     int
 	Percentile int
 	Default    *big.Int `toml:",omitempty"`
+}
+
+var DefaultGasPriceConfig = GasPriceConfig{
+	Blocks:     20,
+	Percentile: 60,
+	Default:    big.NewInt(config.DEFAULT_GAS_PRICE),
 }
 
 // Oracle recommends gas prices based on the content of recent
@@ -33,7 +39,7 @@ type Oracle struct {
 }
 
 // NewOracle returns a new oracle.
-func NewOracle(chainReader Chain, params Config) *Oracle {
+func NewOracle(chainReader Chain, params GasPriceConfig) *Oracle {
 	blocks := params.Blocks
 	if blocks < 1 {
 		blocks = 1
@@ -114,12 +120,9 @@ func (gpo *Oracle) SuggestPrice() (*big.Int, error) {
 		}
 	}
 	price := lastPrice
-	fmt.Println(blockPrices)
 	if len(blockPrices) > 0 {
 		sort.Sort(bigIntArray(blockPrices))
 		price = blockPrices[(len(blockPrices)-1)*gpo.percentile/100]
-		fmt.Println(blockPrices)
-		fmt.Println(price)
 	}
 	if price.Cmp(maxPrice) > 0 {
 		price = new(big.Int).Set(maxPrice)

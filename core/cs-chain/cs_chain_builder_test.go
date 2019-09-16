@@ -24,7 +24,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
-	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
@@ -41,8 +40,6 @@ var (
 	alicePriv            = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232031"
 	aliceAddr            = common.HexToAddress("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
 )
-
-var testFee = economy_model.GetMinimumTxFee(20001)
 
 func init() {
 	log.Info("change ver boot node address for test")
@@ -115,13 +112,6 @@ func CreateVerBootVote(block model.AbstractBlock) model.AbstractVerification {
 func CreateSignedTx(nonce uint64, to common.Address, amount *big.Int, account tests.Account) model.AbstractTransaction {
 	fs1 := model.NewSigner(big.NewInt(1))
 	tx := model.NewTransaction(nonce, to, amount, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
-	signedTx, _ := tx.SignTx(account.Pk, fs1)
-	return signedTx
-}
-
-func CreateSignedRegisterTx(nonce uint64, amount *big.Int, account tests.Account) model.AbstractTransaction {
-	fs1 := model.NewSigner(big.NewInt(1))
-	tx := model.NewRegisterTransaction(nonce, amount, g_testData.TestGasPrice, g_testData.TestGasLimit)
 	signedTx, _ := tx.SignTx(account.Pk, fs1)
 	return signedTx
 }

@@ -195,6 +195,7 @@ var chainMethods = []prompt.Suggest{
 	{Text: "GetLogs", Description: ""},
 	{Text: "GetReceiptByTxHash", Description: ""},
 	{Text: "GetReceiptsByBlockNum", Description: ""},
+	{Text: "SuggestGasPrice", Description: ""},
 }
 
 var verifierMethods = []prompt.Suggest{

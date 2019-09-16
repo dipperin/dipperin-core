@@ -191,15 +191,11 @@ func TestDecimalToInter(t *testing.T) {
 
 func TestInterToDecimal(t *testing.T) {
 	csCoinValue1 := (*hexutil.Big)(big.NewInt(100))
-
 	csCoinValue2 := (*hexutil.Big)(big.NewInt(34545))
-
 	csCoinValue3 := (*hexutil.Big)(big.NewInt(6000))
-
 	csCoinValue4 := (*hexutil.Big)(big.NewInt(8978786))
-
 	csCoinValue5 := (*hexutil.Big)(big.NewInt(30690000))
-
+	csCoinValue6 := (*hexutil.Big)(big.NewInt(23400))
 	unitBit := 3
 
 	moneyValue1, err := InterToDecimal(csCoinValue1, unitBit)
@@ -221,6 +217,10 @@ func TestInterToDecimal(t *testing.T) {
 	moneyValue5, err := InterToDecimal(csCoinValue5, unitBit)
 	assert.NoError(t, err)
 	assert.Equal(t, "30690", moneyValue5)
+
+	moneyValue6, err := InterToDecimal(csCoinValue6, 0)
+	assert.NoError(t, err)
+	assert.Equal(t, "23400", moneyValue6)
 }
 
 func TestCheckRegistration(t *testing.T) {

@@ -1,6 +1,8 @@
 package log
 
 import (
+	"github.com/mattn/go-colorable"
+	"github.com/mattn/go-isatty"
 	"os"
 	"path/filepath"
 )
@@ -37,6 +39,7 @@ func DefaultDpLogger(dirName string) *dpLogger {
 
 var (
 	DefaultLogConf = LoggerConfig{
+		//Type:      LoggerFile,
 		Type:      LoggerConsole,
 		LogLevel:  LvlInfo,
 		FilePath:  "",
@@ -81,6 +84,13 @@ func init() {
 }
 
 func SetInitLogger(conf LoggerConfig, nodeName string) Logger {
+	if isatty.IsTerminal(os.Stdout.Fd()) {
+		StdoutHandler = StreamHandler(colorable.NewColorableStdout(), TerminalFormat())
+	}
+
+	if isatty.IsTerminal(os.Stderr.Fd()) {
+		StderrHandler = StreamHandler(colorable.NewColorableStderr(), TerminalFormat())
+	}
 	l := &logger{[]interface{}{}, new(swapHandler)}
 	var targetDir string
 	if conf.FilePath == "" {
@@ -104,7 +114,8 @@ func SetInitLogger(conf LoggerConfig, nodeName string) Logger {
 	if conf.RemoveOld {
 		_ = os.RemoveAll(logFilePath)
 	}
-	fileHandler, err := FileHandler(logFilePath, TerminalFormat())
+	//fileHandler, err := FileHandler(logFilePath, TerminalFormat())
+	fileHandler, err := FileHandler(logFilePath, LogfmtFormat())
 	if err != nil {
 		panic(err.Error())
 	}
@@ -124,6 +135,7 @@ func SetInitLogger(conf LoggerConfig, nodeName string) Logger {
 
 func InitDPLogger(nodeName string) {
 	for k, v := range dpLoggers {
+		//v.conf.Type = LoggerConsole
 		v.conf.Type = LoggerFile
 		if os.Getenv("boots_env") == "venus" {
 			switch k {

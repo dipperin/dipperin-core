@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
@@ -699,6 +700,26 @@ func (caller *rpcCaller) GetReceiptByTxHash(c *cli.Context) {
 	}
 
 	fmt.Println(resp.String())
+}
+
+func (caller *rpcCaller) SuggestGasPrice(c *cli.Context) {
+	mName, _, err := getRpcMethodAndParam(c)
+	if err != nil {
+		l.Error("getRpcMethodAndParam error")
+		return
+	}
+	var resp rpc_interface.CurBalanceResp
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName)); err != nil {
+		l.Error("call SuggestGasPrice failed", "err", err)
+		return
+	}
+
+	gasPrice, err := InterToDecimal(resp.Balance, consts.UnitDecimalBits)
+	if err != nil {
+		l.Error("can't get suggest gas price", "err", err)
+	} else {
+		l.Info("the gas price is", "gasPrice", gasPrice+consts.CoinWuName)
+	}
 }
 
 func (caller *rpcCaller) GetLogs(c *cli.Context) {
