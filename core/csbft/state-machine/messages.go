@@ -345,7 +345,7 @@ func (rs NewRoundSet) hasMaj32(round uint64) bool {
 	return false
 }
 
-func (rs NewRoundSet) hasHalfUp(round uint64) bool  {
+func (rs NewRoundSet) hasHalfUp(round uint64) bool {
 	if rs.RoundMessages[round] == nil {
 		return false
 	}
@@ -359,7 +359,7 @@ func (rs NewRoundSet) hasHalfUp(round uint64) bool  {
 				rs.halfUp = bakRound
 				result = true
 			}
-		} else{
+		} else {
 			break
 		}
 	}

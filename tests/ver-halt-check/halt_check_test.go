@@ -109,8 +109,6 @@ func (fakeWalletSigner) Evaluate(account accounts.Account, seed []byte) (index [
 	return index, proof, nil
 }
 
-
-
 type testNeedConfig struct {
 	*cs_chain.CsChainService
 	*tests.GenesisEnv
