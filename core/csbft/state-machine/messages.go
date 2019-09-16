@@ -251,7 +251,7 @@ func (vs *VoteSet) VotesEnough(round uint64) common.Hash {
 	verifier := vs.verifiers
 	for index, count := range blockVotes {
 		if count > len(verifier)*2/3 {
-			log.PBft.Info("the votes is enough","hash",index.Hex())
+			log.PBft.Info("the votes is enough", "hash", index.Hex())
 			return index
 		}
 	}
