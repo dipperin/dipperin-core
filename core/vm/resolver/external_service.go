@@ -17,11 +17,11 @@
 package resolver
 
 import (
+	"encoding/hex"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
-	"encoding/hex"
 )
 
 type ContractRef interface {

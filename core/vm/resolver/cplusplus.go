@@ -25,11 +25,11 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/math"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 )
 
 /*func PrintTest(){
@@ -493,8 +493,8 @@ func (r *Resolver) envDipperCall(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	contractAddr := vm.Memory.Memory[addr:addr+common.AddressLength]
-	inputs := vm.Memory.Memory[params:params+paramsLen]
+	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params : params+paramsLen]
 	log.Info("envDipperCall", "contractAddr", contractAddr, "inputs", inputs)
 	_, err := r.Service.ResolverCall(contractAddr, inputs)
 	if err != nil {
@@ -508,8 +508,8 @@ func (r *Resolver) envDipperDelegateCall(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	contractAddr := vm.Memory.Memory[addr:addr+common.AddressLength]
-	inputs := vm.Memory.Memory[params:params+paramsLen]
+	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params : params+paramsLen]
 	log.Info("envDipperDelegateCall", "contractAddr", contractAddr, "inputs", inputs)
 	_, err := r.Service.ResolverDelegateCall(contractAddr, inputs)
 	if err != nil {
@@ -524,8 +524,8 @@ func (r *Resolver) envDipperCallInt64(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	contractAddr := vm.Memory.Memory[addr:addr+common.AddressLength]
-	inputs := vm.Memory.Memory[params:params+paramsLen]
+	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params : params+paramsLen]
 	log.Info("envDipperCallInt64", "contractAddr", contractAddr, "inputs", inputs)
 	ret, err := r.Service.ResolverCall(contractAddr, inputs)
 	if err != nil {
@@ -542,8 +542,8 @@ func (r *Resolver) envDipperDelegateCallInt64(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	contractAddr := vm.Memory.Memory[addr:addr+common.AddressLength]
-	inputs := vm.Memory.Memory[params:params+paramsLen]
+	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params : params+paramsLen]
 	log.Info("envDipperDelegateCallInt64", "contractAddr", contractAddr, "inputs", inputs)
 	ret, err := r.Service.ResolverDelegateCall(contractAddr, inputs)
 	if err != nil {
@@ -560,8 +560,8 @@ func (r *Resolver) envDipperCallString(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	contractAddr := vm.Memory.Memory[addr:addr+common.AddressLength]
-	inputs := vm.Memory.Memory[params:params+paramsLen]
+	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params : params+paramsLen]
 	log.Info("envDipperCallString", "contractAddr", contractAddr, "inputs", inputs)
 	ret, err := r.Service.ResolverCall(contractAddr, inputs)
 	if err != nil {
@@ -578,8 +578,8 @@ func (r *Resolver) envDipperDelegateCallString(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	contractAddr := vm.Memory.Memory[addr:addr+common.AddressLength]
-	inputs := vm.Memory.Memory[params:params+paramsLen]
+	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params : params+paramsLen]
 	log.Info("envDipperDelegateCallString", "contractAddr", contractAddr, "inputs", inputs)
 	ret, err := r.Service.ResolverDelegateCall(contractAddr, inputs)
 	if err != nil {

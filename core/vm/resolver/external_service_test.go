@@ -48,7 +48,7 @@ func TestResolverNeedExternalService_ResolverCall(t *testing.T) {
 		state,
 	}
 
-	resp, err := service.ResolverCall(aliceAddr.Bytes(), []byte{1,2,3})
+	resp, err := service.ResolverCall(aliceAddr.Bytes(), []byte{1, 2, 3})
 	assert.NoError(t, err)
 	assert.Equal(t, []byte(nil), resp)
 }
@@ -63,7 +63,7 @@ func TestResolverNeedExternalService_ResolverDelegateCall(t *testing.T) {
 		state,
 	}
 
-	resp, err := service.ResolverDelegateCall(aliceAddr.Bytes(), []byte{1,2,3})
+	resp, err := service.ResolverDelegateCall(aliceAddr.Bytes(), []byte{1, 2, 3})
 	assert.NoError(t, err)
 	assert.Equal(t, []byte(nil), resp)
 }
