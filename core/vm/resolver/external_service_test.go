@@ -37,3 +37,33 @@ func TestResolverNeedExternalService_Transfer(t *testing.T) {
 	assert.Equal(t, []byte(nil), resp)
 	assert.Equal(t, uint64(0), gasLeft)
 }
+
+func TestResolverNeedExternalService_ResolverCall(t *testing.T) {
+	vmValue := &fakeVmContextService{}
+	contract := &fakeContractService{}
+	state := NewFakeStateDBService()
+	service := &resolverNeedExternalService{
+		contract,
+		vmValue,
+		state,
+	}
+
+	resp, err := service.ResolverCall(aliceAddr.Bytes(), []byte{1,2,3})
+	assert.NoError(t, err)
+	assert.Equal(t, []byte(nil), resp)
+}
+
+func TestResolverNeedExternalService_ResolverDelegateCall(t *testing.T) {
+	vmValue := &fakeVmContextService{}
+	contract := &fakeContractService{}
+	state := NewFakeStateDBService()
+	service := &resolverNeedExternalService{
+		contract,
+		vmValue,
+		state,
+	}
+
+	resp, err := service.ResolverDelegateCall(aliceAddr.Bytes(), []byte{1,2,3})
+	assert.NoError(t, err)
+	assert.Equal(t, []byte(nil), resp)
+}

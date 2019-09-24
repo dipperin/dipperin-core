@@ -21,6 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
+	"encoding/hex"
 )
 
 type ContractRef interface {
@@ -76,4 +77,18 @@ func (service *resolverNeedExternalService) Transfer(toAddr common.Address, valu
 	log.Info("Service#Transfer", "from", service.Self().Address(), "to", toAddr, "value", value, "gasLimit", gas)
 	ret, returnGas, err := service.Call(service.Self(), toAddr, nil, gas, value)
 	return ret, returnGas, err
+}
+
+func (service *resolverNeedExternalService) ResolverCall(addr, param []byte) ([]byte, error) {
+	contractAddr := common.HexToAddress(hex.EncodeToString(addr))
+	log.Info("Call ResolverCall", "caller", service.Self().Address(), "contractAddr", contractAddr, "gas", service.GetGas(), "value", service.CallValue(), "inputs", param)
+	ret, _, err := service.Call(service.Self(), contractAddr, param, service.GetGas(), service.CallValue())
+	return ret, err
+}
+
+func (service *resolverNeedExternalService) ResolverDelegateCall(addr, param []byte) ([]byte, error) {
+	contractAddr := common.HexToAddress(hex.EncodeToString(addr))
+	log.Info("Call ResolverDelegateCall", "caller", service.Self().Address(), "contractAddr", contractAddr, "gas", service.GetGas(), "inputs", param)
+	ret, _, err := service.DelegateCall(service.Self(), contractAddr, param, service.GetGas())
+	return ret, err
 }
