@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package dipperin_console
 
 import (
 	"fmt"
 	"github.com/c-bata/go-prompt"
-	"github.com/dipperin/dipperin-core/common/util"
-	"path/filepath"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"os"
+	"path/filepath"
 	"runtime"
 )
 

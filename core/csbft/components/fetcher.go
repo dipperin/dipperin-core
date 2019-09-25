@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package components
 
 import (
@@ -23,7 +22,6 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"time"
 )
 
@@ -33,15 +31,15 @@ const (
 
 func NewFetcher(fc FetcherConn) *CsBftFetcher {
 	fetcher := &CsBftFetcher{
-		fc: fc,
-		requests: make(map[uint64]*FetchBlockReqMsg),
-		fetchReqQueue: make(chan *FetchBlockReqMsg, 1),
-		fetchRespChan: make(chan *FetchBlockRespMsg, 1),
+		fc:             fc,
+		requests:       make(map[uint64]*FetchBlockReqMsg),
+		fetchReqQueue:  make(chan *FetchBlockReqMsg, 1),
+		fetchRespChan:  make(chan *FetchBlockRespMsg, 1),
 		isFetchingChan: make(chan *IsFetchingMsg),
-		rmReqChan: make(chan uint64),
+		rmReqChan:      make(chan uint64),
 	}
 	fetcher.BaseService = *util.NewBaseService(log.Root(), "cs_bft_fetcher", fetcher)
-	log.Info("NewFetcher", "fetcher.BaseService",fetcher.BaseService)
+	log.Info("NewFetcher", "fetcher.BaseService", fetcher.BaseService)
 	return fetcher
 }
 
@@ -52,10 +50,10 @@ type CsBftFetcher struct {
 
 	requests map[uint64]*FetchBlockReqMsg
 
-	fetchReqQueue chan *FetchBlockReqMsg
-	fetchRespChan chan *FetchBlockRespMsg
+	fetchReqQueue  chan *FetchBlockReqMsg
+	fetchRespChan  chan *FetchBlockRespMsg
 	isFetchingChan chan *IsFetchingMsg
-	rmReqChan chan uint64
+	rmReqChan      chan uint64
 }
 
 func (f *CsBftFetcher) FetchBlock(from common.Address, blockHash common.Hash) model.AbstractBlock {
@@ -63,11 +61,11 @@ func (f *CsBftFetcher) FetchBlock(from common.Address, blockHash common.Hash) mo
 		log.Error("call fetch block, but fetcher not started")
 		return nil
 	}
-	pbft_log.Info("CsBftFetcher#FetchBlock  call fetch block", "block hash", blockHash.Hex(), "from", from.Hex())
-	req := &FetchBlockReqMsg {
-		MsgId: uint64(time.Now().UnixNano()),
-		From: from,
-		BlockHash: blockHash,
+	log.PBft.Info("CsBftFetcher#FetchBlock  call fetch block", "block hash", blockHash.Hex(), "from", from.Hex())
+	req := &FetchBlockReqMsg{
+		MsgId:      uint64(time.Now().UnixNano()),
+		From:       from,
+		BlockHash:  blockHash,
 		ResultChan: make(chan model.AbstractBlock, 1),
 	}
 
@@ -75,13 +73,13 @@ func (f *CsBftFetcher) FetchBlock(from common.Address, blockHash common.Hash) mo
 
 	//log.Info("CsBftFetcher#FetchBlock: ", "req", req,"from", from)
 	select {
-	case result := <- req.ResultChan:
+	case result := <-req.ResultChan:
 		f.rmReq(req.MsgId)
-		//pbft_log.Info("CsBftFetcher#FetchBlock fetch block success", "block hash", result.Hash().Hex(), "from", from.Hex() )
+		//log.PBft.Info("CsBftFetcher#FetchBlock fetch block success", "block hash", result.Hash().Hex(), "from", from.Hex() )
 		return result
 
-	case <- time.After(fetchTimeout):
-		pbft_log.Warn("fetch block timeout", "block hash", blockHash.Hex(), "from", from.Hex())
+	case <-time.After(fetchTimeout):
+		log.PBft.Warn("fetch block timeout", "block hash", blockHash.Hex(), "from", from.Hex())
 		// rm req
 		f.rmReq(req.MsgId)
 	}
@@ -93,7 +91,7 @@ func (f *CsBftFetcher) FetchBlockResp(resp *FetchBlockRespMsg) {
 	if f.IsRunning() {
 		f.fetchRespChan <- resp
 	} else {
-		pbft_log.Warn("receive fetch block resp, but fetcher not started")
+		log.PBft.Warn("receive fetch block resp, but fetcher not started")
 		log.Warn("receive fetch block resp, but fetcher not started")
 	}
 }
@@ -118,20 +116,20 @@ func (f *CsBftFetcher) loop() {
 	f.requests = make(map[uint64]*FetchBlockReqMsg)
 	for {
 		select {
-		case req := <- f.fetchReqQueue:
+		case req := <-f.fetchReqQueue:
 			f.onFetchBlock(req)
 
-		case resp := <- f.fetchRespChan:
+		case resp := <-f.fetchRespChan:
 			f.onFetchResp(resp)
 
-		case msg := <- f.isFetchingChan:
+		case msg := <-f.isFetchingChan:
 			msg.Result <- f.isFetching(msg.BlockHash)
 
-		case rId := <- f.rmReqChan:
+		case rId := <-f.rmReqChan:
 			delete(f.requests, rId)
 
 		case <-f.Quit():
-			pbft_log.Info("bft fetcher stopped")
+			log.PBft.Info("bft fetcher stopped")
 			return
 		}
 	}
@@ -142,8 +140,8 @@ func (f *CsBftFetcher) IsFetching(hash common.Hash) bool {
 		return false
 	}
 	rc := make(chan bool)
-	f.isFetchingChan <- &IsFetchingMsg{ BlockHash: hash, Result: rc }
-	return <- rc
+	f.isFetchingChan <- &IsFetchingMsg{BlockHash: hash, Result: rc}
+	return <-rc
 }
 
 // only initiated by loop, otherwise concurrence problem will occur
@@ -160,21 +158,21 @@ func (f *CsBftFetcher) isFetching(h common.Hash) bool {
 func (f *CsBftFetcher) onFetchBlock(req *FetchBlockReqMsg) {
 	if f.isFetching(req.BlockHash) {
 		req.onResult(nil)
-		pbft_log.Info("is fetching block", "hash", req.BlockHash)
+		log.PBft.Info("is fetching block", "hash", req.BlockHash)
 		return
 	}
 	if len(f.requests) > 5 {
 		req.onResult(nil)
-		pbft_log.Warn("too many fetches", "req len", len(f.requests))
+		log.PBft.Warn("too many fetches", "req len", len(f.requests))
 		return
 	}
 	f.requests[req.MsgId] = req
 	if err := f.fc.SendFetchBlockMsg(uint64(model2.TypeOfFetchBlockReqMsg), req.From, &model2.FetchBlockReqDecodeMsg{
-		MsgId: uint64(req.MsgId),
+		MsgId:     uint64(req.MsgId),
 		BlockHash: req.BlockHash,
 	}); err != nil {
 		req.onResult(nil)
-		pbft_log.Warn("send fetch req failed", "err", err)
+		log.PBft.Warn("send fetch req failed", "err", err)
 		return
 	}
 }
@@ -183,22 +181,22 @@ func (f *CsBftFetcher) onFetchBlock(req *FetchBlockReqMsg) {
 func (f *CsBftFetcher) onFetchResp(resp *FetchBlockRespMsg) {
 	req := f.requests[resp.MsgId]
 	if req == nil {
-		pbft_log.Info("receive fetch block resp, but req has been removed")
+		log.PBft.Info("receive fetch block resp, but req has been removed")
 		return
 	}
 
-	pbft_log.Info("onFetchResp1", "block height", resp.Block.Number())
+	log.PBft.Info("onFetchResp1", "block height", resp.Block.Number())
 	req.onResult(resp.Block)
 }
 
 type IsFetchingMsg struct {
 	BlockHash common.Hash
-	Result chan bool
+	Result    chan bool
 }
 
 type FetchBlockReqMsg struct {
-	MsgId uint64
-	From common.Address
+	MsgId     uint64
+	From      common.Address
 	BlockHash common.Hash
 
 	ResultChan chan model.AbstractBlock `json:"-" rlp:"-"`
@@ -207,8 +205,8 @@ type FetchBlockReqMsg struct {
 func (req *FetchBlockReqMsg) onResult(block model.AbstractBlock) {
 	select {
 	case req.ResultChan <- block:
-	case <- time.After(100 * time.Millisecond):
-		pbft_log.Warn("can't send fetch resp to ResultChan, maybe already timeout")
+	case <-time.After(100 * time.Millisecond):
+		log.PBft.Warn("can't send fetch resp to ResultChan, maybe already timeout")
 	}
 }
 

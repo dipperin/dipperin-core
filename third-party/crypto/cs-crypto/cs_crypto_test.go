@@ -1,17 +1,16 @@
 package cs_crypto
 
 import (
-	"encoding/hex"
-	"testing"
 	"bytes"
-	"math/big"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/common"
-	"os"
 	"crypto/ecdsa"
+	"encoding/hex"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"io/ioutil"
+	"math/big"
+	"os"
+	"testing"
 )
-
 
 var testAddrHex = "970e8128ab834e8eac17ab8e3812f010678cf791"
 var testPrivHex = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232032"
@@ -37,8 +36,6 @@ func checkAddr(t *testing.T, addr0, addr1 common.Address) {
 //	checkAddr(t, common.HexToAddress("8bda78331c916a08481428e4b07c96d3e916d165"), caddr1)
 //	checkAddr(t, common.HexToAddress("c9ddedf451bc62ce88bf9292afb13df35b670699"), caddr2)
 //}
-
-
 
 func TestSign(t *testing.T) {
 	key, _ := crypto.HexToECDSA(testPrivHex)
@@ -113,7 +110,6 @@ func TestKeccak256Hash(t *testing.T) {
 	exp, _ := hex.DecodeString("4e03657aea45a94fc7d47ba826c8d667c0d1e6e33a64a036ec44f58fa12d6c45")
 	checkhash(t, "Sha3-256-array", func(in []byte) []byte { h := Keccak256Hash(in); return h[:] }, msg, exp)
 }
-
 
 func TestValidateSignatureValues(t *testing.T) {
 	check := func(expected bool, v byte, r, s *big.Int) {

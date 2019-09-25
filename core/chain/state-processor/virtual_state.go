@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package state_processor
 
 import (
@@ -66,7 +65,6 @@ func (ms *ManagedState) RemoveNonce(addr common.Address, n uint64) {
 	}
 }
 
-
 // NewNonce returns the new canonical nonce for the managed account
 func (ms *ManagedState) NewNonce(addr common.Address) uint64 {
 	ms.mu.Lock()
@@ -94,7 +92,7 @@ func (ms *ManagedState) GetNonce(addr common.Address) uint64 {
 		account := ms.getAccount(addr)
 		return uint64(len(account.nonces)) + account.nstart
 	} else {
-		nonce,_:=ms.AccountStateDB.GetNonce(addr)
+		nonce, _ := ms.AccountStateDB.GetNonce(addr)
 		return nonce
 	}
 }

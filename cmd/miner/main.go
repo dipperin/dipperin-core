@@ -14,24 +14,23 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package main
 
 import (
 	"github.com/dipperin/dipperin-core/cmd/base"
-	"github.com/urfave/cli"
-	"github.com/dipperin/dipperin-core/core/dipperin"
-	"os"
-	"github.com/dipperin/dipperin-core/third-party/log"
-	"syscall"
-	"os/signal"
 	"github.com/dipperin/dipperin-core/cmd/dipperin/config"
+	"github.com/dipperin/dipperin-core/core/dipperin"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/urfave/cli"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 const (
-	masterFlagName = "master"
+	masterFlagName     = "master"
 	minerCountFlagName = "m_count"
-	coinbaseFlagName = "coinbase"
+	coinbaseFlagName   = "coinbase"
 )
 
 func main() {
@@ -39,15 +38,15 @@ func main() {
 	app.Action = action
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name: masterFlagName,
+			Name:  masterFlagName,
 			Usage: "master info",
 		},
 		cli.StringFlag{
-			Name: coinbaseFlagName,
+			Name:  coinbaseFlagName,
 			Usage: "coinbase",
 		},
 		cli.IntFlag{
-			Name: minerCountFlagName,
+			Name:  minerCountFlagName,
 			Usage: "number of miners",
 			Value: 1,
 		},

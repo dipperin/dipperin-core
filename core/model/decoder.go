@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
@@ -33,7 +32,7 @@ type BlockDecoder interface {
 	DecodeRlpTransactionFromBytes(data []byte) (AbstractTransaction, error)
 }
 
-type defaultBlockDecoder struct {}
+type defaultBlockDecoder struct{}
 
 func (decoder *defaultBlockDecoder) DecodeRlpBlockFromHeaderAndBodyBytes(headerB []byte, bodyB []byte) (AbstractBlock, error) {
 	var header Header
@@ -78,4 +77,3 @@ func (decoder *defaultBlockDecoder) DecodeRlpTransactionFromBytes(data []byte) (
 	}
 	return &tx, nil
 }
-

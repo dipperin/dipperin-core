@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package mineworker
 
 import (
@@ -46,9 +45,9 @@ type connector interface {
 
 // manager miners and coinbase
 type worker struct {
-	miners []miner
+	miners          []miner
 	coinbaseAddress atomic.Value
-	connector connector
+	connector       connector
 }
 
 func (worker *worker) Miners() []miner {

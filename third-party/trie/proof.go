@@ -20,10 +20,10 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 )
 
 // Prove constructs a merkle proof for key. The result contains all encoded nodes

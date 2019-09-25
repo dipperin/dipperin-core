@@ -17,17 +17,17 @@
 package model
 
 import (
-	"github.com/dipperin/dipperin-core/common"
-	"testing"
 	"fmt"
-	"math/big"
-	"math/rand"
-	"time"
-	"strconv"
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
+	"math/big"
+	"math/rand"
+	"strconv"
+	"testing"
+	"time"
 )
 
 func TestCalPriority(t *testing.T) {
@@ -293,7 +293,7 @@ func TestCalculator_GetElectPriority_Multi(t *testing.T) {
 		resultMap[j] = jAccounts
 		//baseHashStr = GenerateNewStr(baseHashStr+strconv.Itoa(int(j)))
 	}
-	PrintAccountElectResult(resultMap, round, stakeCount, topVerifierNum)
+	//PrintAccountElectResult(resultMap, round, stakeCount, topVerifierNum)
 }
 
 func generateNormalPerformance(performance uint) uint64 {
@@ -337,7 +337,7 @@ func CreateMultiAccountAddress(count uint) (ta []*TestAccount) {
 		pk, err := crypto.HexToECDSA(testPriv1)
 		if err != nil {
 		}
-		//signer := NewMercurySigner(big.NewInt(int64((i+1) * BaseMulti)))
+		//signer := NewSigner(big.NewInt(int64((i+1) * BaseMulti)))
 		addr := cs_crypto.GetNormalAddress(pk.PublicKey)
 		account.accountAddress = addr
 		account.Name = "account" + strconv.Itoa(int(i))
@@ -345,7 +345,7 @@ func CreateMultiAccountAddress(count uint) (ta []*TestAccount) {
 		account.performance = BasePerformance
 		account.stake = big.NewInt(0).Add(big.NewInt(int64(GenerateRand(StakeMax))), big.NewInt(100))
 		ta[i] = account
-		log.Info("CreateMultiAccountAddress  accounts info", "accounts", fmt.Sprintf("%v", ta[i]), "stake", ta[i].stake)
+		//log.Info("CreateMultiAccountAddress  accounts info", "accounts", fmt.Sprintf("%v", ta[i]), "stake", ta[i].stake)
 	}
 	return
 }
@@ -363,7 +363,7 @@ func CreateMultiAccount(baseName string, count uint, generateNonce func(nonceMax
 		pk, err := crypto.HexToECDSA(testPriv1)
 		if err != nil {
 		}
-		//signer := NewMercurySigner(big.NewInt(int64((i+1) * BaseMulti)))
+		//signer := NewSigner(big.NewInt(int64((i+1) * BaseMulti)))
 		addr := cs_crypto.GetNormalAddress(pk.PublicKey)
 		account.accountAddress = addr
 		account.Name = baseName + strconv.Itoa(int(i))
@@ -373,12 +373,12 @@ func CreateMultiAccount(baseName string, count uint, generateNonce func(nonceMax
 		account.stake = generateStake(stakeMax)
 		stakeCount.Add(stakeCount, account.stake)
 		ta[i] = account
-		log.Info("CreateMultiAccountAddress  accounts info", "accounts", fmt.Sprintf("%v", ta[i]), "stake", ta[i].stake)
+		//log.Info("CreateMultiAccountAddress  accounts info", "accounts", fmt.Sprintf("%v", ta[i]), "stake", ta[i].stake)
 	}
 	return
 }
 
-func GenerateNewStr(baseStr string) (string) {
+func GenerateNewStr(baseStr string) string {
 	rand.Seed(int64(time.Now().Nanosecond()))
 	randomStr := strconv.Itoa(int(rand.Int63n(2 ^ 30)))
 	//fmt.Println(randomStr)

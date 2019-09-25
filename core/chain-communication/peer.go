@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_communication
 
 import (
@@ -77,12 +76,12 @@ type peer struct {
 
 func (p *peer) GetCsPeerInfo() *p2p.CsPeerInfo {
 	return &p2p.CsPeerInfo{
-		ID:         p.id,
-		NodeName:   p.nodeName,
-		NodeType:   p.nodeType,
-		RawUrl:     p.rawUrl,
-		HeadHash:   p.head.Hex(),
-		HeadHeight: p.height,
+		ID:              p.id,
+		NodeName:        p.nodeName,
+		NodeType:        p.nodeType,
+		RawUrl:          p.rawUrl,
+		HeadHash:        p.head.Hex(),
+		HeadHeight:      p.height,
 		VerifierAddress: p.verifierAddress.Hex(),
 	}
 }

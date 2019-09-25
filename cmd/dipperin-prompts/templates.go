@@ -14,18 +14,17 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package dipperin_prompts
 
 import (
-	"github.com/manifoldco/promptui"
 	"fmt"
+	"github.com/manifoldco/promptui"
 )
 
 const (
-	active = "▸ {{ .Name | cyan | bold }}"
+	active   = "▸ {{ .Name | cyan | bold }}"
 	inactive = "{{ .Name | cyan }}"
-	label = `{{ "✔" | green }} %s: {{ .Name | cyan }}`
+	label    = `{{ "✔" | green }} %s: {{ .Name | cyan }}`
 	Selected = `{{ "✔" | green }} {{ "%s" | cyan }}: {{ .Name }}`
 )
 
@@ -37,7 +36,7 @@ var TplNodeType = &promptui.SelectTemplates{
 }
 
 var PromptTemplate = &promptui.PromptTemplates{
-	Prompt: "{{ . }}:",
+	Prompt:  "{{ . }}:",
 	Valid:   `{{ "✔" | green }} {{ . }}: `,
 	Invalid: `{{ "✗" | red }} {{ . }}: `,
 	Success: `{{ "✔" | green }} {{ . | cyan}}: `,

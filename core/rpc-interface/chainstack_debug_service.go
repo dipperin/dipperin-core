@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package rpc_interface
 
 import (
@@ -35,7 +34,7 @@ func (api *DipperinDebugApi) Metrics(raw bool) (map[string]interface{}, error) {
 }
 
 func (api *DipperinDebugApi) PrintGos() {
-	buf := make([]byte, 5 * 1024 * 1024)
+	buf := make([]byte, 5*1024*1024)
 	buf = buf[:runtime.Stack(buf, true)]
 	fmt.Println(string(buf))
 }

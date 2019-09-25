@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_state
 
 import (
@@ -37,4 +36,3 @@ func (cs *ChainState) GetEconomyModel() economy_model.EconomyModel {
 func (cs *ChainState) GetChainDB() chaindb.Database {
 	return cs.ChainDB
 }
-

@@ -57,13 +57,13 @@ func init() {
 	}
 }
 
-type fakeCacheDB struct{
+type fakeCacheDB struct {
 	commits map[uint64]model.Verifications
 }
 
 func (c *fakeCacheDB) GetSeenCommits(blockHeight uint64, blockHash common.Hash) (result []model.AbstractVerification, err error) {
-	if _,ok := c.commits[blockHeight];ok{
-		return c.commits[blockHeight],nil
+	if _, ok := c.commits[blockHeight]; ok {
+		return c.commits[blockHeight], nil
 	}
 	return nil, errors.New("not commits")
 }
@@ -97,18 +97,17 @@ func (fakeWalletSigner) ValidSign(hash []byte, pubKey []byte, sign []byte) error
 	if len(sign) == 0 {
 		return accounts.ErrEmptySign
 	}
-	if crypto.VerifySignature(pubKey,hash,sign[:len(sign)-1]) == true{
+	if crypto.VerifySignature(pubKey, hash, sign[:len(sign)-1]) == true {
 		return nil
-	}else{
+	} else {
 		return accounts.ErrSignatureInvalid
 	}
 }
 
 func (fakeWalletSigner) Evaluate(account accounts.Account, seed []byte) (index [32]byte, proof []byte, err error) {
-	index,proof = crypto.Evaluate(testVerBootAccounts[0].Pk, seed)
-	return index,proof,nil
+	index, proof = crypto.Evaluate(testVerBootAccounts[0].Pk, seed)
+	return index, proof, nil
 }
-
 
 type testNeedConfig struct {
 	*cs_chain.CsChainService
@@ -123,9 +122,9 @@ func getTestChainEnv(db cs_chain.CacheDB, pool cs_chain.TxPool) (*cs_chain.CsCha
 	cConf.VerifierNumber = 4
 
 	chainState := chain_state.NewChainState(&chain_state.ChainStateConfig{
-		DataDir: "",
+		DataDir:       "",
 		WriterFactory: f,
-		ChainConfig: cConf,
+		ChainConfig:   cConf,
 	})
 
 	// 主要是初始化默认验证者在其中，外边测试调用它的方法对block投票
@@ -139,26 +138,26 @@ func getTestChainEnv(db cs_chain.CacheDB, pool cs_chain.TxPool) (*cs_chain.CsCha
 	}
 	bb := &tests.BlockBuilder{
 		ChainState: chainState,
-		PreBlock:     chainState.CurrentBlock(),
-		MinerPk:      attackEnv.Miner().Pk,
+		PreBlock:   chainState.CurrentBlock(),
+		MinerPk:    attackEnv.Miner().Pk,
 	}
 
 	ccs := cs_chain.NewCsChainService(&cs_chain.CsChainServiceConfig{
 		CacheDB: db,
-		TxPool: pool,
+		TxPool:  pool,
 	}, chainState)
 	f.SetChain(ccs.CacheChainState)
 	return ccs, attackEnv, txB, bb
 }
 
-func getTestNeedConfig() testNeedConfig{
+func getTestNeedConfig() testNeedConfig {
 	cMock := &fakeCacheDB{
-		commits:make(map[uint64]model.Verifications,0),
+		commits: make(map[uint64]model.Verifications, 0),
 	}
 	pMock := &fakeTxPool{}
 	ccs, gEnv, _, bB := getTestChainEnv(cMock, pMock)
-	testEconomy := economy_model.MakeDipperinEconomyModel(ccs,economy_model.DIPProportion)
-	stateHandler :=verifiers_halt_check.MakeHaltCheckStateHandler(ccs,&fakeWalletSigner{},testEconomy)
+	testEconomy := economy_model.MakeDipperinEconomyModel(ccs, economy_model.DIPProportion)
+	stateHandler := verifiers_halt_check.MakeHaltCheckStateHandler(ccs, &fakeWalletSigner{}, testEconomy)
 
 	return testNeedConfig{
 		ccs,
@@ -168,111 +167,111 @@ func getTestNeedConfig() testNeedConfig{
 	}
 }
 
-func generateTestConfigAndBlocks() (config testNeedConfig,normalBlock model.AbstractBlock,proposal verifiers_halt_check.ProposalMsg, err error){
+func generateTestConfigAndBlocks() (config testNeedConfig, normalBlock model.AbstractBlock, proposal verifiers_halt_check.ProposalMsg, err error) {
 	testConf := getTestNeedConfig()
 
 	block := testConf.Build()
 	err = testConf.SaveBlock(block, testConf.VoteBlock(4, 1, block))
-	if err !=nil {
-		return testNeedConfig{},nil,verifiers_halt_check.ProposalMsg{},err
+	if err != nil {
+		return testNeedConfig{}, nil, verifiers_halt_check.ProposalMsg{}, err
 	}
 
 	//generate empty block
-	proposalConfig,err :=testConf.GenProposalConfig(model.VerBootNodeVoteMessage)
-	if err !=nil {
-		return testNeedConfig{},nil,verifiers_halt_check.ProposalMsg{},err
+	proposalConfig, err := testConf.GenProposalConfig(model.VerBootNodeVoteMessage)
+	if err != nil {
+		return testNeedConfig{}, nil, verifiers_halt_check.ProposalMsg{}, err
 	}
 
 	haltHandler := verifiers_halt_check.NewHaltHandler(proposalConfig)
-	proposal,err = haltHandler.ProposeEmptyBlock()
-	if err !=nil {
-		return testNeedConfig{},nil,verifiers_halt_check.ProposalMsg{},err
+	proposal, err = haltHandler.ProposeEmptyBlock()
+	if err != nil {
+		return testNeedConfig{}, nil, verifiers_halt_check.ProposalMsg{}, err
 	}
 
 	testConf.SetPreBlock(testConf.CurrentBlock())
 	testConf.SetVerifivations(testConf.GetSeenCommit(testConf.CurrentBlock().Number()))
 	sameHeightBlock := testConf.Build()
 
-	return testConf,sameHeightBlock,proposal,nil
+	return testConf, sameHeightBlock, proposal, nil
 }
 
 func TestSaveEmptyBlock(t *testing.T) {
-	testConf,_,proposal,err :=generateTestConfigAndBlocks()
-	assert.NoError(t,err)
+	testConf, _, proposal, err := generateTestConfigAndBlocks()
+	assert.NoError(t, err)
 	//save empty block
-	err = testConf.SaveBlock(&proposal.EmptyBlock,model.Verifications{&proposal.VoteMsg})
-	assert.NoError(t,err)
+	err = testConf.SaveBlock(&proposal.EmptyBlock, model.Verifications{&proposal.VoteMsg})
+	assert.NoError(t, err)
 }
 
 func TestSaveSameHeightNormalBlock(t *testing.T) {
-	testConf,sameHeightBlock,proposal,err :=generateTestConfigAndBlocks()
-	assert.NoError(t,err)
+	testConf, sameHeightBlock, proposal, err := generateTestConfigAndBlocks()
+	assert.NoError(t, err)
 
 	//save empty block
-	err = testConf.SaveBlock(&proposal.EmptyBlock,model.Verifications{&proposal.VoteMsg})
-	assert.NoError(t,err)
+	err = testConf.SaveBlock(&proposal.EmptyBlock, model.Verifications{&proposal.VoteMsg})
+	assert.NoError(t, err)
 
 	//save normal block
-	err = testConf.SaveBlock(sameHeightBlock,testConf.VoteBlock(4,1,sameHeightBlock))
-	assert.Error(t,err)
+	err = testConf.SaveBlock(sameHeightBlock, testConf.VoteBlock(4, 1, sameHeightBlock))
+	assert.Error(t, err)
 }
 
-func TestSaveSameHeightEmptyBlock(t *testing.T){
-	testConf,sameHeightBlock,proposal,err :=generateTestConfigAndBlocks()
-	assert.NoError(t,err)
+func TestSaveSameHeightEmptyBlock(t *testing.T) {
+	testConf, sameHeightBlock, proposal, err := generateTestConfigAndBlocks()
+	assert.NoError(t, err)
 
 	//save normal block
-	err = testConf.SaveBlock(sameHeightBlock,testConf.VoteBlock(4,1,sameHeightBlock))
-	assert.NoError(t,err)
-	assert.Equal(t,sameHeightBlock,testConf.CurrentBlock())
+	err = testConf.SaveBlock(sameHeightBlock, testConf.VoteBlock(4, 1, sameHeightBlock))
+	assert.NoError(t, err)
+	assert.Equal(t, sameHeightBlock, testConf.CurrentBlock())
 
 	//save empty block
-	err = testConf.SaveBlock(&proposal.EmptyBlock,model.Verifications{&proposal.VoteMsg})
-	assert.NoError(t,err)
-	assert.Equal(t,&proposal.EmptyBlock,testConf.CurrentBlock())
+	err = testConf.SaveBlock(&proposal.EmptyBlock, model.Verifications{&proposal.VoteMsg})
+	assert.NoError(t, err)
+	assert.Equal(t, &proposal.EmptyBlock, testConf.CurrentBlock())
 }
 
-func TestSaveLowHeightEmptyBlock(t *testing.T){
-	testConf,sameHeightBlock,proposal,err :=generateTestConfigAndBlocks()
-	assert.NoError(t,err)
+func TestSaveLowHeightEmptyBlock(t *testing.T) {
+	testConf, sameHeightBlock, proposal, err := generateTestConfigAndBlocks()
+	assert.NoError(t, err)
 
 	//save normal block
-	err = testConf.SaveBlock(sameHeightBlock,testConf.VoteBlock(4,1,sameHeightBlock))
-	assert.NoError(t,err)
+	err = testConf.SaveBlock(sameHeightBlock, testConf.VoteBlock(4, 1, sameHeightBlock))
+	assert.NoError(t, err)
 
 	//generate and save another block
 	testConf.SetPreBlock(testConf.CurrentBlock())
 	testConf.SetVerifivations(testConf.GetSeenCommit(testConf.CurrentBlock().Number()))
 	newHeightBlock := testConf.Build()
-	err = testConf.SaveBlock(newHeightBlock,testConf.VoteBlock(4,1,newHeightBlock))
-	assert.NoError(t,err)
-	assert.Equal(t,proposal.EmptyBlock.Number(),testConf.CurrentBlock().Number()-1)
+	err = testConf.SaveBlock(newHeightBlock, testConf.VoteBlock(4, 1, newHeightBlock))
+	assert.NoError(t, err)
+	assert.Equal(t, proposal.EmptyBlock.Number(), testConf.CurrentBlock().Number()-1)
 
 	//save empty block with low height
-	err = testConf.SaveBlock(&proposal.EmptyBlock,model.Verifications{&proposal.VoteMsg})
-	assert.Error(t,err)
+	err = testConf.SaveBlock(&proposal.EmptyBlock, model.Verifications{&proposal.VoteMsg})
+	assert.Error(t, err)
 }
 
-func TestSaveInvalidDifficultyBlock(t *testing.T){
-	testConf,sameHeightBlock,_,err :=generateTestConfigAndBlocks()
-	assert.NoError(t,err)
+func TestSaveInvalidDifficultyBlock(t *testing.T) {
+	testConf, sameHeightBlock, _, err := generateTestConfigAndBlocks()
+	assert.NoError(t, err)
 
 	block := reflect.ValueOf(sameHeightBlock)
 	param := []reflect.Value{
 		reflect.ValueOf(common.Difficulty{}),
 	}
 
-	log.Info("the block method number is:","number",block.NumMethod())
-	for i:=0;i<block.NumMethod();i++{
-		log.Info("the method is:","method",block.Method(i))
+	log.Info("the block method number is:", "number", block.NumMethod())
+	for i := 0; i < block.NumMethod(); i++ {
+		log.Info("the method is:", "method", block.Method(i))
 	}
 	block.MethodByName("SetDifficulty").Call(param)
 	sameHeightBlock.RefreshHashCache()
 
-	log.Info("the mockBlock diff is:","diff",sameHeightBlock.Difficulty().Hex())
-	err = testConf.SaveBlock(sameHeightBlock,sameHeightBlock.GetVerifications())
-	log.Info("the err is:","err",err)
-	assert.Equal(t,g_error.ErrInvalidDiff,err)
+	log.Info("the mockBlock diff is:", "diff", sameHeightBlock.Difficulty().Hex())
+	err = testConf.SaveBlock(sameHeightBlock, sameHeightBlock.GetVerifications())
+	log.Info("the err is:", "err", err)
+	assert.Equal(t, g_error.ErrInvalidDiff, err)
 }
 
 func TestSaveInvalidTimeStampBlock(t *testing.T) {
@@ -291,12 +290,11 @@ func TestSaveInvalidTimeStampBlock(t *testing.T) {
 	sameHeightBlock.RefreshHashCache()
 
 	err = testConf.SaveBlock(sameHeightBlock, sameHeightBlock.GetVerifications())
-	assert.Equal(t,g_error.ErrBlockTimeStamp,err)
+	assert.Equal(t, g_error.ErrBlockTimeStamp, err)
 }
 
-
 //debug dipperIn-core
-func TestSystemBug(t *testing.T){
+func TestSystemBug(t *testing.T) {
 	t.Skip()
 	vb2 := "/home/qydev/yc/debug/err-log-20190329/b2Data"
 	vb2ChainState := chain_state.NewChainState(&chain_state.ChainStateConfig{
@@ -306,16 +304,16 @@ func TestSystemBug(t *testing.T){
 	})
 
 	currentBlock := vb2ChainState.CurrentBlock()
-	log.Info("the vb2 currentBlock is:","number",currentBlock.Number())
-	testBlock:=vb2ChainState.GetBlockByNumber(13867)
-	log.Info("the vb2 13867 block info is:","id",testBlock.Hash().Hex(),"preHash",testBlock.PreHash().Hex())
-	log.Info("the vb2 13866 block info is:","id",vb2ChainState.GetBlockByNumber(13866).Hash().Hex())
+	log.Info("the vb2 currentBlock is:", "number", currentBlock.Number())
+	testBlock := vb2ChainState.GetBlockByNumber(13867)
+	log.Info("the vb2 13867 block info is:", "id", testBlock.Hash().Hex(), "preHash", testBlock.PreHash().Hex())
+	log.Info("the vb2 13866 block info is:", "id", vb2ChainState.GetBlockByNumber(13866).Hash().Hex())
 
-	blockHash ,err:= hexutil.Decode("0x000000e9cd7031841cdbef5465b80a04b18f00e49278e56588a4a541092046d8")
-	assert.NoError(t,err)
+	blockHash, err := hexutil.Decode("0x000000e9cd7031841cdbef5465b80a04b18f00e49278e56588a4a541092046d8")
+	assert.NoError(t, err)
 	errBlock := vb2ChainState.GetBlockByHash(common.BytesToHash(blockHash))
-	assert.NotEqual(t,nil,errBlock)
-	log.Info("the errBlock number is:","errBlockNumber",errBlock.Number())
+	assert.NotEqual(t, nil, errBlock)
+	log.Info("the errBlock number is:", "errBlockNumber", errBlock.Number())
 
 	log.Info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
@@ -327,24 +325,14 @@ func TestSystemBug(t *testing.T){
 	})
 
 	currentBlock2 := v1ChainState.CurrentBlock()
-	log.Info("the v1 currentBlock is:","number",currentBlock2.Number())
-	testBlock2:=vb2ChainState.GetBlockByNumber(13866)
-	log.Info("the v1 block 13866 blockHash is:","blockHash",testBlock2.Hash().Hex())
-	log.Info("the correct block is:","correctBlock",testBlock2)
+	log.Info("the v1 currentBlock is:", "number", currentBlock2.Number())
+	testBlock2 := vb2ChainState.GetBlockByNumber(13866)
+	log.Info("the v1 block 13866 blockHash is:", "blockHash", testBlock2.Hash().Hex())
+	log.Info("the correct block is:", "correctBlock", testBlock2)
 
-	assert.NoError(t,err)
+	assert.NoError(t, err)
 	errBlock = v1ChainState.GetBlockByHash(common.BytesToHash(blockHash))
-	assert.NotEqual(t,nil,errBlock)
-	log.Info("the errBlock is:","errBlock",errBlock)
-	log.Info("the errBlock number is:","errBlockNumber",errBlock.Number())
+	assert.NotEqual(t, nil, errBlock)
+	log.Info("the errBlock is:", "errBlock", errBlock)
+	log.Info("the errBlock number is:", "errBlockNumber", errBlock.Number())
 }
-
-
-
-
-
-
-
-
-
-

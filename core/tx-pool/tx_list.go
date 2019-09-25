@@ -266,15 +266,12 @@ func (l *txList) Add(tx model.AbstractTransaction, feeBump uint64) (bool, model.
 	// If there's an older better transaction, abort
 	old := l.txs.Get(tx.Nonce())
 	if old != nil {
-		threshold := new(big.Int).Div(new(big.Int).Mul(old.Fee(), big.NewInt(100+int64(feeBump))), big.NewInt(100))
-		// threshold = old.Fee() * (1 + feeBump/100)
-		// Have to ensure that the new fee is higher than the fee as well as
-		// checking the percentage threshold to ensure that this is accurate
-		// for low fee replacements
-		if old.Fee().Cmp(tx.Fee()) >= 0 || threshold.Cmp(tx.Fee()) > 0 {
-			// old transaction fee is higher than current one
-			// OR
-			// the input price bump is less than price bump threshold
+		threshold := new(big.Int).Div(new(big.Int).Mul(old.GetGasPrice(), big.NewInt(100+int64(feeBump))), big.NewInt(100))
+		// Have to ensure that the new gas price is higher than the old gas
+		// price as well as checking the percentage threshold to ensure that
+		// this is accurate for low (Wei-level) gas price replacements
+		log.Info("the threshold is:", "threshold", threshold, "old", old.GetGasPrice(), "new", tx.GetGasPrice())
+		if old.GetGasPrice().Cmp(tx.GetGasPrice()) >= 0 || threshold.Cmp(tx.GetGasPrice()) > 0 {
 			return false, nil
 		}
 	}
@@ -387,7 +384,7 @@ func (h priceHeap) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
 
 func (h priceHeap) Less(i, j int) bool {
 	// Sort primarily by price, returning the cheaper one
-	switch h[i].Fee().Cmp(h[j].Fee()) {
+	switch h[i].GetGasPrice().Cmp(h[j].GetGasPrice()) {
 	case -1:
 		return true
 	case 1:
@@ -464,7 +461,7 @@ func (l *txFeeList) Cap(threshold *big.Int, local *accountSet) []model.AbstractT
 			continue
 		}
 		// Stop the discards if we've reached the threshold
-		if tx.Fee().Cmp(threshold) >= 0 {
+		if tx.GetGasPrice().Cmp(threshold) >= 0 {
 			save = append(save, tx)
 			break
 		}
@@ -504,7 +501,7 @@ func (l *txFeeList) UnderPriced(tx model.AbstractTransaction, local *accountSet)
 		return false
 	}
 	cheapest := []model.AbstractTransaction(*l.items)[0]
-	return cheapest.Fee().Cmp(tx.Fee()) >= 0
+	return cheapest.GetGasPrice().Cmp(tx.GetGasPrice()) >= 0
 }
 
 // Discard finds a number of most under feeList transactions, removes them from the

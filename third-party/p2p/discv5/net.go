@@ -26,11 +26,11 @@ import (
 
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/mclock"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p/netutil"
 	"github.com/ethereum/go-ethereum/rlp"
 	"golang.org/x/crypto/sha3"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 )
 
 var (

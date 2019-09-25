@@ -14,21 +14,20 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_communication
 
 import (
+	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"net"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
-	"crypto/ecdsa"
-	"github.com/dipperin/dipperin-core/core/accounts"
 )
 
-//go:generate mockgen -destination=./peer_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication PmAbstractPeer
+//go:generate mockgen -destination=./peer_mock_test.go -package=chain_communication -self_package=github.com/dipperin/dipperin-core/core/chain-communication github.com/dipperin/dipperin-core/core/chain-communication PmAbstractPeer
 // is responsible for sending and receiving messages
 type PmAbstractPeer interface {
 	// add node name
@@ -65,7 +64,7 @@ type PmAbstractPeer interface {
 	GetCsPeerInfo() *p2p.CsPeerInfo
 }
 
-//go:generate mockgen -destination=./peer_set_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication AbstractPeerSet
+//go:generate mockgen -destination=./peer_set_mock_test.go -self_package=github.com/dipperin/dipperin-core/core/chain-communication -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication AbstractPeerSet
 type AbstractPeerSet interface {
 	BestPeer() PmAbstractPeer
 
@@ -106,13 +105,13 @@ type TxPool interface {
 	AddLocals(txs []model.AbstractTransaction) []error
 	AddRemotes(txs []model.AbstractTransaction) []error
 	ConvertPoolToMap() map[common.Hash]model.AbstractTransaction
-	Stats() (int,int)
+	Stats() (int, int)
 	GetTxsEstimator(broadcastBloom *iblt.Bloom) *iblt.HybridEstimator
 	Pending() (map[common.Address][]model.AbstractTransaction, error)
 	Queueing() (map[common.Address][]model.AbstractTransaction, error)
 }
 
-//go:generate mockgen -destination=./pbft_node_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication PbftNode
+//go:generate mockgen -destination=./pbft_node_mock_test.go -package=chain_communication  -self_package=github.com/dipperin/dipperin-core/core/chain-communication github.com/dipperin/dipperin-core/core/chain-communication PbftNode
 type PbftNode interface {
 	OnNewWaitVerifyBlock(block model.AbstractBlock, id string)
 	OnNewMsg(msg interface{}) error
@@ -155,7 +154,7 @@ type PbftSigner interface {
 	SetBaseAddress(address common.Address)
 	SignHash(hash []byte) ([]byte, error)
 	PublicKey() *ecdsa.PublicKey
-	ValidSign(hash []byte, pubKey []byte, sign []byte) (error)
+	ValidSign(hash []byte, pubKey []byte, sign []byte) error
 	Evaluate(account accounts.Account, seed []byte) (index [32]byte, proof []byte, err error)
 }
 
@@ -166,7 +165,7 @@ type VerifiersReader interface {
 	ShouldChangeVerifier() bool
 }
 
-//go:generate mockgen -destination=./peer_manager_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication PeerManager
+//go:generate mockgen -destination=./peer_manager_mock_test.go -package=chain_communication -self_package=github.com/dipperin/dipperin-core/core/chain-communication github.com/dipperin/dipperin-core/core/chain-communication PeerManager
 type PeerManager interface {
 	GetPeers() map[string]PmAbstractPeer
 	BestPeer() PmAbstractPeer

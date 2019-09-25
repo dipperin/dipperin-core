@@ -17,15 +17,27 @@
 package state_processor
 
 import (
-	"github.com/dipperin/dipperin-core/common"
-	"math/big"
+	"bytes"
 	"crypto/ecdsa"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/dipperin/dipperin-core/third-party/trie"
 	"errors"
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/core/vm"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/third-party/trie"
+	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"math/big"
+	"strings"
+	"testing"
+	"time"
 )
 
 var (
@@ -37,7 +49,9 @@ var (
 	charlieAddr = common.HexToAddress("0x00007dbbf084F4a6CcC070568f7674d4c2CE8CD2709E")
 
 	TrieError = errors.New("trie error")
-	TxError   = errors.New("tx error")
+
+	testGasPrice = g_testData.TestGasPrice
+	testGasLimit = g_testData.TestGasLimit * 100
 )
 
 func createKey() (*ecdsa.PrivateKey, *ecdsa.PrivateKey) {
@@ -49,35 +63,68 @@ func createKey() (*ecdsa.PrivateKey, *ecdsa.PrivateKey) {
 	return key1, key2
 }
 
-func createTestTx() (*model.Transaction, *model.Transaction) {
-	key1, key2 := createKey()
-	fs1 := model.NewMercurySigner(big.NewInt(1))
-	fs2 := model.NewMercurySigner(big.NewInt(3))
-	testtx1 := model.NewTransaction(0, bobAddr, big.NewInt(200), big.NewInt(10), []byte{})
-	testtx1.SignTx(key1, fs1)
-	testtx2 := model.NewTransaction(0, aliceAddr, big.NewInt(10), big.NewInt(10), []byte{})
-	testtx2.SignTx(key2, fs2)
-	return testtx1, testtx2
+func createContractTx(code, abi string, nonce, gasLimit uint64) *model.Transaction {
+	key, _ := createKey()
+	fs := model.NewSigner(big.NewInt(1))
+	data := getContractCode(code, abi)
+	to := common.HexToAddress(common.AddressContractCreate)
+	tx := model.NewTransaction(nonce, to, big.NewInt(2000000), testGasPrice, gasLimit, data)
+	tx.SignTx(key, fs)
+	return tx
 }
 
-func createTestStateDB() (ethdb.Database, common.Hash) {
+func callContractTx(to *common.Address, funcName string, param [][]byte, nonce uint64) *model.Transaction {
+	key, _ := createKey()
+	fs := model.NewSigner(big.NewInt(1))
+	data := getContractInput(funcName, param)
+	tx := model.NewTransaction(nonce, *to, big.NewInt(2000000), testGasPrice, testGasLimit, data)
+	tx.SignTx(key, fs)
+	return tx
+}
+
+func CreateBlock(num uint64, preHash common.Hash, txList []*model.Transaction, limit uint64) *model.Block {
+	header := model.NewHeader(1, num, preHash, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), bobAddr, common.BlockNonce{})
+
+	// vote
+	var voteList []model.AbstractVerification
+	header.GasLimit = limit
+	block := model.NewBlock(header, txList, voteList)
+
+	// calculate block nonce
+	model.CalNonce(block)
+	block.RefreshHashCache()
+	return block
+}
+
+func CreateTestStateDB() (ethdb.Database, common.Hash) {
 	db := ethdb.NewMemDatabase()
 
 	//todo The new method does not take the tree from the underlying database
 	tdb := NewStateStorageWithCache(db)
 	processor, _ := NewAccountStateDB(common.Hash{}, tdb)
-
 	processor.NewAccountState(aliceAddr)
-	processor.AddBalance(aliceAddr, big.NewInt(5000))
-	processor.SetVerifyNum(aliceAddr, 7)
-	processor.setCommitNum(aliceAddr, 5)
-
-	tx1, _ := createTestTx()
-	processor.ProcessTx(tx1, 0)
+	processor.NewAccountState(bobAddr)
+	processor.AddBalance(aliceAddr, big.NewInt(9e6))
 
 	root, _ := processor.Commit()
 	tdb.TrieDB().Commit(root, false)
 	return db, root
+}
+
+func createStateProcessor(t *testing.T) *AccountStateDB {
+	db, root := CreateTestStateDB()
+	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
+	aliceOriginalStake, _ := processor.GetStake(aliceAddr)
+	aliceOriginalBalance, _ := processor.GetBalance(aliceAddr)
+	aliceOriginalNonce, _ := processor.GetNonce(aliceAddr)
+	aliceOriginalLastElect, _ := processor.GetLastElect(aliceAddr)
+	processor.newAccountState(bobAddr)
+
+	assert.EqualValues(t, big.NewInt(0), aliceOriginalStake)
+	assert.EqualValues(t, big.NewInt(9000000), aliceOriginalBalance)
+	assert.EqualValues(t, uint64(0), aliceOriginalNonce)
+	assert.EqualValues(t, uint64(0), aliceOriginalLastElect)
+	return processor
 }
 
 func createSignedVote(num uint64, blockId common.Hash, voteType model.VoteMsgType, testPriv string, address common.Address) *model.VoteMsg {
@@ -90,31 +137,136 @@ func createSignedVote(num uint64, blockId common.Hash, voteType model.VoteMsgTyp
 	return voteA
 }
 
+func getTestVm(db ethdb.Database, root common.Hash) *vm.VM {
+	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
+	state := NewFullState(processor)
+	return vm.NewVM(vm.Context{
+		BlockNumber: big.NewInt(1),
+		CanTransfer: vm.CanTransfer,
+		Transfer:    vm.Transfer,
+		GasLimit:    model2.TxGas,
+		GetHash:     getTestHashFunc(),
+	}, state, vm.DEFAULT_VM_CONFIG)
+}
+
+func getTestHashFunc() func(num uint64) common.Hash {
+	return func(num uint64) common.Hash {
+		return common.Hash{}
+	}
+}
+
+func getContractCode(code, abi string) []byte {
+	fileCode, err := ioutil.ReadFile(code)
+	if err != nil {
+		log.Error("Read code failed", "err", err)
+		return nil
+	}
+
+	fileABI, err := ioutil.ReadFile(abi)
+	if err != nil {
+		log.Error("Read abi failed", "err", err)
+		return nil
+	}
+
+	var input [][]byte
+	input = make([][]byte, 0)
+	// code
+	input = append(input, fileCode)
+	// abi
+	input = append(input, fileABI)
+	// params
+
+	buffer := new(bytes.Buffer)
+	if err = rlp.Encode(buffer, input); err != nil {
+		log.Error("RLP encode failed", "err", err)
+		return nil
+	}
+	return buffer.Bytes()
+}
+
+func getContractInput(funcName string, param [][]byte) []byte {
+	var input [][]byte
+	input = make([][]byte, 0)
+	// func name
+	input = append(input, []byte(funcName))
+	// func parameter
+	for _, v := range param {
+		input = append(input, v)
+	}
+
+	buffer := new(bytes.Buffer)
+	if err := rlp.Encode(buffer, input); err != nil {
+		log.Error("RLP encode failed", "err", err)
+		return nil
+	}
+	return buffer.Bytes()
+}
+
+// get Contract data
+func getCreateExtraData(wasmPath, abiPath string, params []string) (extraData []byte, err error) {
+	// GetContractExtraData
+	abiBytes, err := ioutil.ReadFile(abiPath)
+	if err != nil {
+		return
+	}
+	var wasmAbi utils.WasmAbi
+	err = wasmAbi.FromJson(abiBytes)
+	if err != nil {
+		return
+	}
+	var args []utils.InputParam
+	for _, v := range wasmAbi.AbiArr {
+		if strings.EqualFold("init", v.Name) && strings.EqualFold(v.Type, "function") {
+			args = v.Inputs
+		}
+	}
+	//params := []string{"dipp", "DIPP", "100000000"}
+	wasmBytes, err := ioutil.ReadFile(wasmPath)
+	if err != nil {
+		return
+	}
+	rlpParams := []interface{}{
+		wasmBytes, abiBytes,
+	}
+	if len(params) != len(args) {
+		return nil, errors.New("vm_utils: length of input and abi not match")
+	}
+	for i, v := range args {
+		bts := params[i]
+		re, innerErr := utils.StringConverter(bts, v.Type)
+		if innerErr != nil {
+			return nil, innerErr
+		}
+		rlpParams = append(rlpParams, re)
+	}
+	return rlp.EncodeToBytes(rlpParams)
+}
+
 //Get a test transaction
 func getTestRegisterTransaction(nonce uint64, key *ecdsa.PrivateKey, amount *big.Int) *model.Transaction {
-	trans := model.NewRegisterTransaction(nonce, amount, big.NewInt(40))
-	fs := model.NewMercurySigner(big.NewInt(1))
+	trans := model.NewRegisterTransaction(nonce, amount, g_testData.TestGasPrice, g_testData.TestGasLimit)
+	fs := model.NewSigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(key, fs)
 	return signedTx
 }
 
 func getTestCancelTransaction(nonce uint64, key *ecdsa.PrivateKey) *model.Transaction {
-	trans := model.NewCancelTransaction(nonce, big.NewInt(40))
-	fs := model.NewMercurySigner(big.NewInt(1))
+	trans := model.NewCancelTransaction(nonce, g_testData.TestGasPrice, g_testData.TestGasLimit)
+	fs := model.NewSigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(key, fs)
 	return signedTx
 }
 
 func getTestUnStakeTransaction(nonce uint64, key *ecdsa.PrivateKey) *model.Transaction {
-	trans := model.NewUnStakeTransaction(nonce, big.NewInt(40))
-	fs := model.NewMercurySigner(big.NewInt(1))
+	trans := model.NewUnStakeTransaction(nonce, g_testData.TestGasPrice, g_testData.TestGasLimit)
+	fs := model.NewSigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(key, fs)
 	return signedTx
 }
 
 func getTestEvidenceTransaction(nonce uint64, key *ecdsa.PrivateKey, target common.Address, voteA, voteB *model.VoteMsg) *model.Transaction {
-	trans := model.NewEvidenceTransaction(nonce, big.NewInt(40), &target, voteA, voteB)
-	fs := model.NewMercurySigner(big.NewInt(1))
+	trans := model.NewEvidenceTransaction(nonce, g_testData.TestGasPrice, g_testData.TestGasLimit, &target, voteA, voteB)
+	fs := model.NewSigner(big.NewInt(1))
 	signedTx, _ := trans.SignTx(key, fs)
 	return signedTx
 }
@@ -211,14 +363,42 @@ type erc20 struct {
 }
 
 type fakeTransaction struct {
-	txType common.TxType
-	nonce  uint64
+	txType *common.TxType
+	nonce  *uint64
 	err    error
 	sender common.Address
 }
 
+func (tx fakeTransaction) PaddingReceipt(parameters model.ReceiptPara) {
+	return
+}
+
+func (tx fakeTransaction) PaddingActualTxFee(fee *big.Int) {
+	return
+}
+
+func (tx fakeTransaction) GetReceipt() *model2.Receipt {
+	panic("implement me")
+}
+
+func (tx fakeTransaction) GetActualTxFee() (fee *big.Int) {
+	panic("implement me")
+}
+
+func (tx fakeTransaction) GetGasLimit() uint64 {
+	return g_testData.TestGasLimit
+}
+
+func (tx fakeTransaction) AsMessage(checkNonce bool) (model.Message, error) {
+	panic("implement me")
+}
+
 func (tx fakeTransaction) Size() common.StorageSize {
 	panic("implement me")
+}
+
+func (tx fakeTransaction) GetGasPrice() *big.Int {
+	return g_testData.TestGasPrice
 }
 
 func (tx fakeTransaction) Amount() *big.Int {
@@ -229,16 +409,33 @@ func (tx fakeTransaction) CalTxId() common.Hash {
 	return common.HexToHash("123")
 }
 
-func (tx fakeTransaction) Fee() *big.Int {
-	return big.NewInt(40)
-}
-
 func (tx fakeTransaction) Nonce() uint64 {
-	return tx.nonce
+	if tx.nonce == nil {
+		return uint64(0)
+	}
+	return *tx.nonce
 }
 
 func (tx fakeTransaction) To() *common.Address {
-	return &bobAddr
+	if tx.txType == nil {
+		return &bobAddr
+	}
+	switch *tx.txType {
+	case common.AddressTypeStake:
+		addr := common.HexToAddress(common.AddressStake)
+		return &addr
+	case common.AddressTypeUnStake:
+		addr := common.HexToAddress(common.AddressUnStake)
+		return &addr
+	case common.AddressTypeCancel:
+		addr := common.HexToAddress(common.AddressCancel)
+		return &addr
+	case common.AddressTypeEvidence:
+		addr := common.HexToAddress("0x0005970e8128aB834E8EAC17aB8E3812f010678CF791")
+		return &addr
+	default:
+		return &bobAddr
+	}
 }
 
 func (tx fakeTransaction) Sender(singer model.Signer) (common.Address, error) {
@@ -258,7 +455,7 @@ func (tx fakeTransaction) GetSigner() model.Signer {
 }
 
 func (tx fakeTransaction) GetType() common.TxType {
-	return tx.txType
+	return *tx.txType
 }
 
 func (tx fakeTransaction) ExtraData() []byte {

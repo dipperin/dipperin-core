@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package cs_chain
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/chaindb"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
@@ -26,7 +26,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/dipperin/dipperin-core/core/chain"
 )
 
 type BftChainState interface {
@@ -72,7 +71,7 @@ type StateReader interface {
 
 type VerifierHelper interface {
 	CurrentSeed() (common.Hash, uint64)
-	IsChangePoint(block model.AbstractBlock,isProcessPackageBlock bool) bool
+	IsChangePoint(block model.AbstractBlock, isProcessPackageBlock bool) bool
 	GetLastChangePoint(block model.AbstractBlock) *uint64
 	GetSlotByNum(num uint64) *uint64
 	GetSlot(block model.AbstractBlock) *uint64

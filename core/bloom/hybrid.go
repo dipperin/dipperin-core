@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package iblt
 
 import (
@@ -119,7 +118,6 @@ func (e *HybridEstimator) Decode(r *HybridEstimator) uint {
 
 	// Calculate the difference between the two strata
 	s := e.strata.DecodeData(r.strata)
-
 
 	countFactor := float32(1)
 	if s > 100 {

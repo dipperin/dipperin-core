@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_communication
 
 import (
@@ -24,7 +23,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pm_log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/hashicorp/golang-lru"
 	"math"
@@ -188,7 +186,6 @@ func (broadcaster *NewTxBroadcaster) send2MinerMaster(txs []model.AbstractTransa
 func (broadcaster *NewTxBroadcaster) getPeersWithoutTx(txHash common.Hash) []PmAbstractPeer {
 	// get peers
 	peers := broadcaster.Pm.GetPeers()
-
 
 	var list []PmAbstractPeer
 
@@ -359,7 +356,7 @@ func (r *txReceiver) asyncSendTxs(txs []model.AbstractTransaction) {
 		//for _, tx := range txs {
 		//	r.knownTxs.Add(tx.CalTxId())
 		//}
-		pm_log.Info("asyncSendTxs finished", "p", r.peerName)
+		log.Pm.Info("asyncSendTxs finished", "p", r.peerName)
 	default:
 		log.Info("Dropping transaction propagation", "count", len(txs))
 	}
@@ -375,7 +372,7 @@ func (r *txReceiver) broadcast(getPeer getPeerFunc) error {
 		case txs := <-r.queuedTxs:
 			if err := r.sendTxs(txs, getPeer); err != nil {
 				log.Error("send txs err", "peer id", r.peerName, "err", err)
-				pm_log.Info("send txs to peer", "n", r.peerName)
+				log.Pm.Info("send txs to peer", "n", r.peerName)
 				return err
 			}
 		case <-timer.C:

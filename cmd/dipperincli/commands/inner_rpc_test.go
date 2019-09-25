@@ -25,19 +25,22 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
+	"os"
 )
 
 func Test_rpcCaller_GetBlockDiffVerifierInfo(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	app := cli.NewApp()
-
-	app.Flags = []cli.Flag{
-		cli.StringFlag{Name: "m", Usage: "operation"},
-		cli.StringFlag{Name: "p", Usage: "parameters"},
+	app := getRpcTestApp()
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		SyncStatus.Store(true)
+		c.GetBlockDiffVerifierInfo(context)
 	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 
 	app.Action = func(c *cli.Context) {
 		client = NewMockRpcClient(ctrl)
@@ -54,7 +57,6 @@ func Test_rpcCaller_GetBlockDiffVerifierInfo(t *testing.T) {
 		SyncStatus.Store(true)
 		caller.GetBlockDiffVerifierInfo(c)
 
-		c.Set("m", "test")
 		c.Set("p", "")
 		caller.GetBlockDiffVerifierInfo(c)
 
@@ -72,8 +74,7 @@ func Test_rpcCaller_GetBlockDiffVerifierInfo(t *testing.T) {
 		caller.GetBlockDiffVerifierInfo(c)
 
 	}
-
-	app.Run([]string{"xxx"})
+	assert.NoError(t, app.Run([]string{os.Args[0], "GetBlockDiffVerifierInfo"}))
 	client = nil
 }
 
@@ -85,12 +86,13 @@ func Test_rpcCaller_CheckVerifierType(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	app := cli.NewApp()
-
-	app.Flags = []cli.Flag{
-		cli.StringFlag{Name: "m", Usage: "operation"},
-		cli.StringFlag{Name: "p", Usage: "parameters"},
+	app := getRpcTestApp()
+	app.Action = func(context *cli.Context) {
+		c := &rpcCaller{}
+		SyncStatus.Store(true)
+		c.CheckVerifierType(context)
 	}
+	assert.NoError(t, app.Run([]string{os.Args[0]}))
 
 	app.Action = func(c *cli.Context) {
 		client = NewMockRpcClient(ctrl)
@@ -107,7 +109,6 @@ func Test_rpcCaller_CheckVerifierType(t *testing.T) {
 		SyncStatus.Store(true)
 		caller.CheckVerifierType(c)
 
-		c.Set("m", "test")
 		c.Set("p", "")
 		caller.CheckVerifierType(c)
 
@@ -147,7 +148,6 @@ func Test_rpcCaller_CheckVerifierType(t *testing.T) {
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), getDipperinRpcMethodByName("GetBlockDiffVerifierInfo"), gomock.Any()).Return(nil).Times(1)
 		caller.CheckVerifierType(c)
 	}
-
-	app.Run([]string{"xxx"})
+	assert.NoError(t, app.Run([]string{os.Args[0], "CheckVerifierType"}))
 	client = nil
 }

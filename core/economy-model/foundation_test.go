@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package economy_model
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"math/big"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
 )
 
 var testPortion = map[int]int64{
@@ -83,7 +82,7 @@ func TestDipperinEconomyModel_GetVerifierEDIPReward(t *testing.T) {
 			testReward.Div(testReward, big.NewInt(10))
 			testReward.Div(testReward, big.NewInt(consts.DIP))
 
-			log.Info("the reward is:", "type",key,"value", value)
+			log.Info("the reward is:", "type", key, "value", value)
 			assert.EqualValues(t, testReward, value)
 		}
 

@@ -17,10 +17,10 @@
 package chain_config
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"fmt"
 	"encoding/hex"
+	"fmt"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestNewMercuryVBoots(t *testing.T) {
@@ -30,6 +30,9 @@ func TestNewMercuryVBoots(t *testing.T) {
 
 func TestMercuryVBoots(t *testing.T) {
 	node := mercuryVBoots()
+	fmt.Println(node)
+
+	node = venusVBoots()
 	fmt.Println(node)
 }
 

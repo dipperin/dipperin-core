@@ -4,6 +4,8 @@
 *.dll
 *.so
 *.dylib
+*.a
+*.o
 
 # Test binary, build with `go test -c`
 *.test
@@ -32,3 +34,8 @@ transaction.rlp.new
 bt_test_k
 t_log
 state_machine
+
+core/vm/resolver/builtins/build
+
+dipperin-darwin-10.6-amd64
+dipperin-linux-amd64

@@ -37,7 +37,6 @@ func TestRoundStepType_String(t *testing.T) {
 	}
 }
 
-
 func TestRoundStepType_String2(t *testing.T) {
 	n := RoundStepType(-1)
 	n.String()

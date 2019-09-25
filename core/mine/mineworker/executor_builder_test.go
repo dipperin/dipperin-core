@@ -42,7 +42,6 @@ func Test_defaultExecutorBuilder_CreateExecutor(t *testing.T) {
 
 	assert.Error(t, err)
 
-
 	wm2 := localWorkMsg{
 		code: minemsg.NewDefaultWorkMsg,
 		work: &minemsg.DefaultWork{BlockHeader: model.Header{Bloom: iblt.NewBloom(iblt.NewBloomConfig(1<<12, 4))}},

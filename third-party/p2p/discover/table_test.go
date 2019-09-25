@@ -27,9 +27,9 @@ import (
 	"testing/quick"
 	"time"
 
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enr"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 )
 
 func TestTable_pingReplace(t *testing.T) {

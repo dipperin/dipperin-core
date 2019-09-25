@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_communication
 
 import (
@@ -27,7 +26,7 @@ func MakeDefaultMsgDecoder() *defaultMsgDecoder {
 	return &defaultMsgDecoder{}
 }
 
-type defaultMsgDecoder struct {}
+type defaultMsgDecoder struct{}
 
 func (decoder *defaultMsgDecoder) DecoderBlockMsg(msg p2p.Msg) (model.AbstractBlock, error) {
 	var block model.Block
@@ -55,4 +54,3 @@ func (decoder *defaultMsgDecoder) DecodeTxsMsg(msg p2p.Msg) (result []model.Abst
 	util.InterfaceSliceCopy(result, txs)
 	return
 }
-

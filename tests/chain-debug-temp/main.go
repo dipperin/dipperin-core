@@ -14,22 +14,21 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package main
 
 import (
+	"fmt"
+	"github.com/dipperin/dipperin-core/core/chain"
+	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"github.com/dipperin/dipperin-core/core/contract"
+	"github.com/dipperin/dipperin-core/core/cs-chain"
+	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/urfave/cli"
 	"os"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
-	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/contract"
-	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"reflect"
-	"github.com/dipperin/dipperin-core/core/cs-chain"
-	"github.com/dipperin/dipperin-core/core/chain"
 )
 
 const (
@@ -39,7 +38,7 @@ const (
 func main() {
 	app := cli.NewApp()
 	app.Flags = []cli.Flag{
-		cli.StringFlag{ Name: DataDirFName, Value: "/home/qydev/csdebug/full_chain_data" },
+		cli.StringFlag{Name: DataDirFName, Value: "/home/qydev/csdebug/full_chain_data"},
 	}
 	app.Action = run
 	fmt.Println(os.Args)
@@ -65,7 +64,6 @@ func run(c *cli.Context) {
 	}
 	fmt.Println(cb.Interface())
 }
-
 
 func initContext(c *cli.Context) *nodeContext {
 	dataDir := c.String(DataDirFName)

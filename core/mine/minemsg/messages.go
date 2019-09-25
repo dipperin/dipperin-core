@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package minemsg
 
 import (
 	"encoding/binary"
-	"fmt"
 	"errors"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
@@ -93,5 +92,3 @@ func (work *DefaultWork) Split(count int) (result []*DefaultWork) {
 	}
 	return
 }
-
-

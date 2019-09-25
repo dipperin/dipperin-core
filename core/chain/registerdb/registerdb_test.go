@@ -20,18 +20,19 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
-	"github.com/dipperin/dipperin-core/tests/factory"
 	"github.com/dipperin/dipperin-core/core/model"
-	"math/big"
+	"github.com/dipperin/dipperin-core/tests/factory"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/trie"
+	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
+	"time"
 
-	"errors"
 	"bytes"
+	"errors"
 )
 
 var (
@@ -272,12 +273,12 @@ func TestRegisterDB_Error(t *testing.T) {
 	assert.Error(t, err)
 
 	// insert the block that contain error transaction
-	tx1 = model.NewRegisterTransaction(0, big.NewInt(10000), big.NewInt(10000))
+	tx1 = model.NewRegisterTransaction(0, big.NewInt(10000), g_testData.TestGasPrice, g_testData.TestGasLimit)
 	block = createBlock(2, []*model.Transaction{tx1})
 	err = registerDB.Process(block)
 	assert.Error(t, err)
 
-	tx2 = model.NewCancelTransaction(0, big.NewInt(10000))
+	tx2 = model.NewCancelTransaction(0, g_testData.TestGasPrice, g_testData.TestGasLimit)
 	block = createBlock(2, []*model.Transaction{tx2})
 	err = registerDB.Process(block)
 	assert.Error(t, err)
@@ -329,16 +330,16 @@ func createBlock(number uint64, txs []*model.Transaction) *model.Block {
 }
 
 func createRegisterTX(nonce uint64, amount *big.Int) *model.Transaction {
-	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewRegisterTransaction(nonce, amount, big.NewInt(10000))
+	fs1 := model.NewSigner(big.NewInt(1))
+	tx := model.NewRegisterTransaction(nonce, amount, g_testData.TestGasPrice, g_testData.TestGasLimit)
 	key, _ := crypto.HexToECDSA(alicePriv)
 	signedTx, _ := tx.SignTx(key, fs1)
 	return signedTx
 }
 
 func createCannelTX(nonce uint64) *model.Transaction {
-	fs1 := model.NewMercurySigner(big.NewInt(1))
-	tx := model.NewCancelTransaction(nonce, big.NewInt(10000))
+	fs1 := model.NewSigner(big.NewInt(1))
+	tx := model.NewCancelTransaction(nonce, g_testData.TestGasPrice, g_testData.TestGasLimit)
 	key, _ := crypto.HexToECDSA(alicePriv)
 	signedTx, _ := tx.SignTx(key, fs1)
 	return signedTx

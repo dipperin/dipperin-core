@@ -574,4 +574,3 @@ func Test_blockReceiver_sendVerifyResultHash(t *testing.T) {
 	err := receiver.sendVerifyResultHash(verifierBlock, getPeer)
 	assert.Error(t, err)
 }
-

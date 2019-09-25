@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package mineworker
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestDefaultWorker_SetCoinbaseAddress(t *testing.T) {

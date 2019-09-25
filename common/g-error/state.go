@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package g_error
 
 import "errors"
 
 var (
-	AccountNotExist    = errors.New("account does not exist")
-	BalanceNegErr      = errors.New("balance can not be negtive")
-	NotHavePreBlockErr = errors.New("not have pre block")
-	UnknownTxTypeErr   = errors.New("unknown tx type")
+	AccountNotExist           = errors.New("account does not exist")
+	BalanceNegErr             = errors.New("balance can not be negtive")
+	NotHavePreBlockErr        = errors.New("not have pre block")
+	UnknownTxTypeErr          = errors.New("unknown tx type")
 	InvalidVerifierAddressErr = errors.New("invalid verifier address")
 	InvalidCoinBaseAddressErr = errors.New("invalid coinBase address")
+	ErrNonceTooHigh           = errors.New("nonce too high")
+	ErrNonceTooLow            = errors.New("nonce too low")
+	ErrGasLimitReached        = errors.New("gas limit reached")
+	ErrTxGasIsOverRanging     = errors.New("the tx gas is over-ranging ")
+	ErrGasUsedIsInvalid       = errors.New("the gasUsed is invalid in the block header")
 )

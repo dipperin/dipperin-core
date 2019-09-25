@@ -17,11 +17,11 @@
 package model
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"regexp"
 	"fmt"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/stretchr/testify/assert"
+	"regexp"
+	"testing"
 )
 
 //Size, GetIndex, SetIndex, String
@@ -30,7 +30,7 @@ func TestBitArray_Nil(t *testing.T) {
 	ba.Size()
 	ba.String()
 	ba.GetIndex(1)
-	ba.SetIndex(0,true)
+	ba.SetIndex(0, true)
 	ba1 := ba.Copy()
 	assert.Equal(t, ba, ba1)
 }
@@ -42,13 +42,12 @@ func TestBitArray_NotNil(t *testing.T) {
 	ba.String()
 	ba.GetIndex(1)
 	ba.GetIndex(6)
-	ba.SetIndex(4,true)
-	ba.SetIndex(4,false)
-	ba.SetIndex(6,true)
+	ba.SetIndex(4, true)
+	ba.SetIndex(4, false)
+	ba.SetIndex(6, true)
 	ba1 := ba.Copy()
 	assert.Equal(t, ba, ba1)
 }
-
 
 func TestBitArray_stringIndented2(t *testing.T) {
 	ba := NewBitArray(100)
@@ -56,10 +55,6 @@ func TestBitArray_stringIndented2(t *testing.T) {
 	ba.String()
 
 }
-
-
-
-
 
 //Or, And, Not
 func TestBitArray_Nil2(t *testing.T) {
@@ -71,7 +66,6 @@ func TestBitArray_Nil2(t *testing.T) {
 	ba.Not()
 	ba.Sub(ba)
 }
-
 
 func TestBitArray_NotNil2(t *testing.T) {
 	ba := NewBitArray(5)
@@ -87,7 +81,6 @@ func TestBitArray_NotNil2(t *testing.T) {
 	//ba.Sub(ba1)
 }
 
-
 func TestNewBitArray_IsEmpty(t *testing.T) {
 	ba := NewBitArray(0)
 	assert.Equal(t, ba.IsEmpty(), true)
@@ -96,8 +89,6 @@ func TestNewBitArray_IsEmpty(t *testing.T) {
 	ba1.Elems[0] = 12
 	assert.Equal(t, ba1.IsEmpty(), false)
 }
-
-
 
 func TestBitArray_IsFull2(t *testing.T) {
 	ba := NewBitArray(0)
@@ -108,8 +99,6 @@ func TestBitArray_IsFull2(t *testing.T) {
 	assert.Equal(t, ba1.IsFull(), false)
 }
 
-
-
 func TestBitArray_PickRandom2(t *testing.T) {
 	ba := NewBitArray(0)
 	ba.PickRandom()
@@ -117,10 +106,8 @@ func TestBitArray_PickRandom2(t *testing.T) {
 	ba.PickRandom()
 }
 
-
-
 //Byte, Update
-func  TestBitArray_Bytes2(t *testing.T) {
+func TestBitArray_Bytes2(t *testing.T) {
 	ba := NewBitArray(5)
 	ba.Bytes()
 	ba1 := NewBitArray(0)
@@ -129,15 +116,12 @@ func  TestBitArray_Bytes2(t *testing.T) {
 	ba2.Update(ba)
 }
 
-
-
 func TestBitArray_MarshalJSON2(t *testing.T) {
 	ba := NewBitArray(0)
 	ba.MarshalJSON()
 	ba1 := NewBitArray(5)
 	ba1.MarshalJSON()
 }
-
 
 func TestBitArray_UnmarshalJSON(t *testing.T) {
 	ba := NewBitArray(5)

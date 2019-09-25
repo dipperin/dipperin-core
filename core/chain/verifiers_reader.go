@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain
 
 import (
-	"sync"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"sync"
 )
 
 func MakeVerifiersReader(fullChain Chain) *VerifiersReader {
@@ -31,9 +30,8 @@ func MakeVerifiersReader(fullChain Chain) *VerifiersReader {
 
 type VerifiersReader struct {
 	fullChain Chain
-	lock sync.Mutex
+	lock      sync.Mutex
 }
-
 
 func (verifier *VerifiersReader) CurrentVerifiers() []common.Address {
 	return verifier.fullChain.GetCurrVerifiers()
@@ -70,5 +68,5 @@ func (verifier *VerifiersReader) VerifiersTotalCount() int {
 func (verifier *VerifiersReader) ShouldChangeVerifier() bool {
 	currentBlock := verifier.fullChain.CurrentBlock()
 	//If there are 10 blocks in one round then when the 9th is on the chain, the 10th should be verified by the next round of verifiers.
-	return verifier.fullChain.IsChangePoint(currentBlock,false)
+	return verifier.fullChain.IsChangePoint(currentBlock, false)
 }

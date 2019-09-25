@@ -100,9 +100,11 @@ build_ci() {
     #rm ~/go/bin/dipperin;
     cd ${monitor_path}/cmd/dipperin; go install
 
-    #rm ~/go/bin/dipperincli;
+    rm ~/go/bin/dipperincli;
+    # echo 'build dipperincli'
+    # cd ${monitor_path}/cmd/dipperincli; go install
     echo 'build dipperincli'
-    cd ${monitor_path}/cmd/dipperincli; go install
+    cd ${root}/cmd/dipperincli; go install
 
     #rm ~/go/bin/bootnode;
     echo 'build bootnode'
@@ -120,7 +122,6 @@ build_ci() {
 
 build_install() {
     echo 'build dipperin'
-
     cd ${root}/cmd/dipperin; go install
 
     echo 'build dipperincli'
@@ -144,8 +145,10 @@ cross_compile() {
     echo 'cross compile dipperin start'
     docker pull karalabe/xgo-latest
     go get github.com/karalabe/xgo
-    cd ./cmd/dipperin/
-    xgo -go 1.11.1 --targets=linux/amd64,windows/amd64,darwin/amd64 .
+    cd ~/go/src/github.com/dipperin/dipperin-core/cmd/dipperin
+
+    GOPATH=$HOME/go/ xgo -go 1.11.1 --dest=${GOPATH}/bin/ --targets=linux/amd64,windows/amd64,darwin/amd64 .
+
     echo 'cross compile dipperin end'
     ls
 }
@@ -235,7 +238,7 @@ echo "
 #                                                                                   #
 #                                                                                   #
 #                                                                                   #
-#                               Dipperin Shell Script                             #
+#                               Dipperin Shell Script                               #
 #                                                                                   #
 #                                                                                   #
 #                                                                                   #

@@ -17,10 +17,11 @@
 package model
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"bytes"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/stretchr/testify/assert"
 	"math/big"
+	"testing"
 )
 
 func TestTransaction_MarshalJSON(t *testing.T) {
@@ -58,14 +59,14 @@ func TestTransaction_UnmarshalJSON(t *testing.T) {
 }
 
 func TestTxData_MarshalJSON(t *testing.T) {
-	d := txData{Amount: big.NewInt(10), Fee: big.NewInt(10)}
+	d := txData{Amount: big.NewInt(10), Price: g_testData.TestGasPrice, GasLimit: g_testData.TestGasLimit}
 	result, err := d.MarshalJSON()
 	assert.NotNil(t, result)
 	assert.NoError(t, err)
 }
 
 func TestTxData_UnmarshalJSON(t *testing.T) {
-	d := txData{Amount: big.NewInt(10), Fee: big.NewInt(10)}
+	d := txData{Amount: big.NewInt(10), Price: g_testData.TestGasPrice, GasLimit: g_testData.TestGasLimit}
 	result, err := d.MarshalJSON()
 	assert.NotNil(t, result)
 	assert.NoError(t, err)

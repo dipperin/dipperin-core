@@ -14,20 +14,19 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package general
 
 import (
-	"testing"
-	"math/big"
-	"github.com/dipperin/dipperin-core/common/util"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
 )
 
 type header struct {
-	Num uint64 `json:"num"`
-	Msg string `json:"msg"`
+	Num   uint64 `json:"num"`
+	Msg   string `json:"msg"`
 	Extra []byte `json:"extra"`
 }
 
@@ -36,33 +35,32 @@ type body struct {
 }
 
 type transaction struct {
-	Id int `json:"id"`
+	Id     int      `json:"id"`
 	Amount *big.Int `json:"amount"`
 }
 
 type block struct {
 	Header header `json:"header"`
-	Body body `json:"body"`
+	Body   body   `json:"body"`
 }
 
 // JSON flattened into K-V form
 func TestJson2Kv(t *testing.T) {
-	b := &block {
-		Header: header {
-			Num: 1,
-			Msg: "hi",
+	b := &block{
+		Header: header{
+			Num:   1,
+			Msg:   "hi",
 			Extra: []byte("hello"),
 		},
-		Body: body {
+		Body: body{
 			Txs: []transaction{
-				{ Id: 1, Amount: big.NewInt(1321) }, { Id: 2, Amount: big.NewInt(13210) },
+				{Id: 1, Amount: big.NewInt(1321)}, {Id: 2, Amount: big.NewInt(13210)},
 			},
 		},
 	}
 	bB := util.StringifyJsonToBytes(b)
 	bStr := string(bB)
 	fmt.Println(bStr)
-
 
 	var tmp block
 	assert.NoError(t, util.ParseJsonFromBytes(bB, &tmp))

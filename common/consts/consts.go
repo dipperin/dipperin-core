@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package consts
 
 import (
@@ -22,34 +21,65 @@ import (
 )
 
 const (
-    MinAmount = 0
+	MinAmount = 0
 )
+
 var (
 	MaxAmount = big.NewInt(0).Mul(big.NewInt(1000000000000), big.NewInt(DIP))
 )
+
 // currency unit
 const (
 	// gray but other places to use
-	DIP_Units = 1
-	DIP_Thousands = 1000
-	DIP_Millions = 1000 * 1000
-	DIP = 1000 * 1000 * 1000
+	DIPUNIT  = 1
+	KDIPUNIT = 1E3
+	MDIPUNIT = 1E6
+	GDIPUNIT = 1E9
+	MDIP     = 1E12
+	UDIP     = 1E15
+	DIP      = 1E18
 )
 
 // coin digits
-const(
-	DIPDecimalBits = 9
+const (
+	UnitDecimalBits  = 0
+	KUnitDecimalBits = 3
+	MUnitDecimalBits = 6
+	GUnitDecimalBits = 9
+	MDIPDecimalBits  = 12
+	UDIPDecimalBits  = 15
+	DIPDecimalBits   = 18
 )
 
 // ninimum currency unit name
 const (
-	CoinDIPName 		 = " DIP"
+	CoinDIPName = "DIP"
+	CoinWuName  = "WU"
 )
 
 // contract name configuration
 const (
-	ERC20TypeName = "ERC20"
+	ERC20TypeName      = "ERC20"
 	EarlyTokenTypeName = "EarlyReward"
 )
 
-
+func UnitConversion(unit string) int {
+	switch unit {
+	case "WU", "wu":
+		return UnitDecimalBits
+	case "KWU", "kwu":
+		return KUnitDecimalBits
+	case "MWU", "mwu":
+		return MUnitDecimalBits
+	case "GWU", "gwu":
+		return GUnitDecimalBits
+	case "MDIP", "mdip":
+		return MDIPDecimalBits
+	case "UDIP", "udip":
+		return UDIPDecimalBits
+	case "DIP", "dip":
+		return DIPDecimalBits
+	default:
+		return -1
+	}
+}

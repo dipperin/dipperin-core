@@ -17,24 +17,28 @@
 package model
 
 import (
+	"crypto/ecdsa"
+	"errors"
 	"fmt"
-	"math/big"
-	"testing"
-	"time"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/core/bloom"
+	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
-	"crypto/ecdsa"
-	"errors"
+	"math/big"
+	"testing"
+	"time"
 )
 
 func TestBlock_GetTransactionFees(t *testing.T) {
 	block := CreateBlock(1, common.Hash{}, 10)
-	assert.Equal(t, block.GetTransactionFees(), big.NewInt(0).Mul(big.NewInt(int64(10)), big.NewInt(10000)))
+	fee := block.GetTransactionFees()
+	assert.Equal(t, big.NewInt(210000), fee)
 }
 
 func TestBlock_EncodeToIBLT(t *testing.T) {
@@ -68,7 +72,7 @@ func TestBlock_BloomFilter(t *testing.T) {
 	)
 	txs := CreateSignedTxList(aliceTxs + bobTxs + commonTxs)
 	aTxs := txs[:aliceTxs]
-	bTxs := txs[aliceTxs: bobTxs+aliceTxs]
+	bTxs := txs[aliceTxs : bobTxs+aliceTxs]
 	cTxs := txs[bobTxs+aliceTxs:]
 
 	// alice pool
@@ -123,7 +127,7 @@ func Test_RlpHash(t *testing.T) {
 	log.Info("the transactionFee is:", "transactionFee", hexutil.Encode(transactionFee.Bytes()))
 
 	data := make([]byte, 0)
-	tx := NewTransaction(uint64(testNonce), to, value, transactionFee, data)
+	tx := NewTransaction(uint64(testNonce), to, value, g_testData.TestGasPrice, g_testData.TestGasLimit, data)
 	txId, err := rlpHash([]interface{}{tx.data, from})
 	assert.NoError(t, err)
 	log.Debug("the txId is :", "txId", txId.Hex())
@@ -263,6 +267,12 @@ func TestHeader_GetPreHash(t *testing.T) {
 	assert.Equal(t, h.PreHash, result)
 }
 
+func TestHeader_GetTimeStamp(t *testing.T) {
+	h := newTestHeader()
+	result := h.GetTimeStamp()
+	assert.Equal(t, h.TimeStamp, result)
+}
+
 func TestHeader_GetInterLinkRoot(t *testing.T) {
 	h := newTestHeader()
 	result := h.GetInterLinkRoot()
@@ -323,6 +333,7 @@ func Test_rlpHash(t *testing.T) {
 func TestHeader_String(t *testing.T) {
 	h := newTestHeader()
 	str := h.String()
+	fmt.Println(str)
 	assert.NotEqual(t, 0, len(str))
 }
 
@@ -357,6 +368,16 @@ func TestBody_EncodeRlpToBytes(t *testing.T) {
 	b := newTestBody()
 	_, err := b.EncodeRlpToBytes()
 	assert.NoError(t, err)
+}
+
+func TestBlock_GasLimit(t *testing.T) {
+	block := CreateBlock(0, common.Hash{}, 1)
+	assert.Equal(t, block.Header().GetGasLimit(), block.GasLimit())
+}
+
+func TestBlock_GasUsed(t *testing.T) {
+	block := CreateBlock(0, common.Hash{}, 1)
+	assert.Equal(t, block.Header().GetGasUsed(), block.GasUsed())
 }
 
 func TestBlock_IsSpecial(t *testing.T) {
@@ -410,16 +431,17 @@ func TestBlock_GetEiBloomBlockData(t *testing.T) {
 	assert.NotNil(t, result)
 }
 
-func TestBlock_SetVerifications(t *testing.T) {
-	block := CreateBlock(0, common.Hash{}, 1)
-	block.SetVerifications([]AbstractVerification{})
-	assert.NotNil(t, block.body.Vers)
-}
-
 func TestBlock_GetVerifications(t *testing.T) {
 	block := CreateBlock(0, common.Hash{}, 1)
 	block.SetVerifications([]AbstractVerification{})
 	result := block.GetVerifications()
+	assert.NotNil(t, result)
+}
+
+func TestBlock_GetReceiptHash(t *testing.T) {
+	block := CreateBlock(0, common.Hash{}, 1)
+	block.SetReceiptHash(common.Hash{})
+	result := block.GetReceiptHash()
 	assert.NotNil(t, result)
 }
 
@@ -629,8 +651,19 @@ func TestBlock_VerificationRoot(t *testing.T) {
 
 func TestBlock_GetBloom(t *testing.T) {
 	block := CreateBlock(0, common.Hash{}, 1)
+	//block.SetBloomLog(model.BytesToBloom(common.Hex2Bytes("0x00000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000004000000000000000000000000000000000000000000000000")))
 	result := block.GetBloom()
+
 	assert.Equal(t, *block.header.Bloom, result)
+	//blockByte, err := rlp.EncodeToBytes(block)
+	//assert.NoError(t, err)
+	//block.DecodeRLP(blockByte)
+}
+
+func TestBlock_GetBloomLog(t *testing.T) {
+	//block := CreateBlock(0, common.Hash{}, 1)
+	//result := block.GetBloomLog()
+	//assert.Equal(t, block.header.BloomLogs, result)
 }
 
 func TestBlock_CoinBase(t *testing.T) {
@@ -652,16 +685,6 @@ func TestBlock_Header(t *testing.T) {
 
 	block.header = nil
 	result = block.Header()
-	assert.Nil(t, result)
-}
-
-func TestBlock_GetHeader(t *testing.T) {
-	block := CreateBlock(0, common.Hash{}, 1)
-	result := block.GetHeader()
-	assert.NotNil(t, result)
-
-	block.header = nil
-	result = block.GetHeader()
 	assert.Nil(t, result)
 }
 
@@ -727,4 +750,37 @@ func Test_blockSorter_Less(t *testing.T) {
 	sorter := blockSorter{bs, func(b1, b2 *Block) bool { return true }}
 	result := sorter.Less(0, 1)
 	assert.Equal(t, true, result)
+}
+
+func creatBlockWithAllTx(n int, t *testing.T) *Block {
+	header := NewHeader(1, 0, common.Hash{}, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), aliceAddr, common.BlockNonce{})
+
+	keyAlice, _ := CreateKey()
+	ms := NewSigner(big.NewInt(1))
+	tempTx := NewTransaction(uint64(0), bobAddr, big.NewInt(1000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
+	tempTx.SignTx(keyAlice, ms)
+	var res []*Transaction
+	for i := 0; i < n; i++ {
+		res = append(res, tempTx)
+	}
+
+	var voteList []AbstractVerification
+	voteMsg := CreateSignedVote(0, 0, common.Hash{}, VoteMessage)
+	for i := 0; i < (chain_config.GetChainConfig().VerifierNumber*2/3 + 1); i++ {
+		voteList = append(voteList, voteMsg)
+	}
+
+	return NewBlock(header, res, voteList)
+}
+
+func Test_BlockTxNumber(t *testing.T) {
+	//t.Skip()
+	maxNormalTxNumber := chain_config.BlockGasLimit / model.TxGas
+	assert.Equal(t, 160000, int(maxNormalTxNumber))
+
+	tmpBlock := creatBlockWithAllTx(int(maxNormalTxNumber), t)
+	blockByte, err := tmpBlock.EncodeRlpToBytes()
+	log.Info("the block size is:", "size", len(blockByte))
+	log.Info("the tx number is:", "txNumber", tmpBlock.Body().GetTxsSize())
+	assert.NoError(t, err)
 }

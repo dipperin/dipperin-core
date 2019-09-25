@@ -17,16 +17,16 @@
 package dipperin
 
 import (
-	"testing"
-	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
-	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
+	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
+	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
 	"github.com/dipperin/dipperin-core/tests"
+	"github.com/dipperin/dipperin-core/tests/factory"
 	"github.com/stretchr/testify/assert"
 	"os"
-	"github.com/dipperin/dipperin-core/common/util"
 	"path/filepath"
-	"github.com/dipperin/dipperin-core/tests/factory"
+	"testing"
 )
 
 func createCsChain() *chain_state.ChainState {

@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package g_metrics
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 	"time"
 )
 
@@ -59,8 +58,8 @@ func TestCreateGauge(t *testing.T) {
 }
 
 type testMeter struct {
-	name string
-	help string
+	name  string
+	help  string
 	label []string
 }
 

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
@@ -22,17 +21,15 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
+	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/bloom_log"
-	"github.com/dipperin/dipperin-core/third-party/log/witch_log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 	"sort"
-	"sync/atomic"
-	"unsafe"
-	"time"
 	"sync"
-	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"sync/atomic"
+	"time"
+	"unsafe"
 )
 
 var (
@@ -46,6 +43,7 @@ var (
 	DefaultBlockBloomConfig = iblt.NewBloomConfig(8, 4)
 	DefaultInvBloomConfig   = iblt.NewInvBloomConfig(1<<12, 4)
 	DefaultTxs              = 100
+	DefaultGasLimit         = uint64(6666666666)
 )
 
 type Header struct {
@@ -67,21 +65,40 @@ type Header struct {
 	TimeStamp *big.Int `json:"timestamp"  gencodec:"required"`
 	// the address of the miner who mined this block
 	CoinBase common.Address `json:"coinbase"  gencodec:"required"`
+	GasLimit uint64         `json:"gasLimit"         gencodec:"required"`
+	GasUsed  uint64         `json:"gasUsed"          gencodec:"required"`
 	// nonce needed to be mined by the miner
 	Nonce common.BlockNonce `json:"nonce"  gencodec:"required"`
-	//todo add bloom filter for logs or txs
+	//todo add bloom filter for Logs or txs
 	Bloom *iblt.Bloom `json:"Bloom"        gencodec:"required"`
-	// MPT trie root for transaction
+	// txs bloom
+	//BloomLogs model2.Bloom `json:"bloom_log"  gencodec:"required"`
+	// MPT trie Root for transaction
 	TransactionRoot common.Hash `json:"txs_root"   gencodec:"required"`
-	// MPT trie root for accounts state
+	// MPT trie Root for accounts state
 	//todo if we want to put normal accounts and contract accounts into different tree we can generate two MPT trie for them
 	StateRoot common.Hash `json:"state_root" gencodec:"required"`
-	// MPT trie root for committed message
+	// MPT trie Root for committed message
 	VerificationRoot common.Hash `json:"verification_root"  gencodec:"required"`
-	// MPT trie root for interlink message
+	// MPT trie Root for interlink message
 	InterlinkRoot common.Hash `json:"interlink_root"  gencodec:"required"`
-	// MPT trie root for register
+	// MPT trie Root for register
 	RegisterRoot common.Hash `json:"register_root"  gencodec:"required"`
+	//add receipt hash
+	ReceiptHash common.Hash `json:"receiptsRoot"     gencodec:"required"`
+}
+
+//func (h *Header) GetBloomLog() model2.Bloom {
+//
+//	return h.BloomLogs
+//}
+
+func (h *Header) GetGasLimit() uint64 {
+	return h.GasLimit
+}
+
+func (h *Header) GetGasUsed() uint64 {
+	return h.GasUsed
 }
 
 func (h *Header) IsEqual(header AbstractHeader) bool {
@@ -89,11 +106,13 @@ func (h *Header) IsEqual(header AbstractHeader) bool {
 }
 
 func (h *Header) CoinBaseAddress() common.Address { return h.CoinBase }
+func (h *Header) GetTimeStamp() *big.Int          { return h.TimeStamp }
 func (h *Header) GetStateRoot() common.Hash {
 	return h.StateRoot
 }
 
 func NewHeader(version uint64, num uint64, prehash common.Hash, seed common.Hash, diff common.Difficulty, time *big.Int, coinbase common.Address, nonce common.BlockNonce) *Header {
+
 	return &Header{
 		Version:   version,
 		Number:    num,
@@ -104,6 +123,10 @@ func NewHeader(version uint64, num uint64, prehash common.Hash, seed common.Hash
 		CoinBase:  coinbase,
 		Nonce:     nonce,
 		Bloom:     iblt.NewBloom(DefaultBlockBloomConfig),
+		//BloomLogs:   model2.Bloom{},
+		GasLimit:    DefaultGasLimit,
+		Proof:       []byte{},
+		MinerPubKey: []byte{},
 	}
 }
 
@@ -159,7 +182,7 @@ func (h *Header) GetProof() []byte {
 	return h.Proof
 }
 
-func (h *Header) GetMinerPubKey() (*ecdsa.PublicKey) {
+func (h *Header) GetMinerPubKey() *ecdsa.PublicKey {
 	return crypto2.ToECDSAPub(h.MinerPubKey)
 }
 
@@ -216,21 +239,23 @@ func rlpHash(x interface{}) (h common.Hash, err error) {
 
 func (h *Header) String() string {
 	return fmt.Sprintf(`Header(%s):
-[
-	Version:	        %d
-	PreHash:	        %s
-	Seed:				%s
+[	Version:	        %d
 	Number:	            %d
-	Nonce:		        %s
+	Seed:				%s
+	PreHash:	        %s
 	Difficulty:	        %s
 	TimeStamp:	        %v
-	Bloom：             %v
 	CoinBase:           %s
-	StateRoot:	        %s
+	GasLimit        	%d
+	GasUsed             %d
+	Nonce:		        %s
+	Bloom：         		%v
 	TransactionRoot:    %s
+	StateRoot:	        %s
 	VerificationRoot:   %s
 	InterlinkRoot:      %s
-]`, h.Hash().Hex(), h.Version, h.PreHash.Hex(), h.Seed.Hex(), h.Number, h.Nonce.Hex(), h.Diff.Hex(), h.TimeStamp, h.Bloom.Hex(), h.CoinBase.Hex(), h.StateRoot.Hex(), h.TransactionRoot.Hex(), h.VerificationRoot.Hex(), h.InterlinkRoot.Hex())
+	RegisterRoot     	%s
+	ReceiptHash      	%s]`, h.Hash().Hex(), h.Version, h.Number, h.Seed.Hex(), h.PreHash.Hex(), h.Diff.Hex(), h.TimeStamp, h.CoinBase.Hex(), h.GasLimit, h.GasUsed, h.Nonce.Hex(), h.Bloom.Hex(), h.TransactionRoot.Hex(), h.StateRoot.Hex(), h.VerificationRoot.Hex(), h.InterlinkRoot.Hex(), h.RegisterRoot.Hex(), h.ReceiptHash.Hex())
 }
 
 // swagger:response Body
@@ -257,8 +282,21 @@ type Block struct {
 	body   *Body
 
 	// caches
-	hash atomic.Value `json:"-"`
-	size atomic.Value `json:"-"`
+	hash     atomic.Value `json:"-"`
+	size     atomic.Value `json:"-"`
+	receipts atomic.Value `json:"-"`
+}
+
+//func (b *Block) SetBloomLog(bloom model2.Bloom) {
+//	b.header.BloomLogs = bloom
+//}
+
+func (b *Block) GasLimit() uint64 {
+	return b.header.GasLimit
+}
+
+func (b *Block) GasUsed() uint64 {
+	return b.header.GasUsed
 }
 
 func (b *Block) IsSpecial() bool {
@@ -268,11 +306,11 @@ func (b *Block) IsSpecial() bool {
 	return false
 }
 
-func (b *Block) SetDifficulty(diff common.Difficulty){
+func (b *Block) SetDifficulty(diff common.Difficulty) {
 	b.header.Diff = diff
 }
 
-func (b *Block) SetTimeStamp(timeStamp *big.Int){
+func (b *Block) SetTimeStamp(timeStamp *big.Int) {
 	b.header.TimeStamp = timeStamp
 }
 
@@ -284,6 +322,26 @@ func (b *Block) SetRegisterRoot(root common.Hash) {
 	b.header.RegisterRoot = root
 }
 
+func (b *Block) SetReceiptHash(receiptHash common.Hash) {
+	b.header.ReceiptHash = receiptHash
+}
+
+func (b *Block) GetReceiptHash() common.Hash {
+	return b.header.ReceiptHash
+}
+
+/*func (b *Block) PaddingReceipts(receipts model.Receipts){
+	b.receipts.Store(receipts)
+}
+
+func (b *Block) GetReceipts() (model.Receipts,error){
+	if r:=b.receipts.Load();r!=nil{
+		return r.(model.Receipts),nil
+	}
+
+	return nil,g_error.BlockReceiptsAreEmpty
+}*/
+
 // Get block txs bloom
 func (b *Block) GetBlockTxsBloom() *iblt.Bloom {
 	bloom := iblt.NewBloom(iblt.DeriveBloomConfig(len(b.GetTransactions())))
@@ -292,8 +350,6 @@ func (b *Block) GetBlockTxsBloom() *iblt.Bloom {
 	for _, tx := range txs {
 		bloom.Digest(tx.CalTxId().Bytes())
 	}
-	bloom_log.Info("GetBlockTxsBloom", "txs len", len(txs))
-
 	return bloom
 }
 
@@ -331,10 +387,10 @@ func (b *Block) GetEiBloomBlockData(reqEstimator *iblt.HybridEstimator) *BloomBl
 	if len(txs) > DefaultTxs {
 		fmt.Println("1")
 		// run multiple procedure
-		witch_log.Info("start MapWork")
+		log.Witch.Info("start MapWork")
 		mapWorkEstimator := newMapWorkHybridEstimator(estimator)
 		if err := RunWorkMap(mapWorkEstimator, txs); err != nil {
-			witch_log.Info("RunWorkMap by mapWorkEstimator failed", "err", err)
+			log.Witch.Info("RunWorkMap by mapWorkEstimator failed", "err", err)
 		}
 	} else {
 		for _, tx := range txs {
@@ -344,13 +400,12 @@ func (b *Block) GetEiBloomBlockData(reqEstimator *iblt.HybridEstimator) *BloomBl
 	estimatedConfig := estimator.DeriveConfig(reqEstimator)
 	bloomConfig := iblt.DeriveBloomConfig(len(b.GetTransactions()))
 	invBloom := iblt.NewGraphene(estimatedConfig, bloomConfig)
-	bloom_log.Info("GetEiBloomBlockData", "txs len", len(txs))
 	if len(txs) > DefaultTxs {
 
 		// run multiple procedure
 		mapWorkBloom := newMapWorkInvBloom(invBloom)
 		if err := RunWorkMap(mapWorkBloom, txs); err != nil {
-			witch_log.Info("RunWorkMap by mapWorkBloom failed", "err", err)
+			log.Witch.Info("RunWorkMap by mapWorkBloom failed", "err", err)
 		}
 	} else {
 		for _, tx := range txs {
@@ -361,7 +416,7 @@ func (b *Block) GetEiBloomBlockData(reqEstimator *iblt.HybridEstimator) *BloomBl
 
 	diff := time.Now().Sub(startAt)
 	if diff > time.Second {
-		witch_log.Info("GetEiBloomBlockData", "cost", diff, "len", len(txs), "num", b.Number())
+		log.Witch.Info("GetEiBloomBlockData", "cost", diff, "len", len(txs), "num", b.Number())
 	}
 
 	invBloomRLP, err := rlp.EncodeToBytes(invBloom)
@@ -454,7 +509,14 @@ func (b Block) GetCoinbase() *big.Int {
 func (b Block) GetTransactionFees() *big.Int {
 	tempfee := big.NewInt(0)
 	for _, tx := range b.body.Txs {
-		tempfee.Add(tempfee, tx.Fee())
+		var addFee *big.Int
+		if fee := tx.actualTxFee.Load(); fee == nil {
+			panic("the transaction fee cache is nil")
+			return tempfee
+		} else {
+			addFee = fee.(*big.Int)
+		}
+		tempfee.Add(tempfee, addFee)
 	}
 	return tempfee
 }
@@ -477,7 +539,13 @@ func NewBlock(header *Header, txs []*Transaction, msgs []AbstractVerification) *
 		copy(b.body.Txs, txs)
 	}
 
-	// calculate verification root
+	/*	pbft_log.Info("the calculated tx root is:", "root", b.header.TransactionRoot.Hex())
+		pbft_log.Info("the block txs is:", "len", len(txs))
+		for _, tx := range txs {
+			pbft_log.Info("the tx is:", "tx", tx)
+		}*/
+
+	// calculate verification Root
 	if len(msgs) == 0 {
 		b.header.VerificationRoot = EmptyVerfRoot
 	} else {
@@ -559,14 +627,7 @@ func (b *Block) CoinBase() *big.Int {
 func (b *Block) TxCount() int { return len(b.body.Txs) }
 
 func (b *Block) Header() AbstractHeader {
-	if b.header != nil{
-		return CopyHeader(b.header)
-	}
-	return nil
-}
-
-func (b *Block) GetHeader() AbstractHeader {
-	if b.header != nil{
+	if b.header != nil {
 		return CopyHeader(b.header)
 	}
 	return nil

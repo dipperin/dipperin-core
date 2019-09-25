@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain_writer
 
 import (
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
+	"github.com/dipperin/dipperin-core/tests/g-mockFile"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -28,27 +28,28 @@ import (
 func TestNewBftChainWriter(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
-	mc := NewMockChainInterface(controller)
+	mc := g_mockFile.NewMockChainInterface(controller)
 	mb := NewMockAbstractBlock(controller)
 	mb.EXPECT().IsSpecial().Return(true)
 	mb.EXPECT().Version().Return(uint64(100))
 	mc.EXPECT().GetChainConfig().Return(chain_config.GetChainConfig()).AnyTimes()
 
 	assert.Error(t, NewBftChainWriter(&middleware.BftBlockContext{
-		BlockContext: middleware.BlockContext{ Block: mb, Chain: mc },
+		BlockContext: middleware.BlockContext{Block: mb, Chain: mc},
 	}, mc).SaveBlock())
+
 }
 
 func TestBftChainWriter_SaveBlock(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
-	mc := NewMockChainInterface(controller)
+	mc := g_mockFile.NewMockChainInterface(controller)
 	mb := NewMockAbstractBlock(controller)
 	mb.EXPECT().IsSpecial().Return(true)
 	mb.EXPECT().Version().Return(uint64(100))
 	mc.EXPECT().GetChainConfig().Return(chain_config.GetChainConfig()).AnyTimes()
 
 	assert.Error(t, NewBftChainWriterWithoutVotes(&middleware.BftBlockContextWithoutVotes{
-		BlockContext: middleware.BlockContext{ Block: mb, Chain: mc },
+		BlockContext: middleware.BlockContext{Block: mb, Chain: mc},
 	}, mc).SaveBlock())
 }

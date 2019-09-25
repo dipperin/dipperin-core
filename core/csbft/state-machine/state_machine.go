@@ -14,17 +14,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package state_machine
 
 import (
-	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/log/health-info-log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 	"fmt"
-	"time"
+	"github.com/dipperin/dipperin-core/common"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
+	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"time"
 )
 
 var VerifierNumber uint64 = 22
@@ -38,7 +36,7 @@ type BftState struct {
 	BlockPoolNotEmpty bool
 	CurVerifiers      []common.Address
 	LockedBlock       model.AbstractBlock
-	LockedRound	uint64
+	LockedRound       uint64
 
 	NewRound      *NewRoundSet
 	Proposal      *ProposalSet
@@ -50,7 +48,7 @@ type BftState struct {
 // Events Process
 // when a new block is inserted, the height should be changed.
 func (bs *BftState) OnNewHeight(height uint64, round uint64, verifiers []common.Address) {
-	pbft_log.Debug("New Height Called", "enter height", height)
+	log.PBft.Debug("New Height Called", "enter height", height)
 	bs.enterNewHeight(height, round, verifiers)
 }
 
@@ -64,14 +62,14 @@ func (bs *BftState) OnBlockPoolNotEmpty() {
 
 //When receive a NewRound message
 func (bs *BftState) OnNewRound(r *model2.NewRoundMsg) {
-	pbft_log.Info("[BftState-OnNewRound]","ownHeight",bs.Height,"ownBlockPoolNotEmpty" ,bs.BlockPoolNotEmpty)
+	log.PBft.Info("[BftState-OnNewRound]", "ownHeight", bs.Height, "ownBlockPoolNotEmpty", bs.BlockPoolNotEmpty)
 	if bs.Height != r.Height {
-		pbft_log.Warn("height is different","rHeight",r.Height,"ownHeight",bs.Height)
+		log.PBft.Warn("height is different", "rHeight", r.Height, "ownHeight", bs.Height)
 		return
 	}
 
 	if err := bs.NewRound.Add(r); err != nil {
-		pbft_log.Info("[BftState-OnNewRound] err","err",err)
+		log.PBft.Info("[BftState-OnNewRound] err", "err", err)
 		return
 	}
 
@@ -85,9 +83,9 @@ func (bs *BftState) OnNewRound(r *model2.NewRoundMsg) {
 
 //When receive a proposal
 func (bs *BftState) OnNewProposal(p *model2.Proposal, block model.AbstractBlock) {
-	pbft_log.Info("[BftState-OnNewProposal]","pRound",p.Round,"pHeight" ,p.Height,"pBlockId",p.BlockID.Hex(),"ownRound",bs.Round,"ownHeight",bs.Height)
+	log.PBft.Info("[BftState-OnNewProposal]", "pRound", p.Round, "pHeight", p.Height, "pBlockId", p.BlockID.Hex(), "ownRound", bs.Round, "ownHeight", bs.Height)
 	if !bs.validProposal(p) {
-		pbft_log.Error("validProposal err")
+		log.PBft.Error("validProposal err")
 		return
 	}
 
@@ -98,22 +96,22 @@ func (bs *BftState) OnNewProposal(p *model2.Proposal, block model.AbstractBlock)
 	// now we have a valid proposal message
 	bs.Proposal.Add(p)
 
-	pbft_log.Info("get valid proposal", "height", p.Height, "block", p.BlockID.Hex(),"round",p.Round)
+	log.PBft.Info("get valid proposal", "height", p.Height, "block", p.BlockID.Hex(), "round", p.Round)
 	bs.ProposalBlock.AddBlock(block, p.Round)
-	if bs.Step == model2.RoundStepPropose && bs.Round == p.Round{
+	if bs.Step == model2.RoundStepPropose && bs.Round == p.Round {
 		bs.enterPreVote(p, block)
 	}
 }
 
 //When receive a prevote
 func (bs *BftState) OnPreVote(pv *model.VoteMsg) {
-	pbft_log.Info("[BftState-OnPreVote]")
+	log.PBft.Info("[BftState-OnPreVote]")
 	if pv.Height != bs.Height {
-		pbft_log.Warn("height is different","pvHeight",pv.Height,"ownHeight",bs.Height)
+		log.PBft.Warn("height is different", "pvHeight", pv.Height, "ownHeight", bs.Height)
 		return
 	}
 	if err := bs.PreVotes.AddVote(pv); err != nil {
-		pbft_log.Warn("receive invalid pre vote", "err", err)
+		log.PBft.Warn("receive invalid pre vote", "err", err)
 		return
 	}
 
@@ -134,7 +132,7 @@ func (bs *BftState) OnPreVote(pv *model.VoteMsg) {
 			if block.Hash().IsEqual(roundBlock) {
 				bs.LockedBlock = block
 				bs.LockedRound = pv.Round
-				pbft_log.Debug("[BftState-LockBlock]","LockedRound",bs.LockedRound,"block",block.Hash().Hex())
+				log.PBft.Debug("[BftState-LockBlock]", "LockedRound", bs.LockedRound, "block", block.Hash().Hex())
 				bs.enterPreCommit(pv.Round)
 			}
 		}
@@ -143,28 +141,28 @@ func (bs *BftState) OnPreVote(pv *model.VoteMsg) {
 
 //receive vote msg
 func (bs *BftState) OnVote(v *model.VoteMsg) (common.Hash, []model.AbstractVerification) {
-	pbft_log.Info("[BftState-OnVote]")
+	log.PBft.Info("[BftState-OnVote]")
 	if v.Height != bs.Height {
-		pbft_log.Error("[BftState-OnVote] ignore wrong height vote","voteHeight",v.Height,"ownHeight",bs.Height)
+		log.PBft.Error("[BftState-OnVote] ignore wrong height vote", "voteHeight", v.Height, "ownHeight", bs.Height)
 		return common.Hash{}, nil
 	}
 
 	// Add a valid vote
 	if err := bs.Votes.AddVote(v); err != nil {
-		pbft_log.Error("add vote err","err",err)
+		log.PBft.Error("add vote err", "err", err)
 		return common.Hash{}, nil
 	}
 
 	// check have enough votes, reject very past commits
 	maj32Block := bs.Votes.VotesEnough(v.Round)
 	if maj32Block.IsEqual(common.Hash{}) || v.Round < bs.Round {
-		pbft_log.Error("[BftState-OnVote] cannot final block","maj32Block == nil",maj32Block.IsEqual(common.Hash{}),"v.Round < bs.Round")
+		log.PBft.Error("[BftState-OnVote] cannot final block", "maj32Block == nil", maj32Block.IsEqual(common.Hash{}), "v.Round < bs.Round", v.Round < bs.Round)
 		return common.Hash{}, nil
 	}
 
 	// select correct voteMsgs
 	resultVotes := bs.Votes.FinalVerifications(v.Round)
-	pbft_log.Error("[BftState-OnVote] can final block","voteRound",v.Round,"ownRound",bs.Round)
+	log.PBft.Error("[BftState-OnVote] can final block", "voteRound", v.Round, "ownRound", bs.Round)
 	return maj32Block, resultVotes
 }
 
@@ -178,8 +176,8 @@ Enter:
 	- When commit a block on last height, enter a new height
 */
 func (bs *BftState) enterNewHeight(newHeight uint64, round uint64, verifiers []common.Address) {
-	pbft_log.Info(fmt.Sprintf("[EnterNewHeight], last height info (H: %v, R: %v), new height (H: %v, R: %v)", bs.Height, bs.Round,newHeight,round))
-	health_info_log.Info("bft state enter new height", "h", bs.Height, "r", bs.Round)
+	log.PBft.Info(fmt.Sprintf("[EnterNewHeight], last height info (H: %v, R: %v), new height (H: %v, R: %v)", bs.Height, bs.Round, newHeight, round))
+	log.Health.Info("bft state enter new height", "h", bs.Height, "r", bs.Round)
 
 	bs.Height = newHeight
 	bs.Round = round
@@ -203,10 +201,10 @@ func (bs *BftState) enterNewRound(height, round uint64) {
 	// if the status is moved from new height, then the state should not be added by 1, otherwise it would not be the 0th verifier who does the proposition of block
 	if height != bs.Height {
 		//panic("Shouldn't call new round before new height")
-		pbft_log.Info("[BftState-enterNewRound]:error","height",height,"ownHeight",bs.Height)
+		log.PBft.Info("[BftState-enterNewRound]:error", "height", height, "ownHeight", bs.Height)
 		return
 	}
-	pbft_log.Info(fmt.Sprintf("[EnterNewRound], (H: %v, R: %v, S: %v)", bs.Height, bs.Round, bs.Step))
+	log.PBft.Info(fmt.Sprintf("[EnterNewRound], (H: %v, R: %v, S: %v)", bs.Height, bs.Round, bs.Step))
 	bs.Round = round
 }
 
@@ -219,8 +217,8 @@ Enter:
 */
 func (bs *BftState) enterPropose(round uint64) {
 	bs.Step = model2.RoundStepPropose
-	pbft_log.Debug(fmt.Sprintf("[EnterPropose] (H: %v, R: %v, S:%v)",bs.Height,bs.Round,bs.Step))
-	health_info_log.Info("bft state enter new propose", "h", bs.Height, "r", bs.Round)
+	log.PBft.Debug(fmt.Sprintf("[EnterPropose] (H: %v, R: %v, S:%v)", bs.Height, bs.Round, bs.Step))
+	log.Health.Info("bft state enter new propose", "h", bs.Height, "r", bs.Round)
 	//Do propose outside
 	//Already get the proposal?
 	proposal := bs.Proposal.GetProposal(round)
@@ -243,10 +241,10 @@ func (bs *BftState) enterPreVote(p *model2.Proposal, b model.AbstractBlock) {
 	if p == nil || bs.Round != p.Round || bs.Height != p.Height || bs.Step != model2.RoundStepPropose {
 		return
 	}
-	health_info_log.Info("bft state enter new pre vote", "h", bs.Height, "r", bs.Round)
+	log.Health.Info("bft state enter new pre vote", "h", bs.Height, "r", bs.Round)
 	// Update state
 	bs.Step = model2.RoundStepPreVote
-	pbft_log.Info(fmt.Sprintf("[EnterPreVote], (H: %v, R: %v, S: %v)", bs.Height, bs.Round, bs.Step))
+	log.PBft.Info(fmt.Sprintf("[EnterPreVote], (H: %v, R: %v, S: %v)", bs.Height, bs.Round, bs.Step))
 }
 
 /*
@@ -254,14 +252,14 @@ Enter Precommit
 Called by: onPrevote
 Enter:
 - Get 2/3 majority vote.
- */
+*/
 func (bs *BftState) enterPreCommit(round uint64) {
 	if bs.Round != round || bs.Step != model2.RoundStepPreVote {
 		return
 	}
-	health_info_log.Info("bft state enter new pre commit", "h", bs.Height, "r", bs.Round)
+	log.Health.Info("bft state enter new pre commit", "h", bs.Height, "r", bs.Round)
 	bs.Step = model2.RoundStepPreCommit
-	pbft_log.Info(fmt.Sprintf("[EnterPrecommit], (H: %v, R: %v, S: %v)", bs.Height, bs.Round, bs.Step))
+	log.PBft.Info(fmt.Sprintf("[EnterPrecommit], (H: %v, R: %v, S: %v)", bs.Height, bs.Round, bs.Step))
 }
 
 // Timeout actions
@@ -273,19 +271,19 @@ func (bs *BftState) enterPreCommit(round uint64) {
 4. when I am offline and others cannot reach consensus -> enter new round and continue the current mechanism
 */
 func (bs *BftState) OnProposeTimeout() {
-	pbft_log.Debug("StateHandler#OnProposeTimeout Propose get time out", "h.roundState.Height", bs.Height, "h.roundState.Round", bs.Round, "h.roundState.Step", bs.Step.String())
+	log.PBft.Debug("StateHandler#OnProposeTimeout Propose get time out", "h.roundState.Height", bs.Height, "h.roundState.Round", bs.Round, "h.roundState.Step", bs.Step.String())
 	if bs.Step == model2.RoundStepPropose {
 		bs.enterNewRound(bs.Height, bs.Round+1)
 	}
 }
 
 func (bs *BftState) OnPreVoteTimeout() {
-	pbft_log.Info("StateHandler#OnPreVoteTimeout enterNewRound", "h.roundState.Height", bs.Height, "h.roundState.Round", bs.Round)
+	log.PBft.Info("StateHandler#OnPreVoteTimeout enterNewRound", "h.roundState.Height", bs.Height, "h.roundState.Round", bs.Round)
 	bs.enterNewRound(bs.Height, bs.Round+1)
 }
 
 func (bs *BftState) OnPreCommitTimeout() {
-	pbft_log.Info("StateHandler#OnPreCommitTimeout enterNewRound", "h.roundState.Height", bs.Height, "h.roundState.Round", bs.Round)
+	log.PBft.Info("StateHandler#OnPreCommitTimeout enterNewRound", "h.roundState.Height", bs.Height, "h.roundState.Round", bs.Round)
 	bs.enterNewRound(bs.Height, bs.Round+1)
 }
 
@@ -310,24 +308,24 @@ func (bs *BftState) getNewRoundReqList() []common.Address {
 func (bs *BftState) validProposal(p *model2.Proposal) bool {
 	// check height and round
 	// we accept bs.Round <= p.Round < bs.Round + 10
-	if bs.Height != p.Height || bs.Round > p.Round || bs.Round + 10 < p.Round {
-		pbft_log.Warn("check height and round error","height",bs.Height,"round",bs.Round,"proposal height",p.Height,"proposal round",p.Round)
+	if bs.Height != p.Height || bs.Round > p.Round || bs.Round+10 < p.Round {
+		log.PBft.Warn("check height and round error", "height", bs.Height, "round", bs.Round, "proposal height", p.Height, "proposal round", p.Round)
 		return false
 	}
 	// check already have proposal for this round
 	if bs.Proposal.Have(p.Round) {
-		pbft_log.Warn("BftState#OnNewProposal  already have proposal in this round", "round", p.Round, "cur h", bs.Height)
+		log.PBft.Warn("BftState#OnNewProposal  already have proposal in this round", "round", p.Round, "cur h", bs.Height)
 		return false
 	}
 	// valid witness
 	if err := p.Witness.Valid(p.Hash().Bytes()); err != nil {
-		pbft_log.Warn("BftState#OnNewProposal receive invalid proposal", "p.Hash().Bytes()", p.Hash().Bytes(), "err", err)
+		log.PBft.Warn("BftState#OnNewProposal receive invalid proposal", "p.Hash().Bytes()", p.Hash().Bytes(), "err", err)
 		return false
 	}
 
 	// valid proposer
 	if !bs.proposerAtRound(p.Round).IsEqual(p.Witness.Address) {
-		pbft_log.Warn("BftState#OnNewProposal  receive invalid proposal", "cur proposer", bs.curProposer(), "proposal addr", p.Witness.Address)
+		log.PBft.Warn("BftState#OnNewProposal  receive invalid proposal", "cur proposer", bs.curProposer(), "proposal addr", p.Witness.Address)
 		return false
 	}
 	return true
@@ -335,20 +333,20 @@ func (bs *BftState) validProposal(p *model2.Proposal) bool {
 
 // Checked
 func (bs *BftState) tryEnterPropose() {
-	pbft_log.Debug(fmt.Sprintf("[BftState-tryEnterPropose] (H: %v, R: %v, S:%v)",bs.Height,bs.Round,bs.Step))
+	log.PBft.Debug(fmt.Sprintf("[BftState-tryEnterPropose] (H: %v, R: %v, S:%v)", bs.Height, bs.Round, bs.Step))
 
 	if !bs.BlockPoolNotEmpty {
-		pbft_log.Debug(fmt.Sprintf("[BftState-tryEnterPropose] failed 1 (H: %v, R: %v, S:%v)",bs.Height,bs.Round,bs.Step))
+		log.PBft.Debug(fmt.Sprintf("[BftState-tryEnterPropose] failed 1 (H: %v, R: %v, S:%v)", bs.Height, bs.Round, bs.Step))
 		return
 	}
 
 	if bs.Step != model2.RoundStepNewRound {
-		pbft_log.Debug(fmt.Sprintf("[BftState-tryEnterPropose] failed 2 (H: %v, R: %v, S:%v)",bs.Height,bs.Round,bs.Step))
+		log.PBft.Debug(fmt.Sprintf("[BftState-tryEnterPropose] failed 2 (H: %v, R: %v, S:%v)", bs.Height, bs.Round, bs.Step))
 		return
 	}
 
 	if !bs.NewRound.enoughAtRound(bs.Round) {
-		pbft_log.Debug(fmt.Sprintf("[BftState-tryEnterPropose] failed 3 (H: %v, R: %v, S:%v)",bs.Height,bs.Round,bs.Step))
+		log.PBft.Debug(fmt.Sprintf("[BftState-tryEnterPropose] failed 3 (H: %v, R: %v, S:%v)", bs.Height, bs.Round, bs.Step))
 		return
 	}
 	bs.enterPropose(bs.Round)
@@ -368,8 +366,12 @@ func (bs *BftState) makePrevote() (msg *model.VoteMsg) {
 
 	proposal := bs.Proposal.GetProposal(bs.Round)
 	block := bs.ProposalBlock.GetBlock(bs.Round)
-	if proposal == nil || block == nil { return nil}
-	if !block.Hash().IsEqual(proposal.BlockID){return nil}
+	if proposal == nil || block == nil {
+		return nil
+	}
+	if !block.Hash().IsEqual(proposal.BlockID) {
+		return nil
+	}
 
 	return &model.VoteMsg{
 		Height:    bs.Height,
@@ -380,7 +382,9 @@ func (bs *BftState) makePrevote() (msg *model.VoteMsg) {
 	}
 }
 func (bs *BftState) makeVote() (msg *model.VoteMsg) {
-	if bs.LockedBlock == nil {return nil}
+	if bs.LockedBlock == nil {
+		return nil
+	}
 	return &model.VoteMsg{
 		Height:    bs.Height,
 		Round:     bs.Round,

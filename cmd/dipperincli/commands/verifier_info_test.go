@@ -68,6 +68,10 @@ func TestPrintDefaultAccountStake(t *testing.T) {
 	PrintDefaultAccountStake()
 }
 
+func TestPrintCommandsModuleName(t *testing.T) {
+	PrintCommandsModuleName()
+}
+
 func TestAsyncLogElectionTx(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -150,7 +154,7 @@ func Test_logElection(t *testing.T) {
 	defer ctrl.Finish()
 
 	client = NewMockRpcClient(ctrl)
-	trackingAccounts = []accounts.Account{} 
+	trackingAccounts = []accounts.Account{}
 	logElection()
 
 	trackingAccounts = append(trackingAccounts, accounts.Account{Address: common.HexToAddress("0x1234")})

@@ -14,20 +14,19 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
-"encoding/binary"
-"fmt"
-"regexp"
-"strings"
-"sync"
+	"encoding/binary"
+	"fmt"
+	"regexp"
+	"strings"
+	"sync"
 )
 
 type BitArray struct {
 	mtx   sync.Mutex
-	Bits  uint64      `json:"bits"`  // NOTE: persisted via reflect, must be exported
+	Bits  uint64   `json:"bits"`  // NOTE: persisted via reflect, must be exported
 	Elems []uint64 `json:"elems"` // NOTE: persisted via reflect, must be exported
 }
 
@@ -364,7 +363,6 @@ func (bA *BitArray) MarshalJSON() ([]byte, error) {
 
 var bitArrayJSONRegexp = regexp.MustCompile(`\A"([_x]*)"\z`)
 
-
 // UnmarshalJSON implements json.Unmarshaler interface by unmarshaling a custom
 // JSON description.
 func (bA *BitArray) UnmarshalJSON(bz []byte) error {
@@ -395,18 +393,18 @@ func (bA *BitArray) UnmarshalJSON(bz []byte) error {
 	*bA = *bA2
 	return nil
 }
-func MaxUint64(a,b uint64) uint64{
-	if a>=b{
+func MaxUint64(a, b uint64) uint64 {
+	if a >= b {
 		return a
-	}else{
+	} else {
 		return b
 	}
 }
 
-func MinUint64(a,b uint64) uint64{
-	if a>=b{
+func MinUint64(a, b uint64) uint64 {
+	if a >= b {
 		return b
-	}else{
+	} else {
 		return a
 	}
 }

@@ -29,28 +29,30 @@
 #    exit 1
 #fi
 #
+echo "run dipperin-core tests"
+
 #git reset HEAD .
-#count=`git diff|wc -l`
+count=`git diff|wc -l`
+
+if [ ${count} != 0 ];then
+    echo "Stashing local changes"
+    git stash
+    echo "Running tests"
+fi
+
+./cs.sh
 #
-#if [ ${count} != 0 ];then
-#    echo "Stashing local changes"
-#    git stash
-#    echo "Running tests"
-#fi
-#
-#./cs.sh
-#
-## $? stores exit value of the last command
-#FAIL=$?
-#
-#if [ ${count} != 0 ];then
-#    echo "Recovering local changes"
-#    git stash pop
-#fi
-#
-#if [ $FAIL != 0 ]; then
-#    echo "Tests must pass before push!"
-#    exit 1
-#fi
-#
-#echo "diff count: ${count}"
+# $? stores exit value of the last command
+FAIL=$?
+
+if [ ${count} != 0 ];then
+    echo "Recovering local changes"
+    git stash pop
+fi
+
+if [ $FAIL != 0 ]; then
+    echo "Tests must pass before push!"
+    exit 1
+fi
+
+echo "diff count: ${count}"

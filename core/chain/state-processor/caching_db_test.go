@@ -17,11 +17,11 @@
 package state_processor
 
 import (
-	"testing"
-	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/stretchr/testify/assert"
 	trie2 "github.com/dipperin/dipperin-core/third-party/trie"
+	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestNewStateStorageWithCache(t *testing.T) {

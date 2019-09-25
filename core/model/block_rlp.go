@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
@@ -64,8 +63,7 @@ func (b *Block) EncodeRLP(w io.Writer) error {
 	})
 }
 
-
-type PBFTBlockRlpHandler struct {}
+type PBFTBlockRlpHandler struct{}
 
 func (h *PBFTBlockRlpHandler) DecodeBody(to *Body, s *rlp.Stream) error {
 	var sBody PBFTBody
@@ -80,9 +78,9 @@ func (h *PBFTBlockRlpHandler) DecodeBody(to *Body, s *rlp.Stream) error {
 }
 
 type PBFTBody struct {
-	Txs  []*Transaction  `json:"transactions"`
-	Vers []*VoteMsg `json:"commit_msg"`
-	Inters InterLink	 `json:"interlinks"`
+	Txs    []*Transaction `json:"transactions"`
+	Vers   []*VoteMsg     `json:"commit_msg"`
+	Inters InterLink      `json:"interlinks"`
 }
 
 func (b *Body) DecodeRLP(s *rlp.Stream) error {

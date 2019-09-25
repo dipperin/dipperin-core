@@ -17,12 +17,12 @@
 package model
 
 import (
-	"testing"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/secp256k1"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 var as = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232031"
@@ -121,7 +121,7 @@ func TestVoteMsg_Valid(t *testing.T) {
 func TestVoteMsg_HaltedVoteValid(t *testing.T) {
 	// RecoverAddressFromSig error
 	voteMsg := NewVoteMsg(10, 1, common.HexToHash("100"), VerBootNodeVoteMessage)
-	voteMsg.Witness = &WitMsg{Address:aliceAddr, Sign:[]byte{123}}
+	voteMsg.Witness = &WitMsg{Address: aliceAddr, Sign: []byte{123}}
 	err := voteMsg.HaltedVoteValid([]common.Address{aliceAddr})
 	assert.Equal(t, secp256k1.ErrInvalidSignatureLen, err)
 

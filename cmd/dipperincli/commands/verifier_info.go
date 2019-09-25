@@ -17,6 +17,7 @@
 package commands
 
 import (
+	"github.com/dipperin/dipperin-core/cmd/dipperincli/config"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/core/accounts"
@@ -34,7 +35,6 @@ var (
 
 func loadDefaultAccountStake() {
 	var resp rpc_interface.CurBalanceResp
-
 	if err := client.Call(&resp, getDipperinRpcMethodByName("CurrentStake"), defaultAccount); err != nil {
 		l.Error("call get current deposit error", "err", err)
 		return
@@ -42,8 +42,19 @@ func loadDefaultAccountStake() {
 
 	stake, err := CSCoinToMoneyValue(resp.Balance)
 	if err == nil {
-		defaultAccountStake = stake + consts.CoinDIPName
+		defaultAccountStake = stake
 	}
+}
+
+func PrintCommandsModuleName() {
+	var moduleName string
+	for _, c := range config.Commands {
+		moduleName = moduleName + c.Text + ","
+	}
+	if len(config.Commands) > 0 {
+		moduleName = moduleName[:len(moduleName)-1]
+	}
+	l.Info("you can use the base command to interactive with the node :" + moduleName)
 }
 
 func PrintDefaultAccountStake() {
@@ -164,7 +175,7 @@ func logElection() {
 
 		if resp.Status == VerifierStatusNoRegistered || resp.Status == VerifiedStatusUnstaked {
 
-			l.Info("[Verifier Tracking]", "Verifier status", resp.Status, "balance", balance+" DIP")
+			l.Info("[Verifier Tracking]", "Verifier status", resp.Status, "balance", balance)
 			continue
 		}
 
@@ -174,7 +185,7 @@ func logElection() {
 			l.Error("The address has no stake, stake = 0 DIP")
 		}
 
-		l.Info("[Verifier Tracking]", "Verifier status", resp.Status, "balance", balance+" DIP", "stake", stake+" DIP", "reputation", resp.Reputation)
+		l.Info("[Verifier Tracking]", "Verifier status", resp.Status, "balance", balance, "stake", stake, "reputation", resp.Reputation)
 
 	}
 

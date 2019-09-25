@@ -14,19 +14,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package mineworker
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/tests/factory"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
-	"github.com/stretchr/testify/assert"
-	"fmt"
 )
 
 type fakeWorkSubmitter struct {
@@ -37,10 +36,10 @@ func (submitter *fakeWorkSubmitter) SubmitWork(work minemsg.Work) {
 
 func TestDefaultWorkExecutor_ChangeNonce(t *testing.T) {
 	diff := common.HexToDiff("0x1effffff")
-	block := factory.CreateBlock2(diff,1)
+	block := factory.CreateBlock2(diff, 1)
 
 	work := &minemsg.DefaultWork{
-		BlockHeader:*(block.Header().(*model.Header)),
+		BlockHeader: *(block.Header().(*model.Header)),
 	}
 	work.CalBlockRlpWithoutNonce()
 	executor := NewDefaultWorkExecutor(work, &fakeWorkSubmitter{})
@@ -51,12 +50,12 @@ func TestDefaultWorkExecutor_ChangeNonce(t *testing.T) {
 out:
 	for {
 		select {
-		case rw := <- result:
+		case rw := <-result:
 			rw.FillSealResult(block)
 			log.Info("result work", "nonce", rw.BlockHeader.Nonce, "block header nonce", block.Nonce().Hex())
 			assert.True(t, block.Hash().ValidHashForDifficulty(diff), block.Hash().Hex())
 			break out
-		case <- tick:
+		case <-tick:
 			t.Fatal("seal timeout")
 			break out
 		default:
@@ -70,6 +69,6 @@ out:
 }
 
 func TestBytesCopy(t *testing.T) {
-	tmpNonce := common.BlockNonce{0,0,0,0,1,0,0,1,0}
+	tmpNonce := common.BlockNonce{0, 0, 0, 0, 1, 0, 0, 1, 0}
 	fmt.Println(tmpNonce[:8])
 }

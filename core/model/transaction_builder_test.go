@@ -17,9 +17,9 @@
 package model
 
 import (
+	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestTransactionBuilder_NewNormalTransaction(t *testing.T) {

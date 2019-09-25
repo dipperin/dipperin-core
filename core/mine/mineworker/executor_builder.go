@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package mineworker
 
 import "github.com/dipperin/dipperin-core/core/mine/minemsg"
@@ -25,7 +24,7 @@ func NewDefaultExecutorBuilder() *defaultExecutorBuilder {
 	return &defaultExecutorBuilder{}
 }
 
-type defaultExecutorBuilder struct {}
+type defaultExecutorBuilder struct{}
 
 func (builder *defaultExecutorBuilder) CreateExecutor(msg workMsg, workCount int, submitter workSubmitter) (result []workExecutor, err error) {
 	switch msg.MsgCode() {

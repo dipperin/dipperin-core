@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package mineworker
 
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/health-info-log"
 )
 
 func NewDefaultWorkExecutor(work *minemsg.DefaultWork, submitter workSubmitter) *defaultWorkExecutor {
@@ -79,8 +77,9 @@ func (executor *defaultWorkExecutor) ChangeNonce() bool {
 		if bHash.ValidHashForDifficulty(executor.curWork.BlockHeader.Diff) {
 			// some thing interesting here
 			executor.curWork.ResultNonce = executor.curWork.BlockHeader.Nonce
-			log.Info("found nonce", "diff", executor.curWork.BlockHeader.Diff.Hex(), "nonce", executor.curWork.BlockHeader.Nonce.Hex(), "block hash hex", executor.curWork.BlockHeader.Hash().Hex(), "coinbase address", executor.curWork.BlockHeader.CoinBaseAddress().Hex(), "block num", executor.curWork.BlockHeader.Number, "register root", executor.curWork.BlockHeader.RegisterRoot, "v root", executor.curWork.BlockHeader.VerificationRoot)
-			health_info_log.Info("found nonce", "height", executor.curWork.BlockHeader.Number)
+			log.Info("ChangeNonce successful")
+			//fmt.Println(executor.curWork.BlockHeader.String())
+			log.Health.Info("found nonce", "height", executor.curWork.BlockHeader.Number)
 			return true
 		}
 	} else {

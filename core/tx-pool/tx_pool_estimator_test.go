@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package tx_pool
 
 import (
-	"testing"
-	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
-	"time"
+	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"testing"
+	"time"
 )
 
 type testPool struct {
@@ -89,7 +89,7 @@ func TestTxPool_GetTxsEstimator(t *testing.T) {
 	bloom := getBloom(100)
 	p := addTxPool(100)
 
-	for i := 0; i < 10; i ++ {
+	for i := 0; i < 10; i++ {
 		p.GetTxsEstimator(bloom)
 	}
 }
@@ -106,7 +106,7 @@ func addTxPool(n int) *testPool {
 
 func getTx() model.AbstractTransaction {
 	pk, _ := crypto.GenerateKey()
-	return transaction(1, common.HexToAddress("0x123"), big.NewInt(123), big.NewInt(321), pk)
+	return transaction(1, common.HexToAddress("0x123"), big.NewInt(123), big.NewInt(321), g_testData.TestGasLimit, pk)
 }
 
 func getBloom(n int) *iblt.Bloom {
@@ -115,7 +115,7 @@ func getBloom(n int) *iblt.Bloom {
 	bloom := iblt.NewBloom(iblt.DeriveBloomConfig(n))
 
 	for i := uint64(0); i < uint64(n); i++ {
-		tx := transaction(i, common.HexToAddress("0x123"), big.NewInt(123), big.NewInt(321), pk)
+		tx := transaction(i, common.HexToAddress("0x123"), big.NewInt(123), big.NewInt(321), g_testData.TestGasLimit, pk)
 		bloom.Digest(tx.CalTxId().Bytes())
 	}
 

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
@@ -31,7 +30,7 @@ var (
 	// 12-hour adjustment
 	powTargetTimespan uint64
 	// Average block generation time in seconds
-	blockgenerate uint64= 1
+	blockgenerate uint64 = 1
 	//How many blocks should be generated in the adjustment interval
 	powBlockChangespan = powTargetTimespan / blockgenerate
 
@@ -40,10 +39,10 @@ var (
 	BlockCountOfPeriod uint64
 )
 
-func init(){
+func init() {
 	config := chain_config.GetChainConfig()
 	mainPowLimit = config.MainPowLimit
-	powTargetTimespan = config.BlockCountOfPeriod*config.BlockGenerate
+	powTargetTimespan = config.BlockCountOfPeriod * config.BlockGenerate
 	blockgenerate = config.BlockGenerate
 	BlockCountOfPeriod = config.BlockCountOfPeriod
 }
@@ -69,7 +68,7 @@ func LastPeriodBlockNum(curBlockNum uint64) uint64 {
 }
 
 //there are empty blocks in a Recent block, so we need to consider empty blocks and use a new method.
-func NewCalNewWorkDiff(preSpanBlock, lastNormalBlock AbstractBlock,currentBlockNumber uint64) common.Difficulty {
+func NewCalNewWorkDiff(preSpanBlock, lastNormalBlock AbstractBlock, currentBlockNumber uint64) common.Difficulty {
 	if IsIgnoreDifficultyValidation() {
 		return common.HexToDiff("0x1fffffff")
 	}
@@ -77,7 +76,7 @@ func NewCalNewWorkDiff(preSpanBlock, lastNormalBlock AbstractBlock,currentBlockN
 	// If the new block (+1) is not an integer multiple of 4320,
 	// no updates are required,
 	// and bits for the last block are still required.
-	if (currentBlockNumber + 1)%uint64(BlockCountOfPeriod) != 0 {
+	if (currentBlockNumber+1)%uint64(BlockCountOfPeriod) != 0 {
 		return lastNormalBlock.Difficulty()
 	}
 

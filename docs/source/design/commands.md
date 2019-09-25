@@ -1,13 +1,13 @@
 # Command Line Tool
-- [How to use command line tool?](#How-to-use-command-line-tool)
-- [How to operate Test Net Node?](#How-to-operate-Test-Node)
+- [How to use command line tool](#How-to-use-command-line-tool)
+- [How to operate Test Node](#How-to-operate-Test-Node)
 - [Related Functional Operations](#Related-Functional-Operations)
 
-## How to use command line tool?
+## How to use command line tool
 
 ### Connect to test environment
 
-Dipperin command line tools are located in the $GOBIN directory: `~/go/bin/Dipperincli`.
+dipperin command line tools are located in the $GOBIN directory: `~/go/bin/dipperincli`.
 
 Monitor for test environment: `http://${TestServer}:8887`.
 
@@ -20,7 +20,7 @@ Example:
 
 Assuming that the local cluster is currently started, the command line tool needs to manipulate the V0 node.
 
- IP: `127.0.0.1`.
+IP: `127.0.0.1`.
 
 HttpPort: `50007`.
 
@@ -38,36 +38,36 @@ Or set temporary environment variables first:
 export boots_env=test
 ```
 
-### Start Dipperin node
+### Start dipperin node
 
 The following command is to start a node, which requires a wallet password.
 
 If no wallet path is specified, the default system path is used: `~/.dipperin/`.
 
 ```
-dipperincli -- node_type [type] -- soft_wallet_pwd [password]
+dipperincli --node_type [type] --soft_wallet_pwd [password]
 ```
 
 Example:
 
 Local startup miner:
 ```
-dipperincli -- node_type 1 -- soft_wallet_pwd 123
+dipperincli --node_type 1 --soft_wallet_pwd 123
 ```
 
 Local startup miner(start mining):
 ```
-dipperincli -- node_type 1 -- soft_wallet_pwd 123 -- is_start_mine 1
+dipperincli --node_type 1 --soft_wallet_pwd 123 --is_start_mine 1
 ```
 
 Local startup verifier:
 ```
-dipperincli -- node_type 2 -- soft_wallet_pwd 123
+dipperincli --node_type 2 --soft_wallet_pwd 123
 ```
 
 Connect to the test environment:
 ```
-boots_env=test ~/go/bin/dipperincli -- soft_wallet_pwd 123
+boots_env = test ~/go/bin/dipperincli --soft_wallet_pwd 123
 ```
 
 ### Error
@@ -82,296 +82,270 @@ rm .dipperin -fr
 
 restart command line tool
 
-
-## How to operate test node
-
-### Start-up
-
-```
-cs_ci_ex
-```
-
-### Connect to test node
-
-```
-rpc default-c ${TestServer}:10004
-```
-
-### Perform related operations
-
-Transfer money:
-```
-rpc -n m0 -m ListWallet
-rpc -n m0 -m ListWalletAccount -p SoftWallet,/home/qydev/tmp/dipperin_apps/default_m0/CSWallet,CSWallet
-rpc -n m0 -m SendTransaction -p [from],[to],20000,10
-```
-
-### Error
-
-When executing the above command,it is prompted that connect refused is caused by not connecting to the node.
-
-Generally, it is caused by changes in IP or port.
-
-If the IP of the test server is unchanged,you can log in to test the deployment interface to see the actual port number of the node.
-
-Connect again
-
-Test Deployment Interface Links：
-`http://${TestServer}:8889/nodes`.
-
-```
-rpc default -c ${TestServer}:[actual port number]
-```
-
 ## Related Functional Operations
 
 Separate multiple parameters by','
 ```
-rpc -m [MethodName] -p [parameters]
+[ModuleName] [MethodName] -p [parameters]
 
 ```
 
-### Block chain
+### Transaction methods
+
+AnnounceERC20:
+```
+tx AnnounceERC20 -p [owner_address],[token_name],[token_symbol],[token_total_supply],[decimal],[gasPrice],[gasLimit]
+tx AnnounceERC20 -p 0x0000661A3c6c0955B5E6dbf935f0891aAA1112b9E9ca,wjw,dip,10000,3,10wu,100000
+```
+
+ERC20Transfer:
+```
+tx ERC20Transfer -p [contract_address],[owner],[to_address],[amount],[gasPrice],[gasLimit]
+tx ERC20Transfer -p 0x0010Cb4174726E90E3ce09360B5F0488Ab29Fa5aB130,0x0000661A3c6c0955B5E6dbf935f0891aAA1112b9E9ca,0x0000970e8128aB834E8EAC17aB8E3812f010678CF791,1000,10wu,100000
+```
+
+ERC20TransferFrom:
+```
+tx ERC20TransferFrom -p [contract_address],[owner],[from_address],[to_address],[amount],[gasPrice],[gasLimit]
+tx ERC20TransferFrom -p 0x0010Cb4174726E90E3ce09360B5F0488Ab29Fa5aB130,0x0000661A3c6c0955B5E6dbf935f0891aAA1112b9E9ca,0x0000661A3c6c0955B5E6dbf935f0891aAA1112b9E9ca,0x0000970e8128aB834E8EAC17aB8E3812f010678CF791,1,10wu,100000
+```
+
+ERC20Allowance:
+```
+tx ERC20Allowance -p [contract_address],[owner],[spender]
+tx ERC20Allowance -p 0x0010Cb4174726E90E3ce09360B5F0488Ab29Fa5aB130,0x0000661A3c6c0955B5E6dbf935f0891aAA1112b9E9ca,0x0000970e8128aB834E8EAC17aB8E3812f010678CF791
+```
+
+ERC20Approve:
+```
+tx ERC20Approve -p [contract_address],[owner],[to_address],[amount],[gasPrice],[gasLimit]
+tx ERC20Approve -p 0x0010Cb4174726E90E3ce09360B5F0488Ab29Fa5aB130,0x0000661A3c6c0955B5E6dbf935f0891aAA1112b9E9ca,0x0000970e8128aB834E8EAC17aB8E3812f010678CF791,1000,10wu,100000
+```
+
+ERC20Balance:
+```
+tx ERC20Balance -p [contract_address],[owner_address]
+tx ERC20Balance -p 0x0010Cb4174726E90E3ce09360B5F0488Ab29Fa5aB130,0x0000970e8128aB834E8EAC17aB8E3812f010678CF791
+```
+
+ERC20GetInfo:
+```
+tx ERC20GetInfo -p [contract_address]
+tx ERC20GetInfo -p 0x0010Cb4174726E90E3ce09360B5F0488Ab29Fa5aB130
+```
+
+Register verifier:
+```
+tx SendRegisterTx -p [stake],[gasPrice],[gasLimit]
+tx SendRegisterTx -p 1000dip,1wu,21000
+```
+
+Unregister verifier:
+```
+tx SendCancelTx -p [gasPrice],[gasLimit]
+tx SendCancelTx -p 1wu,21000
+```
+
+Redemption of the deposit:
+```
+tx SendUnStakeTx -p [gasPrice],[gasLimit]
+tx SendUnStakeTx -p 1wu,21000
+```
+
+Send transaction:
+```
+tx SendTx -p [to],[value],[gasPrice],[gasLimit]
+tx SendTx -p 0x0000970e8128aB834E8EAC17aB8E3812f010678CF791,100dip,1wu,21000
+```
+
+Create contract:
+```
+tx SendTransactionContract -p [from],[value],[gasPrice],[gasLimit] --abi [abiPath] --wasm [wasmPath] --is-create --input [params]
+tx SendTransactionContract -p 0x0000661A3c6c0955B5E6dbf935f0891aAA1112b9E9ca,0dip,1wu,5000000 --abi /home/qydev/testData/token-payable/token-payable.cpp.abi.json --wasm /home/qydev/testData/token-payable/token-payable.wasm --is-create --input liu,wjw,123456
+```
+
+Get contract address:
+```
+tx GetContractAddressByTxHash -p [txHash]
+tx GetContractAddressByTxHash -p 0xb57c391ee4993a1b05712806eff7646c014e29882a2062fc29249d5339a72863
+```
+
+Estimate gas:
+```
+tx EstimateGas -p [from],[value],[gasPrice],[gasLimit] --abi [abiPath] --wasm [wasmPath] --is-create --input [params]
+tx EstimateGas -p 0x0000661A3c6c0955B5E6dbf935f0891aAA1112b9E9ca,0dip,1wu,5000000 --abi /home/qydev/testData/token-payable/token.cpp.abi.json --wasm /home/qydev/testData/token-payable/token.wasm --is-create --input liu,wjw,123456
+```
+
+Call contract:
+```
+tx SendTransactionContract -p [from],[contract_address],[value],[gasPrice],[gasLimit] -func-name [function_name] --input [params]
+tx SendTransactionContract -p 0x0000661A3c6c0955B5E6dbf935f0891aAA1112b9E9ca,0x0014ab28B203Fd254ac6f123cC94D7a91011eFFeaf24,10dip,1wu,5000000 -func-name transfer --input 0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9,100
+```
+
+Call contract without state change:
+```
+tx CallContract -p [from],[contract_address] -func-name [function_name] -input [params]
+tx CallContract -p 0x0000661A3c6c0955B5E6dbf935f0891aAA1112b9E9ca,0x0014ab28B203Fd254ac6f123cC94D7a91011eFFeaf24 -func-name getBalance -input 0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9
+```
+
+Get transaction:
+```
+tx Transaction [TxId]
+tx Transaction -p 0xf8dd21db65b2adcb5e3ed3c61475eb66a1653d309b1a82354959fdf58852f023
+```
+
+### Chain methods
 
 Get current block:
 ```
-rpc -m CurrentBlock
+chain CurrentBlock
 ```
 
 Get genesis block:
 ```
-rpc -m GetGenesis
+chain GetGenesis
 ```
 
-Get block by number
+Suggest gas price
 ```
-rpc -m GetBlockByNumber -p [blockNumber]
-rpc -m GetBlockByNumber -p 1
+chain SuggestGasPrice
+```
+
+Get block by number:
+```
+chain GetBlockByNumber -p [blockNumber]
+chain GetBlockByNumber -p 1
 ```
 
 Get block by block hash:
 ```
-rpc -m GetBlockByHash -p [blockHash]
-rpc -m GetBlockByHash -p  0x0f7057ff3e3048ed38c0ac2353e001dad6aded5d825d43fcc924a39221713e4c
+chain GetBlockByHash -p [blockHash]
+chain GetBlockByHash -p  0x0f7057ff3e3048ed38c0ac2353e001dad6aded5d825d43fcc924a39221713e4c
 ```
 
-### Miner master
-
-Start mining:
+Get receipt by tx hash
 ```
-rpc -m StartMine
-```
-
-Stop mining:
-```
-rpc -m StopMine
+chain GetReceiptByTxHash -p [txHash]
+chain GetReceiptByTxHash -p 0xb57c391ee4993a1b05712806eff7646c014e29882a2062fc29249d5339a72863
 ```
 
-Set miner address:
+Get receipts by block number
 ```
-rpc -m SetMineCoinBase -p [address]
-rpc -m SetMineCoinBase -p 0x0000e447B8B7851D3FBD5C6A03625D288cfE9Bb5eF0E
-```
-
-Send normal transaction:
-```
-rpc -m SendTransaction [from],[to],[value],[transactionFee],[extradata],[nonce]
-rpc -m SendTransaction -p 0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,0x00007eDe4D5D808DA8a267284b38E00ABccb42889dF2,20000,10
+chain GetReceiptsByBlockNum -p [blockNum]
+chain GetReceiptsByBlockNum -p 100
 ```
 
-Get transaction
+Search logs
 ```
-rpc -m Transaction [TxId]
-rpc -m Transaction -p 0xf8dd21db65b2adcb5e3ed3c61475eb66a1653d309b1a82354959fdf58852f023
+chain GetLogs -p [jsonFile]
+chain GetLogs -p {"from_block":10,"to_block":10000,"addresses":["0x0010Cb4174726E90E3ce09360B5F0488Ab29Fa5aB130"],"topics":[["Transfer"]]}
+chain GetLogs -p {"block_hash":"0x000023e18421a0abfceea172867b9b4a3bcf593edd0b504554bb7d1cf5f5e7b7","addresses":["0x0010Cb4174726E90E3ce09360B5F0488Ab29Fa5aB130"],"topics":[["Transfer"]]}
 ```
 
-### Wallet
+### Verifier methods
+
+GetVerifiers:
+```
+verifier GetCurVerifiers
+verifier GetNextVerifiers
+```
+
+GetVerifiersBySlot
+```
+verifier GetVerifiersBySlot -p [slotNum]
+verifier GetVerifiersBySlot -p 10
+```
+
+VerifierStatus
+```
+verifier VerifierStatus
+```
+
+### Personal methods
 
 Look up local wallet:
 ```
-rpc -m ListWallet
+personal ListWallet
 ```
 
 Look up local wallet account:
 
 If the wallet type and path are not specified, the default wallet is displayed
 ```
-rpc -m ListWalletAccount -p [walletType],[walletPath]
-rpc -m ListWalletAccount -p SoftWallet,/home/qydev/tmp/dipperin_apps/default_v0/CSWallet
+personal ListWalletAccount -p [walletType],[walletPath]
+personal ListWalletAccount -p SoftWallet,/home/qydev/tmp/dipperin_apps/default_v0/CSWallet
 ```
 
 Create new wallet:
 ```
-rpc -m EstablishWallet -p [walletType],[walletPath],[password]
-rpc -m EstablishWallet -p SoftWallet,/tmp/TestWallet,123
+personal EstablishWallet -p [walletType],[walletPath],[password]
+personal EstablishWallet -p SoftWallet,/tmp/TestWallet,123
 
 ```
 
 Recovery wallet:
 ```
-rpc -m RestoreWallet -p [walletType],[walletPath],[password],[passpharse],[mnemonic],...,[mnemonic]
-rpc -m RestoreWallet -p SoftWallet,/tmp/TestWallet2,123,,plastic,balcony,trophy,fuel,vacant,inmate,profit,rival,mimic,cute,hurdle,pig,column,pudding,visit,edge,rhythm,armed,cook,federal,amount,stock,damp,bring
+personal RestoreWallet -p [walletType],[walletPath],[password],[passpharse],[mnemonic],...,[mnemonic]
+personal RestoreWallet -p SoftWallet,/tmp/TestWallet2,123,,plastic,balcony,trophy,fuel,vacant,inmate,profit,rival,mimic,cute,hurdle,pig,column,pudding,visit,edge,rhythm,armed,cook,federal,amount,stock,damp,bring
 ```
 
 Open wallet:
 
 If the wallet type and path are not specified, the default wallet is displayed
 ```
-rpc -m OpenWallet -p [walletType],[walletPath],[password]
-rpc -m OpenWallet -p SoftWallet,/tmp/TestWallet3,123
+personal OpenWallet -p [walletType],[walletPath],[password]
+personal OpenWallet -p SoftWallet,/tmp/TestWallet3,123
 ```
 
 Close wallet:
 
 If the wallet type and path are not specified, the default wallet is displayed
 ```
-rpc -m CloseWallet -p [walletType],[walletPath]
-rpc -m CloseWallet -p SoftWallet,/tmp/TestWallet3
+personal CloseWallet -p [walletType],[walletPath]
+personal CloseWallet -p SoftWallet,/tmp/TestWallet3
 ```
-
-### Account
 
 Add account:
 
 If the wallet type and path are not specified, the default wallet is displayed
 ```
-rpc -m AddAccount -p [walletType],[walletPath]
-rpc -m AddAccount -p SoftWallet,/tmp/TestWallet3
+personal AddAccount -p [walletType],[walletPath]
+personal AddAccount -p SoftWallet,/tmp/TestWallet3
 ```
 
 Get account current balance:
 ```
-rpc -m CurrentBalance -p [address]
-rpc -m CurrentBalance -p 0x0000e447B8B7851D3FBD5C6A03625D288cfE9Bb5eF0E
+personal CurrentBalance -p [address]
+personal CurrentBalance -p 0x0000e447B8B7851D3FBD5C6A03625D288cfE9Bb5eF0E
 ```
 
 Get account deposit:
 ```
-rpc -m CurrentStake -p [address]
-rpc -m CurrentStake -p 0x0000e447B8B7851D3FBD5C6A03625D288cfE9Bb5eF0E
+personal CurrentStake -p [address]
+personal CurrentStake -p 0x0000e447B8B7851D3FBD5C6A03625D288cfE9Bb5eF0E
 
 ```
 
 Get account nonce:
 ```
-rpc -m GetAddressNonceFromWallet -p [address]
-rpc -m GetAddressNonceFromWallet -p 0x00001c2beC8E0E4caac668cD75d520E41f827092Ce79
+personal GetAddressNonceFromWallet -p [address]
+personal GetAddressNonceFromWallet -p 0x00001c2beC8E0E4caac668cD75d520E41f827092Ce79
 ```
 
-### Transaction
+### Miner methods
 
-Register verifier:
+Start mining:
 ```
-rpc -m SendRegisterTransaction -p [from],[deposit],[transactionFee],[nonce]
-rpc -m SendRegisterTransaction -p 0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,100,11
-```
-
-Unregister verifier:
-```
-rpc -m SendCancelTransaction -p [from],[transactionFee],[nonce]
-rpc -m SendCancelTransaction -p 0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,11
+miner StartMine
 ```
 
-Redemption of the deposit:
+Stop mining:
 ```
-rpc -m SendUnStakeTransaction -p [from],[transactionFee],[nonce]
-rpc -m SendUnStakeTransaction -p 0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978,11
-```
-
-Get transation nonce:
-```
-rpc -m GetTransactionNonce -p [address]
-rpc -m GetTransactionNonce -p 0x00001c2beC8E0E4caac668cD75d520E41f827092Ce79
+miner StopMine
 ```
 
-### Verifiers
-
-Get Verifiers by slot:
+Set miner address:
 ```
-rpc -m GetVerifiersBySlot -p [round]
-rpc -m GetVerifiersBySlot -p 2
-
-```
-
-Get current slot verifiers:
-```
-rpc -m GetCurVerifiers
-```
-
-Get next slot verifiers:
-```
-rpc -m GetNextVerifiers
-```
-
-### ERC20
-
-Create ERC20 contract:
-
-The contract address must be saved for successful creation
-```
-rpc -m AnnounceERC20 -p [owner_address], [token_name], [token_symbol], [token_total_supply], [decimal],[transactionFee]
-rpc -m AnnounceERC20 -p 0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,chain,stack,5,3,0.00001
-```
-
-Look up ERC20 information:
-```
-rpc -m ERC20GetInfo -p [contract_address]
-rpc -m ERC20GetInfo -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3
-```
-
-Look up ERC20 total supply
-```
-rpc -m ERC20TotalSupply -p [contract_address]
-rpc -m ERC20TotalSupply -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3
-```
-
-Look up ERC20 token name (No need) :
-```
-rpc -m ERC20TokenName -p [contract_address]
-rpc -m ERC20TokenName -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3
-```
-
-Look up ERC20 token symbol (No need) :
-```
-rpc -m ERC20TokenSymbol -p [contract_address]
-rpc -m ERC20TokenSymbol -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3
-```
-
-Look up ERC20 token decimals (No need) :
-```
-rpc -m ERC20TokenDecimals -p [contract_address]
-rpc -m ERC20TokenDecimals -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3
-```
-
-Look up ERC20 token quota:
-```
-rpc -m ERC20Allowance -p [contract_address],[from_address],[to_address]
-rpc -m ERC20Allowance -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4
-```
-
-Allocation of ERC20 contract quota:
-```
-rpc -m ERC20Approve -p [contract_address],[from_address],[to_address],[amount],[transactionFee]
-rpc -m ERC20Approve -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,
-0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4,4,0.00001
-```
-
-Look up ERC20 balance:
-```
-rpc -m ERC20Balance -p [contract_address],[owner_address]
-rpc -m ERC20Balance -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532
-```
-
-ERC20 contract transfer:
-```
-rpc -m ERC20Transfer -p [contract_address],[from_address],[to_address],[amount],[transactionFee]
-rpc -m ERC20Transfer -p 0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,
-0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4,4,0.00001
-```
-
-ERC20 contract transfer from:
-```
-rpc -m ERC20TransferFrom -p [contract_address],[owner_address],[from_address],[to_address],[amount],[transactionFee]
-rpc -m ERC20TransferFrom -p 0x0000B04985A7ccc00ab023d9bC40E241F9DF0379d8c4,0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c5353d,
-0x0000D07252C7A396Cc444DC0196A8b43c1A4B6c53532,0x00100f35adf022a8aaAbef59abB97665788CDdbA30e3,4,0.00001
+miner SetMineCoinBase -p [address]
+miner SetMineCoinBase -p 0x0000e447B8B7851D3FBD5C6A03625D288cfE9Bb5eF0E
 ```

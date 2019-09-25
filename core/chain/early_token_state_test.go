@@ -14,21 +14,19 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package chain
 
 import (
+	"fmt"
+	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/mpt_log"
-	"testing"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"reflect"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"testing"
 )
-
 
 /*
 
@@ -37,7 +35,7 @@ test foundation contract execution is correct
 */
 
 func TestProcessEarlyContract(t *testing.T) {
-	mpt_log.InitMptLogger(log.LvlDebug, "TestProcessEarlyContract", true)
+	log.Mpt.Logger = log.SetInitLogger(log.DefaultLogConf, "TestProcessEarlyContract")
 
 	eModel := economy_model.MakeDipperinEconomyModel(&earlyContractFakeChainService{}, economy_model.DIPProportion)
 	cReader := &fakeAccountDBChain{}
@@ -51,6 +49,10 @@ func TestProcessEarlyContract(t *testing.T) {
 	tmpB := createBlock(20)
 	err = aStateDB.Process(tmpB, eModel)
 	assert.NoError(t, err)
+
+	hash, err := aStateDB.Finalise()
+	assert.NoError(t, err)
+	fmt.Println(hash.Hex())
 
 	//the root of finalise and commit
 	fHash, err := aStateDB.Finalise()
@@ -72,6 +74,7 @@ func TestProcessEarlyContract(t *testing.T) {
 	trDB = state_processor.NewStateStorageWithCache(kvDB)
 	aStateDB, err = NewBlockProcessor(cReader, cHash, trDB)
 	assert.NoError(t, err)
+
 	earlyTCV, err := aStateDB.GetContract(contract.EarlyContractAddress, reflect.TypeOf(contract.EarlyRewardContract{}))
 	assert.NoError(t, err)
 
@@ -79,4 +82,39 @@ func TestProcessEarlyContract(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, earlyTC.Balances[aliceAddr.Hex()])
 	assert.Equal(t, 1, earlyTC.Balances[aliceAddr.Hex()].Cmp(big.NewInt(0)))
+}
+
+func TestProcessEarlyContract2(t *testing.T) {
+	log.Mpt.Logger = log.SetInitLogger(log.DefaultLogConf, "TestProcessEarlyContract")
+
+	eModel := economy_model.MakeDipperinEconomyModel(&earlyContractFakeChainService{}, economy_model.DIPProportion)
+	cReader := &fakeAccountDBChain{}
+	kvDB, originStateRoot := createTestStateDB(t)
+
+	// Test processing block can correctly modify the contract value
+	trDB := state_processor.NewStateStorageWithCache(kvDB)
+	aStateDB, err := NewBlockProcessor(cReader, originStateRoot, trDB)
+	assert.NoError(t, err)
+
+	snapshot := aStateDB.Snapshot()
+	tmpB := createBlock(20)
+	err = aStateDB.Process(tmpB, eModel)
+	assert.NoError(t, err)
+	aStateDB.RevertToSnapshot(snapshot)
+
+	//the root of finalise and commit
+	fHash, err := aStateDB.Finalise()
+	assert.NoError(t, err)
+
+	// start with kv db completely
+	trDB = state_processor.NewStateStorageWithCache(kvDB)
+	aStateDB, err = NewBlockProcessor(cReader, originStateRoot, trDB)
+	assert.NoError(t, err)
+	err = aStateDB.Process(tmpB, eModel)
+	assert.NoError(t, err)
+
+	// Do a commit, then take the contract data from kvDB
+	cHash, err := aStateDB.Commit()
+	assert.NoError(t, err)
+	assert.NotEqual(t, fHash, cHash)
 }

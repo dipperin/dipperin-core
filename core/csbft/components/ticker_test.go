@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package components
 
 import (
-	"time"
-	"testing"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"fmt"
-	"github.com/dipperin/dipperin-core/core/csbft/model"
 	cmn "github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/core/csbft/model"
+	"github.com/dipperin/dipperin-core/third-party/log"
+	"testing"
+	"time"
 )
 
 func TestNewTimeoutTicker(t *testing.T) {
@@ -31,11 +30,11 @@ func TestNewTimeoutTicker(t *testing.T) {
 	tt := NewTimeoutTicker()
 	tt.Start()
 	go func() {
-			select {
-			//time.Sleep(time.Second * 25)
-			case info := <-tt.Chan():
-				fmt.Println("info", info, time.Now())
-			}
+		select {
+		//time.Sleep(time.Second * 25)
+		case info := <-tt.Chan():
+			fmt.Println("info", info, time.Now())
+		}
 
 	}()
 
@@ -61,7 +60,7 @@ func Test_timeoutRoutine(t *testing.T) {
 	tt.BaseService = *cmn.NewBaseService(nil, "TimeoutTicker", tt)
 	tt.Start()
 
-	tt.tickChan <- TimeoutInfo{Height:0, Round:10}
+	tt.tickChan <- TimeoutInfo{Height: 0, Round: 10}
 	go tt.timeoutRoutine()
 	time.Sleep(time.Millisecond * 5)
 	tt.Stop()
@@ -78,9 +77,9 @@ func Test_timeoutRoutine2(t *testing.T) {
 	tt.Start()
 	//tt.stopTimer() // don't want to fire until the first scheduled timeout
 	//ticker := NewTimeoutTicker()
-	tt.tickChan <- TimeoutInfo{Height:100, Round:15}
-	time.Sleep(time.Millisecond*2)
-	tt.tickChan <- TimeoutInfo{Height:50, Round:15}
+	tt.tickChan <- TimeoutInfo{Height: 100, Round: 15}
+	time.Sleep(time.Millisecond * 2)
+	tt.tickChan <- TimeoutInfo{Height: 50, Round: 15}
 	go tt.timeoutRoutine()
 	time.Sleep(time.Millisecond * 5)
 	tt.Stop()

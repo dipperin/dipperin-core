@@ -36,12 +36,12 @@ import (
 	"time"
 
 	"github.com/dipperin/dipperin-core/common/bitutil"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/crypto/ecies"
+	"github.com/dipperin/dipperin-core/third-party/crypto/secp256k1"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/golang/snappy"
-	"github.com/dipperin/dipperin-core/third-party/crypto/ecies"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"golang.org/x/crypto/sha3"
-	"github.com/dipperin/dipperin-core/third-party/crypto/secp256k1"
 )
 
 const (

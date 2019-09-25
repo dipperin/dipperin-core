@@ -14,19 +14,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/ethereum/go-ethereum/rlp"
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestBlock_RLP(t *testing.T) {
 	SetBlockRlpHandler(&PBFTBlockRlpHandler{})
-	block := CreateBlock(1, common.HexToHash("123"),10)
+	block := CreateBlock(1, common.HexToHash("123"), 10)
 	b, err := rlp.EncodeToBytes(block)
 	assert.NoError(t, err)
 

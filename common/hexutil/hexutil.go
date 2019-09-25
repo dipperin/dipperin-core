@@ -70,7 +70,6 @@ func Decode(input string) ([]byte, error) {
 	return b, err
 }
 
-
 func ReferenceBig(s string) *big.Int {
 	b, ok := new(big.Int).SetString(s, 16)
 	if !ok {
@@ -86,8 +85,6 @@ func ReferenceBytes(s string) []byte {
 	}
 	return b
 }
-
-
 
 // MustDecode decodes a hex string with 0x prefix. It panics for invalid input.
 func MustDecode(input string) []byte {

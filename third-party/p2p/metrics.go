@@ -27,8 +27,8 @@ import (
 
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 
-	"github.com/ethereum/go-ethereum/event"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/metrics"
 )
 

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package minemaster
 
 import (
@@ -23,13 +22,12 @@ import (
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
-	"github.com/dipperin/dipperin-core/third-party/log/pbft_log"
 )
 
 // context must have workBuilder workBuilder, blockBuilder blockBuilder, curCoinbaseAddressFunc curCoinbaseAddressFunc
 func newWorkDispatcher(config MineConfig, getWorkersFunc getWorkersFunc) *workDispatcher {
 	return &workDispatcher{
-		MineConfig: config,
+		MineConfig:     config,
 		getWorkersFunc: getWorkersFunc,
 	}
 }
@@ -48,7 +46,7 @@ type workDispatcher struct {
 
 func (dispatcher *workDispatcher) onNewBlock(block model.AbstractBlock) error {
 	// new block num equal or bigger than cur work block num, reset work and dispatch a new
-	if dispatcher.curWorkBlock()!=nil{
+	if dispatcher.curWorkBlock() != nil {
 		if block.Number() < dispatcher.curWorkBlock().Number() {
 			//log.Warn("new block is smaller than cur work, nothing to do", "block num", block.Number())
 			return fmt.Errorf("new block is smaller than cur work, nothing to do block num: %v", block.Number())
@@ -65,7 +63,7 @@ func (dispatcher *workDispatcher) onNewBlock(block model.AbstractBlock) error {
 }
 
 func (dispatcher *workDispatcher) dispatchNewWork() error {
-	pbft_log.Debug("dispatch mine work")
+	log.PBft.Debug("dispatch mine work")
 	workers := dispatcher.getWorkersFunc()
 	workersLen := len(workers)
 	if workersLen == 0 {
@@ -85,14 +83,17 @@ func (dispatcher *workDispatcher) dispatchNewWork() error {
 		w.SendNewWork(workMsgCode, works[i])
 		i++
 	}
-	pbft_log.Debug("finish dispatch mine work")
+	log.PBft.Debug("finish dispatch mine work")
 	log.Info("finish dispatch work")
 	return nil
 }
 
 func (dispatcher *workDispatcher) makeNewWorks(workerLen int) (workMsgCode int, works []minemsg.Work) {
-	pbft_log.Debug("make new works")
-	dispatcher.curBlock = dispatcher.BlockBuilder.BuildWaitPackBlock(dispatcher.GetCoinbaseAddr())
+	log.PBft.Debug("make new works")
+	coinBaseAddr := dispatcher.GetCoinbaseAddr()
+	gasFloor := dispatcher.GetGasFloor()
+	gasCeil := dispatcher.GetGasCeil()
+	dispatcher.curBlock = dispatcher.BlockBuilder.BuildWaitPackBlock(coinBaseAddr, gasFloor, gasCeil)
 	mineWorkBuilder := minemsg.MakeDefaultWorkBuilder()
 	return mineWorkBuilder.BuildWorks(dispatcher.curBlock, workerLen)
 }

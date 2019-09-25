@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package model
 
 import (
+	"github.com/dipperin/dipperin-core/common"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/dipperin/dipperin-core/common"
 )
 
 func TestHeader_JSON(t *testing.T) {
@@ -43,36 +42,6 @@ func TestBlock_JSON(t *testing.T) {
 	b1 := CreateBlock(0, common.Hash{}, 1)
 
 	// MarshalJSON
-	_, err1 := b1.MarshalJSON()
-	assert.NoError(t, err1)
-}
-
-func TestBody_UnmarshalJSON(t *testing.T) {
-	b := CreateBlock(0, common.Hash{}, 1)
-	enc, err := b.MarshalJSON()
-	assert.NoError(t, err)
-	err=b.body.UnmarshalJSON(enc)
-	assert.NoError(t,err)
-}
-
-func TestPBFTBlockJsonHandler_DecodeBody(t *testing.T) {
-	pb:=PBFTBlockJsonHandler{}
-	b := CreateBlock(0, common.Hash{}, 1)
-	enc, err := b.MarshalJSON()
-	assert.NoError(t, err)
-	err=pb.DecodeBody(b.body,enc)
-	assert.NoError(t,err)
-}
-
-func TestSetBlockJsonHandler(t *testing.T) {
-	bjh:=blockJsonHandler
-	SetBlockJsonHandler(bjh)
-}
-
-func TestBlock_UnmarshalJSON(t *testing.T) {
-	b1 := CreateBlock(0, common.Hash{}, 1)
-
-	// MarshalJSON
 	enc, err1 := b1.MarshalJSON()
 	assert.NoError(t, err1)
 
@@ -81,16 +50,26 @@ func TestBlock_UnmarshalJSON(t *testing.T) {
 	err2 := b1get.UnmarshalJSON(enc)
 	assert.NoError(t, err2)
 	assert.Equal(t, b1.Hash(), b1get.Hash())
+}
 
-	h:=newTestHeader()
-	b1.header=h
+func TestBody_UnmarshalJSON(t *testing.T) {
+	b := CreateBlock(0, common.Hash{}, 1)
+	enc, err := b.MarshalJSON()
+	assert.NoError(t, err)
+	err = b.body.UnmarshalJSON(enc)
+	assert.NoError(t, err)
+}
 
-	enc, err1 = b1.MarshalJSON()
-	assert.NoError(t, err1)
+func TestPBFTBlockJsonHandler_DecodeBody(t *testing.T) {
+	pb := PBFTBlockJsonHandler{}
+	b := CreateBlock(0, common.Hash{}, 1)
+	enc, err := b.MarshalJSON()
+	assert.NoError(t, err)
+	err = pb.DecodeBody(b.body, enc)
+	assert.NoError(t, err)
+}
 
-	// UnmarshalJSON
-	b1get = &Block{}
-	err2 = b1get.UnmarshalJSON(enc)
-	assert.Nil(t, err2)
-	assert.NotEqual(t, b1.Hash(), b1get.Hash())
+func TestSetBlockJsonHandler(t *testing.T) {
+	bjh := blockJsonHandler
+	SetBlockJsonHandler(bjh)
 }

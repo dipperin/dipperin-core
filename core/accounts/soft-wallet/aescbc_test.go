@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package soft_wallet
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 var commonInput = []byte{
@@ -56,27 +55,27 @@ var cbcAESTests = struct {
 }
 
 var errorKey = []byte{
-	0x12,0x23,0x34,0x56,
+	0x12, 0x23, 0x34, 0x56,
 }
 
 func TestAesEncryptCBC(t *testing.T) {
-	_,err :=  AesEncryptCBC(cbcAESTests.iv,errorKey,cbcAESTests.in)
-	assert.Error(t,err)
+	_, err := AesEncryptCBC(cbcAESTests.iv, errorKey, cbcAESTests.in)
+	assert.Error(t, err)
 
-	cipher,err :=AesEncryptCBC(cbcAESTests.iv,cbcAESTests.key,cbcAESTests.in)
-	assert.NoError(t,err)
-	assert.EqualValues(t,cipher,cbcAESTests.out)
+	cipher, err := AesEncryptCBC(cbcAESTests.iv, cbcAESTests.key, cbcAESTests.in)
+	assert.NoError(t, err)
+	assert.EqualValues(t, cipher, cbcAESTests.out)
 }
 
 func TestAesDecryptCBC(t *testing.T) {
-	_,err :=AesDecryptCBC(cbcAESTests.iv,cbcAESTests.key,cbcAESTests.out[:12])
-	assert.Error(t,err)
+	_, err := AesDecryptCBC(cbcAESTests.iv, cbcAESTests.key, cbcAESTests.out[:12])
+	assert.Error(t, err)
 
-	_,err =AesDecryptCBC(cbcAESTests.iv,errorKey,cbcAESTests.out)
-	assert.Error(t,err)
+	_, err = AesDecryptCBC(cbcAESTests.iv, errorKey, cbcAESTests.out)
+	assert.Error(t, err)
 
-	plaintext,err :=AesDecryptCBC(cbcAESTests.iv,cbcAESTests.key,cbcAESTests.out)
-	assert.NoError(t,err)
-	assert.EqualValues(t,plaintext,cbcAESTests.in)
+	plaintext, err := AesDecryptCBC(cbcAESTests.iv, cbcAESTests.key, cbcAESTests.out)
+	assert.NoError(t, err)
+	assert.EqualValues(t, plaintext, cbcAESTests.in)
 
 }

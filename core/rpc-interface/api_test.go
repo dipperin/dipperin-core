@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 package rpc_interface
 
 import (
@@ -25,7 +24,7 @@ import (
 
 func TestGetMethodName(t *testing.T) {
 	t.Skip("no run this test")
-	var api interface{} = (*DipperinMercuryApi)(nil)
+	var api interface{} = (*DipperinVenusApi)(nil)
 
 	value := reflect.ValueOf(api)
 	typ := value.Type()
@@ -35,4 +34,3 @@ func TestGetMethodName(t *testing.T) {
 		fmt.Println(",")
 	}
 }
-
