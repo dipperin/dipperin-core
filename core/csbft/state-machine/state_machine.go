@@ -124,6 +124,8 @@ func (bs *BftState) OnPreVote(pv *model.VoteMsg) {
 		log.PBft.Info("the locked and round Block is:", "lockedBlock", bs.LockedBlock.Hash().Hex(), "roundBlock", roundBlock.Hex())
 		if !bs.LockedBlock.Hash().IsEqual(roundBlock) {
 			bs.LockedBlock = nil
+		} else {
+			bs.LockedRound = pv.Round
 		}
 	}
 
