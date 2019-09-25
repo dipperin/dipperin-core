@@ -122,11 +122,9 @@ func (bs *BftState) OnPreVote(pv *model.VoteMsg) {
 	// Release block lock
 	if bs.LockedBlock != nil && !roundBlock.IsEqual(common.Hash{}) && pv.Round >= bs.Round && bs.LockedRound < pv.Round {
 		log.PBft.Info("the locked and round Block is:", "lockedBlock", bs.LockedBlock.Hash().Hex(), "roundBlock", roundBlock.Hex())
-		if !bs.LockedBlock.Hash().IsEqual(roundBlock) {
-			bs.LockedBlock = nil
-		} else {
-			bs.LockedRound = pv.Round
-		}
+		//Fixme Deleted code: if !bs.LockedBlock.Hash().IsEqual(roundBlock){bs.LockedBlock = nil}
+		//When bs.Round = 13, LockedRound=13, lockedBlock=X. Receive 2/3 vote on round 14, block X. Should unlock X, and lock X after.
+		bs.LockedBlock = nil
 	}
 
 	// Add lock

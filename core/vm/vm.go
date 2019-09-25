@@ -181,10 +181,10 @@ func (vm *VM) Create(caller resolver.ContractRef, data []byte, gas uint64, value
 }
 
 func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value *big.Int, address common.Address) (rest []byte, contractAddr common.Address, leftOverGas uint64, err error) {
-	defer func (){
+	defer func() {
 		if er := recover(); er != nil {
 			log.Error("VM#create err  ", "err", er)
-			rest,contractAddr,leftOverGas,err = nil,common.Address{},gas,er.(error)
+			rest, contractAddr, leftOverGas, err = nil, common.Address{}, gas, er.(error)
 		}
 	}()
 	// Depth check execution. Fail if we're trying to execute above the
