@@ -276,7 +276,7 @@ func (bft *CsBft) OnNewP2PMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer)
 			if err := p.SendMsg(uint64(model2.TypeOfNewRoundMsg), msg); err != nil {
 				log.PBft.Error("response round request error", "err", err)
 			}
-			if round - m.Round > 10 {
+			if round-m.Round > 10 {
 				break
 			}
 		}

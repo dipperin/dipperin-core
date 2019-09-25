@@ -118,7 +118,7 @@ func (bs *BftState) OnPreVote(pv *model.VoteMsg) {
 	roundBlock := bs.PreVotes.VotesEnough(pv.Round)
 	// fmt.Println("onprevote","who",reflect.ValueOf(bs).Pointer(),"pv",roundBlock)
 	// Release block lock
-	if bs.LockedBlock != nil && !roundBlock.IsEqual(common.Hash{}) && pv.Round >= bs.Round && bs.LockedRound < pv.Round{
+	if bs.LockedBlock != nil && !roundBlock.IsEqual(common.Hash{}) && pv.Round >= bs.Round && bs.LockedRound < pv.Round {
 		//Fixme Deleted code: if !bs.LockedBlock.Hash().IsEqual(roundBlock){bs.LockedBlock = nil}
 		//When bs.Round = 13, LockedRound=13, lockedBlock=X. Receive 2/3 vote on round 14, block X. Should unlock X, and lock X after.
 		bs.LockedBlock = nil
