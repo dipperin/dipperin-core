@@ -96,8 +96,8 @@ type CacheChainState struct {
 
 func (chain *CacheChainState) SaveBftBlock(block model.AbstractBlock, seenCommits []model.AbstractVerification) error {
 	err := chain.WriterFactory.NewWriter(middleware.NewBftBlockContext(block, seenCommits, chain)).SaveBlock()
-
 	if err != nil {
+		log.Error("SaveBftBlock err","err",err)
 		return err
 	}
 

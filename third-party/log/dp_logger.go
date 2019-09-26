@@ -50,15 +50,17 @@ var (
 
 //dipperIn logger
 var (
-	Mpt       *dpLogger
-	Halt      *dpLogger
-	Health    *dpLogger
-	PBft      *dpLogger
-	Witch     *dpLogger
-	Vm        *dpLogger
-	VmMem     *dpLogger
-	Pm        *dpLogger
-	dpLoggers map[string]*dpLogger
+	Mpt        *dpLogger
+	Halt       *dpLogger
+	Health     *dpLogger
+	PBft       *dpLogger
+	Witch      *dpLogger
+	Vm         *dpLogger
+	VmMem      *dpLogger
+	Pm         *dpLogger
+	Middleware *dpLogger
+	P2P        *dpLogger
+	dpLoggers  map[string]*dpLogger
 )
 
 func init() {
@@ -70,6 +72,8 @@ func init() {
 	Vm = DefaultDpLogger("vm")
 	VmMem = DefaultDpLogger("vm_memory")
 	Pm = DefaultDpLogger("pm")
+	Middleware = DefaultDpLogger("Middleware")
+	P2P = DefaultDpLogger("P2P")
 
 	dpLoggers = map[string]*dpLogger{
 		"mpt":         Mpt,
@@ -80,6 +84,8 @@ func init() {
 		"vm":          Vm,
 		"vm_memory":   VmMem,
 		"pm":          Pm,
+		"Middleware":  Middleware,
+		"P2P":         P2P,
 	}
 }
 

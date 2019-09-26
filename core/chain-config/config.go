@@ -83,8 +83,8 @@ func defaultChainConfig() *ChainConfig {
 		SlotMargin: uint64(2),
 
 		// number of verifier
-		//VerifierNumber: 4,
-		VerifierNumber: 22,
+		VerifierNumber: 4,
+		//VerifierNumber: 22,
 		// angel verifier priority
 		SystemVerifierPriority: 0,
 
@@ -110,13 +110,10 @@ func defaultChainConfig() *ChainConfig {
 	case "test":
 		c.NetworkID = 1600
 		c.ChainId = big.NewInt(1600)
-	case "local":
+	default:
 		c.VerifierNumber = 4
 		c.NetworkID = 1601
 		c.ChainId = big.NewInt(1601)
-	default:
-		c.NetworkID = 2000
-		c.ChainId = big.NewInt(2000)
 	}
 
 	return c

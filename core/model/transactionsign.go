@@ -24,6 +24,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 )
 
@@ -178,10 +179,13 @@ func (ds DipperinSigner) GetSenderPublicKey(tx *Transaction) (*ecdsa.PublicKey, 
 }
 
 func recoverNormalSender(sigHash common.Hash, R, S, V *big.Int) (common.Address, error) {
+	log.Info("recover normal Sender the r s v is:","R",R,"S",S,"V",V)
 	if V.BitLen() > 8 {
+		log.Error("the V bit Len is:","bitLen",V.BitLen())
 		return common.Address{}, ErrInvalidSig
 	}
 	if !cs_crypto.ValidSigValue(R, S, V) {
+		log.Error("cs_crypto valid signature value error")
 		return common.Address{}, ErrInvalidSig
 	}
 	// encode the signature in uncompressed format

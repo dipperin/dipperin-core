@@ -58,10 +58,12 @@ func (chainDB *ChainDB) InsertBlock(block model.AbstractBlock) error {
 }
 
 func (chainDB *ChainDB) GetBlockHashByNumber(number uint64) common.Hash {
+	//log.Middleware.Info("chainDB GetBlockHashByNumber start","number",number)
 	data, _ := chainDB.db.Get(headerHashKey(number))
 	if len(data) == 0 {
 		return common.Hash{}
 	}
+	//log.Middleware.Info("chainDB GetBlockHashByNumber success")
 	return common.BytesToHash(data)
 }
 
@@ -233,7 +235,7 @@ func (chainDB *ChainDB) DeleteBody(hash common.Hash, number uint64) {
 }
 
 func (chainDB *ChainDB) GetBlock(hash common.Hash, number uint64) model.AbstractBlock {
-	//log.Debug("chainDB get block", "hash", hash.Hex(), "num", number)
+	//log.Middleware.Info("chainDB get block start", "hash", hash.Hex(), "num", number)
 	headerRlp := chainDB.GetHeaderRLP(hash, number)
 	if len(headerRlp) == 0 {
 		log.Debug("block header not found")
@@ -251,7 +253,7 @@ func (chainDB *ChainDB) GetBlock(hash common.Hash, number uint64) model.Abstract
 		log.Warn("decode block failed", "err", err)
 		return nil
 	}
-
+	//log.Middleware.Info("chainDB get block end")
 	return block
 }
 

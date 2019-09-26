@@ -22,12 +22,13 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 // SaveBlock use
 func ValidateVotes(c *BftBlockContext) Middleware {
 	return func() error {
-
+		log.Middleware.Info("ValidateVotes start")
 		// verify the number of seen commits meets the need
 		block := c.Block
 		slot := c.Chain.GetSlot(block)
@@ -44,6 +45,7 @@ func ValidateVotes(c *BftBlockContext) Middleware {
 		if err != nil {
 			return err
 		}
+		log.Middleware.Info("ValidateVotes success")
 		return c.Next()
 	}
 }

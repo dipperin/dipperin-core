@@ -73,6 +73,7 @@ func (v *TxValidatorForRpcService) Valid(tx model.AbstractTransaction) error {
 
 func ValidateBlockTxs(c *BlockContext) Middleware {
 	return func() error {
+		log.Middleware.Info("ValidateBlockTxs start")
 		txs := c.Block.GetAbsTransactions()
 		targetRoot := model.DeriveSha(model.AbsTransactions(txs))
 		if !targetRoot.IsEqual(c.Block.TxRoot()) {
@@ -94,7 +95,7 @@ func ValidateBlockTxs(c *BlockContext) Middleware {
 				return err
 			}
 		}
-
+		log.Middleware.Info("ValidateBlockTxs success")
 		return c.Next()
 	}
 }

@@ -43,6 +43,8 @@ import (
 */
 func ValidateBlockNumber(c *BlockContext) Middleware {
 	return func() error {
+		log.Middleware.Info("ValidateBlockNumber start","blockNumber",c.Block.Number())
+		log.Middleware.Info("the save block info is:","block",c.Block)
 		if c.Chain == nil || c.Block == nil {
 			fmt.Println(c.Chain == nil, c.Block == nil)
 			return errors.New("chain or block cannot be null")
@@ -52,6 +54,7 @@ func ValidateBlockNumber(c *BlockContext) Middleware {
 			return g_error.ErrBlockHeightTooLow
 		}
 		if cur.Number() == c.Block.Number() && !c.Block.IsSpecial() {
+			log.Error("the current block and wait-verified block number  is","cur",cur.Number(),"verified",c.Block.Number())
 			return g_error.ErrBlockHeightIsCurrentAndIsNotSpecial
 		}
 
@@ -70,12 +73,14 @@ func ValidateBlockNumber(c *BlockContext) Middleware {
 			}
 			return g_error.ErrFutureBlock
 		}
+		log.Middleware.Info("ValidateBlockNumber success")
 		return c.Next()
 	}
 }
 
 func ValidateBlockHash(c *BlockContext) Middleware {
 	return func() error {
+		log.Middleware.Info("ValidateBlockHash start")
 		preBlock := c.Chain.GetBlockByNumber(c.Block.Number() - 1)
 		preRv := reflect.ValueOf(preBlock)
 		if !preRv.IsValid() || preRv.IsNil() {
@@ -89,7 +94,7 @@ func ValidateBlockHash(c *BlockContext) Middleware {
 				"pre block hash", preBlock.Hash().Hex())
 			return g_error.ErrPreBlockHashNotMatch
 		}
-
+		log.Middleware.Info("ValidateBlockHash end")
 		return c.Next()
 	}
 }
@@ -109,7 +114,9 @@ func ValidateBlockHash(c *BlockContext) Middleware {
 
 func ValidateBlockDifficulty(c *BlockContext) Middleware {
 	return func() error {
+		log.Middleware.Info("ValidateBlockDifficulty start")
 		if c.Block.IsSpecial() {
+			log.Middleware.Info("ValidateBlockDifficulty the block is special")
 			return c.Next()
 
 		}
@@ -140,28 +147,32 @@ func ValidateBlockDifficulty(c *BlockContext) Middleware {
 			fmt.Println(c.Block.Header().(*model.Header).String())
 			return g_error.ErrWrongHashDiff
 		}
+		log.Middleware.Info("ValidateBlockDifficulty success")
 		return c.Next()
 	}
 }
 
 func ValidateBlockCoinBase(c *BlockContext) Middleware {
 	return func() error {
+		log.Middleware.Info("ValidateBlockCoinBase start")
 		if c.Block.IsSpecial() {
 			if !model.CheckAddressIsVerifierBootNode(c.Block.CoinBaseAddress()) {
 				return g_error.ErrSpecialInvalidCoinBase
 			}
 		}
-
+		log.Middleware.Info("ValidateBlockCoinBase success")
 		return c.Next()
 	}
 }
 
 func ValidateSeed(c *BlockContext) Middleware {
 	return func() error {
+		log.Middleware.Info("ValidateSeed start")
 		block := c.Block
 		preBlockHeight := block.Number() - 1
+		log.Middleware.Info("ValidateSeed the preBlockHeight is:","preBlockHeight",preBlockHeight)
 		preBlock := c.Chain.GetBlockByNumber(preBlockHeight)
-		log.Info("ValidateSeed#preBlock", "preBlock", preBlock)
+		log.Middleware.Info("ValidateSeed the preBlock is:","preBlock",preBlock)
 
 		seed := preBlock.Header().GetSeed().Bytes()
 		proof := block.Header().GetProof()
@@ -182,25 +193,30 @@ func ValidateSeed(c *BlockContext) Middleware {
 		if !address.IsEqual(block.CoinBaseAddress()) {
 			return g_error.ErrPkNotIsCoinBase
 		}
+		log.Middleware.Info("ValidateSeed success")
 		return c.Next()
 	}
 }
 
 func ValidateBlockVersion(c *BlockContext) Middleware {
 	return func() error {
+		log.Middleware.Info("ValidateBlockVersion start")
 		if c.Block.Version() != c.Chain.GetChainConfig().Version {
 			return g_error.ErrBlockVer
 		}
+		log.Middleware.Info("ValidateBlockVersion end")
 		return c.Next()
 	}
 }
 
 func ValidateBlockTime(c *BlockContext) Middleware {
 	return func() error {
+		log.Middleware.Info("ValidateBlockTime start")
 		blockTime := c.Block.Timestamp().Int64()
 		if time.Now().Add(c.Chain.GetChainConfig().BlockTimeRestriction).UnixNano() < blockTime {
 			return g_error.ErrBlockTimeStamp
 		}
+		log.Middleware.Info("ValidateBlockTime success")
 		return c.Next()
 	}
 }
@@ -208,6 +224,7 @@ func ValidateBlockTime(c *BlockContext) Middleware {
 // valid gas limit
 func ValidateGasLimit(c *BlockContext) Middleware {
 	return func() error {
+		log.Middleware.Info("ValidateGasLimit start")
 		if c.Block.IsSpecial() {
 			return c.Next()
 
@@ -227,7 +244,7 @@ func ValidateGasLimit(c *BlockContext) Middleware {
 		if uint64(diff) >= limit || currentGasLimit < model2.MinGasLimit {
 			return errors.New(fmt.Sprintf("invalid gas limit: have %d, want %d += %d", currentGasLimit, parentGasLimit, limit))
 		}
-
+		log.Middleware.Info("ValidateGasLimit success")
 		return c.Next()
 	}
 }

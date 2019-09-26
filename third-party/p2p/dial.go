@@ -171,6 +171,7 @@ func (s *dialstate) newTasks(nRunning int, peers map[enode.ID]*Peer, now time.Ti
 			return false
 		}
 		s.dialing[n.ID()] = flag
+		log.P2P.Info("the add dial task dest node is:","dest",n.String())
 		newtasks = append(newtasks, &dialTask{flags: flag, dest: n})
 		return true
 	}
@@ -200,6 +201,7 @@ func (s *dialstate) newTasks(nRunning int, peers map[enode.ID]*Peer, now time.Ti
 			delete(s.static, t.dest.ID())
 		case nil:
 			s.dialing[id] = t.flags
+			log.P2P.Info("the add static dial task dest node is:","t",t.String())
 			newtasks = append(newtasks, t)
 		}
 	}
@@ -210,7 +212,7 @@ func (s *dialstate) newTasks(nRunning int, peers map[enode.ID]*Peer, now time.Ti
 		bootnode := s.bootnodes[0]
 		s.bootnodes = append(s.bootnodes[:0], s.bootnodes[1:]...)
 		s.bootnodes = append(s.bootnodes, bootnode)
-
+		log.P2P.Info("newTasks addDial boot node","bootNode",bootnode.String())
 		if addDial(dynDialedConn, bootnode) {
 			needDynDials--
 		}
@@ -220,6 +222,7 @@ func (s *dialstate) newTasks(nRunning int, peers map[enode.ID]*Peer, now time.Ti
 	randomCandidates := needDynDials / 2
 	if randomCandidates > 0 {
 		n := s.ntab.ReadRandomNodes(s.randomNodes)
+		log.P2P.Info("newTasks addDial the read randomNodes from table is:","randomNodes",s.randomNodes)
 		for i := 0; i < randomCandidates && i < n; i++ {
 			if addDial(dynDialedConn, s.randomNodes[i]) {
 				needDynDials--

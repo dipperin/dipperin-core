@@ -52,7 +52,7 @@ func TestGetChainConfig(t *testing.T) {
 	chainConfig := defaultChainConfig()
 	assert.Equal(t, uint64(110), chainConfig.SlotSize)
 	assert.Equal(t, 22, chainConfig.VerifierNumber)
-	assert.Equal(t, uint64(2000), chainConfig.NetworkID)
+	assert.Equal(t, uint64(1601), chainConfig.NetworkID)
 
 	err = os.Setenv("boots_env", "test")
 	assert.NoError(t, err)
