@@ -22,6 +22,9 @@ import (
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
+	"strings"
+	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 )
 
 type ContractRef interface {
@@ -80,15 +83,39 @@ func (service *resolverNeedExternalService) Transfer(toAddr common.Address, valu
 }
 
 func (service *resolverNeedExternalService) ResolverCall(addr, param []byte) ([]byte, error) {
+	funcName, err := utils.ParseInputForFuncName(param)
+	if err != nil {
+		log.Error("ResolverCall#ParseInputForFuncName failed", "err", err)
+		return nil, err
+	}
+
+	// check funcName
+	if strings.EqualFold(funcName, "init") {
+		log.Error("ResolverCall can't call init function")
+		return nil, g_error.ErrFunctionInitCanNotCalled
+	}
+
 	contractAddr := common.HexToAddress(hex.EncodeToString(addr))
 	log.Info("Call ResolverCall", "caller", service.Self().Address(), "contractAddr", contractAddr, "gas", service.GetGas(), "value", service.CallValue(), "inputs", param)
-	ret, _, err := service.Call(service.Self(), contractAddr, param, service.GetGas(), service.CallValue())
+	ret, _, err := service.Call(service.ContractService, contractAddr, param, service.GetGas(), service.CallValue())
 	return ret, err
 }
 
 func (service *resolverNeedExternalService) ResolverDelegateCall(addr, param []byte) ([]byte, error) {
+	funcName, err := utils.ParseInputForFuncName(param)
+	if err != nil {
+		log.Error("ResolverDelegateCall#ParseInputForFuncName failed", "err", err)
+		return nil, err
+	}
+
+	// check funcName
+	if strings.EqualFold(funcName, "init") {
+		log.Error("ResolverDelegateCall can't call init function")
+		return nil, g_error.ErrFunctionInitCanNotCalled
+	}
+
 	contractAddr := common.HexToAddress(hex.EncodeToString(addr))
 	log.Info("Call ResolverDelegateCall", "caller", service.Self().Address(), "contractAddr", contractAddr, "gas", service.GetGas(), "inputs", param)
-	ret, _, err := service.DelegateCall(service.Self(), contractAddr, param, service.GetGas())
+	ret, _, err := service.DelegateCall(service.ContractService, contractAddr, param, service.GetGas())
 	return ret, err
 }

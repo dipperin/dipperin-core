@@ -29,6 +29,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
+	"bytes"
+	"reflect"
 )
 
 func TestNewVMContext(t *testing.T) {
@@ -478,3 +480,17 @@ func TestVM_Create_Error(t *testing.T) {
 	_, _, _, err = vm.Create(caller, nil, gasLimit, value)
 	assert.Equal(t, g_error.ErrDepth, err)
 }
+
+/*
+func TestAccountRef(t *testing.T) {
+	rlpData := []byte{195, 130, 2, 98}
+	ptr := new(interface{})
+	rlp.Decode(bytes.NewReader(rlpData), &ptr)
+	rlpList := reflect.ValueOf(ptr).Elem().Interface()
+	iRlpList := rlpList.([]interface{})
+	a := iRlpList[0].([]byte)
+	//b := iRlpList[1].([]byte)
+	//c := iRlpList[2].([]byte)
+	fmt.Println(utils.BytesToUint64(a))
+	//fmt.Println(string(a),string(b),c)
+}*/

@@ -243,3 +243,37 @@ func TestParseCreateContractData(t *testing.T) {
 	assert.Equal(t, expectData, data)
 	assert.NoError(t, err)
 }
+
+func TestParseInputForFuncName(t *testing.T) {
+	funcName, err := ParseInputForFuncName(nil)
+	assert.Equal(t, "", funcName)
+	assert.Equal(t, errEmptyInput, err)
+
+	funcName, err = ParseInputForFuncName([]byte{})
+	assert.Equal(t, "", funcName)
+	assert.Equal(t, errEmptyInput, err)
+
+	funcName, err = ParseInputForFuncName([]byte{1, 2, 3})
+	assert.Equal(t, "", funcName)
+	assert.Equal(t, errInvalidRlpFormat, err)
+
+	input, err := rlp.EncodeToBytes([]interface{}{})
+	funcName, err = ParseInputForFuncName(input)
+	assert.Equal(t, "", funcName)
+	assert.Equal(t, errInsufficientParams, err)
+
+	input, err = rlp.EncodeToBytes([]interface{}{""})
+	funcName, err = ParseInputForFuncName(input)
+	assert.Equal(t, "", funcName)
+	assert.NoError(t, err)
+
+	input, err = rlp.EncodeToBytes([]interface{}{"funcName"})
+	funcName, err = ParseInputForFuncName(input)
+	assert.Equal(t, "funcName", funcName)
+	assert.NoError(t, err)
+
+	input, err = rlp.EncodeToBytes([]interface{}{"funcName", ""})
+	funcName, err = ParseInputForFuncName(input)
+	assert.Equal(t, "funcName", funcName)
+	assert.NoError(t, err)
+}

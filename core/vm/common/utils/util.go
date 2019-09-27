@@ -219,6 +219,30 @@ func ParseCreateContractData(rlpData []byte) (extraData []byte, err error) {
 	return rlp.EncodeToBytes(rlpParams)
 }
 
+// input = RLP([funcName][params])
+func ParseInputForFuncName(rlpData []byte) (funcName string, err error) {
+	if rlpData == nil || len(rlpData) == 0 {
+		return "", errEmptyInput
+	}
+
+	ptr := new(interface{})
+	rlp.Decode(bytes.NewReader(rlpData), &ptr)
+	rlpList := reflect.ValueOf(ptr).Elem().Interface()
+	if _, ok := rlpList.([]interface{}); !ok {
+		return "", errInvalidRlpFormat
+	}
+
+	iRlpList := rlpList.([]interface{})
+	if len(iRlpList) < 1 {
+		return "", errInsufficientParams
+	}
+
+	if v, ok := iRlpList[0].([]byte); ok {
+		funcName = string(v)
+	}
+	return
+}
+
 func ConvertInputs(src []byte, abiInput []InputParam) ([]byte, error) {
 	if src == nil || len(src) == 0 {
 		log.Error("ConvertInputs failed", "err", errEmptyInput)

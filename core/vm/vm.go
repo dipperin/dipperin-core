@@ -111,6 +111,7 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 	// Initialise a new contract and set the code that is to be used by the EVM.
 	// The contract is a scoped environment for this execution context only.
 	contract := NewContract(caller, to, value, gas, input)
+	log.Info("Call#NewContract", "callerAddr", contract.CallerAddress, "caller", contract.Caller().Address(), "self", contract.Self().Address())
 	contract.SetCode(&addr, vm.state.GetCodeHash(addr), vm.state.GetCode(addr))
 	contract.SetAbi(&addr, vm.state.GetAbiHash(addr), vm.state.GetAbi(addr))
 
@@ -157,10 +158,13 @@ func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, inp
 
 	// Initialise a new contract and make initialise the delegate values
 	contract := NewContract(caller, to, nil, gas, input).AsDelegate()
+	log.Info("DelegateCall#NewContract", "callerAddr", contract.CallerAddress, "caller", contract.Caller().Address(), "self", contract.Self().Address())
 	contract.SetCode(&addr, vm.state.GetCodeHash(addr), vm.state.GetCode(addr))
 	contract.SetAbi(&addr, vm.state.GetAbiHash(addr), vm.state.GetAbi(addr))
 
-	ret, err = run(vm, contract, false)
+	if to.Address().GetAddressType() == common.AddressTypeContractCall {
+		ret, err = run(vm, contract, false)
+	}
 	if err != nil {
 		vm.GetStateDB().RevertToSnapshot(snapshot)
 		if err != g_error.ErrExecutionReverted {
@@ -375,7 +379,7 @@ func Transfer(db StateDB, sender, recipient common.Address, amount *big.Int) {
 	db.AddBalance(recipient, amount)
 }
 
-type Caller struct {
+/*type Caller struct {
 	addr common.Address
 }
 
@@ -385,4 +389,9 @@ func (c *Caller) Address() common.Address {
 
 func AccountRef(addr common.Address) resolver.ContractRef {
 	return &Caller{addr}
-}
+}*/
+
+type AccountRef common.Address
+
+func (ar AccountRef) Address() common.Address { return (common.Address)(ar) }
+
