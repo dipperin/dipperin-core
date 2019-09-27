@@ -394,4 +394,3 @@ func AccountRef(addr common.Address) resolver.ContractRef {
 type AccountRef common.Address
 
 func (ar AccountRef) Address() common.Address { return (common.Address)(ar) }
-
