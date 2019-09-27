@@ -503,7 +503,8 @@ func (r *Resolver) envDipperCall(vm *exec.VirtualMachine) int64 {
 	}
 	return 0
 }
-func (r *Resolver) envDipperDelegateCall(vm *exec.VirtualMachine) int64 {
+
+/*func (r *Resolver) envDipperDelegateCall(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
@@ -517,7 +518,7 @@ func (r *Resolver) envDipperDelegateCall(vm *exec.VirtualMachine) int64 {
 		return 0
 	}
 	return 0
-}
+}*/
 
 func (r *Resolver) envDipperCallInt64(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
@@ -537,7 +538,7 @@ func (r *Resolver) envDipperCallInt64(vm *exec.VirtualMachine) int64 {
 	return res.(int64)
 }
 
-func (r *Resolver) envDipperDelegateCallInt64(vm *exec.VirtualMachine) int64 {
+/*func (r *Resolver) envDipperDelegateCallInt64(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
@@ -553,7 +554,7 @@ func (r *Resolver) envDipperDelegateCallInt64(vm *exec.VirtualMachine) int64 {
 	res := utils.Align32BytesConverter(ret, "int64")
 	log.Info("envDipperDelegateCallInt64", "ret", res)
 	return res.(int64)
-}
+}*/
 
 func (r *Resolver) envDipperCallString(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
@@ -573,7 +574,7 @@ func (r *Resolver) envDipperCallString(vm *exec.VirtualMachine) int64 {
 	return MallocString(vm, string(ret))
 }
 
-func (r *Resolver) envDipperDelegateCallString(vm *exec.VirtualMachine) int64 {
+/*func (r *Resolver) envDipperDelegateCallString(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
@@ -589,7 +590,7 @@ func (r *Resolver) envDipperDelegateCallString(vm *exec.VirtualMachine) int64 {
 	res := utils.Align32BytesConverter(ret, "string")
 	log.Info("envDipperDelegateCallString", "ret", res)
 	return MallocString(vm, string(ret))
-}
+}*/
 
 func envDipperCallGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil

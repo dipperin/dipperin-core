@@ -59,7 +59,7 @@ func (r *Resolver) envGetState(vm *exec.VirtualMachine) int64 {
 		return 0
 	}
 	copy(vm.Memory.Memory[value:value+valueLen], val)
-	log.Info("Save Value Into Memory", "valuePos", value, "valueLen", valueLen, "value", string(val))
+	log.Info("Save Value Into Memory", "valuePos", value, "valueLen", valueLen, "value", val)
 	return 0
 }
 
