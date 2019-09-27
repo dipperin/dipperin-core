@@ -17,7 +17,6 @@
 package vm
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
@@ -29,7 +28,6 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"math/big"
-	"reflect"
 	"testing"
 )
 
