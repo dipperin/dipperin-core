@@ -17,11 +17,11 @@
 package resolver
 
 import (
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/stretchr/testify/assert"
+	"github.com/vntchain/go-vnt/rlp"
 	"math/big"
 	"testing"
-	"github.com/vntchain/go-vnt/rlp"
-	"github.com/dipperin/dipperin-core/common/g-error"
 )
 
 func TestResolverNeedExternalService_Transfer(t *testing.T) {
