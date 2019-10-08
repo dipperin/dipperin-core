@@ -22,6 +22,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain-config/env-conf"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -33,6 +34,7 @@ import (
 
 func TestLoadDefaultBootID(t *testing.T) {
 	if GetChainConfig().VerifierNumber != 22 {
+		log.Info("the verifier number is","number",GetChainConfig().VerifierNumber)
 		panic("verifier num is not 22")
 	}
 
