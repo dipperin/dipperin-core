@@ -76,8 +76,7 @@ func TestSubscribe(t *testing.T) {
 	}
 }
 
-
-func InitRpcClient(port int) *rpc.Client{
+func InitRpcClient(port int) *rpc.Client {
 	log.Info("init rpc client", "port", port)
 	var client *rpc.Client
 	var err error
@@ -94,30 +93,30 @@ func InitRpcClient(port int) *rpc.Client{
 	return client
 }
 
-func Test_websocketNewTransaction(t *testing.T){
+func Test_websocketNewTransaction(t *testing.T) {
 	client := InitRpcClient(10017)
 
-/*	fp,err := os.Open("/home/qydev/yc/own/debug/rpc-error/transaction")
-	assert.NoError(t,err)
+	/*	fp,err := os.Open("/home/qydev/yc/own/debug/rpc-error/transaction")
+		assert.NoError(t,err)
 
-	readData := make([]byte,88*1024)
-	len,err := fp.Read(readData)
-	assert.NoError(t,err)*/
+		readData := make([]byte,88*1024)
+		len,err := fp.Read(readData)
+		assert.NoError(t,err)*/
 
-	readData,err := ioutil.ReadFile("/home/qydev/yc/own/debug/rpc-error/transaction")
-	assert.NoError(t,err)
-	log.Info("the len is:","len",len(readData))
-	log.Info("the read data is:","readData",string(readData))
+	readData, err := ioutil.ReadFile("/home/qydev/yc/own/debug/rpc-error/transaction")
+	assert.NoError(t, err)
+	log.Info("the len is:", "len", len(readData))
+	log.Info("the read data is:", "readData", string(readData))
 
-	data,err:=hexutil.Decode(string(readData))
-	assert.NoError(t,err)
+	data, err := hexutil.Decode(string(readData))
+	assert.NoError(t, err)
 
-	for i:=0;i<10;i++{
+	for i := 0; i < 10; i++ {
 
 		var txHash common.Hash
-		if err:=client.Call(&txHash,vm.GetRpcTXMethod("NewTransaction"),data);err != nil{
-			log.Info("the err is:","err",err)
+		if err := client.Call(&txHash, vm.GetRpcTXMethod("NewTransaction"), data); err != nil {
+			log.Info("the err is:", "err", err)
 		}
-		time.Sleep(10*time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 	}
 }

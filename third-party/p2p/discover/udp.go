@@ -22,6 +22,7 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
+	"github.com/dipperin/dipperin-core/core/chain-config"
 	"net"
 	"sync"
 	"time"
@@ -65,12 +66,51 @@ const (
 	neighborsPacket
 )
 
+type NetType uint64
+
+func (netType NetType) String() string {
+	switch netType {
+	case local:
+		return "local"
+	case venus:
+		return "venus"
+	case test:
+		return "test"
+	case mercury:
+		return "mercury"
+	default:
+		return "errorNetType"
+	}
+}
+
+const (
+	local NetType = iota + 1
+	test
+	mercury
+	venus
+)
+
+func getNetType() NetType {
+	env := chain_config.GetCurBootsEnv()
+	switch env {
+	case "mercury":
+		return mercury
+	case "test":
+		return test
+	case "venus":
+		return venus
+	default:
+		return local
+	}
+}
+
 // RPC request structures
 type (
 	ping struct {
 		Version    uint
 		From, To   rpcEndpoint
 		Expiration uint64
+		NetType    NetType
 		// Ignore additional fields (for forward compatibility).
 		Rest []rlp.RawValue `rlp:"tail"`
 	}
@@ -84,6 +124,7 @@ type (
 
 		ReplyTok   []byte // This contains the hash of the ping packet.
 		Expiration uint64 // Absolute timestamp at which the packet becomes invalid.
+		NetType    NetType
 		// Ignore additional fields (for forward compatibility).
 		Rest []rlp.RawValue `rlp:"tail"`
 	}
@@ -93,7 +134,8 @@ type (
 		Target     encPubkey
 		Expiration uint64
 		// Ignore additional fields (for forward compatibility).
-		Rest []rlp.RawValue `rlp:"tail"`
+		NetType NetType
+		Rest    []rlp.RawValue `rlp:"tail"`
 	}
 
 	// reply to findnode
@@ -101,7 +143,8 @@ type (
 		Nodes      []rpcNode
 		Expiration uint64
 		// Ignore additional fields (for forward compatibility).
-		Rest []rlp.RawValue `rlp:"tail"`
+		NetType NetType
+		Rest    []rlp.RawValue `rlp:"tail"`
 	}
 
 	rpcNode struct {
@@ -159,6 +202,7 @@ func nodeToRPC(n *node) rpcNode {
 type packet interface {
 	handle(t *udp, from *net.UDPAddr, fromKey encPubkey, mac []byte) error
 	name() string
+	netType() NetType
 }
 
 type conn interface {
@@ -297,6 +341,7 @@ func (t *udp) sendPing(toid enode.ID, toaddr *net.UDPAddr, callback func()) <-ch
 		Version:    4,
 		From:       t.ourEndpoint(),
 		To:         makeEndpoint(toaddr, 0), // TODO: maybe use known TCP port from DB
+		NetType:    getNetType(),
 		Expiration: uint64(time.Now().Add(expiration).Unix()),
 	}
 	packet, hash, err := encodePacket(t.priv, pingPacket, req)
@@ -313,6 +358,8 @@ func (t *udp) sendPing(toid enode.ID, toaddr *net.UDPAddr, callback func()) <-ch
 		return ok
 	})
 	t.localNode.UDPContact(toaddr)
+	log.P2P.Info("sendPing info to","toAddr",toaddr)
+	log.P2P.Info("the Ping package netType is","netType",req.NetType)
 	t.write(toaddr, req.name(), packet)
 	return errc
 }
@@ -349,7 +396,9 @@ func (t *udp) findnode(toid enode.ID, toaddr *net.UDPAddr, target encPubkey) ([]
 	t.send(toaddr, findnodePacket, &findnode{
 		Target:     target,
 		Expiration: uint64(time.Now().Add(expiration).Unix()),
+		NetType:    getNetType(),
 	})
+	log.Info("receive result")
 	return nodes, <-errc
 }
 
@@ -613,6 +662,15 @@ func decodePacket(buf []byte) (packet, encPubkey, []byte, error) {
 	}
 	s := rlp.NewStream(bytes.NewReader(sigdata[1:]), 0)
 	err = s.Decode(req)
+	if err != nil {
+		return req, fromKey, hash, err
+	}
+
+	log.P2P.Info("the received package info","type",req.name(),"netType",req.netType(),"localNetType",getNetType())
+	if req.netType() != getNetType() {
+		log.P2P.Error("the req and local node netType is:", "req", req.netType(), "localNode", getNetType())
+		return req, fromKey, hash, errors.New("the netType error")
+	}
 	return req, fromKey, hash, err
 }
 
@@ -624,11 +682,14 @@ func (req *ping) handle(t *udp, from *net.UDPAddr, fromKey encPubkey, mac []byte
 	if err != nil {
 		return fmt.Errorf("invalid public key: %v", err)
 	}
+	log.P2P.Info("receive ping package","from",from.String(),"netType",req.NetType)
 	t.send(from, pongPacket, &pong{
 		To:         makeEndpoint(from, req.From.TCP),
 		ReplyTok:   mac,
 		Expiration: uint64(time.Now().Add(expiration).Unix()),
+		NetType:    getNetType(),
 	})
+	log.P2P.Info("send pong respond","to",from.String(),"netType", getNetType())
 	n := wrapNode(enode.NewV4(key, from.IP, int(req.From.TCP), from.Port))
 	t.handleReply(n.ID(), pingPacket, req)
 	if time.Since(t.db.LastPongReceived(n.ID())) > bondExpiration {
@@ -642,6 +703,8 @@ func (req *ping) handle(t *udp, from *net.UDPAddr, fromKey encPubkey, mac []byte
 }
 
 func (req *ping) name() string { return "PING/v4" }
+
+func (req *ping) netType() NetType { return req.NetType }
 
 func (req *pong) handle(t *udp, from *net.UDPAddr, fromKey encPubkey, mac []byte) error {
 	if expired(req.Expiration) {
@@ -657,6 +720,8 @@ func (req *pong) handle(t *udp, from *net.UDPAddr, fromKey encPubkey, mac []byte
 }
 
 func (req *pong) name() string { return "PONG/v4" }
+
+func (req *pong) netType() NetType { return req.NetType }
 
 func (req *findnode) handle(t *udp, from *net.UDPAddr, fromKey encPubkey, mac []byte) error {
 	if expired(req.Expiration) {
@@ -678,6 +743,7 @@ func (req *findnode) handle(t *udp, from *net.UDPAddr, fromKey encPubkey, mac []
 	t.tab.mutex.Unlock()
 
 	p := neighbors{Expiration: uint64(time.Now().Add(expiration).Unix())}
+	p.NetType = getNetType()
 	var sent bool
 	// Send neighbors in chunks with at most maxNeighbors per packet
 	// to stay below the 1280 byte limit.
@@ -699,6 +765,8 @@ func (req *findnode) handle(t *udp, from *net.UDPAddr, fromKey encPubkey, mac []
 
 func (req *findnode) name() string { return "FINDNODE/v4" }
 
+func (req *findnode) netType() NetType { return req.NetType }
+
 func (req *neighbors) handle(t *udp, from *net.UDPAddr, fromKey encPubkey, mac []byte) error {
 	if expired(req.Expiration) {
 		return errExpired
@@ -710,6 +778,8 @@ func (req *neighbors) handle(t *udp, from *net.UDPAddr, fromKey encPubkey, mac [
 }
 
 func (req *neighbors) name() string { return "NEIGHBORS/v4" }
+
+func (req *neighbors) netType() NetType { return req.NetType }
 
 func expired(ts uint64) bool {
 	return time.Unix(int64(ts), 0).Before(time.Now())

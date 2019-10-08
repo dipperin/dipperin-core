@@ -825,7 +825,7 @@ func (pm *CsProtocolManager) HandShake(p PmAbstractPeer) error {
 			//NodeType:
 		}
 		log.Debug("before sign hand shake msg", "data hash", sData.DataHash().Hex())
-		log.Debug("the node type is:","type",nodeConf.GetNodeType())
+		log.Debug("the node type is:", "type", nodeConf.GetNodeType())
 		if nodeConf.GetNodeType() != chain_config.NodeTypeOfNormal {
 			// sign
 			if signB, err := pbftSigner.SignHash(sData.DataHash().Bytes()); err != nil {
@@ -846,7 +846,7 @@ func (pm *CsProtocolManager) HandShake(p PmAbstractPeer) error {
 	go func() {
 		msg, err := p.ReadMsg()
 		if err != nil {
-			log.Error("read handshake response error","err",err)
+			log.Error("read handshake response error", "err", err)
 			statusDataChan <- nil
 			return
 		}
@@ -861,7 +861,7 @@ func (pm *CsProtocolManager) HandShake(p PmAbstractPeer) error {
 			log.Warn("decode hand shake msg failed", "err", err)
 		}
 
-		log.Debug("read  handshake data is:","tmpStatus",tmpStatus)
+		log.Debug("read  handshake data is:", "tmpStatus", tmpStatus)
 		statusDataChan <- &tmpStatus
 	}()
 

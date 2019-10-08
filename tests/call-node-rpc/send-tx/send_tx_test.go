@@ -30,7 +30,7 @@ func Test_SendNormalTx(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_SendMoneyFromV0(t *testing.T){
+func Test_SendMoneyFromV0(t *testing.T) {
 	cluster, err := node_cluster.CreateNodeCluster()
 	assert.NoError(t, err)
 

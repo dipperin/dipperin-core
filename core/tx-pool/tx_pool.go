@@ -365,7 +365,7 @@ func (pool *TxPool) validateTx(tx model.AbstractTransaction, local bool) error {
 	// Make sure the transaction is signed properly
 	from, err := tx.Sender(pool.signer)
 	if err != nil {
-		log.Error("the err is:", "err", err)
+		log.Error("txPool validateTx the err is:", "err", err)
 		return errors.New("invalid sender")
 	}
 	// Drop non-local transactions under our own minimal accepted gas price

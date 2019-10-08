@@ -71,7 +71,7 @@ func validBlockVerifier(c *BlockContext) (*registerdb.RegisterDB, error) {
 
 func NextRoundVerifier(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("NextRoundVerifier start","blockNumber",c.Block.Number())
+		log.Middleware.Info("NextRoundVerifier start", "blockNumber", c.Block.Number())
 		chain := c.Chain
 		// check register
 		// insert success then calculate verifiers

@@ -307,7 +307,7 @@ func (fd *NewPbftDownloader) fetchBlocks(bestPeer PmAbstractPeer) {
 }
 
 func (fd *NewPbftDownloader) importBlockResults(list []*catchupRlp) error {
-	log.Info("insert blocks from downloader","len",len(list))
+	log.Info("insert blocks from downloader", "len", len(list))
 	for _, b := range list {
 		commits := make([]model.AbstractVerification, len(b.SeenCommit))
 		util.InterfaceSliceCopy(commits, b.SeenCommit)
@@ -318,7 +318,7 @@ func (fd *NewPbftDownloader) importBlockResults(list []*catchupRlp) error {
 			log.PBft.Warn("commits is empty", "height", b.Block.Number())
 		}
 
-		log.Info("importBlockResults save block number is:","blockNumber",b.Block.Number())
+		log.Info("importBlockResults save block number is:", "blockNumber", b.Block.Number())
 		if err := fd.Chain.SaveBlock(b.Block, commits); err != nil {
 			//skip the block if the height is same as current block and it isn't the empty block
 			if err == g_error.ErrBlockHeightIsCurrentAndIsNotSpecial {

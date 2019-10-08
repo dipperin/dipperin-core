@@ -134,16 +134,18 @@ func (ds DipperinSigner) GetSender(tx *Transaction) (common.Address, error) {
 		return common.Address{}, err
 	}
 
-	//log.Debug("the DipperinSigner GetSender hash is:","hash",hash.Hex())
-
+	//log.Health.Info("GetSender the tx wit r s v is:","r",tx.wit.R,"s",tx.wit.S,"v",tx.wit.V)
+	//log.Health.Info("GetSender the ds chainId is:","chainId",ds.chainId)
 	temp := big.NewInt(0).Sub(tx.wit.V, big.NewInt(0).Mul(ds.chainId, big.NewInt(2)))
 	v := big.NewInt(0).Sub(temp, big.NewInt(54))
+	//log.Health.Info("the calculated v is:","v",v)
 
 	return recoverNormalSender(hash, tx.wit.R, tx.wit.S, v)
 }
 
 func (ds DipperinSigner) GetSenderPublicKey(tx *Transaction) (*ecdsa.PublicKey, error) {
 	//different type use different address type
+
 	emptyPk := ecdsa.PublicKey{}
 	sigHash, err := ds.GetSignHash(tx)
 	if err != nil {
@@ -155,9 +157,11 @@ func (ds DipperinSigner) GetSenderPublicKey(tx *Transaction) (*ecdsa.PublicKey, 
 	S := tx.wit.S
 
 	if V.BitLen() > 8 {
+		log.Health.Info("GetSenderPublicKey the error V is:","V",V)
 		return &emptyPk, ErrInvalidSig
 	}
 	if !cs_crypto.ValidSigValue(R, S, V) {
+		log.Health.Error("GetSenderPublicKey valid Signature Value error")
 		return &emptyPk, ErrInvalidSig
 	}
 	// encode the signature in uncompressed format
@@ -179,13 +183,13 @@ func (ds DipperinSigner) GetSenderPublicKey(tx *Transaction) (*ecdsa.PublicKey, 
 }
 
 func recoverNormalSender(sigHash common.Hash, R, S, V *big.Int) (common.Address, error) {
-	log.Info("recover normal Sender the r s v is:","R",R,"S",S,"V",V)
+	log.Health.Info("recoverNormalSender the r s v is:","r",R,"s",S,"v",V)
 	if V.BitLen() > 8 {
-		log.Error("the V bit Len is:","bitLen",V.BitLen())
+		log.Health.Error("recoverNormalSender v bitLen is more than 8")
 		return common.Address{}, ErrInvalidSig
 	}
 	if !cs_crypto.ValidSigValue(R, S, V) {
-		log.Error("cs_crypto valid signature value error")
+		log.Health.Error("recoverNormalSender valid signature error")
 		return common.Address{}, ErrInvalidSig
 	}
 	// encode the signature in uncompressed format

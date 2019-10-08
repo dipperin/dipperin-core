@@ -43,8 +43,8 @@ import (
 */
 func ValidateBlockNumber(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("ValidateBlockNumber start","blockNumber",c.Block.Number())
-		log.Middleware.Info("the save block info is:","block",c.Block)
+		log.Middleware.Info("ValidateBlockNumber start", "blockNumber", c.Block.Number())
+		log.Middleware.Info("the save block info is:", "block", c.Block)
 		if c.Chain == nil || c.Block == nil {
 			fmt.Println(c.Chain == nil, c.Block == nil)
 			return errors.New("chain or block cannot be null")
@@ -54,7 +54,7 @@ func ValidateBlockNumber(c *BlockContext) Middleware {
 			return g_error.ErrBlockHeightTooLow
 		}
 		if cur.Number() == c.Block.Number() && !c.Block.IsSpecial() {
-			log.Error("the current block and wait-verified block number  is","cur",cur.Number(),"verified",c.Block.Number())
+			log.Error("the current block and wait-verified block number  is", "cur", cur.Number(), "verified", c.Block.Number())
 			return g_error.ErrBlockHeightIsCurrentAndIsNotSpecial
 		}
 
@@ -170,9 +170,9 @@ func ValidateSeed(c *BlockContext) Middleware {
 		log.Middleware.Info("ValidateSeed start")
 		block := c.Block
 		preBlockHeight := block.Number() - 1
-		log.Middleware.Info("ValidateSeed the preBlockHeight is:","preBlockHeight",preBlockHeight)
+		log.Middleware.Info("ValidateSeed the preBlockHeight is:", "preBlockHeight", preBlockHeight)
 		preBlock := c.Chain.GetBlockByNumber(preBlockHeight)
-		log.Middleware.Info("ValidateSeed the preBlock is:","preBlock",preBlock)
+		log.Middleware.Info("ValidateSeed the preBlock is:", "preBlock", preBlock)
 
 		seed := preBlock.Header().GetSeed().Bytes()
 		proof := block.Header().GetProof()
