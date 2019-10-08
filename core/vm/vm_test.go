@@ -29,6 +29,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
+	"bytes"
+	"reflect"
 )
 
 func TestNewVMContext(t *testing.T) {
@@ -479,8 +481,7 @@ func TestVM_Create_Error(t *testing.T) {
 	assert.Equal(t, g_error.ErrDepth, err)
 }
 
-/*
-func TestAccountRef(t *testing.T) {
+/*func TestAccountRef(t *testing.T) {
 	rlpData := []byte{195, 130, 2, 98}
 	ptr := new(interface{})
 	rlp.Decode(bytes.NewReader(rlpData), &ptr)
