@@ -52,6 +52,6 @@ func NewMinerNode(master string, coinbase string, minerCount int, p2pListenAddr 
 	p2pServer.Protocols = append(p2pServer.Protocols, minePm.GetProtocol())
 
 	// init miner
-	n = NewCsNode([]NodeService{p2pServer},NodeConfig{})
+	n = NewCsNode([]NodeService{p2pServer}, NodeConfig{})
 	return
 }

@@ -37,5 +37,3 @@ func WriteDebugStack(toFile string) error {
 	buf = buf[:runtime.Stack(buf, true)]
 	return ioutil.WriteFile(toFile, buf, 0755)
 }
-
-

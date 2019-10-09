@@ -157,7 +157,7 @@ func (ds DipperinSigner) GetSenderPublicKey(tx *Transaction) (*ecdsa.PublicKey, 
 	S := tx.wit.S
 
 	if V.BitLen() > 8 {
-		log.Health.Info("GetSenderPublicKey the error V is:","V",V)
+		log.Health.Info("GetSenderPublicKey the error V is:", "V", V)
 		return &emptyPk, ErrInvalidSig
 	}
 	if !cs_crypto.ValidSigValue(R, S, V) {

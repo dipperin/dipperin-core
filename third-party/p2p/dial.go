@@ -231,7 +231,7 @@ func (s *dialstate) newTasks(nRunning int, peers map[enode.ID]*Peer, now time.Ti
 	}
 	// Create dynamic dials from random lookup results, removing tried
 	// items from the result buffer.
-	log.P2P.Info("newTasks the lookupBuf and needDynDials　is:","needDynDials",needDynDials,"lookupBuf",s.lookupBuf)
+	log.P2P.Info("newTasks the lookupBuf and needDynDials　is:", "needDynDials", needDynDials, "lookupBuf", s.lookupBuf)
 	i := 0
 	for ; i < len(s.lookupBuf) && needDynDials > 0; i++ {
 		if addDial(dynDialedConn, s.lookupBuf[i]) {

@@ -825,7 +825,6 @@ func (pm *CsProtocolManager) HandShake(p PmAbstractPeer) error {
 			//NodeType:
 		}
 		log.Debug("before sign hand shake msg", "data hash", sData.DataHash().Hex())
-		log.Debug("the node type is:", "type", nodeConf.GetNodeType())
 		if nodeConf.GetNodeType() != chain_config.NodeTypeOfNormal {
 			// sign
 			if signB, err := pbftSigner.SignHash(sData.DataHash().Bytes()); err != nil {

@@ -28,7 +28,7 @@ type dpLogger struct {
 	conf LoggerConfig
 }
 
-func DefaultDpLogger(dirName string,logLevel  Lvl) *dpLogger {
+func DefaultDpLogger(dirName string, logLevel Lvl) *dpLogger {
 	conf := DefaultLogConf
 	conf.LogLevel = logLevel
 	conf.DirName = dirName
@@ -61,22 +61,22 @@ var (
 	Pm         *dpLogger
 	Middleware *dpLogger
 	P2P        *dpLogger
-	Stack	   *dpLogger
+	Stack      *dpLogger
 	dpLoggers  map[string]*dpLogger
 )
 
 func init() {
-	Mpt = DefaultDpLogger("mpt",LvlInfo)
-	Halt = DefaultDpLogger("ver_halt",LvlInfo)
-	Health = DefaultDpLogger("health_info",LvlInfo)
-	PBft = DefaultDpLogger("PBft",LvlInfo)
-	Witch = DefaultDpLogger("witch",LvlInfo)
-	Vm = DefaultDpLogger("vm",LvlInfo)
-	VmMem = DefaultDpLogger("vm_memory",LvlInfo)
-	Pm = DefaultDpLogger("pm",LvlInfo)
-	Middleware = DefaultDpLogger("Middleware",LvlError)
-	P2P = DefaultDpLogger("P2P",LvlInfo)
-	Stack = DefaultDpLogger("Stack",LvlInfo)
+	Mpt = DefaultDpLogger("mpt", LvlInfo)
+	Halt = DefaultDpLogger("ver_halt", LvlInfo)
+	Health = DefaultDpLogger("health_info", LvlInfo)
+	PBft = DefaultDpLogger("PBft", LvlInfo)
+	Witch = DefaultDpLogger("witch", LvlInfo)
+	Vm = DefaultDpLogger("vm", LvlInfo)
+	VmMem = DefaultDpLogger("vm_memory", LvlInfo)
+	Pm = DefaultDpLogger("pm", LvlInfo)
+	Middleware = DefaultDpLogger("Middleware", LvlError)
+	P2P = DefaultDpLogger("P2P", LvlInfo)
+	Stack = DefaultDpLogger("Stack", LvlInfo)
 
 	dpLoggers = map[string]*dpLogger{
 		"mpt":         Mpt,
@@ -89,7 +89,7 @@ func init() {
 		"pm":          Pm,
 		"Middleware":  Middleware,
 		"P2P":         P2P,
-		"Stack":	   Stack,
+		"Stack":       Stack,
 	}
 }
 
@@ -150,7 +150,7 @@ func InitDPLogger(nodeName string) {
 		if os.Getenv("boots_env") == "venus" {
 			switch k {
 			//case "mpt", "health_info", "vm_memory", "witch":
-			case "mpt", "vm_memory", "witch","Stack","P2P":
+			case "mpt", "vm_memory", "witch", "Stack", "P2P":
 				v.conf.LogLevel = LvlWarn
 			}
 		}

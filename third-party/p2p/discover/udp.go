@@ -358,8 +358,8 @@ func (t *udp) sendPing(toid enode.ID, toaddr *net.UDPAddr, callback func()) <-ch
 		return ok
 	})
 	t.localNode.UDPContact(toaddr)
-	log.P2P.Info("sendPing info to","toAddr",toaddr)
-	log.P2P.Info("the Ping package netType is","netType",req.NetType)
+	log.P2P.Info("sendPing info to", "toAddr", toaddr)
+	log.P2P.Info("the Ping package netType is", "netType", req.NetType)
 	t.write(toaddr, req.name(), packet)
 	return errc
 }
@@ -666,7 +666,7 @@ func decodePacket(buf []byte) (packet, encPubkey, []byte, error) {
 		return req, fromKey, hash, err
 	}
 
-	log.P2P.Info("the received package info","type",req.name(),"netType",req.netType(),"localNetType",getNetType())
+	log.P2P.Info("the received package info", "type", req.name(), "netType", req.netType(), "localNetType", getNetType())
 	if req.netType() != getNetType() {
 		log.P2P.Error("the req and local node netType is:", "req", req.netType(), "localNode", getNetType())
 		return req, fromKey, hash, errors.New("the netType error")
@@ -682,14 +682,14 @@ func (req *ping) handle(t *udp, from *net.UDPAddr, fromKey encPubkey, mac []byte
 	if err != nil {
 		return fmt.Errorf("invalid public key: %v", err)
 	}
-	log.P2P.Info("receive ping package","from",from.String(),"netType",req.NetType)
+	log.P2P.Info("receive ping package", "from", from.String(), "netType", req.NetType)
 	t.send(from, pongPacket, &pong{
 		To:         makeEndpoint(from, req.From.TCP),
 		ReplyTok:   mac,
 		Expiration: uint64(time.Now().Add(expiration).Unix()),
 		NetType:    getNetType(),
 	})
-	log.P2P.Info("send pong respond","to",from.String(),"netType", getNetType())
+	log.P2P.Info("send pong respond", "to", from.String(), "netType", getNetType())
 	n := wrapNode(enode.NewV4(key, from.IP, int(req.From.TCP), from.Port))
 	t.handleReply(n.ID(), pingPacket, req)
 	if time.Since(t.db.LastPongReceived(n.ID())) > bondExpiration {

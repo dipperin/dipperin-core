@@ -34,10 +34,10 @@ type NodeService interface {
 	Stop()
 }
 
-func NewCsNode(services []NodeService,conf NodeConfig) *CsNode {
+func NewCsNode(services []NodeService, conf NodeConfig) *CsNode {
 	return &CsNode{
 		services: services,
-		nodeName:conf.Name,
+		nodeName: conf.Name,
 	}
 }
 
@@ -46,13 +46,13 @@ type CsNode struct {
 
 	wg         sync.WaitGroup
 	chokePoint uint32
-	nodeName string
+	nodeName   string
 }
 
 func (n *CsNode) AddService(service NodeService) {
 	n.services = append(n.services, service)
 }
-func logDebugStack(){
+func logDebugStack() {
 	buf := make([]byte, 5*1024*1024)
 	log.Stack.Info("the runtime stack is:~~~~~~~~~~~~~~~~~~~~")
 	buf = buf[:runtime.Stack(buf, true)]
@@ -61,16 +61,15 @@ func logDebugStack(){
 
 }
 
-func printStackInfo(nodeName string){
-	tick := time.NewTicker(2*time.Minute)
-	for{
+func printStackInfo(nodeName string) {
+	tick := time.NewTicker(2 * time.Minute)
+	for {
 		select {
 		case <-tick.C:
 			logDebugStack()
 		}
 	}
 }
-
 
 func (n *CsNode) Start() (err error) {
 	startSuccess := true

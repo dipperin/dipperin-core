@@ -100,7 +100,7 @@ func defaultChainConfig() *ChainConfig {
 		VerifierBootNodeNumber: 4,
 		BlockTimeRestriction:   15 * time.Second,
 	}
-	log.Info("the verifierNumber is:","number",c.VerifierNumber)
+	log.Info("the verifierNumber is:", "number", c.VerifierNumber)
 	switch os.Getenv(BootEnvTagName) {
 	case "mercury":
 		c.NetworkID = 99
