@@ -28,8 +28,9 @@ type dpLogger struct {
 	conf LoggerConfig
 }
 
-func DefaultDpLogger(dirName string) *dpLogger {
+func DefaultDpLogger(dirName string,logLevel  Lvl) *dpLogger {
 	conf := DefaultLogConf
+	conf.LogLevel = logLevel
 	conf.DirName = dirName
 	return &dpLogger{
 		Logger: SetInitLogger(conf, ""),
@@ -65,17 +66,17 @@ var (
 )
 
 func init() {
-	Mpt = DefaultDpLogger("mpt")
-	Halt = DefaultDpLogger("ver_halt")
-	Health = DefaultDpLogger("health_info")
-	PBft = DefaultDpLogger("PBft")
-	Witch = DefaultDpLogger("witch")
-	Vm = DefaultDpLogger("vm")
-	VmMem = DefaultDpLogger("vm_memory")
-	Pm = DefaultDpLogger("pm")
-	Middleware = DefaultDpLogger("Middleware")
-	P2P = DefaultDpLogger("P2P")
-	Stack = DefaultDpLogger("Stack")
+	Mpt = DefaultDpLogger("mpt",LvlInfo)
+	Halt = DefaultDpLogger("ver_halt",LvlInfo)
+	Health = DefaultDpLogger("health_info",LvlInfo)
+	PBft = DefaultDpLogger("PBft",LvlInfo)
+	Witch = DefaultDpLogger("witch",LvlInfo)
+	Vm = DefaultDpLogger("vm",LvlInfo)
+	VmMem = DefaultDpLogger("vm_memory",LvlInfo)
+	Pm = DefaultDpLogger("pm",LvlInfo)
+	Middleware = DefaultDpLogger("Middleware",LvlError)
+	P2P = DefaultDpLogger("P2P",LvlInfo)
+	Stack = DefaultDpLogger("Stack",LvlInfo)
 
 	dpLoggers = map[string]*dpLogger{
 		"mpt":         Mpt,

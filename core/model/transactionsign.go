@@ -183,7 +183,6 @@ func (ds DipperinSigner) GetSenderPublicKey(tx *Transaction) (*ecdsa.PublicKey, 
 }
 
 func recoverNormalSender(sigHash common.Hash, R, S, V *big.Int) (common.Address, error) {
-	log.Health.Info("recoverNormalSender the r s v is:","r",R,"s",S,"v",V)
 	if V.BitLen() > 8 {
 		log.Health.Error("recoverNormalSender v bitLen is more than 8")
 		return common.Address{}, ErrInvalidSig

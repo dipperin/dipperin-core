@@ -43,7 +43,6 @@ import (
 */
 func ValidateBlockNumber(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("ValidateBlockNumber start", "blockNumber", c.Block.Number())
 		log.Middleware.Info("the save block info is:", "block", c.Block)
 		if c.Chain == nil || c.Block == nil {
 			fmt.Println(c.Chain == nil, c.Block == nil)
