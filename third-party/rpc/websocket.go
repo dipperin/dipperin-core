@@ -23,15 +23,17 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
-	mapset "github.com/deckarep/golang-set"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/deckarep/golang-set"
 	"golang.org/x/net/websocket"
 )
 
@@ -45,9 +47,14 @@ var websocketJSONCodec = websocket.Codec{
 	},
 	// Unmarshal is a specialized unmarshaller to properly convert numbers.
 	Unmarshal: func(msg []byte, payloadType byte, v interface{}) error {
+		log.Rpc.Info("websocketJSONCodec unmarshal msg is:","msgLen",len(msg),"msg",hexutil.Encode(msg))
+		log.Rpc.Info("the unmarshal type is:","type",reflect.TypeOf(v))
 		dec := json.NewDecoder(bytes.NewReader(msg))
 		dec.UseNumber()
-		return dec.Decode(v)
+		err := dec.Decode(v)
+		log.Rpc.Info("websocketJSONCodec unmarshal decode result is:","err",err)
+
+		return err
 	},
 }
 
@@ -59,6 +66,7 @@ func (srv *Server) WebsocketHandler(allowedOrigins []string) http.Handler {
 	return websocket.Server{
 		Handshake: wsHandshakeValidator(allowedOrigins),
 		Handler: func(conn *websocket.Conn) {
+			log.Rpc.Info("call websocket handle start ~~~~~~~~~~~~~~~~~")
 			// Create a custom encode/decode pair to enforce payload size and number encoding
 			conn.MaxPayloadBytes = maxRequestContentLength
 
@@ -66,9 +74,15 @@ func (srv *Server) WebsocketHandler(allowedOrigins []string) http.Handler {
 				return websocketJSONCodec.Send(conn, v)
 			}
 			decoder := func(v interface{}) error {
-				return websocketJSONCodec.Receive(conn, v)
+				err := websocketJSONCodec.Receive(conn, v)
+				if err !=nil{
+					log.Rpc.Error("WebsocketHandler the receive error","err",err)
+				}
+				return err
 			}
 			srv.ServeCodec(NewCodec(conn, encoder, decoder), OptionMethodInvocation|OptionSubscriptions)
+			log.Rpc.Info("call websocket handle end ~~~~~~~~~~~~~~~~~")
+			log.Rpc.Info("")
 		},
 	}
 }

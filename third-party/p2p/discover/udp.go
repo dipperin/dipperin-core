@@ -398,7 +398,6 @@ func (t *udp) findnode(toid enode.ID, toaddr *net.UDPAddr, target encPubkey) ([]
 		Expiration: uint64(time.Now().Add(expiration).Unix()),
 		NetType:    getNetType(),
 	})
-	log.Info("receive result")
 	return nodes, <-errc
 }
 
