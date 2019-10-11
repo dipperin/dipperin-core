@@ -323,8 +323,6 @@ func (tx *Transaction) Sender(signer Signer) (common.Address, error) {
 		return common.Address{}, err
 	}
 
-	//log.Debug("the tx sender is:","address",addr.Hex())
-
 	tx.from.Store(sigCache{signer: signer, from: addr})
 	return addr, nil
 }
@@ -383,6 +381,7 @@ func (tx Transaction) ChainId() *big.Int {
 //todo: currently use default signer ,later need get a way to determine the signer from the tx itself.
 func (tx Transaction) GetSigner() Signer {
 	id := deriveChainId(tx.wit.V)
+
 	return DipperinSigner{id}
 }
 

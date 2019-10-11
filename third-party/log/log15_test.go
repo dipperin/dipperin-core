@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
 	"regexp"
 	"runtime"
 	"sync"
@@ -138,6 +139,30 @@ func TestLogfmt(t *testing.T) {
 	if !bytes.Equal(got, expected) {
 		t.Fatalf("Got %s, expected %s", got, expected)
 	}
+}
+
+type testLog struct {
+	l Logger
+}
+
+func (l testLog) String() string {
+	//l.l.Info("test lock")
+	fmt.Println("test lock")
+	return "test lock string"
+}
+
+func Test_LogFormat(t *testing.T) {
+	l := New()
+	l.SetHandler(StreamHandler(os.Stdout, LogfmtFormat()))
+
+	testVar := testLog{
+		l: l,
+	}
+	l.Info("the test format log is:", "testVar", testVar)
+
+	l.SetHandler(StreamHandler(os.Stdout, TerminalFormat()))
+
+	l.Info("the test format log is:", "testVar", testVar)
 }
 
 func TestMultiHandler(t *testing.T) {

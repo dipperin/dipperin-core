@@ -37,7 +37,7 @@ func (s fakeNodeService) Stop() {
 }
 
 func TestNewCsNode(t *testing.T) {
-	csNode := NewCsNode([]NodeService{fakeNodeService{}})
+	csNode := NewCsNode([]NodeService{fakeNodeService{}}, NodeConfig{})
 	err := csNode.Start()
 	assert.NoError(t, err)
 
@@ -51,7 +51,7 @@ func TestNewCsNode(t *testing.T) {
 
 func TestCsNode_Start(t *testing.T) {
 	chokeTimeout = time.Millisecond * 50
-	csNode := NewCsNode([]NodeService{})
+	csNode := NewCsNode([]NodeService{}, NodeConfig{})
 	err := csNode.Start()
 	assert.NoError(t, err)
 }

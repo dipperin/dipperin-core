@@ -25,7 +25,9 @@ import (
 
 func ValidGasUsedAndReceipts(c *BlockContext) Middleware {
 	return func() error {
+		log.Middleware.Info("ValidGasUsedAndReceipts start")
 		if c.Block.IsSpecial() {
+			log.Middleware.Info("ValidGasUsedAndReceipts the block is empty block")
 			return c.Next()
 		}
 		curBlock := c.Chain.CurrentBlock()
@@ -63,6 +65,7 @@ func ValidGasUsedAndReceipts(c *BlockContext) Middleware {
 
 		//padding receipts
 		c.receipts = receipts
+		log.Middleware.Info("ValidGasUsedAndReceipts success")
 		return c.Next()
 	}
 }

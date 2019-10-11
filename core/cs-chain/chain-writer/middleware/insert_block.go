@@ -23,6 +23,7 @@ import (
 
 func InsertBlock(c *BlockContext) Middleware {
 	return func() error {
+		log.Middleware.Info("InsertBlock start", "blockNumber", c.Block.Number())
 		curBlock := c.Chain.CurrentBlock()
 
 		// roll back chain if insert same height special block
@@ -52,6 +53,8 @@ func InsertBlock(c *BlockContext) Middleware {
 			}
 			log.Info("insert receipts successful", "num", c.Block.Number())
 		}
+
+		log.Middleware.Info("InsertBlock success")
 		return c.Next()
 	}
 }

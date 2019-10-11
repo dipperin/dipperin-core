@@ -54,7 +54,8 @@ var (
 	//ErrAlreadyHaveThisBlock is returned when
 	ErrAlreadyHaveThisBlock = errors.New("already have this block")
 
-	ErrBlockHeightTooLow                   = errors.New("block height too low")
+	ErrBlockHeightTooLow = errors.New("block height too low")
+
 	ErrBlockHeightIsCurrentAndIsNotSpecial = errors.New("block height is the same as current block height and isn't empty block")
 	ErrBlockSizeTooLarge                   = errors.New("block size too large")
 

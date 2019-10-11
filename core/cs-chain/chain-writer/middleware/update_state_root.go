@@ -27,6 +27,7 @@ import (
 
 func UpdateStateRoot(c *BlockContext) Middleware {
 	return func() error {
+		log.Middleware.Info("UpdateStateRoot start")
 		processor, err := validStateRoot(c)
 		if err != nil {
 			return err
@@ -35,7 +36,7 @@ func UpdateStateRoot(c *BlockContext) Middleware {
 		if _, err := processor.Commit(); err != nil {
 			return err
 		}
-		log.Info("commit state root successful")
+		log.Middleware.Info("UpdateStateRoot end")
 		return c.Next()
 	}
 }

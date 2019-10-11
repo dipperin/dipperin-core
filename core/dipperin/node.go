@@ -19,6 +19,7 @@ package dipperin
 import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"reflect"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -33,9 +34,10 @@ type NodeService interface {
 	Stop()
 }
 
-func NewCsNode(services []NodeService) *CsNode {
+func NewCsNode(services []NodeService, conf NodeConfig) *CsNode {
 	return &CsNode{
 		services: services,
+		nodeName: conf.Name,
 	}
 }
 
@@ -44,10 +46,29 @@ type CsNode struct {
 
 	wg         sync.WaitGroup
 	chokePoint uint32
+	nodeName   string
 }
 
 func (n *CsNode) AddService(service NodeService) {
 	n.services = append(n.services, service)
+}
+func logDebugStack() {
+	buf := make([]byte, 5*1024*1024)
+	log.Stack.Info("the runtime stack is:~~~~~~~~~~~~~~~~~~~~")
+	buf = buf[:runtime.Stack(buf, true)]
+	log.Stack.Info(string(buf))
+	log.Stack.Info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+
+}
+
+func printStackInfo(nodeName string) {
+	tick := time.NewTicker(2 * time.Minute)
+	for {
+		select {
+		case <-tick.C:
+			logDebugStack()
+		}
+	}
 }
 
 func (n *CsNode) Start() (err error) {
@@ -60,9 +81,12 @@ func (n *CsNode) Start() (err error) {
 			panic("node start choked by service:" + reflect.TypeOf(n.services[i]).String())
 		}
 	}()
+
+	//print debug stack info
+	//go printStackInfo(n.nodeName)
+
 	for _, s := range n.services {
 		n.wg.Add(1)
-
 		// if start err, stop all services and return the err
 		if err = s.Start(); err != nil {
 			log.Info("the err service is: ", "service", s)

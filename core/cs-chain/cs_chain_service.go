@@ -258,6 +258,7 @@ func (cs *CsChainService) saveBftBlock(block model.AbstractBlock, seenCommits []
 		return nil
 
 	default:
+		log.Error("CsChainService saveBftBlock error", "err", err)
 		return err
 	}
 }

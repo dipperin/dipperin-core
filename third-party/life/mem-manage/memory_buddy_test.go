@@ -2,6 +2,7 @@ package mem_manage
 
 import (
 	"github.com/stretchr/testify/assert"
+	"log"
 	"testing"
 )
 
@@ -15,9 +16,12 @@ func TestMemory_Malloc(t *testing.T) {
 		Tree:   tree,
 	}
 
+	log.Println("the buddy memory tree is:", mem.Tree)
+
 	offsets := make([]int, 0)
 	for i := 0; i < size; i++ {
 		offset := mem.Malloc(1)
+		log.Println("the buddy memory tree is:", mem.Tree)
 		offsets = append(offsets, offset)
 		assert.Equal(t, i*int(DefaultSlabSize)+mem.Start, offset)
 	}

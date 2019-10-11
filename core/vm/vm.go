@@ -180,7 +180,13 @@ func (vm *VM) Create(caller resolver.ContractRef, data []byte, gas uint64, value
 	return vm.create(caller, data, gas, value, contractAddr)
 }
 
-func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value *big.Int, address common.Address) ([]byte, common.Address, uint64, error) {
+func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value *big.Int, address common.Address) (rest []byte, contractAddr common.Address, leftOverGas uint64, err error) {
+	defer func() {
+		if er := recover(); er != nil {
+			log.Error("VM#create err  ", "err", er)
+			rest, contractAddr, leftOverGas, err = nil, common.Address{}, gas, er.(error)
+		}
+	}()
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
 	if vm.depth > int(model2.CallCreateDepth) {
@@ -202,6 +208,7 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 	// Create a new account on the state
 	snapshot := vm.state.Snapshot()
 	vm.state.CreateAccount(address)
+
 	vm.Transfer(vm.state, caller.Address(), address, value)
 
 	// initialise a new contract and set the data that is to be used by the

@@ -33,6 +33,7 @@ func NewBftChainWriter(context *middleware.BftBlockContext, chain middleware.Cha
 
 func (cw *BftChainWriter) SaveBlock() error {
 	log.Info("bftChainWriter save block")
+
 	//Create a BlockProcessor
 	c := cw.context
 
@@ -65,7 +66,7 @@ func (cw *BftChainWriter) SaveBlock() error {
 
 	err := c.Process()
 	if err != nil {
-		log.Error("bft save block failed", "err", err)
+		log.Error("bft save block failed!", "err", err)
 	}
 
 	return err

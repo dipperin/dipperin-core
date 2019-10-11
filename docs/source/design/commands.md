@@ -67,7 +67,7 @@ dipperincli --node_type 2 --soft_wallet_pwd 123
 
 Connect to the test environment:
 ```
-boots_env = test ~/go/bin/dipperincli --soft_wallet_pwd 123
+boots_env=test ~/go/bin/dipperincli -- soft_wallet_pwd 123
 ```
 
 ### Error

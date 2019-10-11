@@ -448,7 +448,7 @@ func (h *StateHandler) onEnterPropose() {
 	}
 	sign, err := h.BftConfig.Signer.SignHash(msg.Hash().Bytes())
 	if err != nil {
-		log.Warn("sign new round msg failed", "err", err)
+		log.PBft.Warn("sign new round msg failed", "err", err)
 		return
 	}
 	msg.Witness = &model.WitMsg{
