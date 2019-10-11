@@ -193,7 +193,7 @@ func (h *StateHandler) OnNewRound(nRound *model2.NewRoundMsg) {
 		case curStep == model2.RoundStepPropose: // preStep != curStep
 			h.onEnterPropose()
 		case curStep == model2.RoundStepPreVote: // preStep != curStep
-			h.onEnterPrevote()                   // ignore enter propose, because state machine already get the right proposal
+			h.onEnterPrevote() // ignore enter propose, because state machine already get the right proposal
 		default:
 			panic("State change error")
 		}
