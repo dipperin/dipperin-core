@@ -171,13 +171,34 @@ func (h *StateHandler) OnNewHeight(height uint64) {
 
 func (h *StateHandler) OnNewRound(nRound *model2.NewRoundMsg) {
 	log.PBft.Info("[StateHandler-OnNewRound]", "address", nRound.Witness.Address.Hex(), "round", nRound.Round, "Height", nRound.Height)
-	preStep := h.bs.Step
-	preRound := h.bs.Round
+	_, preRound, preStep := h.RecordCurState()
 	h.bs.OnNewRound(nRound)
-	curStep := h.bs.Step
-	curRound := h.bs.Round
+	_, curRound, curStep := h.RecordCurState()
 
-	switch {
+	// A new round message, lead to state machine change state not more than 3 times.
+	// 1. Catch up with new round.
+	if preRound < curRound {
+		h.onEnterNewRound()
+		switch curStep {
+		case model2.RoundStepPropose:
+			h.onEnterPropose()
+		case model2.RoundStepPreVote:
+			h.onEnterPrevote() // ignore enter propose, because state machine already get the right proposal
+		default:
+			panic("State change error")
+		}
+	} else { // 2. preRound = curRound
+		switch {
+		case preStep == curStep: // state not change, do not need send out message
+		case curStep == model2.RoundStepPropose: // preStep != curStep
+			h.onEnterPropose()
+		case curStep == model2.RoundStepPreVote: // preStep != curStep
+			h.onEnterPrevote()                   // ignore enter propose, because state machine already get the right proposal
+		default:
+			panic("State change error")
+		}
+	}
+	/*switch {
 	case preStep == model2.RoundStepNewRound && curStep == model2.RoundStepPropose:
 		//fmt.Println("enter","id",reflect.ValueOf(h.bs).Pointer())
 		if preRound != curRound {
@@ -190,15 +211,16 @@ func (h *StateHandler) OnNewRound(nRound *model2.NewRoundMsg) {
 		h.onEnterPrevote()
 	default:
 		log.PBft.Info("[StateHandler-OnNewRound]:on new round", "pre", preStep, "new", curStep)
-	}
+	}*/
 }
 
 func (h *StateHandler) OnBlockPoolNotEmpty() {
 	log.PBft.Info("[StateHandler-OnBlockPoolNotEmpty]")
-	preStep := h.bs.Step
+	_, _, preStep := h.RecordCurState()
 	h.bs.OnBlockPoolNotEmpty()
-	curStep := h.bs.Step
-	//Fixme
+	_, _, curStep := h.RecordCurState()
+
+	//Fixme (R:3, S:NewHeight) if get 2/3 vote on round 4 before block pool not empty; state machine jumped into NewRound step, and ignore this msg
 	switch {
 	case preStep == model2.RoundStepNewHeight && curStep == model2.RoundStepNewRound:
 		log.PBft.Info("[StateHandler-OnBlockPoolNotEmpty]:onEnterNewRound")
@@ -225,28 +247,46 @@ func (h *StateHandler) OnNewProposal(proposal *model2.Proposal) {
 		return
 	}
 
-	preStep := h.bs.Step
+	if h.blockPool.IsEmpty() == true {
+		h.blockPool.AddBlock(block)
+	}
+
+	_, preRound, preStep := h.RecordCurState()
 	h.bs.OnNewProposal(proposal, block)
-	curStep := h.bs.Step
+	_, curRound, curStep := h.RecordCurState()
+
+	switch {
+	case preRound != curRound:
+		panic("receive a proposal should not lead round change")
+	case preStep == curStep:
+	case preStep == model2.RoundStepPropose && curStep == model2.RoundStepPreVote: // preRound == curRound
+		h.onEnterPrevote()
+	case preStep == model2.RoundStepNewHeight && curStep == model2.RoundStepPreVote:
+		h.onEnterPrevote()
+	case preStep == model2.RoundStepNewHeight && curStep == model2.RoundStepPropose:
+		h.onEnterPropose()
+	default:
+		panic("unexpected state change")
+	}
 
 	//fixme Add other cases
-	switch {
+	/*switch {
 	case preStep == model2.RoundStepPropose && curStep == model2.RoundStepPreVote:
 		log.PBft.Info("[StateHandler-OnNewProposal]:onEnterPrevote")
 		h.onEnterPrevote()
 	default:
 		log.PBft.Info("[StateHandler-OnNewProposal]:block pool not empty", "pre", preStep, "new", curStep)
-	}
+	}*/
 }
 
 func (h *StateHandler) OnPreVote(pv *model.VoteMsg) {
 	log.PBft.Info("[StateHandler-OnPreVote]")
-	preStep := h.bs.Step
+	_, preRound, preStep := h.RecordCurState()
 	h.bs.OnPreVote(pv)
-	curStep := h.bs.Step
+	_, curRound, curStep := h.RecordCurState()
 
 	switch {
-	case preStep == model2.RoundStepPreVote && curStep == model2.RoundStepPreCommit:
+	case preRound == curRound && preStep == model2.RoundStepPreVote && curStep == model2.RoundStepPreCommit:
 		h.onEnterPrecommit()
 	default:
 		log.PBft.Info("[StateHandler-OnPreVote]:on prevote", "pre", preStep, "new", curStep)
@@ -420,7 +460,9 @@ func (h *StateHandler) onEnterPropose() {
 	h.Sender.BroadcastMsg(uint64(model2.TypeOfProposalMsg), msg)
 
 	// Send to myself the proposal
-	preStep := h.bs.Step
+	h.blockPool.AddBlock(block)
+	h.OnNewProposal(&msg)
+	/*preStep := h.bs.Step
 	h.bs.OnNewProposal(&msg, block)
 	curStep := h.bs.Step
 
@@ -429,7 +471,7 @@ func (h *StateHandler) onEnterPropose() {
 		h.onEnterPrevote()
 	default:
 		log.PBft.Info("propose time out", "pre", preStep, "new", curStep)
-	}
+	}*/
 }
 
 //New functions
@@ -646,4 +688,8 @@ func (h *StateHandler) GetRoundMsg(height, round uint64) *model2.NewRoundMsg {
 
 func (h *StateHandler) SetFetcher(fetcher components.Fetcher) {
 	h.Fetcher = fetcher
+}
+
+func (h *StateHandler) RecordCurState() (uint64, uint64, model2.RoundStepType) {
+	return h.bs.Height, h.bs.Round, h.bs.Step
 }

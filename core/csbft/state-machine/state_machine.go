@@ -58,6 +58,7 @@ func (bs *BftState) OnBlockPoolNotEmpty() {
 	if bs.Step == model2.RoundStepNewHeight {
 		bs.enterNewRound(bs.Height, bs.Round)
 	}
+
 }
 
 //When receive a NewRound message
@@ -75,6 +76,7 @@ func (bs *BftState) OnNewRound(r *model2.NewRoundMsg) {
 
 	// check should catch up?
 	if bs.Round < bs.NewRound.shouldCatchUpTo() {
+		//Fixme if R=10,S=NewHeight,BlockPool=Empty
 		bs.enterNewRound(bs.Height, bs.NewRound.shouldCatchUpTo())
 	}
 
@@ -98,9 +100,23 @@ func (bs *BftState) OnNewProposal(p *model2.Proposal, block model.AbstractBlock)
 
 	log.PBft.Info("get valid proposal", "height", p.Height, "block", p.BlockID.Hex(), "round", p.Round)
 	bs.ProposalBlock.AddBlock(block, p.Round)
-	if bs.Step == model2.RoundStepPropose && bs.Round == p.Round {
+	switch {
+	case bs.Round != p.Round: // Proposal of other round, ignore.
+	case bs.Round == p.Round && bs.Step == model2.RoundStepNewHeight:
+		bs.OnBlockPoolNotEmpty() // Get the right proposal block. Set block pool not empty
+		bs.tryEnterPropose()
+		if bs.Step == model2.RoundStepPropose {
+			bs.enterPreVote(p, block)
+		}
+	case bs.Round == p.Round && bs.Step == model2.RoundStepPropose:
 		bs.enterPreVote(p, block)
+	default:
+		log.PBft.Debug("ignore", "bs.Round == p.Round", bs.Round == p.Round, "Step", bs.Step)
 	}
+
+	/*if bs.Step == model2.RoundStepPropose && bs.Round == p.Round {
+		bs.enterPreVote(p, block)
+	}*/
 }
 
 //When receive a prevote
@@ -132,6 +148,11 @@ func (bs *BftState) OnPreVote(pv *model.VoteMsg) {
 			if block.Hash().IsEqual(roundBlock) {
 				bs.LockedBlock = block
 				bs.LockedRound = pv.Round
+
+				// If node not in Prevote state can not jump to Precommit.
+				if bs.Step != model2.RoundStepPreVote {
+					return
+				}
 				log.PBft.Debug("[BftState-LockBlock]", "LockedRound", bs.LockedRound, "block", block.Hash().Hex())
 				bs.enterPreCommit(pv.Round)
 			}
@@ -265,7 +286,7 @@ func (bs *BftState) enterPreCommit(round uint64) {
 // Timeout actions
 
 /*
-1. majority not agree with the box -> next round directly
+1. majority not agree with the block -> next round directly
 2. majority offline -> next round directly
 3. when I am offline but others reach consensus -> enter new round, but cannot receive the corresponding proposal. wait for downloader for a sync
 4. when I am offline and others cannot reach consensus -> enter new round and continue the current mechanism
