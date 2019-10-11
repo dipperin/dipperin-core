@@ -19,7 +19,6 @@ package chain_communication
 import (
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"math/big"
 	"net"
 	"os"
@@ -480,8 +479,7 @@ func TestCsProtocolManager_Protocols(t *testing.T) {
 
 func TestCsProtocolManager_getCsProtocol(t *testing.T) {
 	pm := &CsProtocolManager{}
-	//_ = os.Setenv("boots_env", "mercury")
-	fmt.Println("env::::" + os.Getenv("boots_env"))
+	_ = os.Setenv("boots_env", "local")
 	assert.Equal(t, chain_config.AppName+"_cs_local", pm.getCsProtocol().Name)
 }
 
