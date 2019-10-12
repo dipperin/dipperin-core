@@ -268,8 +268,10 @@ func (h *StateHandler) OnNewProposal(proposal *model2.Proposal) {
 		h.onEnterPrevote()
 	case preStep == model2.RoundStepNewHeight && curStep == model2.RoundStepPropose:
 		h.onEnterPropose()
+	case preStep == model2.RoundStepNewHeight && curStep == model2.RoundStepNewRound:
+		h.onEnterNewRound()
 	default:
-		fmt.Println(fmt.Sprintf("State change from (R:%s, S:%s) to (R:%s, S:%s)", preRound, preStep, curRound, curStep))
+		log.PBft.Error(fmt.Sprintf("Receive proposal, state change from (R:%v, S:%s) to (R:%v, S:%s)", preRound, preStep, curRound, curStep))
 		panic("unexpected state change")
 	}
 
