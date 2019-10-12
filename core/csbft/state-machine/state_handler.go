@@ -265,8 +265,10 @@ func (h *StateHandler) OnNewProposal(proposal *model2.Proposal) {
 	case preStep == model2.RoundStepPropose && curStep == model2.RoundStepPreVote: // preRound == curRound
 		h.onEnterPrevote()
 	case preStep == model2.RoundStepNewHeight && curStep == model2.RoundStepPreVote:
+		h.onEnterNewRound()
 		h.onEnterPrevote()
 	case preStep == model2.RoundStepNewHeight && curStep == model2.RoundStepPropose:
+		h.onEnterNewRound()
 		h.onEnterPropose()
 	case preStep == model2.RoundStepNewHeight && curStep == model2.RoundStepNewRound:
 		h.onEnterNewRound()
