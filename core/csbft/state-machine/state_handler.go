@@ -174,6 +174,7 @@ func (h *StateHandler) OnNewRound(nRound *model2.NewRoundMsg) {
 	_, preRound, preStep := h.RecordCurState()
 	h.bs.OnNewRound(nRound)
 	_, curRound, curStep := h.RecordCurState()
+	fmt.Println(fmt.Sprintf("New round msg, state change from (R:%v, S:%s) to (R:%v, S:%s)",preRound, preStep,curRound, curStep))
 
 	// A new round message, lead to state machine change state not more than 3 times.
 	// 1. Catch up with new round.
@@ -216,9 +217,11 @@ func (h *StateHandler) OnNewRound(nRound *model2.NewRoundMsg) {
 
 func (h *StateHandler) OnBlockPoolNotEmpty() {
 	log.PBft.Info("[StateHandler-OnBlockPoolNotEmpty]")
-	_, _, preStep := h.RecordCurState()
+	_, preRound, preStep := h.RecordCurState()
 	h.bs.OnBlockPoolNotEmpty()
-	_, _, curStep := h.RecordCurState()
+	_, curRound, curStep := h.RecordCurState()
+	fmt.Println(fmt.Sprintf("Block pool not empty, state change from (R:%v, S:%s) to (R:%v, S:%s)",preRound, preStep,curRound, curStep))
+
 
 	//Fixme (R:3, S:NewHeight) if get 2/3 vote on round 4 before block pool not empty; state machine jumped into NewRound step, and ignore this msg
 	switch {
@@ -254,6 +257,7 @@ func (h *StateHandler) OnNewProposal(proposal *model2.Proposal) {
 	_, preRound, preStep := h.RecordCurState()
 	h.bs.OnNewProposal(proposal, block)
 	_, curRound, curStep := h.RecordCurState()
+	fmt.Println(fmt.Sprintf("Receive proposal, state change from (R:%v, S:%s) to (R:%v, S:%s)",preRound, preStep,curRound, curStep))
 
 	switch {
 	case preRound != curRound:
@@ -266,6 +270,7 @@ func (h *StateHandler) OnNewProposal(proposal *model2.Proposal) {
 	case preStep == model2.RoundStepNewHeight && curStep == model2.RoundStepPropose:
 		h.onEnterPropose()
 	default:
+		fmt.Println(fmt.Sprintf("State change from (R:%s, S:%s) to (R:%s, S:%s)",preRound, preStep,curRound, curStep))
 		panic("unexpected state change")
 	}
 
@@ -284,6 +289,7 @@ func (h *StateHandler) OnPreVote(pv *model.VoteMsg) {
 	_, preRound, preStep := h.RecordCurState()
 	h.bs.OnPreVote(pv)
 	_, curRound, curStep := h.RecordCurState()
+	fmt.Println(fmt.Sprintf("Prevote, state change from (R:%v, S:%s) to (R:%v, S:%s)",preRound, preStep,curRound, curStep))
 
 	switch {
 	case preRound == curRound && preStep == model2.RoundStepPreVote && curStep == model2.RoundStepPreCommit:
