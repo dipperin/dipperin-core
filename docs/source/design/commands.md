@@ -190,7 +190,7 @@ tx CallContract -p 0x0000661A3c6c0955B5E6dbf935f0891aAA1112b9E9ca,0x0014ab28B203
 
 Get transaction:
 ```
-tx Transaction [TxId]
+tx Transaction [txHash]
 tx Transaction -p 0xf8dd21db65b2adcb5e3ed3c61475eb66a1653d309b1a82354959fdf58852f023
 ```
 
@@ -206,6 +206,12 @@ Get genesis block:
 chain GetGenesis
 ```
 
+Get transaction actual fee
+```
+chain GetTxActualFee -p [txHash]
+chain GetTxActualFee -p 0xf8dd21db65b2adcb5e3ed3c61475eb66a1653d309b1a82354959fdf58852f023
+```
+
 Suggest gas price
 ```
 chain SuggestGasPrice
@@ -215,6 +221,12 @@ Get block by number:
 ```
 chain GetBlockByNumber -p [blockNumber]
 chain GetBlockByNumber -p 1
+```
+
+Get slot by number:
+```
+chain GetSlotByNumber -p [blockNumber]
+chain GetSlotByNumber -p 1
 ```
 
 Get block by block hash:
@@ -260,6 +272,13 @@ VerifierStatus
 ```
 verifier VerifierStatus
 ```
+
+Verifier difference between two blocks
+```
+verifier GetBlockDiffVerifierInfo -p [blockNum]
+verifier GetBlockDiffVerifierInfo -p 10
+```
+
 
 ### Personal methods
 
@@ -326,10 +345,29 @@ personal CurrentStake -p 0x0000e447B8B7851D3FBD5C6A03625D288cfE9Bb5eF0E
 
 ```
 
+Get account reputation:
+```
+personal CurrentReputation -p [address]
+personal CurrentReputation -p 0x0000e447B8B7851D3FBD5C6A03625D288cfE9Bb5eF0E
+
+```
+
 Get account nonce:
+```
+personal GetTransactionNonce -p [address]
+personal GetTransactionNonce -p 0x00001c2beC8E0E4caac668cD75d520E41f827092Ce79
+```
+
+Get wallet nonce:
 ```
 personal GetAddressNonceFromWallet -p [address]
 personal GetAddressNonceFromWallet -p 0x00001c2beC8E0E4caac668cD75d520E41f827092Ce79
+```
+
+Set Signer
+```
+personal SetBftSigner -p [address]
+personal SetBftSigner -p 0x00001c2beC8E0E4caac668cD75d520E41f827092Ce79
 ```
 
 ### Miner methods
@@ -348,4 +386,10 @@ Set miner address:
 ```
 miner SetMineCoinBase -p [address]
 miner SetMineCoinBase -p 0x0000e447B8B7851D3FBD5C6A03625D288cfE9Bb5eF0E
+```
+
+Set miner config:
+```
+miner SetMineGasConfig -p [gasFloor][gasCeil]
+miner SetMineGasConfig -p 100,5000000
 ```

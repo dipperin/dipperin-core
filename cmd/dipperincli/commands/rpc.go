@@ -396,6 +396,33 @@ func (caller *rpcCaller) GetBlockByNumber(c *cli.Context) {
 	printBlockInfo(respBlock)
 }
 
+// GetSlotByNumber get block information according to block num
+func (caller *rpcCaller) GetSlotByNumber(c *cli.Context) {
+	mName, cParams, err := getRpcMethodAndParam(c)
+	if err != nil {
+		l.Error("getRpcMethodAndParam error")
+		return
+	}
+
+	if len(cParams) == 0 {
+		l.Error("parameter includes：blockNumber")
+		return
+	}
+
+	blockNum, err := strconv.Atoi(cParams[0])
+	if err != nil {
+		l.Error("the blockNumber error")
+	}
+	l.Info("the blockNum is:", "blockNum", blockNum)
+
+	var resp uint64
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), blockNum); err != nil {
+		l.Error("call GetSlotByNumber error", "err", err)
+		return
+	}
+	l.Info("GetSlotByNumber result", "slot", resp)
+}
+
 // GetBlockByHash get block information based on block hash
 func (caller *rpcCaller) GetBlockByHash(c *cli.Context) {
 	mName, cParams, err := getRpcMethodAndParam(c)
@@ -700,6 +727,41 @@ func (caller *rpcCaller) GetReceiptByTxHash(c *cli.Context) {
 	}
 
 	fmt.Println(resp.String())
+}
+
+func (caller *rpcCaller) GetTxActualFee(c *cli.Context) {
+	_, cParams, err := getRpcMethodAndParam(c)
+	if err != nil {
+		l.Error("GetTxActualFee  getRpcMethodAndParam error")
+		return
+	}
+
+	if len(cParams) < 1 {
+		l.Error("GetTxActualFee need：txHash")
+		return
+	}
+
+	tmpHash, err := hexutil.Decode(cParams[0])
+	if err != nil {
+		l.Error("GetTxActualFee decode error")
+		return
+	}
+
+	var hash common.Hash
+	copy(hash[:], tmpHash)
+
+	var resp rpc_interface.CurBalanceResp
+	if err = client.Call(&resp, getDipperinRpcMethodByName("GetTxActualFee"), hash); err != nil {
+		l.Error("Call GetTxActualFee", "err", err)
+		return
+	}
+
+	txFee, err := InterToDecimal(resp.Balance, consts.UnitDecimalBits)
+	if err != nil {
+		l.Error("can't get tx actual fee", "err", err)
+	} else {
+		l.Info("the tx actual fee is", "txActualFee", txFee+consts.CoinWuName)
+	}
 }
 
 func (caller *rpcCaller) SuggestGasPrice(c *cli.Context) {
