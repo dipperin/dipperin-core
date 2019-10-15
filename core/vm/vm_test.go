@@ -478,4 +478,3 @@ func TestVM_Create_Error(t *testing.T) {
 	_, _, _, err = vm.Create(caller, nil, gasLimit, value)
 	assert.Equal(t, g_error.ErrDepth, err)
 }
-
