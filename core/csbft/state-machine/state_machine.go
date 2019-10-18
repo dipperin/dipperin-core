@@ -143,6 +143,7 @@ func (bs *BftState) OnPreVote(pv *model.VoteMsg) {
 
 	// Add lock
 	// Fixme if pv.Round > bs.Round should I do this?
+	// Todo do not verify block if it have 2/3+1 prevotes
 	if !roundBlock.IsEqual(common.Hash{}) && bs.LockedBlock == nil {
 		block := bs.ProposalBlock.GetBlock(pv.Round)
 		if block != nil {
@@ -158,6 +159,7 @@ func (bs *BftState) OnPreVote(pv *model.VoteMsg) {
 				bs.enterPreCommit(pv.Round)
 			}
 		} else {
+			//todo Should Fetch the block??
 			log.PBft.Error("the proposal Block is nil")
 		}
 	}
