@@ -53,7 +53,6 @@ func (chainDB *ChainDB) InsertBlock(block model.AbstractBlock) error {
 
 	chainDB.SaveBlockHash(block.Hash(), block.Number())
 	chainDB.SaveHeadBlockHash(block.Hash())
-	chainDB.SaveHeadHeaderHash(block.Header().Hash())
 	return nil
 }
 
@@ -95,20 +94,6 @@ func (chainDB *ChainDB) SaveHeaderNumber(hash common.Hash, number uint64) {
 func (chainDB *ChainDB) DeleteHeaderNumber(hash common.Hash) {
 	if err := chainDB.db.Delete(headerNumberKey(hash)); err != nil {
 		log.Crit("Failed to delete hash to number mapping", "err", err)
-	}
-}
-
-func (chainDB *ChainDB) GetHeadHeaderHash() common.Hash {
-	data, _ := chainDB.db.Get(headHeaderKey)
-	if len(data) == 0 {
-		return common.Hash{}
-	}
-	return common.BytesToHash(data)
-}
-
-func (chainDB *ChainDB) SaveHeadHeaderHash(hash common.Hash) {
-	if err := chainDB.db.Put(headHeaderKey, hash.Bytes()); err != nil {
-		log.Crit("Failed to store last header's hash", "err", err)
 	}
 }
 
