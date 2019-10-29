@@ -29,7 +29,6 @@ func NewDefaultWorkExecutor(work *minemsg.DefaultWork, submitter workSubmitter) 
 		//nonceSuffix:big.NewInt(0),
 	}
 	return ex
-
 }
 
 type workSubmitter interface {

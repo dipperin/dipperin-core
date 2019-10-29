@@ -269,6 +269,57 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", "", "err", err)
 }
 
+
+func TestContractNewFeature(t *testing.T){
+	log.InitLogger(log.LvlDebug)
+	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
+	ownSK, _ := crypto.GenerateKey()
+	ownPk := ownSK.PublicKey
+	ownAddress := cs_crypto.GetNormalAddress(ownPk)
+
+	aliceSK, _ := crypto.GenerateKey()
+	alicePk := aliceSK.PublicKey
+	aliceAddress := cs_crypto.GetNormalAddress(alicePk)
+
+	addressSlice := []common.Address{
+		ownAddress,
+		aliceAddress,
+	}
+
+	//WASMPath := g_testData.GetWASMPath("token", g_testData.CoreVmTestData)
+	//abiPath := g_testData.GetAbiPath("token", g_testData.CoreVmTestData)
+	WASMPath := g_testData.GetWASMPath("demo", g_testData.CoreVmTestData)
+	abiPath := g_testData.GetAbiPath("demo", g_testData.CoreVmTestData)
+	input := []string{"0x0000D36F282D8925B16Ed24CB637475e6a03B01E1056"}
+	//0x0000d36F282D8925B16Ed24cb637475e6A03b01E1056
+	//0x0000d36F282D8925B16Ed24cb637475e6A03b01E1056
+	//0x0000D36F282D8925B16Ed24CB637475e6a03B01E1056
+	data, err := getCreateExtraData(WASMPath, abiPath, input)
+	assert.NoError(t, err)
+
+	addr := common.HexToAddress(common.AddressContractCreate)
+	tx := model.NewTransaction(0, addr, big.NewInt(0), big.NewInt(1), 26427000, data)
+	signCreateTx := getSignedTx(t, ownSK, tx, singer)
+
+	gasLimit := testGasLimit * 10000000000
+	block := CreateBlock(1, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
+	processor, err := CreateProcessorAndInitAccount(t, addressSlice)
+
+	tmpGasLimit := block.GasLimit()
+	gasUsed := block.GasUsed()
+	config := &TxProcessConfig{
+		Tx:       tx,
+		Header:   block.Header(),
+		GetHash:  getTestHashFunc(),
+		GasLimit: &tmpGasLimit,
+		GasUsed:  &gasUsed,
+		TxFee:    big.NewInt(0),
+	}
+
+	err = processor.ProcessTxNew(config)
+	assert.NoError(t, err)
+}
+
 func TestContractWithNewFeature(t *testing.T) {
 	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
 

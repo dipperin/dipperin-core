@@ -129,6 +129,7 @@ func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
 			"callValue":    &exec.FunctionImport{Execute: r.envCallValue, GasCost: constGasFunc(GasQuickStep)},
 			"address":      &exec.FunctionImport{Execute: r.envAddress, GasCost: constGasFunc(GasQuickStep)},
 			"sha3":         &exec.FunctionImport{Execute: envSha3, GasCost: envSha3GasCost},
+			"hexStringSameWithVM" : &exec.FunctionImport{Execute: envHexStringSameWithVM, GasCost: envHexStringSameWithVMGasCost},
 			"emitEvent":    &exec.FunctionImport{Execute: r.envEmitEvent, GasCost: envEmitEventGasCost},
 			"setState":     &exec.FunctionImport{Execute: r.envSetState, GasCost: envSetStateGasCost},
 			"getState":     &exec.FunctionImport{Execute: r.envGetState, GasCost: envGetStateGasCost},

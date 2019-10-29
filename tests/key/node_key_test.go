@@ -32,8 +32,8 @@ import (
 
 func TestGetPubKey(t *testing.T) {
 	//pk, _ := crypto.HexToECDSA("6008df48c4c385961e8e0a56681f6ac2600075905bfed416ee27b3f531a81888")
-	pk, _ := crypto.HexToECDSA("6008df48c4c385961e8e0a56681f6ac2600075905bfed416ee27b3f531a81888")
-	n := enode.NewV4(&pk.PublicKey, net.ParseIP("127.0.0.1"), 10000, 10000)
+	pk, _ := crypto.HexToECDSA("1710c331c1039695f0c370956bad4147a23c719f3b2003dff6f829b695625921")
+	n := enode.NewV4(&pk.PublicKey, net.ParseIP("114.119.116.87"), 10015, 10015)
 	fmt.Println(n.String())
 
 	sig1, err := crypto.Sign(common.HexToHash("0x231231").Bytes(), pk)

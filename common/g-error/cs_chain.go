@@ -78,4 +78,5 @@ var (
 
 	ErrReceiptIsNil    = errors.New("the transaction receipt is nil")
 	ErrReceiptNotFound = errors.New("the transaction receipt not found")
+	ErrPreTargetBlockNil = errors.New("pre target block is nil")
 )

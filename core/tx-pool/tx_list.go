@@ -190,6 +190,8 @@ func (m *txSortedMap) Remove(nonce uint64) bool {
 // Note, all transactions with nonces lower than start will also be returned to
 // prevent getting into and invalid state. This is not something that should ever
 // happen but better to be self correcting than failing!
+// start param equals to the lowest nonce, retrieves all
+// the consecutive txs
 func (m *txSortedMap) Ready(start uint64) []model.AbstractTransaction {
 	// Short circuit if no transactions are available
 	if m.index.Len() == 0 || (*m.index)[0] > start {

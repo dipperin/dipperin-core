@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
@@ -66,4 +67,9 @@ func TestDifficulty_Big(t *testing.T) {
 	assert.Equal(t, big.NewInt(32), Big32)
 	assert.Equal(t, big.NewInt(256), Big256)
 	assert.Equal(t, big.NewInt(257), Big257)
+}
+
+func TestHexStringSameWithVM(t *testing.T) {
+	log.InitLogger(log.LvlDebug)
+	HexStringSameWithVM("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9");
 }

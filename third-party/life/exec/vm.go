@@ -528,6 +528,7 @@ func (vm *VirtualMachine) AddAndCheckGas(delta uint64) bool {
 // at least once every 10000 instructions. Caller is responsible for
 // detecting VM status in a loop.
 func (vm *VirtualMachine) Execute() {
+
 	if vm.Exited == true {
 		panic("attempting to execute an exited vmcommon")
 	}
@@ -548,10 +549,13 @@ func (vm *VirtualMachine) Execute() {
 			vm.Exited = true
 			vm.ExitError = err
 			vm.StackTrace = string(debug.Stack())
+			//log.Debug("VirtualMachine#Execute", "StackTrace", vm.StackTrace)
+			fmt.Println("VirtualMachine#Execute", vm.StackTrace)
 		}
 	}()
 
 	frame := vm.GetCurrentFrame()
+	//log.Debug("VirtualMachine#Execute", "frame  id ", frame.FunctionID)
 	for {
 		valueID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
 		ins := opcodes.Opcode(frame.Code[frame.IP+4])
@@ -562,6 +566,9 @@ func (vm *VirtualMachine) Execute() {
 			panic(fmt.Sprintf("out of gas  cost:%d GasUsed:%d GasLimit:%d", cost, vm.GasUsed, vm.GasLimit))
 		}
 		vm.GasUsed += cost
+
+
+		log.Debug("VirtualMachine#Execute", "frame", frame.FunctionID, "ins", ins)
 
 		//fmt.Printf("INS: [%d] %s\n", valueID, ins.String(), )
 		//log.Info("VirtualMachine#Execute", "ins", ins.String(), "valueID", valueID)
@@ -1519,6 +1526,9 @@ func (vm *VirtualMachine) Execute() {
 			frame.IP += 12
 
 			effective := int(uint64(base) + uint64(offset))
+			//if frame.FunctionID == 513 {
+				log.Debug("VirtualMachine#I32Load ", "effective", effective, "vm.Memory len ", len(vm.Memory.Memory))
+			//}
 			frame.Regs[valueID] = int64(uint32(LE.Uint32(vm.Memory.Memory[effective : effective+4])))
 		case opcodes.I64Load32S:
 			LE.Uint32(frame.Code[frame.IP : frame.IP+4])

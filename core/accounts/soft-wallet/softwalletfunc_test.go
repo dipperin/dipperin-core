@@ -19,6 +19,7 @@ package soft_wallet
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/core/accounts"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -93,6 +94,7 @@ func TestGetAccountFromExtendedKey(t *testing.T) {
 }
 
 func TestEncryptWalletContent(t *testing.T) {
+	log.InitLogger(log.LvlDebug)
 
 	cipher, err := EncryptWalletContent(testWalletPlain[:], testIv[:], encKey)
 	assert.NoError(t, err)

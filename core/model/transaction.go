@@ -354,6 +354,7 @@ func (tx *Transaction) Size() common.StorageSize {
 // get the transaction ID
 func (tx *Transaction) CalTxId() common.Hash {
 	if h := tx.hash.Load(); h != nil {
+		//fmt.Println("Transaction#CalTxId", "get load hash", h)
 		return h.(common.Hash)
 	}
 

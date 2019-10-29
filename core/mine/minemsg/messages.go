@@ -23,6 +23,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 // mine work
@@ -87,7 +88,9 @@ func (work *DefaultWork) SetWorkerCoinbaseAddress(address common.Address) {
 func (work *DefaultWork) Split(count int) (result []*DefaultWork) {
 	for i := 0; i < count; i++ {
 		newWork := *work
+		// todo 如果nonce值达到现在设定的界限，挖矿的时候是否会一直增长
 		binary.BigEndian.PutUint32(newWork.BlockHeader.Nonce[4:8], uint32(i))
+		log.Debug("DefaultWork#Split", "BlockHeader.Nonce", newWork.BlockHeader.Nonce)
 		result = append(result, &newWork)
 	}
 	return

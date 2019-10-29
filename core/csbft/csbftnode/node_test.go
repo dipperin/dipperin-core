@@ -66,6 +66,7 @@ func (FakeValidtor) Valid(block model.AbstractBlock) error {
 func TestCsBft_AddPeer2(t *testing.T) {
 	fc := NewFakeFullChain()
 	sks, _ := CreateKey()
+
 	fs := newFackSigner(sks[1])
 	fetcher := components.NewFetcher(nil)
 	config := &state_machine.BftConfig{fc, fetcher, fs, &FackMsgSender{}, &FakeValidtor{}}
@@ -82,6 +83,15 @@ func TestCsBft_AddPeer2(t *testing.T) {
 	//fmt.Println(node1.blockPool)
 	//node1.OnNewWaitVerifyBlock()
 	node1.Stop()
+
+}
+
+func TestAddressToString(t *testing.T)  {
+   _, adds := 	CreateKey()
+   addStr := adds[0].String()
+   fmt.Printf("", "TestAddressToString addStr", addStr, "adds[0]", adds[0])
+   fmt.Println("hex to Addr ", common.HexToAddress(addStr), "adds[0]", adds[0])
+
 
 }
 

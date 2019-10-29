@@ -182,12 +182,18 @@ func EncryptWalletContent(walletPlain []byte, iv []byte, sysKey EncryptKey) (wal
 
 	//padding random number when the plaintext data length is not 16 integer multiples
 	encryptData := make([]byte, 4)
+	//log.Debug("EncryptWalletContent 1", "encryptData len", len(encryptData))
+
 
 	binary.BigEndian.PutUint32(encryptData, uint32(len(walletPlain)))
 
 	encryptData = append(encryptData, walletPlain...)
+	//log.Debug("EncryptWalletContent 2 ", "encryptData len", len(encryptData))
+
 
 	calcHashSrcDataLen := len(encryptData)
+	//log.Debug("EncryptWalletContent 3 ", "encryptData len", len(encryptData))
+
 
 	if len(encryptData)%16 != 0 {
 		padding := cspRngEntropy(16 - len(encryptData)%16)

@@ -58,9 +58,13 @@ func init() {
 	testTxPoolConfig = DefaultTxPoolConfig
 	testTxPoolConfig.NoLocals = true
 	testTxPoolConfig.GlobalSlots = 4096
-	testTxPoolConfig.AccountQueue = 512
 	testTxPoolConfig.AccountSlots = 16
 	testTxPoolConfig.GlobalQueue = 4096
+
+	//testTxPoolConfig.GlobalSlots = 2048
+	//testTxPoolConfig.AccountSlots = 512
+	//testTxPoolConfig.GlobalQueue = 4096  * 3
+	testTxPoolConfig.AccountQueue = 512
 	testTxPoolConfig.Journal = "./locals.out"
 }
 
@@ -607,6 +611,7 @@ func TestTxPool_promptExecutables(t *testing.T) {
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
 
+
 	//transaction enqueue first
 	for i := 0; i < 10; i++ {
 		bobtx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit, key2)
@@ -629,6 +634,7 @@ func TestTxPool_promptExecutables(t *testing.T) {
 		bobtx := transaction(uint64(40+i), aliceAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit, key2)
 		//fmt.Println(bobtx.Sender(pool.signer))
 		_, err := pool.add(bobtx, false)
+
 		//assert.True(t, ok)
 		assert.NoError(t, err)
 	}
@@ -652,6 +658,71 @@ func TestTxPool_promptExecutables(t *testing.T) {
 	assert.Equal(t, int(testTxPoolConfig.GlobalQueue), pendN)
 	assert.Equal(t, int(testTxPoolConfig.AccountQueue), queueN)
 }
+
+//func TestTxPool_promptExecutables_new(t *testing.T) {
+//	pool := setupTxPool()
+//	key1, key2, key3 := createKey()
+//	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
+//	clairAddr := cs_crypto.GetNormalAddress(key3.PublicKey)
+//
+//	//transaction enqueue first
+//	for i := 0; i < 10; i++ {
+//		bobtx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit, key2)
+//		//fmt.Println(bobtx.Sender(pool.signer))
+//		_, err := pool.add(bobtx, false)
+//		//assert.True(t, ok)
+//		assert.NoError(t, err)
+//	}
+//	pendN, queueN := pool.stats()
+//	assert.Equal(t, 0, pendN)
+//	assert.Equal(t, 10, queueN)
+//
+//	pool.promoteExecutables(nil)
+//	pendN, queueN = pool.stats()
+//	assert.Equal(t, 10, pendN)
+//	assert.Equal(t, 0, queueN)
+//
+//	//add 4096 more tx
+//	for i := 0; i < 4096; i++ {
+//		bobtx := transaction(uint64(40+i), aliceAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit, key2)
+//		//fmt.Println(bobtx.Sender(pool.signer))
+//		_, err := pool.add(bobtx, false)
+//		claritx := transaction(uint64(40+i), aliceAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit, key3)
+//		assert.NoError(t, err)
+//		_, err = pool.add(claritx, false)
+//		assert.NoError(t, err)
+//
+//		alicetx := transaction(uint64(40+i), clairAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit, key1)
+//		_, err = pool.add(alicetx, false)
+//
+//		//assert.True(t, ok)
+//		assert.NoError(t, err)
+//	}
+//	pendN, queueN = pool.stats()
+//	fmt.Println("pendN", pendN, "queueN", queueN)
+//
+//	pool.promoteExecutables(nil)
+//	pendN, queueN = pool.stats()
+//	//assert.Equal(t, 4096, pendN)
+//	assert.Equal(t, 2048, pendN)
+//	assert.Equal(t, 0, queueN)
+//
+//	//add 1024 more tx
+//	for i := 0; i < 1024; i++ {
+//		bobtx := transaction(uint64(4136+i), aliceAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit, key2)
+//		//fmt.Println(bobtx.Sender(pool.signer))
+//		_, err := pool.add(bobtx, false)
+//		//assert.True(t, ok)
+//		assert.NoError(t, err)
+//	}
+//	pendN, queueN = pool.stats()
+//	fmt.Println(pendN, queueN)
+//	pool.promoteExecutables(nil)
+//	pendN, queueN = pool.stats()
+//	assert.Equal(t, int(testTxPoolConfig.GlobalQueue), pendN)
+//	assert.Equal(t, int(testTxPoolConfig.AccountQueue), queueN)
+//}
+//
 
 func TestTxPool_AddWithLocal(t *testing.T) {
 	pool := setupTxPool()

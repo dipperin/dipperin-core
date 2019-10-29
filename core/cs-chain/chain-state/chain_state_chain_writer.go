@@ -23,11 +23,15 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
+
+// just used by test
 func (cs *ChainState) SaveBlock(block model.AbstractBlock) error {
 	log.Info("chain state save block")
 	return cs.WriterFactory.NewWriter(middleware.NewBlockContext(block, cs)).SaveBlock()
 }
 
+
+// just used by test
 func (cs *ChainState) SaveBlockWithoutVotes(block model.AbstractBlock) error {
 	log.Info("chain state SaveBlockWithoutVotes")
 	return cs.WriterFactory.NewWriter(middleware.NewBftBlockContextWithoutVotes(block, cs)).SaveBlock()

@@ -183,6 +183,7 @@ func (pool *TxPool) reset(oldHead, newHead *model.Header) {
 	// Inject any transactions discarded due to reorgs
 	log.Debug("Reinjecting stale transactions", "count", len(reinject))
 	//senderCacher.recover(pool.signer, reinject)
+	// TODO  to understand this
 	pool.senderCacher.TxRecover(reinject)
 	pool.addTxsLocked(reinject, false)
 
