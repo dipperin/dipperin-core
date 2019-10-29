@@ -342,8 +342,7 @@ func (addr Address) Hex() string {
 	return "0x" + string(result)
 }
 
-
-func HexStringSameWithVM(unchecksummed string ) string {
+func HexStringSameWithVM(unchecksummed string) string {
 	//log.Debug("HexStringSameWithVM ", "addr", addr)
 	//addrSlice := StringToAddress(addr)
 

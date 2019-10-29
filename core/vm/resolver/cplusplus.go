@@ -436,14 +436,14 @@ func envHexStringSameWithVM(vm *exec.VirtualMachine) int64 {
 	str := common.HexStringSameWithVM(string(data))
 	log.Info("envHexStringSameWithVM  ", "data", data, "str", str)
 	copy(vm.Memory.Memory[destOffset:], str)
-	return 0;
+	return 0
 }
 
 func envSha3GasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func envHexStringSameWithVMGasCost(vm *exec.VirtualMachine) (uint64, error)  {
+func envHexStringSameWithVMGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 

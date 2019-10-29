@@ -71,5 +71,5 @@ func TestDifficulty_Big(t *testing.T) {
 
 func TestHexStringSameWithVM(t *testing.T) {
 	log.InitLogger(log.LvlDebug)
-	HexStringSameWithVM("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9");
+	HexStringSameWithVM("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
 }

@@ -611,7 +611,6 @@ func TestTxPool_promptExecutables(t *testing.T) {
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
 
-
 	//transaction enqueue first
 	for i := 0; i < 10; i++ {
 		bobtx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, g_testData.TestGasLimit, key2)

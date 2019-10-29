@@ -269,8 +269,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", "", "err", err)
 }
 
-
-func TestContractNewFeature(t *testing.T){
+func TestContractNewFeature(t *testing.T) {
 	log.InitLogger(log.LvlDebug)
 	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
 	ownSK, _ := crypto.GenerateKey()

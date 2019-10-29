@@ -62,6 +62,8 @@ func getTestCacheEnv() (*CacheChainState, *tests.GenesisEnv, *tests.TxBuilder, *
 		MinerPk:    attackEnv.Miner().Pk,
 	}
 
+
+
 	cs, err := NewCacheChainState(chainState)
 	if err != nil {
 		panic(err)
@@ -81,8 +83,17 @@ func TestCacheChainState_CurrentBlock(t *testing.T) {
 	assert.Nil(t, cs.GetHeader(common.Hash{}, 1))
 	assert.Nil(t, cs.GetBlockByHash(common.Hash{}))
 
-	cs, _, _, _ = getTestCacheEnv()
+	cs, _, _, bb := getTestCacheEnv()
 	curB := cs.CurrentBlock()
+	//votes := env.VoteBlock(len(env.DefaultVerifiers()),0,curB)
+	//bb.SetVerifivations(votes)
+	//bb.PreBlock = curB
+	block := bb.BuildFuture()
+
+	//block := model.CreateBlock(curB.Number() + 1, curB.Hash(),0)
+	//err = cs.SaveBftBlock(block, votes)
+	cs.ChainDB.InsertBlock(block)
+    assert.NoError(t, err)
 	assert.NotNil(t, cs.GetBody(curB.Hash()))
 	assert.NotNil(t, cs.GetBody(curB.Hash()))
 	assert.NotNil(t, cs.GetBodyRLP(curB.Hash()))
@@ -104,6 +115,6 @@ func TestCacheChainState_CurrentBlock(t *testing.T) {
 	assert.Nil(t, cs.GetSlot(model.NewBlock(&model.Header{Number: 22}, nil, nil)))
 
 	assert.Error(t, cs.Rollback(curB.Number()+3))
-	assert.NoError(t, cs.Rollback(curB.Number()+1))
+	assert.NoError(t, cs.Rollback(block.Number()-1))
 	assert.NoError(t, cs.Rollback(curB.Number()))
 }

@@ -35,11 +35,10 @@ func TestTxCacher_TxRecover(t *testing.T) {
 	cacher := NewTxCacher(runtime.NumCPU())
 	assert.NotNil(t, cacher)
 	txs := []AbstractTransaction{}
-	for i := 0; i < 2 ; i++ {
+	for i := 0; i < 2; i++ {
 		txs = append(txs, CreateSignedTx(uint64(i), big.NewInt(10)))
 	}
 	log.Debug("TestTxCacher_TxRecover", "txs", txs[0].CalTxId())
-
 
 	cacher.TxRecover(txs)
 
