@@ -62,8 +62,6 @@ func getTestCacheEnv() (*CacheChainState, *tests.GenesisEnv, *tests.TxBuilder, *
 		MinerPk:    attackEnv.Miner().Pk,
 	}
 
-
-
 	cs, err := NewCacheChainState(chainState)
 	if err != nil {
 		panic(err)
@@ -93,7 +91,7 @@ func TestCacheChainState_CurrentBlock(t *testing.T) {
 	//block := model.CreateBlock(curB.Number() + 1, curB.Hash(),0)
 	//err = cs.SaveBftBlock(block, votes)
 	cs.ChainDB.InsertBlock(block)
-    assert.NoError(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, cs.GetBody(curB.Hash()))
 	assert.NotNil(t, cs.GetBody(curB.Hash()))
 	assert.NotNil(t, cs.GetBodyRLP(curB.Hash()))

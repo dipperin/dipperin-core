@@ -89,7 +89,7 @@ func TestCsBft_AddPeer2(t *testing.T) {
 func TestAddressToString(t *testing.T) {
 	_, adds := CreateKey()
 	addStr := adds[0].String()
-	fmt.Printf("", "TestAddressToString addStr", addStr, "adds[0]", adds[0])
+	fmt.Println("TestAddressToString addStr", addStr, "adds[0]", adds[0])
 	fmt.Println("hex to Addr ", common.HexToAddress(addStr), "adds[0]", adds[0])
 
 }
