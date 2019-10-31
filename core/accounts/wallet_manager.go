@@ -124,7 +124,7 @@ func (manager *WalletManager) backend() {
 
 //refresh the account nonce timely in the manager
 func (manager *WalletManager) refreshWalletNonce() {
-	//subscribe　wallet manager　channel
+	//subscribe　wallet manager　channelencryptWalletAndWriteFile(
 	sub := manager.feed.Subscribe(manager.ManagerClose)
 
 	timeoutHandler := func() {

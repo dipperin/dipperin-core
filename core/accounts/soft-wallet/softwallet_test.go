@@ -335,6 +335,10 @@ func TestSoftWallet_Derive(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, true, contain)
 
+	dpath, _ := accounts.ParseDerivationPath(DefaultDerivedPath)
+	//testWallet.Derive(DefaultDerivedPath, false)
+	log.Info("TestSoftWallet_Derive", "dpath", dpath)
+
 	testWallet.Close()
 	os.Remove(path)
 }

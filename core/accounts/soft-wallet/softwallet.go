@@ -469,6 +469,8 @@ func (w *SoftWallet) Derive(path accounts.DerivationPath, save bool) (accounts.A
 		return accounts.Account{}, err
 	}
 
+	defer ClearSensitiveData(extKey)
+
 	log.Info("Derive tmpPath is:", "tmpPath", tmpPath)
 	//Generate derived keys based on path parameters and master key
 	for _, value := range tmpPath {
@@ -510,7 +512,6 @@ func (w *SoftWallet) Derive(path accounts.DerivationPath, save bool) (accounts.A
 		return accounts.Account{}, err
 	}
 
-	ClearSensitiveData(extKey)
 
 	return account, nil
 }
