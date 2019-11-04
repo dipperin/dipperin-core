@@ -145,7 +145,7 @@ func (c *jsonCodec) ReadRequestHeaders() ([]rpcRequest, bool, Error) {
 
 	var incomingMsg json.RawMessage
 	if err := c.decode(&incomingMsg); err != nil {
-		log2.Rpc.Error("ReadRequestHeaders error~~","err",err)
+		log2.Rpc.Error("ReadRequestHeaders error~~", "err", err)
 		return nil, false, &invalidRequestError{err.Error()}
 	}
 	if isBatch(incomingMsg) {

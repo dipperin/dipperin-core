@@ -99,6 +99,7 @@ func defaultChainConfig() *ChainConfig {
 		//verifier boot node number
 		VerifierBootNodeNumber: 4,
 		BlockTimeRestriction:   15 * time.Second,
+		RollBackNum:            uint64(3),
 	}
 	log.Info("the verifierNumber is:", "number", c.VerifierNumber)
 	switch os.Getenv(BootEnvTagName) {
@@ -120,7 +121,7 @@ func defaultChainConfig() *ChainConfig {
 }
 
 type ChainConfig struct {
-	//DeriveShaType int
+	// DeriveShaType int
 	ChainId *big.Int
 	// Version
 	Version uint64
@@ -143,13 +144,13 @@ type ChainConfig struct {
 	// pbft verifier number
 	VerifierNumber int
 
-	//system verifier priority
+	// system verifier priority
 	SystemVerifierPriority uint64
 
-	//VerifierReward
+	// VerifierReward
 	// Block reward for successfully mining a block
-	//FrontierBlockReward *big.Int
-	//// Block reward for successfully mining a block upward from Byzantium
+	// FrontierBlockReward *big.Int
+	// Block reward for successfully mining a block upward from Byzantium
 	//ByzantiumBlockReward *big.Int
 
 	//mine conf
@@ -165,6 +166,9 @@ type ChainConfig struct {
 
 	//timeStamp restriction
 	BlockTimeRestriction time.Duration
+
+	//number of block that special block can roll back
+	RollBackNum uint64
 }
 
 func GetChainConfig() *ChainConfig {

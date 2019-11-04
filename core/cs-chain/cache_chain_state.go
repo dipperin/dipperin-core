@@ -276,20 +276,12 @@ func (chain *CacheChainState) Rollback(target uint64) error {
 
 	// rollback chain to target number
 	tarBlock := chain.GetBlockByNumber(target)
-
 	if tarBlock == nil {
-		perTarBlock := chain.GetBlockByNumber(target - 1)
-		if perTarBlock == nil {
-			log.Error("chain can't roll back target block, no found target block and pre target block")
-			return errors.New("pre target block is nil")
-		}
-
-		chain.currentBlock.Store(perTarBlock)
-		chain.currentHeader.Store(perTarBlock.Header())
+		log.Error("chain can't roll back target block, no found target block and pre target block")
+		return errors.New("pre target block is nil")
+	} else {
+		chain.currentBlock.Store(tarBlock)
+		chain.currentHeader.Store(tarBlock.Header())
 		return nil
 	}
-
-	chain.currentBlock.Store(tarBlock)
-	chain.currentHeader.Store(tarBlock.Header())
-	return nil
 }
