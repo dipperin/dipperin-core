@@ -48,6 +48,13 @@ func TestCacheDB_GetSeenCommits(t *testing.T) {
 	err = cacheDB.load(seenCommitsKey(1, common.Hash{}), &result)
 	assert.NoError(t, err)
 	assert.Len(t, result, 1)
+
+	err = cacheDB.DeleteSeenCommits(1, common.Hash{})
+	assert.NoError(t, err)
+
+	vs, err = cacheDB.GetSeenCommits(1, common.Hash{})
+	assert.Error(t, err)
+	assert.Len(t, vs, 0)
 }
 
 func TestCacheDB_GetSeenCommits_Error(t *testing.T) {

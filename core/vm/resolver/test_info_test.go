@@ -138,7 +138,7 @@ func (context *fakeVmContextService) Call(caller ContractRef, addr common.Addres
 }
 
 func (context *fakeVmContextService) DelegateCall(caller ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error) {
-	panic("implement me")
+	return nil, gas, nil
 }
 
 func (context *fakeVmContextService) GetTxHash() common.Hash {

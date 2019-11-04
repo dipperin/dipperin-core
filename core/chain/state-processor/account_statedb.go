@@ -826,7 +826,7 @@ func (state *AccountStateDB) NewAccountState(addr common.Address) error {
 }
 
 func (state *AccountStateDB) newContractAccount(addr common.Address) (acc *account, err error) {
-	tempAccount := account{Nonce: 0, Balance: big.NewInt(0), TimeLock: big.NewInt(0), Stake: big.NewInt(0), CommitNum: uint64(0), VerifyNum: uint64(0), Performance: performanceInitial, LastElect: uint64(0), HashLock: common.Hash{}, DataRoot: common.Hash{}}
+	tempAccount := account{Nonce: 0, Balance: big.NewInt(0), TimeLock: big.NewInt(0), HashLock: common.Hash{}, DataRoot: common.Hash{}}
 	err = state.blockStateTrie.TryUpdate(GetNonceKey(addr), tempAccount.NonceBytes())
 	if err != nil {
 		return nil, err
@@ -1452,7 +1452,7 @@ func (state *AccountStateDB) AddLog(addedLog *model2.Log) error {
 	old := state.GetLogs(txHash)
 	current := append(old, addedLog)
 	state.logs[txHash] = current
-	log.Info("Log Added", "txHash", txHash)
+	log.Info("Log Added", "txHash", txHash, "logData", addedLog.Data)
 	state.stateChangeList.append(logsChange{TxHash: &txHash, Prev: old, Current: current, ChangeType: LogsChange})
 	return nil
 }

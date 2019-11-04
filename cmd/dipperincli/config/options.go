@@ -189,12 +189,14 @@ var chainMethods = []prompt.Suggest{
 	{Text: "CurrentBlock", Description: ""},
 	{Text: "GetBlockByHash", Description: ""},
 	{Text: "GetBlockByNumber", Description: ""},
+	{Text: "GetSlotByNumber", Description: ""},
 	{Text: "GetGenesis", Description: ""},
 	{Text: "Peers", Description: ""},
 	{Text: "SetExchangeRate", Description: ""},
 	{Text: "GetLogs", Description: ""},
 	{Text: "GetReceiptByTxHash", Description: ""},
 	{Text: "GetReceiptsByBlockNum", Description: ""},
+	{Text: "GetTxActualFee", Description: ""},
 	{Text: "SuggestGasPrice", Description: ""},
 }
 

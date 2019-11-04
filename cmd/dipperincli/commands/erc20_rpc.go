@@ -141,7 +141,7 @@ func (caller *rpcCaller) ERC20TotalSupply(c *cli.Context) {
 
 	var resp *big.Int
 	if err = client.Call(&resp, getDipperinRpcMethodByName("ERC20TotalSupply"), contractAdr); err != nil {
-		l.Error("call GetContractInfo", "err", err)
+		l.Error("call ERC20TotalSupply", "err", err)
 		return
 	}
 
@@ -467,7 +467,7 @@ func (caller *rpcCaller) ERC20Allowance(c *cli.Context) {
 
 	var resp *big.Int
 	if err = client.Call(&resp, getDipperinRpcMethodByName("ERC20Allowance"), contractAdr, owner, spender); err != nil {
-		l.Error("call GetContractInfo", "err", err)
+		l.Error("call ERC20Allowance", "err", err)
 		return
 	}
 
@@ -519,7 +519,7 @@ func (caller *rpcCaller) ERC20Approve(c *cli.Context) {
 	//get totalsupply for validating approve
 	var total *big.Int
 	if err := client.Call(&total, getDipperinRpcMethodByName("ERC20TotalSupply"), contractAdr); err != nil {
-		l.Error("call GetContractInfo", "err", err)
+		l.Error("call ERC20TotalSupply", "err", err)
 		return
 	}
 
@@ -577,7 +577,7 @@ func (caller *rpcCaller) ERC20Balance(c *cli.Context) {
 	//send transaction
 	var resp *hexutil.Big
 	if err = client.Call(&resp, getDipperinRpcMethodByName("ERC20Balance"), contractAdr, owner); err != nil {
-		l.Error("call GetContractInfo", "err", err)
+		l.Error("call ERC20Balance", "err", err)
 		return
 	}
 

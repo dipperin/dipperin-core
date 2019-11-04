@@ -35,8 +35,6 @@ type Database interface {
 	SaveHeaderNumber(hash common.Hash, number uint64)
 	DeleteHeaderNumber(hash common.Hash)
 
-	GetHeadHeaderHash() common.Hash
-	SaveHeadHeaderHash(hash common.Hash)
 	GetHeadBlockHash() common.Hash
 	SaveHeadBlockHash(hash common.Hash)
 

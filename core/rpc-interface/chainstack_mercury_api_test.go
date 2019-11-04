@@ -187,14 +187,16 @@ func TestDipperinMercuryApi(t *testing.T) {
 	assert.Error(t, err)
 
 	// get verifiers
+	req := uint64(1)
 	mc.EXPECT().GetVerifiers(gomock.Any()).Return([]common.Address{{}}).AnyTimes()
 	mc.EXPECT().GetCurrVerifiers().Return([]common.Address{{}}).AnyTimes()
 	mc.EXPECT().GetNextVerifiers().Return([]common.Address{{}}).AnyTimes()
-	mc.EXPECT().GetSlot(mb).Return(nil).AnyTimes()
+	mc.EXPECT().GetSlot(mb).Return(&req).AnyTimes()
+	mb.EXPECT().Number().Return(uint64(1)).AnyTimes()
 	_, err = api.GetVerifiersBySlot(1)
 	assert.NoError(t, err)
-	slot := api.GetSlot(mb)
-	assert.Nil(t, slot)
+	slot, err := api.GetSlotByNumber(mb.Number())
+	assert.Equal(t, req, slot)
 	vs := api.GetCurVerifiers()
 	assert.Len(t, vs, 1)
 	vs = api.GetNextVerifiers()
@@ -220,7 +222,6 @@ func TestDipperinMercuryApi(t *testing.T) {
 
 	// reward verifier and miner
 	mc.EXPECT().GetEconomyModel().Return(economy_model.MakeDipperinEconomyModel(nil, economy_model.DIPProportion)).AnyTimes()
-	mb.EXPECT().Number().Return(uint64(1)).AnyTimes()
 	_, err = api.GetVerifierDIPReward(1)
 	assert.NoError(t, err)
 	_, err = api.GetMineMasterDIPReward(1)

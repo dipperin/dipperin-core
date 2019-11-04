@@ -17,7 +17,9 @@
 package resolver
 
 import (
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/stretchr/testify/assert"
+	"github.com/vntchain/go-vnt/rlp"
 	"math/big"
 	"testing"
 )
@@ -37,3 +39,47 @@ func TestResolverNeedExternalService_Transfer(t *testing.T) {
 	assert.Equal(t, []byte(nil), resp)
 	assert.Equal(t, uint64(0), gasLeft)
 }
+
+func TestResolverNeedExternalService_ResolverCall(t *testing.T) {
+	vmValue := &fakeVmContextService{}
+	contract := &fakeContractService{}
+	state := NewFakeStateDBService()
+	service := &resolverNeedExternalService{
+		contract,
+		vmValue,
+		state,
+	}
+
+	resp, err := service.ResolverCall(aliceAddr.Bytes(), []byte{123})
+	assert.Error(t, err)
+	assert.Equal(t, []byte(nil), resp)
+
+	params, err := rlp.EncodeToBytes([]interface{}{"init"})
+	assert.NoError(t, err)
+	resp, err = service.ResolverCall(aliceAddr.Bytes(), params)
+	assert.Equal(t, g_error.ErrFunctionInitCanNotCalled, err)
+	assert.Equal(t, []byte(nil), resp)
+
+	params, err = rlp.EncodeToBytes([]interface{}{"name"})
+	assert.NoError(t, err)
+	resp, err = service.ResolverCall(aliceAddr.Bytes(), params)
+	assert.NoError(t, err)
+	assert.Equal(t, []byte(nil), resp)
+}
+
+/*
+func TestResolverNeedExternalService_ResolverDelegateCall(t *testing.T) {
+	vmValue := &fakeVmContextService{}
+	contract := &fakeContractService{}
+	state := NewFakeStateDBService()
+	service := &resolverNeedExternalService{
+		contract,
+		vmValue,
+		state,
+	}
+
+	resp, err := service.ResolverDelegateCall(aliceAddr.Bytes(), []byte{1, 2, 3})
+	assert.NoError(t, err)
+	assert.Equal(t, []byte(nil), resp)
+}
+*/
