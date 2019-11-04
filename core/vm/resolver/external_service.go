@@ -101,7 +101,7 @@ func (service *resolverNeedExternalService) ResolverCall(addr, param []byte) ([]
 	return ret, err
 }
 
-/*func (service *resolverNeedExternalService) ResolverDelegateCall(addr, param []byte) ([]byte, error) {
+func (service *resolverNeedExternalService) ResolverDelegateCall(addr, param []byte) ([]byte, error) {
 	funcName, err := utils.ParseInputForFuncName(param)
 	if err != nil {
 		log.Error("ResolverDelegateCall#ParseInputForFuncName failed", "err", err)
@@ -118,4 +118,4 @@ func (service *resolverNeedExternalService) ResolverCall(addr, param []byte) ([]
 	log.Info("Call ResolverDelegateCall", "caller", service.Self().Address(), "contractAddr", contractAddr, "gas", service.GetGas(), "inputs", param)
 	ret, _, err := service.DelegateCall(service.ContractService, contractAddr, param, service.GetGas())
 	return ret, err
-}*/
+}
