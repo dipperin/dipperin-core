@@ -826,7 +826,7 @@ func (state *AccountStateDB) NewAccountState(addr common.Address) error {
 }
 
 func (state *AccountStateDB) newContractAccount(addr common.Address) (acc *account, err error) {
-	tempAccount := account{Nonce: 0, Balance: big.NewInt(0), TimeLock: big.NewInt(0), Stake: big.NewInt(0), CommitNum: uint64(0), VerifyNum: uint64(0), Performance: performanceInitial, LastElect: uint64(0), HashLock: common.Hash{}, DataRoot: common.Hash{}}
+	tempAccount := account{Nonce: 0, Balance: big.NewInt(0), TimeLock: big.NewInt(0), HashLock: common.Hash{}, DataRoot: common.Hash{}}
 	err = state.blockStateTrie.TryUpdate(GetNonceKey(addr), tempAccount.NonceBytes())
 	if err != nil {
 		return nil, err
