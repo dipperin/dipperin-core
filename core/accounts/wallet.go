@@ -47,7 +47,7 @@ type WalletIdentifier struct {
 	WalletName string `json:"walletName"`
 }
 
-func (w *WalletIdentifier) String() string  {
+func (w *WalletIdentifier) String() string {
 	return fmt.Sprintf(
 		`
      WalletType:   %d

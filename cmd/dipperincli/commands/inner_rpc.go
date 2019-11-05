@@ -61,11 +61,11 @@ func (caller *rpcCaller) GetBlockDiffVerifierInfo(c *cli.Context) {
 		return
 	}
 
-	fmt.Println("","the MasterVerifier address is:")
+	fmt.Println("", "the MasterVerifier address is:")
 	printAddress(resp[economy_model.MasterVerifier])
-	fmt.Println("","the CommitVerifier address is:")
+	fmt.Println("", "the CommitVerifier address is:")
 	printAddress(resp[economy_model.CommitVerifier])
-	fmt.Println("","the NotCommitVerifier address is:")
+	fmt.Println("", "the NotCommitVerifier address is:")
 	printAddress(resp[economy_model.NotCommitVerifier])
 }
 

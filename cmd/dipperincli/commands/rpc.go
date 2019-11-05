@@ -869,7 +869,7 @@ func (caller *rpcCaller) ListWallet(c *cli.Context) {
 		return
 	}
 	fmt.Println("  Call ListWallet Result:")
-	for _,w := range resp {
+	for _, w := range resp {
 		fmt.Println("    Wallet Info:", w.String())
 	}
 	//l.Info("Call ListWallet", "wallet list", resp)
@@ -913,7 +913,7 @@ func (caller *rpcCaller) ListWalletAccount(c *cli.Context) {
 
 	l.Info("Call ListWalletAccount result:")
 	for _, account := range resp {
-		fmt.Println( "\taddress:", account.Address.Hex())
+		fmt.Println("\taddress:", account.Address.Hex())
 	}
 
 }
