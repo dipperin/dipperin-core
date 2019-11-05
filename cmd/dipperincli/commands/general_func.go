@@ -51,7 +51,7 @@ func CheckAndChangeHexToAddress(address string) (common.Address, error) {
 	commonAddress := common.HexToAddress(address)
 	addressType := commonAddress.GetAddressTypeStr()
 	if addressType == "UnKnown" {
-		return common.Address{}, g_error.UnknownTxTypeErr
+		return common.Address{}, g_error.ErrUnknownTxType
 	}
 
 	return commonAddress, nil

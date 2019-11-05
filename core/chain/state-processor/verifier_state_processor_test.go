@@ -53,10 +53,10 @@ func TestAccountStateProcessor_Stake(t *testing.T) {
 
 	//Invalid
 	err = processor.Stake(aliceAddr, big.NewInt(1e7)) //Not enough money
-	assert.EqualValues(t, NotEnoughBalanceError, err)
+	assert.EqualValues(t, g_error.ErrBalanceNotEnough, err)
 
 	err = processor.Stake(common.HexToAddress("test"), big.NewInt(20)) //Account not exit
-	assert.EqualValues(t, NotEnoughBalanceError, err)
+	assert.EqualValues(t, g_error.ErrBalanceNotEnough, err)
 }
 func TestAccountStateProcessor_UnStake(t *testing.T) {
 	db, root := CreateTestStateDB()
@@ -86,7 +86,7 @@ func TestAccountStateProcessor_UnStake(t *testing.T) {
 	bobStake, _ := processor.GetStake(bobAddr)
 	assert.EqualValues(t, big.NewInt(0), bobStake)
 	err = processor.UnStake(bobAddr) //Bob has no stake at all
-	assert.EqualValues(t, NotEnoughStakeErr, err)
+	assert.EqualValues(t, g_error.ErrStakeNotEnough, err)
 }
 func TestAccountStateProcessor_MoveStakeToAddress(t *testing.T) {
 	db, root := CreateTestStateDB()
@@ -122,7 +122,7 @@ func TestAccountStateProcessor_MoveStakeToAddress(t *testing.T) {
 	aliceBalance, _ = processor.GetBalance(aliceAddr)
 	bobStake, _ = processor.GetStake(bobAddr)
 	bobBalance, _ = processor.GetBalance(bobAddr)
-	assert.EqualValues(t, NotEnoughStakeErr, err)
+	assert.EqualValues(t, g_error.ErrStakeNotEnough, err)
 
 	//Error
 	err = processor.MoveStakeToAddress(common.HexToAddress("123"), bobAddr)
@@ -142,20 +142,20 @@ func TestAccountStateDB_processStakeTx(t *testing.T) {
 
 	tx := getTestCancelTransaction(0, key1)
 	err = processor.processStakeTx(tx)
-	assert.Equal(t, TransactionTypeError, err)
+	assert.Equal(t, g_error.ErrTxTypeNotMatch, err)
 
 	tx = getTestRegisterTransaction(0, key1, big.NewInt(10))
 	err = processor.processStakeTx(tx)
-	assert.Equal(t, g_error.AccountNotExist, err)
+	assert.Equal(t, g_error.ErrAccountNotExist, err)
 
 	key1, _ = createKey()
 	tx = getTestRegisterTransaction(0, key1, big.NewInt(10))
 	err = processor.processStakeTx(tx)
-	assert.Equal(t, NotEnoughStakeErr, err)
+	assert.Equal(t, g_error.ErrStakeNotEnough, err)
 
 	tx = getTestRegisterTransaction(0, key1, big.NewInt(1e7))
 	err = processor.processStakeTx(tx)
-	assert.Equal(t, NotEnoughBalanceError, err)
+	assert.Equal(t, g_error.ErrBalanceNotEnough, err)
 
 	tx = getTestRegisterTransaction(0, key1, big.NewInt(100))
 	err = processor.processStakeTx(tx)
@@ -171,16 +171,16 @@ func TestAccountStateDB_processCancelTx(t *testing.T) {
 
 	tx := getTestRegisterTransaction(0, key1, big.NewInt(10))
 	err = processor.processCancelTx(tx, 1)
-	assert.Equal(t, TransactionTypeError, err)
+	assert.Equal(t, g_error.ErrTxTypeNotMatch, err)
 
 	tx = getTestCancelTransaction(0, key1)
 	err = processor.processCancelTx(tx, 1)
-	assert.Equal(t, g_error.AccountNotExist, err)
+	assert.Equal(t, g_error.ErrAccountNotExist, err)
 
 	key1, _ = createKey()
 	tx = getTestCancelTransaction(0, key1)
 	err = processor.processCancelTx(tx, 1)
-	assert.Equal(t, SendRegisterTxFirst, err)
+	assert.Equal(t, g_error.StateSendRegisterTxFirst, err)
 
 	// add alice stake set last elect num
 	err = processor.AddStake(aliceAddr, big.NewInt(1e4))
@@ -197,7 +197,7 @@ func TestAccountStateDB_processCancelTx(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = processor.processCancelTx(tx, 1)
-	assert.Equal(t, SendRegisterTxFirst, err)
+	assert.Equal(t, g_error.StateSendRegisterTxFirst, err)
 
 	// no error
 	err = processor.SetLastElect(aliceAddr, uint64(0))
@@ -215,16 +215,16 @@ func TestAccountStateDB_processUnStakeTx(t *testing.T) {
 
 	tx := getTestRegisterTransaction(0, key1, big.NewInt(10))
 	err = processor.processUnStakeTx(tx)
-	assert.Equal(t, TransactionTypeError, err)
+	assert.Equal(t, g_error.ErrTxTypeNotMatch, err)
 
 	tx = getTestUnStakeTransaction(0, key1)
 	err = processor.processUnStakeTx(tx)
-	assert.Equal(t, g_error.AccountNotExist, err)
+	assert.Equal(t, g_error.ErrAccountNotExist, err)
 
 	key1, _ = createKey()
 	tx = getTestUnStakeTransaction(0, key1)
 	err = processor.processUnStakeTx(tx)
-	assert.Equal(t, SendRegisterTxFirst, err)
+	assert.Equal(t, g_error.StateSendRegisterTxFirst, err)
 
 	// add alice stake set last elect num
 	err = processor.AddStake(aliceAddr, big.NewInt(1e4))
@@ -241,7 +241,7 @@ func TestAccountStateDB_processUnStakeTx(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = processor.processUnStakeTx(tx)
-	assert.Equal(t, SendCancelTxFirst, err)
+	assert.Equal(t, g_error.StateSendCancelTxFirst, err)
 
 	// no error
 	err = processor.SetLastElect(aliceAddr, uint64(1))
@@ -259,11 +259,11 @@ func TestAccountStateDB_processEvidenceTx_Error(t *testing.T) {
 
 	tx := getTestRegisterTransaction(0, key1, big.NewInt(10))
 	err = processor.processEvidenceTx(tx)
-	assert.Equal(t, TransactionTypeError, err)
+	assert.Equal(t, g_error.ErrTxTypeNotMatch, err)
 
 	tx = getTestEvidenceTransaction(0, key1, common.HexToAddress("123"), &model.VoteMsg{}, &model.VoteMsg{})
 	err = processor.processEvidenceTx(tx)
-	assert.Equal(t, ReceiverNotExistErr, err)
+	assert.Equal(t, g_error.ErrReceiverNotExist, err)
 
 	key1, _ = createKey()
 	err = processor.SetStake(bobAddr, big.NewInt(100))

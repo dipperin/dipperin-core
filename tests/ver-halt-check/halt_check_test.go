@@ -290,7 +290,7 @@ func TestSaveInvalidTimeStampBlock(t *testing.T) {
 	sameHeightBlock.RefreshHashCache()
 
 	err = testConf.SaveBlock(sameHeightBlock, sameHeightBlock.GetVerifications())
-	assert.Equal(t, g_error.ErrBlockTimeStamp, err)
+	assert.Equal(t, g_error.ErrInvalidBlockTimeStamp, err)
 }
 
 //debug dipperIn-core

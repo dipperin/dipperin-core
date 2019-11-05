@@ -17,6 +17,7 @@
 package chain_state
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/check.v1"
 	"testing"
@@ -37,6 +38,7 @@ func (suite *chainWriterSuite) TestChainState_SaveBlock(c *check.C) {
 	err := suite.chainState.SaveBlock(block)
 	assert.NoError(c, err)
 
-	assert.Error(c, suite.chainState.Rollback(1))
+	fmt.Println(block.Number())
+	assert.NoError(c, suite.chainState.Rollback(1))
 	assert.Error(c, suite.chainState.SaveBlockWithoutVotes(block))
 }

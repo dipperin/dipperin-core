@@ -23,6 +23,8 @@ import (
 	"testing"
 )
 
+var testBlockNum = uint64(10)
+
 func getPassConflictVote() (*Account, model.Proofs) {
 	a := NewAccount()
 	va := a.getVoteMsg(0, 1, common.Hash{}, model.VoteMessage)
@@ -49,7 +51,7 @@ func getTxTestEnv(t *testing.T) (common.Address, *state_processor.AccountStateDB
 	}
 	passChain := &fakeChainInterface{
 		state:   adb,
-		block:   &fakeBlock{},
+		block:   &fakeBlock{num: testBlockNum},
 		em:      &fakeEconomyModel{lockM: big.NewInt(0)},
 		storage: storage,
 	}

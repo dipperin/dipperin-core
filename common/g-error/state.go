@@ -19,15 +19,35 @@ package g_error
 import "errors"
 
 var (
-	AccountNotExist           = errors.New("account does not exist")
-	BalanceNegErr             = errors.New("balance can not be negtive")
+	/*Account state errors*/
+	ErrTxNonceNotMatch         = errors.New("tx nonce not match")
+	ErrTxGasUsedIsOverGasLimit = errors.New("the tx gasUsed is over the gasLimit")
+	ErrSenderOrReceiverIsEmpty = errors.New("sender or receiver is empty")
+	ErrSenderNotExist          = errors.New("sender not exist")
+	ErrInvalidContractData     = errors.New("invalid contract data")
+	ErrContractNotExist        = errors.New("contract KV map not exist")
+	ErrProhibitFunctionCalled  = errors.New("prohibit function not allow to call")
+	ErrAccountNotExist         = errors.New("account does not exist")
+	ErrBalanceNegative         = errors.New("balance can not be negative")
+	ErrUnknownTxType           = errors.New("unknown tx type")
+	ErrAddedLogIsNil           = errors.New("added log is nil")
+	ErrTxNotSupported          = errors.New("tx not supported")
+	ErrAddressTypeNotMatch     = errors.New("sender address type should be normal")
+
+	/*Verifier processor errors*/
+	ErrTxTypeNotMatch        = errors.New("tx type not match with processor function")
+	ErrBalanceNotEnough      = errors.New("target balance not enough")
+	ErrStakeNotEnough        = errors.New("target stake not enough")
+	ErrReceiverNotExist      = errors.New("receiver not exist")
+	StateSendRegisterTxFirst = errors.New("processor: need to send register tx first")
+	StateSendCancelTxFirst   = errors.New("processor: need to send cancel tx first")
+
+	/*Block processor errors*/
 	NotHavePreBlockErr        = errors.New("not have pre block")
-	UnknownTxTypeErr          = errors.New("unknown tx type")
-	InvalidVerifierAddressErr = errors.New("invalid verifier address")
 	InvalidCoinBaseAddressErr = errors.New("invalid coinBase address")
-	ErrNonceTooHigh           = errors.New("nonce too high")
-	ErrNonceTooLow            = errors.New("nonce too low")
-	ErrGasLimitReached        = errors.New("gas limit reached")
-	ErrTxGasIsOverRanging     = errors.New("the tx gas is over-ranging ")
-	ErrGasUsedIsInvalid       = errors.New("the gasUsed is invalid in the block header")
+
+	/*State transaction errors*/
+	ErrNonceTooHigh    = errors.New("nonce too high")
+	ErrNonceTooLow     = errors.New("nonce too low")
+	ErrGasLimitReached = errors.New("gas limit reached")
 )

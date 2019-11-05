@@ -49,7 +49,7 @@ func TestValidGasUsedAndReceipts_Error(t *testing.T) {
 	tx := &fakeTx{}
 	txs := []model.AbstractTransaction{tx}
 	testBlock = &fakeBlock{txs: txs}
-	assert.Equal(t, g_error.ErrEmptyReceipt, ValidGasUsedAndReceipts(&BlockContext{
+	assert.Equal(t, g_error.ErrTxReceiptIsNil, ValidGasUsedAndReceipts(&BlockContext{
 		Block: testBlock,
 		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit)}},
 	})())
@@ -57,21 +57,21 @@ func TestValidGasUsedAndReceipts_Error(t *testing.T) {
 	// receipt hash not match
 	receipt := &model2.Receipt{GasUsed: model2.TxGas, CumulativeGasUsed: model2.TxGas * 1}
 	tx.Receipt = receipt
-	assert.Equal(t, g_error.ReceiptHashError, ValidGasUsedAndReceipts(&BlockContext{
+	assert.Equal(t, g_error.ErrReceiptHashNotMatch, ValidGasUsedAndReceipts(&BlockContext{
 		Block: testBlock,
 		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit)}},
 	})())
 
 	// gasUsed is invalid
 	testBlock.ReceiptHash = model.DeriveSha(model2.Receipts{receipt})
-	assert.Equal(t, g_error.ErrGasUsedIsInvalid, ValidGasUsedAndReceipts(&BlockContext{
+	assert.Equal(t, g_error.ErrInvalidHeaderGasUsed, ValidGasUsedAndReceipts(&BlockContext{
 		Block: testBlock,
 		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit)}},
 	})())
 
 	// gasUsed is over-ranging
 	testBlock.GasUsed = model2.TxGas * 1
-	assert.Equal(t, g_error.ErrTxGasIsOverRanging, ValidGasUsedAndReceipts(&BlockContext{
+	assert.Equal(t, g_error.ErrHeaderGasUsedOverRanging, ValidGasUsedAndReceipts(&BlockContext{
 		Block: testBlock,
 		Chain: &fakeChainInterface{block: &fakeBlock{GasLimit: uint64(gasLimit)}},
 	})())

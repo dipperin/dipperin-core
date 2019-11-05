@@ -856,7 +856,7 @@ func TestVenusFullChainService_getSendTxInfo_Error(t *testing.T) {
 	config.ChainReader = csChain
 	service = MakeFullChainService(config)
 	wallet, nonce, err = service.getSendTxInfo(account[0].Address, nil)
-	assert.Equal(t, g_error.AccountNotExist, err)
+	assert.Equal(t, g_error.ErrAccountNotExist, err)
 	assert.Equal(t, uint64(0), nonce)
 	assert.Nil(t, wallet)
 }

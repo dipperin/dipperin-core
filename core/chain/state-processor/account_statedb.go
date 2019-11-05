@@ -17,14 +17,12 @@
 package state_processor
 
 import (
-	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/common/util/json-kv"
 	"github.com/dipperin/dipperin-core/core/contract"
-
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
@@ -100,7 +98,7 @@ func (state *AccountStateDB) ContractExist(addr common.Address) bool {
 func (state *AccountStateDB) PutContract(addr common.Address, v reflect.Value) error {
 	if !v.IsValid() || v.IsNil() {
 		log.Warn("invalid contract data", "data", v)
-		return errors.New("invalid contract data")
+		return g_error.ErrInvalidContractData
 	}
 	old := state.contractData[addr]
 	state.contractData[addr] = v
@@ -153,7 +151,7 @@ func (state *AccountStateDB) getContractKV(addr common.Address) (kv map[string]s
 	}
 
 	if len(kv) == 0 {
-		return nil, errors.New(fmt.Sprintf("contract %v not exist", addr))
+		return nil, g_error.ErrContractNotExist
 	}
 	return kv, nil
 }
@@ -247,7 +245,7 @@ func (state *AccountStateDB) GetNonce(addr common.Address) (uint64, error) {
 		return res, err1
 	}
 	if len(enc) == 0 {
-		return res, g_error.AccountNotExist
+		return res, g_error.ErrAccountNotExist
 	}
 	err2 := rlp.DecodeBytes(enc, &res)
 	if err2 != nil {
@@ -259,7 +257,7 @@ func (state *AccountStateDB) GetNonce(addr common.Address) (uint64, error) {
 func (state *AccountStateDB) GetBalance(addr common.Address) (*big.Int, error) {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return nil, g_error.AccountNotExist
+		return nil, g_error.ErrAccountNotExist
 	}
 	enc, err1 := state.blockStateTrie.TryGet(GetBalanceKey(addr))
 	if err1 != nil {
@@ -276,7 +274,7 @@ func (state *AccountStateDB) GetBalance(addr common.Address) (*big.Int, error) {
 func (state *AccountStateDB) GetTimeLock(addr common.Address) (*big.Int, error) {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return nil, g_error.AccountNotExist
+		return nil, g_error.ErrAccountNotExist
 	}
 	res := new(big.Int)
 	enc, err1 := state.blockStateTrie.TryGet(GetTimeLockKey(addr))
@@ -293,7 +291,7 @@ func (state *AccountStateDB) GetTimeLock(addr common.Address) (*big.Int, error) 
 func (state *AccountStateDB) GetHashLock(addr common.Address) (common.Hash, error) {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return common.Hash{}, g_error.AccountNotExist
+		return common.Hash{}, g_error.ErrAccountNotExist
 	}
 	res := common.Hash{}
 	enc, err1 := state.blockStateTrie.TryGet(GetHashLockKey(addr))
@@ -310,7 +308,7 @@ func (state *AccountStateDB) GetHashLock(addr common.Address) (common.Hash, erro
 func (state *AccountStateDB) GetCommitNum(addr common.Address) (uint64, error) {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return uint64(0), g_error.AccountNotExist
+		return uint64(0), g_error.ErrAccountNotExist
 	}
 	res := uint64(0)
 	enc, err1 := state.blockStateTrie.TryGet(GetCommitNumKey(addr))
@@ -327,7 +325,7 @@ func (state *AccountStateDB) GetCommitNum(addr common.Address) (uint64, error) {
 func (state *AccountStateDB) GetVerifyNum(addr common.Address) (uint64, error) {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return uint64(0), g_error.AccountNotExist
+		return uint64(0), g_error.ErrAccountNotExist
 	}
 	res := uint64(0)
 	enc, err1 := state.blockStateTrie.TryGet(GetVerifyNumKey(addr))
@@ -344,7 +342,7 @@ func (state *AccountStateDB) GetVerifyNum(addr common.Address) (uint64, error) {
 func (state *AccountStateDB) GetPerformance(addr common.Address) (uint64, error) {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return performanceInitial, g_error.AccountNotExist
+		return performanceInitial, g_error.ErrAccountNotExist
 	}
 	res := performanceInitial
 	enc, err1 := state.blockStateTrie.TryGet(GetPerformanceKey(addr))
@@ -361,7 +359,7 @@ func (state *AccountStateDB) GetPerformance(addr common.Address) (uint64, error)
 func (state *AccountStateDB) GetLastElect(addr common.Address) (uint64, error) {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return 0, g_error.AccountNotExist
+		return 0, g_error.ErrAccountNotExist
 	}
 	enc, err1 := state.blockStateTrie.TryGet(GetLastElectKey(addr))
 	var res uint64
@@ -379,7 +377,7 @@ func (state *AccountStateDB) GetDataRoot(addr common.Address) (common.Hash, erro
 
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return common.Hash{}, g_error.AccountNotExist
+		return common.Hash{}, g_error.ErrAccountNotExist
 	}
 	res := common.Hash{}
 	enc, err1 := state.blockStateTrie.TryGet(GetDataRootKey(addr))
@@ -393,7 +391,7 @@ func (state *AccountStateDB) GetDataRoot(addr common.Address) (common.Hash, erro
 func (state *AccountStateDB) GetStake(addr common.Address) (*big.Int, error) {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return big.NewInt(0), g_error.AccountNotExist
+		return big.NewInt(0), g_error.ErrAccountNotExist
 	}
 	res := big.NewInt(0)
 	enc, err1 := state.blockStateTrie.TryGet(GetStakeKey(addr))
@@ -410,7 +408,7 @@ func (state *AccountStateDB) GetStake(addr common.Address) (*big.Int, error) {
 func (state *AccountStateDB) GetAbi(addr common.Address) ([]byte, error) {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return []byte{}, g_error.AccountNotExist
+		return []byte{}, g_error.ErrAccountNotExist
 	}
 	res := []byte{}
 	enc, err1 := state.blockStateTrie.TryGet(GetAbiKey(addr))
@@ -427,7 +425,7 @@ func (state *AccountStateDB) GetAbi(addr common.Address) ([]byte, error) {
 func (state *AccountStateDB) GetCode(addr common.Address) ([]byte, error) {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return []byte{}, g_error.AccountNotExist
+		return []byte{}, g_error.ErrAccountNotExist
 	}
 	res := []byte{}
 	enc, err1 := state.blockStateTrie.TryGet(GetCodeKey(addr))
@@ -455,12 +453,12 @@ func (state *AccountStateDB) SetBalance(addr common.Address, amount *big.Int) er
 func (state *AccountStateDB) setBalance(addr common.Address, amount *big.Int) error {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return g_error.AccountNotExist
+		return g_error.ErrAccountNotExist
 	}
 
 	if amount.Cmp(big.NewInt(0)) < 0 {
 		log.Debug("set address balance failed", "addr", addr.Hex(), "amount", amount)
-		return g_error.BalanceNegErr
+		return g_error.ErrBalanceNegative
 	}
 
 	log.Mpt.Debug("setBalance", "addr", addr.Hex(), "v", amount, "pre state", state.preStateRoot.Hex())
@@ -516,7 +514,7 @@ func (state *AccountStateDB) SetNonce(addr common.Address, amount uint64) error 
 func (state *AccountStateDB) setNonce(addr common.Address, amount uint64) error {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return g_error.AccountNotExist
+		return g_error.ErrAccountNotExist
 	}
 
 	log.Mpt.Debug("setNonce", "addr", addr.Hex(), "v", amount, "pre state", state.preStateRoot.Hex())
@@ -531,7 +529,7 @@ func (state *AccountStateDB) setNonce(addr common.Address, amount uint64) error 
 func (state *AccountStateDB) AddNonce(addr common.Address, amount uint64) error {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return g_error.AccountNotExist
+		return g_error.ErrAccountNotExist
 	}
 	var nonce uint64
 	enc, _ := state.blockStateTrie.TryGet(GetNonceKey(addr))
@@ -555,7 +553,7 @@ func (state *AccountStateDB) SetTimeLock(addr common.Address, timeLock *big.Int)
 func (state *AccountStateDB) setTimeLock(addr common.Address, timeLock *big.Int) error {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return g_error.AccountNotExist
+		return g_error.ErrAccountNotExist
 	}
 
 	log.Mpt.Debug("setTimeLock", "addr", addr.Hex(), "v", timeLock, "pre state", state.preStateRoot.Hex())
@@ -581,7 +579,7 @@ func (state *AccountStateDB) SetHashLock(addr common.Address, hashLock common.Ha
 func (state *AccountStateDB) setHashLock(addr common.Address, hashLock common.Hash) error {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return g_error.AccountNotExist
+		return g_error.ErrAccountNotExist
 	}
 
 	log.Mpt.Debug("setHashLock", "addr", addr.Hex(), "v", hashLock.Hex(), "pre state", state.preStateRoot.Hex())
@@ -606,7 +604,7 @@ func (state *AccountStateDB) SetAbi(addr common.Address, abi []byte) error {
 func (state *AccountStateDB) setAbi(addr common.Address, abi []byte) error {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return g_error.AccountNotExist
+		return g_error.ErrAccountNotExist
 	}
 
 	log.Mpt.Debug("setAbi", "addr", addr.Hex())
@@ -631,7 +629,7 @@ func (state *AccountStateDB) SetCode(addr common.Address, code []byte) error {
 func (state *AccountStateDB) setCode(addr common.Address, code []byte) error {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return g_error.AccountNotExist
+		return g_error.ErrAccountNotExist
 	}
 	log.Mpt.Debug("setCode", "addr", addr.Hex())
 	newEnc, _ := rlp.EncodeToBytes(code)
@@ -656,7 +654,7 @@ func (state *AccountStateDB) SetDataRoot(addr common.Address, dataRoot common.Ha
 func (state *AccountStateDB) setDataRoot(addr common.Address, dataRoot common.Hash) error {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return g_error.AccountNotExist
+		return g_error.ErrAccountNotExist
 	}
 
 	log.Mpt.Debug("setDataRoot", "addr", addr.Hex(), "v", dataRoot.Hex(), "pre state", state.preStateRoot.Hex())
@@ -682,7 +680,7 @@ func (state *AccountStateDB) SetStake(addr common.Address, amount *big.Int) erro
 func (state *AccountStateDB) setStake(addr common.Address, amount *big.Int) error {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return g_error.AccountNotExist
+		return g_error.ErrAccountNotExist
 	}
 
 	log.Mpt.Debug("setStake", "addr", addr.Hex(), "v", amount, "pre state", state.preStateRoot.Hex())
@@ -726,7 +724,7 @@ func (state *AccountStateDB) SetCommitNum(addr common.Address, amount uint64) er
 func (state *AccountStateDB) setCommitNum(addr common.Address, amount uint64) error {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return g_error.AccountNotExist
+		return g_error.ErrAccountNotExist
 	}
 
 	log.Mpt.Debug("setCommitNum", "addr", addr.Hex(), "v", amount, "pre state", state.preStateRoot.Hex())
@@ -751,7 +749,7 @@ func (state *AccountStateDB) SetPerformance(addr common.Address, amount uint64) 
 func (state *AccountStateDB) setPerformance(addr common.Address, amount uint64) error {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return g_error.AccountNotExist
+		return g_error.ErrAccountNotExist
 	}
 
 	log.Mpt.Debug("setPerformance", "addr", addr.Hex(), "v", amount, "pre state", state.preStateRoot.Hex())
@@ -778,7 +776,7 @@ func (state *AccountStateDB) SetVerifyNum(addr common.Address, amount uint64) er
 func (state *AccountStateDB) setVerifyNum(addr common.Address, amount uint64) error {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return g_error.AccountNotExist
+		return g_error.ErrAccountNotExist
 	}
 
 	log.Mpt.Debug("setVerifyNum", "addr", addr.Hex(), "v", amount, "pre state", state.preStateRoot.Hex())
@@ -804,7 +802,7 @@ func (state *AccountStateDB) SetLastElect(addr common.Address, blockID uint64) e
 func (state *AccountStateDB) setLastElect(addr common.Address, blockID uint64) error {
 	empty := state.IsEmptyAccount(addr)
 	if empty {
-		return g_error.AccountNotExist
+		return g_error.ErrAccountNotExist
 	}
 
 	log.Mpt.Debug("setLastElect", "addr", addr.Hex(), "v", blockID, "pre state", state.preStateRoot.Hex())
@@ -955,7 +953,7 @@ func (state *AccountStateDB) deleteAccountState(addr common.Address) (err error)
 func (state *AccountStateDB) GetAccountState(addr common.Address) (*account, error) {
 	account := new(account)
 	if state.IsEmptyAccount(addr) {
-		return nil, g_error.AccountNotExist
+		return nil, g_error.ErrAccountNotExist
 	}
 	nonce, err := state.GetNonce(addr)
 	if err != nil {
@@ -1205,7 +1203,7 @@ func (state *AccountStateDB) IntermediateRoot() (result common.Hash, err error) 
 	case common.AddressTypeEarlyReward:
 		err = state.processEarlyTokenTx(tx, height)
 	default:
-		err = g_error.UnknownTxTypeErr
+		err = g_error.ErrUnknownTxType
 	}
 	return
 }*/
@@ -1277,7 +1275,7 @@ func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
 	case common.AddressTypeEarlyReward:
 		err = state.processEarlyTokenTx(conf.Tx, conf.Header.GetNumber())
 	default:
-		err = g_error.UnknownTxTypeErr
+		err = g_error.ErrUnknownTxType
 	}
 	if err != nil {
 		return
@@ -1303,10 +1301,10 @@ func (state *AccountStateDB) processBasicTx(conf *TxProcessConfig) (err error) {
 	}
 	if sender.IsEmpty() || receiver.IsEmpty() {
 		log.Warn("Tx ("+conf.Tx.CalTxId().Hex()+") but sender or receiver is empty", "sender", sender, "receiver", receiver)
-		return SenderOrReceiverIsEmptyErr
+		return g_error.ErrSenderOrReceiverIsEmpty
 	}
 	if empty := state.IsEmptyAccount(sender); empty {
-		return SenderNotExistErr
+		return g_error.ErrSenderNotExist
 	}
 
 	curNonce, _ := state.GetNonce(sender)
@@ -1315,7 +1313,7 @@ func (state *AccountStateDB) processBasicTx(conf *TxProcessConfig) (err error) {
 		return g_error.ErrTxNonceNotMatch
 	}
 	/*	if empty := state.IsEmptyAccount(receiver); empty {
-		return ReceiverNotExistErr
+		return g_error.ErrReceiverNotExist
 	}*/
 	//calculated gasUsed and sub the fee
 	gasUsed, err := model.IntrinsicGas(conf.Tx.ExtraData(), false, false)
@@ -1359,7 +1357,7 @@ func (state *AccountStateDB) processNormalTx(tx model.AbstractTransaction) (err 
 
 func (state *AccountStateDB) processCrossTx(tx model.AbstractTransaction) (err error) {
 	// TODO:
-	return errors.New("not support yet.")
+	return g_error.ErrTxNotSupported
 }
 
 func (state *AccountStateDB) processERC20Tx(tx model.AbstractTransaction, blockHeight uint64) (err error) {
@@ -1381,7 +1379,7 @@ func (state *AccountStateDB) processEarlyTokenTx(tx model.AbstractTransaction, b
 
 	for _, prohibitFunc := range contract.ProhibitFunction {
 		if eData.Action == prohibitFunc {
-			return errors.New("can't use this contract function")
+			return g_error.ErrProhibitFunctionCalled
 		}
 	}
 
@@ -1398,7 +1396,7 @@ func (state *AccountStateDB) clearChangeList() {
 //fixme
 func (state *AccountStateDB) SetData(addr common.Address, key string, value []byte) (err error) {
 	if state.IsEmptyAccount(addr) {
-		return g_error.AccountNotExist
+		return g_error.ErrAccountNotExist
 	}
 
 	log.Debug("SetData", "addr", addr.String(), "key", key, "keybyte", []byte(key), "value", value)
@@ -1444,7 +1442,7 @@ func (state *AccountStateDB) GetData(addr common.Address, key string) (data []by
 
 func (state *AccountStateDB) AddLog(addedLog *model2.Log) error {
 	if addedLog == nil {
-		return errors.New("empty log")
+		return g_error.ErrAddedLogIsNil
 	}
 
 	log.Info("AddLog Called")

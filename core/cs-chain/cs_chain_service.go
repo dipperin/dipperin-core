@@ -17,7 +17,6 @@
 package cs_chain
 
 import (
-	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/g-event"
@@ -235,13 +234,6 @@ func (cs *CsChainService) saveBftBlock(block model.AbstractBlock, seenCommits []
 			return err
 		}
 
-		if block.Number() > cs.ChainConfig.SlotSize {
-			if err = cs.CacheDB.DeleteSeenCommits(block.Number()-cs.ChainConfig.SlotSize, common.Hash{}); err != nil {
-				log.PBft.Error("delete seenCommits failed", "err", err)
-				return err
-			}
-		}
-
 		// tx pool
 		// insert success then need update tx pool
 		newCurrentBlock := cs.CurrentHeader().(*model.Header)
@@ -334,7 +326,7 @@ func (cs *CsChainService) initService() error {
 	if *currentSlot >= cs.CacheChainState.GetChainConfig().SlotMargin {
 		lastNum := cs.CacheChainState.ChainState.NumBeforeLastBySlot(*currentSlot)
 		if lastNum == nil {
-			return errors.New("number before last is nil")
+			return g_error.ErrLastNumIsNil
 		}
 		cs.CacheChainState.CalVerifiers(cs.CacheChainState.GetBlockByNumber(*lastNum))
 	}

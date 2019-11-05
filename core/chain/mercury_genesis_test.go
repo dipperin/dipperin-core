@@ -235,7 +235,7 @@ func TestGenesis_SetEarlyTokenContract_Error(t *testing.T) {
 	defaultGenesis.AccountStateProcessor = sProcessor
 
 	err = defaultGenesis.SetEarlyTokenContract()
-	assert.Equal(t, g_error.AccountNotExist, err)
+	assert.Equal(t, g_error.ErrAccountNotExist, err)
 
 	log.Info("")
 	// set balance error
@@ -247,5 +247,5 @@ func TestGenesis_SetEarlyTokenContract_Error(t *testing.T) {
 	defaultGenesis.AccountStateProcessor = sProcessor
 
 	err = defaultGenesis.SetEarlyTokenContract()
-	assert.Equal(t, g_error.AccountNotExist, err)
+	assert.Equal(t, g_error.ErrAccountNotExist, err)
 }

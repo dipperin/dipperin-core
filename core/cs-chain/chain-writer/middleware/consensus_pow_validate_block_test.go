@@ -18,6 +18,7 @@ package middleware
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/stretchr/testify/assert"
@@ -28,14 +29,57 @@ import (
 
 func TestValidateBlockNumber(t *testing.T) {
 	_, _, _, passChain := getTxTestEnv(t)
-	assert.Error(t, ValidateBlockNumber(&BlockContext{
-		Block: &fakeBlock{num: 10, ts: big.NewInt(time.Now().UnixNano())},
+	rollBackNum := passChain.GetChainConfig().RollBackNum
+	assert.Equal(t, ValidateBlockNumber(&BlockContext{
+		Block: &fakeBlock{num: testBlockNum - rollBackNum},
+		Chain: passChain,
+	})(), g_error.ErrBlockHeightTooLow)
+
+	assert.Equal(t, ValidateBlockNumber(&BlockContext{
+		Block: &fakeBlock{num: testBlockNum - rollBackNum + 1},
+		Chain: passChain,
+	})(), g_error.ErrNormalBlockHeightTooLow)
+
+	assert.Equal(t, ValidateBlockNumber(&BlockContext{
+		Block: &fakeBlock{num: testBlockNum},
+		Chain: passChain,
+	})(), g_error.ErrNormalBlockHeightTooLow)
+
+	assert.NoError(t, ValidateBlockNumber(&BlockContext{
+		Block: &fakeBlock{num: testBlockNum + 1},
 		Chain: passChain,
 	})())
-	assert.Error(t, ValidateBlockNumber(&BlockContext{
-		Block: &fakeBlock{num: 10, ts: big.NewInt(time.Now().Add(time.Second*maxTimeFutureBlocks + time.Second).UnixNano())},
+
+	assert.Equal(t, ValidateBlockNumber(&BlockContext{
+		Block: &fakeBlock{num: testBlockNum + 2, ts: big.NewInt(time.Now().UnixNano())},
+		Chain: passChain,
+	})(), g_error.ErrFutureBlock)
+
+	assert.Equal(t, ValidateBlockNumber(&BlockContext{
+		Block: &fakeBlock{num: testBlockNum + 10, ts: big.NewInt(time.Now().Add(time.Second*maxTimeFutureBlocks + time.Second).UnixNano())},
+		Chain: passChain,
+	})(), g_error.ErrFutureBlockTooFarAway)
+
+	// special block
+	assert.Equal(t, ValidateBlockNumber(&BlockContext{
+		Block: &fakeBlock{num: testBlockNum - rollBackNum, isSpecial: true},
+		Chain: passChain,
+	})(), g_error.ErrBlockHeightTooLow)
+
+	assert.NoError(t, ValidateBlockNumber(&BlockContext{
+		Block: &fakeBlock{num: testBlockNum - rollBackNum + 1, isSpecial: true, ts: big.NewInt(time.Now().UnixNano())},
 		Chain: passChain,
 	})())
+
+	assert.NoError(t, ValidateBlockNumber(&BlockContext{
+		Block: &fakeBlock{num: testBlockNum, isSpecial: true, ts: big.NewInt(time.Now().UnixNano())},
+		Chain: passChain,
+	})())
+
+	assert.Equal(t, ValidateBlockNumber(&BlockContext{
+		Block: &fakeBlock{num: testBlockNum + 2, isSpecial: true, ts: big.NewInt(time.Now().UnixNano())},
+		Chain: passChain,
+	})(), g_error.ErrFutureBlock)
 }
 
 func TestValidateBlockHash(t *testing.T) {

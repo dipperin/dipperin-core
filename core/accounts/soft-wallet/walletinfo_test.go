@@ -36,7 +36,7 @@ func (*fakeAccountStatus) CurrentBalance(address common.Address) *big.Int {
 }
 
 func (*fakeAccountStatus) GetTransactionNonce(addr common.Address) (nonce uint64, err error) {
-	return 0, g_error.AccountNotExist
+	return 0, g_error.ErrAccountNotExist
 }
 
 type errAccountStatus struct {

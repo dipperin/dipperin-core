@@ -225,7 +225,7 @@ func TestAccountStateDB_ProcessTxNew(t *testing.T) {
 
 	// processTxNew
 	err = processor.ProcessTxNew(config)
-	assert.Equal(t, "not support yet.", err.Error())
+	assert.Equal(t, g_error.ErrTxNotSupported, err)
 
 	txType = common.TxType(common.AddressTypeNormal)
 	nonce = uint64(1)
@@ -265,7 +265,7 @@ func TestAccountStateDB_ProcessTxNew(t *testing.T) {
 	txType = common.TxType(123)
 	nonce = uint64(8)
 	err = processor.ProcessTxNew(config)
-	assert.Equal(t, g_error.UnknownTxTypeErr, err)
+	assert.Equal(t, g_error.ErrUnknownTxType, err)
 
 	txType = common.TxType(common.AddressTypeContractCreate)
 	assert.Panics(t, func() {
@@ -292,17 +292,17 @@ func TestAccountStateDB_processBasicTx_Error(t *testing.T) {
 		TxFee: big.NewInt(0),
 	}
 	err = processor.processBasicTx(conf)
-	assert.Equal(t, SenderOrReceiverIsEmptyErr, err)
+	assert.Equal(t, g_error.ErrSenderOrReceiverIsEmpty, err)
 
 	tx = fakeTransaction{sender: aliceAddr}
 	conf.Tx = &tx
 	err = processor.processBasicTx(conf)
-	assert.Equal(t, SenderNotExistErr, err)
+	assert.Equal(t, g_error.ErrSenderNotExist, err)
 
 	err = processor.blockStateTrie.TryUpdate(GetNonceKey(aliceAddr), []byte{})
 	assert.NoError(t, err)
 	err = processor.processBasicTx(conf)
-	assert.Equal(t, SenderNotExistErr, err)
+	assert.Equal(t, g_error.ErrSenderNotExist, err)
 
 	err = processor.NewAccountState(aliceAddr)
 	assert.NoError(t, err)
@@ -318,7 +318,7 @@ func TestAccountStateDB_processBasicTx_Error(t *testing.T) {
 	tx = fakeTransaction{sender: aliceAddr}
 	conf.Tx = &tx
 	err = processor.processBasicTx(conf)
-	assert.Equal(t, g_error.BalanceNegErr, err)
+	assert.Equal(t, g_error.ErrBalanceNegative, err)
 }
 
 func TestAccountStateDB_processNormalTx_Error(t *testing.T) {
@@ -333,7 +333,7 @@ func TestAccountStateDB_processNormalTx_Error(t *testing.T) {
 
 	tx := fakeTransaction{sender: aliceAddr}
 	err = processor.processNormalTx(tx)
-	assert.Equal(t, g_error.AccountNotExist, err)
+	assert.Equal(t, g_error.ErrAccountNotExist, err)
 }
 
 func TestAccountStateDB_Commit_Error(t *testing.T) {
@@ -356,23 +356,23 @@ func TestAccountStateDB_SetError(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, err = processor.GetAccountState(aliceAddr)
-	assert.Equal(t, g_error.AccountNotExist, err)
-	assert.Equal(t, g_error.AccountNotExist, processor.AddBalance(aliceAddr, big.NewInt(1000)))
-	assert.Equal(t, g_error.AccountNotExist, processor.AddStake(aliceAddr, big.NewInt(1000)))
-	assert.Equal(t, g_error.AccountNotExist, processor.SubStake(aliceAddr, big.NewInt(1000)))
-	assert.Equal(t, g_error.AccountNotExist, processor.AddNonce(aliceAddr, uint64(5)))
+	assert.Equal(t, g_error.ErrAccountNotExist, err)
+	assert.Equal(t, g_error.ErrAccountNotExist, processor.AddBalance(aliceAddr, big.NewInt(1000)))
+	assert.Equal(t, g_error.ErrAccountNotExist, processor.AddStake(aliceAddr, big.NewInt(1000)))
+	assert.Equal(t, g_error.ErrAccountNotExist, processor.SubStake(aliceAddr, big.NewInt(1000)))
+	assert.Equal(t, g_error.ErrAccountNotExist, processor.AddNonce(aliceAddr, uint64(5)))
 
-	assert.Equal(t, g_error.AccountNotExist, processor.SetStake(aliceAddr, big.NewInt(1000)))
-	assert.Equal(t, g_error.AccountNotExist, processor.SetBalance(aliceAddr, big.NewInt(1000)))
-	assert.Equal(t, g_error.AccountNotExist, processor.SetNonce(aliceAddr, uint64(5)))
-	assert.Equal(t, g_error.AccountNotExist, processor.SetLastElect(aliceAddr, uint64(5)))
-	assert.Equal(t, g_error.AccountNotExist, processor.SetCommitNum(aliceAddr, uint64(5)))
-	assert.Equal(t, g_error.AccountNotExist, processor.SetPerformance(aliceAddr, uint64(5)))
-	assert.Equal(t, g_error.AccountNotExist, processor.SetVerifyNum(bobAddr, uint64(5)))
-	assert.Equal(t, g_error.AccountNotExist, processor.SetHashLock(aliceAddr, common.HexToHash("123")))
-	assert.Equal(t, g_error.AccountNotExist, processor.SetDataRoot(aliceAddr, common.HexToHash("123")))
+	assert.Equal(t, g_error.ErrAccountNotExist, processor.SetStake(aliceAddr, big.NewInt(1000)))
+	assert.Equal(t, g_error.ErrAccountNotExist, processor.SetBalance(aliceAddr, big.NewInt(1000)))
+	assert.Equal(t, g_error.ErrAccountNotExist, processor.SetNonce(aliceAddr, uint64(5)))
+	assert.Equal(t, g_error.ErrAccountNotExist, processor.SetLastElect(aliceAddr, uint64(5)))
+	assert.Equal(t, g_error.ErrAccountNotExist, processor.SetCommitNum(aliceAddr, uint64(5)))
+	assert.Equal(t, g_error.ErrAccountNotExist, processor.SetPerformance(aliceAddr, uint64(5)))
+	assert.Equal(t, g_error.ErrAccountNotExist, processor.SetVerifyNum(bobAddr, uint64(5)))
+	assert.Equal(t, g_error.ErrAccountNotExist, processor.SetHashLock(aliceAddr, common.HexToHash("123")))
+	assert.Equal(t, g_error.ErrAccountNotExist, processor.SetDataRoot(aliceAddr, common.HexToHash("123")))
 	//processor.setContractRoot(aliceAddr, common.HexToHash("123"))
-	assert.Equal(t, g_error.AccountNotExist, processor.SetTimeLock(aliceAddr, big.NewInt(10)))
+	assert.Equal(t, g_error.ErrAccountNotExist, processor.SetTimeLock(aliceAddr, big.NewInt(10)))
 
 	processor, err = NewAccountStateDB(common.Hash{}, fakeStateStorage{setErr: TrieError})
 	assert.Equal(t, TrieError, processor.NewAccountState(aliceAddr))

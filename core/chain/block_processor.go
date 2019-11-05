@@ -90,9 +90,9 @@ func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel eco
 			}
 			innerError := state.ProcessTxNew(&conf)
 			/*// unrecognized tx means no processing of the tx
-			if innerError == g_error.UnknownTxTypeErr {
+			if innerError == g_error.ErrUnknownTxType {
 				log.Warn("unknown tx type", "type", tx.GetType())
-				return g_error.UnknownTxTypeErr
+				return g_error.ErrUnknownTxType
 			}*/
 			if innerError != nil {
 				return innerError

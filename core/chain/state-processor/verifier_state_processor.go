@@ -17,22 +17,12 @@
 package state_processor
 
 import (
-	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
-)
-
-var (
-	TransactionTypeError  = errors.New("transaction type miss match with processor function")
-	NotEnoughBalanceError = errors.New("not enough balance error")
-	NotEnoughStakeErr     = errors.New("target account stake not enough")
-	SenderNotExistErr     = errors.New("sender account does not exist")
-	ReceiverNotExistErr   = errors.New("receiver account does not exist")
-	SendRegisterTxFirst   = errors.New("target need to send register transaction first")
-	SendCancelTxFirst     = errors.New("target need to send cancel transaction first")
 )
 
 /*
@@ -42,8 +32,8 @@ Stake money from balance
 func (state *AccountStateDB) Stake(addr common.Address, amount *big.Int) error {
 	balance, err := state.GetBalance(addr)
 	if err != nil || balance.Cmp(amount) < 0 {
-		log.Debug("stake failed", "addr", addr.Hex(), "err", NotEnoughBalanceError, "balance", balance, "amount", amount)
-		return NotEnoughBalanceError
+		log.Debug("stake failed", "addr", addr.Hex(), "err", g_error.ErrBalanceNotEnough, "balance", balance, "amount", amount)
+		return g_error.ErrBalanceNotEnough
 	}
 	err = state.SubBalance(addr, amount)
 	if err != nil {
@@ -72,7 +62,7 @@ func (state *AccountStateDB) UnStake(addr common.Address) error {
 	}
 	if amount.Cmp(big.NewInt(0)) == 0 {
 		log.Warn("unStake value is zero", "address", addr.Hex())
-		return NotEnoughStakeErr
+		return g_error.ErrStakeNotEnough
 	}
 	err = state.AddBalance(addr, amount)
 	if err != nil {
@@ -94,7 +84,7 @@ func (state *AccountStateDB) MoveStakeToAddress(fromAdd common.Address, toAdd co
 	}
 	if amount.Cmp(big.NewInt(0)) == 0 {
 		log.Warn("unStake value is zero", "address", fromAdd.Hex())
-		return NotEnoughStakeErr
+		return g_error.ErrStakeNotEnough
 	}
 
 	empty := state.IsEmptyAccount(toAdd)
@@ -130,7 +120,7 @@ func (state *AccountStateDB) processStakeTx(tx model.AbstractTransaction) (err e
 	sender, _ := tx.Sender(nil)
 	receiver := *(tx.To())
 	if receiver.GetAddressType() != common.AddressTypeStake {
-		return TransactionTypeError
+		return g_error.ErrTxTypeNotMatch
 	}
 
 	//judging the balance of the deposit
@@ -140,8 +130,8 @@ func (state *AccountStateDB) processStakeTx(tx model.AbstractTransaction) (err e
 		return
 	}
 	if stake.Cmp(big.NewInt(0)) == 0 && tx.Amount().Cmp(big.NewInt(minStake)) == -1 {
-		log.Debug("process register transaction failed", "err", NotEnoughStakeErr)
-		return NotEnoughStakeErr
+		log.Debug("process register transaction failed", "err", g_error.ErrStakeNotEnough)
+		return g_error.ErrStakeNotEnough
 	}
 
 	//Process
@@ -163,7 +153,7 @@ func (state *AccountStateDB) processCancelTx(tx model.AbstractTransaction, num u
 	sender, _ := tx.Sender(nil)
 	receiver := *(tx.To())
 	if receiver.GetAddressType() != common.AddressTypeCancel {
-		return TransactionTypeError
+		return g_error.ErrTxTypeNotMatch
 	}
 
 	//have you sent a registered transaction
@@ -172,7 +162,7 @@ func (state *AccountStateDB) processCancelTx(tx model.AbstractTransaction, num u
 		return
 	}
 	if stake.Cmp(big.NewInt(0)) == 0 {
-		return SendRegisterTxFirst
+		return g_error.StateSendRegisterTxFirst
 	}
 
 	//have you sent a cancellation transaction
@@ -181,7 +171,7 @@ func (state *AccountStateDB) processCancelTx(tx model.AbstractTransaction, num u
 		return err
 	}
 	if lastBlock != 0 {
-		return SendRegisterTxFirst
+		return g_error.StateSendRegisterTxFirst
 	}
 
 	//Process
@@ -205,7 +195,7 @@ func (state *AccountStateDB) processUnStakeTx(tx model.AbstractTransaction) (err
 	sender, _ := tx.Sender(nil)
 	receiver := *(tx.To())
 	if receiver.GetAddressType() != common.AddressTypeUnStake {
-		return TransactionTypeError
+		return g_error.ErrTxTypeNotMatch
 	}
 
 	//have you sent a registered transaction
@@ -214,7 +204,7 @@ func (state *AccountStateDB) processUnStakeTx(tx model.AbstractTransaction) (err
 		return
 	}
 	if stake.Cmp(big.NewInt(0)) == 0 {
-		return SendRegisterTxFirst
+		return g_error.StateSendRegisterTxFirst
 	}
 
 	//have you sent a cancellation transaction
@@ -223,7 +213,7 @@ func (state *AccountStateDB) processUnStakeTx(tx model.AbstractTransaction) (err
 		return
 	}
 	if lastBlock == 0 {
-		return SendCancelTxFirst
+		return g_error.StateSendCancelTxFirst
 	}
 
 	//Process
@@ -249,14 +239,14 @@ func (state *AccountStateDB) processEvidenceTx(tx model.AbstractTransaction) (er
 	receiver := *(tx.To())
 	originalReceiver := common.Address{}
 	if receiver.GetAddressType() != common.AddressTypeEvidence {
-		return TransactionTypeError
+		return g_error.ErrTxTypeNotMatch
 	}
 	if sender.GetAddressType() != common.AddressTypeNormal {
-		return errors.New("sender must be a normal account")
+		return g_error.ErrAddressTypeNotMatch
 	}
 	originalReceiver = cs_crypto.GetNormalAddressFromEvidence(receiver)
 	if empty := state.IsEmptyAccount(originalReceiver); empty {
-		return ReceiverNotExistErr
+		return g_error.ErrReceiverNotExist
 	}
 
 	//Process
