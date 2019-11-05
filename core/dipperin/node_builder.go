@@ -138,7 +138,7 @@ func NewBftNode(nodeConfig NodeConfig) (n Node) {
 		baseComponent.rpcService.AddApis(eApis)
 	}
 
-	n = NewCsNode(NodeConfig{}, baseComponent)
+	n = NewCsNode(NodeConfig{}, baseComponent,nodeServices)
 	baseComponent.DipperinConfig.Node = n
 
 	return

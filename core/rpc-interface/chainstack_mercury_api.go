@@ -743,6 +743,10 @@ func (api *DipperinVenusApi) ListWalletAccount(walletIdentifier accounts.WalletI
 	return tmpAccounts, nil
 }
 
+func (api *DipperinVenusApi) StartRemainingService() {
+	api.service.StartRemainingService()
+}
+
 // set pbft account address
 // swagger:operation POST /url/ListWalletAccount PbftAddressOperation pbftAddress
 // ---
