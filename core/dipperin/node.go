@@ -41,10 +41,10 @@ type NodeService interface {
 	Stop()
 }
 
-func NewCsNode(conf NodeConfig, components *BaseComponent,services []NodeService) *CsNode {
+func NewCsNode(conf NodeConfig, components *BaseComponent, services []NodeService) *CsNode {
 	return &CsNode{
 		nodeName:       conf.Name,
-		ServiceManager: NewServiceManager(components,services),
+		ServiceManager: NewServiceManager(components, services),
 	}
 }
 
@@ -63,14 +63,14 @@ type ServiceManager struct {
 	wg               sync.WaitGroup
 }
 
-func NewServiceManager(components *BaseComponent,services []NodeService) *ServiceManager {
+func NewServiceManager(components *BaseComponent, services []NodeService) *ServiceManager {
 	s := make(map[ServiceType][]NodeService)
 	s[NeedWalletSignerService] = make([]NodeService, 0)
 	s[NotNeedWalletSignerService] = make([]NodeService, 0)
 	manager := &ServiceManager{services: s, components: components}
 
 	number := uint32(0)
-	for _, service := range services{
+	for _, service := range services {
 		manager.AddService(service)
 		number++
 	}
@@ -209,9 +209,9 @@ func (m *ServiceManager) AddService(service NodeService) {
 	log.Info("the service type is:", "name", serviceType)
 
 	switch serviceType {
-	case "*service.VenusFullChainService","*csbftnode.CsBft",
-		 "*p2p.Server","*chain_communication.CsProtocolManager",
-		 "*verifiers_halt_check.SystemHaltedCheck":
+	case "*service.VenusFullChainService", "*csbftnode.CsBft",
+		"*p2p.Server", "*chain_communication.CsProtocolManager",
+		"*verifiers_halt_check.SystemHaltedCheck":
 		m.services[NeedWalletSignerService] = append(m.services[NeedWalletSignerService], service)
 	default:
 		m.services[NotNeedWalletSignerService] = append(m.services[NotNeedWalletSignerService], service)

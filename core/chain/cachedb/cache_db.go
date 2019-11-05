@@ -62,7 +62,7 @@ func (cache *CacheDB) GetSeenCommits(blockHeight uint64, blockHash common.Hash) 
 
 // hash must be empty, if only use height for tag
 func (cache *CacheDB) SaveSeenCommits(blockHeight uint64, blockHash common.Hash, commits []model.AbstractVerification) error {
-	log.Info("CacheDB SaveSeenCommits","blockHeight",blockHeight,"len(commits)",len(commits))
+	log.Info("CacheDB SaveSeenCommits", "blockHeight", blockHeight, "len(commits)", len(commits))
 	return cache.save(seenCommitsKey(blockHeight, blockHash), commits)
 }
 
@@ -71,7 +71,7 @@ func (cache *CacheDB) DeleteSeenCommits(blockHeight uint64, blockHash common.Has
 }
 
 func (cache *CacheDB) save(key []byte, data interface{}) error {
-	log.Info("CacheDB save key is:","key",hexutil.Encode(key))
+	log.Info("CacheDB save key is:", "key", hexutil.Encode(key))
 	dataB, err := rlp.EncodeToBytes(data)
 	if err != nil {
 		return err
@@ -80,7 +80,7 @@ func (cache *CacheDB) save(key []byte, data interface{}) error {
 }
 
 func (cache *CacheDB) get(key []byte) ([]byte, error) {
-	log.Info("CacheDB get key is:","key",hexutil.Encode(key))
+	log.Info("CacheDB get key is:", "key", hexutil.Encode(key))
 	return cache.db.Get(key)
 }
 
