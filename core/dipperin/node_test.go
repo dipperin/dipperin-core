@@ -18,7 +18,10 @@ package dipperin
 
 import (
 	"errors"
+	"github.com/dipperin/dipperin-core/core/accounts"
+	"github.com/dipperin/dipperin-core/core/cs-chain"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 	"time"
 )
@@ -36,22 +39,62 @@ func (s fakeNodeService) Stop() {
 	return
 }
 
-func TestNewCsNode(t *testing.T) {
-	csNode := NewCsNode([]NodeService{fakeNodeService{}}, NodeConfig{})
+func TestServiceStart1(t *testing.T){
+	cs_chain.GenesisSetUp = true
+	config := createNodeConfig()
+
+	csNode := NewBftNode(*config)
+	err := csNode.Start()
+	assert.NoError(t, err)
+	csNode.Stop()
+}
+
+func TestServiceStart2(t *testing.T) {
+	cs_chain.GenesisSetUp = true
+	config := createNodeConfig()
+
+	csNode := NewBftNode(*config)
+
+	csNode.AddService(fakeNodeService{err: errors.New("test error")})
+	err := csNode.Start()
+	assert.Error(t, err)
+}
+
+func TestServiceStart3(t *testing.T) {
+	cs_chain.GenesisSetUp = true
+	config := createNodeConfig()
+	config.SoftWalletPassword = ""
+	config.SoftWalletPassPhrase = ""
+	config.SoftWalletPath = ""
+	config.NoWalletStart = true
+
+	csNode := NewBftNode(*config)
 	err := csNode.Start()
 	assert.NoError(t, err)
 
-	csNode.Stop()
+	go func() {
+		time.Sleep(time.Millisecond*100)
+		walletIdentifier := accounts.WalletIdentifier{
+			WalletType:accounts.SoftWallet,
+			WalletName:"CSWallet1",
+			Path:config.DataDir+"CSWallet1",
+		}
+		csNode.(*CsNode).ServiceManager.components.chainService.EstablishWallet(walletIdentifier,"123","")
+		csNode.(*CsNode).ServiceManager.components.chainService.StartRemainingService()
+	}()
 
-	csNode.AddService(fakeNodeService{err: errors.New("test error")})
-	err = csNode.Start()
-	assert.Error(t, err)
-	csNode.Wait()
+	time.Sleep(time.Second)
+	csNode.Stop()
+	os.Remove(config.DataDir+"CSWallet1")
 }
 
 func TestCsNode_Start(t *testing.T) {
 	chokeTimeout = time.Millisecond * 50
-	csNode := NewCsNode([]NodeService{}, NodeConfig{})
+	cs_chain.GenesisSetUp = true
+	config := createNodeConfig()
+
+	csNode := NewBftNode(*config)
 	err := csNode.Start()
 	assert.NoError(t, err)
+	csNode.Stop()
 }

@@ -106,7 +106,7 @@ func NewBftNode(nodeConfig NodeConfig) (n Node) {
 	// init wallet manager
 	baseComponent.initWalletManager()
 	// init msg signer
-	baseComponent.initMsgSigner()
+	//baseComponent.initMsgSigner()
 	// init bft node
 	baseComponent.initBft()
 	// init p2p service
@@ -138,7 +138,7 @@ func NewBftNode(nodeConfig NodeConfig) (n Node) {
 		baseComponent.rpcService.AddApis(eApis)
 	}
 
-	n = NewCsNode(nodeServices, NodeConfig{})
+	n = NewCsNode(NodeConfig{}, baseComponent)
 	baseComponent.DipperinConfig.Node = n
 
 	return
@@ -178,6 +178,21 @@ func newBaseComponent(nodeConfig NodeConfig) *BaseComponent {
 	return b
 }
 
+func (b *BaseComponent) setNodeSignerInfo() error {
+	account ,err:=b.walletManager.GetMainAccount()
+	if err !=nil{
+		return err
+	}
+
+	b.coinbaseAddr.Store(account.Address)
+	b.defaultAccountAddress = account.Address
+	b.msgSigner = accounts.MakeWalletSigner(b.defaultAccountAddress, b.walletManager)
+
+	b.DipperinConfig.DefaultAccount = b.defaultAccountAddress
+	b.DipperinConfig.MsgSigner = b.msgSigner
+	return nil
+}
+
 func (b *BaseComponent) buildDipperinConfig() {
 	b.DipperinConfig.PbftPm = b.csPm
 	b.DipperinConfig.Broadcaster = b.broadcastDelegate
@@ -193,8 +208,8 @@ func (b *BaseComponent) buildDipperinConfig() {
 	b.DipperinConfig.WalletManager = b.walletManager
 	b.DipperinConfig.MineMaster = b.mineMaster
 	b.DipperinConfig.MineMasterServer = b.mineMasterServer
-	b.DipperinConfig.DefaultAccount = b.defaultAccountAddress
-	b.DipperinConfig.MsgSigner = b.msgSigner
+	//b.DipperinConfig.DefaultAccount = b.defaultAccountAddress
+	//b.DipperinConfig.MsgSigner = b.msgSigner
 	b.DipperinConfig.ChainIndex = vm_log_search.NewBloomIndexer(b.DipperinConfig.ChainReader, b.fullChain.CacheChainState.ChainState.GetDB(), vm_log_search.BloomBitsBlocks, vm_log_search.BloomConfirms)
 }
 
@@ -301,6 +316,45 @@ func (b *BaseComponent) initChainService() {
 }
 
 func (b *BaseComponent) initWalletManager() {
+	var err error
+	if b.nodeConfig.NoWalletStart {
+		if b.walletManager, err = accounts.NewWalletManager(b.chainService); err != nil {
+			panic("init wallet manager failed: " + err.Error())
+		}
+		return
+	}
+
+	// load wallet manager
+	defaultWallet, wErr := soft_wallet.NewSoftWallet()
+	if wErr != nil {
+		panic("new soft wallet failed: " + wErr.Error())
+	}
+
+	var mnemonic string
+	exit, _ := soft_wallet.PathExists(b.nodeConfig.SoftWalletFile())
+	log.Info("initWalletManager the wallet exit","exit",exit)
+	if exit {
+		err = defaultWallet.Open(b.nodeConfig.SoftWalletFile(), b.nodeConfig.SoftWalletName(), b.nodeConfig.SoftWalletPassword)
+	} else {
+		mnemonic, err = defaultWallet.Establish(b.nodeConfig.SoftWalletFile(), b.nodeConfig.SoftWalletName(), b.nodeConfig.SoftWalletPassword, b.nodeConfig.SoftWalletPassPhrase)
+		mnemonic = strings.Replace(mnemonic, " ", ",", -1)
+		log.Info("EstablishWallet mnemonic is:", "mnemonic", mnemonic)
+	}
+
+	if err != nil {
+		log.Info("open or establish wallet error ", "err", err)
+		panic("initWalletManager open or establish wallet error")
+	}
+	if b.walletManager, err = accounts.NewWalletManager(b.chainService, defaultWallet); err != nil {
+		log.Info("init wallet manager failed:", "walletManager", b.walletManager, "err", err)
+		panic("init wallet manager failed: " + err.Error())
+	}
+
+	log.Info("the wallet number is:","number",len(b.walletManager.Wallets))
+	return
+}
+
+/*func (b *BaseComponent) initWalletManager() {
 	tmpLog := log.New()
 	tmpLog.SetHandler(log.StdoutHandler)
 	var err error
@@ -346,7 +400,7 @@ func (b *BaseComponent) initWalletManager() {
 	b.coinbaseAddr.Store(defaultAccounts[0].Address)
 	b.defaultAccountAddress = defaultAccounts[0].Address
 	log.Info("open wallet success", "b.defaultAccountAddress", b.defaultAccountAddress)
-}
+}*/
 
 func (b *BaseComponent) initP2PService() {
 	// load p2p

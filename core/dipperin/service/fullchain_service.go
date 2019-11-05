@@ -507,6 +507,10 @@ func (service *VenusFullChainService) ListWalletAccount(walletIdentifier account
 	return tmpWallet.Accounts()
 }
 
+func (service *VenusFullChainService) StartRemainingService(){
+	service.WalletManager.StartOtherServices()
+}
+
 func (service *VenusFullChainService) SetBftSigner(address common.Address) error {
 	log.Info("VenusFullChainService SetWalletAccountAddress run")
 	service.MsgSigner.SetBaseAddress(address)

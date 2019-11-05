@@ -20,9 +20,11 @@ import (
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/cs-chain"
 	"github.com/dipperin/dipperin-core/tests/factory"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"testing"
 
@@ -40,9 +42,9 @@ func createNodeConfig() *NodeConfig {
 		P2PListener:          ":30000",
 		IPCPath:              "path",
 		DataDir:              filepath.FromSlash(util.HomeDir() + "/dir"),
-		HTTPHost:             "http_host",
+		HTTPHost:             "127.0.0.1",
 		HTTPPort:             3335,
-		WSHost:               "ws_host",
+		WSHost:               "127.0.0.1",
 		WSPort:               4335,
 		NodeType:             0,
 		SoftWalletPassword:   "123",
@@ -105,3 +107,30 @@ func TestMsgSender(t *testing.T) {
 	msgSender.SendReqRoundMsg(0, []common.Address{aliceAddr}, block.Hash())
 	os.RemoveAll(nodeConfig.DataDir)
 }
+
+type TestService struct {
+
+}
+
+func (t *TestService) Start() error{
+	return nil
+}
+
+func (t *TestService) Stop(){
+	return
+}
+
+func TestGetServiceName(t *testing.T){
+	var service  NodeService
+
+	service = &TestService{}
+
+	serviceType := reflect.TypeOf(service)
+
+
+	log.Info("the service name is:","serviceType",serviceType.String())
+
+
+	log.Info("the a type name is:","name",reflect.TypeOf("hello").Name())
+}
+

@@ -21,11 +21,13 @@ import (
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
+	"github.com/dipperin/dipperin-core/core/dipperin"
 	"github.com/dipperin/dipperin-core/tests/wallet"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/stretchr/testify/assert"
 	"os"
+	"reflect"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -188,3 +190,5 @@ func Test_ChannelTransport(t *testing.T) {
 	time.Sleep(2)
 	//testChan <- testData
 }
+
+

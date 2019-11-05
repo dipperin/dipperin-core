@@ -39,6 +39,7 @@ const (
 	DebugModeFlagName   = "debug_mode"
 
 	UseStaticNodesFlagName       = "use_static_nodes"
+	NoWalletStartFlagName        = "no_wallet_start"
 	SoftWalletPasswordFlagName   = "soft_wallet_pwd"
 	SoftWalletPassPhraseFlagName = "soft_wallet_pass_phrase"
 	SoftWalletPath               = "soft_wallet_path"
@@ -81,6 +82,7 @@ var (
 		UseStaticNodesFlag,
 		NodeNameFlag,
 		DebugModeFlag,
+		NoWalletStartFlag,
 		SoftWalletPasswordFlag,
 		SoftWalletPassPhraseFlag,
 		SoftWalletPathFlag,
@@ -129,6 +131,10 @@ var (
 	//	Usage: "set whether including TPS monitoring,0 no,1 yes",
 	//	Value: 0,
 	//}
+	NoWalletStartFlag = cli.BoolFlag{
+		Name:NoWalletStartFlagName,
+		Usage:"not need to set SoftWalletPasswordFlag SoftWalletPassPhraseFlag SoftWalletPathFlag when this flag is true",
+	}
 	SoftWalletPasswordFlag = cli.StringFlag{
 		Name:  SoftWalletPasswordFlagName,
 		Usage: "set whether needing password of creating or openning wallet",
