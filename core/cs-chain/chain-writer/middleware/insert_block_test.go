@@ -17,24 +17,20 @@
 package middleware
 
 import (
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestInsertBlock(t *testing.T) {
 	_, _, _, passChain := getTxTestEnv(t)
-	assert.Error(t, InsertBlock(&BlockContext{
-		Block: &fakeBlock{},
-		Chain: passChain,
-	})())
-
-	assert.Error(t, InsertBlock(&BlockContext{
+	assert.Equal(t, InsertBlock(&BlockContext{
 		Block: &fakeBlock{isSpecial: true},
 		Chain: passChain,
-	})())
+	})(), g_error.ErrInvalidBlockNum)
 
 	assert.NoError(t, InsertBlock(&BlockContext{
-		Block: &fakeBlock{num: 1},
+		Block: &fakeBlock{num: testBlockNum + 1},
 		Chain: passChain,
 	})())
 }

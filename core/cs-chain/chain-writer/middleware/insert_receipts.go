@@ -37,7 +37,7 @@ func ValidGasUsedAndReceipts(c *BlockContext) Middleware {
 		if err := c.Block.TxIterator(func(i int, transaction model.AbstractTransaction) error {
 			receipt := transaction.GetReceipt()
 			if receipt == nil {
-				return g_error.ErrEmptyReceipt
+				return g_error.ErrTxReceiptIsNil
 			}
 			accumulatedGas = receipt.CumulativeGasUsed
 			receipts = append(receipts, receipt)
@@ -50,17 +50,17 @@ func ValidGasUsedAndReceipts(c *BlockContext) Middleware {
 		receiptHash := model.DeriveSha(receipts)
 		if receiptHash != c.Block.GetReceiptHash() {
 			log.Error("InsertReceipts receiptHash not match", "receiptHash", receiptHash, "block.ReciptHash", c.Block.GetReceiptHash())
-			return g_error.ReceiptHashError
+			return g_error.ErrReceiptHashNotMatch
 		}
 
 		if accumulatedGas != c.Block.Header().GetGasUsed() {
 			log.Error("InsertReceipts accumulatedGas not match", "accumulatedGas", accumulatedGas, "headerGasUsed", c.Block.Header().GetGasUsed())
-			return g_error.ErrGasUsedIsInvalid
+			return g_error.ErrInvalidHeaderGasUsed
 		}
 
 		//check accumulated Gas
 		if accumulatedGas > c.Block.Header().GetGasLimit() {
-			return g_error.ErrTxGasIsOverRanging
+			return g_error.ErrHeaderGasUsedOverRanging
 		}
 
 		//padding receipts

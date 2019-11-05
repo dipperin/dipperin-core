@@ -17,26 +17,26 @@
 package middleware
 
 import (
-	"errors"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 func InsertBlock(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("InsertBlock start", "blockNumber", c.Block.Number())
 		curBlock := c.Chain.CurrentBlock()
+		log.Middleware.Info("InsertBlock start", "curNum", curBlock.Number(), "blockNum", c.Block.Number())
 
-		// roll back chain if insert same height special block
-		if c.Block.Number() == curBlock.Number() && c.Block.IsSpecial() {
-			c.Chain.Rollback(curBlock.Number() - 1)
-			curBlock = c.Chain.CurrentBlock()
-			log.Info("chain roll back successful", "curNum", curBlock.Number())
+		// roll back chain if insert special block
+		if c.Block.IsSpecial() {
+			if err := c.Chain.Rollback(c.Block.Number()); err != nil {
+				return err
+			}
 		}
 
 		log.Info("insert block", "cur number", curBlock.Number(), "new number", c.Block.Number())
 		// check block number
 		if c.Chain.CurrentBlock().Number()+1 != c.Block.Number() {
-			return errors.New("wrong number")
+			return g_error.ErrInvalidBlockNum
 		}
 
 		if err := c.Chain.GetChainDB().InsertBlock(c.Block); err != nil {

@@ -17,7 +17,6 @@
 package middleware
 
 import (
-	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
@@ -66,7 +65,7 @@ func validateVotes(block model.AbstractBlock, chain ChainInterface) error {
 	// The first block has no votes
 	if block.Number() == 1 {
 		if !block.VerificationRoot().IsEqual(model.EmptyVerfRoot) || len(block.GetVerifications()) != 0 {
-			return g_error.ErrFirstBlockShouldNotHaveVerifications
+			return g_error.ErrFirstBlockHaveVerifications
 		}
 		return nil
 	}
@@ -141,7 +140,8 @@ func validVerificationRoot(verifications []model.AbstractVerification, vRoot com
 	targetRoot := model.DeriveSha(model.Verifications(verifications))
 	//fmt.Println("===t root", targetRoot)
 	if !targetRoot.IsEqual(vRoot) {
-		return errors.New(fmt.Sprintf("verification root not match, target: %v, root in block: %v, length: %v", targetRoot.Hex(), vRoot.Hex(), len(verifications)))
+		log.Error("verification root not match", "targetRoot", targetRoot.Hex(), "blockRoot", vRoot.Hex(), "verificationLen", len(verifications))
+		return g_error.ErrVerificationRootNotMatch
 	}
 
 	return nil

@@ -70,7 +70,7 @@ func (suite *consensusTestSuite) Test_ValidateBlockNumber() {
 	// create middleware context
 	context2 := middleware.NewBftBlockContext(block, seenCommit, suite.ChainState)
 	context2.Use(middleware.ValidateBlockNumber(&context2.BlockContext))
-	suite.EqualError(context2.Process(), g_error.ErrBlockHeightIsCurrentAndIsNotSpecial.Error())
+	suite.EqualError(context2.Process(), g_error.ErrNormalBlockHeightTooLow.Error())
 
 	//test special block
 	blockSpec := suite.BlockBuilder.BuildSpecialBlock()
@@ -162,7 +162,7 @@ func (suite *consensusTestSuite) Test_ValidateBlockCoinBase() {
 	seenCommitSpec := suite.Env.VoteBlock(suite.ChainState.GetChainConfig().VerifierNumber, 1, blockSpec)
 	context1 := middleware.NewBftBlockContext(blockSpec, seenCommitSpec, suite.ChainState)
 	context1.Use(middleware.ValidateBlockCoinBase(&context1.BlockContext))
-	suite.EqualError(context1.Process(), g_error.ErrSpecialInvalidCoinBase.Error())
+	suite.EqualError(context1.Process(), g_error.ErrInvalidCoinBase.Error())
 }
 
 func (suite *consensusTestSuite) Test_ValidateBlockDifficulty() {

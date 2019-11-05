@@ -83,7 +83,7 @@ func TestStateChangeList_DecodeRLP(t *testing.T) {
 
 	// assert accounts
 	_, charlieErr := processor2.GetAccountState(charlieAddr)
-	assert.Equal(t, charlieErr, g_error.AccountNotExist)
+	assert.Equal(t, charlieErr, g_error.ErrAccountNotExist)
 	aliceBalance, err := processor2.GetBalance(aliceAddr)
 	assert.NoError(t, err)
 	assert.Equal(t, aliceBalance, big.NewInt(4950))

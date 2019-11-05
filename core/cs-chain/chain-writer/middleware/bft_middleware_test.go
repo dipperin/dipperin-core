@@ -18,6 +18,7 @@ package middleware
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	chain_true "github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-config"
@@ -124,6 +125,6 @@ func TestBftMiddleware2(t *testing.T) {
 	block := model.NewBlock(&header, nil, blockVerifier)
 	err = validator.FullValid(block)
 
-	assert.Equal(t, err.Error(), "contract 0x00110000000000000000000000000000000000000000 not exist")
+	assert.Equal(t, g_error.ErrContractNotExist, err)
 
 }

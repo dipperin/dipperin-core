@@ -1,7 +1,6 @@
 package state_processor
 
 import (
-	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
@@ -26,10 +25,6 @@ type account struct {
 	Code     []byte
 	Abi      []byte
 }
-
-var (
-	SenderOrReceiverIsEmptyErr = errors.New("sender or receiver is empty")
-)
 
 const (
 	nonceKeySuffix    = "_nonce"

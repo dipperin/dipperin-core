@@ -17,8 +17,8 @@
 package cs_chain
 
 import (
-	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
@@ -273,23 +273,28 @@ func (chain *CacheChainState) GetBlockByHash(hash common.Hash) model.AbstractBlo
 }
 
 func (chain *CacheChainState) Rollback(target uint64) error {
-
-	// rollback chain to target number
-	tarBlock := chain.GetBlockByNumber(target)
-
-	if tarBlock == nil {
-		perTarBlock := chain.GetBlockByNumber(target - 1)
-		if perTarBlock == nil {
-			log.Error("chain can't roll back target block, no found target block and pre target block")
-			return errors.New("pre target block is nil")
-		}
-
-		chain.currentBlock.Store(perTarBlock)
-		chain.currentHeader.Store(perTarBlock.Header())
+	curBlock := chain.CurrentBlock()
+	if target == curBlock.Number()+1 {
 		return nil
 	}
 
-	chain.currentBlock.Store(tarBlock)
-	chain.currentHeader.Store(tarBlock.Header())
-	return nil
+	rollBackNum := chain.GetChainConfig().RollBackNum
+	if target > curBlock.Number()+1 || target+rollBackNum <= curBlock.Number() {
+		return g_error.ErrTargetOutOfRange
+	}
+
+	// roll back block number
+	for i := target; i <= curBlock.Number(); i++ {
+		chain.ChainState.Rollback(i)
+	}
+
+	// roll back current block
+	tarBlock := chain.GetBlockByNumber(target - 1)
+	if tarBlock == nil {
+		return g_error.ErrPreTargetBlockIsNil
+	} else {
+		chain.currentBlock.Store(tarBlock)
+		chain.currentHeader.Store(tarBlock.Header())
+		return nil
+	}
 }

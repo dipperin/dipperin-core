@@ -21,7 +21,6 @@ import "errors"
 // peer type error
 var (
 	PeerTypeError                 = errors.New("peer isn't verifier or bootNodeVerifier")
-	ProofGenerateError            = errors.New("generate vrf proof error")
 	AddressIsNotVerifierBootNode  = errors.New("the Address isn't verifier boot node")
 	ProposalMsgDecodeError        = errors.New("proposal msg decode error")
 	MinimalBlockDecodeError       = errors.New("decode minimal block msg error")
@@ -32,6 +31,5 @@ var (
 	AlreadyHaveVoteMsgError       = errors.New("already have this vote msg")
 	GenProposalConfigError        = errors.New("generate proposal config error")
 	AliveVoteBlockHashError       = errors.New("the alive verifier vote block hash error")
-	EmptyBlockIsNil               = errors.New("the empty block is nil")
 	ProposeNotEnough              = errors.New("the propose isn't enough")
 )

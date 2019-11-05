@@ -105,5 +105,4 @@ func TestCacheChainState_CurrentBlock(t *testing.T) {
 
 	assert.Error(t, cs.Rollback(curB.Number()+3))
 	assert.NoError(t, cs.Rollback(curB.Number()+1))
-	assert.NoError(t, cs.Rollback(curB.Number()))
 }

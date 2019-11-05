@@ -17,8 +17,6 @@
 package middleware
 
 import (
-	"errors"
-	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/chain-config"
@@ -100,41 +98,6 @@ func ValidateBlockTxs(c *BlockContext) Middleware {
 	}
 }
 
-// TODO The size of transaction will influence the transaction fee?
-//func ValidTxSizeM(c *TxContext) Middleware {
-//	return func() error {
-//		return ValidTxSize(c.Tx)
-//	}
-//}
-//
-//// check whether the sender and the amount are correct
-//func ValidTxSenderM(c *TxContext) Middleware {
-//	return func() error {
-//		return ValidTxSender(c.Tx, c.Chain, c.BlockHeight)
-//	}
-//}
-//
-//// do checking for different types of transactions
-//func ValidTxByTypeM(c *TxContext) Middleware {
-//	return func() error {
-//		validator := txValidators[c.Tx.GetType()]
-//		if validator == nil {
-//			return g_error.ErrInvalidTxType
-//		}
-//		if err := validator(c.Tx, c.Chain, c.BlockHeight); err != nil {
-//			return err
-//		}
-//		return nil
-//	}
-//}
-
-/*func ValidTxSize(tx model.AbstractTransaction) error {
-	if tx.Size() > chain_config.MaxTxSize {
-		return g_error.ErrTxOverSize
-	}
-	return nil
-}*/
-
 // valid sender and amount
 func ValidTxSender(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
 	economy := chain.GetEconomyModel()
@@ -151,7 +114,8 @@ func ValidTxSender(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 	}
 
 	if gas > tx.GetGasLimit() {
-		return fmt.Errorf("gas limit is to low, need:%v got:%v", gas, tx.GetGasLimit())
+		log.Error("tx gas limit is too low", "need", gas, "got", tx.GetGasLimit())
+		return g_error.ErrTxGasLimitNotEnough
 	}
 
 	// log.Info("ValidTxSender the blockHeight is:","blockHeight",blockHeight)
@@ -177,7 +141,7 @@ func ValidTxSender(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 
 	log.Info("the credit and the usage is:", "credit", credit, "usage", usage)
 	if credit.Cmp(usage) < 0 {
-		return state_processor.NotEnoughBalanceError
+		return g_error.ErrTxSenderBalanceNotEnough
 	}
 	return nil
 }
@@ -209,10 +173,6 @@ func validTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uin
 		return err
 	}
 
-	/*	if err := ValidTxSize(tx); err != nil {
-		return err
-	}*/
-
 	validator := txValidators[tx.GetType()]
 	if validator == nil {
 		return g_error.ErrInvalidTxType
@@ -227,7 +187,7 @@ func validTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uin
 
 func validRegisterTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
 	if tx.Amount().Cmp(economy_model.MiniPledgeValue) == -1 {
-		return g_error.ErrDelegatesNotEnough
+		return g_error.ErrTxDelegatesNotEnough
 	}
 	return nil
 }
@@ -259,7 +219,7 @@ func validCancelTx(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 		return err
 	}
 	if stake.Cmp(big.NewInt(0)) == 0 {
-		return state_processor.SendRegisterTxFirst
+		return g_error.ValidateSendRegisterTxFirst
 	}
 
 	// whether sent cancel tx
@@ -268,7 +228,7 @@ func validCancelTx(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 		return err
 	}
 	if lastBlock != 0 {
-		return state_processor.SendRegisterTxFirst
+		return g_error.ValidateSendRegisterTxFirst
 	}
 	return nil
 }
@@ -338,10 +298,10 @@ func validEvidenceTime(tx model.AbstractTransaction, chain ChainInterface, block
 		current := chainReader.CurrentBlock().Number()
 		slotSpace := (current+1)/config.SlotSize - lastBlock/config.SlotSize
 		if slotSpace > config.StakeLockSlot {
-			return errors.New("invalid evidence time")
+			return g_error.ErrInvalidEvidenceTime
 		}
 		if current < lastBlock {
-			return errors.New("invalid evidence time")
+			return g_error.ErrInvalidEvidenceTime
 		}
 	}
 	// == 0 no err?
@@ -352,7 +312,7 @@ func conflictVote(tx model.AbstractTransaction, chain ChainInterface, blockHeigh
 	extraData := tx.ExtraData()
 	proofData := model.Proofs{}
 	if err := rlp.DecodeBytes(extraData, &proofData); err != nil {
-		return errors.New(fmt.Sprintf("decode proof data failed: %v", err))
+		return err
 	}
 	voteA := proofData.VoteA
 	voteB := proofData.VoteB
@@ -369,12 +329,12 @@ func conflictVote(tx model.AbstractTransaction, chain ChainInterface, blockHeigh
 
 	// Two vote conflict check
 	if voteA.GetType() != voteB.GetType() || voteA.GetViewID() != voteB.GetViewID() || voteA.GetHeight() != voteB.GetHeight() || strings.Compare(voteA.GetBlockHash(), voteB.GetBlockHash()) == 0 || !voteA.GetAddress().IsEqual(voteB.GetAddress()) {
-		return errors.New("vote not conflict")
+		return g_error.ErrEvidenceVoteNotConflict
 	}
 
 	// Test target match voter
 	if !voteA.GetAddress().IsEqual(cs_crypto.GetNormalAddressFromEvidence(*tx.To())) {
-		return errors.New("invalid to address")
+		return g_error.ErrTxTargetAddressNotMatch
 	}
 	return nil
 }
@@ -399,7 +359,7 @@ func validUnStakeTime(tx model.AbstractTransaction, chain ChainInterface, blockH
 		return err
 	}
 	if stake.Cmp(big.NewInt(0)) == 0 {
-		return state_processor.SendRegisterTxFirst
+		return g_error.ValidateSendRegisterTxFirst
 	}
 
 	// whether sent cancel tx
@@ -408,14 +368,14 @@ func validUnStakeTime(tx model.AbstractTransaction, chain ChainInterface, blockH
 		return err
 	}
 	if lastBlock == 0 {
-		return state_processor.SendCancelTxFirst
+		return g_error.ValidateSendCancelTxFirst
 	}
 
 	// whether in lockup period
 	current := chainReader.CurrentBlock().Number()
 	slotSpace := (current+1)/config.SlotSize - lastBlock/config.SlotSize
 	if slotSpace < config.StakeLockSlot {
-		return errors.New("invalid unStake time")
+		return g_error.ErrInvalidUnStakeTime
 	}
 	return nil
 }
@@ -439,7 +399,7 @@ func haveStack(tx model.AbstractTransaction, chain ChainInterface, blockHeight u
 	}
 
 	if stake.Cmp(big.NewInt(0)) == 0 {
-		return state_processor.NotEnoughStakeErr
+		return g_error.ErrTxSenderStakeNotEnough
 	}
 
 	return nil
@@ -459,7 +419,7 @@ func validTargetStake(tx model.AbstractTransaction, chain ChainInterface, blockH
 		return err
 	}
 	if stake.Cmp(big.NewInt(0)) == 0 {
-		return errors.New("not enough stake")
+		return g_error.ErrTxTargetStakeNotEnough
 	}
 	return nil
 }

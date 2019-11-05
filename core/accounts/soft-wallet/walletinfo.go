@@ -255,7 +255,7 @@ func (w *WalletInfo) paddingUsedAccount(GetAddressRelatedInfo accounts.AddressIn
 		//check if the derived account is used
 		nonce, err := GetAddressRelatedInfo.GetTransactionNonce(account.Address)
 		if err != nil {
-			if err == g_error.AccountNotExist {
+			if err == g_error.ErrAccountNotExist {
 				break
 			} else {
 				return err

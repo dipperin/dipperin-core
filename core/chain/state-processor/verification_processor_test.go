@@ -56,9 +56,9 @@ func TestAccountStateDB_ProcessVerification(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = processor.ProcessVerification(verify, 0)
-	assert.Equal(t, g_error.AccountNotExist, err)
+	assert.Equal(t, g_error.ErrAccountNotExist, err)
 	err = processor.ProcessVerifierNumber(common.HexToAddress("234"))
-	assert.Equal(t, g_error.AccountNotExist, err)
+	assert.Equal(t, g_error.ErrAccountNotExist, err)
 }
 
 func TestAccountStateDB_ProcessPerformance(t *testing.T) {
@@ -71,7 +71,7 @@ func TestAccountStateDB_ProcessPerformance(t *testing.T) {
 	assert.Equal(t, uint64(30), aliceOriginalPerformance)
 
 	err = processor.ProcessPerformance(common.HexToAddress("123"), reward)
-	assert.Equal(t, g_error.AccountNotExist, err)
+	assert.Equal(t, g_error.ErrAccountNotExist, err)
 
 	err = processor.ProcessPerformance(aliceAddr, reward)
 	assert.NoError(t, err)

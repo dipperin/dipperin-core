@@ -17,7 +17,6 @@
 package middleware
 
 import (
-	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/chain-config"
@@ -45,25 +44,20 @@ func ValidateBlockNumber(c *BlockContext) Middleware {
 	return func() error {
 		log.Middleware.Info("the save block info is:", "block", c.Block)
 		if c.Chain == nil || c.Block == nil {
-			fmt.Println(c.Chain == nil, c.Block == nil)
-			return errors.New("chain or block cannot be null")
+			return g_error.ErrChainOrBlockIsNil
 		}
-		cur := c.Chain.CurrentBlock()
-		if cur.Number() > c.Block.Number() {
+
+		rollBackNum := c.Chain.GetChainConfig().RollBackNum
+		curBlock := c.Chain.CurrentBlock()
+		if curBlock.Number() >= c.Block.Number()+rollBackNum {
 			return g_error.ErrBlockHeightTooLow
 		}
-		if cur.Number() == c.Block.Number() && !c.Block.IsSpecial() {
-			log.Error("the current block and wait-verified block number  is", "cur", cur.Number(), "verified", c.Block.Number())
-			return g_error.ErrBlockHeightIsCurrentAndIsNotSpecial
+
+		if curBlock.Number() >= c.Block.Number() && !c.Block.IsSpecial() {
+			return g_error.ErrNormalBlockHeightTooLow
 		}
 
-		// if insert same height special block, continue
-		if c.Block.Number() == cur.Number() && c.Block.IsSpecial() {
-			log.Info("insert same height special block", "num", c.Block.Number())
-			return c.Next()
-		}
-
-		if cur.Number()+1 != c.Block.Number() {
+		if curBlock.Number()+1 < c.Block.Number() {
 			max := big.NewInt(time.Now().Add(time.Second * maxTimeFutureBlocks).UnixNano())
 			cmpResult := c.Block.Timestamp().Cmp(max)
 			//log.Info("check future block valid", "cmp result", cmpResult, "block timestamp", block.Timestamp().String(), "max to", max.String())
@@ -87,8 +81,6 @@ func ValidateBlockHash(c *BlockContext) Middleware {
 		}
 
 		if !c.Block.PreHash().IsEqual(preBlock.Hash()) {
-			//fmt.Println("pre block", preBlock, preBlock.Hash())
-			//fmt.Println("c.Block", c.Block, c.Block.Hash())
 			log.Error("pre block hash not match", "block pre hash", c.Block.PreHash().Hex(),
 				"pre block hash", preBlock.Hash().Hex())
 			return g_error.ErrPreBlockHashNotMatch
@@ -97,19 +89,6 @@ func ValidateBlockHash(c *BlockContext) Middleware {
 		return c.Next()
 	}
 }
-
-/*func ValidateBlockSize(c *BlockContext) Middleware {
-	return func() error {
-		bb, err := rlp.EncodeToBytes(c.Block)
-		if err != nil {
-			return err
-		}
-		if len(bb) > chain_config.MaxBlockSize {
-			return g_error.ErrBlockSizeTooLarge
-		}
-		return c.Next()
-	}
-}*/
 
 func ValidateBlockDifficulty(c *BlockContext) Middleware {
 	return func() error {
@@ -144,7 +123,7 @@ func ValidateBlockDifficulty(c *BlockContext) Middleware {
 		if !c.Block.RefreshHashCache().ValidHashForDifficulty(c.Block.Difficulty()) {
 			log.Error("ValidateBlockDifficulty failed")
 			fmt.Println(c.Block.Header().(*model.Header).String())
-			return g_error.ErrWrongHashDiff
+			return g_error.ErrInvalidHashDiff
 		}
 		log.Middleware.Info("ValidateBlockDifficulty success")
 		return c.Next()
@@ -156,7 +135,7 @@ func ValidateBlockCoinBase(c *BlockContext) Middleware {
 		log.Middleware.Info("ValidateBlockCoinBase start")
 		if c.Block.IsSpecial() {
 			if !model.CheckAddressIsVerifierBootNode(c.Block.CoinBaseAddress()) {
-				return g_error.ErrSpecialInvalidCoinBase
+				return g_error.ErrInvalidCoinBase
 			}
 		}
 		log.Middleware.Info("ValidateBlockCoinBase success")
@@ -178,7 +157,7 @@ func ValidateSeed(c *BlockContext) Middleware {
 		pk := block.Header().GetMinerPubKey()
 
 		if pk == nil {
-			return g_error.ErrNotGetPk
+			return g_error.ErrPkIsNil
 		}
 
 		result, err := crypto.VRFVerify(pk, seed, proof)
@@ -190,7 +169,7 @@ func ValidateSeed(c *BlockContext) Middleware {
 		}
 		address := cs_crypto.GetNormalAddress(*pk)
 		if !address.IsEqual(block.CoinBaseAddress()) {
-			return g_error.ErrPkNotIsCoinBase
+			return g_error.ErrCoinBaseNotMatch
 		}
 		log.Middleware.Info("ValidateSeed success")
 		return c.Next()
@@ -201,7 +180,7 @@ func ValidateBlockVersion(c *BlockContext) Middleware {
 	return func() error {
 		log.Middleware.Info("ValidateBlockVersion start")
 		if c.Block.Version() != c.Chain.GetChainConfig().Version {
-			return g_error.ErrBlockVer
+			return g_error.ErrInvalidBlockVersion
 		}
 		log.Middleware.Info("ValidateBlockVersion end")
 		return c.Next()
@@ -213,7 +192,7 @@ func ValidateBlockTime(c *BlockContext) Middleware {
 		log.Middleware.Info("ValidateBlockTime start")
 		blockTime := c.Block.Timestamp().Int64()
 		if time.Now().Add(c.Chain.GetChainConfig().BlockTimeRestriction).UnixNano() < blockTime {
-			return g_error.ErrBlockTimeStamp
+			return g_error.ErrInvalidBlockTimeStamp
 		}
 		log.Middleware.Info("ValidateBlockTime success")
 		return c.Next()
@@ -226,12 +205,12 @@ func ValidateGasLimit(c *BlockContext) Middleware {
 		log.Middleware.Info("ValidateGasLimit start")
 		if c.Block.IsSpecial() {
 			return c.Next()
-
 		}
 		currentGasLimit := c.Block.Header().GetGasLimit()
 		// Verify that the gas limit is <= 2^63-1
-		if currentGasLimit > chain_config.MaxGasLimit {
-			return errors.New(fmt.Sprintf("invalid gasLimit: have %v, max %v", currentGasLimit, chain_config.MaxGasLimit))
+		if currentGasLimit > chain_config.MaxGasLimit || currentGasLimit < model2.MinGasLimit {
+			log.Error("Invalid GasLimit", "curGasLimit", currentGasLimit, "maxGasLimit", chain_config.MaxGasLimit, "minGasLimit", model2.MinGasLimit)
+			return g_error.ErrInvliadHeaderGasLimit
 		}
 		parentGasLimit := c.Chain.GetLatestNormalBlock().Header().GetGasLimit()
 		diff := int64(currentGasLimit) - int64(parentGasLimit)
@@ -240,8 +219,9 @@ func ValidateGasLimit(c *BlockContext) Middleware {
 		}
 		limit := parentGasLimit / model2.GasLimitBoundDivisor
 
-		if uint64(diff) >= limit || currentGasLimit < model2.MinGasLimit {
-			return errors.New(fmt.Sprintf("invalid gas limit: have %d, want %d += %d", currentGasLimit, parentGasLimit, limit))
+		if uint64(diff) >= limit {
+			log.Error("Invalid GasLimit with parent block", "curGasLimit", currentGasLimit, "parentGasLimit", parentGasLimit, "limitDiff", limit)
+			return g_error.ErrHeaderGasLimitNotEnough
 		}
 		log.Middleware.Info("ValidateGasLimit success")
 		return c.Next()

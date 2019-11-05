@@ -57,7 +57,7 @@ func TestBlockProcessor_Process(t *testing.T) {
 	// blockNum = 9 isn't change point
 	block = createBlock(10)
 	err = processor.Process(block, fakeEconomyModel{})
-	assert.Equal(t, g_error.AccountNotExist, err)
+	assert.Equal(t, g_error.ErrAccountNotExist, err)
 
 	// blockNum = 19 is change point
 	block = model.CreateBlock(20, common.Hash{}, 0)
@@ -78,7 +78,7 @@ func TestBlockProcessor_Process_Error(t *testing.T) {
 
 	// TxIterator inner error
 	err = processor.Process(block, fakeEconomyModel{})
-	assert.Equal(t, g_error.UnknownTxTypeErr, err)
+	assert.Equal(t, g_error.ErrUnknownTxType, err)
 
 	// doReward- RewardCoinBase no coin base error
 	block = model.NewBlock(header, nil, nil)
@@ -98,7 +98,7 @@ func TestBlockProcessor_processorCommitList_Error(t *testing.T) {
 
 	block = createBlock(20)
 	err = processor.processCommitList(block, false)
-	assert.Equal(t, g_error.AccountNotExist, err)
+	assert.Equal(t, g_error.ErrAccountNotExist, err)
 
 	for i := 0; i < len(VerifierAddress); i++ {
 		err = processor.NewAccountState(VerifierAddress[i])
@@ -106,7 +106,7 @@ func TestBlockProcessor_processorCommitList_Error(t *testing.T) {
 	}
 
 	err = processor.processCommitList(block, false)
-	assert.Equal(t, g_error.AccountNotExist, err)
+	assert.Equal(t, g_error.ErrAccountNotExist, err)
 }
 
 func TestBlockProcessor_doReward_Error(t *testing.T) {

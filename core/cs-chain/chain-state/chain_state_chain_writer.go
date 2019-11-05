@@ -17,7 +17,6 @@
 package chain_state
 
 import (
-	"errors"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
@@ -34,5 +33,7 @@ func (cs *ChainState) SaveBlockWithoutVotes(block model.AbstractBlock) error {
 }
 
 func (cs *ChainState) Rollback(target uint64) error {
-	return errors.New("Rollback do nothings")
+	cs.ChainDB.DeleteBlockHashByNumber(target)
+	log.Info("chain state DeleteBlockHashByNumber", "num", target)
+	return nil
 }

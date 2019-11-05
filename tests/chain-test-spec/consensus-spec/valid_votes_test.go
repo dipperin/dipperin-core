@@ -65,7 +65,7 @@ func (suite *votesTestSuite) Test_ValidateVotesForBFT_ErrFirstBlockShouldNotHave
 	// create middleware context
 	context := middleware.NewBftBlockContext(block, nil, suite.ChainState)
 	context.Use(middleware.ValidateVotesForBFT(&context.BlockContext))
-	suite.EqualError(context.Process(), g_error.ErrFirstBlockShouldNotHaveVerifications.Error())
+	suite.EqualError(context.Process(), g_error.ErrFirstBlockHaveVerifications.Error())
 }
 
 func (suite *votesTestSuite) Test_ValidateVotesForBFT_ErrSameVoteSingerInVotes() {

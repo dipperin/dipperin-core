@@ -145,7 +145,7 @@ func TestCheckAndChangeHexToAddress(t *testing.T) {
 	assert.Equal(t, common.Address{}, addr)
 
 	addr, err = CheckAndChangeHexToAddress("0x12345586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
-	assert.Equal(t, g_error.UnknownTxTypeErr, err)
+	assert.Equal(t, g_error.ErrUnknownTxType, err)
 	assert.Equal(t, common.Address{}, addr)
 
 	addr, err = CheckAndChangeHexToAddress(from)
