@@ -209,9 +209,9 @@ func (m *ServiceManager) AddService(service NodeService) {
 	log.Info("the service type is:", "name", serviceType)
 
 	switch serviceType {
-	case "*service.VenusFullChainService", "*accounts.WalletManager",
-		"*rpc_interface.Service", "*tx_pool.TxPool", "*g_metrics.PrometheusMetricsServer",
-		"*vm_log_search.ChainIndexer":
+	case "*accounts.WalletManager", "*rpc_interface.Service",
+		 "*tx_pool.TxPool", "*g_metrics.PrometheusMetricsServer",
+		 "*vm_log_search.ChainIndexer":
 		m.services[NotNeedWalletSignerService] = append(m.services[NotNeedWalletSignerService], service)
 	default:
 		m.services[NeedWalletSignerService] = append(m.services[NeedWalletSignerService], service)
