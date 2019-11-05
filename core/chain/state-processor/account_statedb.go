@@ -1452,7 +1452,7 @@ func (state *AccountStateDB) AddLog(addedLog *model2.Log) error {
 	old := state.GetLogs(txHash)
 	current := append(old, addedLog)
 	state.logs[txHash] = current
-	log.Info("Log Added", "txHash", txHash, "logData", addedLog.Data)
+	//log.Info("Log Added", "txHash", txHash, "logData", addedLog.Data)
 	state.stateChangeList.append(logsChange{TxHash: &txHash, Prev: old, Current: current, ChangeType: LogsChange})
 	return nil
 }
