@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	log2 "github.com/dipperin/dipperin-core/third-party/log"
 	"reflect"
 	"runtime"
 	"strings"
@@ -131,6 +132,7 @@ func (s *Server) serveRequest(ctx context.Context, codec ServerCodec, singleShot
 			const size = 64 << 10
 			buf := make([]byte, size)
 			buf = buf[:runtime.Stack(buf, false)]
+			log2.Rpc.Error(string(buf))
 			log.Error(string(buf))
 		}
 		s.codecsMu.Lock()
@@ -160,6 +162,7 @@ func (s *Server) serveRequest(ctx context.Context, codec ServerCodec, singleShot
 	for atomic.LoadInt32(&s.run) == 1 {
 		reqs, batch, err := s.readRequest(codec)
 		if err != nil {
+			log2.Rpc.Error("serveRequest error","err",err)
 			// If a parsing error occurred, send an error
 			if err.Error() != "EOF" {
 				log.Debug(fmt.Sprintf("read error %v\n", err))
@@ -173,6 +176,7 @@ func (s *Server) serveRequest(ctx context.Context, codec ServerCodec, singleShot
 		// check if server is ordered to shutdown and return an error
 		// telling the client that his request failed.
 		if atomic.LoadInt32(&s.run) != 1 {
+			log2.Rpc.Error("the server is ordered to shutdown and return an error")
 			err = &shutdownError{}
 			if batch {
 				resps := make([]interface{}, len(reqs))
@@ -198,6 +202,7 @@ func (s *Server) serveRequest(ctx context.Context, codec ServerCodec, singleShot
 		pend.Add(1)
 
 		go func(reqs []*serverRequest, batch bool) {
+			//log2.Rpc.Info("exec server request","batch",batch)
 			defer pend.Done()
 			if batch {
 				s.execBatch(ctx, codec, reqs)
@@ -334,6 +339,7 @@ func (s *Server) exec(ctx context.Context, codec ServerCodec, req *serverRequest
 	}
 
 	if err := codec.Write(response); err != nil {
+		log2.Rpc.Error("server exec write response error","err",err)
 		log.Error(fmt.Sprintf("%v\n", err))
 		codec.Close()
 	}

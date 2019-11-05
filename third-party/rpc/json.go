@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	log2 "github.com/dipperin/dipperin-core/third-party/log"
 	"io"
 	"reflect"
 	"strconv"
@@ -140,8 +141,11 @@ func (c *jsonCodec) ReadRequestHeaders() ([]rpcRequest, bool, Error) {
 	c.decMu.Lock()
 	defer c.decMu.Unlock()
 
+	log2.Rpc.Info("call ReadRequestHeaders start ~~~~")
+
 	var incomingMsg json.RawMessage
 	if err := c.decode(&incomingMsg); err != nil {
+		log2.Rpc.Error("ReadRequestHeaders error~~","err",err)
 		return nil, false, &invalidRequestError{err.Error()}
 	}
 	if isBatch(incomingMsg) {

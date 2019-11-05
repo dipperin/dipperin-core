@@ -230,9 +230,16 @@ func (cs *CsChainService) saveBftBlock(block model.AbstractBlock, seenCommits []
 	switch err {
 	case nil:
 
-		if err := cs.CacheDB.SaveSeenCommits(block.Number(), common.Hash{}, seenCommits); err != nil {
+		if err = cs.CacheDB.SaveSeenCommits(block.Number(), common.Hash{}, seenCommits); err != nil {
 			log.PBft.Error("save seenCommits failed", "err", err)
 			return err
+		}
+
+		if block.Number() > cs.ChainConfig.SlotSize {
+			if err = cs.CacheDB.DeleteSeenCommits(block.Number()-cs.ChainConfig.SlotSize, common.Hash{}); err != nil {
+				log.PBft.Error("delete seenCommits failed", "err", err)
+				return err
+			}
 		}
 
 		// tx pool

@@ -94,6 +94,7 @@ type StateWriter interface {
 type CacheDB interface {
 	GetSeenCommits(blockHeight uint64, blockHash common.Hash) (result []model.AbstractVerification, err error)
 	SaveSeenCommits(blockHeight uint64, blockHash common.Hash, commits []model.AbstractVerification) error
+	DeleteSeenCommits(blockHeight uint64, blockHash common.Hash) error
 }
 
 //go:generate mockgen -destination=./txpool_mock_test.go -package=cs_chain github.com/dipperin/dipperin-core/core/cs-chain TxPool

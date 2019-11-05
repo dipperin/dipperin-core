@@ -984,8 +984,13 @@ func (api *DipperinVenusApi) GetVerifiersBySlot(slotNum uint64) ([]common.Addres
 	return api.service.GetVerifiers(slotNum), nil
 }
 
-func (api *DipperinVenusApi) GetSlot(block model.AbstractBlock) *uint64 {
-	return api.service.GetSlot(block)
+func (api *DipperinVenusApi) GetSlotByNumber(blockNum uint64) (uint64, error) {
+	block, _ := api.service.GetBlockByNumber(blockNum)
+	if block == nil {
+		return uint64(0), errors.New("invalid block number")
+	}
+	slot := api.service.GetSlot(block)
+	return *slot, nil
 }
 
 // get current verifiers
@@ -1277,8 +1282,14 @@ func (api *DipperinVenusApi) GetLogs(blockHash common.Hash, fromBlock, toBlock u
 //	return api.service.GetLogs(blockHash, fromBlock, toBlock, Addresses, tps)
 //}
 
-func (api *DipperinVenusApi) GetTxActualFee(txHash common.Hash) (*big.Int, error) {
-	return api.service.GetTxActualFee(txHash)
+func (api *DipperinVenusApi) GetTxActualFee(txHash common.Hash) (resp *CurBalanceResp, err error) {
+	fee, err := api.service.GetTxActualFee(txHash)
+	if err != nil {
+		return nil, err
+	}
+	return &CurBalanceResp{
+		Balance: (*hexutil.Big)(fee),
+	}, nil
 }
 
 func (api *DipperinVenusApi) GetReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {

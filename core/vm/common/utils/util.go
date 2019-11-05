@@ -35,7 +35,7 @@ var (
 	errFuncNameNotFound       = errors.New("vm_utils: function name not found")
 )
 
-// RLP([funName][params])
+// RLP([funcName]["param1,param2,param3..."]) => RLP([funName][param1][param2][param3]...)
 func ParseCallContractData(abi []byte, rlpInput []byte) (extraData []byte, err error) {
 	if rlpInput == nil || len(rlpInput) == 0 {
 		return nil, errEmptyInput
@@ -51,6 +51,7 @@ func ParseCallContractData(abi []byte, rlpInput []byte) (extraData []byte, err e
 
 	inRlpList := inputRlpList.([]interface{})
 	if len(inRlpList) < 1 || len(inRlpList) > 2 {
+		log.Info("ParseCallContractData#inRlpList.Len", "len", len(inRlpList), "rlpInput", rlpInput)
 		err = errInsufficientParams
 		return
 	}
@@ -123,7 +124,7 @@ func ParseCallContractData(abi []byte, rlpInput []byte) (extraData []byte, err e
 	return rlp.EncodeToBytes(rlpParams)
 }
 
-// RLP([code][abi][init params])
+// RLP([code][abi]["param1,param2,param3..."]) => RLP([code][abi][param1][param2][param3]...)
 func ParseCreateContractData(rlpData []byte) (extraData []byte, err error) {
 	if rlpData == nil || len(rlpData) == 0 {
 		return nil, errEmptyInput
@@ -216,6 +217,30 @@ func ParseCreateContractData(rlpData []byte) (extraData []byte, err error) {
 		rlpParams = append(rlpParams, re)
 	}
 	return rlp.EncodeToBytes(rlpParams)
+}
+
+// input = RLP([funcName][params])
+func ParseInputForFuncName(rlpData []byte) (funcName string, err error) {
+	if rlpData == nil || len(rlpData) == 0 {
+		return "", errEmptyInput
+	}
+
+	ptr := new(interface{})
+	rlp.Decode(bytes.NewReader(rlpData), &ptr)
+	rlpList := reflect.ValueOf(ptr).Elem().Interface()
+	if _, ok := rlpList.([]interface{}); !ok {
+		return "", errInvalidRlpFormat
+	}
+
+	iRlpList := rlpList.([]interface{})
+	if len(iRlpList) < 1 {
+		return "", errInsufficientParams
+	}
+
+	if v, ok := iRlpList[0].([]byte); ok {
+		funcName = string(v)
+	}
+	return
 }
 
 func ConvertInputs(src []byte, abiInput []InputParam) ([]byte, error) {

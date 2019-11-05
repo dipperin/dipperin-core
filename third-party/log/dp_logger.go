@@ -62,6 +62,7 @@ var (
 	Middleware *dpLogger
 	P2P        *dpLogger
 	Stack      *dpLogger
+	Rpc 	   *dpLogger
 	dpLoggers  map[string]*dpLogger
 )
 
@@ -77,6 +78,7 @@ func init() {
 	Middleware = DefaultDpLogger("Middleware", LvlError)
 	P2P = DefaultDpLogger("P2P", LvlInfo)
 	Stack = DefaultDpLogger("Stack", LvlInfo)
+	Rpc = DefaultDpLogger("Rpc", LvlInfo)
 
 	dpLoggers = map[string]*dpLogger{
 		"mpt":         Mpt,
@@ -90,6 +92,7 @@ func init() {
 		"Middleware":  Middleware,
 		"P2P":         P2P,
 		"Stack":       Stack,
+		"Rpc":		   Rpc,
 	}
 }
 
