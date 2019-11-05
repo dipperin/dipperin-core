@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/math"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
@@ -379,6 +380,7 @@ func (r *Resolver) envOrigin(vm *exec.VirtualMachine) int64 {
 func (r *Resolver) envCaller(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
 	caller := r.Service.Caller().Address()
+	log.Info("envCaller", "caller", caller)
 	copy(vm.Memory.Memory[offset:], caller.Bytes())
 	return 0
 }
@@ -486,23 +488,31 @@ func (r *Resolver) envCallTransfer(vm *exec.VirtualMachine) int64 {
 	}
 }
 
-/*func (r *Resolver) envDipperCall(vm *exec.VirtualMachine) int64 {
+func (r *Resolver) envDipperCall(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
-	_, err := r.Service.ResolverCall(vm.Memory.Memory[addr:addr+20], vm.Memory.Memory[params:params+paramsLen])
+
+	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params : params+paramsLen]
+	log.Info("envDipperCall", "contractAddr", contractAddr, "inputs", inputs)
+	_, err := r.Service.ResolverCall(contractAddr, inputs)
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
 	}
 	return 0
 }
+
 func (r *Resolver) envDipperDelegateCall(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	_, err := r.Service.ResolverDelegateCall(vm.Memory.Memory[addr:addr+20], vm.Memory.Memory[params:params+paramsLen])
+	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params : params+paramsLen]
+	log.Info("envDipperDelegateCall", "contractAddr", contractAddr, "inputs", inputs)
+	_, err := r.Service.ResolverDelegateCall(contractAddr, inputs)
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
@@ -515,13 +525,17 @@ func (r *Resolver) envDipperCallInt64(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	ret, err := r.Service.ResolverCall(vm.Memory.Memory[addr:addr+20], vm.Memory.Memory[params:params+paramsLen])
+	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params : params+paramsLen]
+	log.Info("envDipperCallInt64", "contractAddr", contractAddr, "inputs", inputs)
+	ret, err := r.Service.ResolverCall(contractAddr, inputs)
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
 	}
-
-	return utils.BytesToInt64(ret)
+	res := utils.Align32BytesConverter(ret, "int64")
+	log.Info("envDipperCallInt64", "ret", res)
+	return res.(int64)
 }
 
 func (r *Resolver) envDipperDelegateCallInt64(vm *exec.VirtualMachine) int64 {
@@ -529,41 +543,56 @@ func (r *Resolver) envDipperDelegateCallInt64(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	ret, err := r.Service.ResolverDelegateCall(vm.Memory.Memory[addr:addr+20], vm.Memory.Memory[params:params+paramsLen])
+	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params : params+paramsLen]
+	log.Info("envDipperDelegateCallInt64", "contractAddr", contractAddr, "inputs", inputs)
+	ret, err := r.Service.ResolverDelegateCall(contractAddr, inputs)
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
 	}
-	return utils.BytesToInt64(ret)
+	res := utils.Align32BytesConverter(ret, "int64")
+	log.Info("envDipperDelegateCallInt64", "ret", res)
+	return res.(int64)
 }
 
-func (r *Resolver) envDipperCallString(vmValue *exec.VirtualMachine) int64 {
-	addr := int(int32(vmValue.GetCurrentFrame().Locals[0]))
-	params := int(int32(vmValue.GetCurrentFrame().Locals[1]))
-	paramsLen := int(int32(vmValue.GetCurrentFrame().Locals[2]))
+func (r *Resolver) envDipperCallString(vm *exec.VirtualMachine) int64 {
+	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
+	params := int(int32(vm.GetCurrentFrame().Locals[1]))
+	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	ret, err := r.Service.ResolverCall(vmValue.Memory.Memory[addr:addr+20], vmValue.Memory.Memory[params:params+paramsLen])
+	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params : params+paramsLen]
+	log.Info("envDipperCallString", "contractAddr", contractAddr, "inputs", inputs)
+	ret, err := r.Service.ResolverCall(contractAddr, inputs)
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
 	}
-	return MallocString(vmValue, string(ret))
+	res := utils.Align32BytesConverter(ret, "string")
+	log.Info("envDipperCallString", "ret", res)
+	return MallocString(vm, string(ret))
 }
 
-func (r *Resolver) envDipperDelegateCallString(vmValue *exec.VirtualMachine) int64 {
-	addr := int(int32(vmValue.GetCurrentFrame().Locals[0]))
-	params := int(int32(vmValue.GetCurrentFrame().Locals[1]))
-	paramsLen := int(int32(vmValue.GetCurrentFrame().Locals[2]))
+func (r *Resolver) envDipperDelegateCallString(vm *exec.VirtualMachine) int64 {
+	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
+	params := int(int32(vm.GetCurrentFrame().Locals[1]))
+	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	ret, err := r.Service.ResolverDelegateCall(vmValue.Memory.Memory[addr:addr+20], vmValue.Memory.Memory[params:params+paramsLen])
+	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params : params+paramsLen]
+	log.Info("envDipperDelegateCallString", "contractAddr", contractAddr, "inputs", inputs)
+	ret, err := r.Service.ResolverDelegateCall(contractAddr, inputs)
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
 	}
-	return MallocString(vmValue, string(ret))
-}*/
+	res := utils.Align32BytesConverter(ret, "string")
+	log.Info("envDipperDelegateCallString", "ret", res)
+	return MallocString(vm, string(ret))
+}
 
-/*func envDipperCallGasCost(vm *exec.VirtualMachine) (uint64, error) {
+func envDipperCallGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
@@ -573,4 +602,4 @@ func envDipperCallInt64GasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 func envDipperCallStringGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
-}*/
+}

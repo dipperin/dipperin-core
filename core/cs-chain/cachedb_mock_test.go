@@ -34,6 +34,20 @@ func (m *MockCacheDB) EXPECT() *MockCacheDBMockRecorder {
 	return m.recorder
 }
 
+// DeleteSeenCommits mocks base method
+func (m *MockCacheDB) DeleteSeenCommits(arg0 uint64, arg1 common.Hash) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteSeenCommits", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteSeenCommits indicates an expected call of DeleteSeenCommits
+func (mr *MockCacheDBMockRecorder) DeleteSeenCommits(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSeenCommits", reflect.TypeOf((*MockCacheDB)(nil).DeleteSeenCommits), arg0, arg1)
+}
+
 // GetSeenCommits mocks base method
 func (m *MockCacheDB) GetSeenCommits(arg0 uint64, arg1 common.Hash) ([]model.AbstractVerification, error) {
 	m.ctrl.T.Helper()

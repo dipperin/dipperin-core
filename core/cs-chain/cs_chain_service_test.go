@@ -42,6 +42,10 @@ import (
 
 type fakeCacheDB struct{}
 
+func (c *fakeCacheDB) DeleteSeenCommits(blockHeight uint64, blockHash common.Hash) error {
+	panic("implement me")
+}
+
 func (c *fakeCacheDB) GetSeenCommits(blockHeight uint64, blockHash common.Hash) (result []model.AbstractVerification, err error) {
 	return nil, nil
 }

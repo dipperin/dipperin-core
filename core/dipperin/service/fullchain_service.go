@@ -2079,7 +2079,7 @@ func (service *VenusFullChainService) doCall(msg state_processor.Message, txHash
 }
 
 func (service *VenusFullChainService) CheckConstant(to common.Address, data []byte) (bool, string, *utils.WasmAbi, error) {
-	funcName, err := vm.ParseInputForFuncName(data)
+	funcName, err := utils.ParseInputForFuncName(data)
 	if err != nil {
 		log.Error("ParseInputForFuncName failed", "err", err)
 		return false, "", nil, err

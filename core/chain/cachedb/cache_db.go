@@ -64,6 +64,10 @@ func (cache *CacheDB) SaveSeenCommits(blockHeight uint64, blockHash common.Hash,
 	return cache.save(seenCommitsKey(blockHeight, blockHash), commits)
 }
 
+func (cache *CacheDB) DeleteSeenCommits(blockHeight uint64, blockHash common.Hash) error {
+	return cache.delete(seenCommitsKey(blockHeight, blockHash))
+}
+
 func (cache *CacheDB) save(key []byte, data interface{}) error {
 	dataB, err := rlp.EncodeToBytes(data)
 	if err != nil {
@@ -72,9 +76,12 @@ func (cache *CacheDB) save(key []byte, data interface{}) error {
 	return cache.db.Put(key, dataB)
 }
 
-// get bytes
 func (cache *CacheDB) get(key []byte) ([]byte, error) {
 	return cache.db.Get(key)
+}
+
+func (cache *CacheDB) delete(key []byte) error {
+	return cache.db.Delete(key)
 }
 
 // decode to result

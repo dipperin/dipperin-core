@@ -81,23 +81,6 @@ func TestWriteHeaderNumber_Error(t *testing.T) {
 	fakeDB.DeleteHeaderNumber(b.Hash())
 }
 
-func TestWriteHeadHeaderHash(t *testing.T) {
-	db := newChainDB()
-	b := createBlock(22)
-
-	assert.Equal(t, common.Hash{}, db.GetHeadHeaderHash())
-
-	db.SaveHeadHeaderHash(b.Hash())
-	assert.Equal(t, b.Hash(), db.GetHeadHeaderHash())
-}
-
-func TestWriteHeadHeaderHash_Error(t *testing.T) {
-	fakeDB := NewChainDB(fakeDataBase{}, newDecoder())
-	b := createBlock(22)
-
-	fakeDB.SaveHeadHeaderHash(b.Hash())
-}
-
 func TestWriteHeadBlockHash(t *testing.T) {
 	db := newChainDB()
 	b := createBlock(22)
