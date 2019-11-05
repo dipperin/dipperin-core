@@ -62,7 +62,7 @@ var (
 	Middleware *dpLogger
 	P2P        *dpLogger
 	Stack      *dpLogger
-	Rpc 	   *dpLogger
+	Rpc        *dpLogger
 	dpLoggers  map[string]*dpLogger
 )
 
@@ -92,7 +92,7 @@ func init() {
 		"Middleware":  Middleware,
 		"P2P":         P2P,
 		"Stack":       Stack,
-		"Rpc":		   Rpc,
+		"Rpc":         Rpc,
 	}
 }
 

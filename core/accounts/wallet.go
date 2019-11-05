@@ -18,6 +18,7 @@ package accounts
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
 	"math/big"
@@ -44,6 +45,15 @@ type WalletIdentifier struct {
 	//wallet file path
 	Path       string `json:"path"`
 	WalletName string `json:"walletName"`
+}
+
+func (w *WalletIdentifier) String() string  {
+	return fmt.Sprintf(
+		`
+     WalletType:   %d
+	 Path:         %s
+     WalletName:   %s
+    `, w.WalletType, w.Path, w.WalletName)
 }
 
 type Account struct {

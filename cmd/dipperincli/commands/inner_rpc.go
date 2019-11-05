@@ -17,6 +17,7 @@
 package commands
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/economy-model"
@@ -60,17 +61,17 @@ func (caller *rpcCaller) GetBlockDiffVerifierInfo(c *cli.Context) {
 		return
 	}
 
-	l.Info("the MasterVerifier address is:")
+	fmt.Println("","the MasterVerifier address is:")
 	printAddress(resp[economy_model.MasterVerifier])
-	l.Info("the CommitVerifier address is:")
+	fmt.Println("","the CommitVerifier address is:")
 	printAddress(resp[economy_model.CommitVerifier])
-	l.Info("the NotCommitVerifier address is:")
+	fmt.Println("","the NotCommitVerifier address is:")
 	printAddress(resp[economy_model.NotCommitVerifier])
 }
 
 func printAddress(addresses []common.Address) {
 	for _, address := range addresses {
-		l.Info("", "address", address.Hex())
+		fmt.Println("\t", "address:", address.Hex())
 	}
 }
 

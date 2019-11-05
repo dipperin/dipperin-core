@@ -81,11 +81,11 @@ func (caller *rpcCaller) CallContract(c *cli.Context) {
 		return
 	}
 
-	l.Info("the from is: ", "from", from.Hex())
-	l.Info("the to is: ", "to", to.Hex())
-	l.Info("the blockNum is: ", "num", blockNum)
-	l.Info("the funcName is:", "funcName", funcName)
-	//l.Info("the ExtraData is: ", "ExtraData", inputRlp)
+	l.Debug("the from is: ", "from", from.Hex())
+	l.Debug("the to is: ", "to", to.Hex())
+	l.Debug("the blockNum is: ", "num", blockNum)
+	l.Debug("the funcName is:", "funcName", funcName)
+	//l.Debug("the ExtraData is: ", "ExtraData", inputRlp)
 
 	var resp string
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, to, inputRlp, blockNum); err != nil {
@@ -119,7 +119,7 @@ func (caller *rpcCaller) EstimateGas(c *cli.Context) {
 	if err != nil {
 		l.Error("EstimateGas failed", "err", err.Error())
 	}
-	l.Info(" EstimateGas successful", "resp", value)
+	l.Info(" EstimateGas successful", "estimated gas", value)
 }
 
 func (caller *rpcCaller) SendTransactionContract(c *cli.Context) {
@@ -145,7 +145,7 @@ func (caller *rpcCaller) SendTransactionContract(c *cli.Context) {
 			return
 		}
 	}
-	l.Info("SendTransactionContract successful", "resp", reflect.ValueOf(resp).String())
+	l.Info("SendTransactionContract successful", "txId", reflect.ValueOf(resp).String())
 }
 
 func contractCreate(c *cli.Context) (resp interface{}, err error) {
@@ -187,11 +187,11 @@ func contractCreate(c *cli.Context) (resp interface{}, err error) {
 		return
 	}
 
-	l.Info("the from is: ", "from", from.Hex())
-	l.Info("the value is:", "value", MoneyWithUnit(cParams[1]))
-	l.Info("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[2]))
-	l.Info("the gasLimit is:", "gasLimit", gasLimit)
-	//l.Info("the ExtraData is: ", "ExtraData", ExtraData)
+	l.Debug("the from is: ", "from", from.Hex())
+	l.Debug("the value is:", "value", MoneyWithUnit(cParams[1]))
+	l.Debug("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[2]))
+	l.Debug("the gasLimit is:", "gasLimit", gasLimit)
+	//l.Debug("the ExtraData is: ", "ExtraData", ExtraData)
 	err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, to, value, gasPrice, gasLimit, ExtraData, nil)
 	return
 }
@@ -248,13 +248,13 @@ func contractCall(c *cli.Context) (resp interface{}, err error) {
 		return
 	}
 
-	l.Info("the from is: ", "from", from.Hex())
-	l.Info("the to is: ", "to", to.Hex())
-	l.Info("the value is:", "value", MoneyWithUnit(cParams[2]))
-	l.Info("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[3]))
-	l.Info("the gasLimit is:", "gasLimit", gasLimit)
-	l.Info("the funcName is:", "funcName", funcName)
-	//l.Info("the ExtraData is: ", "ExtraData", inputRlp)
+	l.Debug("the from is: ", "from", from.Hex())
+	l.Debug("the to is: ", "to", to.Hex())
+	l.Debug("the value is:", "value", MoneyWithUnit(cParams[2]))
+	l.Debug("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[3]))
+	l.Debug("the gasLimit is:", "gasLimit", gasLimit)
+	l.Debug("the funcName is:", "funcName", funcName)
+	//l.Debug("the ExtraData is: ", "ExtraData", inputRlp)
 
 	err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, to, value, gasPrice, gasLimit, inputRlp, nil)
 	return
