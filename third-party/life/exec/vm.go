@@ -550,7 +550,7 @@ func (vm *VirtualMachine) Execute() {
 			vm.ExitError = err
 			vm.StackTrace = string(debug.Stack())
 			//log.Debug("VirtualMachine#Execute", "StackTrace", vm.StackTrace)
-			fmt.Println("VirtualMachine#Execute", vm.StackTrace)
+			//fmt.Println("VirtualMachine#Execute", vm.StackTrace)
 		}
 	}()
 
@@ -567,7 +567,7 @@ func (vm *VirtualMachine) Execute() {
 		}
 		vm.GasUsed += cost
 
-		log.Debug("VirtualMachine#Execute", "frame", frame.FunctionID, "ins", ins)
+		//log.Debug("VirtualMachine#Execute", "frame", frame.FunctionID, "ins", ins)
 
 		//fmt.Printf("INS: [%d] %s\n", valueID, ins.String(), )
 		//log.Info("VirtualMachine#Execute", "ins", ins.String(), "valueID", valueID)
@@ -1526,7 +1526,7 @@ func (vm *VirtualMachine) Execute() {
 
 			effective := int(uint64(base) + uint64(offset))
 			//if frame.FunctionID == 513 {
-			log.Debug("VirtualMachine#I32Load ", "effective", effective, "vm.Memory len ", len(vm.Memory.Memory))
+			//log.Debug("VirtualMachine#I32Load ", "effective", effective, "vm.Memory len ", len(vm.Memory.Memory))
 			//}
 			frame.Regs[valueID] = int64(uint32(LE.Uint32(vm.Memory.Memory[effective : effective+4])))
 		case opcodes.I64Load32S:
