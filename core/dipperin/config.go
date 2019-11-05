@@ -105,8 +105,8 @@ func (conf NodeConfig) NodeConfigCheck() error {
 			log.Error("the NoWalletStart is true but there are entered some wallet conf")
 			return g_error.NodeConfWalletError
 		}
-	}else {
-		if conf.SoftWalletPassword == ""{
+	} else {
+		if conf.SoftWalletPassword == "" {
 			log.Error("the NoWalletStart is false but there isn't an entered wallet password")
 			return g_error.NodeConfWalletError
 		}

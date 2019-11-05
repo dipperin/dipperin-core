@@ -132,8 +132,8 @@ var (
 	//	Value: 0,
 	//}
 	NoWalletStartFlag = cli.BoolFlag{
-		Name:NoWalletStartFlagName,
-		Usage:"not need to set SoftWalletPasswordFlag SoftWalletPassPhraseFlag SoftWalletPathFlag when this flag is true",
+		Name:  NoWalletStartFlagName,
+		Usage: "not need to set SoftWalletPasswordFlag SoftWalletPassPhraseFlag SoftWalletPathFlag when this flag is true",
 	}
 	SoftWalletPasswordFlag = cli.StringFlag{
 		Name:  SoftWalletPasswordFlagName,

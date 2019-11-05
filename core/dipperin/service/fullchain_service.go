@@ -507,7 +507,7 @@ func (service *VenusFullChainService) ListWalletAccount(walletIdentifier account
 	return tmpWallet.Accounts()
 }
 
-func (service *VenusFullChainService) StartRemainingService(){
+func (service *VenusFullChainService) StartRemainingService() {
 	service.WalletManager.StartOtherServices()
 }
 

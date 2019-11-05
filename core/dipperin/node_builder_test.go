@@ -109,28 +109,24 @@ func TestMsgSender(t *testing.T) {
 }
 
 type TestService struct {
-
 }
 
-func (t *TestService) Start() error{
+func (t *TestService) Start() error {
 	return nil
 }
 
-func (t *TestService) Stop(){
+func (t *TestService) Stop() {
 	return
 }
 
-func TestGetServiceName(t *testing.T){
-	var service  NodeService
+func TestGetServiceName(t *testing.T) {
+	var service NodeService
 
 	service = &TestService{}
 
 	serviceType := reflect.TypeOf(service)
 
+	log.Info("the service name is:", "serviceType", serviceType.String())
 
-	log.Info("the service name is:","serviceType",serviceType.String())
-
-
-	log.Info("the a type name is:","name",reflect.TypeOf("hello").Name())
+	log.Info("the a type name is:", "name", reflect.TypeOf("hello").Name())
 }
-

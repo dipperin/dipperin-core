@@ -179,8 +179,8 @@ func newBaseComponent(nodeConfig NodeConfig) *BaseComponent {
 }
 
 func (b *BaseComponent) setNodeSignerInfo() error {
-	account ,err:=b.walletManager.GetMainAccount()
-	if err !=nil{
+	account, err := b.walletManager.GetMainAccount()
+	if err != nil {
 		return err
 	}
 
@@ -332,7 +332,7 @@ func (b *BaseComponent) initWalletManager() {
 
 	var mnemonic string
 	exit, _ := soft_wallet.PathExists(b.nodeConfig.SoftWalletFile())
-	log.Info("initWalletManager the wallet exit","exit",exit)
+	log.Info("initWalletManager the wallet exit", "exit", exit)
 	if exit {
 		err = defaultWallet.Open(b.nodeConfig.SoftWalletFile(), b.nodeConfig.SoftWalletName(), b.nodeConfig.SoftWalletPassword)
 	} else {
@@ -350,7 +350,7 @@ func (b *BaseComponent) initWalletManager() {
 		panic("init wallet manager failed: " + err.Error())
 	}
 
-	log.Info("the wallet number is:","number",len(b.walletManager.Wallets))
+	log.Info("the wallet number is:", "number", len(b.walletManager.Wallets))
 	return
 }
 

@@ -190,5 +190,3 @@ func Test_ChannelTransport(t *testing.T) {
 	time.Sleep(2)
 	//testChan <- testData
 }
-
-

@@ -113,7 +113,6 @@ func (pm *BaseProtocolManager) Stop() {
 	}
 }
 
-
 func (pm *BaseProtocolManager) validStatus(status StatusData) error {
 	return nil
 }

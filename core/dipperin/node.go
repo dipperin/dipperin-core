@@ -54,10 +54,10 @@ type CsNode struct {
 }
 
 type ServiceManager struct {
-	components       *BaseComponent
-	services         map[ServiceType][]NodeService
+	components *BaseComponent
+	services   map[ServiceType][]NodeService
 
-	chokePoints       sync.Map
+	chokePoints      sync.Map
 	serviceNumber    uint32
 	serviceStartFlag atomic.Value
 	wg               sync.WaitGroup
@@ -78,13 +78,13 @@ func NewServiceManager(components *BaseComponent) *ServiceManager {
 	return manager
 }
 
-func (m *ServiceManager) startService(t ServiceType) error{
+func (m *ServiceManager) startService(t ServiceType) error {
 	startSuccess := true
 	// If the startup is completed in 20 seconds, there is a service blocked (the virtual machine is too bad, it cannot be started in a few seconds)
 	go func() {
 		time.Sleep(chokeTimeout)
-		i,ok := m.chokePoints.Load(t)
-		if !ok{
+		i, ok := m.chokePoints.Load(t)
+		if !ok {
 			panic("start service get chokePoints error")
 		}
 		if startSuccess && i.(uint32) < uint32(len(m.services[t])) {
@@ -99,7 +99,7 @@ func (m *ServiceManager) startService(t ServiceType) error{
 	for _, s := range m.services[t] {
 		m.wg.Add(1)
 		// if start err, stop all services and return the err
-		log.Info("start service ","name",reflect.TypeOf(s).String())
+		log.Info("start service ", "name", reflect.TypeOf(s).String())
 		if err = s.Start(); err != nil {
 			log.Info("the err service is: ", "service", s)
 			log.Error("start node service failed", "err", err)
@@ -108,8 +108,8 @@ func (m *ServiceManager) startService(t ServiceType) error{
 		}
 		number++
 	}
-	m.chokePoints.Store(t,number)
-	if err !=nil{
+	m.chokePoints.Store(t, number)
+	if err != nil {
 		m.Stop()
 		return err
 	}
@@ -117,7 +117,7 @@ func (m *ServiceManager) startService(t ServiceType) error{
 	return nil
 }
 
-func (m *ServiceManager) stopService(service ServiceType){
+func (m *ServiceManager) stopService(service ServiceType) {
 	log.Info("call node stop")
 	x := 0
 	t := time.NewTimer(chokeTimeout)
@@ -129,13 +129,13 @@ func (m *ServiceManager) stopService(service ServiceType){
 		}
 	}()
 
-	i,ok := m.chokePoints.Load(service)
-	if !ok{
+	i, ok := m.chokePoints.Load(service)
+	if !ok {
 		panic("stop service get chokePoints error")
 	}
 	for ; uint32(x) < i.(uint32); x++ {
 		// stop shouldn't in go
-		log.Info("stop service~~~","x",x,"service",reflect.TypeOf(m.services[service][x]).String())
+		log.Info("stop service~~~", "x", x, "service", reflect.TypeOf(m.services[service][x]).String())
 		m.services[service][x].Stop()
 		t.Reset(chokeTimeout)
 		m.wg.Done()
@@ -144,9 +144,9 @@ func (m *ServiceManager) stopService(service ServiceType){
 	return
 }
 
-func (m *ServiceManager) startRemainingServices() error{
+func (m *ServiceManager) startRemainingServices() error {
 	startFlag := m.serviceStartFlag.Load()
-	if startFlag!=nil && startFlag.(bool){
+	if startFlag != nil && startFlag.(bool) {
 		log.Info("the serviceStartFlag is true")
 		return nil
 	}
@@ -155,7 +155,7 @@ func (m *ServiceManager) startRemainingServices() error{
 		panic("serviceManager startRemainingServices err:" + err.Error())
 	}
 	err = m.startService(NeedWalletSignerService)
-	if err !=nil{
+	if err != nil {
 		return err
 	}
 	m.serviceStartFlag.Store(true)
@@ -164,13 +164,13 @@ func (m *ServiceManager) startRemainingServices() error{
 
 func (m *ServiceManager) Start() error {
 	//start Services not depend on the wallet signer
-	err :=m.startService(NotNeedWalletSignerService)
-	if err !=nil{
+	err := m.startService(NotNeedWalletSignerService)
+	if err != nil {
 		return err
 	}
-	log.Info("the NoWalletStart is:","NoWalletStart",m.components.nodeConfig.NoWalletStart)
+	log.Info("the NoWalletStart is:", "NoWalletStart", m.components.nodeConfig.NoWalletStart)
 	if !m.components.nodeConfig.NoWalletStart {
-		err =m.startRemainingServices()
+		err = m.startRemainingServices()
 	} else {
 		// listen wallet manager. start other service when there is an soft wallet
 		go func() {
@@ -191,7 +191,7 @@ func (m *ServiceManager) Start() error {
 
 func (m *ServiceManager) Stop() {
 	startFlag := m.serviceStartFlag.Load()
-	if startFlag!=nil && startFlag.(bool){
+	if startFlag != nil && startFlag.(bool) {
 		m.stopService(NeedWalletSignerService)
 	}
 

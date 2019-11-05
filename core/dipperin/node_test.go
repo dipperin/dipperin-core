@@ -39,7 +39,7 @@ func (s fakeNodeService) Stop() {
 	return
 }
 
-func TestServiceStart1(t *testing.T){
+func TestServiceStart1(t *testing.T) {
 	cs_chain.GenesisSetUp = true
 	config := createNodeConfig()
 
@@ -73,19 +73,19 @@ func TestServiceStart3(t *testing.T) {
 	assert.NoError(t, err)
 
 	go func() {
-		time.Sleep(time.Millisecond*100)
+		time.Sleep(time.Millisecond * 100)
 		walletIdentifier := accounts.WalletIdentifier{
-			WalletType:accounts.SoftWallet,
-			WalletName:"CSWallet1",
-			Path:config.DataDir+"CSWallet1",
+			WalletType: accounts.SoftWallet,
+			WalletName: "CSWallet1",
+			Path:       config.DataDir + "CSWallet1",
 		}
-		csNode.(*CsNode).ServiceManager.components.chainService.EstablishWallet(walletIdentifier,"123","")
+		csNode.(*CsNode).ServiceManager.components.chainService.EstablishWallet(walletIdentifier, "123", "")
 		csNode.(*CsNode).ServiceManager.components.chainService.StartRemainingService()
 	}()
 
 	time.Sleep(time.Second)
 	csNode.Stop()
-	os.Remove(config.DataDir+"CSWallet1")
+	os.Remove(config.DataDir + "CSWallet1")
 }
 
 func TestCsNode_Start(t *testing.T) {

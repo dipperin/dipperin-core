@@ -47,12 +47,12 @@ var websocketJSONCodec = websocket.Codec{
 	},
 	// Unmarshal is a specialized unmarshaller to properly convert numbers.
 	Unmarshal: func(msg []byte, payloadType byte, v interface{}) error {
-		log.Rpc.Info("websocketJSONCodec unmarshal msg is:","msgLen",len(msg),"msg",hexutil.Encode(msg))
-		log.Rpc.Info("the unmarshal type is:","type",reflect.TypeOf(v))
+		log.Rpc.Info("websocketJSONCodec unmarshal msg is:", "msgLen", len(msg), "msg", hexutil.Encode(msg))
+		log.Rpc.Info("the unmarshal type is:", "type", reflect.TypeOf(v))
 		dec := json.NewDecoder(bytes.NewReader(msg))
 		dec.UseNumber()
 		err := dec.Decode(v)
-		log.Rpc.Info("websocketJSONCodec unmarshal decode result is:","err",err)
+		log.Rpc.Info("websocketJSONCodec unmarshal decode result is:", "err", err)
 
 		return err
 	},
@@ -75,8 +75,8 @@ func (srv *Server) WebsocketHandler(allowedOrigins []string) http.Handler {
 			}
 			decoder := func(v interface{}) error {
 				err := websocketJSONCodec.Receive(conn, v)
-				if err !=nil{
-					log.Rpc.Error("WebsocketHandler the receive error","err",err)
+				if err != nil {
+					log.Rpc.Error("WebsocketHandler the receive error", "err", err)
 				}
 				return err
 			}

@@ -162,7 +162,7 @@ func (s *Server) serveRequest(ctx context.Context, codec ServerCodec, singleShot
 	for atomic.LoadInt32(&s.run) == 1 {
 		reqs, batch, err := s.readRequest(codec)
 		if err != nil {
-			log2.Rpc.Error("serveRequest error","err",err)
+			log2.Rpc.Error("serveRequest error", "err", err)
 			// If a parsing error occurred, send an error
 			if err.Error() != "EOF" {
 				log.Debug(fmt.Sprintf("read error %v\n", err))
@@ -339,7 +339,7 @@ func (s *Server) exec(ctx context.Context, codec ServerCodec, req *serverRequest
 	}
 
 	if err := codec.Write(response); err != nil {
-		log2.Rpc.Error("server exec write response error","err",err)
+		log2.Rpc.Error("server exec write response error", "err", err)
 		log.Error(fmt.Sprintf("%v\n", err))
 		codec.Close()
 	}
