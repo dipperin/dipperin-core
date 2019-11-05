@@ -176,7 +176,7 @@ func MakeSystemHaltedCheck(conf *HaltCheckConf) *SystemHaltedCheck {
 	return systemHaltedCheck
 }
 
-func (systemHaltedCheck *SystemHaltedCheck) SetMsgSigner(walletSigner NeedWalletSigner){
+func (systemHaltedCheck *SystemHaltedCheck) SetMsgSigner(walletSigner NeedWalletSigner) {
 	systemHaltedCheck.haltCheckStateHandle.walletSigner = walletSigner
 }
 

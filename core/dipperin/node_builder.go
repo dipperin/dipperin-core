@@ -196,19 +196,18 @@ func (b *BaseComponent) setNodeSignerInfo() error {
 	b.csPm.MsgSigner = b.pmConf.MsgSigner
 
 	//bft and verifier halt check
-	if b.nodeConfig.NodeType == chain_config.NodeTypeOfVerifier || b.nodeConfig.NodeType == chain_config.NodeTypeOfVerifierBoot{
+	if b.nodeConfig.NodeType == chain_config.NodeTypeOfVerifier || b.nodeConfig.NodeType == chain_config.NodeTypeOfVerifierBoot {
 		b.bftConfig.Signer = b.msgSigner
 		b.verHaltCheckConfig.WalletSigner = b.msgSigner
 		b.verHaltCheck.SetMsgSigner(b.msgSigner)
 	}
 
 	//mineMaster
-	log.Info("the mineMaster in baseComponents is:","mineMaster",b.mineMaster)
+	log.Info("the mineMaster in baseComponents is:", "mineMaster", b.mineMaster)
 	if b.nodeConfig.NodeType == chain_config.NodeTypeOfMineMaster {
 		b.mineMaster.SetMsgSigner(b.msgSigner)
 		b.mineMaster.SetCoinbaseAddress(b.defaultAccountAddress)
 	}
-
 
 	return nil
 }
@@ -526,7 +525,7 @@ func (b *BaseComponent) initMineMaster() {
 
 	// p2p server not init
 	b.minePm = minePm
-	log.Info("initMineMaster the mineMaster is:","mineMaster",mineMaster)
+	log.Info("initMineMaster the mineMaster is:", "mineMaster", mineMaster)
 	b.mineMaster = mineMaster
 	b.mineMasterServer = mineMasterServer
 }

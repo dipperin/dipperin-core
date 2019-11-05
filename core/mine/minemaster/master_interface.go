@@ -161,7 +161,7 @@ type MineConfig struct {
 	BlockBroadcaster BlockBroadcaster
 }
 
-func (conf *MineConfig) SetMsgSigner(MsgSigner chain_communication.PbftSigner){
+func (conf *MineConfig) SetMsgSigner(MsgSigner chain_communication.PbftSigner) {
 	conf.BlockBuilder.SetMsgSigner(MsgSigner)
 }
 

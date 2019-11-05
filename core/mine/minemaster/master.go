@@ -65,7 +65,7 @@ type master struct {
 	stopTimerFunc func()
 }
 
-func (ms *master)SetMsgSigner(MsgSigner chain_communication.PbftSigner){
+func (ms *master) SetMsgSigner(MsgSigner chain_communication.PbftSigner) {
 	ms.MineConfig.SetMsgSigner(MsgSigner)
 	ms.workManager.SetMsgSigner(MsgSigner)
 	ms.workDispatcher.SetMsgSigner(MsgSigner)

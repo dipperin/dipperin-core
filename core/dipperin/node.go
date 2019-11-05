@@ -210,8 +210,8 @@ func (m *ServiceManager) AddService(service NodeService) {
 
 	switch serviceType {
 	case "*accounts.WalletManager", "*rpc_interface.Service",
-		 "*tx_pool.TxPool", "*g_metrics.PrometheusMetricsServer",
-		 "*vm_log_search.ChainIndexer":
+		"*tx_pool.TxPool", "*g_metrics.PrometheusMetricsServer",
+		"*vm_log_search.ChainIndexer":
 		m.services[NotNeedWalletSignerService] = append(m.services[NotNeedWalletSignerService], service)
 	default:
 		m.services[NeedWalletSignerService] = append(m.services[NeedWalletSignerService], service)
