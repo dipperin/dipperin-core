@@ -72,7 +72,6 @@ type StateReader interface {
 	AccountStateDB(root common.Hash) (*state_processor.AccountStateDB, error)
 }
 
-
 type VerifierHelper interface {
 	CurrentSeed() (common.Hash, uint64)
 	IsChangePoint(block model.AbstractBlock, isProcessPackageBlock bool) bool

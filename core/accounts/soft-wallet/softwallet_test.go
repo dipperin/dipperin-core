@@ -149,7 +149,7 @@ func TestSoftWallet_Establish(t *testing.T) {
 	assert.Equal(t, accounts.ErrPasswordIsNil, err)
 	os.RemoveAll(path)
 
-	_,_, err = establishSoftWallet(path, walletName, password, passPhrase)
+	_, _, err = establishSoftWallet(path, walletName, password, passPhrase)
 	assert.NoError(t, err)
 }
 

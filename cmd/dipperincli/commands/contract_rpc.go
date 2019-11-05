@@ -85,7 +85,7 @@ func (caller *rpcCaller) CallContract(c *cli.Context) {
 	//	}
 	//
 	//} else {
-		inputInterface = append(inputInterface, input)
+	inputInterface = append(inputInterface, input)
 	//}
 	inputRlp, err = rlp.EncodeToBytes(
 		inputInterface,
