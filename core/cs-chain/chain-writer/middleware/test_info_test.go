@@ -100,6 +100,7 @@ type fakeChainInterface struct {
 	cf        *chain_config.ChainConfig
 }
 
+
 func (ci *fakeChainInterface) GetBloomLog(hash common.Hash, number uint64) model2.Bloom {
 	panic("implement me")
 }

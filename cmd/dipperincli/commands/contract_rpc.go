@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"reflect"
 	"strconv"
-	"strings"
 )
 
 func (caller *rpcCaller) GetContractAddressByTxHash(c *cli.Context) {
@@ -77,17 +76,17 @@ func (caller *rpcCaller) CallContract(c *cli.Context) {
 	input := getRpcSpecialParam(c, "input")
 	// RLP([funcName][params])
 	var inputRlp []byte
-	var inputs []string
+	//var inputs []string
 	inputInterface := []interface{}{funcName}
-	if strings.Contains(input, ",") {
-		inputs = strings.Split(input, ",")
-		for _, in := range inputs {
-			inputInterface = append(inputInterface, in)
-		}
-
-	} else {
+	//if strings.Contains(input, ",") {
+	//	inputs = strings.Split(input, ",")
+	//	for _, in := range inputs {
+	//		inputInterface = append(inputInterface, in)
+	//	}
+	//
+	//} else {
 		inputInterface = append(inputInterface, input)
-	}
+	//}
 	inputRlp, err = rlp.EncodeToBytes(
 		inputInterface,
 	)

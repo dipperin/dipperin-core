@@ -110,8 +110,6 @@ func TestWalletInfo_GenerateKeyFromSeedAndPath(t *testing.T) {
 	_, _, err = testWalletInfo.GenerateKeyFromSeedAndPath(DefaultDerivedPath, AddressIndexStartValue)
 	assert.NoError(t, err)
 
-
-
 }
 
 func TestWalletInfo_paddingUsedAccount(t *testing.T) {

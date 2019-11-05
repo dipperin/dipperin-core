@@ -148,6 +148,9 @@ func TestSoftWallet_Establish(t *testing.T) {
 	_, _, err = establishSoftWallet(path, walletName, "", passPhrase)
 	assert.Equal(t, accounts.ErrPasswordIsNil, err)
 	os.RemoveAll(path)
+
+	_,_, err = establishSoftWallet(path, walletName, password, passPhrase)
+	assert.NoError(t, err)
 }
 
 func TestSoftWallet_Open(t *testing.T) {

@@ -40,6 +40,7 @@ type ChainInterface interface {
 }
 
 type StateWriter interface {
+	//SaveBlock(block model.AbstractBlock) error
 	Rollback(target uint64) error
 }
 
@@ -70,6 +71,7 @@ type StateReader interface {
 
 	AccountStateDB(root common.Hash) (*state_processor.AccountStateDB, error)
 }
+
 
 type VerifierHelper interface {
 	CurrentSeed() (common.Hash, uint64)

@@ -469,8 +469,11 @@ func (w *SoftWallet) Derive(path accounts.DerivationPath, save bool) (accounts.A
 		return accounts.Account{}, err
 	}
 
-	defer ClearSensitiveData(extKey)
-
+	defer func() {
+		if err != nil {
+			ClearSensitiveData(extKey)
+		}
+	}()
 	log.Info("Derive tmpPath is:", "tmpPath", tmpPath)
 	//Generate derived keys based on path parameters and master key
 	for _, value := range tmpPath {
@@ -512,7 +515,6 @@ func (w *SoftWallet) Derive(path accounts.DerivationPath, save bool) (accounts.A
 		return accounts.Account{}, err
 	}
 
-
 	return account, nil
 }
 
@@ -538,11 +540,10 @@ func (w *SoftWallet) SignHash(account accounts.Account, hash []byte) ([]byte, er
 
 	signData, err := crypto.Sign(hash, tmpSk)
 	if err != nil {
-		ClearSensitiveData(tmpSk)
 		return []byte{}, err
 	}
 
-	ClearSensitiveData(tmpSk)
+	defer ClearSensitiveData(tmpSk)
 	//sign the hash data with the private key
 	return signData, nil
 }
