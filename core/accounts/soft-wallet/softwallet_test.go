@@ -51,8 +51,8 @@ var testHashData = [32]byte{0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04,
 
 var walletName = "testSoftWallet"
 var path = util.HomeDir() + "/testSoftWallet"
-var password = "123456"
-var passPhrase = ""
+var password = "12345678"
+var passPhrase = "12345678"
 var TestErrWalletPath = "/tmp/testSoftWallet"
 var errAccount = accounts.Account{
 	Address: testAddress,
