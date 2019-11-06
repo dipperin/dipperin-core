@@ -146,7 +146,7 @@ func TestSoftWallet_Establish(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, _, err = establishSoftWallet(path, walletName, "", passPhrase)
-	assert.Equal(t, accounts.ErrPasswordIsNil, err)
+	assert.Equal(t, accounts.ErrPasswordOrPassPhraseIllegal, err)
 	os.RemoveAll(path)
 
 	_, _, err = establishSoftWallet(path, walletName, password, passPhrase)
@@ -161,7 +161,7 @@ func TestSoftWallet_Open(t *testing.T) {
 	assert.Equal(t, accounts.ErrWalletPathError, err)
 
 	err = testWallet.Open(path, walletName, "")
-	assert.Equal(t, accounts.ErrPasswordIsNil, err)
+	assert.Equal(t, accounts.ErrPasswordOrPassPhraseIllegal, err)
 
 	err = testWallet.Open(path, walletName, password)
 	assert.NoError(t, err)
@@ -181,7 +181,7 @@ func TestEconomyOpenWallet(t *testing.T) {
 	t.Skip()
 	walletName := "InvestorWallet0"
 	path := "/home/qydev/economyWallet/InvestorWallet0"
-	password := "123"
+	password := "12345678"
 	testWallet, err := NewSoftWallet()
 	assert.NoError(t, err)
 
@@ -194,7 +194,7 @@ func TestEconomyOpenWallet(t *testing.T) {
 func TestGetWalletPrivateKey(t *testing.T) {
 	t.Skip()
 	path := "/home/qydev/tmp/dipperin_apps/default_v0/CSWallet"
-	password := "123"
+	password := "12345678"
 	walletName := "CSWallet"
 
 	log.Info("the path is:", "path", path)
@@ -356,14 +356,14 @@ func TestSoftWallet_RestoreWallet(t *testing.T) {
 
 	walletName := "RemainRewardWallet4"
 	path := util.HomeDir() + "/testSoftWallet/RemainRewardWallet4"
-	password := "123"
-	passPhrase := ""
+	password := "12345678"
+	passPhrase := "12345678"
 
 	err = testWallet.RestoreWallet("/tmp", walletName, password, passPhrase, mnemonic, &tmpAccountStatus)
 	assert.Equal(t, accounts.ErrWalletPathError, err)
 
 	err = testWallet.RestoreWallet(path, walletName, "", passPhrase, mnemonic, &tmpAccountStatus)
-	assert.Equal(t, accounts.ErrPasswordIsNil, err)
+	assert.Equal(t, accounts.ErrPasswordOrPassPhraseIllegal, err)
 
 	err = testWallet.RestoreWallet(path, walletName, password, passPhrase, mnemonic, &tmpAccountStatus)
 	assert.NoError(t, err)
