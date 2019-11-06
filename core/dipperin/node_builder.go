@@ -476,12 +476,19 @@ func (b *BaseComponent) initRpc() {
 	rpcApi := rpc_interface.MakeDipperinVenusApi(b.chainService)
 	debugApi := rpc_interface.MakeDipperinDebugApi(b.chainService)
 	p2pApi := rpc_interface.MakeDipperinP2PApi(b.chainService)
+	externalApi := rpc_interface.MakeDipperExternalApi(rpcApi)
 
 	b.rpcService = rpc_interface.MakeRpcService(b.nodeConfig, []rpc.API{
 		{
 			Namespace: "dipperin",
 			Version:   chain_config.Version,
 			Service:   rpcApi,
+			Public:    false,
+		},
+		{
+			Namespace: "dipperin",
+			Version:   chain_config.Version,
+			Service:   externalApi,
 			Public:    true,
 		},
 		{
@@ -500,7 +507,7 @@ func (b *BaseComponent) initRpc() {
 			Namespace: "p2p",
 			Version:   "1.0",
 			Service:   p2pApi,
-			Public:    true,
+			Public:    false,
 		},
 	}, b.nodeConfig.GetAllowHosts())
 

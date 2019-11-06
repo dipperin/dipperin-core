@@ -53,6 +53,10 @@ type CsNode struct {
 	nodeName string
 }
 
+func (n *CsNode) GetNodeInfo() NodeInfo{
+	return NodeInfo{InProcHandler: n.components.rpcService.GetInProcHandler()}
+}
+
 type ServiceManager struct {
 	components *BaseComponent
 	services   map[ServiceType][]NodeService

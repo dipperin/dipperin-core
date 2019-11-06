@@ -46,6 +46,10 @@ type Service struct {
 	allowHosts []string
 }
 
+func (service *Service) GetInProcHandler() *rpc.Server{
+	return service.inprocHandler
+}
+
 // add extra api
 func (service *Service) AddApis(apis []rpc.API) {
 	service.apis = append(service.apis, apis...)
@@ -56,20 +60,32 @@ func (service *Service) Start() error {
 	if err := service.startInProc(service.apis); err != nil {
 		return err
 	}
+	//start ipc
+	log.Info("start ipc service")
+	if err := service.startIPC(service.apis);err !=nil{
+		service.stopInProc()
+		return err
+	}
+	log.Info("start http service")
 	if err := service.startHTTP(service.httpEndpoint, service.apis, []string{}, service.allowHosts, service.allowHosts); err != nil {
-		service.Stop()
+		service.stopInProc()
+		service.stopIPC()
 		return err
 	}
 	log.Info("start websocket", "allow hosts", service.allowHosts)
-	if err := service.startWS(service.wsEndpoint, service.apis, []string{}, service.allowHosts, true); err != nil {
-		service.Stop()
+	if err := service.startWS(service.wsEndpoint, service.apis, []string{}, service.allowHosts, false); err != nil {
+		service.stopInProc()
+		service.stopIPC()
+		service.stopHTTP()
 		return err
 	}
+
 	return nil
 }
 
 func (service *Service) Stop() {
 	service.stopInProc()
+	service.stopIPC()
 	service.stopHTTP()
 	service.stopWS()
 }
@@ -153,5 +169,35 @@ func (service *Service) stopWS() {
 	if service.wsHandler != nil {
 		service.wsHandler.Stop()
 		service.wsHandler = nil
+	}
+}
+
+
+// startIPC initializes and starts the IPC RPC endpoint.
+func (service *Service) startIPC(apis []rpc.API) error {
+	if service.ipcEndpoint == "" {
+		return nil // IPC disabled.
+	}
+	listener, handler, err := rpc.StartIPCEndpoint(service.ipcEndpoint, apis)
+	if err != nil {
+		return err
+	}
+	service.ipcListener = listener
+	service.ipcHandler = handler
+	log.Info("IPC endpoint opened", "url", service.ipcEndpoint)
+	return nil
+}
+
+// stopIPC terminates the IPC RPC endpoint.
+func (service *Service) stopIPC() {
+	if service.ipcListener != nil {
+		service.ipcListener.Close()
+		service.ipcListener = nil
+
+		log.Info("IPC endpoint closed", "url", service.ipcEndpoint)
+	}
+	if service.ipcHandler != nil {
+		service.ipcHandler.Stop()
+		service.ipcHandler = nil
 	}
 }
