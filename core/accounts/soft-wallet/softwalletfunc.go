@@ -30,6 +30,7 @@ import (
 	"github.com/tidwall/gjson"
 	"golang.org/x/crypto/scrypt"
 	"io"
+	"regexp"
 )
 
 //default kdf parameter
@@ -306,11 +307,16 @@ func CheckDerivedPathValid(path accounts.DerivationPath) (bool, error) {
 
 //judge the wallet password
 func CheckPassword(password string) (err error) {
-	if password == "" {
-		return accounts.ErrPasswordIsNil
-	}
+	reg := regexp.MustCompile(`[0-9]|[a-z]|[A-Z]|[~!@#$%^&*()_+<>?:"{},.\\/;'[\]` + "`]")
+	regNoCh := regexp.MustCompile("[\u4e00-\u9fa5]")
+    strs := regNoCh.FindAllString(password, -1)
 
-	return nil
+    if reg.MatchString(password) && len(strs) <= 0 {
+    	if len(password) >= accounts.PasswordMin && len(password) <= accounts.PassWordMax {
+			return  nil
+		}
+	}
+    return accounts.ErrPasswordOrPassPhraseIllegal
 }
 
 //judge the incoming wallet path

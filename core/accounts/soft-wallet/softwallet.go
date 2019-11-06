@@ -259,6 +259,11 @@ func (w *SoftWallet) Establish(path, name, password, passPhrase string) (string,
 	if err != nil {
 		return "", err
 	}
+
+	err = CheckPassword(passPhrase)
+	if err != nil {
+		return "", err
+	}
 	w.Identifier.WalletName = name
 	w.Identifier.Path = path
 	w.Identifier.WalletType = accounts.SoftWallet
@@ -302,6 +307,10 @@ func (w *SoftWallet) RestoreWallet(path, name, password, passPhrase, mnemonic st
 	err = CheckPassword(password)
 	if err != nil {
 		return err
+	}
+	err = CheckPassword(passPhrase)
+	if err != nil {
+		return  err
 	}
 
 	w.Identifier.WalletName = name

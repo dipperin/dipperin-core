@@ -40,6 +40,12 @@ const (
 	Closed = "Closed"
 )
 
+// password length
+const (
+	PasswordMin = 8
+	PassWordMax = 24
+)
+
 type WalletIdentifier struct {
 	WalletType `json:"walletType"`
 	//wallet file path

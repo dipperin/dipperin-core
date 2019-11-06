@@ -1,0 +1,181 @@
+[
+    {
+        "name": "init",
+        "inputs": [
+            {
+                "name": "tokenName",
+                "type": "string"
+            },
+            {
+                "name": "symbol",
+                "type": "string"
+            },
+            {
+                "name": "supply",
+                "type": "uint64"
+            }
+        ],
+        "outputs": [],
+        "constant": "false",
+        "payable": "false",
+        "type": "function"
+    },
+    {
+        "name": "transfer",
+        "inputs": [
+            {
+                "name": "to",
+                "type": "string"
+            },
+            {
+                "name": "value",
+                "type": "uint64"
+            }
+        ],
+        "outputs": [],
+        "constant": "false",
+        "payable": "true",
+        "type": "function"
+    },
+    {
+        "name": "approve",
+        "inputs": [
+            {
+                "name": "spender",
+                "type": "string"
+            },
+            {
+                "name": "value",
+                "type": "uint64"
+            }
+        ],
+        "outputs": [],
+        "constant": "false",
+        "payable": "false",
+        "type": "function"
+    },
+    {
+        "name": "transferFrom",
+        "inputs": [
+            {
+                "name": "from",
+                "type": "string"
+            },
+            {
+                "name": "to",
+                "type": "string"
+            },
+            {
+                "name": "value",
+                "type": "uint64"
+            }
+        ],
+        "outputs": [],
+        "constant": "false",
+        "payable": "false",
+        "type": "function"
+    },
+    {
+        "name": "getBalance",
+        "inputs": [
+            {
+                "name": "own",
+                "type": "string"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "constant": "false",
+        "payable": "true",
+        "type": "function"
+    },
+    {
+        "name": "getApproveBalance",
+        "inputs": [
+            {
+                "name": "from",
+                "type": "string"
+            },
+            {
+                "name": "approved",
+                "type": "string"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "constant": "true",
+        "payable": "false",
+        "type": "function"
+    },
+    {
+        "name": "burn",
+        "inputs": [
+            {
+                "name": "_value",
+                "type": "int128"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "constant": "false",
+        "payable": "false",
+        "type": "function"
+    },
+    {
+        "name": "Tranfer",
+        "inputs": [
+            {
+                "type": "string"
+            },
+            {
+                "type": "string"
+            },
+            {
+                "type": "uint64"
+            }
+        ],
+        "type": "event"
+    },
+    {
+        "name": "Approval",
+        "inputs": [
+            {
+                "type": "string"
+            },
+            {
+                "type": "string"
+            },
+            {
+                "type": "uint64"
+            }
+        ],
+        "type": "event"
+    },
+    {
+        "name": "GetBalance",
+        "inputs": [
+            {
+                "type": "string"
+            },
+            {
+                "type": "string"
+            },
+            {
+                "type": "uint64"
+            }
+        ],
+        "type": "event"
+    }
+]
