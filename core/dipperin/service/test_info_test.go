@@ -167,7 +167,7 @@ func createWalletManager(t *testing.T) *accounts.WalletManager {
 	wallet, err := soft_wallet.NewSoftWallet()
 	assert.NoError(t, err)
 
-	_, err = wallet.Establish(util.HomeDir()+testPath, "testSoftWallet", "123", "")
+	_, err = wallet.Establish(util.HomeDir()+testPath, "testSoftWallet", "12345678", "12345678")
 	assert.NoError(t, err)
 
 	manager, err := accounts.NewWalletManager(&fakeGetAccountInfo{}, wallet)
