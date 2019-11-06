@@ -50,7 +50,7 @@ type Chain interface {
 type TxPool interface {
 	RemoveTxs(newBlock model.AbstractBlock)
 	Pending() (map[common.Address][]model.AbstractTransaction, error)
-
+	AddRemotes(txs []model.AbstractTransaction) []error
 	Reset(oldHead, newHead *model.Header)
 }
 

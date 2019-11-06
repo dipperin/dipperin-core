@@ -75,6 +75,10 @@ func (c *fakeCacheDB) SaveSeenCommits(blockHeight uint64, blockHash common.Hash,
 
 type fakeTxPool struct{}
 
+func (t *fakeTxPool) AddRemotes(txs []model.AbstractTransaction) []error {
+	panic("implement me")
+}
+
 func (t *fakeTxPool) Reset(oldHead, newHead *model.Header) {
 	return
 }

@@ -106,6 +106,7 @@ type CacheDB interface {
 //go:generate mockgen -destination=./txpool_mock_test.go -package=cs_chain github.com/dipperin/dipperin-core/core/cs-chain TxPool
 type TxPool interface {
 	Reset(oldHead, newHead *model.Header)
+	AddRemotes(txs []model.AbstractTransaction) []error
 }
 
 //go:generate mockgen -destination=./state_storage_mock_test.go -package=cs_chain github.com/dipperin/dipperin-core/core/chain/state-processor StateStorage

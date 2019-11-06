@@ -283,11 +283,6 @@ func (chain *CacheChainState) Rollback(target uint64) error {
 		return g_error.ErrTargetOutOfRange
 	}
 
-	// roll back block number
-	for i := target; i <= curBlock.Number(); i++ {
-		chain.ChainState.Rollback(i)
-	}
-
 	// roll back current block
 	tarBlock := chain.GetBlockByNumber(target - 1)
 	if tarBlock == nil {

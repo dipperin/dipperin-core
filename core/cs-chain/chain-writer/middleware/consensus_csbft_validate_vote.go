@@ -105,6 +105,7 @@ func validVotesForBlock(votes []model.AbstractVerification, block model.Abstract
 		v0 := votes[0]
 		// check first vote
 		if v0.GetType() != model.VerBootNodeVoteMessage {
+			fmt.Println(v0.GetAddress())
 			return g_error.ErrInvalidFirstVoteInSpecialBlock
 		}
 

@@ -37,6 +37,7 @@ func NewGenesisEnv(chainDB chaindb.Database, stateStorage state_processor.StateS
 
 	g.initMiner()
 	g.initVerifiers(accounts)
+	g.initBootNodeVerifiers()
 	g.initGenesis(chainDB, stateStorage)
 	return g
 }
@@ -79,12 +80,17 @@ type GenesisEnv struct {
 	gBlock    *model.Block
 	chainConf *chain_config.ChainConfig
 
-	defaultVerifiers []Account
-	miner            Account
+	defaultVerifiers  []Account
+	bootNodeVerifiers []Account
+	miner             Account
 }
 
 func (g *GenesisEnv) Miner() Account {
 	return g.miner
+}
+
+func (g *GenesisEnv) DefaultBootNodeVerifiers() []Account {
+	return g.bootNodeVerifiers
 }
 
 func (g *GenesisEnv) DefaultVerifiers() []Account {
@@ -127,9 +133,12 @@ func (g *GenesisEnv) initVerifiers(accounts []Account) {
 	g.defaultVerifiers, _ = ChangeVerifierAddress(accounts)
 }
 
+func (g *GenesisEnv) initBootNodeVerifiers() {
+	g.bootNodeVerifiers, _ = ChangeVerBootNodeAddress()
+}
+
 // num is the number of votes
 func (g *GenesisEnv) VoteBlock(num int, round uint64, b model.AbstractBlock) (result []model.AbstractVerification) {
-
 	vLen := len(g.defaultVerifiers)
 	for i := 0; i < num && i < vLen; i++ {
 		verifier := g.defaultVerifiers[i]
@@ -139,7 +148,20 @@ func (g *GenesisEnv) VoteBlock(num int, round uint64, b model.AbstractBlock) (re
 		}
 		result = append(result, m)
 	}
+	return
+}
 
+// num is the number of votes
+func (g *GenesisEnv) VoteSpecialBlock(b model.AbstractBlock) (result []model.AbstractVerification) {
+	vLen := len(g.bootNodeVerifiers)
+	for i := 0; i < vLen; i++ {
+		bootNodeVer := g.bootNodeVerifiers[i]
+		m, err := model.NewVoteMsgWithSign(b.Number(), uint64(0), b.Hash(), model.VerBootNodeVoteMessage, bootNodeVer.SignHash, bootNodeVer.Address())
+		if err != nil {
+			panic(err)
+		}
+		result = append(result, m)
+	}
 	return
 }
 

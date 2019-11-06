@@ -225,6 +225,14 @@ func (cs *CsChainService) checkBftBlock(block model.AbstractBlock, seenCommits [
 
 func (cs *CsChainService) saveBftBlock(block model.AbstractBlock, seenCommits []model.AbstractVerification) error {
 	oldCurrentHead := cs.CurrentHeader().(*model.Header)
+	tmpBlock := cs.GetBlockByNumber(block.Number())
+	var txs []model.AbstractTransaction
+	if tmpBlock != nil {
+		transactions := tmpBlock.GetTransactions()
+		util.InterfaceSliceCopy(txs, transactions)
+	}
+
+	// save block
 	err := cs.SaveBftBlock(block, seenCommits)
 	switch err {
 	case nil:
@@ -234,10 +242,22 @@ func (cs *CsChainService) saveBftBlock(block model.AbstractBlock, seenCommits []
 			return err
 		}
 
-		// tx pool
-		// insert success then need update tx pool
+		// update tx pool if insert block
 		newCurrentBlock := cs.CurrentHeader().(*model.Header)
 		cs.TxPool.Reset(oldCurrentHead, newCurrentBlock)
+		if cs.CurrentBlock().IsSpecial() {
+
+			for _, v := range cs.TxPool.AddRemotes(txs) {
+				if v != nil {
+					log.Error("special block AddRemotes failed", "err", v)
+				}
+			}
+
+			// roll back block number
+			for i := cs.CurrentBlock().Number(); i < oldCurrentHead.Number; i++ {
+				cs.ChainState.Rollback(i + 1)
+			}
+		}
 
 		// check future block
 		cs.FutureBlocks.Remove(block.Hash())

@@ -38,6 +38,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/dipperin/dipperin-core/common/g-error"
 )
 
 type fakeCacheDB struct{}
@@ -55,6 +56,10 @@ func (c *fakeCacheDB) SaveSeenCommits(blockHeight uint64, blockHash common.Hash,
 }
 
 type fakeTxPool struct{}
+
+func (t *fakeTxPool) AddRemotes(txs []model.AbstractTransaction) []error {
+	return []error{errors.New("add remotes failed")}
+}
 
 func (t *fakeTxPool) Reset(oldHead, newHead *model.Header) {
 	return
@@ -168,30 +173,28 @@ func TestCsChainService_GetSeenCommit(t *testing.T) {
 }
 
 func TestCsChainService_SaveBlock(t *testing.T) {
-	//controller := gomock.NewController(t)
-	//defer controller.Finish()
-	//cMock := NewMockCacheDB(controller)
-	//pMock := NewMockTxPool(controller)
-	//cMock.EXPECT().SaveSeenCommits(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
-	//cMock := cachedb.NewCacheDB(ethdb.NewMemDatabase())
 	cMock := &fakeCacheDB{}
 	pMock := &fakeTxPool{}
 
 	ccs, gEnv, _, bB := getTestChainEnv(t, cMock, pMock)
-	//fmt.Println(chain.VerifierAddress)
-	block := bB.Build()
-	assert.Error(t, ccs.SaveBlock(block, gEnv.VoteBlock(1, 1, block)))
-	v := gEnv.VoteBlock(3, 1, block)
-	assert.NoError(t, ccs.SaveBlock(block, v))
+	bB.SetMinerPk(gEnv.DefaultBootNodeVerifiers()[0].Pk)
+	b1 := bB.Build()
+	b1Special := bB.BuildSpecialBlock()
 
-	numLowBlockToReturnErr = 0
-	bB.PreBlock = block
+	v := gEnv.VoteBlock(1, 1, b1)
+	assert.Equal(t, g_error.ErrBlockVotesNotEnough, ccs.SaveBlock(b1, v))
+	v = gEnv.VoteBlock(3, 1, b1)
+	assert.NoError(t, ccs.SaveBlock(b1, v))
+
+	bB.PreBlock = b1
 	bB.Vers = v
 	b2 := bB.Build()
-	assert.NotNil(t, b2)
-
 	assert.NoError(t, ccs.SaveBlock(b2, gEnv.VoteBlock(3, 1, b2)))
-	assert.Error(t, ccs.checkBftBlock(block, nil))
+	assert.NoError(t, ccs.SaveBlock(b1Special, gEnv.VoteSpecialBlock(b1Special)))
+
+	numLowBlockToReturnErr = 0
+	block := ccs.GetBlockByNumber(0)
+	assert.Equal(t, g_error.ErrAlreadyHaveThisBlock, ccs.checkBftBlock(block, nil))
 }
 
 func TestCsChainService_checkGenesis(t *testing.T) {

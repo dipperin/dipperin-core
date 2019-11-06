@@ -34,6 +34,20 @@ func (m *MockTxPool) EXPECT() *MockTxPoolMockRecorder {
 	return m.recorder
 }
 
+// AddRemotes mocks base method
+func (m *MockTxPool) AddRemotes(arg0 []model.AbstractTransaction) []error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddRemotes", arg0)
+	ret0, _ := ret[0].([]error)
+	return ret0
+}
+
+// AddRemotes indicates an expected call of AddRemotes
+func (mr *MockTxPoolMockRecorder) AddRemotes(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRemotes", reflect.TypeOf((*MockTxPool)(nil).AddRemotes), arg0)
+}
+
 // Pending mocks base method
 func (m *MockTxPool) Pending() (map[common.Address][]model.AbstractTransaction, error) {
 	m.ctrl.T.Helper()

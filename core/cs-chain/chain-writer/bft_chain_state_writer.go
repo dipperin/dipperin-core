@@ -47,20 +47,13 @@ func (cw *BftChainWriter) SaveBlock() error {
 	c.Use(middleware.ValidateBlockCoinBase(&c.BlockContext))
 	c.Use(middleware.ValidateSeed(&c.BlockContext))
 	c.Use(middleware.ValidateBlockTime(&c.BlockContext))
-
-	//add gas limit check
 	c.Use(middleware.ValidateGasLimit(&c.BlockContext))
-
 	c.Use(middleware.ValidateBlockTxs(&c.BlockContext))
 	c.Use(middleware.ValidateVotes(c))
-
 	c.Use(middleware.UpdateStateRoot(&c.BlockContext))
-
 	c.Use(middleware.UpdateBlockVerifier(&c.BlockContext))
 	c.Use(middleware.ValidGasUsedAndReceipts(&c.BlockContext))
 	c.Use(middleware.InsertBlock(&c.BlockContext))
-
-	// after insert block, update verifier
 	c.Use(middleware.NextRoundVerifier(&c.BlockContext))
 	//Call BlockProcessor.Process
 
