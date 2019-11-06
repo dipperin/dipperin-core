@@ -33,12 +33,12 @@ import (
 
 	"github.com/dipperin/dipperin-core/cmd/utils"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/common/g-error"
 )
 
 type fakeCacheDB struct{}
