@@ -148,7 +148,7 @@ func TestCheckPassword(t *testing.T) {
 	assert.Error(t, err)
 
 	err = CheckPassword("234567890~!@#$%^&*()_+<")
-	assert.NoError(t,err)
+	assert.NoError(t, err)
 }
 
 func TestCheckDerivedPathValid(t *testing.T) {

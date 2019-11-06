@@ -400,8 +400,6 @@ func TestContractWithNewFeature(t *testing.T) {
 
 }
 
-
-
 func TestContractpayableCallNotPayableMulti(t *testing.T) {
 	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
 

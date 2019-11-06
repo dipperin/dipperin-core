@@ -310,7 +310,7 @@ func (w *SoftWallet) RestoreWallet(path, name, password, passPhrase, mnemonic st
 	}
 	err = CheckPassword(passPhrase)
 	if err != nil {
-		return  err
+		return err
 	}
 
 	w.Identifier.WalletName = name
