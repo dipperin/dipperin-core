@@ -33,8 +33,8 @@ func MakeDipperinP2PApi(service P2PAPI) *DipperinP2PApi {
 	return &DipperinP2PApi{service: service}
 }
 
-func MakeDipperExternalApi(api *DipperinVenusApi) *DipperExternalApi{
-	return &DipperExternalApi{allApis:api}
+func MakeDipperExternalApi(api *DipperinVenusApi) *DipperExternalApi {
+	return &DipperExternalApi{allApis: api}
 }
 
 type nodeConf interface {

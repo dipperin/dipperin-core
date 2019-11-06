@@ -124,7 +124,6 @@ func (api *DipperExternalApi) GetBlockBody(hash common.Hash) *model.Body {
 	return api.allApis.GetBlockBody(hash)
 }
 
-
 func (api *DipperExternalApi) Transaction(hash common.Hash) (resp *TransactionResp, err error) {
 	return api.allApis.Transaction(hash)
 }
@@ -171,7 +170,7 @@ func (api *DipperExternalApi) NewTransaction(transactionRlpB []byte) (TxHash com
 
 // call contract
 func (api *DipperExternalApi) NewContract(transactionRlpB []byte, blockNum uint64) (resp string, err error) {
-	return api.allApis.NewContract(transactionRlpB,blockNum)
+	return api.allApis.NewContract(transactionRlpB, blockNum)
 }
 
 func (api *DipperExternalApi) NewEstimateGas(transactionRlpB []byte) (resp hexutil.Uint64, err error) {
@@ -267,11 +266,11 @@ func (api *DipperExternalApi) GetAddressLockMoney(address common.Address) (*big.
 }
 
 func (api *DipperExternalApi) GetInvestorLockDIP(address common.Address, blockNumber uint64) (*hexutil.Big, error) {
-	return api.allApis.GetInvestorLockDIP(address,blockNumber)
+	return api.allApis.GetInvestorLockDIP(address, blockNumber)
 }
 
 func (api *DipperExternalApi) GetDeveloperLockDIP(address common.Address, blockNumber uint64) (*hexutil.Big, error) {
-	return api.allApis.GetDeveloperLockDIP(address,blockNumber)
+	return api.allApis.GetDeveloperLockDIP(address, blockNumber)
 }
 
 func (api *DipperExternalApi) GetFoundationInfo(usage economy_model.FoundationDIPUsage) map[string]*hexutil.Big {
@@ -279,23 +278,23 @@ func (api *DipperExternalApi) GetFoundationInfo(usage economy_model.FoundationDI
 }
 
 func (api *DipperExternalApi) GetMaintenanceLockDIP(address common.Address, blockNumber uint64) (*hexutil.Big, error) {
-	return api.allApis.GetMaintenanceLockDIP(address,blockNumber)
+	return api.allApis.GetMaintenanceLockDIP(address, blockNumber)
 }
 
 func (api *DipperExternalApi) GetReMainRewardLockDIP(address common.Address, blockNumber uint64) (*hexutil.Big, error) {
-	return api.allApis.GetReMainRewardLockDIP(address,blockNumber)
+	return api.allApis.GetReMainRewardLockDIP(address, blockNumber)
 }
 
 func (api *DipperExternalApi) GetEarlyTokenLockDIP(address common.Address, blockNumber uint64) (*hexutil.Big, error) {
-	return api.allApis.GetEarlyTokenLockDIP(address,blockNumber)
+	return api.allApis.GetEarlyTokenLockDIP(address, blockNumber)
 }
 
 func (api *DipperExternalApi) GetMineMasterEDIPReward(blockNumber uint64, tokenDecimals int) (*hexutil.Big, error) {
-	return api.allApis.GetMineMasterEDIPReward(blockNumber,tokenDecimals)
+	return api.allApis.GetMineMasterEDIPReward(blockNumber, tokenDecimals)
 }
 
 func (api *DipperExternalApi) GetVerifierEDIPReward(blockNumber uint64, tokenDecimals int) (map[economy_model.VerifierType]*hexutil.Big, error) {
-	return api.allApis.GetVerifierEDIPReward(blockNumber,tokenDecimals)
+	return api.allApis.GetVerifierEDIPReward(blockNumber, tokenDecimals)
 }
 
 func (api *DipperExternalApi) GetABI(contractAddr common.Address) (*utils.WasmAbi, error) {
@@ -315,7 +314,7 @@ func (api *DipperExternalApi) GetContractAddressByTxHash(txHash common.Hash) (co
 }
 
 func (api *DipperExternalApi) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, Addresses []common.Address, Topics [][]common.Hash) ([]*model2.Log, error) {
-	return api.allApis.GetLogs(blockHash,fromBlock,toBlock,Addresses,Topics)
+	return api.allApis.GetLogs(blockHash, fromBlock, toBlock, Addresses, Topics)
 }
 
 func (api *DipperExternalApi) GetTxActualFee(txHash common.Hash) (resp *CurBalanceResp, err error) {

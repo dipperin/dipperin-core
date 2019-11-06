@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-func Test_IPC(t *testing.T){
+func Test_IPC(t *testing.T) {
 	var err error
 	var client *rpc.Client
 	if client, err = rpc.Dial("/home/qydev/tmp/dipperin_apps/default_v0/dipperin.ipc"); err != nil {
@@ -34,7 +34,7 @@ func Test_IPC(t *testing.T){
 	assert.NoError(t, err)
 }
 
-func Test_Http(t *testing.T){
+func Test_Http(t *testing.T) {
 	var err error
 	var client *rpc.Client
 	if client, err = rpc.Dial(fmt.Sprintf("http://%v:%d", "127.0.0.1", 10019)); err != nil {
@@ -52,16 +52,16 @@ func Test_Http(t *testing.T){
 	}
 	var resp interface{}
 	err = client.Call(resp, vm.GetRpcTXMethod("RestoreWallet"), password, mnemonic, "", identifier)
-	log.Info("the error is: ","err",err)
+	log.Info("the error is: ", "err", err)
 	assert.Error(t, err)
 
 	var resp1 rpc_interface.BlockResp
 	err = client.Call(&resp1, vm.GetRpcTXMethod("CurrentBlock"))
-	assert.NoError(t,err)
-	log.Info("the current block is:","block",resp1)
+	assert.NoError(t, err)
+	log.Info("the current block is:", "block", resp1)
 }
 
-func Test_WebSocket(t *testing.T){
+func Test_WebSocket(t *testing.T) {
 	var err error
 	var client *rpc.Client
 	if client, err = rpc.Dial(fmt.Sprintf("ws://%v:%d", "127.0.0.1", 10020)); err != nil {
@@ -79,11 +79,11 @@ func Test_WebSocket(t *testing.T){
 	}
 	var resp interface{}
 	err = client.Call(resp, vm.GetRpcTXMethod("RestoreWallet"), password, mnemonic, "", identifier)
-	log.Info("the error is: ","err",err)
+	log.Info("the error is: ", "err", err)
 	assert.Error(t, err)
 
 	var resp1 rpc_interface.BlockResp
 	err = client.Call(&resp1, vm.GetRpcTXMethod("CurrentBlock"))
-	assert.NoError(t,err)
-	log.Info("the current block is:","block",resp1)
+	assert.NoError(t, err)
+	log.Info("the current block is:", "block", resp1)
 }

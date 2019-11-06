@@ -53,7 +53,7 @@ type CsNode struct {
 	nodeName string
 }
 
-func (n *CsNode) GetNodeInfo() NodeInfo{
+func (n *CsNode) GetNodeInfo() NodeInfo {
 	return NodeInfo{InProcHandler: n.components.rpcService.GetInProcHandler()}
 }
 

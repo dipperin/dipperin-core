@@ -46,7 +46,7 @@ type Service struct {
 	allowHosts []string
 }
 
-func (service *Service) GetInProcHandler() *rpc.Server{
+func (service *Service) GetInProcHandler() *rpc.Server {
 	return service.inprocHandler
 }
 
@@ -62,7 +62,7 @@ func (service *Service) Start() error {
 	}
 	//start ipc
 	log.Info("start ipc service")
-	if err := service.startIPC(service.apis);err !=nil{
+	if err := service.startIPC(service.apis); err != nil {
 		service.stopInProc()
 		return err
 	}
@@ -171,7 +171,6 @@ func (service *Service) stopWS() {
 		service.wsHandler = nil
 	}
 }
-
 
 // startIPC initializes and starts the IPC RPC endpoint.
 func (service *Service) startIPC(apis []rpc.API) error {
