@@ -400,86 +400,86 @@ func TestContractWithNewFeature(t *testing.T) {
 
 }
 
-func TestContractpayableCallNotPayableMulti(t *testing.T) {
-	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
-
-	ownSK, _ := crypto.GenerateKey()
-	ownPk := ownSK.PublicKey
-	ownAddress := cs_crypto.GetNormalAddress(ownPk)
-
-	aliceSK, _ := crypto.GenerateKey()
-	alicePk := aliceSK.PublicKey
-	aliceAddress := cs_crypto.GetNormalAddress(alicePk)
-
-	brotherSK, _ := crypto.GenerateKey()
-	brotherPk := brotherSK.PublicKey
-	brotherAddress := cs_crypto.GetNormalAddress(brotherPk)
-
-	addressSlice := []common.Address{
-		ownAddress,
-		aliceAddress,
-		brotherAddress,
-	}
-
-	//WASMPath := g_testData.GetWASMPath("token", g_testData.CoreVmTestData)
-	//abiPath := g_testData.GetAbiPath("token", g_testData.CoreVmTestData)
-	WASMPath := g_testData.GetWASMPath("payableCallNotPayableMulti", g_testData.CoreVmTestData)
-	abiPath := g_testData.GetAbiPath("payableCallNotPayableMulti", g_testData.CoreVmTestData)
-	input := []string{"dipp", "DIPP", "10000000"}
-	data, err := getCreateExtraData(WASMPath, abiPath, input)
-	assert.NoError(t, err)
-
-	addr := common.HexToAddress(common.AddressContractCreate)
-	tx := model.NewTransaction(0, addr, big.NewInt(0), big.NewInt(1), 26427000, data)
-	signCreateTx := getSignedTx(t, ownSK, tx, singer)
-
-	gasLimit := testGasLimit * 10000000000
-	block := CreateBlock(1, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
-	processor, err := CreateProcessorAndInitAccount(t, addressSlice)
-
-	tmpGasLimit := block.GasLimit()
-	gasUsed := block.GasUsed()
-	config := &TxProcessConfig{
-		Tx:       tx,
-		Header:   block.Header(),
-		GetHash:  getTestHashFunc(),
-		GasLimit: &tmpGasLimit,
-		GasUsed:  &gasUsed,
-		TxFee:    big.NewInt(0),
-	}
-
-	err = processor.ProcessTxNew(config)
-	assert.NoError(t, err)
-
-	contractAddr := cs_crypto.CreateContractAddress(ownAddress, uint64(0))
-	contractNonce, err := processor.GetNonce(contractAddr)
-	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce)
-	code, err := processor.GetCode(contractAddr)
-	abi, err := processor.GetAbi(contractAddr)
-	log.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
-	assert.NoError(t, err)
-	//assert.Equal(t, code, tx.ExtraData())
-	processor.Commit()
-
-	accountOwn := accounts.Account{ownAddress}
-	//  合约调用getBalance方法  获取合约原始账户balance
-	ownTransferNonce, err := processor.GetNonce(ownAddress)
-	assert.NoError(t, err)
-	err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 2, singer)
-	assert.NoError(t, err)
-
-	//gasUsed2 := uint64(0)
-	//  合约调用  transfer方法 转账给alice
-	ownTransferNonce++
-	err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "transfer", aliceAddress.Hex()+",20", 3, singer)
-	assert.NoError(t, err)
-
-	//  合约调用getBalance方法  获取alice账户balance
-	ownTransferNonce++
-	err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 4, singer)
-	assert.NoError(t, err)
-
-}
+//func TestContractpayableCallNotPayableMulti(t *testing.T) {
+//	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
+//
+//	ownSK, _ := crypto.GenerateKey()
+//	ownPk := ownSK.PublicKey
+//	ownAddress := cs_crypto.GetNormalAddress(ownPk)
+//
+//	aliceSK, _ := crypto.GenerateKey()
+//	alicePk := aliceSK.PublicKey
+//	aliceAddress := cs_crypto.GetNormalAddress(alicePk)
+//
+//	brotherSK, _ := crypto.GenerateKey()
+//	brotherPk := brotherSK.PublicKey
+//	brotherAddress := cs_crypto.GetNormalAddress(brotherPk)
+//
+//	addressSlice := []common.Address{
+//		ownAddress,
+//		aliceAddress,
+//		brotherAddress,
+//	}
+//
+//	//WASMPath := g_testData.GetWASMPath("token", g_testData.CoreVmTestData)
+//	//abiPath := g_testData.GetAbiPath("token", g_testData.CoreVmTestData)
+//	WASMPath := g_testData.GetWASMPath("payableCallNotPayableMulti", g_testData.CoreVmTestData)
+//	abiPath := g_testData.GetAbiPath("payableCallNotPayableMulti", g_testData.CoreVmTestData)
+//	input := []string{"dipp", "DIPP", "10000000"}
+//	data, err := getCreateExtraData(WASMPath, abiPath, input)
+//	assert.NoError(t, err)
+//
+//	addr := common.HexToAddress(common.AddressContractCreate)
+//	tx := model.NewTransaction(0, addr, big.NewInt(0), big.NewInt(1), 26427000, data)
+//	signCreateTx := getSignedTx(t, ownSK, tx, singer)
+//
+//	gasLimit := testGasLimit * 10000000000
+//	block := CreateBlock(1, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
+//	processor, err := CreateProcessorAndInitAccount(t, addressSlice)
+//
+//	tmpGasLimit := block.GasLimit()
+//	gasUsed := block.GasUsed()
+//	config := &TxProcessConfig{
+//		Tx:       tx,
+//		Header:   block.Header(),
+//		GetHash:  getTestHashFunc(),
+//		GasLimit: &tmpGasLimit,
+//		GasUsed:  &gasUsed,
+//		TxFee:    big.NewInt(0),
+//	}
+//
+//	err = processor.ProcessTxNew(config)
+//	assert.NoError(t, err)
+//
+//	contractAddr := cs_crypto.CreateContractAddress(ownAddress, uint64(0))
+//	contractNonce, err := processor.GetNonce(contractAddr)
+//	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce)
+//	code, err := processor.GetCode(contractAddr)
+//	abi, err := processor.GetAbi(contractAddr)
+//	log.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
+//	assert.NoError(t, err)
+//	//assert.Equal(t, code, tx.ExtraData())
+//	processor.Commit()
+//
+//	accountOwn := accounts.Account{ownAddress}
+//	//  合约调用getBalance方法  获取合约原始账户balance
+//	ownTransferNonce, err := processor.GetNonce(ownAddress)
+//	assert.NoError(t, err)
+//	err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 2, singer)
+//	assert.NoError(t, err)
+//
+//	//gasUsed2 := uint64(0)
+//	//  合约调用  transfer方法 转账给alice
+//	ownTransferNonce++
+//	err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "transfer", aliceAddress.Hex()+",20", 3, singer)
+//	assert.NoError(t, err)
+//
+//	//  合约调用getBalance方法  获取alice账户balance
+//	ownTransferNonce++
+//	err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 4, singer)
+//	assert.NoError(t, err)
+//
+//}
 
 func newContractCallTx(from *common.Address, to *common.Address, gasPrice *big.Int, gasLimit uint64, funcName string, input string, nonce uint64, code []byte) (tx *model.Transaction, err error) {
 	// RLP([funcName][params])
