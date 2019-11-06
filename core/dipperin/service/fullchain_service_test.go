@@ -559,7 +559,7 @@ func TestVenusFullChainService_OpenWallet(t *testing.T) {
 		service.WalletManager.HandleResult <- true
 	}()
 
-	err := service.OpenWallet(*createWalletIdentifier(), "123")
+	err := service.OpenWallet(*createWalletIdentifier(), "12345678")
 	assert.NoError(t, err)
 
 	identifier := &accounts.WalletIdentifier{WalletType: 123}
@@ -620,7 +620,7 @@ func TestVenusFullChainService_RestoreWallet(t *testing.T) {
 	wallet, err := soft_wallet.NewSoftWallet()
 	assert.NoError(t, err)
 
-	memory, err := wallet.Establish(util.HomeDir()+testPath, "testSoftWallet", "123", "")
+	memory, err := wallet.Establish(util.HomeDir()+testPath, "testSoftWallet", Password, PassPhrase)
 	defer os.RemoveAll(util.HomeDir() + testPath)
 	assert.NoError(t, err)
 
@@ -643,7 +643,7 @@ func TestVenusFullChainService_RestoreWallet(t *testing.T) {
 		service.WalletManager.HandleResult <- true
 	}()
 
-	err = service.RestoreWallet(*createWalletIdentifier(), "123", "", memory)
+	err = service.RestoreWallet(*createWalletIdentifier(), Password, PassPhrase, memory)
 	assert.NoError(t, err)
 	assert.NoError(t, os.RemoveAll(util.HomeDir()+testPath))
 }

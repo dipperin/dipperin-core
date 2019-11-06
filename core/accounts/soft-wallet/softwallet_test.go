@@ -49,6 +49,7 @@ var testHashData = [32]byte{0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04,
 	0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04,
 	0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04}
 
+
 var walletName = "testSoftWallet"
 var path = util.HomeDir() + "/testSoftWallet"
 var password = "12345678"
@@ -94,14 +95,14 @@ func TestSoftWallet_paddingWalletInfo(t *testing.T) {
 	testWallet, err := NewSoftWallet()
 	assert.NoError(t, err)
 
-	err = testWallet.paddingWalletInfo(testMnemonic, "123", "", testKdfPara)
+	err = testWallet.paddingWalletInfo(testMnemonic, password, passPhrase, testKdfPara)
 	assert.NoError(t, err)
 
-	err = testWallet.paddingWalletInfo(errTestMnemonic, "123", "", testKdfPara)
+	err = testWallet.paddingWalletInfo(errTestMnemonic, password, passPhrase, testKdfPara)
 	assert.Error(t, err)
 
 	testKdfPara.KDFParams["kdfType"] = "bcrypt"
-	err = testWallet.paddingWalletInfo(testMnemonic, "123", "", testKdfPara)
+	err = testWallet.paddingWalletInfo(testMnemonic, password, passPhrase, testKdfPara)
 	assert.Error(t, err)
 
 }
@@ -513,7 +514,7 @@ func TestSoftWallet_Contains(t *testing.T) {
 const generateWallet = false
 const generateWalletNumber = 5
 const generateWalletPath = "testWallet"
-const walletPassword = "123"
+const walletPassword = "12345678"
 
 type walletConf struct {
 	WalletCipher string
