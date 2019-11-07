@@ -1046,7 +1046,7 @@ func (service *VenusFullChainService) StartMine() error {
 	}
 
 	//if service.MineMaster
-	if service.MineMaster.GetMsgSigner() == nil{
+	if service.MineMaster.GetMsgSigner() == nil {
 		return errors.New("there isn't msgSigner in mineMaster")
 	}
 

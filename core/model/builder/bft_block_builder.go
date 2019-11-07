@@ -46,15 +46,13 @@ type BftBlockBuilder struct {
 	ModelConfig
 }
 
-func (builder *BftBlockBuilder)GetMsgSigner() chain_communication.PbftSigner{
+func (builder *BftBlockBuilder) GetMsgSigner() chain_communication.PbftSigner {
 	return builder.MsgSigner
 }
 
 func (builder *BftBlockBuilder) SetMsgSigner(MsgSigner chain_communication.PbftSigner) {
 	builder.MsgSigner = MsgSigner
 }
-
-
 
 func (builder *BftBlockBuilder) commitTransaction(conf *state_processor.TxProcessConfig, state *chain.BlockProcessor) error {
 	snap := state.Snapshot()

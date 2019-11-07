@@ -438,7 +438,7 @@ func (api *DipperinVenusApi) SetMineCoinBase(addr common.Address) error {
 	return api.service.SetMineCoinBase(addr)
 }
 
-func (api *DipperinVenusApi) GetMineCoinBase() common.Address{
+func (api *DipperinVenusApi) GetMineCoinBase() common.Address {
 	return api.service.MineMaster.CurrentCoinbaseAddress()
 }
 

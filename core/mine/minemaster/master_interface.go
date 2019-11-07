@@ -163,7 +163,7 @@ type MineConfig struct {
 	BlockBroadcaster BlockBroadcaster
 }
 
-func (conf *MineConfig) GetMsgSigner() chain_communication.PbftSigner{
+func (conf *MineConfig) GetMsgSigner() chain_communication.PbftSigner {
 	return conf.BlockBuilder.GetMsgSigner()
 }
 
