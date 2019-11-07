@@ -45,29 +45,29 @@ The following command is to start a node, which requires a wallet password.
 If no wallet path is specified, the default system path is used: `~/.dipperin/`.
 
 ```
-dipperincli --node_type [type] --soft_wallet_pwd [password]
+dipperincli --node_type [type] --soft_wallet_pwd [password] --soft_wallet_pass_phrase [passPhrase]
 ```
 
 Example:
 
 Local startup miner:
 ```
-dipperincli --node_type 1 --soft_wallet_pwd 123
+dipperincli --node_type 1 --soft_wallet_pwd 12345678 --soft_wallet_pass_phrase 12345678
 ```
 
 Local startup miner(start mining):
 ```
-dipperincli --node_type 1 --soft_wallet_pwd 123 --is_start_mine 1
+dipperincli --node_type 1 --soft_wallet_pwd 12345678 --soft_wallet_pass_phrase 123456778 --is_start_mine 1
 ```
 
 Local startup verifier:
 ```
-dipperincli --node_type 2 --soft_wallet_pwd 123
+dipperincli --node_type 2 --soft_wallet_pwd 12345678  --soft_wallet_pass_phrase 12345678
 ```
 
 Connect to the test environment:
 ```
-boots_env=test ~/go/bin/dipperincli -- soft_wallet_pwd 123
+boots_env=test ~/go/bin/dipperincli -- soft_wallet_pwd 12345678 --soft_wallet_pass_phrase 12345678
 ```
 
 ### Error
