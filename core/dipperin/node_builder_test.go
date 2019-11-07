@@ -45,7 +45,7 @@ func createNodeConfig() *NodeConfig {
 		WSHost:               "ws_host",
 		WSPort:               4335,
 		NodeType:             0,
-		SoftWalletPassword:   "123",
+		SoftWalletPassword:   "12345678",
 		SoftWalletPassPhrase: "pass_phrase",
 		IsStartMine:          true,
 		DefaultAccountKey:    "account_key",
