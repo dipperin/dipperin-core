@@ -174,6 +174,9 @@ func TestSoftWallet_Open(t *testing.T) {
 
 	assert.Error(t, err, accounts.ErrWalletPasswordNotValid)
 
+	err = testWallet.Open("/Users/konggan/tmp/dipperin_apps/default_v0/CSWallet", walletName, "12345678")
+	assert.NoError(t, err)
+
 	os.Remove(path)
 }
 
@@ -518,6 +521,7 @@ const walletPassword = "12345678"
 type walletConf struct {
 	WalletCipher string
 	MainAddress  string
+	PK           string
 }
 
 type walletInfo struct {
@@ -586,4 +590,70 @@ func TestGenerateWallet(t *testing.T) {
 
 	fmt.Println("===================")
 	fmt.Println(util.StringifyJson(conf))
+}
+
+
+//generate test wallet
+func TestGenerateWalletForMonitor(t *testing.T) {
+
+	user, err := user2.Current()
+	assert.NoError(t, err)
+
+	walletPath := user.HomeDir + "/test/" + generateWalletPath
+
+	log.Info("the walletPath is:", "walletPath", walletPath)
+	_, err = os.Stat(walletPath)
+	if err == nil {
+		err = os.RemoveAll(walletPath)
+		assert.NoError(t, err)
+	}
+
+	err = os.Mkdir(walletPath, 0777)
+	assert.NoError(t, err)
+	err = os.Chmod(walletPath, 0777)
+	assert.NoError(t, err)
+	var conf []*walletConf
+	generateWalletNumberN := 22
+
+	for i := 0; i < generateWalletNumberN; i++ {
+		walletName := "testSoftWallet" + strconv.Itoa(i)
+		path := walletPath + "/" + walletName
+		passPhrase := "12345678"
+
+		mnemonic, wallet, err := establishSoftWallet(path, walletName, walletPassword, passPhrase)
+		assert.NoError(t, err)
+
+		accounts, err := wallet.Accounts()
+		//pk,_ := wallet.GetSKFromAddress(accounts[0].Address)
+		assert.NoError(t, err)
+		log.Info("the mine address is:", "address", accounts[0].Address.Hex())
+
+		// Must be at the front, he will post the address information in this file, causing the wallet to be incorrect
+		wb, err := ioutil.ReadFile(path)
+		assert.NoError(t, err)
+		conf = append(conf, &walletConf{
+			WalletCipher: string(wb),
+			MainAddress:  accounts[0].Address.Hex(),
+			//PK: pk.
+		})
+
+		walletInfoFile := "walletInfo" + strconv.Itoa(i)
+		infoPath := walletPath + "/" + walletInfoFile
+		info := walletInfo{
+			Mnemonic:       mnemonic,
+			Address:        accounts[0].Address.Hex(),
+			WalletPassword: walletPassword,
+		}
+		writeData, err := json.Marshal(&info)
+		assert.NoError(t, err)
+		err = ioutil.WriteFile(infoPath, writeData, 0666)
+		//fmt.Println(info)
+		assert.NoError(t, err)
+
+	}
+
+	fmt.Println("===================")
+	result := util.StringifyJson(conf)
+	//strings.Replace(result, `\"`, `"`, -1)
+	fmt.Println(result)
 }

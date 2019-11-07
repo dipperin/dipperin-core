@@ -180,6 +180,7 @@ func (w *SoftWallet) encryptWalletAndWriteFile(operation int) (err error) {
 }
 
 func (w *SoftWallet) decryptWallet(password string) (passwordValid bool, walletPlain []byte, keyData EncryptKey, err error) {
+	log.Info("SoftWallet#decryptWallet", "password", password)
 	var walletPath string
 	if w.Identifier.Path == "" {
 		walletPath = WalletDefaultPath
