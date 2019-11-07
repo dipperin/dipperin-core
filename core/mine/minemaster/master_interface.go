@@ -47,6 +47,7 @@ type Master interface {
 
 	SetMsgSigner(MsgSigner chain_communication.PbftSigner)
 
+	GetMsgSigner() chain_communication.PbftSigner
 	SpendableMaster
 	// Done: 1. add get worker's work,
 	// Done: 2. worker's coin count method,
@@ -146,6 +147,7 @@ type rewardDistributor interface {
 
 type BlockBuilder interface {
 	SetMsgSigner(MsgSigner chain_communication.PbftSigner)
+	GetMsgSigner() chain_communication.PbftSigner
 	BuildWaitPackBlock(coinbaseAddr common.Address, gasFloor, gasCeil uint64) model.AbstractBlock
 }
 
@@ -159,6 +161,10 @@ type MineConfig struct {
 	CoinbaseAddress  *atomic.Value
 	BlockBuilder     BlockBuilder
 	BlockBroadcaster BlockBroadcaster
+}
+
+func (conf *MineConfig) GetMsgSigner() chain_communication.PbftSigner{
+	return conf.BlockBuilder.GetMsgSigner()
 }
 
 func (conf *MineConfig) SetMsgSigner(MsgSigner chain_communication.PbftSigner) {

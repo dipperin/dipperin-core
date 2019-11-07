@@ -46,6 +46,10 @@ func Test_newWorkDispatcher(t *testing.T) {
 type fakeBlockBuilder struct {
 }
 
+func (b *fakeBlockBuilder) GetMsgSigner() chain_communication.PbftSigner {
+	return nil
+}
+
 func (b *fakeBlockBuilder) SetMsgSigner(MsgSigner chain_communication.PbftSigner) {
 
 }

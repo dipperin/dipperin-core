@@ -1045,6 +1045,11 @@ func (service *VenusFullChainService) StartMine() error {
 		return errors.New("current node is not mine master")
 	}
 
+	//if service.MineMaster
+	if service.MineMaster.GetMsgSigner() == nil{
+		return errors.New("there isn't msgSigner in mineMaster")
+	}
+
 	if service.Mining() {
 		return errors.New("miner is mining")
 	}

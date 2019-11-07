@@ -34,6 +34,7 @@ type fakeMaster struct {
 }
 
 func (m *fakeMaster) SetMsgSigner(MsgSigner chain_communication.PbftSigner) {}
+func (m fakeMaster)  GetMsgSigner() chain_communication.PbftSigner{return nil}
 func (m *fakeMaster) SetMineGasConfig(gasFloor, gasCeil uint64) {
 	panic("implement me")
 }
