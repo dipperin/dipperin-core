@@ -48,9 +48,9 @@ import (
 )
 
 const (
-	testPath  = "/tmp/testSoftWallet"
-	url_wrong = "enode://01010101@123.124.125.126:3"
-	Password = "12345678"
+	testPath   = "/tmp/testSoftWallet"
+	url_wrong  = "enode://01010101@123.124.125.126:3"
+	Password   = "12345678"
 	PassPhrase = "12345678"
 )
 
