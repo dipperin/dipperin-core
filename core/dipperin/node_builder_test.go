@@ -48,7 +48,7 @@ func createNodeConfig() *NodeConfig {
 		WSPort:               4335,
 		NodeType:             0,
 		SoftWalletPassword:   "12345678",
-		SoftWalletPassPhrase: "pass_phrase",
+		SoftWalletPassPhrase: "12345678",
 		IsStartMine:          true,
 		DefaultAccountKey:    "account_key",
 		UploadURL:            "http://127.0.0.1:8080",

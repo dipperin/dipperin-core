@@ -82,7 +82,7 @@ func TestServiceStart3(t *testing.T) {
 			WalletName: "CSWallet1",
 			Path:       filepath.Join(config.DataDir, "CSWallet1"),
 		}
-		csNode.(*CsNode).ServiceManager.components.chainService.EstablishWallet(walletIdentifier, "123", "")
+		csNode.(*CsNode).ServiceManager.components.chainService.EstablishWallet(walletIdentifier, "12345678", "12345678")
 		csNode.(*CsNode).ServiceManager.components.chainService.StartRemainingService()
 	}()
 
