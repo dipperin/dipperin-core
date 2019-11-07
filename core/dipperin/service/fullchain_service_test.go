@@ -683,13 +683,13 @@ func TestVenusFullChainService_EstablishWallet(t *testing.T) {
 	}()
 
 	identifier := createWalletIdentifier()
-	memory, err := service.EstablishWallet(*identifier, "123", "")
+	memory, err := service.EstablishWallet(*identifier, "12345678", "12345678")
 	defer os.RemoveAll(util.HomeDir() + testPath)
 	assert.NoError(t, err)
 	assert.NotNil(t, memory)
 
 	identifier = &accounts.WalletIdentifier{WalletType: 123}
-	memory, err = service.EstablishWallet(*identifier, "123", "")
+	memory, err = service.EstablishWallet(*identifier, "12345678", "")
 	assert.Equal(t, "wallet type error", err.Error())
 	assert.Equal(t, "", memory)
 
