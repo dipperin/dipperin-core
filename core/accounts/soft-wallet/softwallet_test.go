@@ -592,7 +592,6 @@ func TestGenerateWallet(t *testing.T) {
 	fmt.Println(util.StringifyJson(conf))
 }
 
-
 //generate test wallet
 func TestGenerateWalletForMonitor(t *testing.T) {
 
