@@ -42,7 +42,7 @@ type mockDispatch struct {
 	onNewBlockError error
 }
 
-func (dispatcher *mockDispatch)SetMsgSigner(MsgSigner chain_communication.PbftSigner){
+func (dispatcher *mockDispatch) SetMsgSigner(MsgSigner chain_communication.PbftSigner) {
 
 }
 

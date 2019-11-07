@@ -34,7 +34,7 @@ func TestStartNode(t *testing.T) {
 	app.Flags = append(config.Flags, debug.Flags...)
 	app.Action = func(c *cli.Context) {
 		//assert.NoError(t, os.Setenv("cslog", "enable"))
-		path := filepath.Join(util.HomeDir(),"tmp/test_start_node")
+		path := filepath.Join(util.HomeDir(), "tmp/test_start_node")
 		assert.NoError(t, c.Set(config.DataDirFlagName, path))
 		assert.NoError(t, c.Set(config.LogLevelFlagName, "haha"))
 		assert.NoError(t, c.Set(config.P2PListenerFlagName, "16888"))

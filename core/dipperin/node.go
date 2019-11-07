@@ -156,7 +156,7 @@ func (m *ServiceManager) startRemainingServices() error {
 		return nil
 	}
 	var err error
-	if m.components.nodeConfig.NodeType != chain_config.NodeTypeOfMiner{
+	if m.components.nodeConfig.NodeType != chain_config.NodeTypeOfMiner {
 		err := m.components.setNodeSignerInfo()
 		if err != nil {
 			panic("serviceManager startRemainingServices err:" + err.Error())

@@ -52,8 +52,8 @@ func Test_action(t *testing.T) {
 			Value: ":62060",
 		},
 		cli.BoolFlag{
-		Name:  config.NoWalletStartFlagName,
-		Usage: "not need to set SoftWalletPasswordFlag SoftWalletPassPhraseFlag SoftWalletPathFlag when this flag is true",
+			Name:  config.NoWalletStartFlagName,
+			Usage: "not need to set SoftWalletPasswordFlag SoftWalletPassPhraseFlag SoftWalletPathFlag when this flag is true",
 		},
 	}
 	app.Action = func(c *cli.Context) {
@@ -65,7 +65,7 @@ func Test_action(t *testing.T) {
 		c.Set(coinbaseFlagName, "123")
 		c.Set(minerCountFlagName, "1")
 		c.Set(config.P2PListenerFlagName, "123")
-		c.Set(config.NoWalletStartFlagName,"true")
+		c.Set(config.NoWalletStartFlagName, "true")
 
 		//fmt.Println(123)
 		go action(c)
