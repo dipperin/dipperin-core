@@ -176,8 +176,10 @@ func TestCsChainService_SaveBlock(t *testing.T) {
 	cMock := &fakeCacheDB{}
 	pMock := &fakeTxPool{}
 
-	ccs, gEnv, _, bB := getTestChainEnv(t, cMock, pMock)
+	ccs, gEnv, txB, bB := getTestChainEnv(t, cMock, pMock)
 	bB.SetMinerPk(gEnv.DefaultBootNodeVerifiers()[0].Pk)
+	bB.Txs = []*model.Transaction{txB.Build()}
+
 	b1 := bB.Build()
 	b1Special := bB.BuildSpecialBlock()
 
@@ -191,6 +193,8 @@ func TestCsChainService_SaveBlock(t *testing.T) {
 	b2 := bB.Build()
 	assert.NoError(t, ccs.SaveBlock(b2, gEnv.VoteBlock(3, 1, b2)))
 	assert.NoError(t, ccs.SaveBlock(b1Special, gEnv.VoteSpecialBlock(b1Special)))
+	assert.Equal(t, b1Special.Number(), ccs.CurrentBlock().Number())
+	assert.Nil(t, ccs.GetBlockByNumber(b2.Number()))
 
 	numLowBlockToReturnErr = 0
 	block := ccs.GetBlockByNumber(0)
@@ -265,7 +269,7 @@ func getTestChainEnv(t *testing.T, db CacheDB, pool TxPool) (*CsChainService, *t
 	attackEnv := tests.NewGenesisEnv(chainState.GetChainDB(), chainState.GetStateStorage(), nil)
 
 	txB := &tests.TxBuilder{
-		Nonce:  1,
+		Nonce:  0,
 		To:     common.HexToAddress(fmt.Sprintf("0x123a%v", 1)),
 		Amount: big.NewInt(1),
 		Pk:     attackEnv.DefaultVerifiers()[0].Pk,

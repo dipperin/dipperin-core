@@ -21,6 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/g-timer"
 	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
@@ -29,17 +30,17 @@ import (
 	"time"
 )
 
-var pollingInterval = 10 * time.Second
-var fetchBlockTimeout = 60 * time.Second
+var (
+	pollingInterval   = 10 * time.Second
+	fetchBlockTimeout = 60 * time.Second
+)
 
 func MakeNewPbftDownloader(config *NewPbftDownloaderConfig) *NewPbftDownloader {
 	service := &NewPbftDownloader{
 		NewPbftDownloaderConfig: config,
-
-		handlers: map[uint64]func(msg p2p.Msg, p PmAbstractPeer) error{},
-		blockC:   make(chan *npbPack),
-
-		quitCh: make(chan struct{}),
+		handlers:                map[uint64]func(msg p2p.Msg, p PmAbstractPeer) error{},
+		blockC:                  make(chan *npbPack),
+		quitCh:                  make(chan struct{}),
 	}
 	service.handlers[GetBlocksMsg] = service.onGetBlocks
 	service.handlers[BlocksMsg] = service.onBlocks
@@ -56,14 +57,10 @@ type NewPbftDownloaderConfig struct {
 
 type NewPbftDownloader struct {
 	*NewPbftDownloaderConfig
-
-	handlers map[uint64]func(msg p2p.Msg, p PmAbstractPeer) error
-
-	blockC chan *npbPack
-
+	handlers      map[uint64]func(msg p2p.Msg, p PmAbstractPeer) error
+	blockC        chan *npbPack
+	quitCh        chan struct{}
 	synchronising int32
-
-	quitCh chan struct{}
 }
 
 type npbPack struct {
@@ -111,9 +108,7 @@ func (fd *NewPbftDownloader) onGetBlocks(msg p2p.Msg, p PmAbstractPeer) error {
 
 	for len(blocks) < int(query.Amount) && len(blocks) < MaxBlockFetch {
 		origin := fd.Chain.GetBlockByNumber(query.OriginHeight)
-
 		cmt := fd.Chain.GetSeenCommit(query.OriginHeight)
-
 		if origin == nil {
 			log.Info("can't get block for downloader", "height", query.OriginHeight)
 			break
@@ -136,16 +131,12 @@ func (fd *NewPbftDownloader) onBlocks(msg p2p.Msg, p PmAbstractPeer) error {
 		log.Error("downloader decode blocks failed", "err", err)
 		return err
 	}
+
 	log.Info("downloader receive blocks from", "node", p.NodeName(), "block len", len(blocks))
-
 	if len(blocks) > 0 {
-
 		// Filter out any explicitly requested block vr, deliver the rest to the downloader
-
 		filter := fd.fetcher.DoFilter(p.ID(), blocks)
-
 		log.Info("fetcher filter catchup list", "origin size", len(blocks), "filter", len(filter))
-
 		pack := &npbPack{
 			peerID: p.ID(),
 			blocks: filter,
@@ -197,7 +188,6 @@ func (fd *NewPbftDownloader) getBestPeer() PmAbstractPeer {
 	}
 
 	currentBlock := fd.Chain.CurrentBlock()
-
 	if currentBlock == nil {
 		log.Error("=======================currentBlock is nil===================")
 		return nil
@@ -209,8 +199,8 @@ func (fd *NewPbftDownloader) getBestPeer() PmAbstractPeer {
 		log.Info("local higher than best peer", "bestPeer", bestPeer.NodeName(), "remote h", height, "local h", currentBlock.Number())
 		return nil
 	}
-	log.Info("downloader got best peer", "p height", height, "p name", bestPeer.NodeName())
 
+	log.Info("downloader got best peer", "p height", height, "p name", bestPeer.NodeName())
 	return bestPeer
 }
 
@@ -218,7 +208,6 @@ func (fd *NewPbftDownloader) getBestPeer() PmAbstractPeer {
 func (fd *NewPbftDownloader) runSync() {
 	log.Info("bft downloader run sync")
 	log.PBft.Debug("bft downloader run sync")
-
 	if !atomic.CompareAndSwapInt32(&fd.synchronising, 0, 1) {
 		log.Info("downloader is busy")
 		return
@@ -240,14 +229,20 @@ func (fd *NewPbftDownloader) runSync() {
 	}
 
 	fd.fetchBlocks(bestPeer)
-
 }
 
 func (fd *NewPbftDownloader) fetchBlocks(bestPeer PmAbstractPeer) {
 	_, height := bestPeer.GetHead()
 
-	//because current block may be reversed by the empty block, the nextNumber should be the current block number
-	nextNumber := fd.Chain.CurrentBlock().Number()
+	//current block may be reversed by the empty block
+	rollBackNum := chain_config.GetChainConfig().RollBackNum
+	curNumber := fd.Chain.CurrentBlock().Number()
+	var nextNumber uint64
+	if curNumber > rollBackNum {
+		nextNumber = fd.Chain.GetBlockByNumber(nextNumber - rollBackNum + 1).Number()
+	} else {
+		nextNumber = fd.Chain.GetBlockByNumber(1).Number()
+	}
 
 	log.Info("send get blocks msg", "remote peer name", bestPeer.NodeName(), "remote peer height", height)
 	go func() {
@@ -260,7 +255,6 @@ func (fd *NewPbftDownloader) fetchBlocks(bestPeer PmAbstractPeer) {
 	defer timeoutTimer.Stop()
 	for {
 		select {
-
 		case packet := <-fd.blockC:
 			if packet.peerID != bestPeer.ID() {
 				log.Warn("Received skeleton from incorrect peer", "peer", packet.peerID)
@@ -269,7 +263,6 @@ func (fd *NewPbftDownloader) fetchBlocks(bestPeer PmAbstractPeer) {
 
 			blocks := packet.blocks
 			size := len(blocks)
-
 			log.Info("fetchBlocks1", "blocks len", size)
 
 			// no block return from remote
@@ -320,7 +313,6 @@ func (fd *NewPbftDownloader) importBlockResults(list []*catchupRlp) error {
 
 		log.Info("importBlockResults save block number is:", "blockNumber", b.Block.Number())
 		if err := fd.Chain.SaveBlock(b.Block, commits); err != nil {
-			//skip the block if the height is same as current block and it isn't the empty block
 			if err == g_error.ErrNormalBlockHeightTooLow {
 				log.Info("importBlockResults the block height is same as the current block ")
 				continue

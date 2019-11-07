@@ -339,10 +339,10 @@ func TestNewPbftDownloader_fetchBlocks(t *testing.T) {
 	mockPeer.EXPECT().SendMsg(gomock.Any(), gomock.Any()).Return(errors.New("test")).AnyTimes()
 
 	fakeBlock1 := factory.CreateBlock2(common.HexToDiff("0x1effffff"), 1)
-
 	mockChain.EXPECT().CurrentBlock().Return(fakeBlock1).AnyTimes()
 
 	fakeBlock2 := factory.CreateBlock2(common.HexToDiff("0x1effffff"), 1)
+	mockChain.EXPECT().GetBlockByNumber(uint64(1)).Return(fakeBlock1).AnyTimes()
 
 	mockCatchupRlp := &catchupRlp{
 		Block:      fakeBlock2,

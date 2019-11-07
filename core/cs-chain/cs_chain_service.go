@@ -229,6 +229,7 @@ func (cs *CsChainService) saveBftBlock(block model.AbstractBlock, seenCommits []
 	var txs []model.AbstractTransaction
 	if tmpBlock != nil {
 		transactions := tmpBlock.GetTransactions()
+		txs = make([]model.AbstractTransaction, len(transactions))
 		util.InterfaceSliceCopy(txs, transactions)
 	}
 
@@ -236,7 +237,6 @@ func (cs *CsChainService) saveBftBlock(block model.AbstractBlock, seenCommits []
 	err := cs.SaveBftBlock(block, seenCommits)
 	switch err {
 	case nil:
-
 		if err = cs.CacheDB.SaveSeenCommits(block.Number(), common.Hash{}, seenCommits); err != nil {
 			log.PBft.Error("save seenCommits failed", "err", err)
 			return err
@@ -246,7 +246,6 @@ func (cs *CsChainService) saveBftBlock(block model.AbstractBlock, seenCommits []
 		newCurrentBlock := cs.CurrentHeader().(*model.Header)
 		cs.TxPool.Reset(oldCurrentHead, newCurrentBlock)
 		if cs.CurrentBlock().IsSpecial() {
-
 			for _, v := range cs.TxPool.AddRemotes(txs) {
 				if v != nil {
 					log.Error("special block AddRemotes failed", "err", v)
@@ -256,6 +255,7 @@ func (cs *CsChainService) saveBftBlock(block model.AbstractBlock, seenCommits []
 			// roll back block number
 			for i := cs.CurrentBlock().Number(); i < oldCurrentHead.Number; i++ {
 				cs.ChainState.Rollback(i + 1)
+				log.Info("roll back block number", "number", i+1)
 			}
 		}
 
