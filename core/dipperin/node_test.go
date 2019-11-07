@@ -18,7 +18,11 @@ package dipperin
 
 import (
 	"errors"
+	"github.com/dipperin/dipperin-core/core/accounts"
+	"github.com/dipperin/dipperin-core/core/cs-chain"
 	"github.com/stretchr/testify/assert"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -36,22 +40,65 @@ func (s fakeNodeService) Stop() {
 	return
 }
 
-func TestNewCsNode(t *testing.T) {
-	csNode := NewCsNode([]NodeService{fakeNodeService{}}, NodeConfig{})
+func TestServiceStart1(t *testing.T) {
+	cs_chain.GenesisSetUp = true
+	config := createNodeConfig()
+	os.RemoveAll(config.DataDir)
+	csNode := NewBftNode(*config)
+	err := csNode.Start()
+	assert.NoError(t, err)
+	csNode.Stop()
+	os.RemoveAll(config.DataDir)
+}
+
+func TestServiceStart2(t *testing.T) {
+	cs_chain.GenesisSetUp = true
+	config := createNodeConfig()
+	os.RemoveAll(config.DataDir)
+	csNode := NewBftNode(*config)
+
+	csNode.AddService(fakeNodeService{err: errors.New("test error")})
+	err := csNode.Start()
+	assert.Error(t, err)
+	os.RemoveAll(config.DataDir)
+}
+
+func TestServiceStart3(t *testing.T) {
+	cs_chain.GenesisSetUp = true
+	config := createNodeConfig()
+	config.SoftWalletPassword = ""
+	config.SoftWalletPassPhrase = ""
+	config.SoftWalletPath = ""
+	config.NoWalletStart = true
+	os.RemoveAll(config.DataDir)
+	csNode := NewBftNode(*config)
 	err := csNode.Start()
 	assert.NoError(t, err)
 
-	csNode.Stop()
+	go func() {
+		time.Sleep(time.Millisecond * 100)
+		walletIdentifier := accounts.WalletIdentifier{
+			WalletType: accounts.SoftWallet,
+			WalletName: "CSWallet1",
+			Path:       filepath.Join(config.DataDir, "CSWallet1"),
+		}
+		csNode.(*CsNode).ServiceManager.components.chainService.EstablishWallet(walletIdentifier, "123", "")
+		csNode.(*CsNode).ServiceManager.components.chainService.StartRemainingService()
+	}()
 
-	csNode.AddService(fakeNodeService{err: errors.New("test error")})
-	err = csNode.Start()
-	assert.Error(t, err)
-	csNode.Wait()
+	time.Sleep(time.Second)
+	csNode.Stop()
+	os.RemoveAll(config.DataDir)
 }
 
 func TestCsNode_Start(t *testing.T) {
 	chokeTimeout = time.Millisecond * 50
-	csNode := NewCsNode([]NodeService{}, NodeConfig{})
+	cs_chain.GenesisSetUp = true
+	config := createNodeConfig()
+	os.RemoveAll(config.DataDir)
+	csNode := NewBftNode(*config)
 	err := csNode.Start()
 	assert.NoError(t, err)
+	csNode.Stop()
+	os.RemoveAll(config.DataDir)
 }

@@ -22,6 +22,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/chain"
+	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 
 	"github.com/dipperin/dipperin-core/core/model"
@@ -43,6 +44,14 @@ func MakeBftBlockBuilder(config ModelConfig) *BftBlockBuilder {
 type BftBlockBuilder struct {
 	//nodeContext NodeContext
 	ModelConfig
+}
+
+func (builder *BftBlockBuilder) GetMsgSigner() chain_communication.PbftSigner {
+	return builder.MsgSigner
+}
+
+func (builder *BftBlockBuilder) SetMsgSigner(MsgSigner chain_communication.PbftSigner) {
+	builder.MsgSigner = MsgSigner
 }
 
 func (builder *BftBlockBuilder) commitTransaction(conf *state_processor.TxProcessConfig, state *chain.BlockProcessor) error {

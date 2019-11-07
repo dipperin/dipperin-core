@@ -62,6 +62,7 @@ const (
 	NodeTypeOfMineMaster
 	NodeTypeOfVerifier
 	NodeTypeOfVerifierBoot
+	NodeTypeOfMiner
 )
 
 var (

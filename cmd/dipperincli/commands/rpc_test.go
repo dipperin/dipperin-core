@@ -38,12 +38,6 @@ import (
 	"time"
 )
 
-func TestInitRpcClient(t *testing.T) {
-	assert.Panics(t, func() {
-		InitRpcClient(12345)
-	})
-}
-
 func TestInitAccountInfo(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

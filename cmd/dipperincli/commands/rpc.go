@@ -29,6 +29,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/dipperin"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
@@ -72,17 +73,9 @@ func init() {
 	l.SetHandler(log.MultiHandler(log.CliOutHandler))
 }
 
-func InitRpcClient(port int) {
-	l.Info("init rpc client", "port", port)
-	var err error
-	//if client, err = rpc.Dial(fmt.Sprintf("http://%v:%d", "127.0.0.1", port)); err != nil {
-	//	panic("init rpc client failed: " + err.Error())
-	//}
-	wsURL := fmt.Sprintf("ws://%v:%d", "127.0.0.1", port)
-	//l.Info("init rpc client", "wsURL", wsURL)
-	if client, err = rpc.Dial(wsURL); err != nil {
-		panic("init rpc client failed: " + err.Error())
-	}
+func InitRpcClient(info dipperin.NodeInfo) {
+	l.Info("init inProc client")
+	client = rpc.DialInProc(info.InProcHandler)
 }
 
 func InitAccountInfo(nodeType int, path, password, passPharse string) {

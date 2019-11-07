@@ -17,10 +17,8 @@
 package service
 
 import (
-	"errors"
 	"github.com/dipperin/dipperin-core/cmd/dipperin/config"
 	"github.com/dipperin/dipperin-core/cmd/utils/debug"
-	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/dipperin"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/urfave/cli"
@@ -34,19 +32,11 @@ func StartNode(c *cli.Context, async bool, logToConsole bool, logToFile bool) (d
 	extraBeforeStart(c, logToConsole, logToFile)
 	// make a node
 	nodeConf := getNodeConf(c)
-
-	log.Info("the nodeConf nodeType is:", "nodeType", nodeConf.NodeType)
-	log.Info("the nodeConf SoftWalletPath is:", "SoftWalletPath", nodeConf.SoftWalletPath)
-	//normal not need wallet password
-	if nodeConf.NodeType != chain_config.NodeTypeOfNormal {
-		if nodeConf.SoftWalletPassword == "" {
-			log.Error("please input password to establish or open wallet")
-			return nil, errors.New("please input password to establish or open wallet")
-		}
+	if err := nodeConf.NodeConfigCheck(); err != nil {
+		return nil, err
 	}
 
 	node := dipperin.NewBftNode(nodeConf)
-
 	debug.Memsize.Add("node", node)
 	// start node
 	if err := node.Start(); err != nil {
@@ -105,6 +95,7 @@ func getNodeConf(c *cli.Context) dipperin.NodeConfig {
 	if nodeConf.P2PListener[0] != ':' {
 		nodeConf.P2PListener = ":" + nodeConf.P2PListener
 	}
+	nodeConf.NoWalletStart = c.Bool(config.NoWalletStartFlagName)
 	nodeConf.SoftWalletPassword = c.String(config.SoftWalletPasswordFlagName)
 	nodeConf.SoftWalletPassPhrase = c.String(config.SoftWalletPassPhraseFlagName)
 	nodeConf.SoftWalletPath = c.String(config.SoftWalletPath)

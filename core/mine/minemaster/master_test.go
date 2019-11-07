@@ -18,6 +18,7 @@ package minemaster
 
 import (
 	"errors"
+	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"math/big"
 	"sync/atomic"
 	"testing"
@@ -39,6 +40,10 @@ type mockDispatch struct {
 	curBlock        model.AbstractBlock
 	dispatchError   error
 	onNewBlockError error
+}
+
+func (dispatcher *mockDispatch) SetMsgSigner(MsgSigner chain_communication.PbftSigner) {
+
 }
 
 func (dispatcher *mockDispatch) onNewBlock(block model.AbstractBlock) error {
