@@ -50,6 +50,8 @@ import (
 const (
 	testPath  = "/tmp/testSoftWallet"
 	url_wrong = "enode://01010101@123.124.125.126:3"
+	Password = "12345678"
+	PassPhrase = "12345678"
 )
 
 var (
@@ -167,7 +169,7 @@ func createWalletManager(t *testing.T) *accounts.WalletManager {
 	wallet, err := soft_wallet.NewSoftWallet()
 	assert.NoError(t, err)
 
-	_, err = wallet.Establish(util.HomeDir()+testPath, "testSoftWallet", "123", "")
+	_, err = wallet.Establish(util.HomeDir()+testPath, "testSoftWallet", Password, PassPhrase)
 	assert.NoError(t, err)
 
 	manager, err := accounts.NewWalletManager(&fakeGetAccountInfo{}, wallet)

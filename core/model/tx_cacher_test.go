@@ -17,6 +17,7 @@
 package model
 
 import (
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"runtime"
@@ -29,11 +30,20 @@ func TestNewTxCacher(t *testing.T) {
 }
 
 func TestTxCacher_TxRecover(t *testing.T) {
+	log.InitLogger(log.LvlDebug)
+	//go  func() {debug.PrintStack()}()
 	cacher := NewTxCacher(runtime.NumCPU())
 	assert.NotNil(t, cacher)
-	tx := CreateSignedTx(0, big.NewInt(10000))
-	cacher.TxRecover([]AbstractTransaction{tx})
-	cacher.TxRecover([]AbstractTransaction{})
+	txs := []AbstractTransaction{}
+	for i := 0; i < 2; i++ {
+		txs = append(txs, CreateSignedTx(uint64(i), big.NewInt(10)))
+	}
+	log.Debug("TestTxCacher_TxRecover", "txs", txs[0].CalTxId())
+
+	cacher.TxRecover(txs)
+
+	log.Debug("TestTxCacher_TxRecover after ", "txs", txs)
+	//cacher.TxRecover([]AbstractTransaction{})
 	cacher.StopTxCacher()
 }
 

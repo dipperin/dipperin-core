@@ -19,6 +19,7 @@ package minemsg
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/tests/factory"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -28,6 +29,7 @@ func TestMakeDefaultWorkBuilder(t *testing.T) {
 }
 
 func TestDefaultWorkBuilder_BuildWorks(t *testing.T) {
+	log.InitLogger(log.LvlDebug)
 	diff := common.HexToDiff("0x1effffff")
 	block := factory.CreateBlock2(diff, 1)
 	workBuilder := MakeDefaultWorkBuilder()

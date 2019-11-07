@@ -38,20 +38,23 @@ func (f *Fullstate) GetNonce(addr common.Address) (uint64, error) {
 func (f *Fullstate) AddNonce(addr common.Address, add uint64) {
 	err := f.state.AddNonce(addr, add)
 	if err != nil {
-		panic(fmt.Sprintf("AddNonce failed, err=%v", err))
+		log.Error("Fullstate#AddBalance", "AddNonce failed; err ", err)
+		//panic(fmt.Sprintf("AddNonce failed, err=%v", err))
 	}
 }
 
 func (f *Fullstate) AddBalance(addr common.Address, amount *big.Int) {
 	err := f.state.AddBalance(addr, amount)
 	if err != nil {
-		panic(fmt.Sprintf("AddBalance failed, err=%v", err))
+		log.Error("Fullstate#AddBalance", "AddBalance failed; err ", err)
+		//panic(fmt.Sprintf("AddBalance failed, err=%v", err))
 	}
 }
 func (f *Fullstate) SubBalance(addr common.Address, amount *big.Int) {
 	err := f.state.SubBalance(addr, amount)
 	if err != nil {
-		panic(fmt.Sprintf("SubBalance failed, err=%v", err))
+		log.Error("Fullstate#AddBalance", "SubBalance failed; err ", err)
+		//panic(fmt.Sprintf("SubBalance failed, err=%v", err))
 	}
 }
 

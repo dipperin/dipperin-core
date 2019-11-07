@@ -101,7 +101,6 @@ func defaultChainConfig() *ChainConfig {
 		BlockTimeRestriction:   15 * time.Second,
 		RollBackNum:            uint64(3),
 	}
-	log.Info("the verifierNumber is:", "number", c.VerifierNumber)
 	switch os.Getenv(BootEnvTagName) {
 	case "mercury":
 		c.NetworkID = 99
@@ -112,11 +111,16 @@ func defaultChainConfig() *ChainConfig {
 	case "test":
 		c.NetworkID = 1600
 		c.ChainId = big.NewInt(1600)
+	case "local":
+		c.VerifierNumber = 4
+		c.NetworkID = 1601
+		c.ChainId = big.NewInt(1601)
 	default:
 		//c.VerifierNumber = 4
 		c.NetworkID = 1601
 		c.ChainId = big.NewInt(1601)
 	}
+	log.Info("the verifierNumber is:", "number", c.VerifierNumber)
 	return c
 }
 

@@ -58,6 +58,8 @@ var ErrInvalidDerivedPath = errors.New("invalid derived path")
 
 var ErrPasswordIsNil = errors.New("password is nil")
 
+var ErrPasswordOrPassPhraseIllegal = errors.New("password or passPhrase illegal, must between 8 and 24, and no chinese!!! ")
+
 var ErrWalletPathError = errors.New("the path should be in the home path")
 
 var ErrEmptySign = errors.New("empty sign")

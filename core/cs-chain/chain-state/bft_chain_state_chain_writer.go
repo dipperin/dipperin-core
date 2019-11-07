@@ -21,6 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 )
 
+// just for test
 func (cs *ChainState) SaveBftBlock(block model.AbstractBlock, seenCommits []model.AbstractVerification) error {
 	return cs.WriterFactory.NewWriter(middleware.NewBftBlockContext(block, seenCommits, cs)).SaveBlock()
 }

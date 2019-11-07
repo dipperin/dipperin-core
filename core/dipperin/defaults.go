@@ -186,6 +186,7 @@ func getNodeList(path string) []*enode.Node {
 }
 
 //TODO: change back to the permission
+// just for test
 func MakeVerifiersReader(fullChain cs_chain.Chain) *ChainVerifiersReader {
 	return &ChainVerifiersReader{
 		fullChain: fullChain,

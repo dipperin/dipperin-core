@@ -3,6 +3,7 @@ package exec
 import (
 	"errors"
 	"fmt"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/perlin-network/life/compiler"
 	"github.com/perlin-network/life/utils"
 )
@@ -87,6 +88,7 @@ func (vm *VirtualMachine) Run(entryID int, params ...int64) (retVal int64, retEr
 	}
 
 	if vm.ExitError != nil {
+		log.Debug("VirtualMachine#Run ", "err", vm.ExitError)
 		return -1, utils.UnifyError(vm.ExitError)
 	}
 	return vm.ReturnValue, nil

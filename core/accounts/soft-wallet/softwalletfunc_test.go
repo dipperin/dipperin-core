@@ -17,8 +17,8 @@
 package soft_wallet
 
 import (
-	"errors"
 	"github.com/dipperin/dipperin-core/core/accounts"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -93,6 +93,7 @@ func TestGetAccountFromExtendedKey(t *testing.T) {
 }
 
 func TestEncryptWalletContent(t *testing.T) {
+	log.InitLogger(log.LvlDebug)
 
 	cipher, err := EncryptWalletContent(testWalletPlain[:], testIv[:], encKey)
 	assert.NoError(t, err)
@@ -131,8 +132,23 @@ func TestDecryptWalletContent(t *testing.T) {
 }
 
 func TestCheckPassword(t *testing.T) {
-	err := CheckPassword("")
-	assert.Equal(t, errors.New("password is nil"), err)
+	//err := CheckPassword("")
+	//assert.Equal(t, errors.New("password is nil"), err)
+
+	err := CheckPassword("19abc```")
+	assert.NoError(t, err)
+
+	err = CheckPassword("国1234567")
+	assert.Error(t, err)
+
+	err = CheckPassword("1234567")
+	assert.Error(t, err)
+
+	err = CheckPassword("1234567890asertyuiopasdfh")
+	assert.Error(t, err)
+
+	err = CheckPassword("234567890~!@#$%^&*()_+<")
+	assert.NoError(t, err)
 }
 
 func TestCheckDerivedPathValid(t *testing.T) {

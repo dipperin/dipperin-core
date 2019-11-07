@@ -147,10 +147,11 @@ func (builder *BlockBuilder) BuildFuture() model.AbstractBlock {
 		Proof:       proof,
 		MinerPubKey: crypto.FromECDSAPub(pubKey),
 		PreHash:     curBlock.Hash(),
+		GasLimit:    chain_config.BlockGasLimit,
 
 		// 一定要有，否则nonce和diff为空就会被判断成特殊块
 		Diff:      builder.getDiff(),
-		TimeStamp: big.NewInt(time.Now().Add(time.Second * 41).UnixNano()),
+		TimeStamp: big.NewInt(time.Now().Add(time.Second * 10).UnixNano()),
 		CoinBase:  coinbaseAddr,
 		Bloom:     iblt.NewBloom(model.DefaultBlockBloomConfig),
 	}

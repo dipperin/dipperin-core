@@ -40,6 +40,7 @@ type ChainInterface interface {
 }
 
 type StateWriter interface {
+	//SaveBlock(block model.AbstractBlock) error
 	Rollback(target uint64) error
 }
 

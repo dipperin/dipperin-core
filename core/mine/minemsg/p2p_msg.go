@@ -29,6 +29,7 @@ const (
 	SubmitDefaultWorkMsg = 0x11
 
 	// msg sent to master by worker
+	// used just by RemoteConnector and SetCurrentCoinbaseMsg not used by anywhere
 	RegisterMsg           = 0x50
 	UnRegisterMsg         = 0x51
 	SetCurrentCoinbaseMsg = 0x52

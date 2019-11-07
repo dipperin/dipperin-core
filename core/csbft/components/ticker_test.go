@@ -85,3 +85,12 @@ func Test_timeoutRoutine2(t *testing.T) {
 	tt.Stop()
 
 }
+
+func TestTimeoutTicker_ScheduleTimeout(t *testing.T) {
+	ticker := NewTimeoutTicker()
+	ticker.Start()
+	ticker.ScheduleTimeout(TimeoutInfo{Duration: 3 * time.Millisecond, Height: uint64(1), Round: uint64(1), Step: 1})
+	ticker.ScheduleTimeout(TimeoutInfo{Duration: 3 * time.Millisecond, Height: uint64(1), Round: uint64(1), Step: 2})
+	time.Sleep(time.Millisecond * 6)
+	ticker.Stop()
+}

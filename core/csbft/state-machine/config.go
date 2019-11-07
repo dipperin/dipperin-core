@@ -19,7 +19,7 @@ package state_machine
 import "time"
 
 var DefaultConfig = Config{
-	WaitNewRound:       8 * time.Second,
+	WaitNewRound:       4 * time.Second,
 	WaitProposeTimeout: 8 * time.Second,
 	ProposalTimeout:    8 * time.Second,
 	PreVoteTimeout:     8 * time.Second,

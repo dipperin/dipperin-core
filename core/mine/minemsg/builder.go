@@ -43,6 +43,7 @@ func (builder *DefaultWorkBuilder) BuildWorks(newBlock model.AbstractBlock, work
 
 		log.PBft.Info("BuildWorks", "verRoot", newHeader.VerificationRoot.Hex(), "register root", newHeader.RegisterRoot)
 		works = append(works, &DefaultWork{BlockHeader: newHeader})
+		log.Debug("DefaultWorkBuilder#BuildWorks", "newHeader.Nonce", newHeader.Nonce)
 	}
 	workMsgCode = NewDefaultWorkMsg
 	return

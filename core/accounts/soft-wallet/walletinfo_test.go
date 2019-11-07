@@ -106,6 +106,10 @@ func TestWalletInfo_GenerateKeyFromSeedAndPath(t *testing.T) {
 	_, _, err = testWalletInfo.GenerateKeyFromSeedAndPath(errDrivePath, AccountValueIndex)
 	assert.Error(t, err)
 
+	testWalletInfo.Seed = testSeed
+	_, _, err = testWalletInfo.GenerateKeyFromSeedAndPath(DefaultDerivedPath, AddressIndexStartValue)
+	assert.NoError(t, err)
+
 }
 
 func TestWalletInfo_paddingUsedAccount(t *testing.T) {
@@ -122,6 +126,10 @@ func TestWalletInfo_paddingUsedAccount(t *testing.T) {
 
 	err = testWalletInfo.paddingUsedAccount(&errAccountStatus{})
 	assert.Error(t, err)
+
+	testWalletInfo.Seed = testSeed
+	err = testWalletInfo.paddingUsedAccount(&testAccountStatus{})
+	assert.NoError(t, err)
 }
 
 func TestWalletInfo_getSkFromAddress(t *testing.T) {

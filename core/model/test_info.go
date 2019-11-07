@@ -73,7 +73,7 @@ func CreateSignedTxList(n int) []*Transaction {
 }
 
 func CreateBlock(num uint64, preHash common.Hash, txsNum int) *Block {
-	header := NewHeader(1, num, preHash, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), aliceAddr, common.BlockNonce{})
+	header := NewHeader(0, num, preHash, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), aliceAddr, common.BlockNonce{})
 
 	// tx list
 	txList := CreateSignedTxList(txsNum)
