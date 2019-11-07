@@ -18,6 +18,7 @@ package minemaster
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests/factory"
@@ -43,6 +44,10 @@ func Test_newWorkDispatcher(t *testing.T) {
 }
 
 type fakeBlockBuilder struct {
+}
+
+func (b *fakeBlockBuilder) SetMsgSigner(MsgSigner chain_communication.PbftSigner) {
+
 }
 
 func (b *fakeBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, gasFloor, gasCeil uint64) model.AbstractBlock {

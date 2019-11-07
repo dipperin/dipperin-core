@@ -22,6 +22,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/cs-chain"
 	"github.com/stretchr/testify/assert"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -42,22 +43,24 @@ func (s fakeNodeService) Stop() {
 func TestServiceStart1(t *testing.T) {
 	cs_chain.GenesisSetUp = true
 	config := createNodeConfig()
-
+	os.RemoveAll(config.DataDir)
 	csNode := NewBftNode(*config)
 	err := csNode.Start()
 	assert.NoError(t, err)
 	csNode.Stop()
+	os.RemoveAll(config.DataDir)
 }
 
 func TestServiceStart2(t *testing.T) {
 	cs_chain.GenesisSetUp = true
 	config := createNodeConfig()
-
+	os.RemoveAll(config.DataDir)
 	csNode := NewBftNode(*config)
 
 	csNode.AddService(fakeNodeService{err: errors.New("test error")})
 	err := csNode.Start()
 	assert.Error(t, err)
+	os.RemoveAll(config.DataDir)
 }
 
 func TestServiceStart3(t *testing.T) {
@@ -67,7 +70,7 @@ func TestServiceStart3(t *testing.T) {
 	config.SoftWalletPassPhrase = ""
 	config.SoftWalletPath = ""
 	config.NoWalletStart = true
-
+	os.RemoveAll(config.DataDir)
 	csNode := NewBftNode(*config)
 	err := csNode.Start()
 	assert.NoError(t, err)
@@ -77,7 +80,7 @@ func TestServiceStart3(t *testing.T) {
 		walletIdentifier := accounts.WalletIdentifier{
 			WalletType: accounts.SoftWallet,
 			WalletName: "CSWallet1",
-			Path:       config.DataDir + "CSWallet1",
+			Path:       filepath.Join(config.DataDir, "CSWallet1"),
 		}
 		csNode.(*CsNode).ServiceManager.components.chainService.EstablishWallet(walletIdentifier, "123", "")
 		csNode.(*CsNode).ServiceManager.components.chainService.StartRemainingService()
@@ -85,16 +88,17 @@ func TestServiceStart3(t *testing.T) {
 
 	time.Sleep(time.Second)
 	csNode.Stop()
-	os.Remove(config.DataDir + "CSWallet1")
+	os.RemoveAll(config.DataDir)
 }
 
 func TestCsNode_Start(t *testing.T) {
 	chokeTimeout = time.Millisecond * 50
 	cs_chain.GenesisSetUp = true
 	config := createNodeConfig()
-
+	os.RemoveAll(config.DataDir)
 	csNode := NewBftNode(*config)
 	err := csNode.Start()
 	assert.NoError(t, err)
 	csNode.Stop()
+	os.RemoveAll(config.DataDir)
 }

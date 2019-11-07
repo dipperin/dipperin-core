@@ -66,6 +66,7 @@ func TestNewBftNode(t *testing.T) {
 
 	cs_chain.GenesisSetUp = true
 	nodeConfig := createNodeConfig()
+	os.RemoveAll(nodeConfig.DataDir)
 	node := NewBftNode(*nodeConfig)
 	assert.NotNil(t, node)
 	os.RemoveAll(nodeConfig.DataDir)
@@ -91,6 +92,7 @@ func TestMsgSender(t *testing.T) {
 	os.Setenv("boots_env", "test")
 
 	nodeConfig := createNodeConfig()
+	os.RemoveAll(nodeConfig.DataDir)
 	nodeConfig.Nat = "pmp:192.168.0.1"
 
 	base := newBaseComponent(*nodeConfig)

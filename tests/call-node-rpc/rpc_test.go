@@ -14,6 +14,7 @@ import (
 )
 
 func Test_IPC(t *testing.T) {
+	t.Skip()
 	var err error
 	var client *rpc.Client
 	if client, err = rpc.Dial("/home/qydev/tmp/dipperin_apps/default_v0/dipperin.ipc"); err != nil {
@@ -35,6 +36,7 @@ func Test_IPC(t *testing.T) {
 }
 
 func Test_Http(t *testing.T) {
+	t.Skip()
 	var err error
 	var client *rpc.Client
 	if client, err = rpc.Dial(fmt.Sprintf("http://%v:%d", "127.0.0.1", 10019)); err != nil {
@@ -62,6 +64,7 @@ func Test_Http(t *testing.T) {
 }
 
 func Test_WebSocket(t *testing.T) {
+	t.Skip()
 	var err error
 	var client *rpc.Client
 	if client, err = rpc.Dial(fmt.Sprintf("ws://%v:%d", "127.0.0.1", 10020)); err != nil {

@@ -17,6 +17,7 @@
 package dipperin
 
 import (
+	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"reflect"
 	"runtime"
@@ -154,10 +155,14 @@ func (m *ServiceManager) startRemainingServices() error {
 		log.Info("the serviceStartFlag is true")
 		return nil
 	}
-	err := m.components.setNodeSignerInfo()
-	if err != nil {
-		panic("serviceManager startRemainingServices err:" + err.Error())
+	var err error
+	if m.components.nodeConfig.NodeType != chain_config.NodeTypeOfMiner{
+		err := m.components.setNodeSignerInfo()
+		if err != nil {
+			panic("serviceManager startRemainingServices err:" + err.Error())
+		}
 	}
+
 	err = m.startService(NeedWalletSignerService)
 	if err != nil {
 		return err

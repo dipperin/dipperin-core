@@ -13,6 +13,7 @@ import (
 )
 
 func Test_MineMasterServiceStart(t *testing.T) {
+	t.Skip()
 	var err error
 	var client *rpc.Client
 	if client, err = rpc.Dial(fmt.Sprintf("http://%v:%d", "127.0.0.1", 20016)); err != nil {
@@ -38,6 +39,7 @@ func Test_MineMasterServiceStart(t *testing.T) {
 }
 
 func Test_MineMasterStartMine(t *testing.T) {
+	t.Skip()
 	var err error
 	var client *rpc.Client
 	if client, err = rpc.Dial(fmt.Sprintf("http://%v:%d", "127.0.0.1", 20016)); err != nil {

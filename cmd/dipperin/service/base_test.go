@@ -17,14 +17,15 @@
 package service
 
 import (
-	"fmt"
 	"github.com/dipperin/dipperin-core/cmd/dipperin/config"
 	"github.com/dipperin/dipperin-core/cmd/utils"
 	"github.com/dipperin/dipperin-core/cmd/utils/debug"
+	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -32,14 +33,16 @@ func TestStartNode(t *testing.T) {
 	app := cli.NewApp()
 	app.Flags = append(config.Flags, debug.Flags...)
 	app.Action = func(c *cli.Context) {
-		assert.NoError(t, os.Setenv("cslog", "enable"))
-		assert.NoError(t, c.Set(config.DataDirFlagName, "/tmp/test_start_node"))
+		//assert.NoError(t, os.Setenv("cslog", "enable"))
+		path := filepath.Join(util.HomeDir(),"tmp/test_start_node")
+		assert.NoError(t, c.Set(config.DataDirFlagName, path))
 		assert.NoError(t, c.Set(config.LogLevelFlagName, "haha"))
 		assert.NoError(t, c.Set(config.P2PListenerFlagName, "16888"))
 		assert.NoError(t, c.Set(config.HttpPortFlagName, "16889"))
 		assert.NoError(t, c.Set(config.WsPortFlagName, "16887"))
+		assert.NoError(t, c.Set(config.NoWalletStartFlagName, "true"))
 		dataDir := c.String(config.DataDirFlagName)
-		assert.Equal(t, "/tmp/test_start_node", dataDir)
+		assert.Equal(t, path, dataDir)
 		defer os.RemoveAll(dataDir)
 		utils.SetupGenesis(dataDir, chain_config.GetChainConfig())
 
@@ -47,12 +50,6 @@ func TestStartNode(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, n)
 		n.Stop()
-
-		assert.NoError(t, c.Set(config.IsStartMine, "1"))
-		assert.NoError(t, c.Set(config.NodeTypeFlagName, fmt.Sprintf("%v", chain_config.NodeTypeOfMineMaster)))
-		n, err = StartNode(c, true, true, false)
-		assert.Error(t, err)
-		assert.Nil(t, n)
 	}
 	assert.NoError(t, app.Run([]string{os.Args[0]}))
 }

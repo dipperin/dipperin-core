@@ -860,7 +860,7 @@ func (pm *CsProtocolManager) HandShake(p PmAbstractPeer) error {
 			log.Warn("decode hand shake msg failed", "err", err)
 		}
 
-		log.Debug("read  handshake data is:", "tmpStatus", tmpStatus)
+		//log.Debug("read  handshake data is:", "tmpStatus", tmpStatus)
 		statusDataChan <- &tmpStatus
 	}()
 

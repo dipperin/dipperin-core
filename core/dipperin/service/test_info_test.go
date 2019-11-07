@@ -400,6 +400,10 @@ type fakeMaster struct {
 	isMine bool
 }
 
+func (m fakeMaster) SetMsgSigner(MsgSigner chain_communication.PbftSigner){
+
+}
+
 func (m fakeMaster) SetMineGasConfig(gasFloor, gasCeil uint64) {
 	panic("implement me")
 }
