@@ -225,6 +225,37 @@ func (w *SoftWallet) decryptWallet(password string) (passwordValid bool, walletP
 	return true, WalletPlain, keyData, nil
 }
 
+func (w  *SoftWallet) decryptWalletFromJsonData(JsonData []byte, password string ) (passwordValid bool, walletPlain []byte, keyData EncryptKey, err error) {
+	err = json.Unmarshal(JsonData, &w.walletFileInfo)
+	if err != nil {
+		return
+	}
+
+	gj := gjson.ParseBytes(util.StringifyJsonToBytes(w.walletFileInfo.KDFParams))
+	w.walletFileInfo.KDF = gj.Get("kdf").String()
+	w.walletFileInfo.KDFParams["kdfType"] = gj.Get("kdfType").String()
+	w.walletFileInfo.KDFParams["keyLen"] = gj.Get("keyLen").Int()
+	w.walletFileInfo.KDFParams["n"] = gj.Get("n").String()
+	w.walletFileInfo.KDFParams["r"] = gj.Get("r").String()
+	w.walletFileInfo.KDFParams["p"] = gj.Get("p").String()
+
+	//Derive encrypt key and mac key according to password
+	keyData, err = GenSymKeyFromPassword(password, w.walletFileInfo.KDFParameter)
+	if err != nil {
+		return
+	}
+
+	//decrypt wallet plaintext
+	WalletPlain, err1 := DecryptWalletContent(w.walletFileInfo.WalletCipher, w.walletFileInfo.IV[:], keyData)
+	if err1 != nil {
+		log.Warn("decrypt wallet failed", "err", err1)
+		err = accounts.ErrWalletPasswordNotValid
+		return
+	}
+
+	return true, WalletPlain, keyData, nil
+}
+
 //return the soft wallet identifier
 func (w *SoftWallet) GetWalletIdentifier() (accounts.WalletIdentifier, error) {
 	w.mu.Lock()
@@ -261,10 +292,10 @@ func (w *SoftWallet) Establish(path, name, password, passPhrase string) (string,
 		return "", err
 	}
 
-	err = CheckPassword(passPhrase)
-	if err != nil {
-		return "", err
-	}
+	//err = CheckPassword(passPhrase)
+	//if err != nil {
+	//	return "", err
+	//}
 	w.Identifier.WalletName = name
 	w.Identifier.Path = path
 	w.Identifier.WalletType = accounts.SoftWallet
@@ -309,10 +340,10 @@ func (w *SoftWallet) RestoreWallet(path, name, password, passPhrase, mnemonic st
 	if err != nil {
 		return err
 	}
-	err = CheckPassword(passPhrase)
-	if err != nil {
-		return err
-	}
+	//err = CheckPassword(passPhrase)
+	//if err != nil {
+	//	return err
+	//}
 
 	w.Identifier.WalletName = name
 	w.Identifier.Path = path
