@@ -240,8 +240,6 @@ func (fd *NewPbftDownloader) fetchBlocks(bestPeer PmAbstractPeer) {
 	var nextNumber uint64
 	if curNumber > rollBackNum {
 		nextNumber = fd.Chain.GetBlockByNumber(curNumber - rollBackNum + 1).Number()
-	} else {
-		nextNumber = fd.Chain.GetBlockByNumber(1).Number()
 	}
 
 	log.Info("send get blocks msg", "remote peer name", bestPeer.NodeName(), "remote peer height", height)
