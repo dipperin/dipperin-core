@@ -225,7 +225,7 @@ func (w *SoftWallet) decryptWallet(password string) (passwordValid bool, walletP
 	return true, WalletPlain, keyData, nil
 }
 
-func (w  *SoftWallet) decryptWalletFromJsonData(JsonData []byte, password string ) (passwordValid bool, walletPlain []byte, keyData EncryptKey, err error) {
+func (w *SoftWallet) decryptWalletFromJsonData(JsonData []byte, password string) (passwordValid bool, walletPlain []byte, keyData EncryptKey, err error) {
 	err = json.Unmarshal(JsonData, &w.walletFileInfo)
 	if err != nil {
 		return
