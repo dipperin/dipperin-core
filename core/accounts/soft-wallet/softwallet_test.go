@@ -173,10 +173,6 @@ func TestSoftWallet_Open(t *testing.T) {
 	err = testWallet.Open(path, walletName, errPassword)
 
 	assert.Error(t, err, accounts.ErrWalletPasswordNotValid)
-
-	err = testWallet.Open("/Users/konggan/tmp/dipperin_apps/default_v0/CSWallet", walletName, "12345678")
-	assert.NoError(t, err)
-
 	os.Remove(path)
 }
 
