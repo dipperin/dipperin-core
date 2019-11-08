@@ -24,6 +24,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/address-util"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
@@ -504,6 +505,29 @@ func (r *Resolver) envCallTransfer(vm *exec.VirtualMachine) int64 {
 	} else {
 		return 0
 	}
+}
+
+func (r *Resolver) envVerifySignature(vm *exec.VirtualMachine) int64 {
+	sha3DataStart := int(int32(vm.GetCurrentFrame().Locals[0]))
+	sha3DataLen := int(int32(vm.GetCurrentFrame().Locals[1]))
+	signatureStart := int(int32(vm.GetCurrentFrame().Locals[2]))
+	signatureLen := int(int32(vm.GetCurrentFrame().Locals[3]))
+
+	sha3Data := vm.Memory.Memory[sha3DataStart:sha3DataLen]
+	signature := vm.Memory.Memory[signatureStart:signatureLen]
+
+	//crypto.VerifySignature(r.Service.Self().Address().)
+
+
+	pK, err := crypto.SigToPub(sha3Data, signature)
+	if err != nil {
+		return 0
+	}
+
+	if r.Service.Self().Address().IsEqual(address_util.PubKeyToAddress(*pK, common.AddressTypeContractCall)) {
+		return 1
+	}
+	return 0
 }
 
 func (r *Resolver) envDipperCall(vm *exec.VirtualMachine) int64 {
