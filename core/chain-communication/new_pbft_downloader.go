@@ -239,7 +239,7 @@ func (fd *NewPbftDownloader) fetchBlocks(bestPeer PmAbstractPeer) {
 	curNumber := fd.Chain.CurrentBlock().Number()
 	var nextNumber uint64
 	if curNumber > rollBackNum {
-		nextNumber = fd.Chain.GetBlockByNumber(nextNumber - rollBackNum + 1).Number()
+		nextNumber = fd.Chain.GetBlockByNumber(curNumber - rollBackNum + 1).Number()
 	} else {
 		nextNumber = fd.Chain.GetBlockByNumber(1).Number()
 	}
