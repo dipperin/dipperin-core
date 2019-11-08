@@ -653,7 +653,6 @@ func TestGenerateWalletForMonitor(t *testing.T) {
 	fmt.Println(result)
 }
 
-
 func TestRecoverWalletInfo(t *testing.T) {
 	//RecoverWalletInfoAndPrint(t, verifierBootNodeDefaultAccounts)
 	//RecoverWalletInfoAndPrint(t, verifierDefaultAccounts)

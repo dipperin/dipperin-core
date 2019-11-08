@@ -1,18 +1,18 @@
 package send_tx
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/dipperin/dipperin-core/tests/vm"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/stretchr/testify/assert"
-	"testing"
-	"fmt"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/stretchr/testify/assert"
 	"math/big"
+	"testing"
 )
 
 func Test_SendNormalTx(t *testing.T) {
