@@ -1705,10 +1705,13 @@ func TestRpcCaller_GetCurVerifiers(t *testing.T) {
 }
 
 func Test_inDefaultVs(t *testing.T) {
-	address := fromAddr
-	assert.Equal(t, inDefaultVs(address), false)
-	address = chain_config.LocalVerifierAddress[0]
-	assert.Equal(t, inDefaultVs(address), true)
+	result, name := inDefaultVs(fromAddr)
+	assert.Equal(t, false, result)
+	assert.Equal(t, "", name)
+
+	result, name = inDefaultVs(chain_config.LocalVerifierAddress[0])
+	assert.Equal(t, true, result)
+	assert.Equal(t, "default_v0", name)
 }
 
 func TestRpcCaller_GetNextVerifiers(t *testing.T) {
