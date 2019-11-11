@@ -9,12 +9,12 @@ import (
 	"github.com/dipperin/dipperin-core/tests/vm"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
 	"time"
-	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 func Test_SendNormalTx(t *testing.T) {
@@ -60,7 +60,7 @@ func Test_SendRegisterTx(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	time.Sleep(3*time.Second)
+	time.Sleep(3 * time.Second)
 
 	// verifiers send register tx
 	for i := 0; i < number; i++ {
@@ -75,9 +75,9 @@ func Test_CurrentBalance(t *testing.T) {
 
 	number := 20
 	var (
-		verifierAddr []common.Address
-	    verifierClient []*rpc.Client
-	    verifierName []string
+		verifierAddr   []common.Address
+		verifierClient []*rpc.Client
+		verifierName   []string
 	)
 
 	for i := 0; i < number; i++ {

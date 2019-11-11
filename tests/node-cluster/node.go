@@ -3,10 +3,10 @@ package node_cluster
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/rpc"
-	"strings"
-	"path/filepath"
 	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"path/filepath"
+	"strings"
 )
 
 type Node struct {
