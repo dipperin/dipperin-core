@@ -180,6 +180,7 @@ func (w *SoftWallet) encryptWalletAndWriteFile(operation int) (err error) {
 }
 
 func (w *SoftWallet) decryptWallet(password string) (passwordValid bool, walletPlain []byte, keyData EncryptKey, err error) {
+	log.Info("SoftWallet#decryptWallet", "password", password)
 	var walletPath string
 	if w.Identifier.Path == "" {
 		walletPath = WalletDefaultPath
@@ -195,6 +196,37 @@ func (w *SoftWallet) decryptWallet(password string) (passwordValid bool, walletP
 	}
 
 	err = json.Unmarshal(walletJsonData, &w.walletFileInfo)
+	if err != nil {
+		return
+	}
+
+	gj := gjson.ParseBytes(util.StringifyJsonToBytes(w.walletFileInfo.KDFParams))
+	w.walletFileInfo.KDF = gj.Get("kdf").String()
+	w.walletFileInfo.KDFParams["kdfType"] = gj.Get("kdfType").String()
+	w.walletFileInfo.KDFParams["keyLen"] = gj.Get("keyLen").Int()
+	w.walletFileInfo.KDFParams["n"] = gj.Get("n").String()
+	w.walletFileInfo.KDFParams["r"] = gj.Get("r").String()
+	w.walletFileInfo.KDFParams["p"] = gj.Get("p").String()
+
+	//Derive encrypt key and mac key according to password
+	keyData, err = GenSymKeyFromPassword(password, w.walletFileInfo.KDFParameter)
+	if err != nil {
+		return
+	}
+
+	//decrypt wallet plaintext
+	WalletPlain, err1 := DecryptWalletContent(w.walletFileInfo.WalletCipher, w.walletFileInfo.IV[:], keyData)
+	if err1 != nil {
+		log.Warn("decrypt wallet failed", "err", err1)
+		err = accounts.ErrWalletPasswordNotValid
+		return
+	}
+
+	return true, WalletPlain, keyData, nil
+}
+
+func (w *SoftWallet) decryptWalletFromJsonData(JsonData []byte, password string) (passwordValid bool, walletPlain []byte, keyData EncryptKey, err error) {
+	err = json.Unmarshal(JsonData, &w.walletFileInfo)
 	if err != nil {
 		return
 	}
@@ -259,6 +291,11 @@ func (w *SoftWallet) Establish(path, name, password, passPhrase string) (string,
 	if err != nil {
 		return "", err
 	}
+
+	//err = CheckPassword(passPhrase)
+	//if err != nil {
+	//	return "", err
+	//}
 	w.Identifier.WalletName = name
 	w.Identifier.Path = path
 	w.Identifier.WalletType = accounts.SoftWallet
@@ -303,6 +340,10 @@ func (w *SoftWallet) RestoreWallet(path, name, password, passPhrase, mnemonic st
 	if err != nil {
 		return err
 	}
+	//err = CheckPassword(passPhrase)
+	//if err != nil {
+	//	return err
+	//}
 
 	w.Identifier.WalletName = name
 	w.Identifier.Path = path
@@ -469,6 +510,11 @@ func (w *SoftWallet) Derive(path accounts.DerivationPath, save bool) (accounts.A
 		return accounts.Account{}, err
 	}
 
+	defer func() {
+		if err != nil {
+			ClearSensitiveData(extKey)
+		}
+	}()
 	log.Info("Derive tmpPath is:", "tmpPath", tmpPath)
 	//Generate derived keys based on path parameters and master key
 	for _, value := range tmpPath {
@@ -510,8 +556,6 @@ func (w *SoftWallet) Derive(path accounts.DerivationPath, save bool) (accounts.A
 		return accounts.Account{}, err
 	}
 
-	ClearSensitiveData(extKey)
-
 	return account, nil
 }
 
@@ -537,11 +581,10 @@ func (w *SoftWallet) SignHash(account accounts.Account, hash []byte) ([]byte, er
 
 	signData, err := crypto.Sign(hash, tmpSk)
 	if err != nil {
-		ClearSensitiveData(tmpSk)
 		return []byte{}, err
 	}
 
-	ClearSensitiveData(tmpSk)
+	defer ClearSensitiveData(tmpSk)
 	//sign the hash data with the private key
 	return signData, nil
 }

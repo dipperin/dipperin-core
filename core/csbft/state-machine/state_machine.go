@@ -58,6 +58,7 @@ func (bs *BftState) OnBlockPoolNotEmpty() {
 	if bs.Step == model2.RoundStepNewHeight {
 		bs.enterNewRound(bs.Height, bs.Round)
 	}
+
 }
 
 //When receive a NewRound message
@@ -75,6 +76,7 @@ func (bs *BftState) OnNewRound(r *model2.NewRoundMsg) {
 
 	// check should catch up?
 	if bs.Round < bs.NewRound.shouldCatchUpTo() {
+		//Fixme if R=10,S=NewHeight,BlockPool=Empty
 		bs.enterNewRound(bs.Height, bs.NewRound.shouldCatchUpTo())
 	}
 
@@ -99,9 +101,23 @@ func (bs *BftState) OnNewProposal(p *model2.Proposal, block model.AbstractBlock)
 
 	log.PBft.Info("get valid proposal", "height", p.Height, "block", p.BlockID.Hex(), "round", p.Round)
 	bs.ProposalBlock.AddBlock(block, p.Round)
-	if bs.Step == model2.RoundStepPropose && bs.Round == p.Round {
+	switch {
+	case bs.Round != p.Round: // Proposal of other round, ignore.
+	case bs.Round == p.Round && bs.Step == model2.RoundStepNewHeight:
+		bs.OnBlockPoolNotEmpty() // Get the right proposal block. Set block pool not empty
+		bs.tryEnterPropose()
+		if bs.Step == model2.RoundStepPropose {
+			bs.enterPreVote(p, block)
+		}
+	case bs.Round == p.Round && bs.Step == model2.RoundStepPropose:
 		bs.enterPreVote(p, block)
+	default:
+		log.PBft.Debug("ignore", "bs.Round == p.Round", bs.Round == p.Round, "Step", bs.Step)
 	}
+
+	/*if bs.Step == model2.RoundStepPropose && bs.Round == p.Round {
+		bs.enterPreVote(p, block)
+	}*/
 }
 
 //When receive a prevote
@@ -117,11 +133,9 @@ func (bs *BftState) OnPreVote(pv *model.VoteMsg) {
 	}
 
 	roundBlock := bs.PreVotes.VotesEnough(pv.Round)
-	//fmt.Println("onprevote","who",reflect.ValueOf(bs).Pointer(),"pv",roundBlock)
-	log.PBft.Info("the round info is:", "pv.Round", pv.Round, "bs.Round", bs.Round, "bs.LockedRound", bs.LockedRound)
+	// fmt.Println("onprevote","who",reflect.ValueOf(bs).Pointer(),"pv",roundBlock)
 	// Release block lock
 	if bs.LockedBlock != nil && !roundBlock.IsEqual(common.Hash{}) && pv.Round >= bs.Round && bs.LockedRound < pv.Round {
-		log.PBft.Info("the locked and round Block is:", "lockedBlock", bs.LockedBlock.Hash().Hex(), "roundBlock", roundBlock.Hex())
 		//Fixme Deleted code: if !bs.LockedBlock.Hash().IsEqual(roundBlock){bs.LockedBlock = nil}
 		//When bs.Round = 13, LockedRound=13, lockedBlock=X. Receive 2/3 vote on round 14, block X. Should unlock X, and lock X after.
 		bs.LockedBlock = nil
@@ -129,16 +143,23 @@ func (bs *BftState) OnPreVote(pv *model.VoteMsg) {
 
 	// Add lock
 	// Fixme if pv.Round > bs.Round should I do this?
+	// Todo do not verify block if it have 2/3+1 prevotes
 	if !roundBlock.IsEqual(common.Hash{}) && bs.LockedBlock == nil {
 		block := bs.ProposalBlock.GetBlock(pv.Round)
 		if block != nil {
 			if block.Hash().IsEqual(roundBlock) {
 				bs.LockedBlock = block
 				bs.LockedRound = pv.Round
+
+				// If node not in Prevote state can not jump to Precommit.
+				if bs.Step != model2.RoundStepPreVote {
+					return
+				}
 				log.PBft.Debug("[BftState-LockBlock]", "LockedRound", bs.LockedRound, "block", block.Hash().Hex())
 				bs.enterPreCommit(pv.Round)
 			}
 		} else {
+			//todo Should Fetch the block??
 			log.PBft.Error("the proposal Block is nil")
 		}
 	}
@@ -270,7 +291,7 @@ func (bs *BftState) enterPreCommit(round uint64) {
 // Timeout actions
 
 /*
-1. majority not agree with the box -> next round directly
+1. majority not agree with the block -> next round directly
 2. majority offline -> next round directly
 3. when I am offline but others reach consensus -> enter new round, but cannot receive the corresponding proposal. wait for downloader for a sync
 4. when I am offline and others cannot reach consensus -> enter new round and continue the current mechanism

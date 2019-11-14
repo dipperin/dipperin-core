@@ -20,8 +20,13 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/ethereum/go-ethereum/rlp"
 )
+
+type NodeInfo struct {
+	InProcHandler *rpc.Server // In-process RPC request handler to process the API requests
+}
 
 // manage dipperin app lifetime
 type Node interface {
@@ -30,6 +35,7 @@ type Node interface {
 	Start() error
 	Stop()
 	Wait()
+	GetNodeInfo() NodeInfo
 }
 
 type VerifiersReader interface {

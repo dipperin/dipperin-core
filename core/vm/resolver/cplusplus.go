@@ -420,6 +420,7 @@ func envSha3(vm *exec.VirtualMachine) int64 {
 	hash := crypto.Keccak256(data)
 	log.Info("envSha3 called", "hash", hash, "hasHex", common.Bytes2Hex(hash))
 	if destSize < len(hash) {
+		// todo
 		return 0
 	}
 	//fmt.Printf("Sha3:%v, 0:%v, 1:%v, (-2):%v, (-1):%v. \n", common.Bytes2Hex(hash), hash[0], fmt.Sprintf("%b", hash[1]), hash[len(hash)-2], hash[len(hash)-1])
@@ -427,7 +428,24 @@ func envSha3(vm *exec.VirtualMachine) int64 {
 	return 0
 }
 
+func envHexStringSameWithVM(vm *exec.VirtualMachine) int64 {
+	log.Debug("envHexStringSameWithVM execute")
+	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
+	size := int(int32(vm.GetCurrentFrame().Locals[1]))
+	destOffset := int(int32(vm.GetCurrentFrame().Locals[2]))
+	//destSize := int(int32(vm.GetCurrentFrame().Locals[3]))
+	data := vm.Memory.Memory[offset : offset+size]
+	str := common.HexStringSameWithVM(string(data))
+	log.Info("envHexStringSameWithVM  ", "data", data, "str", str)
+	copy(vm.Memory.Memory[destOffset:], str)
+	return 0
+}
+
 func envSha3GasCost(vm *exec.VirtualMachine) (uint64, error) {
+	return 1, nil
+}
+
+func envHexStringSameWithVMGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 

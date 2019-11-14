@@ -81,8 +81,17 @@ func TestCacheChainState_CurrentBlock(t *testing.T) {
 	assert.Nil(t, cs.GetHeader(common.Hash{}, 1))
 	assert.Nil(t, cs.GetBlockByHash(common.Hash{}))
 
-	cs, _, _, _ = getTestCacheEnv()
+	cs, _, _, bb := getTestCacheEnv()
 	curB := cs.CurrentBlock()
+	//votes := env.VoteBlock(len(env.DefaultVerifiers()),0,curB)
+	//bb.SetVerifivations(votes)
+	//bb.PreBlock = curB
+	block := bb.BuildFuture()
+
+	//block := model.CreateBlock(curB.Number() + 1, curB.Hash(),0)
+	//err = cs.SaveBftBlock(block, votes)
+	cs.ChainDB.InsertBlock(block)
+	assert.NoError(t, err)
 	assert.NotNil(t, cs.GetBody(curB.Hash()))
 	assert.NotNil(t, cs.GetBody(curB.Hash()))
 	assert.NotNil(t, cs.GetBodyRLP(curB.Hash()))

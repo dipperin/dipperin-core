@@ -342,6 +342,32 @@ func (addr Address) Hex() string {
 	return "0x" + string(result)
 }
 
+func HexStringSameWithVM(unchecksummed string) string {
+	//log.Debug("HexStringSameWithVM ", "addr", addr)
+	//addrSlice := StringToAddress(addr)
+
+	//log.Debug("HexStringSameWithVM addrSlice", "addrSlice", addrSlice)
+	//unchecksummed := hex.EncodeToString(addrSlice[:])
+	//unchecksummed = unchecksummed[:len(unchecksummed)-1]
+	log.Debug("HexStringSameWithVM unchecksummed", "unchecksummed", unchecksummed)
+	hash := crypto.Keccak256([]byte(unchecksummed))
+	log.Debug("HexStringSameWithVM hash", "hash", hash, "hashStr", string(hash))
+
+	result := []byte(unchecksummed)
+	for i := 0; i < len(result); i++ {
+		hashByte := hash[i/2]
+		if i%2 == 0 {
+			hashByte = hashByte >> 4
+		} else {
+			hashByte &= 0xf
+		}
+		if result[i] > '9' && hashByte > 7 {
+			result[i] -= 32
+		}
+	}
+	return "0x" + string(result)
+}
+
 //Dipperin BlockHeader Difficulty
 type Difficulty [DiffLength]byte
 

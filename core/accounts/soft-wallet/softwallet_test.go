@@ -51,8 +51,8 @@ var testHashData = [32]byte{0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04,
 
 var walletName = "testSoftWallet"
 var path = util.HomeDir() + "/testSoftWallet"
-var password = "123456"
-var passPhrase = ""
+var password = "12345678"
+var passPhrase = "12345678"
 var TestErrWalletPath = "/tmp/testSoftWallet"
 var errAccount = accounts.Account{
 	Address: testAddress,
@@ -94,14 +94,14 @@ func TestSoftWallet_paddingWalletInfo(t *testing.T) {
 	testWallet, err := NewSoftWallet()
 	assert.NoError(t, err)
 
-	err = testWallet.paddingWalletInfo(testMnemonic, "123", "", testKdfPara)
+	err = testWallet.paddingWalletInfo(testMnemonic, password, passPhrase, testKdfPara)
 	assert.NoError(t, err)
 
-	err = testWallet.paddingWalletInfo(errTestMnemonic, "123", "", testKdfPara)
+	err = testWallet.paddingWalletInfo(errTestMnemonic, password, passPhrase, testKdfPara)
 	assert.Error(t, err)
 
 	testKdfPara.KDFParams["kdfType"] = "bcrypt"
-	err = testWallet.paddingWalletInfo(testMnemonic, "123", "", testKdfPara)
+	err = testWallet.paddingWalletInfo(testMnemonic, password, passPhrase, testKdfPara)
 	assert.Error(t, err)
 
 }
@@ -146,8 +146,11 @@ func TestSoftWallet_Establish(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, _, err = establishSoftWallet(path, walletName, "", passPhrase)
-	assert.Equal(t, accounts.ErrPasswordIsNil, err)
+	assert.Equal(t, accounts.ErrPasswordOrPassPhraseIllegal, err)
 	os.RemoveAll(path)
+
+	_, _, err = establishSoftWallet(path, walletName, password, passPhrase)
+	assert.NoError(t, err)
 }
 
 func TestSoftWallet_Open(t *testing.T) {
@@ -158,7 +161,7 @@ func TestSoftWallet_Open(t *testing.T) {
 	assert.Equal(t, accounts.ErrWalletPathError, err)
 
 	err = testWallet.Open(path, walletName, "")
-	assert.Equal(t, accounts.ErrPasswordIsNil, err)
+	assert.Equal(t, accounts.ErrPasswordOrPassPhraseIllegal, err)
 
 	err = testWallet.Open(path, walletName, password)
 	assert.NoError(t, err)
@@ -170,7 +173,6 @@ func TestSoftWallet_Open(t *testing.T) {
 	err = testWallet.Open(path, walletName, errPassword)
 
 	assert.Error(t, err, accounts.ErrWalletPasswordNotValid)
-
 	os.Remove(path)
 }
 
@@ -178,7 +180,7 @@ func TestEconomyOpenWallet(t *testing.T) {
 	t.Skip()
 	walletName := "InvestorWallet0"
 	path := "/home/qydev/economyWallet/InvestorWallet0"
-	password := "123"
+	password := "12345678"
 	testWallet, err := NewSoftWallet()
 	assert.NoError(t, err)
 
@@ -191,7 +193,7 @@ func TestEconomyOpenWallet(t *testing.T) {
 func TestGetWalletPrivateKey(t *testing.T) {
 	t.Skip()
 	path := "/home/qydev/tmp/dipperin_apps/default_v0/CSWallet"
-	password := "123"
+	password := "12345678"
 	walletName := "CSWallet"
 
 	log.Info("the path is:", "path", path)
@@ -335,6 +337,10 @@ func TestSoftWallet_Derive(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, true, contain)
 
+	dpath, _ := accounts.ParseDerivationPath(DefaultDerivedPath)
+	//testWallet.Derive(DefaultDerivedPath, false)
+	log.Info("TestSoftWallet_Derive", "dpath", dpath)
+
 	testWallet.Close()
 	os.Remove(path)
 }
@@ -349,14 +355,14 @@ func TestSoftWallet_RestoreWallet(t *testing.T) {
 
 	walletName := "RemainRewardWallet4"
 	path := util.HomeDir() + "/testSoftWallet/RemainRewardWallet4"
-	password := "123"
-	passPhrase := ""
+	password := "12345678"
+	passPhrase := "12345678"
 
 	err = testWallet.RestoreWallet("/tmp", walletName, password, passPhrase, mnemonic, &tmpAccountStatus)
 	assert.Equal(t, accounts.ErrWalletPathError, err)
 
 	err = testWallet.RestoreWallet(path, walletName, "", passPhrase, mnemonic, &tmpAccountStatus)
-	assert.Equal(t, accounts.ErrPasswordIsNil, err)
+	assert.Equal(t, accounts.ErrPasswordOrPassPhraseIllegal, err)
 
 	err = testWallet.RestoreWallet(path, walletName, password, passPhrase, mnemonic, &tmpAccountStatus)
 	assert.NoError(t, err)
@@ -506,11 +512,12 @@ func TestSoftWallet_Contains(t *testing.T) {
 const generateWallet = false
 const generateWalletNumber = 5
 const generateWalletPath = "testWallet"
-const walletPassword = "123"
+const walletPassword = "12345678"
 
 type walletConf struct {
 	WalletCipher string
 	MainAddress  string
+	//PK           string
 }
 
 type walletInfo struct {
@@ -578,5 +585,111 @@ func TestGenerateWallet(t *testing.T) {
 	}
 
 	fmt.Println("===================")
+	fmt.Println(util.StringifyJson(conf))
+}
+
+//generate test wallet
+func TestGenerateWalletForMonitor(t *testing.T) {
+	t.Skip()
+	user, err := user2.Current()
+	assert.NoError(t, err)
+
+	walletPath := user.HomeDir + "/test/" + generateWalletPath
+
+	log.Info("the walletPath is:", "walletPath", walletPath)
+	_, err = os.Stat(walletPath)
+	if err == nil {
+		err = os.RemoveAll(walletPath)
+		assert.NoError(t, err)
+	}
+
+	err = os.Mkdir(walletPath, 0777)
+	assert.NoError(t, err)
+	err = os.Chmod(walletPath, 0777)
+	assert.NoError(t, err)
+	var conf []*walletConf
+	generateWalletNumberN := 22
+
+	for i := 0; i < generateWalletNumberN; i++ {
+		walletName := "testSoftWallet" + strconv.Itoa(i)
+		path := walletPath + "/" + walletName
+		passPhrase := "12345678"
+
+		mnemonic, wallet, err := establishSoftWallet(path, walletName, walletPassword, passPhrase)
+		assert.NoError(t, err)
+
+		accounts, err := wallet.Accounts()
+		//pk,_ := wallet.GetSKFromAddress(accounts[0].Address)
+		assert.NoError(t, err)
+		log.Info("the mine address is:", "address", accounts[0].Address.Hex())
+
+		// Must be at the front, he will post the address information in this file, causing the wallet to be incorrect
+		wb, err := ioutil.ReadFile(path)
+		assert.NoError(t, err)
+		conf = append(conf, &walletConf{
+			WalletCipher: string(wb),
+			MainAddress:  accounts[0].Address.Hex(),
+			//PK: pk.
+		})
+
+		walletInfoFile := "walletInfo" + strconv.Itoa(i)
+		infoPath := walletPath + "/" + walletInfoFile
+		info := walletInfo{
+			Mnemonic:       mnemonic,
+			Address:        accounts[0].Address.Hex(),
+			WalletPassword: walletPassword,
+		}
+		writeData, err := json.Marshal(&info)
+		assert.NoError(t, err)
+		err = ioutil.WriteFile(infoPath, writeData, 0666)
+		//fmt.Println(info)
+		assert.NoError(t, err)
+
+	}
+
+	fmt.Println("===================")
+	result := util.StringifyJson(conf)
+	//strings.Replace(result, `\"`, `"`, -1)
+	fmt.Println(result)
+}
+
+func TestRecoverWalletInfo(t *testing.T) {
+	//RecoverWalletInfoAndPrint(t, verifierBootNodeDefaultAccounts)
+	//RecoverWalletInfoAndPrint(t, verifierDefaultAccounts)
+}
+
+func RecoverWalletInfoAndPrint(t *testing.T, walletInfo []walletConf) {
+	var conf []*walletConf
+	sw, err := NewSoftWallet()
+	assert.NoError(t, err)
+	for _, wi := range walletInfo {
+		err = json.Unmarshal([]byte(wi.WalletCipher), &sw.walletFileInfo)
+		assert.NoError(t, err)
+		_, WalletPlain, keyData, err := sw.decryptWalletFromJsonData([]byte(wi.WalletCipher), "123")
+		assert.NoError(t, err)
+		keyData, err = GenSymKeyFromPassword(password, sw.walletFileInfo.KDFParameter)
+		assert.NoError(t, err)
+		hd := NewHdWalletInfo()
+		err = hd.HdWalletInfoDecodeJson(WalletPlain)
+		assert.NoError(t, err)
+		sw.walletInfo = *hd
+		sw.symmetricKey = keyData
+		//sw.Identifier.Path =  "/Users/konggan/test/CSWallet" + strconv.Itoa(i)
+
+		sw.walletFileInfo.WalletCipher, err = CalWalletCipher(sw.walletInfo, sw.walletFileInfo.IV[:], sw.symmetricKey)
+		assert.NoError(t, err)
+		sw.status = accounts.Opened
+
+		writeData, err := json.Marshal(sw.walletFileInfo)
+		assert.NoError(t, err)
+		accounts, err := sw.Accounts()
+		assert.NoError(t, err)
+		conf = append(conf, &walletConf{
+			WalletCipher: string(writeData),
+			MainAddress:  accounts[0].Address.Hex(),
+		})
+	}
+
+	fmt.Println("===================================================")
 	fmt.Println(util.StringifyJson(conf))
 }

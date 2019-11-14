@@ -64,6 +64,7 @@ func CreateKey() (keys []*ecdsa.PrivateKey, adds []common.Address) {
 	add = append(add, cs_crypto.GetNormalAddress(key2.PublicKey))
 	add = append(add, cs_crypto.GetNormalAddress(key3.PublicKey))
 	add = append(add, cs_crypto.GetNormalAddress(key4.PublicKey))
+	log.Debug("CreateKey", "add", add)
 	return []*ecdsa.PrivateKey{key1, key2, key3, key4}, add
 }
 
@@ -114,6 +115,7 @@ func newFakeCsBft(p1 *FakePeer) *FakeCsBft {
 }
 
 func TestCsBftFetcher_FetchBlock(t *testing.T) {
+	log.InitLogger(log.LvlDebug)
 	log.PBft.Logger = log.SetInitLogger(log.DefaultLogConf, "fetcher_test")
 	_, addr := CreateKey()
 	alice, bob := newFakePeer("alice", "bob")

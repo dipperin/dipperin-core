@@ -21,6 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-event"
 	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
@@ -62,6 +63,12 @@ type master struct {
 	stopChan             chan struct{}
 
 	stopTimerFunc func()
+}
+
+func (ms *master) SetMsgSigner(MsgSigner chain_communication.PbftSigner) {
+	ms.MineConfig.SetMsgSigner(MsgSigner)
+	ms.workManager.SetMsgSigner(MsgSigner)
+	ms.workDispatcher.SetMsgSigner(MsgSigner)
 }
 
 func (ms *master) RetrieveReward(address common.Address) {

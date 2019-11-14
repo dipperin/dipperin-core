@@ -19,6 +19,7 @@ package minemsg
 import (
 	"encoding/binary"
 	"github.com/dipperin/dipperin-core/core/bloom"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"testing"
 
 	"github.com/dipperin/dipperin-core/common"
@@ -48,6 +49,7 @@ func TestDefaultWork_SetWorkerCoinbaseAddress(t *testing.T) {
 }
 
 func TestDefaultWork_Split(t *testing.T) {
+	log.InitLogger(log.LvlDebug)
 	w := &DefaultWork{BlockHeader: model.Header{}}
 	works := w.Split(5)
 	for i, w := range works {

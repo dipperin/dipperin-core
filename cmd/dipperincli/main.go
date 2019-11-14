@@ -176,9 +176,7 @@ func appAction(c *cli.Context) {
 		panic(panicInfo)
 	}
 
-	port := c.Int(config.WsPortFlagName)
-
-	commands.InitRpcClient(port)
+	commands.InitRpcClient(node.GetNodeInfo())
 
 	commands.InitAccountInfo(c.Int("node_type"), path, pwd, passPhrase)
 

@@ -65,7 +65,7 @@ func EstablishSoftWallet(path, walletName string) (*soft_wallet.SoftWallet, erro
 
 	os.Remove(path)
 
-	_, err = testWallet.Establish(path, walletName, "123456", "")
+	_, err = testWallet.Establish(path, walletName, "12345678", "12345678")
 	if err != nil {
 		return nil, err
 	}

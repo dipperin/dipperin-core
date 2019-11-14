@@ -18,7 +18,9 @@ package dipperin
 
 import (
 	"fmt"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/dipperin/service"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"os"
 	"path/filepath"
@@ -68,6 +70,7 @@ type NodeConfig struct {
 	// Set debug mode, 0 is single node not broadcast, 1 is multi-node with PBFT, 2 is multi-node with PBFT and election
 	DebugMode int
 
+	NoWalletStart        bool
 	SoftWalletPassword   string
 	SoftWalletPassPhrase string
 	SoftWalletPath       string
@@ -94,6 +97,23 @@ type NodeConfig struct {
 	PMetricsPort int
 
 	ExtraServiceFunc ExtraServiceFunc
+}
+
+func (conf NodeConfig) NodeConfigCheck() error {
+	if conf.NoWalletStart {
+		if conf.SoftWalletPath != "" || conf.SoftWalletPassword != "" || conf.SoftWalletPassPhrase != "" {
+			log.Error("the NoWalletStart is true but there are entered some wallet conf")
+			return g_error.NodeConfWalletError
+		}
+	} else {
+		if conf.SoftWalletPassword == "" {
+			log.Error("the NoWalletStart is false but there isn't an entered wallet password")
+			return g_error.NodeConfWalletError
+		}
+		log.Info("the nodeConf nodeType is:", "nodeType", conf.NodeType)
+		log.Info("the nodeConf SoftWalletPath is:", "SoftWalletPath", conf.SoftWalletPath)
+	}
+	return nil
 }
 
 func (conf NodeConfig) GetIsStartMine() bool {

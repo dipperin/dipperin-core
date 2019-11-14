@@ -438,6 +438,10 @@ func (api *DipperinVenusApi) SetMineCoinBase(addr common.Address) error {
 	return api.service.SetMineCoinBase(addr)
 }
 
+func (api *DipperinVenusApi) GetMineCoinBase() common.Address {
+	return api.service.MineMaster.CurrentCoinbaseAddress()
+}
+
 func (api *DipperinVenusApi) SetMineGasConfig(gasFloor, gasCeil uint64) error {
 	return api.service.SetMineGasConfig(gasFloor, gasCeil)
 }
@@ -741,6 +745,10 @@ func (api *DipperinVenusApi) ListWalletAccount(walletIdentifier accounts.WalletI
 	}
 
 	return tmpAccounts, nil
+}
+
+func (api *DipperinVenusApi) StartRemainingService() {
+	api.service.StartRemainingService()
 }
 
 // set pbft account address

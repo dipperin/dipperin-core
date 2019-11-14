@@ -507,6 +507,10 @@ func (service *VenusFullChainService) ListWalletAccount(walletIdentifier account
 	return tmpWallet.Accounts()
 }
 
+func (service *VenusFullChainService) StartRemainingService() {
+	service.WalletManager.StartOtherServices()
+}
+
 func (service *VenusFullChainService) SetBftSigner(address common.Address) error {
 	log.Info("VenusFullChainService SetWalletAccountAddress run")
 	service.MsgSigner.SetBaseAddress(address)
@@ -1039,6 +1043,11 @@ func (service *VenusFullChainService) GetCurrentConnectPeers() map[string]common
 func (service *VenusFullChainService) StartMine() error {
 	if service.MineMaster == nil {
 		return errors.New("current node is not mine master")
+	}
+
+	//if service.MineMaster
+	if service.MineMaster.GetMsgSigner() == nil {
+		return errors.New("there isn't msgSigner in mineMaster")
 	}
 
 	if service.Mining() {
@@ -1991,13 +2000,13 @@ func (service *VenusFullChainService) MakeTmpSignedTx(args CallArgs, blockNum ui
 
 	// Create tmpTransaction
 	log.Info("MakeTmpSignedTx#getSendTxInfo", "from", from)
-	tmpWallet, usedNonce, err := service.getSendTxInfo(from, nil)
+	tmpWallet, _, err := service.getSendTxInfo(from, nil)
 	if err != nil {
 		log.Error("MakeTmpSignedTx#getSendTxInfo failed", "err", err)
 		return nil, err
 	}
 
-	tmpTx := model.NewTransaction(usedNonce, *to, value, gasPrice, gas, args.Data)
+	tmpTx := model.NewTransaction(uint64(0), *to, value, gasPrice, gas, args.Data)
 	fromAccount := accounts.Account{Address: from}
 	signedTx, err := tmpWallet.SignTx(fromAccount, tmpTx, service.ChainConfig.ChainId)
 	if err != nil {

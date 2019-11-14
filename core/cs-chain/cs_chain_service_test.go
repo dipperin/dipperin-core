@@ -38,6 +38,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/core/tx-pool"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -174,9 +175,7 @@ func TestCsChainService_GetSeenCommit(t *testing.T) {
 
 func TestCsChainService_SaveBlock(t *testing.T) {
 	cMock := &fakeCacheDB{}
-	pMock := &fakeTxPool{}
-
-	ccs, gEnv, txB, bB := getTestChainEnv(t, cMock, pMock)
+	ccs, gEnv, txB, bB := getTestChainEnv(cMock)
 	bB.SetMinerPk(gEnv.DefaultBootNodeVerifiers()[0].Pk)
 	bB.Txs = []*model.Transaction{txB.Build()}
 
@@ -194,7 +193,8 @@ func TestCsChainService_SaveBlock(t *testing.T) {
 	assert.NoError(t, ccs.SaveBlock(b2, gEnv.VoteBlock(3, 1, b2)))
 	assert.NoError(t, ccs.SaveBlock(b1Special, gEnv.VoteSpecialBlock(b1Special)))
 	assert.Equal(t, b1Special.Number(), ccs.CurrentBlock().Number())
-	assert.Nil(t, ccs.GetBlockByNumber(b2.Number()))
+	assert.Equal(t, b1Special.Number(), ccs.GetBlockByNumber(1).Number())
+	assert.Nil(t, ccs.GetBlockByNumber(2))
 
 	numLowBlockToReturnErr = 0
 	block := ccs.GetBlockByNumber(0)
@@ -242,8 +242,7 @@ func TestCsChainService_initService(t *testing.T) {
 
 func TestCsChainService_handleFutureBlock(t *testing.T) {
 	cMock := &fakeCacheDB{}
-	pMock := &fakeTxPool{}
-	ccs, gEnv, _, bB := getTestChainEnv(t, cMock, pMock)
+	ccs, gEnv, _, bB := getTestChainEnv(cMock)
 	//fmt.Println(chain.VerifierAddress)
 	block := bB.Build()
 
@@ -252,7 +251,7 @@ func TestCsChainService_handleFutureBlock(t *testing.T) {
 	ccs.handleFutureBlock()
 }
 
-func getTestChainEnv(t *testing.T, db CacheDB, pool TxPool) (*CsChainService, *tests.GenesisEnv, *tests.TxBuilder, *tests.BlockBuilder) {
+func getTestChainEnv(db CacheDB) (*CsChainService, *tests.GenesisEnv, *tests.TxBuilder, *tests.BlockBuilder) {
 	model.IgnoreDifficultyValidation = true
 	f := chain_writer.NewChainWriterFactory()
 
@@ -281,9 +280,10 @@ func getTestChainEnv(t *testing.T, db CacheDB, pool TxPool) (*CsChainService, *t
 		MinerPk:    attackEnv.Miner().Pk,
 	}
 
+	txPool := tx_pool.NewTxPool(tx_pool.DefaultTxPoolConfig, *chain_config.GetChainConfig(), chainState)
 	ccs := NewCsChainService(&CsChainServiceConfig{
 		CacheDB: db,
-		TxPool:  pool,
+		TxPool:  txPool,
 	}, chainState)
 	f.SetChain(ccs.CacheChainState)
 

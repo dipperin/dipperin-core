@@ -254,12 +254,13 @@ func TestCacheChainState_Rollback(t *testing.T) {
 	specialBlock := CreateSpecialBlock(chain, curBlockVote)
 
 	// make a fork
-	insertBlockToChain(t, chain, 1)
+	rollBackNum := config.RollBackNum
+	insertBlockToChain(t, chain, int(rollBackNum))
 	nBlock := chain.CurrentBlock()
-	assert.Equal(t, nBlock.Number(), uint64(4))
+	assert.Equal(t, nBlock.Number(), uint64(rollBackNum+3))
 	assert.Equal(t, nBlock.IsSpecial(), false)
 
-	// reverse chain
+	// roll back chain
 	seenCommit := CreateVerBootVote(specialBlock)
 	err := chain.SaveBftBlock(specialBlock, []model.AbstractVerification{seenCommit})
 	assert.NoError(t, err)
@@ -267,7 +268,7 @@ func TestCacheChainState_Rollback(t *testing.T) {
 	assert.Equal(t, chain.CurrentBlock().IsSpecial(), true)
 	assert.Equal(t, chain.GetBlockByNumber(4).Hash(), specialBlock.Hash())
 	assert.Equal(t, chain.GetBlockByNumber(4).IsSpecial(), true)
-	assert.Equal(t, chain.HasBlock(nBlock.Hash(), uint64(4)), true)
+	assert.Equal(t, chain.HasBlock(nBlock.Hash(), uint64(rollBackNum+3)), true)
 }
 
 func TestCacheChainState_GetSlot_GetLastChangePoint(t *testing.T) {

@@ -22,6 +22,7 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/event"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -57,9 +58,12 @@ type WalletManager struct {
 	Event                 chan WalletEvent  //listen wallet event
 	HandleResult          chan bool         //event handle result
 	ManagerClose          chan bool         //listen the manger close
+	StartService          chan bool
 
-	feed event.Feed //subscribe managerClose channel
-	Lock sync.RWMutex
+	serviceStatus    atomic.Value
+	startServiceFeed event.Feed
+	feed             event.Feed //subscribe managerClose channel
+	Lock             sync.RWMutex
 }
 
 //new wallet manager
@@ -84,11 +88,22 @@ func NewWalletManager(getAddressInfo AddressInfoReader, wallets ...Wallet) (*Wal
 		Event:                 make(chan WalletEvent, 0),
 		HandleResult:          make(chan bool, 0),
 		ManagerClose:          make(chan bool, 0),
+		StartService:          make(chan bool, 0),
+		startServiceFeed:      event.Feed{},
 		feed:                  event.Feed{},
 		Lock:                  sync.RWMutex{},
 	}
 
 	return manager, nil
+}
+
+func (manager *WalletManager) SubScribeStartService() <-chan bool {
+	manager.startServiceFeed.Subscribe(manager.StartService)
+	return manager.StartService
+}
+
+func (manager *WalletManager) StartOtherServices() {
+	manager.startServiceFeed.Send(true)
 }
 
 //listen wallet　event
@@ -106,7 +121,6 @@ func (manager *WalletManager) backend() {
 				manager.add(walletEvent.Wallet)
 				//handle end
 				manager.HandleResult <- true
-
 			} else if walletEvent.Type == WalletDropped {
 				//remove wallet from manager
 				manager.remove(walletEvent.Wallet)
@@ -124,7 +138,7 @@ func (manager *WalletManager) backend() {
 
 //refresh the account nonce timely in the manager
 func (manager *WalletManager) refreshWalletNonce() {
-	//subscribe　wallet manager　channel
+	//subscribe　wallet manager　channelencryptWalletAndWriteFile(
 	sub := manager.feed.Subscribe(manager.ManagerClose)
 
 	timeoutHandler := func() {
@@ -232,9 +246,36 @@ func (manager *WalletManager) FindWalletFromAddress(address common.Address) (Wal
 	return nil, ErrNotFindWallet
 }
 
+func (manager *WalletManager) GetMainAccount() (Account, error) {
+	if !manager.ServiceStatus() {
+		return Account{}, ErrWalletManagerNotRunning
+	}
+	identifiers, err := manager.ListWalletIdentifier()
+	if err != nil {
+		return Account{}, err
+	}
+
+	if len(identifiers) == 0 {
+		return Account{}, ErrWalletManagerIsEmpty
+	}
+
+	wallet, err := manager.FindWalletFromIdentifier(identifiers[0])
+	if err != nil {
+		return Account{}, err
+	}
+
+	account, err := wallet.Accounts()
+	if err != nil {
+		return Account{}, err
+	}
+
+	return account[0], nil
+}
+
 func (manager *WalletManager) Start() error {
 	go manager.backend()
 	go manager.refreshWalletNonce()
+	manager.serviceStatus.Store(true)
 	return nil
 }
 
@@ -263,4 +304,15 @@ func (manager *WalletManager) Stop() {
 	close(manager.ManagerClose)
 	close(manager.HandleResult)
 	close(manager.Event)
+
+	manager.serviceStatus.Store(false)
+}
+
+func (manager *WalletManager) ServiceStatus() bool {
+	status := manager.serviceStatus.Load()
+	if status == nil {
+		return false
+	}
+
+	return status.(bool)
 }

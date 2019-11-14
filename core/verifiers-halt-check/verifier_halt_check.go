@@ -176,6 +176,10 @@ func MakeSystemHaltedCheck(conf *HaltCheckConf) *SystemHaltedCheck {
 	return systemHaltedCheck
 }
 
+func (systemHaltedCheck *SystemHaltedCheck) SetMsgSigner(walletSigner NeedWalletSigner) {
+	systemHaltedCheck.haltCheckStateHandle.walletSigner = walletSigner
+}
+
 func (systemHaltedCheck *SystemHaltedCheck) MsgHandlers() map[uint64]func(msg p2p.Msg, p chain_communication.PmAbstractPeer) error {
 	return systemHaltedCheck.handlers
 }

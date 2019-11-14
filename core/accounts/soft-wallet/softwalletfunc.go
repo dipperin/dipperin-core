@@ -30,6 +30,7 @@ import (
 	"github.com/tidwall/gjson"
 	"golang.org/x/crypto/scrypt"
 	"io"
+	"regexp"
 )
 
 //default kdf parameter
@@ -182,12 +183,15 @@ func EncryptWalletContent(walletPlain []byte, iv []byte, sysKey EncryptKey) (wal
 
 	//padding random number when the plaintext data length is not 16 integer multiples
 	encryptData := make([]byte, 4)
+	//log.Debug("EncryptWalletContent 1", "encryptData len", len(encryptData))
 
 	binary.BigEndian.PutUint32(encryptData, uint32(len(walletPlain)))
 
 	encryptData = append(encryptData, walletPlain...)
+	//log.Debug("EncryptWalletContent 2 ", "encryptData len", len(encryptData))
 
 	calcHashSrcDataLen := len(encryptData)
+	//log.Debug("EncryptWalletContent 3 ", "encryptData len", len(encryptData))
 
 	if len(encryptData)%16 != 0 {
 		padding := cspRngEntropy(16 - len(encryptData)%16)
@@ -303,11 +307,16 @@ func CheckDerivedPathValid(path accounts.DerivationPath) (bool, error) {
 
 //judge the wallet password
 func CheckPassword(password string) (err error) {
-	if password == "" {
-		return accounts.ErrPasswordIsNil
-	}
+	reg := regexp.MustCompile(`[0-9]|[a-z]|[A-Z]|[~!@#$%^&*()_+<>?:"{},.\\/;'[\]` + "`]")
+	regNoCh := regexp.MustCompile("[\u4e00-\u9fa5]")
+	strs := regNoCh.FindAllString(password, -1)
 
-	return nil
+	if reg.MatchString(password) && len(strs) <= 0 {
+		if len(password) >= accounts.PasswordMin && len(password) <= accounts.PassWordMax {
+			return nil
+		}
+	}
+	return accounts.ErrPasswordOrPassPhraseIllegal
 }
 
 //judge the incoming wallet path

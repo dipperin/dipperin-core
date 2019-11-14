@@ -20,46 +20,54 @@ import (
 	"errors"
 )
 
-var ErrNotSupportUsbWallet = errors.New("not support USB wallet")
+var (
+	ErrNotSupportUsbWallet = errors.New("not support USB wallet")
 
-var ErrNotFindWallet = errors.New("not find the wallet")
+	ErrNotFindWallet = errors.New("not find the wallet")
 
-var ErrInvalidKDFParameter = errors.New("invalid KDFParameter")
+	ErrInvalidKDFParameter = errors.New("invalid KDFParameter")
 
-var ErrDeriveKey = errors.New("symmetric key derivation error")
+	ErrDeriveKey = errors.New("symmetric key derivation error")
 
-var ErrAESInvalidParameter = errors.New("AES operation parameter error")
+	ErrAESInvalidParameter = errors.New("AES operation parameter error")
 
-var ErrAESDecryption = errors.New("AES decryption operation error")
+	ErrAESDecryption = errors.New("AES decryption operation error")
 
-var ErrMacAuthentication = errors.New("MAC authentication error")
+	ErrMacAuthentication = errors.New("MAC authentication error")
 
-var ErrWalletNotOpen = errors.New("wallet isn't open")
+	ErrWalletNotOpen = errors.New("wallet isn't open")
 
-var ErrWalletFileExist = errors.New("wallet file exist")
+	ErrWalletFileExist = errors.New("wallet file exist")
 
-var ErrWalletFileNotExist = errors.New("wallet file doesn't exist")
+	ErrWalletFileNotExist = errors.New("wallet file doesn't exist")
 
-var ErrWalletSendTransaction = errors.New("wallet send transaction error")
+	ErrWalletSendTransaction = errors.New("wallet send transaction error")
 
-var ErrAddressBalanceNotEnough = errors.New("the address balance isn't enough when wallet send transaction")
+	ErrAddressBalanceNotEnough = errors.New("the address balance isn't enough when wallet send transaction")
 
-var ErrWalletPasswordNotValid = errors.New("wallet password error")
+	ErrWalletPasswordNotValid = errors.New("wallet password error")
 
-var ErrDeleteWalletFile = errors.New("delete wallet error")
+	ErrDeleteWalletFile = errors.New("delete wallet error")
 
-var ErrNotSupported = errors.New("not supported")
+	ErrNotSupported = errors.New("not supported")
 
-var ErrInvalidAddress = errors.New("invalid address")
+	ErrInvalidAddress = errors.New("invalid address")
 
-var ErrAnalysisDerivedPath = errors.New("invalid Derived Path")
+	ErrAnalysisDerivedPath = errors.New("invalid Derived Path")
 
-var ErrInvalidDerivedPath = errors.New("invalid derived path")
+	ErrInvalidDerivedPath = errors.New("invalid derived path")
 
-var ErrPasswordIsNil = errors.New("password is nil")
+	ErrPasswordIsNil = errors.New("password is nil")
 
-var ErrWalletPathError = errors.New("the path should be in the home path")
+	ErrPasswordOrPassPhraseIllegal = errors.New("password or passPhrase illegal, must between 8 and 24, and no chinese!!! ")
 
-var ErrEmptySign = errors.New("empty sign")
+	ErrWalletPathError = errors.New("the path should be in the home path")
 
-var ErrSignatureInvalid = errors.New("verify signature fail")
+	ErrEmptySign = errors.New("empty sign")
+
+	ErrSignatureInvalid = errors.New("verify signature fail")
+
+	ErrWalletManagerIsEmpty = errors.New("there isn't a wallet in wallet manager")
+
+	ErrWalletManagerNotRunning = errors.New("the wallet manager isn't running")
+)
