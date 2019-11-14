@@ -590,7 +590,7 @@ func TestGenerateWallet(t *testing.T) {
 
 //generate test wallet
 func TestGenerateWalletForMonitor(t *testing.T) {
-
+	t.Skip()
 	user, err := user2.Current()
 	assert.NoError(t, err)
 
