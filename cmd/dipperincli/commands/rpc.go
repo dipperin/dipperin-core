@@ -1598,6 +1598,16 @@ func (caller *rpcCaller) CurrentReputation(c *cli.Context) {
 	l.Info("address current reputation is:", "reputation", resp)
 }
 
+func inDefaultVs(addr common.Address) (bool, string) {
+	for i, v := range chain.VerifierAddress {
+		if addr.IsEqual(v) {
+			name := fmt.Sprintf("default_v%v", i)
+			return true, name
+		}
+	}
+	return false, ""
+}
+
 func (caller *rpcCaller) GetCurVerifiers(c *cli.Context) {
 	if checkSync() {
 		return
@@ -1615,19 +1625,15 @@ func (caller *rpcCaller) GetCurVerifiers(c *cli.Context) {
 		return
 	}
 
-	fmt.Println("Current Verifiers:")
 	for _, a := range resp {
-		fmt.Println("\t", "address:", a.Hex()+",", "is_default:", inDefaultVs(a))
-	}
-}
-
-func inDefaultVs(a common.Address) bool {
-	for _, v := range chain.VerifierAddress {
-		if a.IsEqual(v) {
-			return true
+		result, name := inDefaultVs(a)
+		if result {
+			l.Info("Current Verifiers:", "address", a.Hex(), "is_default", result, "name", name)
+		} else {
+			l.Info("Current Verifiers:", "address", a.Hex(), "is_default", result)
 		}
+
 	}
-	return false
 }
 
 func (caller *rpcCaller) GetNextVerifiers(c *cli.Context) {
@@ -1646,11 +1652,15 @@ func (caller *rpcCaller) GetNextVerifiers(c *cli.Context) {
 		l.Error("call failed", "err", err)
 		return
 	}
-	//l.Info("get next verifiers3", "resp", resp)
-	fmt.Println("Next Verifiers:")
+
 	for _, a := range resp {
-		fmt.Println("\t", "address:", a.Hex()+",", "is_default:", inDefaultVs(a))
-		//l.Info("next verifier", "address", " "+a.Hex())
+		result, name := inDefaultVs(a)
+		if result {
+			l.Info("Next Verifiers:", "address", a.Hex(), "is_default", result, "name", name)
+		} else {
+			l.Info("Next Verifiers:", "address", a.Hex(), "is_default", result)
+		}
+
 	}
 }
 

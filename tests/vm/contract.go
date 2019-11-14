@@ -36,6 +36,16 @@ func SendTransaction(client *rpc.Client, from, to common.Address, value, gasPric
 	return resp, nil
 }
 
+func SendRegisterTransaction(client *rpc.Client, from common.Address, stake, gasPrice *big.Int, gasLimit uint64) (common.Hash, error) {
+	var resp common.Hash
+	if err := client.Call(&resp, GetRpcTXMethod("SendRegisterTransaction"), from, stake, gasPrice, gasLimit, nil); err != nil {
+		LogTestPrint("Test", "SendRegisterTransaction failed", "err", err)
+		return common.Hash{}, err
+	}
+	LogTestPrint("Test", "SendRegisterTransaction Successful", "txId", resp.Hex())
+	return resp, nil
+}
+
 func SendTransactionContract(client *rpc.Client, from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte) (common.Hash, error) {
 	var resp common.Hash
 	if err := client.Call(&resp, GetRpcTXMethod("SendTransactionContract"), from, to, value, gasPrice, gasLimit, data, nil); err != nil {

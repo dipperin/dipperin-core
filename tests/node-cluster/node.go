@@ -3,7 +3,9 @@ package node_cluster
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"path/filepath"
 	"strings"
 )
 
@@ -20,6 +22,16 @@ func newRpcClient(host string, port string) *rpc.Client {
 	client, err := rpc.Dial(fmt.Sprintf("http://%v:%v", host, port))
 	if err != nil {
 		panic(err.Error())
+	}
+	return client
+}
+
+// 新建一个ipc client
+func newIpcClient(node string) *rpc.Client {
+	path := filepath.Join(util.HomeDir(), "tmp/dipperin_apps/", node, "dipperin.ipc")
+	client, err := rpc.Dial(path)
+	if err != nil {
+		panic("init rpc client failed: " + err.Error())
 	}
 	return client
 }

@@ -97,3 +97,33 @@ func newNodeClientAndConf(configure []NodeConf) (map[string]*rpc.Client, map[str
 	}
 	return clientMap, nodeConfigure, nil
 }
+
+func CreateIpcNodeCluster() (cluster *NodeCluster, err error) {
+	configure, err := getClusterConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	clientMap, NodeConfigure, err := newIpcClientAndConf(configure)
+	if err != nil {
+		return nil, err
+	}
+
+	return &NodeCluster{
+		ClusterConfigure: configure,
+		NodeClient:       clientMap,
+		NodeConfigure:    NodeConfigure,
+	}, nil
+}
+
+func newIpcClientAndConf(configure []NodeConf) (map[string]*rpc.Client, map[string]NodeConf, error) {
+	clientMap := make(map[string]*rpc.Client)
+	nodeConfigure := make(map[string]NodeConf)
+
+	// verifiers
+	for _, value := range configure {
+		clientMap[value.NodeName] = newIpcClient(value.NodeName)
+		nodeConfigure[value.NodeName] = value
+	}
+	return clientMap, nodeConfigure, nil
+}
