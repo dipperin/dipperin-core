@@ -33,6 +33,11 @@ func (api *DipperExternalApi) CurrentBlock() (*BlockResp, error) {
 	return api.allApis.CurrentBlock()
 }
 
+
+func (api *DipperExternalApi)CurrentBalance(address common.Address) (resp *CurBalanceResp, err error){
+	return api.allApis.CurrentBalance(address)
+}
+
 // swagger:operation POST /url/GetBlockByNumber block information block
 // ---
 // summary: get the block by height
