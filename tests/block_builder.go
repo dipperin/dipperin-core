@@ -113,7 +113,7 @@ type BlockBuilder struct {
 	InvalidTxList []model.AbstractTransaction
 }
 
-func (builder *BlockBuilder) SetVerifivations(votes []model.AbstractVerification) {
+func (builder *BlockBuilder) SetVerifications(votes []model.AbstractVerification) {
 	builder.Vers = votes
 }
 

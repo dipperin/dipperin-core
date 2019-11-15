@@ -69,6 +69,36 @@ func CreateGauge(name string, help string, label []string) {
 	}
 }
 
+func CreateHistogram(name string, help string){
+	if !enable {
+		return
+	}
+
+	histogram := prometheus.NewHistogram(prometheus.HistogramOpts{
+		Name: name,
+		Help: help,
+	})
+	metrics[name] = histogram
+	prometheus.MustRegister(histogram)
+
+}
+
+func NewTimer(name string) *prometheus.Timer{
+	if !enable {
+		return nil
+	}
+	if metrics[name] == nil {
+		return nil
+	}
+
+	switch metrics[name].(type){
+	case prometheus.Histogram:
+		return prometheus.NewTimer(metrics[name].(prometheus.Histogram))
+	}
+
+	return nil
+}
+
 func EnableMeter() {
 	enable = true
 }

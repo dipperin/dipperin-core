@@ -198,7 +198,7 @@ func (suite *chainWriterSuite) TestChainState_CalVerifiers(t *check.C) {
 	}
 	suite.blockBuilder.Txs = txs
 	suite.blockBuilder.SetPreBlock(block)
-	suite.blockBuilder.SetVerifivations(seenCommit)
+	suite.blockBuilder.SetVerifications(seenCommit)
 	block = suite.blockBuilder.Build()
 	seenCommit = suite.env.VoteBlock(config.VerifierNumber, 1, block)
 	err = suite.chainState.SaveBftBlock(block, seenCommit)

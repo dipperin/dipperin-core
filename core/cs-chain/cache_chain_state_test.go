@@ -84,7 +84,7 @@ func TestCacheChainState_CurrentBlock(t *testing.T) {
 	cs, _, _, bb := getTestCacheEnv()
 	curB := cs.CurrentBlock()
 	//votes := env.VoteBlock(len(env.DefaultVerifiers()),0,curB)
-	//bb.SetVerifivations(votes)
+	//bb.SetVerifications(votes)
 	//bb.PreBlock = curB
 	block := bb.BuildFuture()
 

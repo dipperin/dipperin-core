@@ -19,6 +19,7 @@ package builder
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-metrics"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/chain"
@@ -119,6 +120,10 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 
 //build the wait-pack block
 func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, gasFloor, gasCeil uint64) model.AbstractBlock {
+	//trace pack block duration
+	timer:=g_metrics.NewTimer(g_metrics.PackageBlockDuration)
+	defer timer.ObserveDuration()
+
 	if coinbaseAddr.IsEmpty() {
 		panic("call NewBlockFromLastBlock, but coinbase address is empty")
 	}

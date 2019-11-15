@@ -58,6 +58,13 @@ const (
 
 	CurChainHeight         = "cur_height"
 	FailedInsertBlockCount = "failed_insert_block_count"
+
+	// tps test
+	PackageBlockDuration   = "mineMaster_package_block_duration"
+	FindNonceDuration      = "mineMaster_package_block_duration"
+	ValidNormalTxDuration  = "valid_one_normal_tx_duration"
+	PBFTValidBlockDuration = "pbft_valid_one_block_duration"
+	insertOneBlockDuration = "insert_one_block_duration"
 )
 
 // call this after NewPrometheusMetricsServer
@@ -87,4 +94,10 @@ func InitCSMetrics() {
 	CreateGauge(QueuedTxCountInPool, "trace tx count", nil)
 	CreateGauge(CurChainHeight, "chain height", nil)
 	CreateCounter(FailedInsertBlockCount, "trace failed insert block", nil)
+
+	CreateHistogram(PackageBlockDuration, "trace mineMaster package block duration")
+	CreateHistogram(FindNonceDuration, "trace mineMaster find nonce duration")
+	CreateHistogram(ValidNormalTxDuration, "trace valid normal tx duration")
+	CreateHistogram(PBFTValidBlockDuration, "trace pbft valid block duration")
+	CreateHistogram(insertOneBlockDuration, "trace insert one block duration")
 }

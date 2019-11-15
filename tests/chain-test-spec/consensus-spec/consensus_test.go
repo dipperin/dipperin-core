@@ -79,7 +79,7 @@ func (suite *consensusTestSuite) Test_ValidateBlockNumber() {
 	suite.NoError(context3.Process())
 
 	suite.BlockBuilder.SetPreBlock(block)
-	suite.BlockBuilder.SetVerifivations(seenCommit)
+	suite.BlockBuilder.SetVerifications(seenCommit)
 	block1 := suite.BlockBuilder.Build()
 	context4 := middleware.NewBftBlockContext(block1, seenCommit, suite.ChainState)
 	context4.Use(middleware.ValidateBlockNumber(&context4.BlockContext))
@@ -89,7 +89,7 @@ func (suite *consensusTestSuite) Test_ValidateBlockNumber() {
 	seenCommit1 := suite.Env.VoteBlock(suite.ChainState.GetChainConfig().VerifierNumber, 1, block1)
 	suite.NoError(chainHelper.ChainState.SaveBftBlock(block1, seenCommit1))
 	chainHelper.BlockBuilder.SetPreBlock(block1)
-	chainHelper.BlockBuilder.SetVerifivations(seenCommit1)
+	chainHelper.BlockBuilder.SetVerifications(seenCommit1)
 	block2 := chainHelper.BlockBuilder.Build()
 	context5 := middleware.NewBftBlockContext(block2, seenCommit1, suite.ChainState)
 	context5.Use(middleware.ValidateBlockNumber(&context5.BlockContext))
@@ -122,7 +122,7 @@ func (suite *consensusTestSuite) Test_ValidateBlockHash() {
 	suite.NoError(chainHelperA.ChainState.SaveBftBlock(blockA, seenCommitA))
 
 	suite.BlockBuilder.SetPreBlock(block)
-	suite.BlockBuilder.SetVerifivations(seenCommit)
+	suite.BlockBuilder.SetVerifications(seenCommit)
 	block1 := suite.BlockBuilder.Build()
 	seenCommit1 := suite.Env.VoteBlock(suite.ChainState.GetChainConfig().VerifierNumber, 1, block1)
 	context1 := middleware.NewBftBlockContext(block1, seenCommit1, suite.ChainState)
@@ -131,7 +131,7 @@ func (suite *consensusTestSuite) Test_ValidateBlockHash() {
 
 	//test not match prehash
 	chainHelperA.BlockBuilder.SetPreBlock(blockA)
-	chainHelperA.BlockBuilder.SetVerifivations(seenCommitA)
+	chainHelperA.BlockBuilder.SetVerifications(seenCommitA)
 	block1A := chainHelperA.BlockBuilder.Build()
 	seenCommit1A := chainHelperA.Env.VoteBlock(suite.ChainState.GetChainConfig().VerifierNumber, 1, block1A)
 	context2 := middleware.NewBftBlockContext(block1A, seenCommit1A, suite.ChainState)
@@ -141,7 +141,7 @@ func (suite *consensusTestSuite) Test_ValidateBlockHash() {
 	//test preblock not existed
 	suite.NoError(chainHelper.ChainState.SaveBftBlock(block1, seenCommit1))
 	chainHelper.BlockBuilder.SetPreBlock(block1)
-	chainHelper.BlockBuilder.SetVerifivations(seenCommit1)
+	chainHelper.BlockBuilder.SetVerifications(seenCommit1)
 	block2 := chainHelper.BlockBuilder.Build()
 	context3 := middleware.NewBftBlockContext(block2, seenCommit1, suite.ChainState)
 	context3.Use(middleware.ValidateBlockHash(&context3.BlockContext))
