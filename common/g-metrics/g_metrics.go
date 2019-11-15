@@ -69,7 +69,7 @@ func CreateGauge(name string, help string, label []string) {
 	}
 }
 
-func CreateHistogram(name string, help string){
+func CreateHistogram(name string, help string) {
 	if !enable {
 		return
 	}
@@ -83,7 +83,7 @@ func CreateHistogram(name string, help string){
 
 }
 
-func NewTimer(name string) *prometheus.Timer{
+func NewTimer(name string) *prometheus.Timer {
 	if !enable {
 		return nil
 	}
@@ -91,7 +91,7 @@ func NewTimer(name string) *prometheus.Timer{
 		return nil
 	}
 
-	switch metrics[name].(type){
+	switch metrics[name].(type) {
 	case prometheus.Histogram:
 		return prometheus.NewTimer(metrics[name].(prometheus.Histogram))
 	}
