@@ -210,15 +210,15 @@ func (cs *CsChainService) SaveBlock(block model.AbstractBlock, seenCommits []mod
 	log.PBft.Debug("Save Block Success", "block height", block.Number(), "chain height", curHeight)
 
 	//metric tps
-	if curHeight != 0{
-		lastBlock := cs.GetBlockByNumber(curHeight-1)
+	if curHeight != 0 {
+		lastBlock := cs.GetBlockByNumber(curHeight - 1)
 		nowTimestamp := block.Timestamp().Int64()
 		lastTimestamp := lastBlock.Timestamp().Int64()
 		totalSec := float64(nowTimestamp-lastTimestamp) / float64(1e9)
 		tps := float64(block.TxCount()) / totalSec
-		g_metrics.Set(g_metrics.TpsValue,"",tps)
+		g_metrics.Set(g_metrics.TpsValue, "", tps)
 
-		g_metrics.Set(g_metrics.BlockTxNumber,"",float64(block.TxCount()))
+		g_metrics.Set(g_metrics.BlockTxNumber, "", float64(block.TxCount()))
 	}
 	return nil
 }

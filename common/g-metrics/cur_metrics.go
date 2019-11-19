@@ -66,7 +66,7 @@ const (
 	PBFTValidBlockDuration = "pbft_valid_one_block_duration"
 	InsertOneBlockDuration = "insert_one_block_duration"
 	TpsValue               = "record_node_tps"
-	BlockTxNumber		   = "block_tx_number"
+	BlockTxNumber          = "block_tx_number"
 )
 
 // call this after NewPrometheusMetricsServer

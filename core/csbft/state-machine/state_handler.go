@@ -143,7 +143,7 @@ func (h *StateHandler) loop() {
 func (h *StateHandler) OnNewHeight(height uint64) {
 	log.PBft.Info("[**********************start new Block************************]")
 	log.PBft.Info("[StateHandler-OnNewHeight]", "height", height)
-	if h.metricTimer == nil{
+	if h.metricTimer == nil {
 		h.metricTimer = g_metrics.NewTimer(g_metrics.PBFTValidBlockDuration)
 	}
 	round := uint64(0)
@@ -324,7 +324,7 @@ func (h *StateHandler) OnVote(v *model.VoteMsg) {
 
 		if block != nil {
 			log.PBft.Info("[StateHandler-OnVote]:finalBlock", "blockNumber", block.Number())
-			if h.metricTimer !=nil{
+			if h.metricTimer != nil {
 				h.metricTimer.ObserveDuration()
 				h.metricTimer = nil
 			}

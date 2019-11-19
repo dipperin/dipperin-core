@@ -70,7 +70,7 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 	var invalidList []*model.Transaction
 	log.Info("BftBlockBuilder#commitTransactions  start ~~~~~++")
 	metricTimer := g_metrics.NewTimer(g_metrics.CommitTxsDuration)
-	defer 	metricTimer.ObserveDuration()
+	defer metricTimer.ObserveDuration()
 
 	gasUsed := uint64(0)
 	gasLimit := header.GasLimit
