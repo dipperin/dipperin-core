@@ -416,6 +416,7 @@ func (pool *TxPool) add(tx model.AbstractTransaction, local bool) (bool, error) 
 	hash := tx.CalTxId()
 	// vaildate the transaction before add it to pool
 	if pool.all.Get(hash) != nil {
+		log.Info("the the transaction is already in tx pool","txId",hash.Hex())
 		return false, fmt.Errorf("this transaction already in tx pool")
 	}
 

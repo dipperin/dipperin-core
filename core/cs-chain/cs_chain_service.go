@@ -187,9 +187,11 @@ func (cs *CsChainService) GetSeenCommit(height uint64) []model.AbstractVerificat
 }
 
 func (cs *CsChainService) SaveBlock(block model.AbstractBlock, seenCommits []model.AbstractVerification) error {
-
 	cs.wg.Add(1)
 	defer cs.wg.Done()
+
+	timer := g_metrics.NewTimer(g_metrics.InsertOneBlockDuration)
+	defer timer.ObserveDuration()
 
 	cs.saveBlockLock.Lock()
 	defer cs.saveBlockLock.Unlock()
@@ -206,6 +208,18 @@ func (cs *CsChainService) SaveBlock(block model.AbstractBlock, seenCommits []mod
 	curHeight := cs.CurrentBlock().Number()
 	g_metrics.Set(g_metrics.CurChainHeight, "", float64(curHeight))
 	log.PBft.Debug("Save Block Success", "block height", block.Number(), "chain height", curHeight)
+
+	//metric tps
+	if curHeight != 0{
+		lastBlock := cs.GetBlockByNumber(curHeight-1)
+		nowTimestamp := block.Timestamp().Int64()
+		lastTimestamp := lastBlock.Timestamp().Int64()
+		totalSec := float64(nowTimestamp-lastTimestamp) / float64(1e9)
+		tps := float64(block.TxCount()) / totalSec
+		g_metrics.Set(g_metrics.TpsValue,"",tps)
+
+		g_metrics.Set(g_metrics.BlockTxNumber,"",float64(block.TxCount()))
+	}
 	return nil
 }
 

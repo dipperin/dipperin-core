@@ -219,9 +219,15 @@ func (m *ServiceManager) AddService(service NodeService) {
 
 	switch serviceType {
 	case "*service.VenusFullChainService", "*csbftnode.CsBft",
-		"*p2p.Server", "*chain_communication.CsProtocolManager",
 		"*verifiers_halt_check.SystemHaltedCheck":
 		m.services[NeedWalletSignerService] = append(m.services[NeedWalletSignerService], service)
+	case "*p2p.Server", "*chain_communication.CsProtocolManager":
+		//not need wallet signer in p2p service when the node is normal
+		if m.components.nodeConfig.NodeType != chain_config.NodeTypeOfNormal{
+			m.services[NeedWalletSignerService] = append(m.services[NeedWalletSignerService], service)
+		} else{
+			m.services[NotNeedWalletSignerService] = append(m.services[NotNeedWalletSignerService], service)
+		}
 	default:
 		m.services[NotNeedWalletSignerService] = append(m.services[NotNeedWalletSignerService], service)
 	}

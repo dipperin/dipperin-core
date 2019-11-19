@@ -92,8 +92,8 @@ func NewTimer(name string) *prometheus.Timer {
 	}
 
 	switch metrics[name].(type) {
-	case prometheus.Histogram:
-		return prometheus.NewTimer(metrics[name].(prometheus.Histogram))
+	case prometheus.Gauge:
+		return prometheus.NewTimer(prometheus.ObserverFunc(metrics[name].(prometheus.Gauge).Set))
 	}
 
 	return nil

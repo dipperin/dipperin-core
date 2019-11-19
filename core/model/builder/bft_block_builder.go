@@ -69,6 +69,9 @@ func (builder *BftBlockBuilder) commitTransaction(conf *state_processor.TxProces
 func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndNonce, state *chain.BlockProcessor, header *model.Header, vers []model.AbstractVerification) (txBuf []model.AbstractTransaction, receipts model2.Receipts) {
 	var invalidList []*model.Transaction
 	log.Info("BftBlockBuilder#commitTransactions  start ~~~~~++")
+	metricTimer := g_metrics.NewTimer(g_metrics.CommitTxsDuration)
+	defer 	metricTimer.ObserveDuration()
+
 	gasUsed := uint64(0)
 	gasLimit := header.GasLimit
 	for {
@@ -115,6 +118,7 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 	//update gasUsed in header
 	header.GasUsed = gasUsed
 	// ProcessExceptTxs then finalise for fear that changing state root
+
 	return
 }
 
