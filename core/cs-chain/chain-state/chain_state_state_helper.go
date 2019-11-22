@@ -31,25 +31,24 @@ func (cs *ChainState) GetStateStorage() state_processor.StateStorage {
 }
 
 func (cs *ChainState) CurrentState() (*state_processor.AccountStateDB, error) {
-	curBlock := cs.CurrentBlock()
+	curHeader := cs.CurrentHeader()
 
-	if curBlock == nil {
-		return nil, errors.New("current block is nil")
+	if curHeader == nil {
+		return nil, errors.New("current header is nil")
 	}
 
-	stateRoot := cs.CurrentBlock().StateRoot()
+	stateRoot := curHeader.GetStateRoot()
 
 	return cs.StateAtByStateRoot(stateRoot)
 }
 
 func (cs *ChainState) StateAtByBlockNumber(num uint64) (*state_processor.AccountStateDB, error) {
-	block := cs.GetBlockByNumber(num)
-
-	if block == nil {
-		return nil, errors.New("block not found")
+	header := cs.GetHeaderByNumber(num)
+	if header ==nil{
+		return  nil, errors.New("header not found")
 	}
 
-	return cs.BuildStateProcessor(block.StateRoot())
+	return cs.BuildStateProcessor(header.GetStateRoot())
 }
 
 func (cs *ChainState) StateAtByStateRoot(root common.Hash) (*state_processor.AccountStateDB, error) {
