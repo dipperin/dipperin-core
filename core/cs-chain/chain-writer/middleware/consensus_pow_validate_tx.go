@@ -76,7 +76,7 @@ func newValidTxSenderNeedConfig(chain ChainInterface, blockNumber uint64) *valid
 	}
 	tmpConfig.preState = preState
 
-	curState,err := chain.CurrentState()
+	curState, err := chain.CurrentState()
 	if err != nil {
 		panic(fmt.Sprintf("newValidTxSenderNeedConfig get curState error,blockNumber:%v", tmpConfig.validBlockNumber))
 	}
@@ -181,7 +181,7 @@ func ValidTxByType(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 			return g_error.ErrInvalidTxType
 		}
 		conf := newValidTxSenderNeedConfig(chain, blockHeight)
-		if err := validator(tx,conf); err != nil {
+		if err := validator(tx, conf); err != nil {
 			return err
 		}
 		return nil
@@ -213,7 +213,7 @@ func validTx(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 	return nil
 }
 
-func validRegisterTx(tx model.AbstractTransaction,conf *validTxNeedConfig) error {
+func validRegisterTx(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 	if tx.Amount().Cmp(economy_model.MiniPledgeValue) == -1 {
 		return g_error.ErrTxDelegatesNotEnough
 	}
@@ -265,7 +265,7 @@ func validEarlyTokenTx(tx model.AbstractTransaction, conf *validTxNeedConfig) er
 	return nil
 }
 
-func validContractCreateTx(tx model.AbstractTransaction,conf *validTxNeedConfig) error {
+func validContractCreateTx(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 	return nil
 }
 
@@ -280,7 +280,7 @@ func validEvidenceTx(tx model.AbstractTransaction, conf *validTxNeedConfig) erro
 	if err := validEvidenceTime(tx, conf); err != nil {
 		return err
 	}
-	if err := validTargetStake(tx,conf); err != nil {
+	if err := validTargetStake(tx, conf); err != nil {
 		return err
 	}
 	return nil
@@ -354,7 +354,7 @@ func conflictVote(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 	return nil
 }
 
-func validUnStakeTime(tx model.AbstractTransaction,conf *validTxNeedConfig) error {
+func validUnStakeTime(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 	singer := tx.GetSigner()
 	sender, err := tx.Sender(singer)
 	if err != nil {

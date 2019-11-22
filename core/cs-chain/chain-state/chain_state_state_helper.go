@@ -44,8 +44,8 @@ func (cs *ChainState) CurrentState() (*state_processor.AccountStateDB, error) {
 
 func (cs *ChainState) StateAtByBlockNumber(num uint64) (*state_processor.AccountStateDB, error) {
 	header := cs.GetHeaderByNumber(num)
-	if header ==nil{
-		return  nil, errors.New("header not found")
+	if header == nil {
+		return nil, errors.New("header not found")
 	}
 
 	return cs.BuildStateProcessor(header.GetStateRoot())

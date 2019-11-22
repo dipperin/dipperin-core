@@ -216,7 +216,7 @@ func (cs *CsChainService) SaveBlock(block model.AbstractBlock, seenCommits []mod
 		lastTimestamp := lastBlock.Timestamp().Int64()
 		totalSec := float64(nowTimestamp-lastTimestamp) / float64(1e9)
 		tps := float64(block.TxCount()) / totalSec
-		log.Info("metric tps and tx number","tps",tps,"txNumber",float64(block.TxCount()))
+		log.Info("metric tps and tx number", "tps", tps, "txNumber", float64(block.TxCount()))
 		g_metrics.Set(g_metrics.TpsValue, "", tps)
 		g_metrics.Set(g_metrics.BlockTxNumber, "", float64(block.TxCount()))
 	}

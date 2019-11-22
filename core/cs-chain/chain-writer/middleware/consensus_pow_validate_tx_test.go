@@ -32,7 +32,7 @@ import (
 
 func TestValidateBlockTxs(t *testing.T) {
 	block := &fakeBlock{}
-	fakeChain := &fakeChainInterface{block:&fakeBlock{}}
+	fakeChain := &fakeChainInterface{block: &fakeBlock{}}
 	blockContext := &BlockContext{Block: block, Chain: fakeChain}
 	assert.Equal(t, g_error.ErrTxRootNotMatch, ValidateBlockTxs(blockContext)())
 
@@ -51,7 +51,7 @@ func TestValidateBlockTxs(t *testing.T) {
 }
 
 func TestTxValidatorForRpcService_Valid(t *testing.T) {
-	conf := newValidTxSenderNeedConfig(&fakeChainInterface{block:&fakeBlock{}},0)
+	conf := newValidTxSenderNeedConfig(&fakeChainInterface{block: &fakeBlock{}}, 0)
 
 	assert.Error(t, ValidTxSender(&fakeTx{
 		sender: common.Address{0x11},
@@ -66,9 +66,9 @@ func TestTxValidatorForRpcService_Valid(t *testing.T) {
 	adb, _ := NewEmptyAccountDB()
 	fakeChain := &fakeChainInterface{
 		state: adb,
-		block:&fakeBlock{},
+		block: &fakeBlock{},
 	}
-	conf = newValidTxSenderNeedConfig(fakeChain,1)
+	conf = newValidTxSenderNeedConfig(fakeChain, 1)
 	assert.Error(t, ValidTxSender(&fakeTx{
 		sender: common.Address{0x11},
 		fee:    big.NewInt(100000),
@@ -77,37 +77,35 @@ func TestTxValidatorForRpcService_Valid(t *testing.T) {
 	sender := common.Address{0x11}
 	assert.NoError(t, adb.NewAccountState(sender))
 	assert.NoError(t, adb.AddBalance(sender, big.NewInt(10000011)))
-	fakeChain =&fakeChainInterface{
+	fakeChain = &fakeChainInterface{
 		state: adb,
 		block: &fakeBlock{},
 		em:    &fakeEconomyModel{},
 	}
-	conf = newValidTxSenderNeedConfig(fakeChain,1)
+	conf = newValidTxSenderNeedConfig(fakeChain, 1)
 	assert.Error(t, ValidTxSender(&fakeTx{
 		sender: sender,
 		fee:    big.NewInt(100000),
 	}, conf))
 
-
-	fakeChain =&fakeChainInterface{
+	fakeChain = &fakeChainInterface{
 		state: adb,
 		block: &fakeBlock{},
 		em:    &fakeEconomyModel{lockM: big.NewInt(10000011)},
 	}
-	conf = newValidTxSenderNeedConfig(fakeChain,1)
+	conf = newValidTxSenderNeedConfig(fakeChain, 1)
 	assert.Error(t, ValidTxSender(&fakeTx{
 		sender: sender,
 		fee:    big.NewInt(100000),
 		amount: big.NewInt(10),
-	},conf))
+	}, conf))
 
-
-	fakeChain =&fakeChainInterface{
+	fakeChain = &fakeChainInterface{
 		state: adb,
 		block: &fakeBlock{},
 		em:    &fakeEconomyModel{lockM: big.NewInt(0)},
 	}
-	conf = newValidTxSenderNeedConfig(fakeChain,1)
+	conf = newValidTxSenderNeedConfig(fakeChain, 1)
 	assert.NoError(t, ValidTxSender(&fakeTx{
 		sender:   sender,
 		GasLimit: g_testData.TestGasLimit,
@@ -134,7 +132,7 @@ func TestValidTxByType(t *testing.T) {
 
 func Test_validTx(t *testing.T) {
 	_, _, passTx, passChain := getTxTestEnv(t)
-	conf := newValidTxSenderNeedConfig(passChain,0)
+	conf := newValidTxSenderNeedConfig(passChain, 0)
 	assert.NoError(t, validTx(passTx, conf))
 	passTx.txType = 0x9999
 	assert.Equal(t, g_error.ErrInvalidTxType, validTx(passTx, conf))
@@ -144,7 +142,7 @@ func Test_validTx(t *testing.T) {
 
 func Test_validRegisterTx(t *testing.T) {
 	tx := &fakeTx{amount: big.NewInt(100)}
-	conf := newValidTxSenderNeedConfig(&fakeChainInterface{block:&fakeBlock{}},0)
+	conf := newValidTxSenderNeedConfig(&fakeChainInterface{block: &fakeBlock{}}, 0)
 	assert.Equal(t, g_error.ErrTxDelegatesNotEnough, validRegisterTx(tx, conf))
 	tx.amount = economy_model.MiniPledgeValue
 	assert.NoError(t, validRegisterTx(tx, conf))
@@ -152,7 +150,7 @@ func Test_validRegisterTx(t *testing.T) {
 
 func Test_validUnStakeTx(t *testing.T) {
 	s, adb, passTx, passChain := getTxTestEnv(t)
-	conf := newValidTxSenderNeedConfig(passChain,0)
+	conf := newValidTxSenderNeedConfig(passChain, 0)
 	assert.Equal(t, g_error.ErrTxSenderStakeNotEnough, validUnStakeTx(passTx, conf))
 	assert.NoError(t, adb.AddStake(s, big.NewInt(100)))
 	assert.Equal(t, g_error.ValidateSendCancelTxFirst, validUnStakeTx(passTx, conf))
@@ -162,7 +160,7 @@ func Test_validUnStakeTx(t *testing.T) {
 
 func Test_validCancelTx(t *testing.T) {
 	s, adb, passTx, passChain := getTxTestEnv(t)
-	conf := newValidTxSenderNeedConfig(passChain,0)
+	conf := newValidTxSenderNeedConfig(passChain, 0)
 	assert.Error(t, validCancelTx(passTx, conf))
 	passTx.sender = common.Address{}
 	assert.Error(t, validCancelTx(passTx, conf))
@@ -173,17 +171,17 @@ func Test_validCancelTx(t *testing.T) {
 	assert.Error(t, validCancelTx(passTx, conf))
 	passChain.state = adb
 	assert.NoError(t, adb.AddStake(s, big.NewInt(11)))
-	assert.NoError(t, validCancelTx(passTx,conf))
+	assert.NoError(t, validCancelTx(passTx, conf))
 	assert.NoError(t, adb.SetLastElect(s, 1))
 	assert.Error(t, validCancelTx(passTx, conf))
 }
 
 func Test_validContractTx(t *testing.T) {
-	conf := newValidTxSenderNeedConfig(&fakeChainInterface{block:&fakeBlock{}},0)
+	conf := newValidTxSenderNeedConfig(&fakeChainInterface{block: &fakeBlock{}}, 0)
 	assert.Error(t, validContractTx(&fakeTx{}, conf))
 	s, _ := NewEmptyAccountDB()
-	conf = newValidTxSenderNeedConfig( &fakeChainInterface{state: s,block:&fakeBlock{}},0)
-	assert.Error(t, validContractTx(&fakeTx{},conf))
+	conf = newValidTxSenderNeedConfig(&fakeChainInterface{state: s, block: &fakeBlock{}}, 0)
+	assert.Error(t, validContractTx(&fakeTx{}, conf))
 }
 
 func Test_validEarlyTokenTx(t *testing.T) {
@@ -191,20 +189,20 @@ func Test_validEarlyTokenTx(t *testing.T) {
 }
 
 func Test_validEvidenceTx(t *testing.T) {
-	conf := newValidTxSenderNeedConfig(&fakeChainInterface{block:&fakeBlock{}},0)
-	assert.Error(t, validEvidenceTx(&fakeTx{extraData: []byte{}},conf))
+	conf := newValidTxSenderNeedConfig(&fakeChainInterface{block: &fakeBlock{}}, 0)
+	assert.Error(t, validEvidenceTx(&fakeTx{extraData: []byte{}}, conf))
 
 	a, p := getPassConflictVote()
 	pb, err := rlp.EncodeToBytes(p)
 	assert.NoError(t, err)
 	tmpAddr := a.Address()
-	assert.Error(t, validEvidenceTx(&fakeTx{extraData: pb, to: &tmpAddr},conf))
+	assert.Error(t, validEvidenceTx(&fakeTx{extraData: pb, to: &tmpAddr}, conf))
 
 	_, adb, passTx, passChain := getTxTestEnv(t)
 	passTx.extraData = pb
 	passTx.to = &tmpAddr
 	assert.NoError(t, adb.NewAccountState(tmpAddr))
-	conf = newValidTxSenderNeedConfig(passChain,0)
+	conf = newValidTxSenderNeedConfig(passChain, 0)
 	assert.Error(t, validEvidenceTx(passTx, conf))
 	assert.NoError(t, adb.AddStake(tmpAddr, big.NewInt(100)))
 	assert.NoError(t, validEvidenceTx(passTx, conf))
@@ -215,8 +213,8 @@ func Test_conflictVote(t *testing.T) {
 	pb, err := rlp.EncodeToBytes(p)
 	assert.NoError(t, err)
 	tmpAddr := common.Address{0x12}
-	conf := newValidTxSenderNeedConfig( &fakeChainInterface{},0)
-	assert.Error(t, conflictVote(&fakeTx{extraData: pb, to: &tmpAddr},conf))
+	conf := newValidTxSenderNeedConfig(&fakeChainInterface{}, 0)
+	assert.Error(t, conflictVote(&fakeTx{extraData: pb, to: &tmpAddr}, conf))
 
 	p.VoteB = a.getVoteMsg(0, 1, common.Hash{}, model.VoteMessage)
 	pb, err = rlp.EncodeToBytes(p)
@@ -224,7 +222,7 @@ func Test_conflictVote(t *testing.T) {
 
 	p.VoteB.Height = 3
 	pb, err = rlp.EncodeToBytes(p)
-	assert.Error(t, conflictVote(&fakeTx{extraData: pb},conf))
+	assert.Error(t, conflictVote(&fakeTx{extraData: pb}, conf))
 
 	p.VoteA.Height = 2
 	pb, err = rlp.EncodeToBytes(p)
@@ -237,7 +235,7 @@ func Test_validEvidenceTime(t *testing.T) {
 	_, adb, passTx, passChain := getTxTestEnv(t)
 	to := common.Address{0x12}
 	passTx.to = &to
-	conf := newValidTxSenderNeedConfig(passChain,0)
+	conf := newValidTxSenderNeedConfig(passChain, 0)
 	assert.Error(t, validEvidenceTime(passTx, conf))
 
 	norTo := cs_crypto.GetNormalAddressFromEvidence(to)
@@ -249,33 +247,33 @@ func Test_validEvidenceTime(t *testing.T) {
 func Test_validTargetStake(t *testing.T) {
 	s, adb, passTx, passChain := getTxTestEnv(t)
 	passTx.to = &s
-	conf := newValidTxSenderNeedConfig(passChain,0)
+	conf := newValidTxSenderNeedConfig(passChain, 0)
 	assert.Error(t, validTargetStake(passTx, conf))
 
 	target := cs_crypto.GetNormalAddressFromEvidence(s)
 	assert.NoError(t, adb.NewAccountState(target))
-	assert.Error(t, validTargetStake(passTx,conf))
+	assert.Error(t, validTargetStake(passTx, conf))
 
 	assert.NoError(t, adb.AddStake(target, big.NewInt(10)))
 	assert.NoError(t, validTargetStake(passTx, conf))
 }
 
 func Test_validUnStakeTime(t *testing.T) {
-	conf := newValidTxSenderNeedConfig( &fakeChainInterface{},0)
+	conf := newValidTxSenderNeedConfig(&fakeChainInterface{}, 0)
 	assert.Error(t, validUnStakeTime(&fakeTx{}, conf))
-	assert.Error(t, validUnStakeTime(&fakeTx{sender: common.Address{0x12}},conf))
+	assert.Error(t, validUnStakeTime(&fakeTx{sender: common.Address{0x12}}, conf))
 	adb, _ := NewEmptyAccountDB()
-	conf = newValidTxSenderNeedConfig( &fakeChainInterface{state: adb},0)
-	assert.Error(t, validUnStakeTime(&fakeTx{sender: common.Address{0x12}},conf))
+	conf = newValidTxSenderNeedConfig(&fakeChainInterface{state: adb}, 0)
+	assert.Error(t, validUnStakeTime(&fakeTx{sender: common.Address{0x12}}, conf))
 	assert.NoError(t, adb.NewAccountState(common.Address{0x12}))
-	conf = newValidTxSenderNeedConfig( &fakeChainInterface{state: adb},0)
-	assert.Error(t, validUnStakeTime(&fakeTx{sender: common.Address{0x12}},conf))
+	conf = newValidTxSenderNeedConfig(&fakeChainInterface{state: adb}, 0)
+	assert.Error(t, validUnStakeTime(&fakeTx{sender: common.Address{0x12}}, conf))
 
 	assert.NoError(t, adb.AddStake(common.Address{0x12}, big.NewInt(12)))
 	assert.NoError(t, adb.SetLastElect(common.Address{0x12}, 12))
 	conf = newValidTxSenderNeedConfig(&fakeChainInterface{
 		state: adb,
 		block: &fakeBlock{},
-	},0)
+	}, 0)
 	assert.Error(t, validUnStakeTime(&fakeTx{sender: common.Address{0x12}}, conf))
 }

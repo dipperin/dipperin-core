@@ -254,14 +254,14 @@ func (ci *fakeChainInterface) GetStateStorage() state_processor.StateStorage {
 
 func (ci *fakeChainInterface) CurrentState() (*state_processor.AccountStateDB, error) {
 	if ci.state == nil {
-		return &state_processor.AccountStateDB{},nil
+		return &state_processor.AccountStateDB{}, nil
 	}
 	return ci.state, nil
 }
 
 func (ci *fakeChainInterface) StateAtByBlockNumber(num uint64) (*state_processor.AccountStateDB, error) {
 	if ci.state == nil {
-		return &state_processor.AccountStateDB{},nil
+		return &state_processor.AccountStateDB{}, nil
 	}
 	return ci.state, nil
 }
