@@ -196,7 +196,7 @@ func Test_validEvidenceTx(t *testing.T) {
 	pb, err := rlp.EncodeToBytes(p)
 	assert.NoError(t, err)
 	tmpAddr := a.Address()
-	assert.Error(t, validEvidenceTx(&fakeTx{extraData: pb, to: &tmpAddr}, conf))
+	assert.Panics(t, func() { validEvidenceTx(&fakeTx{extraData: pb, to: &tmpAddr}, conf) })
 
 	_, adb, passTx, passChain := getTxTestEnv(t)
 	passTx.extraData = pb
@@ -213,7 +213,7 @@ func Test_conflictVote(t *testing.T) {
 	pb, err := rlp.EncodeToBytes(p)
 	assert.NoError(t, err)
 	tmpAddr := common.Address{0x12}
-	conf := newValidTxSenderNeedConfig(&fakeChainInterface{}, 0)
+	conf := newValidTxSenderNeedConfig(&fakeChainInterface{block: &fakeBlock{}}, 0)
 	assert.Error(t, conflictVote(&fakeTx{extraData: pb, to: &tmpAddr}, conf))
 
 	p.VoteB = a.getVoteMsg(0, 1, common.Hash{}, model.VoteMessage)
@@ -259,14 +259,16 @@ func Test_validTargetStake(t *testing.T) {
 }
 
 func Test_validUnStakeTime(t *testing.T) {
-	conf := newValidTxSenderNeedConfig(&fakeChainInterface{}, 0)
+	conf := newValidTxSenderNeedConfig(&fakeChainInterface{block: &fakeBlock{}}, 0)
 	assert.Error(t, validUnStakeTime(&fakeTx{}, conf))
-	assert.Error(t, validUnStakeTime(&fakeTx{sender: common.Address{0x12}}, conf))
+	assert.Panics(t, func() { validUnStakeTime(&fakeTx{sender: common.Address{0x12}}, conf) })
+
 	adb, _ := NewEmptyAccountDB()
-	conf = newValidTxSenderNeedConfig(&fakeChainInterface{state: adb}, 0)
+	conf = newValidTxSenderNeedConfig(&fakeChainInterface{state: adb, block: &fakeBlock{}}, 0)
 	assert.Error(t, validUnStakeTime(&fakeTx{sender: common.Address{0x12}}, conf))
 	assert.NoError(t, adb.NewAccountState(common.Address{0x12}))
-	conf = newValidTxSenderNeedConfig(&fakeChainInterface{state: adb}, 0)
+
+	conf = newValidTxSenderNeedConfig(&fakeChainInterface{state: adb, block: &fakeBlock{}}, 0)
 	assert.Error(t, validUnStakeTime(&fakeTx{sender: common.Address{0x12}}, conf))
 
 	assert.NoError(t, adb.AddStake(common.Address{0x12}, big.NewInt(12)))
