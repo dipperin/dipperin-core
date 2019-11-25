@@ -472,8 +472,8 @@ func envGetStateSizeGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func env__ashlti3GasCost(vm *exec.VirtualMachine)(uint64, error)  {
-	return 1,nil
+func env__ashlti3GasCost(vm *exec.VirtualMachine) (uint64, error) {
+	return 1, nil
 }
 
 // define: int64_t getNonce();
@@ -518,8 +518,8 @@ func (r *Resolver) envGetSignerAddress(vm *exec.VirtualMachine) int64 {
 	signatureLen := int(int32(vm.GetCurrentFrame().Locals[3]))
 	returnStart := int(int32(vm.GetCurrentFrame().Locals[4]))
 
-	sha3Data := vm.Memory.Memory[sha3DataStart:sha3DataStart + sha3DataLen]
-	signature := vm.Memory.Memory[signatureStart:signatureStart + signatureLen]
+	sha3Data := vm.Memory.Memory[sha3DataStart : sha3DataStart+sha3DataLen]
+	signature := vm.Memory.Memory[signatureStart : signatureStart+signatureLen]
 
 	//crypto.VerifySignature(r.Service.Self().Address().)
 
@@ -534,7 +534,7 @@ func (r *Resolver) envGetSignerAddress(vm *exec.VirtualMachine) int64 {
 	log.Info("Resolver#envVerifySignature addr", "address ", address_util.PubKeyToAddress(*pK, common.AddressTypeNormal), "self address", r.Service.Self().Address().Hex())
 
 	addr := address_util.PubKeyToAddress(*pK, common.AddressTypeNormal)
-	copy(vm.Memory.Memory[returnStart:],addr.Bytes())
+	copy(vm.Memory.Memory[returnStart:], addr.Bytes())
 	return 0
 }
 

@@ -76,7 +76,6 @@ func TestAlign32BytesConverter(t *testing.T) {
 
 func TestStringConverter(t *testing.T) {
 
-
 	num, err := StringConverter("1000", "uint64")
 	assert.NoError(t, err)
 	assert.Equal(t, Uint64ToBytes(1000), num)

@@ -26,7 +26,6 @@ import (
 	"math"
 )
 
-
 type uint128 struct {
 	high uint64
 	low  uint64
@@ -77,7 +76,6 @@ func (u *uint128) rsh(shift uint) {
 		u.high >>= shift
 	}
 }
-
 
 // Sstore
 func (r *Resolver) envSetState(vm *exec.VirtualMachine) int64 {
@@ -131,7 +129,7 @@ func (r *Resolver) envGetStateSize(vm *exec.VirtualMachine) int64 {
 }
 
 // arithmetic long double
-func (r *Resolver)env__ashlti3(vm *exec.VirtualMachine) int64 {
+func (r *Resolver) env__ashlti3(vm *exec.VirtualMachine) int64 {
 	frame := vm.GetCurrentFrame()
 	pos := int(frame.Locals[0])
 
@@ -148,7 +146,6 @@ func (r *Resolver)env__ashlti3(vm *exec.VirtualMachine) int64 {
 	copy(vm.Memory.Memory[pos:pos+16], buf)
 	return 0
 }
-
 
 //void emitEvent(const char *topic, size_t topicLen, const uint8_t *data, size_t dataLen);
 //topic = funcName

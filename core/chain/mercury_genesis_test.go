@@ -252,10 +252,9 @@ func TestGenesis_SetEarlyTokenContract_Error(t *testing.T) {
 	assert.Equal(t, g_error.ErrAccountNotExist, err)
 }
 
-func TestGetCurrentTimeStamp(t *testing.T)  {
+func TestGetCurrentTimeStamp(t *testing.T) {
 	//time.Now()
-	fmt.Println(time.Now().Add(time.Hour * 24).UnixNano())   //  first timestamp  1573868920493170000
-															 //  second timestamp   1573293351343372000
-
+	fmt.Println(time.Now().Add(time.Hour * 24).UnixNano()) //  first timestamp  1573868920493170000
+	//  second timestamp   1573293351343372000
 
 }

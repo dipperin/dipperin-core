@@ -482,7 +482,6 @@ func TestContractWithNewFeature(t *testing.T) {
 //
 //}
 
-
 func TestContractPaymentChannel(t *testing.T) {
 	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
 
@@ -512,7 +511,7 @@ func TestContractPaymentChannel(t *testing.T) {
 	fmt.Println("aliceAddr hex", aliceAddress.Hex())
 	fmt.Println("ownAddr hex", ownAddress.Hex())
 	//input := []string{"123456789012345678901234","1573293024432297000","10"}
-	input := []string{aliceAddress.Hex(),"1573293024432297000","10"}
+	input := []string{aliceAddress.Hex(), "1573293024432297000", "10"}
 
 	data, err := getCreateExtraData(WASMPath, abiPath, input)
 	assert.NoError(t, err)
@@ -558,7 +557,7 @@ func TestContractPaymentChannel(t *testing.T) {
 	assert.NoError(t, err)
 
 	//gasUsed2 := uint64(0)
-	 //合约调用 错误调用 extend
+	//合约调用 错误调用 extend
 	ownTransferNonce++
 	//err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "extend", "1573293024432297000", 3, singer)
 	//assert.Error(t, err)
@@ -570,7 +569,6 @@ func TestContractPaymentChannel(t *testing.T) {
 	signature, err := crypto.Sign(signHash, ownSK)
 	log.Info("TestContractPaymentChannel#signature", "signature", signature, "signHash", signHash, "sign byte", common.Bytes2Hex(signature))
 	assert.NoError(t, err)
-
 
 	err = processContractCall(t, contractAddr, abi, aliceSK, processor, accountOwn, 0,
 		"close", "1,"+common.Bytes2Hex(signature), 3, singer)

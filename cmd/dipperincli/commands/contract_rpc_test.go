@@ -202,7 +202,7 @@ func TestRpcCaller_SendTransactionContract(t *testing.T) {
 	client = nil
 }
 
-func TestRlpBool(t *testing.T)  {
+func TestRlpBool(t *testing.T) {
 	exist := true
 	notExist := false
 	rlpParam := []interface{}{
