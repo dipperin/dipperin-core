@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/address-util"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
@@ -481,6 +482,108 @@ func TestContractWithNewFeature(t *testing.T) {
 //
 //}
 
+
+func TestContractPaymentChannel(t *testing.T) {
+	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
+
+	ownSK, _ := crypto.GenerateKey()
+	ownPk := ownSK.PublicKey
+	ownAddress := cs_crypto.GetNormalAddress(ownPk)
+
+	aliceSK, _ := crypto.GenerateKey()
+	alicePk := aliceSK.PublicKey
+	aliceAddress := cs_crypto.GetNormalAddress(alicePk)
+	//alicdAddr := address_util.PubKeyToAddress(alicePk, common.AddressTypeNormal)
+
+	brotherSK, _ := crypto.GenerateKey()
+	brotherPk := brotherSK.PublicKey
+	brotherAddress := cs_crypto.GetNormalAddress(brotherPk)
+
+	addressSlice := []common.Address{
+		ownAddress,
+		aliceAddress,
+		brotherAddress,
+	}
+
+	//WASMPath := g_testData.GetWASMPath("token", g_testData.CoreVmTestData)
+	//abiPath := g_testData.GetAbiPath("token", g_testData.CoreVmTestData)
+	WASMPath := g_testData.GetWASMPath("PaymentChannel", g_testData.CoreVmTestData)
+	abiPath := g_testData.GetAbiPath("PaymentChannel", g_testData.CoreVmTestData)
+	fmt.Println("aliceAddr hex", aliceAddress.Hex())
+	fmt.Println("ownAddr hex", ownAddress.Hex())
+	//input := []string{"123456789012345678901234","1573293024432297000","10"}
+	input := []string{aliceAddress.Hex(),"1573293024432297000","10"}
+
+	data, err := getCreateExtraData(WASMPath, abiPath, input)
+	assert.NoError(t, err)
+
+	addr := common.HexToAddress(common.AddressContractCreate)
+	tx := model.NewTransaction(0, addr, big.NewInt(10), big.NewInt(1), 26427000, data)
+	signCreateTx := getSignedTx(t, ownSK, tx, singer)
+
+	gasLimit := testGasLimit * 10000000000
+	block := CreateBlock(1, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
+	processor, err := CreateProcessorAndInitAccount(t, addressSlice)
+
+	tmpGasLimit := block.GasLimit()
+	gasUsed := block.GasUsed()
+	config := &TxProcessConfig{
+		Tx:       tx,
+		Header:   block.Header(),
+		GetHash:  getTestHashFunc(),
+		GasLimit: &tmpGasLimit,
+		GasUsed:  &gasUsed,
+		TxFee:    big.NewInt(0),
+	}
+
+	err = processor.ProcessTxNew(config)
+	assert.NoError(t, err)
+
+	contractAddr := cs_crypto.CreateContractAddress(ownAddress, uint64(0))
+	log.Info("TestContractPaymentChannel contractAddr", "contractAddr", contractAddr)
+	contractNonce, err := processor.GetNonce(contractAddr)
+	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce)
+	code, err := processor.GetCode(contractAddr)
+	abi, err := processor.GetAbi(contractAddr)
+	log.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
+	assert.NoError(t, err)
+	//assert.Equal(t, code, tx.ExtraData())
+	processor.Commit()
+
+	accountOwn := accounts.Account{ownAddress}
+	//  合约调用extend方法，延长支付通道的最早可关闭时间
+	ownTransferNonce, err := processor.GetNonce(ownAddress)
+	assert.NoError(t, err)
+	err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "extend", "1573293351343372000", 2, singer)
+	assert.NoError(t, err)
+
+	//gasUsed2 := uint64(0)
+	 //合约调用 错误调用 extend
+	ownTransferNonce++
+	//err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "extend", "1573293024432297000", 3, singer)
+	//assert.Error(t, err)
+
+	// 合约调用  close 方法
+	signMessage := contractAddr.Hex() + "1" + aliceAddress.Hex()
+	log.Info("TestContractPaymentChannel#signature", "signMessage", signMessage)
+	signHash := crypto.Keccak256([]byte(signMessage))
+	signature, err := crypto.Sign(signHash, ownSK)
+	log.Info("TestContractPaymentChannel#signature", "signature", signature, "signHash", signHash, "sign byte", common.Bytes2Hex(signature))
+	assert.NoError(t, err)
+
+
+	err = processContractCall(t, contractAddr, abi, aliceSK, processor, accountOwn, 0,
+		"close", "1,"+common.Bytes2Hex(signature), 3, singer)
+
+	assert.NoError(t, err)
+
+	//  合约再次调用close方法，报错
+	//ownTransferNonce++
+	err = processContractCall(t, contractAddr, abi, aliceSK, processor, accountOwn, 1, "close", "1,"+common.Bytes2Hex(signature), 4, singer)
+	assert.Error(t, err)
+
+}
+
 func newContractCallTx(from *common.Address, to *common.Address, gasPrice *big.Int, gasLimit uint64, funcName string, input string, nonce uint64, code []byte) (tx *model.Transaction, err error) {
 	// RLP([funcName][params])
 	inputRlp, err := rlp.EncodeToBytes([]interface{}{
@@ -511,6 +614,11 @@ func processContractCall(t *testing.T, contractAddress common.Address, code []by
 	callTx, err := newContractCallTx(nil, &contractAddress, new(big.Int).SetUint64(1), uint64(1500000), funcName, params, nonce, code)
 	assert.NoError(t, err)
 	signCallTx, err := callTx.SignTx(priKey, singer)
+	signPk, err := signCallTx.SenderPublicKey(singer)
+	assert.NoError(t, err)
+	addr := address_util.PubKeyToAddress(*signPk, common.AddressTypeNormal)
+	fmt.Println("processContractCall", "addr", addr)
+
 	//sw.SignTx(accountOwn, callTx, nil)
 	assert.NoError(t, err)
 	block := CreateBlock(blockNum, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
@@ -528,7 +636,7 @@ func processContractCall(t *testing.T, contractAddress common.Address, code []by
 	fmt.Println("receipt  log", "receipt log", receipt)
 	//}
 
-	assert.NoError(t, err)
+	//assert.NoError(t, err)
 	processor.Commit()
 	return err
 }
