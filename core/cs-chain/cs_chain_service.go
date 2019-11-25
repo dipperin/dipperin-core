@@ -243,19 +243,16 @@ func (cs *CsChainService) saveBftBlock(block model.AbstractBlock, seenCommits []
 		}
 
 		// update tx pool if insert block
-		newCurrentBlock := cs.CurrentHeader().(*model.Header)
-		cs.TxPool.Reset(oldCurrentHead, newCurrentBlock)
-		if cs.CurrentBlock().IsSpecial() {
-			for _, v := range cs.TxPool.AddRemotes(txs) {
-				if v != nil {
-					log.Error("special block AddRemotes failed", "err", v)
-				}
-			}
+		newCurrentHeader := cs.CurrentHeader().(*model.Header)
+		newCurrentBlock := cs.CurrentBlock()
+		cs.TxPool.Reset(oldCurrentHead, newCurrentHeader)
+		if newCurrentBlock.IsSpecial() && newCurrentBlock.Hash() == block.Hash() {
+			// roll back txs
+			cs.TxPool.AddRemotes(txs)
 
 			// roll back block number
-			for i := cs.CurrentBlock().Number(); i < oldCurrentHead.Number; i++ {
+			for i := newCurrentBlock.Number(); i < oldCurrentHead.Number; i++ {
 				cs.ChainState.Rollback(i + 1)
-				log.Info("roll back block number", "number", i+1)
 			}
 		}
 
@@ -330,34 +327,34 @@ func (cs *CsChainService) initService() error {
 	}
 
 	// check genesis block
-	if genesisBlock := cs.CacheChainState.Genesis(); genesisBlock == nil {
+	if genesisBlock := cs.Genesis(); genesisBlock == nil {
 		return g_error.ErrNoGenesis
 	}
 
-	headBlockHash := cs.CacheChainState.ChainState.ChainDB.GetHeadBlockHash()
-	currentBlock := cs.CacheChainState.GetBlockByHash(headBlockHash)
+	headBlockHash := cs.ChainDB.GetHeadBlockHash()
+	currentBlock := cs.GetBlockByHash(headBlockHash)
 
-	cs.CacheChainState.currentBlock.Store(currentBlock)
+	cs.currentBlock.Store(currentBlock)
 	currentHeader := currentBlock.Header()
-	cs.CacheChainState.currentHeader.Store(currentHeader)
+	cs.currentHeader.Store(currentHeader)
 
 	// Update cached verifier
-	currentSlot := cs.CacheChainState.GetSlot(currentBlock)
-	if *currentSlot >= cs.CacheChainState.GetChainConfig().SlotMargin {
-		lastNum := cs.CacheChainState.ChainState.NumBeforeLastBySlot(*currentSlot)
+	currentSlot := cs.GetSlot(currentBlock)
+	if *currentSlot >= cs.GetChainConfig().SlotMargin {
+		lastNum := cs.ChainState.NumBeforeLastBySlot(*currentSlot)
 		if lastNum == nil {
 			return g_error.ErrLastNumIsNil
 		}
-		cs.CacheChainState.CalVerifiers(cs.CacheChainState.GetBlockByNumber(*lastNum))
+		cs.CalVerifiers(cs.GetBlockByNumber(*lastNum))
 	}
 	if *currentSlot >= 1 {
-		lastPoint := cs.CacheChainState.GetLastChangePoint(currentBlock)
-		cs.CacheChainState.CalVerifiers(cs.CacheChainState.GetBlockByNumber(*lastPoint))
+		lastPoint := cs.GetLastChangePoint(currentBlock)
+		cs.CalVerifiers(cs.GetBlockByNumber(*lastPoint))
 	}
 
 	log.Info("Loaded most recent local header", "number", currentHeader.GetNumber(), "hash", currentHeader.Hash().Hex())
 	log.Info("Loaded most recent local full block", "number", currentBlock.Number(), "hash", currentBlock.Hash().Hex())
-	log.Info("initChain", "Chain version", cs.CacheChainState.genesisBlock.Version())
+	log.Info("initChain", "Chain version", cs.genesisBlock.Version())
 
 	// handle future block
 	go cs.handleFutureBlockTask()

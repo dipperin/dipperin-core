@@ -240,6 +240,14 @@ func (chain *CacheChainState) GetVerifiers(slot uint64) []common.Address {
 	return vs
 }
 
+func (chain *CacheChainState) CalVerifiers(block model.AbstractBlock) {
+	vs := chain.ChainState.CalVerifiers(block)
+	if len(vs) > 0 {
+		slot := chain.GetSlotByNum(block.Number())
+		chain.cachedVerifiers.Add(*slot+chain.ChainConfig.SlotMargin, vs)
+	}
+}
+
 func (chain *CacheChainState) GetSlotByNum(num uint64) *uint64 {
 	if s, ok := chain.slotCache.Get(num); ok {
 		return s.(*uint64)

@@ -9,10 +9,12 @@ import (
 	"github.com/dipperin/dipperin-core/tests/vm"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
+	"time"
 )
 
 func Test_SendNormalTx(t *testing.T) {
@@ -35,11 +37,11 @@ func Test_SendNormalTx(t *testing.T) {
 }
 
 func Test_SendRegisterTx(t *testing.T) {
-	cluster, err := node_cluster.CreateNodeCluster()
+	cluster, err := node_cluster.CreateIpcNodeCluster()
 	assert.NoError(t, err)
 
 	// get verifier info
-	number := 3
+	number := 20
 	var verifierAddr []common.Address
 	var verifierClient []*rpc.Client
 	for i := 0; i < number; i++ {
@@ -54,17 +56,46 @@ func Test_SendRegisterTx(t *testing.T) {
 
 	// verifiers[0] send money to others
 	for i := 0; i < number; i++ {
-		_, err = vm.SendTransaction(verifierClient[0], verifierAddr[0], verifierAddr[i], big.NewInt(10000), g_testData.TestGasPrice, g_testData.TestGasLimit, nil)
+		_, err = vm.SendTransaction(verifierClient[0], verifierAddr[0], verifierAddr[i], big.NewInt(1000000), g_testData.TestGasPrice, g_testData.TestGasLimit, nil)
 		assert.NoError(t, err)
 	}
 
-	/*time.Sleep(3*time.Second)
+	time.Sleep(3 * time.Second)
 
 	// verifiers send register tx
 	for i := 0; i < number; i++ {
-		err = verifierClient[i].Call(&resp, vm.GetRpcTXMethod("SendRegisterTransaction"), verifierAddr[i], 1000, g_testData.TestGasPrice, g_testData.TestGasLimit, nil)
+		_, err = vm.SendRegisterTransaction(verifierClient[i], verifierAddr[i], big.NewInt(10000), g_testData.TestGasPrice, g_testData.TestGasLimit)
 		assert.NoError(t, err)
-	}*/
+	}
+}
+
+func Test_CurrentBalance(t *testing.T) {
+	cluster, err := node_cluster.CreateIpcNodeCluster()
+	assert.NoError(t, err)
+
+	number := 20
+	var (
+		verifierAddr   []common.Address
+		verifierClient []*rpc.Client
+		verifierName   []string
+	)
+
+	for i := 0; i < number; i++ {
+		name := fmt.Sprintf("default_v%v", i)
+		client := cluster.NodeClient[name]
+		verifier, innerErr := cluster.GetNodeMainAddress(name)
+		assert.NoError(t, innerErr)
+
+		verifierAddr = append(verifierAddr, verifier)
+		verifierClient = append(verifierClient, client)
+		verifierName = append(verifierName, name)
+	}
+
+	// current balance
+	for i := 0; i < number; i++ {
+		resp := vm.CurrentBalance(verifierClient[i], verifierAddr[i])
+		log.Info("balance", "node", verifierName[i], "balance", resp.Balance.ToInt(), "address", verifierAddr[i])
+	}
 }
 
 func Test_SendMoneyFromV0(t *testing.T) {

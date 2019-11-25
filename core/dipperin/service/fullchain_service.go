@@ -2000,13 +2000,13 @@ func (service *VenusFullChainService) MakeTmpSignedTx(args CallArgs, blockNum ui
 
 	// Create tmpTransaction
 	log.Info("MakeTmpSignedTx#getSendTxInfo", "from", from)
-	tmpWallet, usedNonce, err := service.getSendTxInfo(from, nil)
+	tmpWallet, _, err := service.getSendTxInfo(from, nil)
 	if err != nil {
 		log.Error("MakeTmpSignedTx#getSendTxInfo failed", "err", err)
 		return nil, err
 	}
 
-	tmpTx := model.NewTransaction(usedNonce, *to, value, gasPrice, gas, args.Data)
+	tmpTx := model.NewTransaction(uint64(0), *to, value, gasPrice, gas, args.Data)
 	fromAccount := accounts.Account{Address: from}
 	signedTx, err := tmpWallet.SignTx(fromAccount, tmpTx, service.ChainConfig.ChainId)
 	if err != nil {
