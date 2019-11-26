@@ -126,9 +126,9 @@ func TestBftMiddleware2(t *testing.T) {
 		ver1,
 	}
 	block := model.NewBlock(&header, nil, blockVerifier)
-	log.Println("the block number is:",block.Number())
-	chain.EXPECT().StateAtByBlockNumber(block.Number()-1).Return(&state_processor.AccountStateDB{},nil)
-	chain.EXPECT().CurrentState().Return(&state_processor.AccountStateDB{},nil)
+	log.Println("the block number is:", block.Number())
+	chain.EXPECT().StateAtByBlockNumber(block.Number()-1).Return(&state_processor.AccountStateDB{}, nil)
+	chain.EXPECT().CurrentState().Return(&state_processor.AccountStateDB{}, nil)
 	err = validator.FullValid(block)
 
 	assert.Equal(t, g_error.ErrContractNotExist, err)
