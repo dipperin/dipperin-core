@@ -70,7 +70,9 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 	var invalidList []*model.Transaction
 	log.Info("BftBlockBuilder#commitTransactions  start ~~~~~++")
 	metricTimer := g_metrics.NewTimer(g_metrics.CommitTxsDuration)
-	defer metricTimer.ObserveDuration()
+	if metricTimer != nil{
+		defer metricTimer.ObserveDuration()
+	}
 
 	gasUsed := uint64(0)
 	gasLimit := header.GasLimit
@@ -126,7 +128,9 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, gasFloor, gasCeil uint64) model.AbstractBlock {
 	//trace pack block duration
 	timer := g_metrics.NewTimer(g_metrics.PackageBlockDuration)
-	defer timer.ObserveDuration()
+	if timer != nil{
+		defer timer.ObserveDuration()
+	}
 
 	if coinbaseAddr.IsEmpty() {
 		panic("call NewBlockFromLastBlock, but coinbase address is empty")

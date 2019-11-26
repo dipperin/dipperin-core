@@ -476,7 +476,7 @@ func DefaultGenesisBlock(chainDB chaindb.Database, accountStateProcessor state_p
 		Difficulty: chain_config.GenesisDifficulty,
 		Alloc: map[common.Address]*big.Int{
 			//for test
-			common.HexToAddress("0x0000062493b705D52E4541e7Daa6343A8eD98d8dc15f"): big.NewInt(0).Mul(big.NewInt(1e8), big.NewInt(consts.DIP)),
+			//common.HexToAddress("0x0000062493b705D52E4541e7Daa6343A8eD98d8dc15f"): big.NewInt(0).Mul(big.NewInt(1e8), big.NewInt(consts.DIP)),
 
 			// corresponding private key:289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232032
 			/*			common.HexToAddress("0x0000970e8128aB834E8EAC17aB8E3812f010678CF791"): big.NewInt(100 * consts.DIP),

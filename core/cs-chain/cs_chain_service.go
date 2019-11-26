@@ -191,7 +191,9 @@ func (cs *CsChainService) SaveBlock(block model.AbstractBlock, seenCommits []mod
 	defer cs.wg.Done()
 
 	timer := g_metrics.NewTimer(g_metrics.InsertOneBlockDuration)
-	defer timer.ObserveDuration()
+	if timer != nil{
+		defer timer.ObserveDuration()
+	}
 
 	cs.saveBlockLock.Lock()
 	defer cs.saveBlockLock.Unlock()
