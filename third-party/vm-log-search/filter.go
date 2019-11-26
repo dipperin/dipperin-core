@@ -236,7 +236,7 @@ func (f *Filter) checkMatches(ctx context.Context, header *model.AbstractHeader)
 	// Get the logs of the block
 	//logsList, err := f.backend.GetLogs(ctx, header)
 	logsList := f.GetLogs(header)
-	log.Info("Filter#checkMatches", "logsList", logsList)
+	//log.Info("Filter#checkMatches", "logsList", logsList)
 	if logsList == nil {
 		return nil, err
 	}
@@ -245,7 +245,7 @@ func (f *Filter) checkMatches(ctx context.Context, header *model.AbstractHeader)
 		unfiltered = append(unfiltered, logs...)
 	}
 	logs = filterLogs(unfiltered, nil, nil, f.addresses, f.topics)
-	log.Info("Filter#checkMatches", "logs", logs)
+	//log.Info("Filter#checkMatches", "logs", logs)
 	if len(logs) > 0 {
 		// We have matching logs, check if we need to resolve full logs via the light client
 		if logs[0].TxHash == (common.Hash{}) {
