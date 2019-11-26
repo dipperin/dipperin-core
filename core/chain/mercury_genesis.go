@@ -474,7 +474,7 @@ func DefaultGenesisBlock(chainDB chaindb.Database, accountStateProcessor state_p
 		Timestamp:  big.NewInt(gTime.UnixNano()),
 		ExtraData:  []byte("dipperin Genesis"),
 		Difficulty: chain_config.GenesisDifficulty,
-		Alloc: map[common.Address]*big.Int{
+		Alloc:      map[common.Address]*big.Int{
 			//for test
 			//common.HexToAddress("0x0000062493b705D52E4541e7Daa6343A8eD98d8dc15f"): big.NewInt(0).Mul(big.NewInt(1e8), big.NewInt(consts.DIP)),
 
