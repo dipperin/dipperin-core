@@ -279,27 +279,27 @@ func filterLogs(logs []*model2.Log, fromBlock, toBlock *big.Int, addresses []com
 	var ret []*model2.Log
 Logs:
 	for _, lg := range logs {
-		log.Info("filterLogs before", "lg", lg)
+		//log.Info("filterLogs before", "lg", lg)
 		if fromBlock != nil && fromBlock.Int64() >= 0 && fromBlock.Uint64() > lg.BlockNumber {
 			continue
 		}
-		log.Info("filterLogs before1", "lg", lg)
+		//log.Info("filterLogs before1", "lg", lg)
 		if toBlock != nil && toBlock.Int64() >= 0 && toBlock.Uint64() < lg.BlockNumber {
 			continue
 		}
 
-		log.Info("filterLogs before2", "lg", lg, "addresses", addresses, "lg.Address", lg.Address)
+		//log.Info("filterLogs before2", "lg", lg, "addresses", addresses, "lg.Address", lg.Address)
 		if len(addresses) > 0 && !includes(addresses, lg.Address) {
 			continue
 		}
 		// If the to filtered topics is greater than the amount of topics in logs, skip.
 		// todo to be understand
-		log.Info("filterLogs before3", "lg", lg, "len(topics)", len(topics), "len(le.Topics", len(lg.Topics))
+		//log.Info("filterLogs before3", "lg", lg, "len(topics)", len(topics), "len(le.Topics", len(lg.Topics))
 		if len(topics) > len(lg.Topics) {
 			continue Logs
 		}
 
-		log.Info("filterLogs before4", "lg", lg)
+		//log.Info("filterLogs before4", "lg", lg)
 		if len(topics) > 0 {
 			for i, sub := range topics {
 				match := len(sub) == 0 // empty rule set == wildcard
@@ -314,7 +314,7 @@ Logs:
 				}
 			}
 		}
-		log.Info("filterLogs after", "lg", lg)
+		//log.Info("filterLogs after", "lg", lg)
 		ret = append(ret, lg)
 	}
 	return ret
