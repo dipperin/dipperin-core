@@ -19,6 +19,7 @@ package state_processor
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/stretchr/testify/assert"
@@ -134,7 +135,9 @@ func TestAccountStateProcessor_MoveStakeToAddress(t *testing.T) {
 }
 
 func TestAccountStateDB_processStakeTx(t *testing.T) {
-	db, root := CreateTestStateDB()
+	minRegisterValue := economy_model.MiniPledgeValue
+	db, root := CreateTestStateDBWithMutableBalance(minRegisterValue)
+	twiceMiniPledgeValue := big.NewInt(0).Mul(economy_model.MiniPledgeValue, big.NewInt(2))
 	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
 
 	key1, err := crypto.HexToECDSA("289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232033")
@@ -153,11 +156,11 @@ func TestAccountStateDB_processStakeTx(t *testing.T) {
 	err = processor.processStakeTx(tx)
 	assert.Equal(t, g_error.ErrStakeNotEnough, err)
 
-	tx = getTestRegisterTransaction(0, key1, big.NewInt(1e7))
+	tx = getTestRegisterTransaction(0, key1, twiceMiniPledgeValue)
 	err = processor.processStakeTx(tx)
 	assert.Equal(t, g_error.ErrBalanceNotEnough, err)
 
-	tx = getTestRegisterTransaction(0, key1, big.NewInt(100))
+	tx = getTestRegisterTransaction(0, key1, minRegisterValue)
 	err = processor.processStakeTx(tx)
 	assert.NoError(t, err)
 }

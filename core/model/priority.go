@@ -45,7 +45,7 @@ var (
 	w2 = 0.1
 	w3 = 0.7
 
-	StakeValMin = float64(100)
+	StakeValMin = float64(100) // todo: this value is too low, maybe should mul dip(1000000000000000000)
 )
 
 func getCalculator() PriofityCalculator {
