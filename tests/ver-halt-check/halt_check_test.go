@@ -193,7 +193,7 @@ func generateTestConfigAndBlocks() (config testNeedConfig, normalBlock model.Abs
 	}
 
 	testConf.SetPreBlock(testConf.CurrentBlock())
-	testConf.SetVerifivations(testConf.GetSeenCommit(testConf.CurrentBlock().Number()))
+	testConf.SetVerifications(testConf.GetSeenCommit(testConf.CurrentBlock().Number()))
 	sameHeightBlock := testConf.Build()
 
 	return testConf, sameHeightBlock, proposal, nil
@@ -245,7 +245,7 @@ func TestSaveLowHeightEmptyBlock(t *testing.T) {
 
 	//generate and save another block
 	testConf.SetPreBlock(testConf.CurrentBlock())
-	testConf.SetVerifivations(testConf.GetSeenCommit(testConf.CurrentBlock().Number()))
+	testConf.SetVerifications(testConf.GetSeenCommit(testConf.CurrentBlock().Number()))
 	newHeightBlock := testConf.Build()
 	err = testConf.SaveBlock(newHeightBlock, testConf.VoteBlock(4, 1, newHeightBlock))
 	assert.NoError(t, err)

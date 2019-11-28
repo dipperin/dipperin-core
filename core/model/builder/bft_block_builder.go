@@ -19,6 +19,7 @@ package builder
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-metrics"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/chain"
@@ -68,6 +69,11 @@ func (builder *BftBlockBuilder) commitTransaction(conf *state_processor.TxProces
 func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndNonce, state *chain.BlockProcessor, header *model.Header, vers []model.AbstractVerification) (txBuf []model.AbstractTransaction, receipts model2.Receipts) {
 	var invalidList []*model.Transaction
 	log.Info("BftBlockBuilder#commitTransactions  start ~~~~~++")
+	metricTimer := g_metrics.NewTimer(g_metrics.CommitTxsDuration)
+	if metricTimer != nil {
+		defer metricTimer.ObserveDuration()
+	}
+
 	gasUsed := uint64(0)
 	gasLimit := header.GasLimit
 	for {
@@ -114,11 +120,18 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 	//update gasUsed in header
 	header.GasUsed = gasUsed
 	// ProcessExceptTxs then finalise for fear that changing state root
+
 	return
 }
 
 //build the wait-pack block
 func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, gasFloor, gasCeil uint64) model.AbstractBlock {
+	//trace pack block duration
+	timer := g_metrics.NewTimer(g_metrics.PackageBlockDuration)
+	if timer != nil {
+		defer timer.ObserveDuration()
+	}
+
 	if coinbaseAddr.IsEmpty() {
 		panic("call NewBlockFromLastBlock, but coinbase address is empty")
 	}

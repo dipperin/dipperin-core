@@ -22,3 +22,18 @@ func Test_GetCurrentBlock(t *testing.T) {
 
 	log.Info("the current Block is:", "blockNumber", respBlock.Header.Number)
 }
+
+func Test_GetBlockByNumber(t *testing.T) {
+	t.Skip()
+	cluster, err := node_cluster.CreateNodeCluster()
+	assert.NoError(t, err)
+
+	assert.NoError(t, err)
+
+	nodeName := "default_m0"
+	client := cluster.NodeClient[nodeName]
+	var respBlock rpc_interface.BlockResp
+	err = client.Call(&respBlock, vm.GetRpcTXMethod("GetBlockByNumber"), 660)
+	assert.NoError(t, err)
+	log.Info("the respBlock txs numbers is:", "txNumber", len(respBlock.Body.Txs))
+}

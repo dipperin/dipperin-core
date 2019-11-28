@@ -19,6 +19,7 @@ package state_processor
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/stretchr/testify/assert"
@@ -201,7 +202,7 @@ func TestAccountStateDB_ProcessTxNew(t *testing.T) {
 	assert.NoError(t, err)
 	processor.NewAccountState(aliceAddr)
 	processor.NewAccountState(bobAddr)
-	processor.AddBalance(aliceAddr, big.NewInt(1e10))
+	processor.AddBalance(aliceAddr, big.NewInt(0).Mul(economy_model.MiniPledgeValue, big.NewInt(2)))
 	processor.AddStake(bobAddr, big.NewInt(100))
 
 	// create tx config
@@ -212,11 +213,25 @@ func TestAccountStateDB_ProcessTxNew(t *testing.T) {
 		nonce:  &nonce,
 		sender: aliceAddr,
 	}
+
+	stackTx := fakeTransactionOpt{
+		txType: &txType,
+		nonce:  &nonce,
+		sender: aliceAddr,
+		amount: economy_model.MiniPledgeValue,
+	}
 	gasLimit := g_testData.TestGasLimit
 	gasUsed := uint64(0)
 	block := CreateBlock(22, common.Hash{}, nil, gasLimit)
 	config := &TxProcessConfig{
 		Tx:       tx,
+		Header:   block.Header(),
+		GetHash:  getTestHashFunc(),
+		GasLimit: &gasLimit,
+		GasUsed:  &gasUsed,
+	}
+	stackConfig := &TxProcessConfig{
+		Tx:       stackTx,
 		Header:   block.Header(),
 		GetHash:  getTestHashFunc(),
 		GasLimit: &gasLimit,
@@ -239,7 +254,7 @@ func TestAccountStateDB_ProcessTxNew(t *testing.T) {
 
 	txType = common.TxType(common.AddressTypeStake)
 	nonce = uint64(3)
-	err = processor.ProcessTxNew(config)
+	err = processor.ProcessTxNew(stackConfig)
 	assert.NoError(t, err)
 
 	txType = common.TxType(common.AddressTypeCancel)

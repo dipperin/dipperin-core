@@ -48,8 +48,9 @@ func (cs *ChainState) CurrentHeader() model.AbstractHeader {
 		return nil
 	}
 
-	if tmpBlock := cs.GetBlockByHash(headHash); tmpBlock != nil {
-		return tmpBlock.Header()
+	cs.GetHeaderByHash(headHash)
+	if tmpHeader := cs.GetHeaderByHash(headHash); tmpHeader != nil {
+		return tmpHeader
 	}
 
 	return nil

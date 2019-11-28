@@ -94,7 +94,7 @@ func (suite *BaseChainSuite) InsertBlock(t *check.C, num int) {
 			} else {
 				curBlockVotes = suite.env.VoteBlock(config.VerifierNumber, 0, curBlock)
 			}
-			suite.blockBuilder.SetVerifivations(curBlockVotes)
+			suite.blockBuilder.SetVerifications(curBlockVotes)
 			block = suite.blockBuilder.Build()
 		}
 
@@ -131,7 +131,7 @@ func (suite *BaseChainSuite) InsertSpecialBlock(t *check.C, num int) {
 			} else {
 				curBlockVotes = suite.env.VoteBlock(config.VerifierNumber, 0, curBlock)
 			}
-			suite.blockBuilder.SetVerifivations(curBlockVotes)
+			suite.blockBuilder.SetVerifications(curBlockVotes)
 			block = suite.blockBuilder.BuildSpecialBlock()
 		}
 

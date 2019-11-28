@@ -195,7 +195,7 @@ func TestVenusFullChainService_CurrentReputation(t *testing.T) {
 	csChain.ChainDB.DeleteBlock(block.Hash(), block.Number())
 	service = MakeFullChainService(config)
 	reputation, err = service.CurrentReputation(verifiers[0])
-	assert.Equal(t, "current block is nil", err.Error())
+	assert.Equal(t, "current header is nil", err.Error())
 	assert.Equal(t, uint64(0), reputation)
 }
 
@@ -263,7 +263,7 @@ func TestVenusFullChainService_GetTransactionNonce(t *testing.T) {
 	config.ChainReader = csChain
 	service.DipperinConfig = config
 	nonce, err = service.GetTransactionNonce(chain.VerifierAddress[0])
-	assert.Equal(t, "current block is nil", err.Error())
+	assert.Equal(t, "current header is nil", err.Error())
 	assert.Equal(t, uint64(0), nonce)
 }
 
@@ -847,7 +847,7 @@ func TestVenusFullChainService_getSendTxInfo_Error(t *testing.T) {
 
 	// CurrentState error
 	wallet, nonce, err = service.getSendTxInfo(account[0].Address, nil)
-	assert.Equal(t, "current block is nil", err.Error())
+	assert.Equal(t, "current header is nil", err.Error())
 	assert.Equal(t, uint64(0), nonce)
 	assert.Nil(t, wallet)
 

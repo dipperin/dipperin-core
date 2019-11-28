@@ -17,6 +17,7 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/chain-config"
@@ -32,9 +33,9 @@ import (
 )
 
 // special tx validators
-var txValidators = map[common.TxType]func(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error{
+var txValidators = map[common.TxType]func(tx model.AbstractTransaction, conf *validTxNeedConfig) error{
 	// normal tx have no special validation
-	common.TxType(common.AddressTypeNormal): func(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
+	common.TxType(common.AddressTypeNormal): func(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 		return nil
 	},
 	common.TxType(common.AddressTypeStake):          validRegisterTx,
@@ -55,6 +56,34 @@ var txValidators = map[common.TxType]func(tx model.AbstractTransaction, chain Ch
 //	BlockHeight uint64
 //}
 
+type validTxNeedConfig struct {
+	economyModel       economy_model.EconomyModel
+	preState           *state_processor.AccountStateDB
+	curState           *state_processor.AccountStateDB
+	currentBlockNumber uint64
+	validBlockNumber   uint64
+}
+
+func newValidTxSenderNeedConfig(chain ChainInterface, blockNumber uint64) *validTxNeedConfig {
+	var tmpConfig validTxNeedConfig
+
+	tmpConfig.economyModel = chain.GetEconomyModel()
+	tmpConfig.validBlockNumber = blockNumber
+	tmpConfig.currentBlockNumber = chain.CurrentHeader().GetNumber()
+	preState, err := getPreStateForHeight(blockNumber, chain)
+	if err != nil {
+		panic(fmt.Sprintf("newValidTxSenderNeedConfig get preState error,blockNumber:%v", tmpConfig.validBlockNumber))
+	}
+	tmpConfig.preState = preState
+
+	curState, err := chain.CurrentState()
+	if err != nil {
+		panic(fmt.Sprintf("newValidTxSenderNeedConfig get curState error,blockNumber:%v", tmpConfig.validBlockNumber))
+	}
+	tmpConfig.curState = curState
+	return &tmpConfig
+}
+
 // NewValidatorTx create a validator for transactions
 func NewTxValidatorForRpcService(chain ChainInterface) *TxValidatorForRpcService {
 	return &TxValidatorForRpcService{Chain: chain}
@@ -66,7 +95,8 @@ type TxValidatorForRpcService struct {
 
 // Valid valid transactions
 func (v *TxValidatorForRpcService) Valid(tx model.AbstractTransaction) error {
-	return validTx(tx, v.Chain, 0)
+	conf := newValidTxSenderNeedConfig(v.Chain, 0)
+	return validTx(tx, conf)
 }
 
 func ValidateBlockTxs(c *BlockContext) Middleware {
@@ -87,9 +117,10 @@ func ValidateBlockTxs(c *BlockContext) Middleware {
 			}
 		}
 
+		conf := newValidTxSenderNeedConfig(c.Chain, c.Block.Number())
 		// start:=time.Now()
 		for _, tx := range txs {
-			if err := validTx(tx, c.Chain, c.Block.Number()); err != nil {
+			if err := validTx(tx, conf); err != nil {
 				return err
 			}
 		}
@@ -99,8 +130,8 @@ func ValidateBlockTxs(c *BlockContext) Middleware {
 }
 
 // valid sender and amount
-func ValidTxSender(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
-	economy := chain.GetEconomyModel()
+func ValidTxSender(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
+	economy := conf.economyModel
 	singer := tx.GetSigner()
 	sender, err := tx.Sender(singer)
 	if err != nil {
@@ -119,18 +150,14 @@ func ValidTxSender(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 	}
 
 	// log.Info("ValidTxSender the blockHeight is:","blockHeight",blockHeight)
-	state, err := getPreStateForHeight(blockHeight, chain)
-	if err != nil {
-		return err
-	}
-	credit, err := state.GetBalance(sender)
+	credit, err := conf.preState.GetBalance(sender)
 	log.Info("ValidTxSender#credit", "credit", credit)
 	if err != nil {
 		return err
 	}
 
 	// get locked money
-	lockValue, err := economy.GetAddressLockMoney(sender, chain.CurrentBlock().Number())
+	lockValue, err := economy.GetAddressLockMoney(sender, conf.currentBlockNumber)
 	if err != nil {
 		return err
 	}
@@ -153,7 +180,8 @@ func ValidTxByType(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 		if validator == nil {
 			return g_error.ErrInvalidTxType
 		}
-		if err := validator(tx, chain, blockHeight); err != nil {
+		conf := newValidTxSenderNeedConfig(chain, blockHeight)
+		if err := validator(tx, conf); err != nil {
 			return err
 		}
 		return nil
@@ -167,9 +195,9 @@ func ValidTxByType(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 3. valid transactions type is logical for safety requirements
 
 */
-func validTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
+func validTx(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 	// start := time.Now()
-	if err := ValidTxSender(tx, chain, blockHeight); err != nil {
+	if err := ValidTxSender(tx, conf); err != nil {
 		return err
 	}
 
@@ -179,42 +207,38 @@ func validTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uin
 	}
 
 	// start = time.Now()
-	if err := validator(tx, chain, blockHeight); err != nil {
+	if err := validator(tx, conf); err != nil {
 		return err
 	}
 	return nil
 }
 
-func validRegisterTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
+func validRegisterTx(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 	if tx.Amount().Cmp(economy_model.MiniPledgeValue) == -1 {
 		return g_error.ErrTxDelegatesNotEnough
 	}
 	return nil
 }
 
-func validUnStakeTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
-	if err := haveStack(tx, chain, blockHeight); err != nil {
+func validUnStakeTx(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
+	if err := haveStack(tx, conf); err != nil {
 		return err
 	}
-	if err := validUnStakeTime(tx, chain, blockHeight); err != nil {
+	if err := validUnStakeTime(tx, conf); err != nil {
 		return err
 	}
 	return nil
 }
 
-func validCancelTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
+func validCancelTx(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 	singer := tx.GetSigner()
 	sender, err := tx.Sender(singer)
 	if err != nil {
 		return err
 	}
-	state, err := getPreStateForHeight(blockHeight, chain)
-	if err != nil {
-		return err
-	}
 
 	// whether sent register tx
-	stake, err := state.GetStake(sender)
+	stake, err := conf.preState.GetStake(sender)
 	if err != nil {
 		return err
 	}
@@ -223,7 +247,7 @@ func validCancelTx(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 	}
 
 	// whether sent cancel tx
-	lastBlock, err := state.GetLastElect(sender)
+	lastBlock, err := conf.preState.GetLastElect(sender)
 	if err != nil {
 		return err
 	}
@@ -233,35 +257,30 @@ func validCancelTx(tx model.AbstractTransaction, chain ChainInterface, blockHeig
 	return nil
 }
 
-func validContractTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
-	curState, err := chain.CurrentState()
-	if err != nil {
-		return err
-	}
-
-	return contract.NewProcessor(curState, blockHeight).Process(tx)
+func validContractTx(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
+	return contract.NewProcessor(conf.curState, conf.currentBlockNumber).Process(tx)
 }
 
-func validEarlyTokenTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
+func validEarlyTokenTx(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 	return nil
 }
 
-func validContractCreateTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
+func validContractCreateTx(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 	return nil
 }
 
-func validContractCallTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
+func validContractCallTx(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 	return nil
 }
 
-func validEvidenceTx(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
-	if err := conflictVote(tx, chain, blockHeight); err != nil {
+func validEvidenceTx(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
+	if err := conflictVote(tx, conf); err != nil {
 		return err
 	}
-	if err := validEvidenceTime(tx, chain, blockHeight); err != nil {
+	if err := validEvidenceTime(tx, conf); err != nil {
 		return err
 	}
-	if err := validTargetStake(tx, chain, blockHeight); err != nil {
+	if err := validTargetStake(tx, conf); err != nil {
 		return err
 	}
 	return nil
@@ -277,25 +296,21 @@ func getPreStateForHeight(height uint64, reader ChainInterface) (s *state_proces
 	return
 }
 
-func validEvidenceTime(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
-	chainReader := chain
+func validEvidenceTime(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 	//config := nodeContext.ChainConfig()
 	config := chain_config.GetChainConfig()
 
 	target := tx.To()
-	state, err := getPreStateForHeight(blockHeight, chainReader)
-	if err != nil {
-		return err
-	}
+
 	targetNormal := cs_crypto.GetNormalAddressFromEvidence(*target)
-	lastBlock, err := state.GetLastElect(targetNormal)
+	lastBlock, err := conf.preState.GetLastElect(targetNormal)
 	if err != nil {
 		return err
 	}
 
 	if lastBlock != 0 {
 		// lastBlock < (current +1) < (lastBlock/SlotSize + StakeLockSlot)*SlotSize
-		current := chainReader.CurrentBlock().Number()
+		current := conf.currentBlockNumber
 		slotSpace := (current+1)/config.SlotSize - lastBlock/config.SlotSize
 		if slotSpace > config.StakeLockSlot {
 			return g_error.ErrInvalidEvidenceTime
@@ -308,7 +323,7 @@ func validEvidenceTime(tx model.AbstractTransaction, chain ChainInterface, block
 	return nil
 }
 
-func conflictVote(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
+func conflictVote(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 	extraData := tx.ExtraData()
 	proofData := model.Proofs{}
 	if err := rlp.DecodeBytes(extraData, &proofData); err != nil {
@@ -339,22 +354,16 @@ func conflictVote(tx model.AbstractTransaction, chain ChainInterface, blockHeigh
 	return nil
 }
 
-func validUnStakeTime(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
+func validUnStakeTime(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 	singer := tx.GetSigner()
 	sender, err := tx.Sender(singer)
 	if err != nil {
 		return err
 	}
-	chainReader := chain
 	//config := nodeContext.ChainConfig()
 	config := chain_config.GetChainConfig()
-	state, err := getPreStateForHeight(blockHeight, chainReader)
-	if err != nil {
-		return err
-	}
-
 	// whether sent register tx
-	stake, err := state.GetStake(sender)
+	stake, err := conf.preState.GetStake(sender)
 	if err != nil {
 		return err
 	}
@@ -363,7 +372,7 @@ func validUnStakeTime(tx model.AbstractTransaction, chain ChainInterface, blockH
 	}
 
 	// whether sent cancel tx
-	lastBlock, err := state.GetLastElect(sender)
+	lastBlock, err := conf.preState.GetLastElect(sender)
 	if err != nil {
 		return err
 	}
@@ -372,7 +381,7 @@ func validUnStakeTime(tx model.AbstractTransaction, chain ChainInterface, blockH
 	}
 
 	// whether in lockup period
-	current := chainReader.CurrentBlock().Number()
+	current := conf.currentBlockNumber
 	slotSpace := (current+1)/config.SlotSize - lastBlock/config.SlotSize
 	if slotSpace < config.StakeLockSlot {
 		return g_error.ErrInvalidUnStakeTime
@@ -380,20 +389,14 @@ func validUnStakeTime(tx model.AbstractTransaction, chain ChainInterface, blockH
 	return nil
 }
 
-func haveStack(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
+func haveStack(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 	singer := tx.GetSigner()
 	sender, err := tx.Sender(singer)
 	if err != nil {
 		return err
 	}
 
-	// get current stake
-	currentStake, err := chain.CurrentState()
-	if err != nil {
-		return err
-	}
-
-	stake, err := currentStake.GetStake(sender)
+	stake, err := conf.curState.GetStake(sender)
 	if err != nil {
 		return err
 	}
@@ -410,11 +413,10 @@ TxTargetStakeValidator is to validate the target has stake or is a validator can
 It consider to be valid, the target's stake more than 0.
 It implemented TransactionValidator interface.
 */
-func validTargetStake(tx model.AbstractTransaction, chain ChainInterface, blockHeight uint64) error {
+func validTargetStake(tx model.AbstractTransaction, conf *validTxNeedConfig) error {
 	to := tx.To()
 	target := cs_crypto.GetNormalAddressFromEvidence(*to)
-	currentStake, err := chain.CurrentState()
-	stake, err := currentStake.GetStake(target)
+	stake, err := conf.curState.GetStake(target)
 	if err != nil {
 		return err
 	}

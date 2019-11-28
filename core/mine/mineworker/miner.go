@@ -17,8 +17,10 @@
 package mineworker
 
 import (
+	"github.com/dipperin/dipperin-core/common/g-metrics"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/prometheus/client_golang/prometheus"
 	"sync"
 	"time"
 )
@@ -43,6 +45,7 @@ type defaultMiner struct {
 	curWork workExecutor
 	lock    sync.Mutex
 
+	metricTimer *prometheus.Timer
 	mineStartAt time.Time
 }
 
@@ -94,6 +97,7 @@ out:
 		select {
 		case miner.curWork = <-miner.newWorkChan:
 			miner.mineStartAt = time.Now()
+			miner.metricTimer = g_metrics.NewTimer(g_metrics.FindNonceDuration)
 			log.Info("miner receive new work1")
 		case <-miner.stopChan:
 			log.Info("stop mine")
@@ -112,8 +116,11 @@ func (miner *defaultMiner) doMine() {
 	// Submit if it is discovered, and wait for a new task
 	if miner.curWork != nil && miner.curWork.ChangeNonce() {
 		log.Info("miner found nonce", "use time", time.Now().Sub(miner.mineStartAt))
-
 		miner.curWork.Submit()
+		if miner.metricTimer != nil {
+			miner.metricTimer.ObserveDuration()
+			miner.metricTimer = nil
+		}
 		miner.waitNewWork()
 	}
 }
@@ -123,6 +130,7 @@ func (miner *defaultMiner) waitNewWork() {
 	select {
 	case miner.curWork = <-miner.newWorkChan:
 		miner.mineStartAt = time.Now()
+		miner.metricTimer = g_metrics.NewTimer(g_metrics.FindNonceDuration)
 		//log.Info("miner receive new work2")
 	case <-miner.stopChan:
 	}

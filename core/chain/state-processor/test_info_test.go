@@ -111,6 +111,20 @@ func CreateTestStateDB() (ethdb.Database, common.Hash) {
 	return db, root
 }
 
+func CreateTestStateDBWithMutableBalance(balance *big.Int) (ethdb.Database, common.Hash) {
+	db := ethdb.NewMemDatabase()
+
+	tdb := NewStateStorageWithCache(db)
+	processor, _ := NewAccountStateDB(common.Hash{}, tdb)
+	processor.NewAccountState(aliceAddr)
+	processor.NewAccountState(bobAddr)
+	processor.AddBalance(aliceAddr, balance)
+
+	root, _ := processor.Commit()
+	tdb.TrieDB().Commit(root, false)
+	return db, root
+}
+
 func createStateProcessor(t *testing.T) *AccountStateDB {
 	db, root := CreateTestStateDB()
 	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
@@ -468,5 +482,116 @@ func (tx fakeTransaction) Cost() *big.Int {
 }
 
 func (tx fakeTransaction) EstimateFee() *big.Int {
+	panic("implement me")
+}
+
+//add at 2019.11.28
+type fakeTransactionOpt struct {
+	txType *common.TxType
+	nonce  *uint64
+	err    error
+	sender common.Address
+	amount *big.Int
+}
+
+func (tx fakeTransactionOpt) PaddingReceipt(parameters model.ReceiptPara) {
+	return
+}
+
+func (tx fakeTransactionOpt) PaddingActualTxFee(fee *big.Int) {
+	return
+}
+
+func (tx fakeTransactionOpt) GetReceipt() *model2.Receipt {
+	panic("implement me")
+}
+
+func (tx fakeTransactionOpt) GetActualTxFee() (fee *big.Int) {
+	panic("implement me")
+}
+
+func (tx fakeTransactionOpt) GetGasLimit() uint64 {
+	return g_testData.TestGasLimit
+}
+
+func (tx fakeTransactionOpt) AsMessage(checkNonce bool) (model.Message, error) {
+	panic("implement me")
+}
+
+func (tx fakeTransactionOpt) Size() common.StorageSize {
+	panic("implement me")
+}
+
+func (tx fakeTransactionOpt) GetGasPrice() *big.Int {
+	return g_testData.TestGasPrice
+}
+
+func (tx fakeTransactionOpt) Amount() *big.Int {
+	return tx.amount
+}
+
+func (tx fakeTransactionOpt) CalTxId() common.Hash {
+	return common.HexToHash("123")
+}
+
+func (tx fakeTransactionOpt) Nonce() uint64 {
+	if tx.nonce == nil {
+		return uint64(0)
+	}
+	return *tx.nonce
+}
+
+func (tx fakeTransactionOpt) To() *common.Address {
+	if tx.txType == nil {
+		return &bobAddr
+	}
+	switch *tx.txType {
+	case common.AddressTypeStake:
+		addr := common.HexToAddress(common.AddressStake)
+		return &addr
+	case common.AddressTypeUnStake:
+		addr := common.HexToAddress(common.AddressUnStake)
+		return &addr
+	case common.AddressTypeCancel:
+		addr := common.HexToAddress(common.AddressCancel)
+		return &addr
+	case common.AddressTypeEvidence:
+		addr := common.HexToAddress("0x0005970e8128aB834E8EAC17aB8E3812f010678CF791")
+		return &addr
+	default:
+		return &bobAddr
+	}
+}
+
+func (tx fakeTransactionOpt) Sender(singer model.Signer) (common.Address, error) {
+	return tx.sender, tx.err
+}
+
+func (tx fakeTransactionOpt) SenderPublicKey(signer model.Signer) (*ecdsa.PublicKey, error) {
+	panic("implement me")
+}
+
+func (tx fakeTransactionOpt) EncodeRlpToBytes() ([]byte, error) {
+	panic("implement me")
+}
+
+func (tx fakeTransactionOpt) GetSigner() model.Signer {
+	panic("implement me")
+}
+
+func (tx fakeTransactionOpt) GetType() common.TxType {
+	return *tx.txType
+}
+
+func (tx fakeTransactionOpt) ExtraData() []byte {
+	c := erc20{}
+	return util.StringifyJsonToBytes(c)
+}
+
+func (tx fakeTransactionOpt) Cost() *big.Int {
+	panic("implement me")
+}
+
+func (tx fakeTransactionOpt) EstimateFee() *big.Int {
 	panic("implement me")
 }

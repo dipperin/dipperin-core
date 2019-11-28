@@ -131,7 +131,7 @@ func (ci *fakeChainInterface) CurrentBlock() model.AbstractBlock {
 }
 
 func (ci *fakeChainInterface) CurrentHeader() model.AbstractHeader {
-	panic("implement me")
+	return ci.block.Header()
 }
 
 func (ci *fakeChainInterface) GetBlock(hash common.Hash, number uint64) model.AbstractBlock {
@@ -254,14 +254,14 @@ func (ci *fakeChainInterface) GetStateStorage() state_processor.StateStorage {
 
 func (ci *fakeChainInterface) CurrentState() (*state_processor.AccountStateDB, error) {
 	if ci.state == nil {
-		return nil, errors.New("no state")
+		return &state_processor.AccountStateDB{}, nil
 	}
 	return ci.state, nil
 }
 
 func (ci *fakeChainInterface) StateAtByBlockNumber(num uint64) (*state_processor.AccountStateDB, error) {
 	if ci.state == nil {
-		return nil, errors.New("no state")
+		return &state_processor.AccountStateDB{}, nil
 	}
 	return ci.state, nil
 }
@@ -622,6 +622,7 @@ func (fb *fakeBlock) Header() model.AbstractHeader {
 		GasLimit:     fb.GasLimit,
 		GasUsed:      fb.GasUsed,
 		ReceiptHash:  fb.ReceiptHash,
+		Number:       fb.num,
 	}
 }
 

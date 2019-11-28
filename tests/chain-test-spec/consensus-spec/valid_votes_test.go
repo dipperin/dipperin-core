@@ -59,7 +59,7 @@ func (suite *votesTestSuite) Test_ValidateVotesForBFT_ErrFirstBlockShouldNotHave
 	b0 := suite.ChainState.CurrentBlock()
 	votes := suite.Env.VoteBlock(config.VerifierNumber, 1, b0)
 
-	suite.BlockBuilder.SetVerifivations(votes)
+	suite.BlockBuilder.SetVerifications(votes)
 	block := suite.BlockBuilder.Build()
 
 	// create middleware context
@@ -78,7 +78,7 @@ func (suite *votesTestSuite) Test_ValidateVotesForBFT_ErrSameVoteSingerInVotes()
 	for i := 0; i < config.VerifierNumber; i++ {
 		votes = append(votes, votes[0])
 	}
-	suite.BlockBuilder.SetVerifivations(votes)
+	suite.BlockBuilder.SetVerifications(votes)
 	block := suite.BlockBuilder.Build()
 
 	// create middleware context
@@ -92,7 +92,7 @@ func (suite *votesTestSuite) Test_ValidateVotesForBFT_ErrBlockVotesNotEnough() {
 
 	// create only one vote
 	votes := suite.Env.VoteBlock(1, 1, suite.ChainState.CurrentBlock())
-	suite.BlockBuilder.SetVerifivations(votes)
+	suite.BlockBuilder.SetVerifications(votes)
 	block := suite.BlockBuilder.Build()
 
 	// create middleware context
@@ -111,7 +111,7 @@ func (suite *votesTestSuite) Test_ValidateVotesForBFT_ErrNotCurrentVerifier() {
 	voteA := createVote(b0)
 	votes = append(votes, voteA)
 
-	suite.BlockBuilder.SetVerifivations(votes)
+	suite.BlockBuilder.SetVerifications(votes)
 	block := suite.BlockBuilder.Build()
 
 	// create middleware context
@@ -126,7 +126,7 @@ func (suite *votesTestSuite) Test_ValidateVotes_ErrInvalidFirstVoteInSpecialBloc
 	b0 := suite.ChainState.CurrentBlock()
 
 	b0Votes := suite.Env.VoteBlock(suite.ChainState.GetChainConfig().VerifierNumber, 1, b0)
-	suite.BlockBuilder.SetVerifivations(b0Votes)
+	suite.BlockBuilder.SetVerifications(b0Votes)
 	suite.BlockBuilder.SetMinerPk(bootNode[0].Pk)
 	specialBlock := suite.BlockBuilder.BuildSpecialBlock()
 
@@ -142,7 +142,7 @@ func (suite *votesTestSuite) Test_ValidateVotesForBFT_ErrInvalidBlockHashInVotes
 	suite.insertFirstBlock()
 
 	votes := suite.Env.VoteBlock(config.VerifierNumber, 1, b0)
-	suite.BlockBuilder.SetVerifivations(votes)
+	suite.BlockBuilder.SetVerifications(votes)
 	block := suite.BlockBuilder.Build()
 
 	// create middleware context

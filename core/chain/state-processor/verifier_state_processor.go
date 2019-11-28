@@ -19,6 +19,7 @@ package state_processor
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/log"
@@ -125,10 +126,11 @@ func (state *AccountStateDB) processStakeTx(tx model.AbstractTransaction) (err e
 
 	//judging the balance of the deposit
 	stake, err := state.GetStake(sender)
-	minStake := int64(model.StakeValMin)
+	minStake := int64(economy_model.MiniPledgeValue.Int64())
 	if err != nil {
 		return
 	}
+
 	if stake.Cmp(big.NewInt(0)) == 0 && tx.Amount().Cmp(big.NewInt(minStake)) == -1 {
 		log.Debug("process register transaction failed", "err", g_error.ErrStakeNotEnough)
 		return g_error.ErrStakeNotEnough

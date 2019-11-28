@@ -26,6 +26,7 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/prometheus/client_golang/prometheus"
 	"time"
 )
 
@@ -37,6 +38,9 @@ type StateHandler struct {
 	bs        *BftState
 	blockPool *components.BlockPool
 	ticker    components.TimeoutTicker
+
+	//for record PBFT duration
+	metricTimer *prometheus.Timer
 
 	newHeightChan        chan uint64
 	newRoundChan         chan *model2.NewRoundMsg
@@ -139,6 +143,9 @@ func (h *StateHandler) loop() {
 func (h *StateHandler) OnNewHeight(height uint64) {
 	log.PBft.Info("[**********************start new Block************************]")
 	log.PBft.Info("[StateHandler-OnNewHeight]", "height", height)
+	if h.metricTimer == nil {
+		h.metricTimer = g_metrics.NewTimer(g_metrics.PBFTValidBlockDuration)
+	}
 	round := uint64(0)
 	chainHeight := h.ChainReader.CurrentBlock().Number()
 	if height != chainHeight+1 {
@@ -317,6 +324,10 @@ func (h *StateHandler) OnVote(v *model.VoteMsg) {
 
 		if block != nil {
 			log.PBft.Info("[StateHandler-OnVote]:finalBlock", "blockNumber", block.Number())
+			if h.metricTimer != nil {
+				h.metricTimer.ObserveDuration()
+				h.metricTimer = nil
+			}
 			h.finalBlock(block, commits)
 			log.PBft.Info("==================================pbft save block end=======================================")
 			log.PBft.Info("")
