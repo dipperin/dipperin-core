@@ -1,0 +1,61 @@
+[
+    {
+        "name": "init",
+        "inputs": [
+            {
+                "name": "_recipient",
+                "type": "string"
+            },
+            {
+                "name": "duration",
+                "type": "uint64"
+            },
+            {
+                "name": "_balance",
+                "type": "uint64"
+            }
+        ],
+        "outputs": [],
+        "constant": "false",
+        "payable": "true",
+        "type": "function"
+    },
+    {
+        "name": "close",
+        "inputs": [
+            {
+                "name": "amount",
+                "type": "uint64"
+            },
+            {
+                "name": "signature",
+                "type": "string"
+            }
+        ],
+        "outputs": [],
+        "constant": "false",
+        "payable": "false",
+        "type": "function"
+    },
+    {
+        "name": "extend",
+        "inputs": [
+            {
+                "name": "newExpiration",
+                "type": "uint64"
+            }
+        ],
+        "outputs": [],
+        "constant": "false",
+        "payable": "false",
+        "type": "function"
+    },
+    {
+        "name": "claimTimeout",
+        "inputs": [],
+        "outputs": [],
+        "constant": "false",
+        "payable": "false",
+        "type": "function"
+    }
+]
