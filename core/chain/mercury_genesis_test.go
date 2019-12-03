@@ -18,6 +18,7 @@ package chain
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/g-error"
@@ -31,6 +32,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestSetupGenesisBlock(t *testing.T) {
@@ -248,4 +250,11 @@ func TestGenesis_SetEarlyTokenContract_Error(t *testing.T) {
 
 	err = defaultGenesis.SetEarlyTokenContract()
 	assert.Equal(t, g_error.ErrAccountNotExist, err)
+}
+
+func TestGetCurrentTimeStamp(t *testing.T) {
+	//time.Now()
+	fmt.Println(time.Now().Add(time.Hour * 24).UnixNano()) //  first timestamp  1573868920493170000
+	//  second timestamp   1573293351343372000
+
 }

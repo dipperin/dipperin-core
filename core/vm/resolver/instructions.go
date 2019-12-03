@@ -17,12 +17,65 @@
 package resolver
 
 import (
+	"encoding/binary"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/dipperin/dipperin-core/third-party/log"
+	"math"
 )
+
+type uint128 struct {
+	high uint64
+	low  uint64
+}
+
+func (u *uint128) lsh(shift uint) {
+	if shift >= 128 {
+		u.low = 0
+		u.high = 0
+	} else {
+		var halfSize uint = 128 / 2
+
+		if shift >= halfSize {
+			shift -= halfSize
+			u.high = u.low
+			u.low = 0
+		}
+
+		if shift != 0 {
+			u.high <<= shift
+		}
+
+		var mask uint64 = ^(math.MaxUint64 >> shift)
+		u.high |= (u.low & mask) >> (halfSize - shift)
+		u.low <<= shift
+	}
+}
+
+func (u *uint128) rsh(shift uint) {
+	if shift >= 128 {
+		u.high = 0
+		u.low = 0
+	} else {
+		var halfSize uint = 128 / 2
+
+		if shift >= halfSize {
+			shift -= halfSize
+			u.low = u.high
+			u.high = 0
+		}
+
+		if shift != 0 {
+			u.low >>= shift
+		}
+
+		var mask uint64 = ^(math.MaxUint64 << shift)
+		u.low |= (u.high & mask) << (halfSize - shift)
+		u.high >>= shift
+	}
+}
 
 // Sstore
 func (r *Resolver) envSetState(vm *exec.VirtualMachine) int64 {
@@ -73,6 +126,25 @@ func (r *Resolver) envGetStateSize(vm *exec.VirtualMachine) int64 {
 	val := r.Service.GetState(r.Service.Address(), copyKey)
 	log.Info("Get valueLen", "valueLen", len(val))
 	return int64(len(val))
+}
+
+// arithmetic long double
+func (r *Resolver) env__ashlti3(vm *exec.VirtualMachine) int64 {
+	frame := vm.GetCurrentFrame()
+	pos := int(frame.Locals[0])
+
+	u := &uint128{
+		low:  uint64(frame.Locals[1]),
+		high: uint64(frame.Locals[2]),
+	}
+	shift := uint(frame.Locals[3])
+	u.lsh(shift)
+
+	buf := make([]byte, 16)
+	binary.LittleEndian.PutUint64(buf, u.low)
+	binary.LittleEndian.PutUint64(buf[8:], u.high)
+	copy(vm.Memory.Memory[pos:pos+16], buf)
+	return 0
 }
 
 //void emitEvent(const char *topic, size_t topicLen, const uint8_t *data, size_t dataLen);
@@ -164,6 +236,8 @@ func envMemmove(vm *exec.VirtualMachine) int64 {
 func MallocString(vm *exec.VirtualMachine, str string) int64 {
 	mem := vm.Memory
 	size := len([]byte(str)) + 1
+
+	//log.Info("MallocString str", "str", str)
 
 	pos := mem.Malloc(size)
 	copy(mem.Memory[pos:pos+size], []byte(str))

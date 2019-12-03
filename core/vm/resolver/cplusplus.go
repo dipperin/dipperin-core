@@ -24,6 +24,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/address-util"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
@@ -471,6 +472,10 @@ func envGetStateSizeGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
+func env__ashlti3GasCost(vm *exec.VirtualMachine) (uint64, error) {
+	return 1, nil
+}
+
 // define: int64_t getNonce();
 func (r *Resolver) envGetCallerNonce(vm *exec.VirtualMachine) int64 {
 	addr := r.Service.Caller().Address()
@@ -504,6 +509,33 @@ func (r *Resolver) envCallTransfer(vm *exec.VirtualMachine) int64 {
 	} else {
 		return 0
 	}
+}
+
+func (r *Resolver) envGetSignerAddress(vm *exec.VirtualMachine) int64 {
+	sha3DataStart := int(int32(vm.GetCurrentFrame().Locals[0]))
+	sha3DataLen := int(int32(vm.GetCurrentFrame().Locals[1]))
+	signatureStart := int(int32(vm.GetCurrentFrame().Locals[2]))
+	signatureLen := int(int32(vm.GetCurrentFrame().Locals[3]))
+	returnStart := int(int32(vm.GetCurrentFrame().Locals[4]))
+
+	sha3Data := vm.Memory.Memory[sha3DataStart : sha3DataStart+sha3DataLen]
+	signature := vm.Memory.Memory[signatureStart : signatureStart+signatureLen]
+
+	//crypto.VerifySignature(r.Service.Self().Address().)
+
+	log.Info("Resolver#envVerifySignature", "sha3Data", sha3Data, "signature", signature, "signature byte", common.Hex2Bytes(string(signature)))
+
+	hashByte := common.Hex2Bytes(string(signature))
+	pK, err := crypto.SigToPub(sha3Data, hashByte)
+	if err != nil {
+		return 0
+	}
+
+	log.Info("Resolver#envVerifySignature addr", "address ", address_util.PubKeyToAddress(*pK, common.AddressTypeNormal), "self address", r.Service.Self().Address().Hex())
+
+	addr := address_util.PubKeyToAddress(*pK, common.AddressTypeNormal)
+	copy(vm.Memory.Memory[returnStart:], addr.Bytes())
+	return 0
 }
 
 func (r *Resolver) envDipperCall(vm *exec.VirtualMachine) int64 {
