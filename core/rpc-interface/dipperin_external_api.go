@@ -1,6 +1,7 @@
 package rpc_interface
 
 import (
+	"context"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/core/contract"
@@ -8,6 +9,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"math/big"
 )
 
@@ -331,4 +333,12 @@ func (api *DipperExternalApi) GetReceiptByTxHash(txHash common.Hash) (*model2.Re
 
 func (api *DipperExternalApi) GetReceiptsByBlockNum(num uint64) (model2.Receipts, error) {
 	return api.allApis.GetReceiptsByBlockNum(num)
+}
+
+func (api *DipperExternalApi) NewBlock(ctx context.Context) (*rpc.Subscription, error) {
+	return api.allApis.NewBlock(ctx)
+}
+
+func (api *DipperExternalApi) SubscribeBlock(ctx context.Context) (*rpc.Subscription, error) {
+	return api.allApis.SubscribeBlock(ctx)
 }
