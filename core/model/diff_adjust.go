@@ -110,9 +110,9 @@ func calNewWorkDiffByTime(preSanBlockTime *big.Int, lastBlockTime *big.Int, last
 	actualTimespan.Sub(lastBlockTime, preSanBlockTime)
 	actualTimespan = actualTimespan.Div(actualTimespan, big.NewInt(1e9))
 
-	if actualTimespan.Cmp(bn.Div(bn, big.NewInt(4))) == -1 {
+	if actualTimespan.Cmp(big.NewInt(0).Div(bn, big.NewInt(4))) == -1 {
 		actualTimespan.Div(bn, big.NewInt(4))
-	} else if actualTimespan.Cmp(bn.Mul(bn, big.NewInt(4))) == 1 {
+	} else if actualTimespan.Cmp(big.NewInt(0).Mul(bn, big.NewInt(4))) == 1 {
 		// only 4 if timespan is greater than 4
 		actualTimespan.Mul(bn, big.NewInt(4))
 	}
