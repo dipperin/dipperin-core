@@ -362,8 +362,7 @@ func (cs *CsChainService) initService() error {
 			return g_error.ErrLastNumIsNil
 		}
 		cs.CalVerifiers(cs.GetBlockByNumber(*lastNum))
-	}
-	if *currentSlot >= 1 {
+	} else {
 		lastPoint := cs.GetLastChangePoint(currentBlock)
 		cs.CalVerifiers(cs.GetBlockByNumber(*lastPoint))
 	}
