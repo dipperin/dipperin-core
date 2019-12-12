@@ -71,6 +71,7 @@ var (
 
 var config = defaultChainConfig()
 
+
 func defaultChainConfig() *ChainConfig {
 	c := &ChainConfig{
 		//DeriveShaType:         DeriveShaTypeByHash,

@@ -179,10 +179,10 @@ func (ps *peerSet) BestPeer() PmAbstractPeer {
 		bestHeight uint64
 	)
 
-	//log.Info("get BestPeer the peers number is:", "number", len(ps.peers))
+	log.Debug("get BestPeer the peers number is:", "number", len(ps.peers))
 	for _, p := range ps.peers {
 		_, height := p.GetHead()
-		//log.Debug("get best peer", "nodeName", p.NodeName(), "p height", height)
+		log.Debug("get best peer", "nodeName", p.NodeName(), "p height", height)
 		if bestPeer == nil || height > bestHeight {
 			bestPeer, bestHeight = p, height
 		}
