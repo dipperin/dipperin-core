@@ -16,6 +16,7 @@
 
 package resolver
 
+import "C"
 import (
 	"encoding/binary"
 	"github.com/dipperin/dipperin-core/common"
@@ -146,6 +147,38 @@ func (r *Resolver) env__ashlti3(vm *exec.VirtualMachine) int64 {
 	copy(vm.Memory.Memory[pos:pos+16], buf)
 	return 0
 }
+
+//func(r *Resolver) env__multi3(vm *exec.VirtualMachine) int64 {
+//	frame := vm.GetCurrentFrame()
+//	pos := int(frame.Locals[0])
+//
+//	ret := C.___multi3(
+//		C.uint64_t(frame.Locals[1]),
+//		C.uint64_t(frame.Locals[2]),
+//		C.uint64_t(frame.Locals[3]),
+//		C.uint64_t(frame.Locals[4]),
+//	)
+//
+//	buf := C.GoBytes(unsafe.Pointer(&ret), C.sizeof___int128)
+//	copy(vm.Memory.Memory[pos:pos+16], buf)
+//	return 0
+//}
+//
+//func (r *Resolver) env__divti3(vm *exec.VirtualMachine) int64  {
+//	frame := vm.GetCurrentFrame()
+//	pos := int(frame.Locals[0])
+//
+//	ret := C.___divti3(
+//		C.uint64_t(frame.Locals[1]),
+//		C.uint64_t(frame.Locals[2]),
+//		C.uint64_t(frame.Locals[3]),
+//		C.uint64_t(frame.Locals[4]),
+//	)
+//
+//	buf := C.GoBytes(unsafe.Pointer(&ret), C.sizeof___int128)
+//	copy(vm.Memory.Memory[pos:pos+16], buf)
+//	return 0
+//}
 
 //void emitEvent(const char *topic, size_t topicLen, const uint8_t *data, size_t dataLen);
 //topic = funcName

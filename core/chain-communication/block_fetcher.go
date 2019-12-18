@@ -102,18 +102,20 @@ type BlockFetcher struct {
 
 	// key --> peer id, value notify count
 	notifyCount map[string]int
+	// key --> block hash
 	notified    map[common.Hash][]*vrMsg
 	fetching    map[common.Hash]*vrMsg
 	fetched     map[common.Hash][]*vrMsg
 	finished    map[common.Hash]*vrMsg
 
-	queue  *prque.Prque
+	queue  *prque.Prque             //  used for save future block
 	queues map[string]int
 	queued map[common.Hash]*inject
 
 	chainHeight      chainHeightFunc
 	getBlock         getBlockByHashFunc
 	saveBlock        saveBlockFunc
+	// broadcast block to peers without the block
 	blockBroadcaster blockBroadcasterFunc
 
 	// todo drop
@@ -163,6 +165,8 @@ func (f *BlockFetcher) DoTask(peerID string, vr *model2.VerifyResult, time time.
 	}
 }
 
+
+// used to filter block that
 func (f *BlockFetcher) DoFilter(peerID string, list []*catchupRlp) []*catchupRlp {
 	filterC := make(chan *dlTask)
 
@@ -269,6 +273,8 @@ func (f *BlockFetcher) loop() {
 	}
 }
 
+
+// used for insert
 func (f *BlockFetcher) handleInsert() {
 	height := f.chainHeight().Number()
 	log.PBft.Debug("fetch chain height number", "height", height)
@@ -341,6 +347,7 @@ func (f *BlockFetcher) handleFetching(fetchTimer *time.Timer) {
 	request := make(map[string][]common.Hash)
 
 	for hash, msgList := range f.notified {
+		// when the msgList has one message will timeout, remove the hash and add to the request
 		if time.Since(msgList[0].time) > arriveTimeout-gatherSlack {
 			msg := msgList[rand.Intn(len(msgList))]
 			f.forgetHash(hash)
@@ -383,6 +390,8 @@ func (f *BlockFetcher) handleVrTask(task *vrTask) {
 		if catchup.Block.Number() != msg.number {
 			// todo peer drop
 			f.forgetHash(catchup.Block.Hash())
+			// this should be return
+			return
 		}
 
 		// Only keep if not imported by other means
@@ -513,6 +522,7 @@ func (f *BlockFetcher) rescheduleFetch(fetch *time.Timer) {
 	fetch.Reset(arriveTimeout - time.Since(earliest))
 }
 
+// remove hash from notified、fetching、fetched、finished
 func (f *BlockFetcher) forgetHash(hash common.Hash) {
 	// Remove all pending announces and decrement DOS counters
 	for _, msg := range f.notified[hash] {

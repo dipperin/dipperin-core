@@ -403,6 +403,13 @@ func (r *Resolver) envCallValue(vm *exec.VirtualMachine) int64 {
 	return 0
 }
 
+
+func (r *Resolver) envCallValueUDIP(vm *exec.VirtualMachine) int64 {
+	value := r.Service.CallValue()
+	result := int64(new(big.Int).Div(value, new(big.Int).SetUint64(10 ^ 15)).Uint64())
+	return result
+}
+
 // define: void address(char hash[22]);
 func (r *Resolver) envAddress(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
@@ -474,6 +481,15 @@ func envGetStateSizeGasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 func env__ashlti3GasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
+}
+
+
+func env__multi3GasCost(vm *exec.VirtualMachine) (uint64, error) {
+	return 1, nil
+}
+
+func env__divti3GasCost(vm *exec.VirtualMachine) (uint64, error)  {
+	return 1,nil
 }
 
 // define: int64_t getNonce();
