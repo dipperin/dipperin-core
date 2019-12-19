@@ -50,8 +50,9 @@ const (
 	//MaxBlockSize = 100 * 1024 * 1024
 	//MaxTxSize    = 512 * 1024
 
-	//使用gasLimit限制block容量,但区块容量可调节上限依然由MaxBlockSize控制
+	//Use gasLimit to limit block capacity, but the adjustable upper limit of block capacity is still controlled by MaxBlockSize
 	BlockGasLimit = 3360000000 //160000 normal tx
+	//qBlockGasLimit =   33600000000000 //160000 normal tx
 	MaxGasLimit   = uint64(0x7fffffffffffffff)
 
 	CallCreateDepth uint64 = 1024

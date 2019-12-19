@@ -42,6 +42,8 @@ func TestGetUnit(t *testing.T) {
 
 func TestMoneyValueToCSCoin(t *testing.T) {
 	value, err := MoneyValueToCSCoin("0.001")
+	//fmt.Println("value", value)
+
 	assert.Error(t, err)
 	assert.Nil(t, value)
 
@@ -50,14 +52,19 @@ func TestMoneyValueToCSCoin(t *testing.T) {
 	assert.Nil(t, value)
 
 	value, err = MoneyValueToCSCoin("0.0000000000000000001DIP")
+	//fmt.Println("value", value)
+
 	assert.Error(t, err)
 	assert.Nil(t, value)
 
 	value, err = MoneyValueToCSCoin("10000000000000000000WU")
+	//fmt.Println("value", value)
 	assert.NoError(t, err)
 	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(10), big.NewInt(consts.DIP)), value)
 
 	value, err = MoneyValueToCSCoin("1.23456DIP")
+	//fmt.Println("value", value)
+
 	assert.NoError(t, err)
 	assert.Equal(t, big.NewInt(1.23456*consts.DIP), value)
 

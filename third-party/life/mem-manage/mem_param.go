@@ -12,6 +12,7 @@ const (
 
 	DefaultMemoryPages = 16
 	DynamicMemoryPages = 16
+	//DynamicMemoryPages = 160
 
 	DefaultMemPoolCount = 5
 	DefaultMemBlockSize = 5
