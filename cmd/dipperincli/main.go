@@ -135,7 +135,7 @@ func appAction(c *cli.Context) {
 	//cslog.InitLogger(lv, "", true)
 	//commands.InitLog(lv)
 
-	if chain_config.GetCurBootsEnv()!="local" && chain_config.GetCurBootsEnv()!="test" && chain_config.GetCurBootsEnv()!="venus" && chain_config.GetCurBootsEnv()!="mercury"{
+	if chain_config.GetCurBootsEnv() != "local" && chain_config.GetCurBootsEnv() != "test" && chain_config.GetCurBootsEnv() != "venus" && chain_config.GetCurBootsEnv() != "mercury" {
 		log.Error("boots_env set error,please check!")
 		return
 	}
