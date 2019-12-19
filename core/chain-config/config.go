@@ -53,7 +53,7 @@ const (
 	//Use gasLimit to limit block capacity, but the adjustable upper limit of block capacity is still controlled by MaxBlockSize
 	BlockGasLimit = 3360000000 //160000 normal tx
 	//qBlockGasLimit =   33600000000000 //160000 normal tx
-	MaxGasLimit   = uint64(0x7fffffffffffffff)
+	MaxGasLimit = uint64(0x7fffffffffffffff)
 
 	CallCreateDepth uint64 = 1024
 )

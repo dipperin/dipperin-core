@@ -405,7 +405,7 @@ func (r *Resolver) envCallValue(vm *exec.VirtualMachine) int64 {
 
 func (r *Resolver) envCallValueUDIP(vm *exec.VirtualMachine) int64 {
 	value := r.Service.CallValue()
-	result := int64(new(big.Int).Div(value, new(big.Int).Set(math.BigPow(10 , 15))).Uint64())
+	result := int64(new(big.Int).Div(value, new(big.Int).Set(math.BigPow(10, 15))).Uint64())
 	log.Debug("envCallValueUDIP", "value", value, "result", result)
 	return result
 }
