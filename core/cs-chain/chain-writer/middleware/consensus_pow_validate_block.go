@@ -116,8 +116,8 @@ func ValidateBlockDifficulty(c *BlockContext) Middleware {
 		//targetDiff := model.CalNewWorkDiff(preSpanBlock, lastBlock)
 
 		if !targetDiff.Equal(c.Block.Difficulty()) {
-			log.Error("the c.Block number is:","number",c.Block.Number())
-			log.Error("valid difficulty error","targetDiff",targetDiff.Hex(),"blockDifficulty",c.Block.Difficulty().Hex())
+			log.Error("the c.Block number is:", "number", c.Block.Number())
+			log.Error("valid difficulty error", "targetDiff", targetDiff.Hex(), "blockDifficulty", c.Block.Difficulty().Hex())
 			return g_error.ErrInvalidDiff
 		}
 

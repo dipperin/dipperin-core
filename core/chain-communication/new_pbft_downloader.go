@@ -26,6 +26,8 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/ethereum/go-ethereum/rlp"
+	"io"
+	"strings"
 	"sync/atomic"
 	"time"
 )
@@ -158,17 +160,17 @@ func (fd *NewPbftDownloader) Start() error {
 }
 
 func (fd *NewPbftDownloader) loop() {
-	tickHandler := func() {
-		log.PBft.Debug("pbft downloader call download")
-		if fd.getBestPeer() == nil {
-			log.Warn("downloader can't get best peer, do nothing")
-			return
-		}
-
-		log.Info("downloader run sync")
-		fd.runSync()
-	}
-	forceSync := g_timer.SetPeriodAndRun(tickHandler, pollingInterval)
+	//tickHandler := func() {
+	//	log.PBft.Debug("pbft downloader call download")
+	//	if fd.getBestPeer() == nil {
+	//		log.Warn("downloader can't get best peer, do nothing")
+	//		return
+	//	}
+	//
+	//	log.Info("downloader run sync")
+	//	fd.runSync()
+	//}
+	forceSync := g_timer.SetPeriodAndRun(fd.runSync, pollingInterval)
 	defer g_timer.StopWork(forceSync)
 
 	<-fd.quitCh
@@ -243,14 +245,17 @@ func (fd *NewPbftDownloader) fetchBlocks(bestPeer PmAbstractPeer) {
 	}
 
 	log.Info("send get blocks msg", "remote peer name", bestPeer.NodeName(), "remote peer height", height)
-	go func() {
-		if err := bestPeer.SendMsg(GetBlocksMsg, &getBlockHeaders{OriginHeight: nextNumber, Amount: MaxBlockFetch}); err != nil {
-			log.Warn("send get blocks msg failed", "err", err)
-		}
-	}()
+
+	if err := bestPeer.SendMsg(GetBlocksMsg, &getBlockHeaders{OriginHeight: nextNumber, Amount: MaxBlockFetch}); err != nil {
+		log.Error("first send get blocks msg failed", "err", err)
+		return
+	}
 
 	timeoutTimer := time.NewTimer(fetchBlockTimeout)
 	defer timeoutTimer.Stop()
+
+	quitCh := make(chan struct{})
+	defer close(quitCh)
 	for {
 		select {
 		case packet := <-fd.blockC:
@@ -264,18 +269,16 @@ func (fd *NewPbftDownloader) fetchBlocks(bestPeer PmAbstractPeer) {
 			log.Info("fetchBlocks1", "blocks len", size)
 
 			// no block return from remote
-			if size == 0 {
+			if size <= 0 {
 				return
 			}
 
 			// If the insertion is slow, it will cause a timeout, then the Peer is broken.
-			if size > 0 {
-				if err := fd.importBlockResults(blocks); err != nil {
-					log.Error("downloader save block failed", "err", err, "remote node", bestPeer.NodeName())
-					return
-				}
-				nextNumber += uint64(len(blocks))
+			if err := fd.importBlockResults(blocks); err != nil {
+				log.Error("downloader save block failed", "err", err, "remote node", bestPeer.NodeName())
+				return
 			}
+			nextNumber += uint64(size)
 
 			// stop when equal remote height
 			if height == fd.Chain.CurrentBlock().Number() {
@@ -284,8 +287,21 @@ func (fd *NewPbftDownloader) fetchBlocks(bestPeer PmAbstractPeer) {
 
 			// reset timeout timer
 			timeoutTimer.Reset(fetchBlockTimeout)
+
 			// run sync again
-			go bestPeer.SendMsg(GetBlocksMsg, &getBlockHeaders{OriginHeight: nextNumber, Amount: MaxBlockFetch})
+			go func() {
+				if !bestPeer.IsRunning() {
+					quitCh <- struct{}{}
+					return
+				}
+				if err := bestPeer.SendMsg(GetBlocksMsg, &getBlockHeaders{OriginHeight: nextNumber, Amount: MaxBlockFetch}); err != nil {
+					if err.Error() == io.EOF.Error() || strings.Contains(err.Error(), "use of closed network connection") {
+						quitCh <- struct{}{}
+						return
+					}
+					log.Error("run sync send msg: GetBlocksMsg", "err", err.Error())
+				}
+			}()
 		case <-timeoutTimer.C:
 			log.Warn("Waiting for fetchHeaders headers timed out", "node name", bestPeer.NodeName())
 			return
@@ -293,6 +309,9 @@ func (fd *NewPbftDownloader) fetchBlocks(bestPeer PmAbstractPeer) {
 		case <-fd.quitCh:
 			return
 
+		case <-quitCh:
+			log.Warn("peer disconnect: GetBlocksMsg", "node name", bestPeer.NodeName())
+			return
 		}
 	}
 }

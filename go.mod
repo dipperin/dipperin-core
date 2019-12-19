@@ -42,6 +42,7 @@ require (
 	github.com/tidwall/match v1.0.1 // indirect
 	github.com/urfave/cli v1.20.0
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
+	github.com/vntchain/go-vnt v0.6.2
 	github.com/willf/bitset v1.1.10
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 	golang.org/x/net v0.0.0-20190603091049-60506f45cf65
@@ -52,3 +53,5 @@ require (
 	gopkg.in/karalabe/cookiejar.v2 v2.0.0-20150724131613-8dcd6a7f4951
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce
 )
+
+go 1.13
