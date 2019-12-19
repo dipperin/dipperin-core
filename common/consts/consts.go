@@ -32,12 +32,12 @@ var (
 const (
 	// gray but other places to use
 	DIPUNIT  = 1
-	KDIPUNIT = 1E3
-	MDIPUNIT = 1E6
-	GDIPUNIT = 1E9
-	MDIP     = 1E12
-	UDIP     = 1E15
-	DIP      = 1E18
+	KDIPUNIT = 1e3
+	MDIPUNIT = 1e6
+	GDIPUNIT = 1e9
+	MDIP     = 1e12
+	UDIP     = 1e15
+	DIP      = 1e18
 )
 
 // coin digits

@@ -323,5 +323,5 @@ func TestDIP(t *testing.T) {
 	fmt.Printf("the tmpValue is:%x\r\n", tmpValue)
 
 	log.Info("the const.DIP is:", "DIP", consts.DIP)
-	log.Info("the tmpValue < 1E18 is:", "compareResult", tmpValue < 1E18)
+	log.Info("the tmpValue < 1E18 is:", "compareResult", tmpValue < 1e18)
 }

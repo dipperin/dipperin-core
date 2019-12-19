@@ -103,18 +103,18 @@ type BlockFetcher struct {
 	// key --> peer id, value notify count
 	notifyCount map[string]int
 	// key --> block hash
-	notified    map[common.Hash][]*vrMsg
-	fetching    map[common.Hash]*vrMsg
-	fetched     map[common.Hash][]*vrMsg
-	finished    map[common.Hash]*vrMsg
+	notified map[common.Hash][]*vrMsg
+	fetching map[common.Hash]*vrMsg
+	fetched  map[common.Hash][]*vrMsg
+	finished map[common.Hash]*vrMsg
 
-	queue  *prque.Prque             //  used for save future block
+	queue  *prque.Prque //  used for save future block
 	queues map[string]int
 	queued map[common.Hash]*inject
 
-	chainHeight      chainHeightFunc
-	getBlock         getBlockByHashFunc
-	saveBlock        saveBlockFunc
+	chainHeight chainHeightFunc
+	getBlock    getBlockByHashFunc
+	saveBlock   saveBlockFunc
 	// broadcast block to peers without the block
 	blockBroadcaster blockBroadcasterFunc
 
@@ -164,7 +164,6 @@ func (f *BlockFetcher) DoTask(peerID string, vr *model2.VerifyResult, time time.
 		return
 	}
 }
-
 
 // used to filter block that
 func (f *BlockFetcher) DoFilter(peerID string, list []*catchupRlp) []*catchupRlp {
@@ -272,7 +271,6 @@ func (f *BlockFetcher) loop() {
 		}
 	}
 }
-
 
 // used for insert
 func (f *BlockFetcher) handleInsert() {
