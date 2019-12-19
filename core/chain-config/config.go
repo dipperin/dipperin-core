@@ -211,6 +211,7 @@ var (
 	//GenesisDifficulty      = common.HexToDiff("0x1e077011")
 	// roughly generate a block per 1~3s
 	//GenesisDifficulty      = common.HexToDiff("0x1e17f011")
+	ShowDifficulty = common.HexToDiff("0x1e17f011")
 	// Produce block very quickly
 	GenesisDifficulty = common.HexToDiff("0x1e566611")
 	// Produce block very quickly

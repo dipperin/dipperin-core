@@ -336,7 +336,8 @@ func TestNewPbftDownloader_fetchBlocks(t *testing.T) {
 	mockPeer.EXPECT().NodeName().Return("test").AnyTimes()
 	mockPeer.EXPECT().ID().Return("1").AnyTimes()
 	mockPeer.EXPECT().GetHead().Return(common.HexToHash("0x123"), uint64(2)).Times(2)
-	mockPeer.EXPECT().SendMsg(gomock.Any(), gomock.Any()).Return(errors.New("test")).AnyTimes()
+	mockPeer.EXPECT().SendMsg(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	mockPeer.EXPECT().IsRunning().Return(false).AnyTimes()
 
 	fakeBlock1 := factory.CreateBlock2(common.HexToDiff("0x1effffff"), 1)
 	mockChain.EXPECT().CurrentBlock().Return(fakeBlock1).AnyTimes()
