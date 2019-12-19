@@ -24,6 +24,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/address-util"
 	"github.com/dipperin/dipperin-core/common/config"
+	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
@@ -108,8 +109,8 @@ func (api *DipperinVenusApi) GetBlockByNumber(number uint64) (*BlockResp, error)
 
 	curBlock, err := api.service.GetBlockByNumber(number)
 	log.Info("DipperinVenusApi#GetBlockByNumber", "curBlock", curBlock)
-	if err != nil {
-		return nil, err
+	if err != nil || curBlock == nil {
+		return nil, g_error.ErrBlockNotFound
 	}
 
 	//	log.Debug("the current block is: ","current block",*curBlock.(*model.Block))

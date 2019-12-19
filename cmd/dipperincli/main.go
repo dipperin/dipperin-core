@@ -114,6 +114,10 @@ func doPrompts(conf *startConf, saveTo string) {
 	conf.HTTPPort, _ = dipperin_prompts.HTTPPort()
 	conf.WSPort, _ = dipperin_prompts.WSPort()
 
+	if conf.P2PListener == conf.HTTPPort || conf.P2PListener == conf.WSPort || conf.HTTPPort == conf.WSPort {
+		//log.Error("three of the Ports repeated,please try again")
+		return
+	}
 	// write to file
 	exist, _ := soft_wallet.PathExists(saveTo)
 	if !exist {
@@ -132,6 +136,12 @@ func appAction(c *cli.Context) {
 	//commands.InitLog(lv)
 
 	startFlagsConf := initStartFlag()
+
+	if startFlagsConf.P2PListener == startFlagsConf.HTTPPort || startFlagsConf.P2PListener == startFlagsConf.WSPort || startFlagsConf.HTTPPort == startFlagsConf.WSPort {
+		log.Error("port conflict,please try again")
+		return
+	}
+
 	log.Debug("set loaded conf flags")
 	c.Set(config.NodeNameFlagName, startFlagsConf.NodeName)
 	c.Set(config.NodeTypeFlagName, fmt.Sprintf("%v", startFlagsConf.NodeType))

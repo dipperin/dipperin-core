@@ -729,18 +729,18 @@ func newContractCallTx(from *common.Address, to *common.Address, amount *big.Int
 
 }
 
-type  contractCallConf struct {
+type contractCallConf struct {
 	contractAddress common.Address
-	amount *big.Int
-	code []byte
-	priKey *ecdsa.PrivateKey
-	processor *AccountStateDB
-	accountOwn *accounts.Account
-	nonce uint64
-	funcName string
-	params string
-	blockNum uint64
-	singer *model.Signer
+	amount          *big.Int
+	code            []byte
+	priKey          *ecdsa.PrivateKey
+	processor       *AccountStateDB
+	accountOwn      *accounts.Account
+	nonce           uint64
+	funcName        string
+	params          string
+	blockNum        uint64
+	singer          *model.Signer
 }
 
 //  合约调用getBalance方法

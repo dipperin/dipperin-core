@@ -53,7 +53,7 @@ func Test_doPrompts(t *testing.T) {
 func Test_appAction(t *testing.T) {
 	app := newApp()
 
-	assert.Panics(t, func() {
+	assert.NotPanics(t, func() {
 		appAction(cli.NewContext(app, nil, nil))
 	})
 }
