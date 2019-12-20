@@ -320,7 +320,7 @@ func (service *VenusFullChainService) checkWalletIdentifier(walletIdentifier *ac
 //set CoinBase Address
 func (service *VenusFullChainService) SetMineCoinBase(addr common.Address) error {
 	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfMineMaster {
-		return errors.New("the node isn't mineMaster")
+		return errors.New("current node is not mine master")
 	}
 	tmpWallet, err := service.WalletManager.FindWalletFromAddress(addr)
 	if err != nil {
@@ -337,6 +337,10 @@ func (service *VenusFullChainService) SetMineCoinBase(addr common.Address) error
 }
 
 func (service *VenusFullChainService) SetMineGasConfig(gasFloor, gasCeil uint64) error {
+	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfMineMaster {
+		return errors.New("current node is not mine master")
+	}
+
 	if gasFloor < gasCeil {
 		return errors.New("gasFloor should greater than gasCeil")
 	}
