@@ -707,6 +707,131 @@ func TestContractPortfolioManage(t *testing.T) {
 
 }
 
+
+func TestContractPortfolioManageForCreateOrder(t *testing.T) {
+	log.InitLogger(log.LvlDebug)
+	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
+
+	ownSK, _ := crypto.GenerateKey()
+	ownPk := ownSK.PublicKey
+	ownAddress := cs_crypto.GetNormalAddress(ownPk)
+
+	aliceSK, _ := crypto.GenerateKey()
+	alicePk := aliceSK.PublicKey
+	aliceAddress := cs_crypto.GetNormalAddress(alicePk)
+	//alicdAddr := address_util.PubKeyToAddress(alicePk, common.AddressTypeNormal)
+
+	brotherSK, _ := crypto.GenerateKey()
+	brotherPk := brotherSK.PublicKey
+	brotherAddress := cs_crypto.GetNormalAddress(brotherPk)
+
+	addressSlice := []common.Address{
+		ownAddress,
+		aliceAddress,
+		brotherAddress,
+	}
+
+	//WASMPath := g_testData.GetWASMPath("token", g_testData.CoreVmTestData)
+	//abiPath := g_testData.GetAbiPath("token", g_testData.CoreVmTestData)
+	WASMPath := g_testData.GetWASMPath("PortfolioManage", g_testData.CoreVmTestData)
+	abiPath := g_testData.GetAbiPath("PortfolioManage", g_testData.CoreVmTestData)
+	fmt.Println("aliceAddr hex", aliceAddress.Hex())
+	fmt.Println("ownAddr hex", ownAddress.Hex())
+	//input := []string{"123456789012345678901234","1573293024432297000","10"}
+	input := []string{}
+
+	data, err := getCreateExtraData(WASMPath, abiPath, input)
+	assert.NoError(t, err)
+
+	addr := common.HexToAddress(common.AddressContractCreate)
+	//fmt.Println("bigint", new(big.Int).Mul(new(big.Int).SetInt64(10), math.BigPow(10, 18)))
+	eachValue := new(big.Int).Mul(new(big.Int).SetInt64(10), math.BigPow(10, 18))
+	tx := model.NewTransaction(0, addr, eachValue, new(big.Int).SetInt64(1), 26427000, data)
+	signCreateTx := getSignedTx(t, ownSK, tx, singer)
+
+	gasLimit := uint64(3360000000)
+	blockNum := uint64(1)
+	//gasLimit := testGasLimit * 10000000000
+	block := CreateBlock(blockNum, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
+	blockNum++
+	processor, err := CreateProcessorAndInitAccount(t, addressSlice)
+
+	tmpGasLimit := block.GasLimit()
+	gasUsed := block.GasUsed()
+	config := &TxProcessConfig{
+		Tx:       tx,
+		Header:   block.Header(),
+		GetHash:  getTestHashFunc(),
+		GasLimit: &tmpGasLimit,
+		GasUsed:  &gasUsed,
+		TxFee:    big.NewInt(0),
+	}
+
+	err = processor.ProcessTxNew(config)
+	assert.NoError(t, err)
+
+	receipt := tx.GetReceipt()
+	fmt.Println("receipt  log", "receipt log", receipt)
+	contractAddr := cs_crypto.CreateContractAddress(ownAddress, uint64(0))
+	log.Info("TestContractPortfolioManage contractAddr", "contractAddr", contractAddr)
+	contractNonce, err := processor.GetNonce(contractAddr)
+	log.Info("TestContractPortfolioManage  ", "contractNonce", contractNonce)
+	code, err := processor.GetCode(contractAddr)
+	abi, err := processor.GetAbi(contractAddr)
+	log.Info("TestContractPortfolioManage  ", "code  get from state", code)
+	assert.NoError(t, err)
+	//assert.Equal(t, code, tx.ExtraData())
+	processor.Commit()
+
+	accountOwn := accounts.Account{ownAddress}
+	//  合约调用createPortfolio方法，创建投资组合
+	ownTransferNonce, err := processor.GetNonce(ownAddress)
+	assert.NoError(t, err)
+	aliceNonce := uint64(0)
+	err = processContractCall(t, contractAddr, eachValue, abi, aliceSK, processor, accountOwn, aliceNonce, "createPortfolio", "liu,liu", blockNum, singer)
+	blockNum++
+	aliceNonce++
+	assert.NoError(t, err)
+
+	//gasUsed2 := uint64(0)
+	//合约调用 错误调用 extend
+
+	//err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "extend", "1573293024432297000", 3, singer)
+	//assert.Error(t, err)
+
+	// 合约调用  createOrder 方法
+
+	err = processContractCall(t, contractAddr, eachValue, abi, aliceSK, processor, accountOwn, aliceNonce,
+		"createOrder", "liu,102,1,sz600001,10,100,1576935559427000000", blockNum, singer)
+	blockNum++
+	aliceNonce++
+	assert.NoError(t, err)
+
+	// 合约 第二次  调用  createOrder 方法
+	err = processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce,
+		"createOrder", "liu,103,1,sz600001,10,100,1576935559427000000", blockNum, singer)
+	blockNum++
+	aliceNonce++
+	assert.NoError(t, err)
+
+	// 合约调用  dealOrder 方法
+	//ownTransferNonce++
+	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce,
+		"dealOrder", "liu,103", blockNum, singer)
+	blockNum++
+	ownTransferNonce++
+
+	assert.NoError(t, err)
+
+	// 合约调用  revocationOrder 方法
+	//ownTransferNonce++
+	err = processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce,
+		"revocationOrder", "liu,102", 6, singer)
+
+	assert.NoError(t, err)
+
+}
+
 func newContractCallTx(from *common.Address, to *common.Address, amount *big.Int, gasPrice *big.Int, gasLimit uint64, funcName string, input string, nonce uint64, code []byte) (tx *model.Transaction, err error) {
 	// RLP([funcName][params])
 	inputRlp, err := rlp.EncodeToBytes([]interface{}{
@@ -718,6 +843,7 @@ func newContractCallTx(from *common.Address, to *common.Address, amount *big.Int
 	}
 
 	extraData, err := utils.ParseCallContractData(code, inputRlp)
+	fmt.Println("newContractCallTx", funcName, common.Bytes2Hex(extraData))
 
 	if err != nil {
 		log.Error("ParseCallContractData  inputRlp", "err", err)
