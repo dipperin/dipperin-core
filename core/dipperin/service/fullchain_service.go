@@ -1340,7 +1340,7 @@ func (service *VenusFullChainService) GetBlockDiffVerifierInfo(blockNumber uint6
 	}
 
 	block, _ := service.GetBlockByNumber(blockNumber)
-	if block==nil{
+	if block == nil {
 		return nil, g_error.ErrBlockNotFound
 	}
 	preBlock, _ := service.GetBlockByNumber(blockNumber - 1)
@@ -1697,7 +1697,7 @@ func (service *VenusFullChainService) GetTxActualFee(txHash common.Hash) (*big.I
 
 func (service *VenusFullChainService) GetReceiptsByBlockNum(num uint64) (model2.Receipts, error) {
 	block, err := service.GetBlockByNumber(num)
-	if err != nil || block==nil{
+	if err != nil || block == nil {
 		return nil, g_error.ErrReceiptIsNil
 	}
 

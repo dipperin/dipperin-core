@@ -990,7 +990,11 @@ func (api *DipperinVenusApi) SendCancelTransaction(from common.Address, gasPrice
 //   "200":
 //        description: return verifier address list and the operation result
 func (api *DipperinVenusApi) GetVerifiersBySlot(slotNum uint64) ([]common.Address, error) {
-	return api.service.GetVerifiers(slotNum), nil
+	addr:=api.service.GetVerifiers(slotNum)
+	if len(addr)>0{
+		return addr, nil
+	}
+	return addr, errors.New("invalid slot number")
 }
 
 func (api *DipperinVenusApi) GetSlotByNumber(blockNum uint64) (uint64, error) {

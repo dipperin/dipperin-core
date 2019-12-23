@@ -157,7 +157,8 @@ func (cs *ChainState) GetVerifiers(slot uint64) []common.Address {
 	num := cs.NumBeforeLastBySlot(slot)
 	if num == nil {
 		log.Error("get verifiers error", "slot", slot, "num", num)
-		panic("can't get block number before the last ")
+		//panic("can't get block number before the last ")
+		return nil
 	}
 	tmpB := cs.GetBlockByNumber(*num)
 
