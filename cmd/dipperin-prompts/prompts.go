@@ -19,6 +19,7 @@ package dipperin_prompts
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/manifoldco/promptui"
 	"path/filepath"
@@ -101,7 +102,7 @@ func WSPort() (string, error) {
 func WalletPassword() (string, error) {
 	p := promptui.Prompt{
 		Label:     "Wallet Password",
-		Validate:  emptyValidate,
+		Validate:  passwordValidate,
 		Templates: PromptTemplate,
 		Mask:      '*',
 	}
@@ -161,4 +162,19 @@ func emptyValidate(input string) error {
 	}
 
 	return nil
+}
+
+func passwordValidate(input string) error {
+	reg := regexp.MustCompile(`[0-9]|[a-z]|[A-Z]|[~!@#$%^&*()_+<>?:"{},.\\/;'[\]` + "`]")
+	regNoCh := regexp.MustCompile("[\u4e00-\u9fa5]")
+	chStr := regNoCh.FindAllString(input, -1)
+	regBlank := regexp.MustCompile(" ")
+	blankStr := regBlank.FindAllString(input,-1)
+
+	if reg.MatchString(input) && len(chStr) <= 0 && len(blankStr) <=0 {
+		if len(input) >= accounts.PasswordMin && len(input) <= accounts.PassWordMax {
+			return nil
+		}
+	}
+	return accounts.ErrPasswordOrPassPhraseIllegal
 }
