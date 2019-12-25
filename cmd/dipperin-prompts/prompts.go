@@ -125,8 +125,8 @@ func WalletPassPhrase() (string, error) {
 func WalletPath(nodePath string) (string, error) {
 	defaultPath := filepath.Join(util.HomeDir(), "tmp/dipperin_apps/node")
 	p := promptui.Prompt{
-		Label:     "open or establish Wallet path(default:"+defaultPath+"/CSWallet)",
-		Validate: homePathValidate,
+		Label:     "open or establish Wallet path(default:" + defaultPath + "/CSWallet)",
+		Validate:  homePathValidate,
 		Templates: PromptTemplate,
 	}
 	path, err := p.Run()
@@ -153,14 +153,14 @@ func filepathValidate(path string) error {
 		return nil
 	}
 
-	if strings.Contains(path,util.HomeDir()){
+	if strings.Contains(path, util.HomeDir()) {
 		return nil
 	}
 	//if !filepath.IsAbs(path) {
 	//	return fmt.Errorf("Please enter an absolute path")
 	//}
 
-	return fmt.Errorf("choose or create a subdirectory in "+util.HomeDir())
+	return fmt.Errorf("choose or create a subdirectory in " + util.HomeDir())
 }
 
 func homePathValidate(path string) error {
@@ -168,11 +168,11 @@ func homePathValidate(path string) error {
 		return nil
 	}
 
-	if strings.Contains(path,util.HomeDir()){
+	if strings.Contains(path, util.HomeDir()) {
 		return nil
 	}
 
-	return fmt.Errorf("choose or create a subdirectory in "+util.HomeDir())
+	return fmt.Errorf("choose or create a subdirectory in " + util.HomeDir())
 }
 
 func emptyValidate(input string) error {
@@ -181,7 +181,7 @@ func emptyValidate(input string) error {
 	regBlank := regexp.MustCompile(" ")
 	blankStr := regBlank.FindAllString(input, -1)
 
-	if len(chStr) <= 0 && len(blankStr) <= 0{
+	if len(chStr) <= 0 && len(blankStr) <= 0 {
 		if len(input) == 0 {
 			return fmt.Errorf("please provide a string input")
 		}
