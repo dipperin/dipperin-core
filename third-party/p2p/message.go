@@ -93,7 +93,7 @@ type MsgReadWriter interface {
 // data should encode as an RLP list.
 func Send(w MsgWriter, msgcode uint64, data interface{}) error {
 	size, r, err := rlp.EncodeToReader(data)
-	if (os.Getenv("boots_env") == "local"){
+	if os.Getenv("boots_env") == "local" {
 		log.Info("send message size ", "size", size, "msgcode ", msgcode)
 	}
 	if err != nil {

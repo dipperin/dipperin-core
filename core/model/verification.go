@@ -71,7 +71,6 @@ type BftBlockBody struct {
 	Inters InterLink      `json:"interlinks"`
 }
 
-
 type VoteMsg struct {
 	Height    uint64
 	Round     uint64
