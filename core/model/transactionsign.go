@@ -60,12 +60,7 @@ func (tx *Transaction) SignTx(priKey *ecdsa.PrivateKey, s Signer) (*Transaction,
 
 //todo set signer config
 func MakeSigner(config *chain_config.ChainConfig, blockNumber uint64) Signer {
-	var signer Signer
-	switch {
-	default:
-		signer = DipperinSigner{chainId: config.ChainId}
-	}
-	return signer
+	return DipperinSigner{chainId: config.ChainId}
 }
 
 // signer define different kind of method handling signature

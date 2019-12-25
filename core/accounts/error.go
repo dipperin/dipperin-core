@@ -59,7 +59,7 @@ var (
 
 	ErrPasswordIsNil = errors.New("password is nil")
 
-	ErrPasswordOrPassPhraseIllegal = errors.New("password or passPhrase illegal, must between 8 and 24, and no chinese!!! ")
+	ErrPasswordOrPassPhraseIllegal = errors.New("password or passPhrase illegal, must between 8 and 24, and no chinese , no blank!!! ")
 
 	ErrWalletPathError = errors.New("the path should be in the home path")
 
