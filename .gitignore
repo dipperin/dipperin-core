@@ -41,3 +41,5 @@ dipperin-darwin-10.6-amd64
 dipperin-linux-amd64
 
 vendor/
+
+*.log

@@ -61,6 +61,10 @@ type fakeCacheDB struct {
 	commits map[uint64]model.Verifications
 }
 
+func (c *fakeCacheDB) DeleteSeenCommits(blockHeight uint64, blockHash common.Hash) error {
+	return nil
+}
+
 func (c *fakeCacheDB) GetSeenCommits(blockHeight uint64, blockHash common.Hash) (result []model.AbstractVerification, err error) {
 	if _, ok := c.commits[blockHeight]; ok {
 		return c.commits[blockHeight], nil
