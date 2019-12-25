@@ -707,7 +707,6 @@ func TestContractPortfolioManage(t *testing.T) {
 
 }
 
-
 func TestContractPortfolioManageForCreateOrder(t *testing.T) {
 	log.InitLogger(log.LvlDebug)
 	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
