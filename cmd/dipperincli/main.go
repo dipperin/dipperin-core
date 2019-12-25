@@ -174,10 +174,10 @@ func appAction(c *cli.Context) {
 
 	log.Info("node info", "name", c.String(config.NodeNameFlagName),
 		"type", nodeType,
-		"P2PListener",c.String(config.P2PListenerFlagName),
-		"HttpPort",c.String(config.HttpPortFlagName),
-		"WebSocketPort",c.String(config.WsPortFlagName),
-		"DataPath",c.String(config.DataDirFlagName))
+		"P2PListener", c.String(config.P2PListenerFlagName),
+		"HttpPort", c.String(config.HttpPortFlagName),
+		"WebSocketPort", c.String(config.WsPortFlagName),
+		"DataPath", c.String(config.DataDirFlagName))
 
 	if err := debug.Setup(c); err != nil {
 		log.Error("debug setup failed", "err", err)
