@@ -259,7 +259,7 @@ func (caller *rpcCaller) GetDefaultAccountBalance(c *cli.Context) {
 	l.Debug("GetDefaultAccountBalance", "resp", resp)
 	balance, err := CSCoinToMoneyValue(resp.Balance)
 	if err != nil {
-		l.Error("the address isn't on the block chain balance=0")
+		l.Error("the address isn't on the block chain, balance=0")
 	} else {
 		l.Info("address current Balance is:", "balance", balance)
 	}

@@ -169,9 +169,9 @@ func passwordValidate(input string) error {
 	regNoCh := regexp.MustCompile("[\u4e00-\u9fa5]")
 	chStr := regNoCh.FindAllString(input, -1)
 	regBlank := regexp.MustCompile(" ")
-	blankStr := regBlank.FindAllString(input,-1)
+	blankStr := regBlank.FindAllString(input, -1)
 
-	if reg.MatchString(input) && len(chStr) <= 0 && len(blankStr) <=0 {
+	if reg.MatchString(input) && len(chStr) <= 0 && len(blankStr) <= 0 {
 		if len(input) >= accounts.PasswordMin && len(input) <= accounts.PassWordMax {
 			return nil
 		}

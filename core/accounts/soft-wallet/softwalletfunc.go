@@ -311,9 +311,9 @@ func CheckPassword(password string) (err error) {
 	regNoCh := regexp.MustCompile("[\u4e00-\u9fa5]")
 	strs := regNoCh.FindAllString(password, -1)
 	regBlank := regexp.MustCompile(" ")
-	blankStr := regBlank.FindAllString(password,-1)
+	blankStr := regBlank.FindAllString(password, -1)
 
-	if reg.MatchString(password) && len(strs) <= 0 && len(blankStr) <=0 {
+	if reg.MatchString(password) && len(strs) <= 0 && len(blankStr) <= 0 {
 		if len(password) >= accounts.PasswordMin && len(password) <= accounts.PassWordMax {
 			return nil
 		}

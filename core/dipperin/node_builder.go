@@ -362,7 +362,7 @@ func (b *BaseComponent) initWalletManager() {
 
 	if err != nil {
 		log.Info("open or establish wallet error ", "err", err)
-		panic("initWalletManager open or establish wallet error: "+err.Error())
+		panic("initWalletManager open or establish wallet error: " + err.Error())
 	}
 	if b.walletManager, err = accounts.NewWalletManager(b.chainService, defaultWallet); err != nil {
 		log.Info("init wallet manager failed:", "walletManager", b.walletManager, "err", err)
