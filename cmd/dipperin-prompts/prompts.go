@@ -17,6 +17,7 @@
 package dipperin_prompts
 
 import (
+	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
@@ -24,6 +25,7 @@ import (
 	"github.com/manifoldco/promptui"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 const (
@@ -121,8 +123,10 @@ func WalletPassPhrase() (string, error) {
 }
 
 func WalletPath(nodePath string) (string, error) {
+	defaultPath := filepath.Join(util.HomeDir(), "tmp/dipperin_apps/node")
 	p := promptui.Prompt{
-		Label:     "open or establish Wallet path",
+		Label:     "open or establish Wallet path(default:" + defaultPath + "/CSWallet)",
+		Validate:  homePathValidate,
 		Templates: PromptTemplate,
 	}
 	path, err := p.Run()
@@ -149,19 +153,42 @@ func filepathValidate(path string) error {
 		return nil
 	}
 
-	if !filepath.IsAbs(path) {
-		return fmt.Errorf("Please enter an absolute path")
+	if strings.Contains(path, util.HomeDir()) {
+		return nil
+	}
+	//if !filepath.IsAbs(path) {
+	//	return fmt.Errorf("Please enter an absolute path")
+	//}
+
+	return fmt.Errorf("choose or create a subdirectory in " + util.HomeDir())
+}
+
+func homePathValidate(path string) error {
+	if path == "" {
+		return nil
 	}
 
-	return nil
+	if strings.Contains(path, util.HomeDir()) {
+		return nil
+	}
+
+	return fmt.Errorf("choose or create a subdirectory in " + util.HomeDir())
 }
 
 func emptyValidate(input string) error {
-	if len(input) == 0 {
-		return fmt.Errorf("Please provide a string input")
+	regNoCh := regexp.MustCompile("[\u4e00-\u9fa5]")
+	chStr := regNoCh.FindAllString(input, -1)
+	regBlank := regexp.MustCompile(" ")
+	blankStr := regBlank.FindAllString(input, -1)
+
+	if len(chStr) <= 0 && len(blankStr) <= 0 {
+		if len(input) == 0 {
+			return fmt.Errorf("please provide a string input")
+		}
+		return nil
 	}
 
-	return nil
+	return errors.New("input illegal,cannot contain Chinese and spaces")
 }
 
 func passwordValidate(input string) error {
