@@ -521,6 +521,10 @@ func (service *VenusFullChainService) SetBftSigner(address common.Address) error
 	/*if service.nodeContext.NodeConf().NodeType == chain_config.NodeTypeOfMineMaster {
 		service.nodeContext.SetMineCoinBase(address)
 	}*/
+	_, err := service.WalletManager.FindWalletFromAddress(address)
+	if err != nil {
+		return errors.New("address not found,set a right address")
+	}
 	return nil
 }
 
