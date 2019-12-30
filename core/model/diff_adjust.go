@@ -73,6 +73,12 @@ func NewCalNewWorkDiff(preSpanBlock, lastNormalBlock AbstractBlock, currentBlock
 		return common.HexToDiff("0x1fffffff")
 	}
 
+
+	// test for show
+	if currentBlockNumber >= 850893{
+		return chain_config.ShowDifficulty
+	}
+
 	// If the new block (+1) is not an integer multiple of 4320,
 	// no updates are required,
 	// and bits for the last block are still required.
