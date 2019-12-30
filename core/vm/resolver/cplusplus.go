@@ -552,6 +552,23 @@ func (r *Resolver) envGetSignerAddress(vm *exec.VirtualMachine) int64 {
 	copy(vm.Memory.Memory[returnStart:], addr.Bytes())
 	return 0
 }
+func (r *Resolver) envCallTransferUDIP(vm *exec.VirtualMachine) int64 {
+	key := int(int32(vm.GetCurrentFrame().Locals[0]))
+	keyLen := int(int32(vm.GetCurrentFrame().Locals[1]))
+	value := int64(vm.GetCurrentFrame().Locals[2])
+	value256 := math.U256(new(big.Int).Mul(new(big.Int).SetInt64(value), math.BigPow(10, 15)))
+	addr := common.BytesToAddress(vm.Memory.Memory[key : key+keyLen])
+	_, returnGas, err := r.Service.Transfer(addr, value256)
+
+	//先使用在life　vm中添加的字段，待后续看是否可以使用life自带gas机制
+	log.Info("envCallTransferUDIP", "GasUsed", vm.GasUsed, "returnGas", returnGas, "err", err, "transfer value", value256)
+	vm.GasUsed -= returnGas
+	if err != nil {
+		return 1
+	} else {
+		return 0
+	}
+}
 
 func (r *Resolver) envDipperCall(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
