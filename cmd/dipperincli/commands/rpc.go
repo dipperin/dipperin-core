@@ -969,7 +969,7 @@ func (caller *rpcCaller) RestoreWallet(c *cli.Context) {
 		return
 	}
 	if len(cParams) < 4 {
-		l.Error("RestoreWallet need：Type Path password mnemonic")
+		l.Error("RestoreWallet need：type, walletIdentifier, password, mnemonic")
 		return
 	}
 

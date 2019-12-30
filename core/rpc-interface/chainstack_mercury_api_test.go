@@ -159,7 +159,7 @@ func TestDipperinMercuryApi(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = api.ListWalletAccount(accounts.WalletIdentifier{})
 	assert.Error(t, err)
-	assert.NoError(t, api.SetBftSigner(common.Address{}))
+	assert.Error(t, api.SetBftSigner(common.Address{}))
 	_, err = api.AddAccount("", accounts.WalletIdentifier{})
 	assert.Error(t, err)
 
