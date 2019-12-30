@@ -506,12 +506,11 @@ func (r *Resolver) envCallTransfer(vm *exec.VirtualMachine) int64 {
 	}
 }
 
-
 func (r *Resolver) envCallTransferUDIP(vm *exec.VirtualMachine) int64 {
 	key := int(int32(vm.GetCurrentFrame().Locals[0]))
 	keyLen := int(int32(vm.GetCurrentFrame().Locals[1]))
 	value := int64(vm.GetCurrentFrame().Locals[2])
-	value256 := math.U256(new(big.Int).Mul(new(big.Int).SetInt64(value), math.BigPow(10,15)))
+	value256 := math.U256(new(big.Int).Mul(new(big.Int).SetInt64(value), math.BigPow(10, 15)))
 	addr := common.BytesToAddress(vm.Memory.Memory[key : key+keyLen])
 	_, returnGas, err := r.Service.Transfer(addr, value256)
 
