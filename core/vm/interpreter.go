@@ -77,7 +77,9 @@ func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) 
 func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []byte, err error) {
 	defer func() {
 		if er := recover(); er != nil {
-			fmt.Println(stack())
+			//fmt.Println(stack())
+			stackInfo := stack()
+			log.DLogger.Info("WASMInterpreter panic err", zap.String("stackInfo", stackInfo))
 			ret, err = nil, fmt.Errorf("VM execute fail: %v", er)
 		}
 	}()

@@ -185,7 +185,13 @@ func appAction(c *cli.Context) {
 		return
 	}
 
-	log.DLogger.Info("node info", zap.String("name", c.String(config.NodeNameFlagName)), zap.String("type", nodeType))
+	log.DLogger.Info("node info",
+		zap.String("name", c.String(config.NodeNameFlagName)),
+		zap.String("type", nodeType),
+		zap.String("P2PListener", c.String(config.P2PListenerFlagName)),
+		zap.String("HttpPort", c.String(config.HttpPortFlagName)),
+		zap.String("WebSocketPort", c.String(config.WsPortFlagName)),
+		zap.String("DataPath", c.String(config.DataDirFlagName)))
 
 	if err := debug.Setup(c); err != nil {
 		log.DLogger.Error("debug setup failed", zap.Error(err))

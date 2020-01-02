@@ -259,7 +259,7 @@ func (caller *rpcCaller) GetDefaultAccountBalance(c *cli.Context) {
 	l.Debug("GetDefaultAccountBalance", zap.Any("resp", resp))
 	balance, err := CSCoinToMoneyValue(resp.Balance)
 	if err != nil {
-		l.Error("the address isn't on the block chain balance=0")
+		l.Error("the address isn't on the block chain, balance=0")
 	} else {
 		l.Info("address current Balance is:", zap.String("balance", balance))
 	}
@@ -969,7 +969,7 @@ func (caller *rpcCaller) RestoreWallet(c *cli.Context) {
 		return
 	}
 	if len(cParams) < 4 {
-		l.Error("RestoreWallet need：Type Path password mnemonic")
+		l.Error("RestoreWallet need：type, walletIdentifier, password, mnemonic")
 		return
 	}
 

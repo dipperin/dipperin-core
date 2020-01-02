@@ -204,7 +204,7 @@ func contractCall(c *cli.Context) (resp interface{}, err error) {
 	}
 
 	if len(cParams) != 5 {
-		err = errors.New("parameter includes：from to value gasPrice gasLimit")
+		err = errors.New("parameter includes：from contract_address value gasPrice gasLimit")
 		return
 	}
 

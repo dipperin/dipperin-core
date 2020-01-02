@@ -608,6 +608,8 @@ func (h *StateHandler) signAndPrevote(msg *model.VoteMsg) {
 		Sign:    sign,
 	}
 
+	//(*msg).String()
+	//log.Info("signAndPrevote witmsg", "msg size", msg.  )
 	h.Sender.BroadcastMsg(uint64(model2.TypeOfPreVoteMsg), msg)
 
 	h.OnPreVote(msg)
