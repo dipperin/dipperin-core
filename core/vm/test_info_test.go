@@ -155,7 +155,7 @@ func (state *fakeStateDB) CreateAccount(addr common.Address) error {
 	return nil
 }
 
-func (state *fakeStateDB) SubBalance(addr common.Address, amount *big.Int)  error {
+func (state *fakeStateDB) SubBalance(addr common.Address, amount *big.Int) error {
 	balance := state.balanceMap[addr]
 	state.balanceMap[addr] = big.NewInt(0).Sub(balance, amount)
 	return nil

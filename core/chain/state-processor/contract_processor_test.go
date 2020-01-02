@@ -873,7 +873,6 @@ func TestContractPortfolioManageForCreateOrder(t *testing.T) {
 	aliceNonce++
 	assert.NoError(t, err)
 
-
 	// 合约调用  withdrawPortfolio 方法 own
 	_, err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "withdrawPortfolio", "liu,1000", blockNum, singer)
 	blockNum++

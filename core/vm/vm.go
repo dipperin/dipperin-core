@@ -216,7 +216,7 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 		return nil, common.Address{}, 0, g_error.ErrContractAddressCreate
 	}
 
-	if err = vm.Transfer(vm.state, caller.Address(), address, value); err != nil{
+	if err = vm.Transfer(vm.state, caller.Address(), address, value); err != nil {
 		return nil, common.Address{}, 0, err
 	}
 
