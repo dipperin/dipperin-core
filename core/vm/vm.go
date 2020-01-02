@@ -212,9 +212,14 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 
 	// Create a new account on the state
 	snapshot := vm.state.Snapshot()
-	vm.state.CreateAccount(address)
+	err = vm.state.CreateAccount(address)
+	if err != nil {
+		return nil, common.Address{}, 0, g_error.ErrContractAddressCreate
+	}
 
-	vm.Transfer(vm.state, caller.Address(), address, value)
+	if err = vm.Transfer(vm.state, caller.Address(), address, value); err != nil {
+		return nil, common.Address{}, 0, err
+	}
 
 	// initialise a new contract and set the data that is to be used by the
 	// EVM. The contract is a scoped environment for this execution context
@@ -286,7 +291,7 @@ type (
 	// CanTransferFunc is the signature of a transfer guard function
 	CanTransferFunc func(StateDB, common.Address, *big.Int) bool
 	// TransferFunc is the signature of a transfer function
-	TransferFunc func(StateDB, common.Address, common.Address, *big.Int)
+	TransferFunc func(StateDB, common.Address, common.Address, *big.Int) error
 	// GetHashFunc returns the nth block hash in the blockchain
 	// and is used by the BLOCKHASH EVM op code.
 	GetHashFunc func(uint64) common.Hash
@@ -382,9 +387,13 @@ func CanTransfer(db StateDB, addr common.Address, amount *big.Int) bool {
 }
 
 // Transfer subtracts amount from sender and adds amount to recipient using the given Db
-func Transfer(db StateDB, sender, recipient common.Address, amount *big.Int) {
-	db.SubBalance(sender, amount)
-	db.AddBalance(recipient, amount)
+func Transfer(db StateDB, sender, recipient common.Address, amount *big.Int) error {
+	err1 := db.SubBalance(sender, amount)
+	err2 := db.AddBalance(recipient, amount)
+	if err1 != nil || err2 != nil {
+		return g_error.ErrVMTransfer
+	}
+	return nil
 }
 
 /*type Caller struct {
