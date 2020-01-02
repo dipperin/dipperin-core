@@ -79,7 +79,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 			//fmt.Println(stack())
 			stackInfo := stack()
 			log.Info("WASMInterpreter panic err", "stackInfo", stackInfo)
-			ret, err = nil, fmt.Errorf("VM execute fail: %v, %v", er, stackInfo)
+			ret, err = nil, fmt.Errorf("VM execute fail: %v", er)
 		}
 	}()
 	vm.depth++
