@@ -1,13 +1,16 @@
 package state_processor
 
 import (
+	"context"
 	"crypto/ecdsa"
+	"encoding/json"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/address-util"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/core/vm"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
@@ -16,7 +19,9 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"math/big"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestAccountStateDB_ProcessContract(t *testing.T) {
@@ -169,18 +174,18 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	//  合约调用getBalance方法  获取合约原始账户balance
 	ownTransferNonce, err := processor.GetNonce(ownAddress)
 	assert.NoError(t, err)
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 2, singer)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 2, singer)
 	assert.NoError(t, err)
 
 	gasUsed2 := uint64(0)
 	//  合约调用  transfer方法 转账给alice
 	ownTransferNonce++
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "transfer", aliceAddress.Hex()+",20", 3, singer)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "transfer", aliceAddress.Hex()+",20", 3, singer)
 	assert.NoError(t, err)
 
 	//  合约调用getBalance方法  获取alice账户balance
 	ownTransferNonce++
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 4, singer)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 4, singer)
 	assert.NoError(t, err)
 
 	//  合约调用approve方法
@@ -207,7 +212,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	processor.Commit()
 
 	//  合约调用getApproveBalance方法  获取own授权给brother账户balance
-	/*err = processContractCall(t, contractAddr, abi, ownSK,  processor, accountOwn, 5, "getApproveBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978", 6)
+	/*_, err= processContractCall(t, contractAddr, abi, ownSK,  processor, accountOwn, 5, "getApproveBalance", "0x000062be10f46b5d01Ecd9b502c4bA3d6131f6fc2e41,0x00004179D57e45Cb3b54D6FAEF69e746bf240E287978", 6)
 	assert.NoError(t, err)*/
 
 	//  合约调用transferFrom方法
@@ -236,36 +241,36 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 	//  合约调用getBalance方法  获取alice账户获得转账授权后的balance
 	ownTransferNonce++
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 8, singer)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 8, singer)
 	assert.NoError(t, err)
 
 	//  合约调用getBalance方法  获取own账户最终的balance
 	ownTransferNonce++
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 9, singer)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 9, singer)
 	assert.NoError(t, err)
 
 	// 合约调用  transfer方法  转账给brother
 	ownTransferNonce++
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "transfer", brotherAddress.Hex()+",28", 10, singer)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "transfer", brotherAddress.Hex()+",28", 10, singer)
 	assert.NoError(t, err)
 
 	//  合约调用getBalance方法  获取own账户最终的balance
 	ownTransferNonce++
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 11, singer)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 11, singer)
 	assert.NoError(t, err)
 
 	// 合约调用burn方法,将账户余额返还给own
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, brotherSK, processor, accountBrother, 1, "burn", "15", 12, singer)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, brotherSK, processor, accountBrother, 1, "burn", "15", 12, singer)
 	assert.NoError(t, err)
 
 	// 合约调用getBalance方法,获取own的余额
 	ownTransferNonce++
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 13, singer)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 13, singer)
 	assert.NoError(t, err)
 
 	// 合约调用setName方法，设置合约名
 	ownTransferNonce++
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "setName", "wujinhai", 14, singer)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "setName", "wujinhai", 14, singer)
 	assert.NoError(t, err)
 
 	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", "", "err", err)
@@ -386,18 +391,18 @@ func TestContractWithNewFeature(t *testing.T) {
 	//  合约调用getBalance方法  获取合约原始账户balance
 	ownTransferNonce, err := processor.GetNonce(ownAddress)
 	assert.NoError(t, err)
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 2, singer)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 2, singer)
 	assert.NoError(t, err)
 
 	//gasUsed2 := uint64(0)
 	//  合约调用  transfer方法 转账给alice
 	ownTransferNonce++
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "transfer", aliceAddress.Hex()+",20", 3, singer)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "transfer", aliceAddress.Hex()+",20", 3, singer)
 	assert.NoError(t, err)
 
 	//  合约调用getBalance方法  获取alice账户balance
 	ownTransferNonce++
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 4, singer)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 4, singer)
 	assert.NoError(t, err)
 
 }
@@ -467,18 +472,18 @@ func TestContractWithNewFeature(t *testing.T) {
 //	//  合约调用getBalance方法  获取合约原始账户balance
 //	ownTransferNonce, err := processor.GetNonce(ownAddress)
 //	assert.NoError(t, err)
-//	err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 2, singer)
+//	_, err= processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 2, singer)
 //	assert.NoError(t, err)
 //
 //	//gasUsed2 := uint64(0)
 //	//  合约调用  transfer方法 转账给alice
 //	ownTransferNonce++
-//	err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "transfer", aliceAddress.Hex()+",20", 3, singer)
+//	_, err= processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "transfer", aliceAddress.Hex()+",20", 3, singer)
 //	assert.NoError(t, err)
 //
 //	//  合约调用getBalance方法  获取alice账户balance
 //	ownTransferNonce++
-//	err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 4, singer)
+//	_, err= processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 4, singer)
 //	assert.NoError(t, err)
 //
 //}
@@ -554,13 +559,13 @@ func TestContractPaymentChannel(t *testing.T) {
 	//  合约调用extend方法，延长支付通道的最早可关闭时间
 	ownTransferNonce, err := processor.GetNonce(ownAddress)
 	assert.NoError(t, err)
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "extend", "1573293351343372000", 2, singer)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "extend", "1573293351343372000", 2, singer)
 	assert.NoError(t, err)
 
 	//gasUsed2 := uint64(0)
 	//合约调用 错误调用 extend
 	ownTransferNonce++
-	//err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "extend", "1573293024432297000", 3, singer)
+	//_, err= processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "extend", "1573293024432297000", 3, singer)
 	//assert.Error(t, err)
 
 	// 合约调用  close 方法
@@ -571,14 +576,14 @@ func TestContractPaymentChannel(t *testing.T) {
 	log.Info("TestContractPaymentChannel#signature", "signature", signature, "signHash", signHash, "sign byte", common.Bytes2Hex(signature))
 	assert.NoError(t, err)
 
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, 0,
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, 0,
 		"close", "1,"+common.Bytes2Hex(signature), 3, singer)
 
 	assert.NoError(t, err)
 
 	//  合约再次调用close方法，报错
 	//ownTransferNonce++
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, 1, "close", "1,"+common.Bytes2Hex(signature), 4, singer)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, 1, "close", "1,"+common.Bytes2Hex(signature), 4, singer)
 	assert.Error(t, err)
 
 }
@@ -663,7 +668,7 @@ func TestContractPortfolioManage(t *testing.T) {
 	ownTransferNonce, err := processor.GetNonce(ownAddress)
 	assert.NoError(t, err)
 	aliceNonce := uint64(0)
-	err = processContractCall(t, contractAddr, eachValue, abi, aliceSK, processor, accountOwn, aliceNonce, "createPortfolio", "winner,winner", blockNum, singer)
+	_, err= processContractCall(t, contractAddr, eachValue, abi, aliceSK, processor, accountOwn, aliceNonce, "createPortfolio", "winner,winner", blockNum, singer)
 	blockNum++
 	aliceNonce++
 	assert.NoError(t, err)
@@ -671,19 +676,19 @@ func TestContractPortfolioManage(t *testing.T) {
 	//gasUsed2 := uint64(0)
 	//合约调用 错误调用 extend
 
-	//err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "extend", "1573293024432297000", 3, singer)
+	//_, err= processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "extend", "1573293024432297000", 3, singer)
 	//assert.Error(t, err)
 
 	// 合约调用  createOrder 方法
 
-	err = processContractCall(t, contractAddr, eachValue, abi, aliceSK, processor, accountOwn, aliceNonce,
+	_, err= processContractCall(t, contractAddr, eachValue, abi, aliceSK, processor, accountOwn, aliceNonce,
 		"createOrder", "winner,1234,1,000002,100,100,15000000000", blockNum, singer)
 	blockNum++
 	aliceNonce++
 	assert.NoError(t, err)
 
 	// 合约 第二次  调用  createOrder 方法
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce,
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce,
 		"createOrder", "winner,12345,1,000002,100,100,15000000000", blockNum, singer)
 	blockNum++
 	aliceNonce++
@@ -691,7 +696,7 @@ func TestContractPortfolioManage(t *testing.T) {
 
 	// 合约调用  dealOrder 方法
 	//ownTransferNonce++
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce,
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce,
 		"dealOrder", "winner,1234", blockNum, singer)
 	blockNum++
 	ownTransferNonce++
@@ -700,7 +705,7 @@ func TestContractPortfolioManage(t *testing.T) {
 
 	// 合约调用  revocationOrder 方法
 	//ownTransferNonce++
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce,
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce,
 		"revocationOrder", "winner,12345", 6, singer)
 
 	assert.NoError(t, err)
@@ -777,6 +782,9 @@ func TestContractPortfolioManageForCreateOrder(t *testing.T) {
 	log.Info("TestContractPortfolioManage  ", "contractNonce", contractNonce)
 	code, err := processor.GetCode(contractAddr)
 	abi, err := processor.GetAbi(contractAddr)
+	abistr := new(utils.WasmAbi)
+	err = json.Unmarshal(abi, &abistr.AbiArr)
+	assert.NoError(t, err)
 	log.Info("TestContractPortfolioManage  ", "code  get from state", code)
 	assert.NoError(t, err)
 	//assert.Equal(t, code, tx.ExtraData())
@@ -787,7 +795,7 @@ func TestContractPortfolioManageForCreateOrder(t *testing.T) {
 	ownTransferNonce, err := processor.GetNonce(ownAddress)
 	assert.NoError(t, err)
 	aliceNonce := uint64(0)
-	err = processContractCall(t, contractAddr, eachValue, abi, aliceSK, processor, accountOwn, aliceNonce, "createPortfolio", "liu,liu", blockNum, singer)
+	_, err= processContractCall(t, contractAddr, eachValue, abi, aliceSK, processor, accountOwn, aliceNonce, "createPortfolio", "liu,liu", blockNum, singer)
 	blockNum++
 	aliceNonce++
 	assert.NoError(t, err)
@@ -795,41 +803,206 @@ func TestContractPortfolioManageForCreateOrder(t *testing.T) {
 	//gasUsed2 := uint64(0)
 	//合约调用 错误调用 extend
 
-	//err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "extend", "1573293024432297000", 3, singer)
+	//_, err= processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "extend", "1573293024432297000", 3, singer)
 	//assert.Error(t, err)
 
 	// 合约调用  createOrder 方法
 
-	err = processContractCall(t, contractAddr, eachValue, abi, aliceSK, processor, accountOwn, aliceNonce,
+	_, err= processContractCall(t, contractAddr, eachValue, abi, aliceSK, processor, accountOwn, aliceNonce,
 		"createOrder", "liu,102,1,sz600001,10,100,1576935559427000000", blockNum, singer)
 	blockNum++
 	aliceNonce++
 	assert.NoError(t, err)
 
 	// 合约 第二次  调用  createOrder 方法
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce,
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce,
 		"createOrder", "liu,103,1,sz600001,10,100,1576935559427000000", blockNum, singer)
+	blockNum++
+	aliceNonce++
+	assert.NoError(t, err)
+
+
+	// 合约 第三次  调用  createOrder 方法 卖出
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce,
+		"createOrder", "liu,104,0,sz600001,10,100,1577935559427000000", blockNum, singer)
 	blockNum++
 	aliceNonce++
 	assert.NoError(t, err)
 
 	// 合约调用  dealOrder 方法
 	//ownTransferNonce++
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce,
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce,
 		"dealOrder", "liu,103", blockNum, singer)
 	blockNum++
 	ownTransferNonce++
 
 	assert.NoError(t, err)
 
-	// 合约调用  revocationOrder 方法
+	// 合约调用  dealOrder 方法  处理卖单
 	//ownTransferNonce++
-	err = processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce,
-		"revocationOrder", "liu,102", 6, singer)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce,
+		"dealOrder", "liu,104", blockNum, singer)
+	blockNum++
+	ownTransferNonce++
 
 	assert.NoError(t, err)
 
+	// 合约调用  revocationOrder 方法  alice
+	//ownTransferNonce++
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce,
+		"revocationOrder", "liu,102", 6, singer)
+	blockNum++
+	aliceNonce++
+	assert.NoError(t, err)
+
+	// 合约调用  setUserCanWithdraw 方法  owner
+	blockuse, err:= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce,
+		"setUserCanWithdraw", "true", blockNum, singer)
+	blockNum++
+	ownTransferNonce++
+
+	assert.NoError(t, err)
+
+	// 合约调用  queryPortfolioBalance 方法 alice
+	_, _ ,err = processContractConstant(t , contractAddr, big.NewInt(0),abi, aliceSK, accountOwn, aliceNonce, "queryPortfolioBalance", "liu", blockuse.Number(), singer, blockuse, processor,time.Second * 20, abistr)
+	aliceNonce++
+	assert.NoError(t,err)
+
+	// 合约调用  withdrawPortfolio 方法 alice
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce, "withdrawPortfolio", "liu,1000", blockNum, singer)
+	blockNum++
+	aliceNonce++
+	assert.NoError(t, err)
+
+
+	// 合约调用  withdrawPool 方法 owner
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce,
+		"withdrawPool", "1000", blockNum, singer)
+	blockNum++
+	ownTransferNonce++
+	assert.NoError(t, err)
+
+	// 合约调用  depositPool 方法 owner
+	_, err= processContractCall(t, contractAddr, eachValue, abi, ownSK, processor, accountOwn, ownTransferNonce,
+		"depositPool", "", blockNum, singer)
+	blockNum++
+	ownTransferNonce++
+	assert.NoError(t, err)
+
 }
+
+
+func TestContractPasswordManage(t *testing.T) {
+	log.InitLogger(log.LvlDebug)
+	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
+
+	ownSK, _ := crypto.GenerateKey()
+	ownPk := ownSK.PublicKey
+	ownAddress := cs_crypto.GetNormalAddress(ownPk)
+
+	aliceSK, _ := crypto.GenerateKey()
+	alicePk := aliceSK.PublicKey
+	aliceAddress := cs_crypto.GetNormalAddress(alicePk)
+	//alicdAddr := address_util.PubKeyToAddress(alicePk, common.AddressTypeNormal)
+
+	brotherSK, _ := crypto.GenerateKey()
+	brotherPk := brotherSK.PublicKey
+	brotherAddress := cs_crypto.GetNormalAddress(brotherPk)
+
+	addressSlice := []common.Address{
+		ownAddress,
+		aliceAddress,
+		brotherAddress,
+	}
+
+	WASMPath := g_testData.GetWASMPath("PasswordManage", g_testData.CoreVmTestData)
+	abiPath := g_testData.GetAbiPath("PasswordManage", g_testData.CoreVmTestData)
+	fmt.Println("aliceAddr hex", aliceAddress.Hex())
+	fmt.Println("ownAddr hex", ownAddress.Hex())
+	//input := []string{"123456789012345678901234","1573293024432297000","10"}
+	input := []string{}
+
+	data, err := getCreateExtraData(WASMPath, abiPath, input)
+	assert.NoError(t, err)
+
+	addr := common.HexToAddress(common.AddressContractCreate)
+	fmt.Println("bigint", new(big.Int).Mul(new(big.Int).SetInt64(10), math.BigPow(10, 18)))
+	eachValue := new(big.Int).Mul(new(big.Int).SetInt64(10), math.BigPow(10, 18))
+	tx := model.NewTransaction(0, addr, eachValue, new(big.Int).SetInt64(1), 26427000, data)
+	signCreateTx := getSignedTx(t, ownSK, tx, singer)
+
+	gasLimit := uint64(3360000000)
+	blockNum := uint64(1)
+	//gasLimit := testGasLimit * 10000000000
+	block := CreateBlock(blockNum, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
+	blockNum++
+	processor, err := CreateProcessorAndInitAccount(t, addressSlice)
+
+
+	tmpGasLimit := block.GasLimit()
+	gasUsed := block.GasUsed()
+	config := &TxProcessConfig{
+		Tx:       tx,
+		Header:   block.Header(),
+		GetHash:  getTestHashFunc(),
+		GasLimit: &tmpGasLimit,
+		GasUsed:  &gasUsed,
+		TxFee:    big.NewInt(0),
+	}
+
+	err = processor.ProcessTxNew(config)
+	assert.NoError(t, err)
+
+	receipt := tx.GetReceipt()
+	fmt.Println("receipt  log", "receipt log", receipt)
+	contractAddr := cs_crypto.CreateContractAddress(ownAddress, uint64(0))
+	log.Info("TestContractPortfolioManage contractAddr", "contractAddr", contractAddr)
+	contractNonce, err := processor.GetNonce(contractAddr)
+	log.Info("TestContractPortfolioManage  ", "contractNonce", contractNonce)
+	code, err := processor.GetCode(contractAddr)
+	abi, err := processor.GetAbi(contractAddr)
+	abistr := new(utils.WasmAbi)
+	err = json.Unmarshal(abi, &abistr.AbiArr)
+	assert.NoError(t, err)
+	log.Info("TestContractPortfolioManage  ", "code  get from state", code)
+	assert.NoError(t, err)
+	//assert.Equal(t, code, tx.ExtraData())
+	processor.Commit()
+
+	accountOwn := accounts.Account{ownAddress}
+	//  合约调用registerPassword方法，注册口令
+	//ownTransferNonce, err := processor.GetNonce(ownAddress)
+	assert.NoError(t, err)
+	aliceNonce := uint64(0)
+	_, err= processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce, "registerPassword", "winner,"+ownAddress.Hex()+",1", blockNum, singer)
+	blockNum++
+	aliceNonce++
+	assert.NoError(t, err)
+
+
+	// 合约调用第二次  registerPassword 方法
+
+	blockuse, err := processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce,
+		"registerPassword", "winner,"+ownAddress.Hex()+",1", blockNum, singer)
+	blockNum++
+	aliceNonce++
+	assert.NoError(t, err)
+
+	// 合约调用  payByPassword 方法
+	//blockuse, err:= processContractCall(t, contractAddr, new(big.Int).Set(math.BigPow(10,18)), abi, aliceSK, processor, accountOwn, aliceNonce,
+	//	"payByPassword", "winner", blockNum, singer)
+	//blockNum++
+	//aliceNonce++
+	//assert.NoError(t, err)
+
+	// constant方法 queryExistPasswords
+
+	//msg, err := signedTx.AsMessage(false)
+	result, _ ,err := processContractConstant(t , contractAddr, big.NewInt(0),abi, aliceSK, accountOwn, aliceNonce, "queryExistPasswords", "", blockuse.Number(), singer, blockuse, processor,time.Second * 20, abistr)
+	assert.NoError(t,err)
+	fmt.Println(result)
+}
+
 
 func newContractCallTx(from *common.Address, to *common.Address, amount *big.Int, gasPrice *big.Int, gasLimit uint64, funcName string, input string, nonce uint64, code []byte) (tx *model.Transaction, err error) {
 	// RLP([funcName][params])
@@ -868,8 +1041,85 @@ type contractCallConf struct {
 	singer          *model.Signer
 }
 
+func processContractConstant(t *testing.T, contractAddress common.Address, amount *big.Int, code []byte, priKey *ecdsa.PrivateKey, accountOwn accounts.Account, nonce uint64, funcName string, params string, blockNum uint64, singer model.Signer, block model.AbstractBlock, state *AccountStateDB, timeout time.Duration,abi *utils.WasmAbi ) ([]byte, bool, error)  {
+
+	callTx, err := newContractCallTx(nil, &contractAddress, amount, new(big.Int).SetUint64(1), uint64(150000000000), funcName, params, nonce, code)
+	assert.NoError(t, err)
+	signCallTx, err := callTx.SignTx(priKey, singer)
+	msg,err := signCallTx.AsMessage(false)
+	assert.NoError(t, err)
+
+
+
+	ctx := context.Background()
+	var cancel context.CancelFunc
+	if timeout > 0 {
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+	} else {
+		ctx, cancel = context.WithCancel(ctx)
+	}
+	// Make sure the context is cancelled when the call has completed
+	// this makes sure resources are cleaned up.
+	defer cancel()
+
+	// Create NewVM
+	log.Info("doCall#gasLimit", "gasLimit", msg.Gas())
+	conText := vm.Context{
+		Origin:      msg.From(),
+		GasPrice:    msg.GasPrice(),
+		GasLimit:    msg.Gas(),
+		BlockNumber: new(big.Int).SetUint64(blockNum),
+		TxHash:      signCallTx.CalTxId(),
+		CanTransfer: vm.CanTransfer,
+		Transfer:    vm.Transfer,
+		Coinbase:    block.Header().CoinBaseAddress(),
+		Time:        block.Header().GetTimeStamp(),
+		//GetHash:     service.GetBlockHashByNumber,
+	}
+	fullState := NewFullState(state)
+	dvm := vm.NewVM(conText, fullState, vm.DEFAULT_VM_CONFIG)
+
+	/*	// Wait for the context to be done and cancel the evm. Even if the
+		// EVM has finished, cancelling may be done (repeatedly)
+		go func() {
+			<-ctx.Done()
+			dvm.Cancel()
+		}()*/
+
+	// Setup the gas pool (also for unmetered requests)
+	// and apply the message.
+	gp := uint64(math.MaxUint64)
+	result, _, failed, _, err := ApplyMessage(dvm, &msg, &gp)
+	if err != nil {
+		log.Error("doCall#ApplyMessage failed", "err", err)
+		return result, failed, err
+	}
+	if failed {
+		log.Error("doCall#RunVm failed", "err", err)
+		return result, failed, err
+	}
+
+	// convert result by abi
+	var resp string
+	for _, v := range abi.AbiArr {
+		if strings.EqualFold(v.Name, funcName) && strings.EqualFold(v.Type, "function") {
+			if len(v.Outputs) != 0 {
+				convertResult := utils.Align32BytesConverter(result, v.Outputs[0].Type)
+				resp = fmt.Sprintf("%v", convertResult)
+			} else {
+				resp = "void"
+			}
+			break
+		}
+
+	}
+	fmt.Println("resp", resp)
+	return result, failed, nil
+}
+
+
 //  合约调用getBalance方法
-func processContractCall(t *testing.T, contractAddress common.Address, amount *big.Int, code []byte, priKey *ecdsa.PrivateKey, processor *AccountStateDB, accountOwn accounts.Account, nonce uint64, funcName string, params string, blockNum uint64, singer model.Signer) error {
+func processContractCall(t *testing.T, contractAddress common.Address, amount *big.Int, code []byte, priKey *ecdsa.PrivateKey, processor *AccountStateDB, accountOwn accounts.Account, nonce uint64, funcName string, params string, blockNum uint64, singer model.Signer) (block model.AbstractBlock, err error) {
 	gasUsed2 := uint64(0)
 	gasLimit := testGasLimit * 10000000000
 	log.Info("processContractCall=================================================")
@@ -883,7 +1133,7 @@ func processContractCall(t *testing.T, contractAddress common.Address, amount *b
 
 	//sw.SignTx(accountOwn, callTx, nil)
 	assert.NoError(t, err)
-	block := CreateBlock(blockNum, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
+	block = CreateBlock(blockNum, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
 	log.Info("callTx info", "callTx", callTx)
 	txConfig := &TxProcessConfig{
 		Tx:       signCallTx,
@@ -900,7 +1150,7 @@ func processContractCall(t *testing.T, contractAddress common.Address, amount *b
 
 	//assert.NoError(t, err)
 	processor.Commit()
-	return err
+	return block, err
 }
 
 func CreateProcessorAndInitAccount(t *testing.T, addressSlice []common.Address) (*AccountStateDB, error) {

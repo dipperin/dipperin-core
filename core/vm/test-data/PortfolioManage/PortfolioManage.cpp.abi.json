@@ -166,12 +166,7 @@
     },
     {
         "name": "depositPool",
-        "inputs": [
-            {
-                "name": "_depositValue",
-                "type": "uint64"
-            }
-        ],
+        "inputs": [],
         "outputs": [],
         "constant": "false",
         "payable": "true",
@@ -313,6 +308,24 @@
     },
     {
         "name": "depositPortfolio",
+        "inputs": [
+            {
+                "type": "string"
+            },
+            {
+                "type": "string"
+            },
+            {
+                "type": "string"
+            },
+            {
+                "type": "uint64"
+            }
+        ],
+        "type": "event"
+    },
+    {
+        "name": "withdrawPortfolio",
         "inputs": [
             {
                 "type": "string"
