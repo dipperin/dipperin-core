@@ -179,7 +179,7 @@ func (suite *chainWriterSuite) TestChainState_CalVerifiers(t *check.C) {
 	ver, _ := tests.ChangeVerifierAddress(nil)
 	tx := createRegisterTX(0, economy_model.MiniPledgeValue, ver[1])
 	//sender,_ := tx.Sender(nil)
-	//log.Info("the register tx sender address is:","addr",sender.Hex())
+	//log.DLogger.Info("the register tx sender address is:","addr",sender.Hex())
 	suite.blockBuilder.PreBlock = suite.chainState.CurrentBlock()
 	suite.blockBuilder.Txs = []*model.Transaction{tx}
 	block := suite.blockBuilder.Build()

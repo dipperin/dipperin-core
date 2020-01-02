@@ -40,13 +40,13 @@ var Commands = []prompt.Suggest{
 
 	args := strings.Split(d.TextBeforeCursor(), " ")
 	w := d.GetWordBeforeCursor()
-	log.Debug("DipperinCliCompleter", "w", w, "args", args)
+	log.DLogger.Debug("DipperinCliCompleter", "w", w, "args", args)
 	if strings.HasPrefix(w, "-") {
 		return optionCompleter(args, strings.HasPrefix(w, "--"))
 	}
 
 	for i, r := range w {
-		log.Debug("range w ", "i", i, "r", string(r))
+		log.DLogger.Debug("range w ", "i", i, "r", string(r))
 		if i == 0 {
 			if unicode.IsUpper(r) {
 				return callMethod(args, strings.HasPrefix(w, "--"))
@@ -81,7 +81,7 @@ func DipperinCliCompleterNew(d prompt.Document) []prompt.Suggest {
 		return optionCompleterNew(args, strings.HasPrefix(w, "--"))
 	}
 	/*for i, r := range w {
-		log.Debug("range w ", "i", i, "r", string(r))
+		log.DLogger.Debug("range w ", "i", i, "r", string(r))
 		if i == 0 {
 			if unicode.IsUpper(r) {
 				return callMethod(args, strings.HasPrefix(w, "--"))

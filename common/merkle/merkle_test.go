@@ -78,7 +78,7 @@ func getTxDataHash(TestMutateFlag bool) []common.Hash {
 	tmpByte := make([]byte, 32)
 	TxData := make([]common.Hash, txNum)
 
-	//cslog.Debug().Msg("the TxData hash is: ")
+	//cslog.DLogger.Debug().Msg("the TxData hash is: ")
 	for i := range TxData {
 		// Test the same conflict situation of two transactions hash
 		if TestMutateFlag == true {
@@ -105,7 +105,7 @@ func testComputeBranch() (pRoot common.Hash, pBranch []common.Hash) {
 	var mutated = false
 	pRoot, pBranch = MerkleComputation(TxData, index, &mutated)
 	//cslog.Printf("the pRoot is: %v",pRoot.Hex())
-	//cslog.Debug().Msg("the pBranch is: ")
+	//cslog.DLogger.Debug().Msg("the pBranch is: ")
 	//for j,tmpHash := range pBranch{
 	//	cslog.Printf("%v: %v ",j,tmpHash.Hex())
 	//}
@@ -145,11 +145,11 @@ func TestComputeMerkleRootFromBranch(t *testing.T) {
 	//pRoot2:=ComputeMerkleRootFromBranch(pBranch,TxData[index],index)
 
 	//if pRoot != pRoot2{
-	//	cslog.Debug().Msg("the calculated RootHash is different")
+	//	cslog.DLogger.Debug().Msg("the calculated RootHash is different")
 	//	cslog.Printf("the pRoot is: %v",pRoot)
 	//	cslog.Printf("the pRoot2 is: %v",pRoot2)
 	//}else{
-	//	cslog.Debug().Msg("test ComputeMerkleRootFromBranch OK")
+	//	cslog.DLogger.Debug().Msg("test ComputeMerkleRootFromBranch OK")
 	//}
 }
 
@@ -159,18 +159,18 @@ func TestBlockMerkleRoot(t *testing.T) {
 	ComputeMerkleRoot(TxData, &pMutated)
 
 	//if pMutated != false{
-	//	cslog.Debug().Msg("test normal BlockMerkleRoo fail")
+	//	cslog.DLogger.Debug().Msg("test normal BlockMerkleRoo fail")
 	//}else{
-	//	cslog.Debug().Msg("test normal BlockMerkleRoo success")
+	//	cslog.DLogger.Debug().Msg("test normal BlockMerkleRoo success")
 	//}
 	//
 	//TxData = getTxDataHash(true)
 	//ComputeMerkleRoot(TxData,&pMutated)
 	//
 	//if pMutated != true{
-	//	cslog.Debug().Msg("test mutated BlockMerkleRoo fail")
+	//	cslog.DLogger.Debug().Msg("test mutated BlockMerkleRoo fail")
 	//}else{
-	//	cslog.Debug().Msg("test mutated BlockMerkleRoo success")
+	//	cslog.DLogger.Debug().Msg("test mutated BlockMerkleRoo success")
 	//}
 
 }

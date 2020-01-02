@@ -27,7 +27,7 @@ import (
 
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/metrics"
 )
@@ -115,7 +115,7 @@ func newMeteredConn(conn net.Conn, ingress bool, ip net.IP) net.Conn {
 		return conn
 	}
 	if ip.IsUnspecified() {
-		log.Warn("Peer IP is unspecified")
+		log.DLogger.Warn("Peer IP is unspecified")
 		return conn
 	}
 	// Bump the connection counters and wrap the connection
@@ -167,7 +167,7 @@ func (c *meteredConn) handshakeDone(id enode.ID) {
 		c.lock.Lock()
 		c.id, c.trafficMetered = id, false
 		c.lock.Unlock()
-		log.Warn("Metered peer count reached the limit")
+		log.DLogger.Warn("Metered peer count reached the limit")
 	} else {
 		key := fmt.Sprintf("%s/%s", c.ip, id.String())
 		c.lock.Lock()

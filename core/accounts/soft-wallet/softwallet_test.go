@@ -20,13 +20,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -124,7 +125,7 @@ func establishSoftWallet(path, walletName, password, passPhrase string) (string,
 	}
 
 	//mnemonic = strings.Replace(mnemonic, " ", ",", -1)
-	log.Info("EstablishWallet mnemonic is:", "mnemonic", mnemonic)
+	log.DLogger.Info("EstablishWallet mnemonic is:", zap.String("mnemonic", mnemonic))
 	return mnemonic, testWallet, nil
 }
 
@@ -188,7 +189,7 @@ func TestEconomyOpenWallet(t *testing.T) {
 	testWallet.Open(path, walletName, password)
 	assert.NoError(t, err)
 
-	log.Info("the main account address is:", "address", testWallet.walletInfo.Accounts[0].Address.Hex())
+	log.DLogger.Info("the main account address is:", zap.String("address", testWallet.walletInfo.Accounts[0].Address.Hex()))
 }
 
 func TestGetWalletPrivateKey(t *testing.T) {
@@ -197,17 +198,17 @@ func TestGetWalletPrivateKey(t *testing.T) {
 	password := "12345678"
 	walletName := "CSWallet"
 
-	log.Info("the path is:", "path", path)
+	log.DLogger.Info("the path is:", zap.String("path", path))
 
 	cmd2 := exec.Command("pwd")
 	output, err := cmd2.Output()
 	assert.NoError(t, err)
-	log.Info("the output is1:", "output", string(output))
+	log.DLogger.Info("the output is1:", zap.String("output", string(output)))
 
 	cmd := exec.Command("ls")
 	output, err = cmd.Output()
 	assert.NoError(t, err)
-	log.Info("the output is:", "output", string(output))
+	log.DLogger.Info("the output is:", zap.String("output", string(output)))
 
 	assert.NoError(t, err)
 
@@ -216,7 +217,7 @@ func TestGetWalletPrivateKey(t *testing.T) {
 	err = testWallet.Open(path, walletName, password)
 	assert.NoError(t, err)
 
-	log.Info("the account info is: ", "sk", testWallet.walletInfo.ExtendKeys)
+	log.DLogger.Info("the account info is: ", zap.Any("sk", testWallet.walletInfo.ExtendKeys))
 }
 
 func TestSoftWallet_Accounts(t *testing.T) {
@@ -229,7 +230,7 @@ func TestSoftWallet_Accounts(t *testing.T) {
 	accounts, err := testWallet.Accounts()
 	assert.NoError(t, err)
 
-	log.Debug("the wallet accounts is: ", "accounts", accounts)
+	log.DLogger.Debug("the wallet accounts is: ", zap.Any("accounts", accounts))
 
 	testWallet.Close()
 	os.Remove(path)
@@ -252,7 +253,7 @@ func TestSoftWallet_SignHash(t *testing.T) {
 	testSignData, err := testWallet.SignHash(testWallet.walletInfo.Accounts[0], testHashData[:])
 	assert.NoError(t, err)
 
-	log.Debug("the testSignData is: ", "testSignData", testSignData)
+	log.DLogger.Debug("the testSignData is: ", zap.Uint8s("testSignData", testSignData))
 
 	testWallet.Close()
 	os.Remove(path)
@@ -278,8 +279,8 @@ func TestSoftWallet_SignTx(t *testing.T) {
 	signTxResult, err := testWallet.SignTx(testWallet.walletInfo.Accounts[0], testTx, nil)
 	assert.NoError(t, err)
 
-	log.Debug("TestSoftWallet_SignTx end", "err", err)
-	log.Debug("the signTxResult is", "signTxResult", signTxResult.CalTxId().Hex())
+	log.DLogger.Debug("TestSoftWallet_SignTx end", zap.Error(err))
+	log.DLogger.Debug("the signTxResult is", zap.String("signTxResult", signTxResult.CalTxId().Hex()))
 
 	testWallet.Close()
 	os.Remove(path)
@@ -316,7 +317,7 @@ func Test_TX(t *testing.T) {
 
 	testTx := model.NewTransaction(10, common.HexToAddress("0121321432423534534534"), big.NewInt(10000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 
-	log.Debug("Test_tx is:", "testTx", testTx)
+	log.DLogger.Debug("Test_tx is:", zap.Any("testTx", testTx))
 }
 
 func TestSoftWallet_Derive(t *testing.T) {
@@ -340,7 +341,7 @@ func TestSoftWallet_Derive(t *testing.T) {
 
 	dpath, _ := accounts.ParseDerivationPath(DefaultDerivedPath)
 	//testWallet.Derive(DefaultDerivedPath, false)
-	log.Info("TestSoftWallet_Derive", "dpath", dpath)
+	log.DLogger.Info("TestSoftWallet_Derive", zap.Any("dpath", dpath))
 
 	testWallet.Close()
 	os.Remove(path)
@@ -370,7 +371,7 @@ func TestSoftWallet_RestoreWallet(t *testing.T) {
 
 	accounts, err := testWallet.Accounts()
 	assert.NoError(t, err)
-	log.Debug("the wallet accounts is: ", "accounts", accounts)
+	log.DLogger.Debug("the wallet accounts is: ", zap.Any("accounts", accounts))
 
 	testWallet.Close()
 	os.Remove(path)
@@ -538,7 +539,7 @@ func TestGenerateWallet(t *testing.T) {
 
 	walletPath := user.HomeDir + "/" + generateWalletPath
 
-	log.Info("the walletPath is:", "walletPath", walletPath)
+	log.DLogger.Info("the walletPath is:", zap.Any("walletPath", walletPath))
 	_, err = os.Stat(walletPath)
 	if err == nil {
 		err = os.RemoveAll(walletPath)
@@ -561,7 +562,7 @@ func TestGenerateWallet(t *testing.T) {
 
 		accounts, err := wallet.Accounts()
 		assert.NoError(t, err)
-		log.Info("the mine address is:", "address", accounts[0].Address.Hex())
+		log.DLogger.Info("the mine address is:", zap.String("address", accounts[0].Address.Hex()))
 
 		// Must be at the front, he will post the address information in this file, causing the wallet to be incorrect
 		wb, err := ioutil.ReadFile(path)
@@ -597,7 +598,7 @@ func TestGenerateWalletForMonitor(t *testing.T) {
 
 	walletPath := user.HomeDir + "/test/" + generateWalletPath
 
-	log.Info("the walletPath is:", "walletPath", walletPath)
+	log.DLogger.Info("the walletPath is:", zap.String("walletPath", walletPath))
 	_, err = os.Stat(walletPath)
 	if err == nil {
 		err = os.RemoveAll(walletPath)
@@ -622,7 +623,7 @@ func TestGenerateWalletForMonitor(t *testing.T) {
 		accounts, err := wallet.Accounts()
 		//pk,_ := wallet.GetSKFromAddress(accounts[0].Address)
 		assert.NoError(t, err)
-		log.Info("the mine address is:", "address", accounts[0].Address.Hex())
+		log.DLogger.Info("the mine address is:", zap.String("address", accounts[0].Address.Hex()))
 
 		// Must be at the front, he will post the address information in this file, causing the wallet to be incorrect
 		wb, err := ioutil.ReadFile(path)

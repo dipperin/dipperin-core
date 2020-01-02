@@ -19,7 +19,8 @@ package util
 import (
 	"errors"
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
+	"go.uber.org/zap"
 	"sync/atomic"
 )
 
@@ -64,7 +65,7 @@ type Service interface {
 	String() string
 
 	// SetLogger sets a logger.
-	SetLogger(logger log.Logger)
+	SetLogger(logger *zap.Logger)
 }
 
 /*
@@ -110,7 +111,7 @@ Typical usage:
 	}
 */
 type BaseService struct {
-	Logger  log.Logger
+	Logger  *zap.Logger
 	name    string
 	started uint32 // atomic
 	stopped uint32 // atomic
@@ -121,9 +122,9 @@ type BaseService struct {
 }
 
 // NewBaseService creates a new BaseService.
-func NewBaseService(logger log.Logger, name string, impl Service) *BaseService {
+func NewBaseService(logger *zap.Logger, name string, impl Service) *BaseService {
 	if logger == nil {
-		logger = log.New()
+		logger = log.DLogger
 	}
 	return &BaseService{
 		Logger: logger,
@@ -134,7 +135,7 @@ func NewBaseService(logger log.Logger, name string, impl Service) *BaseService {
 }
 
 // SetLogger implements Service by setting a logger.
-func (bs *BaseService) SetLogger(l log.Logger) {
+func (bs *BaseService) SetLogger(l *zap.Logger) {
 	bs.Logger = l
 }
 
@@ -144,12 +145,12 @@ func (bs *BaseService) SetLogger(l log.Logger) {
 func (bs *BaseService) Start() error {
 	if atomic.CompareAndSwapUint32(&bs.started, 0, 1) {
 		if atomic.LoadUint32(&bs.stopped) == 1 {
-			bs.Logger.Error(fmt.Sprintf("Not starting %v -- already stopped", bs.name), "impl", bs.impl)
+			bs.Logger.Error(fmt.Sprintf("Not starting %v -- already stopped", bs.name), zap.Any("impl", bs.impl))
 			// revert flag
 			atomic.StoreUint32(&bs.started, 0)
 			return ErrAlreadyStopped
 		}
-		bs.Logger.Info(fmt.Sprintf("Starting %v", bs.name), "impl", bs.impl)
+		bs.Logger.Info(fmt.Sprintf("Starting %v", bs.name), zap.Any("impl", bs.impl))
 		err := bs.impl.OnStart()
 		if err != nil {
 			// revert flag
@@ -158,7 +159,7 @@ func (bs *BaseService) Start() error {
 		}
 		return nil
 	}
-	bs.Logger.Info(fmt.Sprintf("Not starting %v -- already started", bs.name), "impl", bs.impl)
+	bs.Logger.Info(fmt.Sprintf("Not starting %v -- already started", bs.name), zap.Any("impl", bs.impl))
 	return ErrAlreadyStarted
 }
 
@@ -172,19 +173,19 @@ func (bs *BaseService) OnStart() error { return nil }
 func (bs *BaseService) Stop() {
 	if atomic.CompareAndSwapUint32(&bs.stopped, 0, 1) {
 		if atomic.LoadUint32(&bs.started) == 0 {
-			bs.Logger.Debug(fmt.Sprintf("Not stopping %v -- have not been started yet", bs.name), "impl", bs.impl, "err", ErrNotStarted)
+			bs.Logger.Debug(fmt.Sprintf("Not stopping %v -- have not been started yet", bs.name), zap.Any("impl", bs.impl), zap.Error(ErrNotStarted))
 			// revert flag
 			atomic.StoreUint32(&bs.stopped, 0)
 			// ErrNotStarted
 			return
 		}
-		bs.Logger.Info(fmt.Sprintf("Stopping %v", bs.name), "impl", bs.impl)
+		bs.Logger.Info(fmt.Sprintf("Stopping %v", bs.name), zap.Any("impl", bs.impl))
 		bs.impl.OnStop()
 		close(bs.quit)
 		// nil
 		return
 	}
-	bs.Logger.Debug(fmt.Sprintf("Stopping %v (ignoring: already stopped)", bs.name), "impl", bs.impl)
+	bs.Logger.Debug(fmt.Sprintf("Stopping %v (ignoring: already stopped)", bs.name), zap.Any("impl", bs.impl))
 	// ErrAlreadyStopped
 	return
 }
@@ -198,7 +199,7 @@ func (bs *BaseService) OnStop() {}
 // will be returned if the service is running.
 func (bs *BaseService) Reset() error {
 	if !atomic.CompareAndSwapUint32(&bs.stopped, 1, 0) {
-		bs.Logger.Debug(fmt.Sprintf("Can't reset %v. Not stopped", bs.name), "impl", bs.impl)
+		bs.Logger.Debug(fmt.Sprintf("Can't reset %v. Not stopped", bs.name), zap.Any("impl", bs.impl))
 		return fmt.Errorf("can't reset running %s", bs.name)
 	}
 

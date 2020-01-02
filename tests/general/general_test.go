@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"reflect"
@@ -32,7 +32,7 @@ import (
 
 func TestLogger(t *testing.T) {
 	m := map[string]string{"1": "2"}
-	log.Debug("Test", "m", m)
+	log.DLogger.Debug("Test", "m", m)
 }
 
 func TestRlpStringSlice(t *testing.T) {

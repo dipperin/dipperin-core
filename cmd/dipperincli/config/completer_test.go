@@ -19,14 +19,14 @@ package config
 import (
 	"fmt"
 	"github.com/c-bata/go-prompt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"strings"
 	"testing"
 )
 
 func TestDipperinCliCompleter(t *testing.T) {
-	log.InitLogger(log.LvlDebug)
 	d := prompt.Document{}
 
 	assert.Equal(t, DipperinCliCompleterNew(d), nilSuggest)
@@ -62,7 +62,6 @@ func TestDipperinCliCompleter(t *testing.T) {
 }
 
 func TestDipperinCliCompleterNew(t *testing.T) {
-	log.InitLogger(log.LvlDebug)
 	d := prompt.Document{}
 
 	args := strings.Split("tx ", " ")
@@ -73,7 +72,7 @@ func TestDipperinCliCompleterNew(t *testing.T) {
 	d = *b.Document()
 
 	suggest := DipperinCliCompleterNew(d)
-	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+	log.DLogger.Debug("TestDipperinCliCompleterNew", zap.Any("suggest", suggest))
 
 	args = strings.Split("tx SendTx ", " ")
 	fmt.Println(len(args))
@@ -83,7 +82,7 @@ func TestDipperinCliCompleterNew(t *testing.T) {
 	d = *b.Document()
 
 	suggest = DipperinCliCompleterNew(d)
-	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+	log.DLogger.Debug("TestDipperinCliCompleterNew", zap.Any("suggest", suggest))
 
 	args = strings.Split("tx SendTx -", " ")
 	fmt.Println(len(args))
@@ -93,7 +92,7 @@ func TestDipperinCliCompleterNew(t *testing.T) {
 	d = *b.Document()
 
 	suggest = DipperinCliCompleterNew(d)
-	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+	log.DLogger.Debug("TestDipperinCliCompleterNew", zap.Any("suggest", suggest))
 
 	args = strings.Split("tx SendTransactionContract --abi ", " ")
 	fmt.Println(len(args), strings.TrimLeft(args[len(args)-1], "--"))
@@ -106,7 +105,7 @@ func TestDipperinCliCompleterNew(t *testing.T) {
 	d = *b.Document()
 
 	suggest = DipperinCliCompleterNew(d)
-	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+	log.DLogger.Debug("TestDipperinCliCompleterNew", zap.Any("suggest", suggest))
 
 	b = prompt.NewBuffer()
 	b.InsertText("rpc.Add -A -F", false, true)
@@ -114,7 +113,7 @@ func TestDipperinCliCompleterNew(t *testing.T) {
 	d = *b.Document()
 
 	suggest = DipperinCliCompleterNew(d)
-	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+	log.DLogger.Debug("TestDipperinCliCompleterNew", zap.Any("suggest", suggest))
 
 	b = prompt.NewBuffer()
 	b.InsertText("rp", false, true)
@@ -122,7 +121,7 @@ func TestDipperinCliCompleterNew(t *testing.T) {
 	d = *b.Document()
 
 	suggest = DipperinCliCompleterNew(d)
-	log.Debug("TestDipperinCliCompleterNew", "suggest", suggest)
+	log.DLogger.Debug("TestDipperinCliCompleterNew", zap.Any("suggest", suggest))
 	//assert.Equal(t, DipperinCliCompleterNew(d), []prompt.Suggest{})
 }
 

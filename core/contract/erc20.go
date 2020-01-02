@@ -20,9 +20,10 @@ import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/number"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 )
 
@@ -174,7 +175,7 @@ func (token *BuiltInERC20Token) require(address common.Address, value *big.Int) 
 	// accout token
 	aBalance := token.getBalanceForAddress(address)
 
-	log.Debug("call address require", "aBalance", aBalance.String(), "value", value.String())
+	log.DLogger.Debug("call address require", zap.String("aBalance", aBalance.String()), zap.String("value", value.String()))
 
 	// value more than 0
 	if value.Cmp(big.NewInt(0)) <= 0 {
@@ -269,15 +270,15 @@ func (token *BuiltInERC20Token) TotalSupply() *big.Int {
 // check token Balance
 func (token *BuiltInERC20Token) BalanceOf(address common.Address) *hexutil.Big {
 	tmpBalance := token.getBalanceForAddress(address)
-	//cslog.Debug().Str("addr", address.Hex()).Interface("balance byte", token.Balances[address.Hex()]).Interface("balance", tmpBalance).Msg("balance of erc20 address")
-	log.Info("balance here", "adr", address)
+	//cslog.DLogger.Debug().Str("addr", address.Hex()).Interface("balance byte", token.Balances[address.Hex()]).Interface("balance", tmpBalance).Msg("balance of erc20 address")
+	log.DLogger.Info("balance here", zap.Any("adr", address))
 	return (*hexutil.Big)(big.NewInt(0).Set(tmpBalance))
 }
 
 // transfer token
 //func (token *BuiltInERC20Token) Transfer(toAddress common.Address, value *big.Int) error {
 func (token *BuiltInERC20Token) Transfer(toAddress common.Address, hValue *hexutil.Big) error {
-	log.Debug("call ERC20 Transfer")
+	log.DLogger.Debug("call ERC20 Transfer")
 	value := (*big.Int)(hValue)
 	senderAddress := token.CurSender
 	// check value > sender balance // or sender balance == 0
@@ -290,7 +291,7 @@ func (token *BuiltInERC20Token) Transfer(toAddress common.Address, hValue *hexut
 
 	token.Balances[senderAddress.Hex()] = sBalance.Sub(sBalance, value)
 	token.Balances[toAddress.Hex()] = tBalance.Add(tBalance, value)
-	log.Debug("ERC20 transfer", "from address", senderAddress.Hex(), "to address", toAddress.Hex())
+	log.DLogger.Debug("ERC20 transfer", zap.String("from address", senderAddress.Hex()), zap.String("to address", toAddress.Hex()))
 	// TODO record operation
 
 	return nil

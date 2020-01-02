@@ -19,6 +19,7 @@ package builder
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/cachedb"
@@ -30,7 +31,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -186,7 +186,6 @@ func TestGasLimitAdjust(t *testing.T) {
 	gasInfo := make(map[uint64]uint64, 11)
 	for {
 		Block := creatBlockWithGasLimitAndGasUsed(gasUsed, gasLimit, blockNumber)
-		log.Info("the gas info", "blockNum", Block.Number(), "gasLimit", Block.GasLimit(), "gasUsed", Block.GasUsed())
 		if blockNumber%360 == 0 {
 			gasInfo[blockNumber] = Block.GasLimit()
 		}
@@ -194,36 +193,28 @@ func TestGasLimitAdjust(t *testing.T) {
 		blockNumber++
 		gasLimit = CalcGasLimit(Block, 2e5, 2e10)
 		//gasLimit = CalcGasLimit(Block,Block.GasLimit(),Block.GasLimit())
-		log.Info("the actual gasLimit after change is:", "gasLimit", gasLimit)
-		log.Info("the gasLimit change value is:", "change", int64(gasLimit)-int64(Block.GasLimit()))
 		if blockNumber%5 != 0 {
 			gasUsed = uint64(0)
 		} else {
 			gasUsed = gasLimit
 		}
 
-		log.Info("")
-		log.Info("********************next block***********************")
-		log.Info("********************next block***********************")
-		log.Info("")
+		log.DLogger.Info("")
+		log.DLogger.Info("********************next block***********************")
+		log.DLogger.Info("********************next block***********************")
+		log.DLogger.Info("")
 
 		/*if blockNumber == 1 {
 			break
 		}*/
 		//break
 		/*		if gasLimit == 5000{
-				log.Info("the gasLimit is out of the MLimit")
+				log.DLogger.Info("the gasLimit is out of the MLimit")
 				break
 			}*/
 		if blockNumber == 20000 {
 			break
 		}
-	}
-
-	log.Info("the gasInfo sample is:")
-	for key, value := range gasInfo {
-		blockSize := value * 110 / (21000 * 1024 * 1024)
-		log.Info("point:", "key", key, "value", value, "blockSize", blockSize)
 	}
 }
 

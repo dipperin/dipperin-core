@@ -28,8 +28,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
@@ -192,7 +192,7 @@ func (db *nodeDB) fetchRLP(key []byte, val interface{}) error {
 	}
 	err = rlp.DecodeBytes(blob, val)
 	if err != nil {
-		log.Warn(fmt.Sprintf("key %x (%T) %v", key, val, err))
+		log.DLogger.Warn(fmt.Sprintf("key %x (%T) %v", key, val, err))
 	}
 	return err
 }
@@ -244,9 +244,7 @@ func (db *nodeDB) expirer() {
 	for {
 		select {
 		case <-tick.C:
-			if err := db.expireNodes(); err != nil {
-				log.Error(fmt.Sprintf("Failed to expire nodedb items: %v", err))
-			}
+			db.expireNodes()
 		case <-db.quit:
 			return
 		}
@@ -396,7 +394,7 @@ func nextNode(it iterator.Iterator) *Node {
 		}
 		var n Node
 		if err := rlp.DecodeBytes(it.Value(), &n); err != nil {
-			log.Warn(fmt.Sprintf("invalid node %x: %v", id, err))
+			log.DLogger.Warn(fmt.Sprintf("invalid node %x: %v", id, err))
 			continue
 		}
 		return &n

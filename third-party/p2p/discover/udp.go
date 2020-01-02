@@ -22,14 +22,15 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
+	"go.uber.org/zap"
 	"net"
 	"sync"
 	"time"
 
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/dipperin/dipperin-core/third-party/p2p/netutil"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -358,8 +359,8 @@ func (t *udp) sendPing(toid enode.ID, toaddr *net.UDPAddr, callback func()) <-ch
 		return ok
 	})
 	t.localNode.UDPContact(toaddr)
-	log.P2P.Info("sendPing info to", "toAddr", toaddr)
-	log.P2P.Info("the Ping package netType is", "netType", req.NetType)
+	log.DLogger.Info("sendPing info to", zap.Any("toAddr", toaddr))
+	log.DLogger.Info("the Ping package netType is", zap.String("netType", req.NetType.String()))
 	t.write(toaddr, req.name(), packet)
 	return errc
 }
@@ -386,7 +387,10 @@ func (t *udp) findnode(toid enode.ID, toaddr *net.UDPAddr, target encPubkey) ([]
 			nreceived++
 			n, err := t.nodeFromRPC(toaddr, rn)
 			if err != nil {
-				log.Debug("Invalid neighbor node received", "ip", rn.IP, "addr", toaddr, "err", err)
+				log.DLogger.Debug("Invalid neighbor node received",
+					zap.String("ip", rn.IP.String()),
+					zap.Any("addr", toaddr),
+					zap.Error(err))
 				continue
 			}
 			nodes = append(nodes, n)
@@ -563,7 +567,7 @@ func (t *udp) send(toaddr *net.UDPAddr, ptype byte, req packet) ([]byte, error) 
 
 func (t *udp) write(toaddr *net.UDPAddr, what string, packet []byte) error {
 	_, err := t.conn.WriteToUDP(packet, toaddr)
-	log.Debug(">> "+what, "addr", toaddr, "err", err)
+	log.DLogger.Debug(">> "+what, zap.Any("addr", toaddr), zap.Error(err))
 	return err
 }
 
@@ -572,13 +576,13 @@ func encodePacket(priv *ecdsa.PrivateKey, ptype byte, req interface{}) (packet, 
 	b.Write(headSpace)
 	b.WriteByte(ptype)
 	if err := rlp.Encode(b, req); err != nil {
-		log.Error("Can't encode discv4 packet", "err", err)
+		log.DLogger.Error("Can't encode discv4 packet", zap.Error(err))
 		return nil, nil, err
 	}
 	packet = b.Bytes()
 	sig, err := crypto.Sign(crypto.Keccak256(packet[headSize:]), priv)
 	if err != nil {
-		log.Error("Can't sign discv4 packet", "err", err)
+		log.DLogger.Error("Can't sign discv4 packet", zap.Error(err))
 		return nil, nil, err
 	}
 	copy(packet[macSize:], sig)
@@ -605,11 +609,11 @@ func (t *udp) readLoop(unhandled chan<- ReadPacket) {
 		nbytes, from, err := t.conn.ReadFromUDP(buf)
 		if netutil.IsTemporaryError(err) {
 			// Ignore temporary read errors.
-			log.Debug("Temporary UDP read error", "err", err)
+			log.DLogger.Debug("Temporary UDP read error", zap.Error(err))
 			continue
 		} else if err != nil {
 			// Shut down the loop for permament errors.
-			log.Debug("UDP read error", "err", err)
+			log.DLogger.Debug("UDP read error", zap.Error(err))
 			return
 		}
 		if t.handlePacket(from, buf[:nbytes]) != nil && unhandled != nil {
@@ -624,11 +628,11 @@ func (t *udp) readLoop(unhandled chan<- ReadPacket) {
 func (t *udp) handlePacket(from *net.UDPAddr, buf []byte) error {
 	packet, fromID, hash, err := decodePacket(buf)
 	if err != nil {
-		log.Debug("Bad discv4 packet", "addr", from, "err", err)
+		log.DLogger.Debug("Bad discv4 packet", zap.Any("addr", from), zap.Error(err))
 		return err
 	}
 	err = packet.handle(t, from, fromID, hash)
-	log.Debug("<< "+packet.name(), "addr", from, "err", err)
+	log.DLogger.Debug("<< "+packet.name(), zap.Any("addr", from), zap.Error(err))
 	return err
 }
 
@@ -665,9 +669,7 @@ func decodePacket(buf []byte) (packet, encPubkey, []byte, error) {
 		return req, fromKey, hash, err
 	}
 
-	log.P2P.Info("the received package info", "type", req.name(), "netType", req.netType(), "localNetType", getNetType())
 	if req.netType() != getNetType() {
-		log.P2P.Error("the req and local node netType is:", "req", req.netType(), "localNode", getNetType())
 		return req, fromKey, hash, errors.New("the netType error")
 	}
 	return req, fromKey, hash, err
@@ -681,14 +683,12 @@ func (req *ping) handle(t *udp, from *net.UDPAddr, fromKey encPubkey, mac []byte
 	if err != nil {
 		return fmt.Errorf("invalid public key: %v", err)
 	}
-	log.P2P.Info("receive ping package", "from", from.String(), "netType", req.NetType)
 	t.send(from, pongPacket, &pong{
 		To:         makeEndpoint(from, req.From.TCP),
 		ReplyTok:   mac,
 		Expiration: uint64(time.Now().Add(expiration).Unix()),
 		NetType:    getNetType(),
 	})
-	log.P2P.Info("send pong respond", "to", from.String(), "netType", getNetType())
 	n := wrapNode(enode.NewV4(key, from.IP, int(req.From.TCP), from.Port))
 	t.handleReply(n.ID(), pingPacket, req)
 	if time.Since(t.db.LastPongReceived(n.ID())) > bondExpiration {

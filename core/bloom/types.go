@@ -197,7 +197,7 @@ func (d DataHash) lsh() DataHash {
 // indexes according to the hash of input data.
 func hashIndex(d Data, n uint, k uint) []uint {
 	indexes := make([]uint, 0)
-	//bloom_log.Info("hashIndex")
+	//bloom_log.DLogger.Info("hashIndex")
 	hashes := kHash(d[:], k)
 
 	for _, hash := range hashes {
@@ -227,7 +227,7 @@ func kHash(bytes []byte, k uint) []uint32 {
 		res = append(res, t)
 		i++
 	}
-	//bloom_log.Info("kHash", "use", time.Now().Sub(startAt), "h len", hLen)
+	//bloom_log.DLogger.Info("kHash", "use", time.Now().Sub(startAt), "h len", hLen)
 	return res
 }
 

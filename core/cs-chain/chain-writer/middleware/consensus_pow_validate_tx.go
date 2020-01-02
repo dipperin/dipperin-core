@@ -20,14 +20,15 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 	"math/big"
 	"strings"
 )
@@ -101,11 +102,11 @@ func (v *TxValidatorForRpcService) Valid(tx model.AbstractTransaction) error {
 
 func ValidateBlockTxs(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("ValidateBlockTxs start")
+		log.DLogger.Info("ValidateBlockTxs start")
 		txs := c.Block.GetAbsTransactions()
 		targetRoot := model.DeriveSha(model.AbsTransactions(txs))
 		if !targetRoot.IsEqual(c.Block.TxRoot()) {
-			log.Error("tx root not match", "targetRoot", targetRoot.Hex(), "blockRoot", c.Block.TxRoot().Hex())
+			log.DLogger.Error("tx root not match", zap.String("targetRoot", targetRoot.Hex()), zap.String("blockRoot", c.Block.TxRoot().Hex()))
 			return g_error.ErrTxRootNotMatch
 		}
 
@@ -124,7 +125,7 @@ func ValidateBlockTxs(c *BlockContext) Middleware {
 				return err
 			}
 		}
-		log.Middleware.Info("ValidateBlockTxs success")
+		log.DLogger.Info("ValidateBlockTxs success")
 		return c.Next()
 	}
 }
@@ -145,13 +146,13 @@ func ValidTxSender(tx model.AbstractTransaction, conf *validTxNeedConfig) error 
 	}
 
 	if gas > tx.GetGasLimit() {
-		log.Error("tx gas limit is too low", "need", gas, "got", tx.GetGasLimit())
+		log.DLogger.Error("tx gas limit is too low", zap.Uint64("need", gas), zap.Uint64("got", tx.GetGasLimit()))
 		return g_error.ErrTxGasLimitNotEnough
 	}
 
-	// log.Info("ValidTxSender the blockHeight is:","blockHeight",blockHeight)
+	// log.DLogger.Info("ValidTxSender the blockHeight is:","blockHeight",blockHeight)
 	credit, err := conf.preState.GetBalance(sender)
-	log.Info("ValidTxSender#credit", "credit", credit)
+	log.DLogger.Info("ValidTxSender#credit", zap.Any("credit", credit))
 	if err != nil {
 		return err
 	}
@@ -166,7 +167,7 @@ func ValidTxSender(tx model.AbstractTransaction, conf *validTxNeedConfig) error 
 	usage := big.NewInt(0).Add(tx.Amount(), gasFee)
 	usage.Add(usage, lockValue)
 
-	log.Info("the credit and the usage is:", "credit", credit, "usage", usage)
+	log.DLogger.Info("the credit and the usage is:", zap.Any("credit", credit), zap.Any("usage", usage))
 	if credit.Cmp(usage) < 0 {
 		return g_error.ErrTxSenderBalanceNotEnough
 	}

@@ -19,7 +19,8 @@ package crypto
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
+	"go.uber.org/zap"
 	"reflect"
 	"testing"
 
@@ -105,7 +106,7 @@ func TestSha3(t *testing.T) {
 		dataSource = append(dataSource, 0x66)
 	}
 
-	log.Info("the dataSource is:", "dataSource", hexutil.Encode(dataSource))
+	log.DLogger.Info("the dataSource is:", zap.String("dataSource", hexutil.Encode(dataSource)))
 	result := Keccak256(dataSource)
-	log.Info("the result is:", "result", hexutil.Encode(result))
+	log.DLogger.Info("the result is:", zap.String("result", hexutil.Encode(result)))
 }

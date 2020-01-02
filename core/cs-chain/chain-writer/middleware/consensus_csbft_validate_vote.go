@@ -20,14 +20,15 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 // SaveBlock use
 func ValidateVotes(c *BftBlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("ValidateVotes start")
+		log.DLogger.Info("ValidateVotes start")
 		// verify the number of seen commits meets the need
 		block := c.Block
 		slot := c.Chain.GetSlot(block)
@@ -44,7 +45,7 @@ func ValidateVotes(c *BftBlockContext) Middleware {
 		if err != nil {
 			return err
 		}
-		log.Middleware.Info("ValidateVotes success")
+		log.DLogger.Info("ValidateVotes success")
 		return c.Next()
 	}
 }
@@ -141,7 +142,7 @@ func validVerificationRoot(verifications []model.AbstractVerification, vRoot com
 	targetRoot := model.DeriveSha(model.Verifications(verifications))
 	//fmt.Println("===t root", targetRoot)
 	if !targetRoot.IsEqual(vRoot) {
-		log.Error("verification root not match", "targetRoot", targetRoot.Hex(), "blockRoot", vRoot.Hex(), "verificationLen", len(verifications))
+		log.DLogger.Error("verification root not match", zap.String("targetRoot", targetRoot.Hex()), zap.String("blockRoot", vRoot.Hex()), zap.Int("verificationLen", len(verifications)))
 		return g_error.ErrVerificationRootNotMatch
 	}
 
@@ -181,7 +182,7 @@ func validBlockHash(verifications []model.AbstractVerification, block model.Abst
 
 		// valid block hash
 		vBlockHashStr := block.Hash().Hex()
-		//log.Info("the block hash is:","ver",ver.GetBlockHash(),"block",vBlockHashStr)
+		//log.DLogger.Info("the block hash is:","ver",ver.GetBlockHash(),"block",vBlockHashStr)
 		if ver.GetBlockHash() != vBlockHashStr {
 			return g_error.ErrInvalidBlockHashInVotes
 		}

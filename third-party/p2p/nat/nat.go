@@ -20,12 +20,13 @@ package nat
 import (
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"net"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/jackpal/go-nat-pmp"
 )
 
@@ -98,17 +99,13 @@ const (
 // Map adds a port mapping on m and keeps it alive until c is closed.
 // This function is typically invoked in its own goroutine.
 func Map(m Interface, c chan struct{}, protocol string, extport, intport int, name string) {
-	log := log.New("proto", protocol, "extport", extport, "intport", intport, "interface", m)
 	refresh := time.NewTimer(mapUpdateInterval)
 	defer func() {
 		refresh.Stop()
-		log.Debug("Deleting port mapping")
 		m.DeleteMapping(protocol, extport, intport)
 	}()
 	if err := m.AddMapping(protocol, extport, intport, name, mapTimeout); err != nil {
-		log.Debug("Couldn't add port mapping", "err", err)
-	} else {
-		log.Info("Mapped network port")
+		log.DLogger.Error("Couldn't add port mapping", zap.Error(err))
 	}
 	for {
 		select {
@@ -117,9 +114,8 @@ func Map(m Interface, c chan struct{}, protocol string, extport, intport int, na
 				return
 			}
 		case <-refresh.C:
-			log.Debug("Refreshing port mapping")
 			if err := m.AddMapping(protocol, extport, intport, name, mapTimeout); err != nil {
-				log.Debug("Couldn't add port mapping", "err", err)
+				log.DLogger.Debug("refresh: Couldn't add port mapping", zap.Error(err))
 			}
 			refresh.Reset(mapUpdateInterval)
 		}

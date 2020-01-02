@@ -18,13 +18,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/cs-chain"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/urfave/cli"
 	"os"
@@ -51,7 +51,7 @@ func main() {
 func run(c *cli.Context) {
 	nContext := initContext(c)
 	curBlock := nContext.fullChain.CurrentBlock()
-	log.Info("cur block num", "num", curBlock.Number())
+	log.DLogger.Info("cur block num", "num", curBlock.Number())
 
 	state, err := chain.NewBlockProcessor(nContext.fullChain, curBlock.StateRoot(), nContext.stateStorage)
 	if err != nil {

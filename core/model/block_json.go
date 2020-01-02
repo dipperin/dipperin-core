@@ -245,7 +245,7 @@ type PBFTBlockJsonHandler struct{}
 func (h *PBFTBlockJsonHandler) DecodeBody(to *Body, input []byte) error {
 	var from PBFTBody
 
-	//log.Debug("PBFTBlockJsonHandler DecodeBody running~~~~~~~")
+	//log.DLogger.Debug("PBFTBlockJsonHandler DecodeBody running~~~~~~~")
 
 	if err := util.ParseJsonFromBytes(input, &from); err != nil {
 		return err

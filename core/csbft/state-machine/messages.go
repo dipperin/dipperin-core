@@ -19,9 +19,10 @@ package state_machine
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"sync"
 )
 
@@ -79,7 +80,7 @@ func (rs *NewRoundSet) EnoughAtRound(round uint64) bool {
 	count := len(rs.RoundMessages[round])
 	need := vLen * 2 / 3
 	// should be more than need
-	log.PBft.Info("NewRoundSet#EnoughAtRound   check round msg enough", "round", round, "height", rs.Height, "count", count, "need", need+1, "vLen", vLen)
+	log.DLogger.Info("NewRoundSet#EnoughAtRound   check round msg enough", zap.Uint64("round", round), zap.Uint64("height", rs.Height), zap.Int("count", count), zap.Int("need", need+1), zap.Int("vLen", vLen))
 	// more than 2/3
 	if count > need {
 		return true
@@ -98,7 +99,7 @@ func (rs *NewRoundSet) enoughAtRound(round uint64) bool {
 	count := len(rs.RoundMessages[round])
 	need := vLen * 2 / 3
 	// should be more than need
-	log.PBft.Info("NewRoundSet#EnoughAtRound   check round msg enough", "round", round, "height", rs.Height, "count", count, "need", need+1, "vLen", vLen)
+	log.DLogger.Info("NewRoundSet#EnoughAtRound   check round msg enough", zap.Uint64("round", round), zap.Uint64("height", rs.Height), zap.Int("count", count), zap.Int("need", need+1), zap.Int("vLen", vLen))
 	// more than 2/3
 	if count > need {
 		return true
@@ -116,7 +117,7 @@ func (rs *NewRoundSet) Add(nr *model2.NewRoundMsg) error {
 	defer rs.lock.Unlock()
 
 	if nr.Height != rs.Height {
-		log.PBft.Info("the Height is:", "nr", nr.Height, "rs", rs.Height)
+		log.DLogger.Info("the Height is:", zap.Uint64("nr", nr.Height), zap.Uint64("rs", rs.Height))
 		return errors.New("new round msg height not match")
 	}
 
@@ -129,7 +130,7 @@ func (rs *NewRoundSet) Add(nr *model2.NewRoundMsg) error {
 	}
 
 	if !rs.isCurrentVerifier(nr.Witness.Address) {
-		log.PBft.Info("NewRoundSet#Add Witness.Address is not current verifier address", "address", nr.Witness.Address)
+		log.DLogger.Info("NewRoundSet#Add Witness.Address is not current verifier address", zap.Any("address", nr.Witness.Address))
 		return errors.New("new round msg not from verifier")
 	}
 
@@ -251,7 +252,7 @@ func (vs *VoteSet) VotesEnough(round uint64) common.Hash {
 	verifier := vs.verifiers
 	for index, count := range blockVotes {
 		if count > len(verifier)*2/3 {
-			log.PBft.Info("the votes is enough", "hash", index.Hex())
+			log.DLogger.Info("the votes is enough", zap.String("hash", index.Hex()))
 			return index
 		}
 	}
@@ -314,11 +315,11 @@ func (vs *VoteSet) AddVote(v *model.VoteMsg) error {
 	defer vs.lock.Unlock()
 
 	if v.Height != vs.Height {
-		log.PBft.Debug("[AddVote] vote not valid", "height", "not valid")
+		log.DLogger.Debug("[AddVote] vote not valid", zap.String("height", "not valid"))
 		return errors.New("vote height not match")
 	}
 	if err := vs.validVote(v); err != nil {
-		log.PBft.Debug("[AddVote] vote not valid", "error", err)
+		log.DLogger.Debug("[AddVote] vote not valid", zap.Error(err))
 		return err
 	}
 	//vs.Votes[v.Round] = make(map[common.Address]*VoteMsg)
@@ -328,7 +329,7 @@ func (vs *VoteSet) AddVote(v *model.VoteMsg) error {
 	} else {
 		vs.roundBlockVotes(v.Round)[v.BlockID]++
 	}
-	log.PBft.Debug("[AddVote] success add vote")
+	log.DLogger.Debug("[AddVote] success add vote")
 	return nil
 }
 

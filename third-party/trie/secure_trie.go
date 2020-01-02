@@ -19,7 +19,7 @@ package trie
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"golang.org/x/crypto/sha3"
 	"sync"
 )
@@ -74,7 +74,7 @@ func NewSecure(root common.Hash, db *Database, cachelimit uint16) (*SecureTrie, 
 func (t *SecureTrie) Get(key []byte) []byte {
 	res, err := t.TryGet(key)
 	if err != nil {
-		log.Error(fmt.Sprintf("Unhandled trie error: %v", err))
+		log.DLogger.Error(fmt.Sprintf("Unhandled trie error: %v", err))
 	}
 	return res
 }
@@ -94,7 +94,7 @@ func (t *SecureTrie) TryGet(key []byte) ([]byte, error) {
 // stored in the trie.
 func (t *SecureTrie) Update(key, value []byte) {
 	if err := t.TryUpdate(key, value); err != nil {
-		log.Error(fmt.Sprintf("Unhandled trie error: %v", err))
+		log.DLogger.Error(fmt.Sprintf("Unhandled trie error: %v", err))
 	}
 }
 
@@ -119,7 +119,7 @@ func (t *SecureTrie) TryUpdate(key, value []byte) error {
 // Delete removes any existing value for key from the trie.
 func (t *SecureTrie) Delete(key []byte) {
 	if err := t.TryDelete(key); err != nil {
-		log.Error(fmt.Sprintf("Unhandled trie error: %v", err))
+		log.DLogger.Error(fmt.Sprintf("Unhandled trie error: %v", err))
 	}
 }
 

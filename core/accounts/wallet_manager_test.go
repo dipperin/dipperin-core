@@ -18,13 +18,14 @@ package accounts_test
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/tests/wallet"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"os"
 	"sync/atomic"
 	"testing"
@@ -33,7 +34,7 @@ import (
 
 //test new wallet manager
 func Test_NewWalletManager(t *testing.T) {
-	log.Info("Test_NewWalletManager start")
+	log.DLogger.Info("Test_NewWalletManager start")
 	testWallet, walletManager, err := wallet.GetTestWalletManager()
 	assert.NoError(t, err)
 
@@ -44,11 +45,11 @@ func Test_NewWalletManager(t *testing.T) {
 	walletManager.Stop()
 
 	os.Remove(testWallet.Identifier.Path)
-	log.Info("Test_NewWalletManager end")
+	log.DLogger.Info("Test_NewWalletManager end")
 }
 
 func Test_ListWalletIdentifier(t *testing.T) {
-	log.Info("Test_ListWalletIdentifier start")
+	log.DLogger.Info("Test_ListWalletIdentifier start")
 	testWallet, walletManager, err := wallet.GetTestWalletManager()
 	assert.NoError(t, err)
 
@@ -61,11 +62,11 @@ func Test_ListWalletIdentifier(t *testing.T) {
 	assert.NoError(t, err)
 
 	os.Remove(testWallet.Identifier.Path)
-	log.Info("Test_ListWalletIdentifier end")
+	log.DLogger.Info("Test_ListWalletIdentifier end")
 }
 
 func Test_FindWalletFromName(t *testing.T) {
-	log.Info("Test_FindWalletFromName start")
+	log.DLogger.Info("Test_FindWalletFromName start")
 	testWallet, walletManager, err := wallet.GetTestWalletManager()
 	assert.NoError(t, err)
 
@@ -80,11 +81,11 @@ func Test_FindWalletFromName(t *testing.T) {
 	assert.Equal(t, accounts.ErrWalletNotOpen, err)
 
 	os.Remove(testWallet.Identifier.Path)
-	log.Info("Test_FindWalletFromName end")
+	log.DLogger.Info("Test_FindWalletFromName end")
 }
 
 func TestWalletManager_FindWalletFromAddress(t *testing.T) {
-	log.Info("TestWalletManager_FindWalletFromAddress start")
+	log.DLogger.Info("TestWalletManager_FindWalletFromAddress start")
 	testWallet, walletManager, err := wallet.GetTestWalletManager()
 	assert.NoError(t, err)
 
@@ -102,11 +103,11 @@ func TestWalletManager_FindWalletFromAddress(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = walletManager.FindWalletFromAddress(testAccounts[0].Address)
 	assert.Equal(t, accounts.ErrWalletNotOpen, err)
-	log.Info("TestWalletManager_FindWalletFromAddress end")
+	log.DLogger.Info("TestWalletManager_FindWalletFromAddress end")
 }
 
 func Test_WalletManagerBackend(t *testing.T) {
-	log.Info("Test_WalletManagerBackend start")
+	log.DLogger.Info("Test_WalletManagerBackend start")
 	testWallet, walletManager, err := wallet.GetTestWalletManager()
 	assert.NoError(t, err)
 
@@ -150,7 +151,7 @@ func Test_WalletManagerBackend(t *testing.T) {
 	os.Remove(testWallet.Identifier.Path)
 	os.Remove(testWallet2.Identifier.Path)
 
-	log.Info("Test_WalletManagerBackend end")
+	log.DLogger.Info("Test_WalletManagerBackend end")
 }
 
 func Test_ChannelTransport(t *testing.T) {
@@ -164,7 +165,7 @@ func Test_ChannelTransport(t *testing.T) {
 
 	testData.value.Store(32)
 
-	log.Info("the atomic value is:", "value", testData.value.Load().(int))
+	log.DLogger.Info("the atomic value is:", zap.Int("value", testData.value.Load().(int)))
 
 	testChan := make(chan testAtomic)
 	var feed event.Feed
@@ -172,11 +173,11 @@ func Test_ChannelTransport(t *testing.T) {
 	go func() {
 		sub := feed.Subscribe(testChan)
 		defer sub.Unsubscribe()
-		log.Info("subscribe success")
+		log.DLogger.Info("subscribe success")
 		for {
 			select {
 			case readData := <-testChan:
-				log.Info("the read atomic value is:", "value", readData.value.Load().(int))
+				log.DLogger.Info("the read atomic value is:", zap.Int("value", readData.value.Load().(int)))
 				return
 			}
 		}
@@ -184,7 +185,7 @@ func Test_ChannelTransport(t *testing.T) {
 
 	time.Sleep(2)
 	ret := feed.Send(testData)
-	log.Info("the ret is:", "ret", ret)
+	log.DLogger.Info("the ret is:", zap.Int("ret", ret))
 	time.Sleep(2)
 	//testChan <- testData
 }

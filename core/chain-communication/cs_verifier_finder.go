@@ -20,11 +20,12 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/g-event"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
+	"go.uber.org/zap"
 	"sync/atomic"
 	"time"
 )
@@ -88,7 +89,7 @@ func (f *vfFetcher) loop() {
 		select {
 		case req := <-f.addReqChan:
 			if f.reqs[req.ReqID] != nil {
-				log.Error("dup get conn req", "req", req)
+				log.DLogger.Error("dup get conn req", zap.Any("req", req))
 			}
 			f.reqs[req.ReqID] = req.RespChan
 		case resp := <-f.respChan:
@@ -112,7 +113,7 @@ func (f *vfFetcher) OnGetVerifiersResp(msg p2p.Msg, p PmAbstractPeer) error {
 	select {
 	case f.respChan <- resp:
 	case <-time.After(100 * time.Millisecond):
-		log.Warn("can't write to fetcher.respChan, maybe fetcher not started")
+		log.DLogger.Warn("can't write to fetcher.respChan, maybe fetcher not started")
 	}
 	return nil
 }
@@ -122,7 +123,7 @@ func (f *vfFetcher) getVerifiersFromBoot(req GetVerifiersReq, peer PmAbstractPee
 	respChan := make(chan *GetVerifiersResp)
 
 	if err := peer.SendMsg(GetVerifiersConnFromBootNode, req); err != nil {
-		log.Warn("send get v conn msg to v boot failed", "err", err)
+		log.DLogger.Warn("send get v conn msg to v boot failed", zap.Error(err))
 		return nil
 	}
 
@@ -132,7 +133,7 @@ func (f *vfFetcher) getVerifiersFromBoot(req GetVerifiersReq, peer PmAbstractPee
 	case resp = <-respChan:
 		return resp
 	case <-time.After(fetchConnTimeout):
-		log.Warn("fetch v conn from v boot timeout")
+		log.DLogger.Warn("fetch v conn from v boot timeout")
 		return nil
 	}
 }
@@ -177,13 +178,13 @@ func (vf *VFinder) Stop() {}
 // do find verifiers
 func (vf *VFinder) findVerifiers() {
 	if !atomic.CompareAndSwapUint32(&vf.findingVerifiers, 0, 1) {
-		log.Warn("call find verifiers, but last finding not finished")
+		log.DLogger.Warn("call find verifiers, but last finding not finished")
 		return
 	}
 	defer atomic.CompareAndSwapUint32(&vf.findingVerifiers, 1, 0)
 
 	if err := vf.shouldFindVerifiers(); err != nil {
-		log.Info("don't find verifiers, because of " + err.Error())
+		log.DLogger.Info("don't find verifiers, because of " + err.Error())
 		// if ErrNotCurrentOrNextVerifier, disable to connect v boot
 		return
 	}
@@ -191,10 +192,10 @@ func (vf *VFinder) findVerifiers() {
 	// Organize connection and check have enough conn
 	missC, missN := vf.peerManager.HaveEnoughVerifiers(true)
 	if missC <= 0 && missN <= 0 {
-		log.Debug("have enough verifiers, don't get from v boot")
+		log.DLogger.Debug("have enough verifiers, don't get from v boot")
 		return
 	}
-	log.Info("don't have enough verifiers", "missC", missC, "missN", missN)
+	log.DLogger.Info("don't have enough verifiers", zap.Uint("missC", missC), zap.Uint("missN", missN))
 
 	vf.getVerifiers(missC, missN)
 }
@@ -218,7 +219,7 @@ func (vf *VFinder) shouldFindVerifiers() error {
 func (vf *VFinder) getVerifiers(missCur uint, missNext uint) {
 	slot := vf.chain.GetSlot(vf.chain.CurrentBlock())
 	if slot == nil {
-		log.Error("can't get slot for current block", "cur b", vf.chain.CurrentBlock().Number())
+		log.DLogger.Error("can't get slot for current block", zap.Uint64("cur b", vf.chain.CurrentBlock().Number()))
 		panic("can't get slot for current block")
 	}
 	req := GetVerifiersReq{
@@ -243,7 +244,7 @@ func (vf *VFinder) getVerifiersFromBoot(req GetVerifiersReq, peer PmAbstractPeer
 	}
 
 	if resp.ErrInfo != "" {
-		log.Warn("err from v boot", "info", resp.ErrInfo)
+		log.DLogger.Warn("err from v boot", zap.String("info", resp.ErrInfo))
 		return
 	}
 
@@ -319,12 +320,12 @@ func (vfb *VFinderBoot) onGetVerifiersReq(req *GetVerifiersReq, from PmAbstractP
 
 	slot := vfb.chain.GetSlot(vfb.chain.CurrentBlock())
 	if slot == nil {
-		log.Error("can't get slot for cur block", "cur h", vfb.chain.CurrentBlock().Number())
+		log.DLogger.Error("can't get slot for cur block", zap.Uint64("cur h", vfb.chain.CurrentBlock().Number()))
 		panic("can't get slot for cur block")
 	}
 	if *slot != req.Slot {
 		resp.ErrInfo = fmt.Sprintf("slot not match, req.slot: %v, boot.slot: %v", req.Slot, *slot)
-		log.Warn("slot not match", "req.slot", req.Slot, "boot.slot", *slot, "from", from.NodeName())
+		log.DLogger.Warn("slot not match", zap.Uint64("req.slot", req.Slot), zap.Uint64("boot.slot", *slot), zap.String("from", from.NodeName()))
 		return resp
 	}
 
@@ -357,7 +358,7 @@ func (vfb *VFinderBoot) OnGetVerifiersReq(msg p2p.Msg, p PmAbstractPeer) error {
 	resp := vfb.onGetVerifiersReq(&req, p)
 
 	if err := p.SendMsg(BootNodeVerifiersConn, resp); err != nil {
-		log.Warn("send conn to verifier failed", "err", err, "remote node", p.NodeName())
+		log.DLogger.Warn("send conn to verifier failed", zap.Error(err), zap.String("remote node", p.NodeName()))
 	}
 	return nil
 }
@@ -373,7 +374,7 @@ func canFind(pm AbsPeerManager, chain Chain) error {
 
 	// valid height
 	if curB.Number()+2 < rHeight {
-		log.Info("height too low, do not find verifiers", "cur h", curB.Number(), "remote h", rHeight)
+		log.DLogger.Info("height too low, do not find verifiers", zap.Uint64("cur h", curB.Number()), zap.Uint64("remote h", rHeight))
 		return g_error.ErrCurHeightTooLow
 	}
 
@@ -402,17 +403,17 @@ func (pm *CsProtocolManager) handleInsertEventForBft() error {
 			select {
 			case newBlock := <-newBlockChan:
 
-				log.PBft.Debug("[Insert Event]", "blockNumber", newBlock.Number(), "is change point", pm.Chain.IsChangePoint(&newBlock, false), "is current", pm.SelfIsCurrentVerifier(), "is next", pm.SelfIsNextVerifier())
+				log.DLogger.Debug("[Insert Event]", zap.Uint64("blockNumber", newBlock.Number()), zap.Bool("is change point", pm.Chain.IsChangePoint(&newBlock, false)), zap.Bool("is current", pm.SelfIsCurrentVerifier()), zap.Bool("is next", pm.SelfIsNextVerifier()))
 
 				slot := pm.Chain.GetSlot(&newBlock)
-				log.PBft.Debug("the current slot is:", "slot", *slot)
+				log.DLogger.Debug("the current slot is:", zap.Uint64("slot", *slot))
 
 				// should change verifier
 				if pm.Chain.IsChangePoint(&newBlock, false) && *slot > 0 {
-					log.PBft.Debug("[Insert Event] IsChangePoint CallChangeVerifier")
+					log.DLogger.Debug("[Insert Event] IsChangePoint CallChangeVerifier")
 					pm.ChangeVerifiers()
 				} else {
-					log.PBft.Debug("[Insert Event] NotChangePoint NotCurrentVerifier")
+					log.DLogger.Debug("[Insert Event] NotChangePoint NotCurrentVerifier")
 
 					if pm.vf != nil {
 						pm.vf.findVerifiers()
@@ -420,7 +421,7 @@ func (pm *CsProtocolManager) handleInsertEventForBft() error {
 				}
 				// goes to bft only the current round verifier
 				if pm.SelfIsCurrentVerifier() {
-					log.PBft.Debug("[Insert Event] NotChangePoint IsCurrentVerifier")
+					log.DLogger.Debug("[Insert Event] NotChangePoint IsCurrentVerifier")
 					pm.PbftNode.OnEnterNewHeight(newBlock.Number() + 1)
 				}
 

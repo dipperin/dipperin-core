@@ -20,10 +20,11 @@ import (
 	"container/heap"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"net"
 	"time"
 
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/dipperin/dipperin-core/third-party/p2p/netutil"
 )
@@ -167,11 +168,11 @@ func (s *dialstate) newTasks(nRunning int, peers map[enode.ID]*Peer, now time.Ti
 	var newtasks []task
 	addDial := func(flag connFlag, n *enode.Node) bool {
 		if err := s.checkDial(n, peers); err != nil {
-			log.Debug("Skipping dial candidate", "id", n.ID(), "addr", &net.TCPAddr{IP: n.IP(), Port: n.TCP()}, "err", err)
+			log.DLogger.Debug("Skipping dial candidate", zap.Any("id", n.ID()), zap.Any("addr", &net.TCPAddr{IP: n.IP(), Port: n.TCP()}), zap.Error(err))
 			return false
 		}
 		s.dialing[n.ID()] = flag
-		log.P2P.Info("newTasks the add dial task dest node is:", "dest", n.String())
+		log.DLogger.Info("newTasks the add dial task dest node is:", zap.String("dest", n.String()))
 		newtasks = append(newtasks, &dialTask{flags: flag, dest: n})
 		return true
 	}
@@ -197,11 +198,11 @@ func (s *dialstate) newTasks(nRunning int, peers map[enode.ID]*Peer, now time.Ti
 		err := s.checkDial(t.dest, peers)
 		switch err {
 		case errNotWhitelisted, errSelf:
-			log.Warn("Removing static dial candidate", "id", t.dest.ID, "addr", &net.TCPAddr{IP: t.dest.IP(), Port: t.dest.TCP()}, "err", err)
+			log.DLogger.Warn("Removing static dial candidate", zap.Any("id", t.dest.ID), zap.Any("addr", &net.TCPAddr{IP: t.dest.IP(), Port: t.dest.TCP()}), zap.Error(err))
 			delete(s.static, t.dest.ID())
 		case nil:
 			s.dialing[id] = t.flags
-			log.P2P.Info("newTasks the add static dial task dest node is:", "t", t.String())
+			log.DLogger.Info("newTasks the add static dial task dest node is:", zap.String("t", t.String()))
 			newtasks = append(newtasks, t)
 		}
 	}
@@ -212,7 +213,7 @@ func (s *dialstate) newTasks(nRunning int, peers map[enode.ID]*Peer, now time.Ti
 		bootnode := s.bootnodes[0]
 		s.bootnodes = append(s.bootnodes[:0], s.bootnodes[1:]...)
 		s.bootnodes = append(s.bootnodes, bootnode)
-		log.P2P.Info("newTasks addDial boot node", "bootNode", bootnode.String())
+		log.DLogger.Info("newTasks addDial boot node", zap.String("bootNode", bootnode.String()))
 		if addDial(dynDialedConn, bootnode) {
 			needDynDials--
 		}
@@ -222,7 +223,7 @@ func (s *dialstate) newTasks(nRunning int, peers map[enode.ID]*Peer, now time.Ti
 	randomCandidates := needDynDials / 2
 	if randomCandidates > 0 {
 		n := s.ntab.ReadRandomNodes(s.randomNodes)
-		log.P2P.Info("newTasks addDial the read randomNodes from table is:", "randomNodes", s.randomNodes)
+		log.DLogger.Info("newTasks addDial the read randomNodes from table is:", zap.Any("randomNodes", s.randomNodes))
 		for i := 0; i < randomCandidates && i < n; i++ {
 			if addDial(dynDialedConn, s.randomNodes[i]) {
 				needDynDials--
@@ -231,7 +232,7 @@ func (s *dialstate) newTasks(nRunning int, peers map[enode.ID]*Peer, now time.Ti
 	}
 	// Create dynamic dials from random lookup results, removing tried
 	// items from the result buffer.
-	log.P2P.Info("newTasks the lookupBuf and needDynDials　is:", "needDynDials", needDynDials, "lookupBuf", s.lookupBuf)
+	log.DLogger.Info("newTasks the lookupBuf and needDynDials　is:", zap.Int("needDynDials", needDynDials), zap.Any("lookupBuf", s.lookupBuf))
 	i := 0
 	for ; i < len(s.lookupBuf) && needDynDials > 0; i++ {
 		if addDial(dynDialedConn, s.lookupBuf[i]) {
@@ -242,7 +243,7 @@ func (s *dialstate) newTasks(nRunning int, peers map[enode.ID]*Peer, now time.Ti
 	// Launch a discovery lookup if more candidates are needed.
 	if len(s.lookupBuf) < needDynDials && !s.lookupRunning {
 		s.lookupRunning = true
-		log.P2P.Info("newTasks add discover task~~~")
+		log.DLogger.Info("newTasks add discover task~~~")
 		newtasks = append(newtasks, &discoverTask{})
 	}
 
@@ -301,7 +302,7 @@ func (t *dialTask) Do(srv *Server) {
 	}
 	err := t.dial(srv, t.dest)
 	if err != nil {
-		log.Debug("Dial error", "task", t, "err", err)
+		log.DLogger.Debug("Dial error", zap.Any("task", t), zap.Error(err))
 		// Try resolving the ID of static nodes if dialing failed.
 		if _, ok := err.(*dialError); ok && t.flags&staticDialedConn != 0 {
 			if t.resolve(srv) {
@@ -319,7 +320,7 @@ func (t *dialTask) Do(srv *Server) {
 // The backoff delay resets when the node is found.
 func (t *dialTask) resolve(srv *Server) bool {
 	if srv.ntab == nil {
-		log.Debug("Can't resolve node", "id", t.dest.ID, "err", "discovery is disabled")
+		log.DLogger.Debug("Can't resolve node", zap.Any("id", t.dest.ID), zap.String("err", "discovery is disabled"))
 		return false
 	}
 	if t.resolveDelay == 0 {
@@ -335,13 +336,13 @@ func (t *dialTask) resolve(srv *Server) bool {
 		if t.resolveDelay > maxResolveDelay {
 			t.resolveDelay = maxResolveDelay
 		}
-		log.Debug("Resolving node failed", "id", t.dest.ID, "newdelay", t.resolveDelay)
+		log.DLogger.Debug("Resolving node failed", zap.Any("id", t.dest.ID), zap.Duration("newdelay", t.resolveDelay))
 		return false
 	}
 	// The node was found.
 	t.resolveDelay = initialResolveDelay
 	t.dest = resolved
-	log.Debug("Resolved node", "id", t.dest.ID, "addr", &net.TCPAddr{IP: t.dest.IP(), Port: t.dest.TCP()})
+	log.DLogger.Debug("Resolved node", zap.Any("id", t.dest.ID), zap.Any("addr", &net.TCPAddr{IP: t.dest.IP(), Port: t.dest.TCP()}))
 	return true
 }
 

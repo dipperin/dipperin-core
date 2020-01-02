@@ -21,12 +21,13 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/g-metrics"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/csbft/components"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -87,7 +88,7 @@ func NewStateHandler(bftConfig *BftConfig, timeConfig Config, blockPool *compone
 	h.BftConfig = bftConfig
 
 	//Setup service
-	h.BaseService = *util.NewBaseService(log.Root(), "cs_bft", h)
+	h.BaseService = *util.NewBaseService(log.DLogger, "cs_bft", h)
 
 	//Update state
 	curHeight := h.ChainReader.CurrentBlock().Number()
@@ -97,7 +98,7 @@ func NewStateHandler(bftConfig *BftConfig, timeConfig Config, blockPool *compone
 }
 
 func (h *StateHandler) OnStart() error {
-	log.PBft.Info("StateHandler OnStart~~~~~~~~~~~~~~~~~")
+	log.DLogger.Info("StateHandler OnStart~~~~~~~~~~~~~~~~~")
 	h.ticker = components.NewTimeoutTicker()
 	h.ticker.Start()
 	go h.loop()
@@ -134,15 +135,15 @@ func (h *StateHandler) loop() {
 		case m := <-h.getProposalBlockChan:
 			h.onGetProposalBlock(m)
 		case <-h.Quit():
-			log.PBft.Info("state handler stopped")
+			log.DLogger.Info("state handler stopped")
 			return
 		}
 	}
 }
 
 func (h *StateHandler) OnNewHeight(height uint64) {
-	log.PBft.Info("[**********************start new Block************************]")
-	log.PBft.Info("[StateHandler-OnNewHeight]", "height", height)
+	log.DLogger.Info("[**********************start new Block************************]")
+	log.DLogger.Info("[StateHandler-OnNewHeight]", zap.Uint64("height", height))
 	if h.metricTimer == nil {
 		h.metricTimer = g_metrics.NewTimer(g_metrics.PBFTValidBlockDuration)
 	}
@@ -155,7 +156,7 @@ func (h *StateHandler) OnNewHeight(height uint64) {
 	if height > 1 {
 		seenCommit := h.ChainReader.GetSeenCommit(chainHeight)
 		if len(seenCommit) == 0 {
-			log.Error(g_error.ErrCannotLoadSeenCommit.Error(), "chainHeight", chainHeight)
+			log.DLogger.Error(g_error.ErrCannotLoadSeenCommit.Error(), zap.Uint64("chainHeight", chainHeight))
 			return
 		}
 		round = h.ChainReader.GetSeenCommit(chainHeight)[0].GetRound()
@@ -164,7 +165,7 @@ func (h *StateHandler) OnNewHeight(height uint64) {
 	h.blockPool.NewHeight(height)
 
 	Block := h.ChainReader.CurrentBlock()
-	log.PBft.Debug("New Height Called", "height", height, "chain height", Block.Number())
+	log.DLogger.Debug("New Height Called", zap.Uint64("height", height), zap.Uint64("chain height", Block.Number()))
 	// check where it is a change point, add verifiers list and set round as 0
 	if h.ChainReader.IsChangePoint(Block, false) {
 		verifiers := h.ChainReader.GetNextVerifiers()
@@ -173,15 +174,15 @@ func (h *StateHandler) OnNewHeight(height uint64) {
 	}
 
 	h.bs.OnNewHeight(height, round+1, h.ChainReader.GetCurrVerifiers())
-	log.PBft.Debug(fmt.Sprintf("EnterNewHeight (H: %v, R: %v, S: %v)", h.bs.Height, h.bs.Round, h.bs.Step))
+	log.DLogger.Debug(fmt.Sprintf("EnterNewHeight (H: %v, R: %v, S: %v)", h.bs.Height, h.bs.Round, h.bs.Step))
 }
 
 func (h *StateHandler) OnNewRound(nRound *model2.NewRoundMsg) {
-	log.PBft.Info("[StateHandler-OnNewRound]", "address", nRound.Witness.Address.Hex(), "round", nRound.Round, "Height", nRound.Height)
+	log.DLogger.Info("[StateHandler-OnNewRound]", zap.String("address", nRound.Witness.Address.Hex()), zap.Uint64("round", nRound.Round), zap.Uint64("Height", nRound.Height))
 	_, preRound, preStep := h.RecordCurState()
 	h.bs.OnNewRound(nRound)
 	_, curRound, curStep := h.RecordCurState()
-	log.PBft.Info(fmt.Sprintf("New round msg, state change from (R:%v, S:%s) to (R:%v, S:%s)", preRound, preStep, curRound, curStep))
+	log.DLogger.Info(fmt.Sprintf("New round msg, state change from (R:%v, S:%s) to (R:%v, S:%s)", preRound, preStep, curRound, curStep))
 
 	// A new round message, lead to state machine change state not more than 3 times.
 	// 1. Catch up with new round.
@@ -211,49 +212,49 @@ func (h *StateHandler) OnNewRound(nRound *model2.NewRoundMsg) {
 	case preStep == model2.RoundStepNewRound && curStep == model2.RoundStepPropose:
 		//fmt.Println("enter","id",reflect.ValueOf(h.bs).Pointer())
 		if preRound != curRound {
-			log.PBft.Info("[StateHandler-OnNewRound]:onEnterNewRound catch up round")
+			log.DLogger.Info("[StateHandler-OnNewRound]:onEnterNewRound catch up round")
 		}
-		log.PBft.Info("[StateHandler-OnNewRound]:onEnterPropose", "pre", preStep, "new", curStep)
+		log.DLogger.Info("[StateHandler-OnNewRound]:onEnterPropose", "pre", preStep, "new", curStep)
 		h.onEnterPropose()
 	case preStep == model2.RoundStepNewRound && curStep == model2.RoundStepPreVote:
-		log.PBft.Info("[StateHandler-OnNewRound]: onEnterPrevote", "pre", preStep, "new", curStep)
+		log.DLogger.Info("[StateHandler-OnNewRound]: onEnterPrevote", "pre", preStep, "new", curStep)
 		h.onEnterPrevote()
 	default:
-		log.PBft.Info("[StateHandler-OnNewRound]:on new round", "pre", preStep, "new", curStep)
+		log.DLogger.Info("[StateHandler-OnNewRound]:on new round", "pre", preStep, "new", curStep)
 	}*/
 }
 
 func (h *StateHandler) OnBlockPoolNotEmpty() {
-	log.PBft.Info("[StateHandler-OnBlockPoolNotEmpty]")
+	log.DLogger.Info("[StateHandler-OnBlockPoolNotEmpty]")
 	_, preRound, preStep := h.RecordCurState()
 	h.bs.OnBlockPoolNotEmpty()
 	_, curRound, curStep := h.RecordCurState()
-	log.PBft.Info(fmt.Sprintf("Block pool not empty, state change from (R:%v, S:%s) to (R:%v, S:%s)", preRound, preStep, curRound, curStep))
+	log.DLogger.Info(fmt.Sprintf("Block pool not empty, state change from (R:%v, S:%s) to (R:%v, S:%s)", preRound, preStep, curRound, curStep))
 
 	//Fixme (R:3, S:NewHeight) if get 2/3 vote on round 4 before block pool not empty; state machine jumped into NewRound step, and ignore this msg
 	switch {
 	case preStep == model2.RoundStepNewHeight && curStep == model2.RoundStepNewRound:
-		log.PBft.Info("[StateHandler-OnBlockPoolNotEmpty]:onEnterNewRound")
+		log.DLogger.Info("[StateHandler-OnBlockPoolNotEmpty]:onEnterNewRound")
 		h.onEnterNewRound()
 	default:
-		log.PBft.Info("[StateHandler-OnBlockPoolNotEmpty]:block pool not empty", "pre", preStep, "new", curStep)
+		log.DLogger.Info("[StateHandler-OnBlockPoolNotEmpty]:block pool not empty", zap.Any("pre", preStep), zap.Any("new", curStep))
 	}
 }
 
 func (h *StateHandler) OnNewProposal(proposal *model2.Proposal) {
-	log.PBft.Info("[StateHandler-OnNewProposal]", "block", proposal.BlockID.Hex())
+	log.DLogger.Info("[StateHandler-OnNewProposal]", zap.String("block", proposal.BlockID.Hex()))
 	if !h.bs.validProposal(proposal) {
 		return
 	}
-	log.PBft.Info("[StateHandler-OnNewProposal] proposal accepted, try fetching block", "block", proposal.BlockID.Hex())
+	log.DLogger.Info("[StateHandler-OnNewProposal] proposal accepted, try fetching block", zap.String("block", proposal.BlockID.Hex()))
 	block := h.fetchProposalBlock(proposal.BlockID, proposal.Witness.Address)
 	if block == nil || block.IsSpecial() {
-		log.PBft.Info("[StateHandler-OnNewProposal] fetch block failed", "block", proposal.BlockID.Hex())
+		log.DLogger.Info("[StateHandler-OnNewProposal] fetch block failed", zap.String("block", proposal.BlockID.Hex()))
 		return
 	}
 
 	if err := h.Validator.FullValid(block); err != nil {
-		log.PBft.Info("[StateHandler-OnNewProposal] proposed block not valide", "block", proposal.BlockID.Hex())
+		log.DLogger.Info("[StateHandler-OnNewProposal] proposed block not valide", zap.String("block", proposal.BlockID.Hex()))
 		return
 	}
 
@@ -264,7 +265,7 @@ func (h *StateHandler) OnNewProposal(proposal *model2.Proposal) {
 	_, preRound, preStep := h.RecordCurState()
 	h.bs.OnNewProposal(proposal, block)
 	_, curRound, curStep := h.RecordCurState()
-	log.PBft.Info(fmt.Sprintf("Receive proposal, state change from (R:%v, S:%s) to (R:%v, S:%s)", preRound, preStep, curRound, curStep))
+	log.DLogger.Info(fmt.Sprintf("Receive proposal, state change from (R:%v, S:%s) to (R:%v, S:%s)", preRound, preStep, curRound, curStep))
 
 	switch {
 	case preRound != curRound:
@@ -281,67 +282,65 @@ func (h *StateHandler) OnNewProposal(proposal *model2.Proposal) {
 	case preStep == model2.RoundStepNewHeight && curStep == model2.RoundStepNewRound:
 		h.onEnterNewRound()
 	default:
-		log.PBft.Error(fmt.Sprintf("Receive proposal, state change from (R:%v, S:%s) to (R:%v, S:%s)", preRound, preStep, curRound, curStep))
+		log.DLogger.Error(fmt.Sprintf("Receive proposal, state change from (R:%v, S:%s) to (R:%v, S:%s)", preRound, preStep, curRound, curStep))
 		panic("unexpected state change")
 	}
 
 	//fixme Add other cases
 	/*switch {
 	case preStep == model2.RoundStepPropose && curStep == model2.RoundStepPreVote:
-		log.PBft.Info("[StateHandler-OnNewProposal]:onEnterPrevote")
+		log.DLogger.Info("[StateHandler-OnNewProposal]:onEnterPrevote")
 		h.onEnterPrevote()
 	default:
-		log.PBft.Info("[StateHandler-OnNewProposal]:block pool not empty", "pre", preStep, "new", curStep)
+		log.DLogger.Info("[StateHandler-OnNewProposal]:block pool not empty", "pre", preStep, "new", curStep)
 	}*/
 }
 
 func (h *StateHandler) OnPreVote(pv *model.VoteMsg) {
-	log.PBft.Info("[StateHandler-OnPreVote]")
+	log.DLogger.Info("[StateHandler-OnPreVote]")
 	_, preRound, preStep := h.RecordCurState()
 	h.bs.OnPreVote(pv)
 	_, curRound, curStep := h.RecordCurState()
-	log.PBft.Info(fmt.Sprintf("Prevote, state change from (R:%v, S:%s) to (R:%v, S:%s)", preRound, preStep, curRound, curStep))
+	log.DLogger.Info(fmt.Sprintf("Prevote, state change from (R:%v, S:%s) to (R:%v, S:%s)", preRound, preStep, curRound, curStep))
 
 	switch {
 	case preRound == curRound && preStep == model2.RoundStepPreVote && curStep == model2.RoundStepPreCommit:
 		h.onEnterPrecommit()
 	default:
-		log.PBft.Info("[StateHandler-OnPreVote]:on prevote", "pre", preStep, "new", curStep)
+		log.DLogger.Info("[StateHandler-OnPreVote]:on prevote", zap.Any("pre", preStep), zap.Any("new", curStep))
 	}
 }
 
 func (h *StateHandler) OnVote(v *model.VoteMsg) {
-	log.PBft.Debug("[StateHandler-OnVote]: handle new vote")
+	log.DLogger.Debug("[StateHandler-OnVote]: handle new vote")
 	blockId, commits := h.bs.OnVote(v)
 	if commits != nil {
-		log.PBft.Info("the commit 0 is:", "round", commits[0].GetRound(), "height", commits[0].GetHeight(), "blockId", commits[0].GetBlockId().Hex(), "address", commits[0].GetAddress().Hex())
+		log.DLogger.Info("the commit 0 is:", zap.Uint64("round", commits[0].GetRound()), zap.Uint64("height", commits[0].GetHeight()), zap.String("blockId", commits[0].GetBlockId().Hex()), zap.String("address", commits[0].GetAddress().Hex()))
 		block := h.bs.ProposalBlock.GetBlock(commits[0].GetRound())
 
 		if block == nil {
-			log.PBft.Info("not find the block in the state proposalBlockSet ")
+			log.DLogger.Info("not find the block in the state proposalBlockSet ")
 			block = h.fetchProposalBlock(blockId, h.bs.proposerAtRound(commits[0].GetRound()))
 		}
 
 		if block != nil {
-			log.PBft.Info("[StateHandler-OnVote]:finalBlock", "blockNumber", block.Number())
+			log.DLogger.Info("[StateHandler-OnVote]:finalBlock", zap.Uint64("blockNumber", block.Number()))
 			if h.metricTimer != nil {
 				h.metricTimer.ObserveDuration()
 				h.metricTimer = nil
 			}
 			h.finalBlock(block, commits)
-			log.PBft.Info("==================================pbft save block end=======================================")
-			log.PBft.Info("")
+			log.DLogger.Info("==================================pbft save block end=======================================")
+			log.DLogger.Info("")
 		}
 	}
 }
 
 func (h *StateHandler) OnTimeout(toutInfo components.TimeoutInfo) {
-	log.PBft.Info("[StateHandler-OnTimeout]", "height", toutInfo.Height, "round", toutInfo.Round, "step", toutInfo.Step, "duration", toutInfo.Duration)
+	log.DLogger.Info("[StateHandler-OnTimeout]", zap.Uint64("height", toutInfo.Height), zap.Uint64("round", toutInfo.Round), zap.Any("step", toutInfo.Step), zap.Duration("duration", toutInfo.Duration))
 	if toutInfo.Height != h.bs.Height || toutInfo.Round != h.bs.Round {
 		return
 	}
-	log.Health.Info("pbft state handler timeout", "height", toutInfo.Height, "round", toutInfo.Round, "step", toutInfo.Step, "duration", toutInfo.Duration)
-	//log.PBft.Info("Get timeout", "timeout info", toutInfo)
 	switch toutInfo.Step {
 	case model2.RoundStepPropose:
 		h.addTimeoutCount("RoundStepPropose")
@@ -373,7 +372,7 @@ func (h *StateHandler) broadcastNewRoundMsg() {
 
 	sign, err := h.BftConfig.Signer.SignHash(msg.Hash().Bytes())
 	if err != nil {
-		log.Warn("sign new round msg failed", "err", err)
+		log.DLogger.Warn("sign new round msg failed", zap.Error(err))
 		return
 	}
 	msg.Witness = &model.WitMsg{
@@ -381,7 +380,7 @@ func (h *StateHandler) broadcastNewRoundMsg() {
 		Sign:    sign,
 	}
 
-	log.PBft.Info("StateHandler#broadcastNewRoundMsg")
+	log.DLogger.Info("StateHandler#broadcastNewRoundMsg")
 	h.Sender.BroadcastMsg(uint64(model2.TypeOfNewRoundMsg), msg)
 	h.OnNewRound(msg)
 }
@@ -420,14 +419,14 @@ func (h *StateHandler) fetchProposalBlock(blockId common.Hash, from common.Addre
 func (h *StateHandler) onEnterNewRound() {
 	h.ticker.ScheduleTimeout(components.TimeoutInfo{Duration: h.timeoutConfig.WaitNewRound, Height: h.bs.Height, Round: h.bs.Round, Step: model2.RoundStepNewRound})
 
-	log.PBft.Debug(fmt.Sprintf("EnterNewRound (H: %v, R: %v, S: %v)", h.bs.Height, h.bs.Round, h.bs.Step))
+	log.DLogger.Debug(fmt.Sprintf("EnterNewRound (H: %v, R: %v, S: %v)", h.bs.Height, h.bs.Round, h.bs.Step))
 	h.broadcastNewRoundMsg()
 }
 
 func (h *StateHandler) onEnterPropose() {
 	h.ticker.ScheduleTimeout(components.TimeoutInfo{Duration: h.timeoutConfig.ProposalTimeout, Height: h.bs.Height, Round: h.bs.Round, Step: model2.RoundStepPropose})
 
-	log.PBft.Debug(fmt.Sprintf("EnterPropose (H: %v, R: %v, S: %v)", h.bs.Height, h.bs.Round, h.bs.Step))
+	log.DLogger.Debug(fmt.Sprintf("EnterPropose (H: %v, R: %v, S: %v)", h.bs.Height, h.bs.Round, h.bs.Step))
 
 	//fmt.Println("iscu","id",reflect.ValueOf(h.bs).Pointer(),"round",h.bs.Round,"iscu",h.isCurProposer())
 	if !h.isCurProposer() {
@@ -437,29 +436,29 @@ func (h *StateHandler) onEnterPropose() {
 	//fmt.Println("on enter proposal","id",reflect.ValueOf(h.bs).Pointer())
 	//Pick a valid block
 	block := h.bs.LockedBlock
-	//log.PBft.Info("[onEnterPropose] the block is:","block",block)
+	//log.DLogger.Info("[onEnterPropose] the block is:","block",block)
 	if block == nil {
 
 		block = h.blockPool.GetProposalBlock()
 		for block != nil && !block.IsSpecial() {
 			err := h.Validator.FullValid(block)
 			if err == nil {
-				log.PBft.Info(fmt.Sprintf("StateHandler#broadcastProposal  Get a good block from pool. CurMiss (H: %v, R: %v, S:%s)", h.bs.Height, h.bs.Round, h.bs.Step))
+				log.DLogger.Info(fmt.Sprintf("StateHandler#broadcastProposal  Get a good block from pool. CurMiss (H: %v, R: %v, S:%s)", h.bs.Height, h.bs.Round, h.bs.Step))
 				break
 			} else {
-				log.PBft.Error("StateHandler#broadcastProposal  valid propose block failed", "block hash", block.Hash().Hex(), "result", err)
+				log.DLogger.Error("StateHandler#broadcastProposal  valid propose block failed", zap.String("block hash", block.Hash().Hex()), zap.Error(err))
 			}
 			block = h.blockPool.GetProposalBlock()
 		}
 
 		//No valid block in pool
 		if block == nil {
-			log.PBft.Info(fmt.Sprintf("StateHandler#broadcastProposal  No valid block in pool, stop propose. CurMiss (H: %v, R: %v, S:%s)", h.bs.Height, h.bs.Round, h.bs.Step))
+			log.DLogger.Info(fmt.Sprintf("StateHandler#broadcastProposal  No valid block in pool, stop propose. CurMiss (H: %v, R: %v, S:%s)", h.bs.Height, h.bs.Round, h.bs.Step))
 			return
 		}
 	}
 
-	//log.PBft.Info("[onEnterPropose] get the proposal block is:","block",block)
+	//log.DLogger.Info("[onEnterPropose] get the proposal block is:","block",block)
 
 	msg := model2.Proposal{
 		Height:    h.bs.Height,
@@ -469,7 +468,7 @@ func (h *StateHandler) onEnterPropose() {
 	}
 	sign, err := h.BftConfig.Signer.SignHash(msg.Hash().Bytes())
 	if err != nil {
-		log.PBft.Warn("sign new round msg failed", "err", err)
+		log.DLogger.Warn("sign new round msg failed", zap.Error(err))
 		return
 	}
 	msg.Witness = &model.WitMsg{
@@ -491,21 +490,21 @@ func (h *StateHandler) onEnterPropose() {
 	case preStep == model2.RoundStepPropose && curStep == model2.RoundStepPreVote:
 		h.onEnterPrevote()
 	default:
-		log.PBft.Info("propose time out", "pre", preStep, "new", curStep)
+		log.DLogger.Info("propose time out", "pre", preStep, "new", curStep)
 	}*/
 }
 
 //New functions
 func (h *StateHandler) finalBlock(block model.AbstractBlock, commits []model.AbstractVerification) {
-	log.Health.Info("enter final block", "num", block.Number())
+	log.DLogger.Info("enter final block", zap.Uint64("num", block.Number()))
 	err := h.ChainReader.SaveBlock(block, commits)
 	if err != nil {
-		log.Health.Warn("pbft save block failed", "err", err)
+		log.DLogger.Warn("pbft save block failed", zap.Error(err))
 		if err.Error() != g_error.ErrAlreadyHaveThisBlock.Error() {
 			return
 		}
 	}
-	log.Health.Info("pbft save block success, broadcast it", "block", block.Number())
+	log.DLogger.Info("pbft save block success, broadcast it", zap.Uint64("block", block.Number()))
 	// broadcast result
 	h.Sender.BroadcastEiBlock(block)
 	// change to new height, clear block pool
@@ -516,7 +515,7 @@ func (h *StateHandler) onEnterPrevote() {
 	h.ticker.ScheduleTimeout(components.TimeoutInfo{Duration: h.timeoutConfig.WaitNewRound, Height: h.bs.Height, Round: h.bs.Round, Step: model2.RoundStepPreVote})
 	voteMsg := h.bs.makePrevote()
 
-	log.PBft.Debug(fmt.Sprintf("EnterPrevote (H: %v, R: %v, S: %v)", h.bs.Height, h.bs.Round, h.bs.Step))
+	log.DLogger.Debug(fmt.Sprintf("EnterPrevote (H: %v, R: %v, S: %v)", h.bs.Height, h.bs.Round, h.bs.Step))
 
 	if voteMsg != nil {
 		h.signAndPrevote(voteMsg)
@@ -524,7 +523,7 @@ func (h *StateHandler) onEnterPrevote() {
 }
 
 func (h *StateHandler) onNewRoundTimeout() {
-	log.PBft.Info("[StateHandler-onNewRoundTimeout]")
+	log.DLogger.Info("[StateHandler-onNewRoundTimeout]")
 	//Ignore this timeout when already entered other steps.
 	if h.bs.Step != model2.RoundStepNewRound {
 		return
@@ -546,54 +545,54 @@ func (h *StateHandler) onEnterPrecommit() {
 	h.ticker.ScheduleTimeout(components.TimeoutInfo{Duration: h.timeoutConfig.WaitNewRound, Height: h.bs.Height, Round: h.bs.Round, Step: model2.RoundStepPreCommit})
 	voteMsg := h.bs.makeVote()
 
-	log.PBft.Debug(fmt.Sprintf("EnterPrecommit (H: %v, R: %v, S: %v)", h.bs.Height, h.bs.Round, h.bs.Step))
+	log.DLogger.Debug(fmt.Sprintf("EnterPrecommit (H: %v, R: %v, S: %v)", h.bs.Height, h.bs.Round, h.bs.Step))
 	if voteMsg != nil {
 		h.signAndVote(voteMsg)
 	}
 }
 
 func (h *StateHandler) onProposeTimeout() {
-	log.PBft.Info("[StateHandler-onProposeTimeout]")
+	log.DLogger.Info("[StateHandler-onProposeTimeout]")
 	preStep := h.bs.Step
 	h.bs.OnProposeTimeout()
 	curStep := h.bs.Step
 
 	switch {
 	case preStep == model2.RoundStepPropose && curStep == model2.RoundStepNewRound:
-		log.PBft.Info("[StateHandler-onProposeTimeout]:onEnterNewRound")
+		log.DLogger.Info("[StateHandler-onProposeTimeout]:onEnterNewRound")
 		h.onEnterNewRound()
 	default:
-		log.PBft.Info("[StateHandler-onProposeTimeout]:block pool not empty", "pre", preStep, "new", curStep)
+		log.DLogger.Info("[StateHandler-onProposeTimeout]:block pool not empty", zap.Any("pre", preStep), zap.Any("new", curStep))
 	}
 }
 
 func (h *StateHandler) onPreVoteTimeout() {
-	log.PBft.Info("[StateHandler-onPreVoteTimeout]")
+	log.DLogger.Info("[StateHandler-onPreVoteTimeout]")
 	preStep := h.bs.Step
 	h.bs.OnPreVoteTimeout()
 	curStep := h.bs.Step
 
 	switch {
 	case preStep == model2.RoundStepPreVote && curStep == model2.RoundStepNewRound:
-		log.PBft.Info("[StateHandler-onPreVoteTimeout]:onEnterNewRound")
+		log.DLogger.Info("[StateHandler-onPreVoteTimeout]:onEnterNewRound")
 		h.onEnterNewRound()
 	default:
-		log.PBft.Info("[StateHandler-onPreVoteTimeout]: prevote time out", "pre", preStep, "new", curStep)
+		log.DLogger.Info("[StateHandler-onPreVoteTimeout]: prevote time out", zap.Any("pre", preStep), zap.Any("new", curStep))
 	}
 }
 
 func (h *StateHandler) onPreCommitTimeout() {
-	log.PBft.Info("[StateHandler-onPreCommitTimeout]")
+	log.DLogger.Info("[StateHandler-onPreCommitTimeout]")
 	preStep := h.bs.Step
 	h.bs.OnPreCommitTimeout()
 	curStep := h.bs.Step
 
 	switch {
 	case preStep == model2.RoundStepPreCommit && curStep == model2.RoundStepNewRound:
-		log.PBft.Info("[StateHandler-onPreCommitTimeout]:onEnterNewRound")
+		log.DLogger.Info("[StateHandler-onPreCommitTimeout]:onEnterNewRound")
 		h.onEnterNewRound()
 	default:
-		log.PBft.Info("[StateHandler-onPreCommitTimeout]:precommit time out", "pre", preStep, "new", curStep)
+		log.DLogger.Info("[StateHandler-onPreCommitTimeout]:precommit time out", zap.Any("pre", preStep), zap.Any("new", curStep))
 	}
 }
 
@@ -601,7 +600,7 @@ func (h *StateHandler) signAndPrevote(msg *model.VoteMsg) {
 	// sign msg
 	sign, err := h.BftConfig.Signer.SignHash(msg.Hash().Bytes())
 	if err != nil {
-		log.Warn("sign vote msg failed", "err", err)
+		log.DLogger.Warn("sign vote msg failed", zap.Error(err))
 		return
 	}
 	msg.Witness = &model.WitMsg{
@@ -618,7 +617,7 @@ func (h *StateHandler) signAndVote(msg *model.VoteMsg) {
 	// sign msg
 	sign, err := h.BftConfig.Signer.SignHash(msg.Hash().Bytes())
 	if err != nil {
-		log.Warn("sign vote msg failed", "err", err)
+		log.DLogger.Warn("sign vote msg failed", zap.Error(err))
 		return
 	}
 	msg.Witness = &model.WitMsg{
@@ -697,7 +696,7 @@ func (h *StateHandler) GetRoundMsg(height, round uint64) *model2.NewRoundMsg {
 	}
 	sign, err := h.Signer.SignHash(msg.Hash().Bytes())
 	if err != nil {
-		log.Warn("sign new round msg failed", "err", err)
+		log.DLogger.Warn("sign new round msg failed", zap.Error(err))
 		return nil
 	}
 	msg.Witness = &model.WitMsg{

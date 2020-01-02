@@ -19,11 +19,11 @@ package model
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"time"
 )
 
@@ -161,7 +161,7 @@ func (v VoteMsg) HaltedVoteValid(verifiers []common.Address) error {
 
 	recoverAddress, err := cs_crypto.RecoverAddressFromSig(v.Hash(), v.Witness.Sign)
 	if err != nil {
-		log.Halt.Error("recover Address error from witness")
+		log.DLogger.Error("recover Address error from witness")
 		return err
 	}
 
@@ -172,12 +172,12 @@ func (v VoteMsg) HaltedVoteValid(verifiers []common.Address) error {
 	if v.GetType() == VerBootNodeVoteMessage {
 		checkResult := CheckAddressIsVerifierBootNode(recoverAddress)
 		if !checkResult {
-			log.Halt.Warn("the Address isn't verifier boot node")
+			log.DLogger.Warn("the Address isn't verifier boot node")
 			return AddressIsNotVerifierBootNode
 		}
 	} else if v.GetType() == AliveVerifierVoteMessage {
 		if !CheckAddressIsCurrentVerifier(recoverAddress, verifiers) {
-			log.Halt.Warn("the Address isn't current verifier")
+			log.DLogger.Warn("the Address isn't current verifier")
 			return AddressIsNotCurrentVerifier
 		}
 	}

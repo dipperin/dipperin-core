@@ -20,11 +20,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/hashicorp/golang-lru"
+	"go.uber.org/zap"
 	"math"
 	"math/rand"
 	"strconv"
@@ -101,7 +102,7 @@ func (broadcaster *NewTxBroadcaster) onNewTx(msg p2p.Msg, p PmAbstractPeer) erro
 	txs, err := broadcaster.P2PMsgDecoder.DecodeTxsMsg(msg)
 
 	if err != nil {
-		log.Error("decode new tx msg failed", "err", err)
+		log.DLogger.Error("decode new tx msg failed", zap.Error(err))
 		return err
 	}
 
@@ -117,9 +118,9 @@ func (broadcaster *NewTxBroadcaster) onNewTx(msg p2p.Msg, p PmAbstractPeer) erro
 		// only for debug
 		//txSender, err := txs[i].Sender(nil)
 		//if err != nil {
-		//	log.Warn("get tx sender failed", "err", err)
+		//	log.DLogger.Warn("get tx sender failed", zap.Error(err))
 		//}
-		//log.Info("receive tx", "sender", txSender.Hex(), "tx id", txs[i].CalTxId())
+		//log.DLogger.Info("receive tx", "sender", txSender.Hex(), "tx id", txs[i].CalTxId())
 
 		targetReceiver.markTx(txs[i].CalTxId())
 	}
@@ -130,11 +131,11 @@ func (broadcaster *NewTxBroadcaster) onNewTx(msg p2p.Msg, p PmAbstractPeer) erro
 	// todo for debug
 	//startAt := time.Now()
 	errs := txPool.AddRemotes(txs)
-	//log.Info("add tx pool AddRemotes use time", "t", time.Now().Sub(startAt), "node", p.NodeName())
+	//log.DLogger.Info("add tx pool AddRemotes use time", "t", time.Now().Sub(startAt), "node", p.NodeName())
 
 	for i := range errs {
 		if errs[i] != nil {
-			log.Debug("tx pool AddRemotes error", "index", i, "err", errs[i])
+			log.DLogger.Debug("tx pool AddRemotes error", zap.Int("index", i), zap.Error(errs[i]))
 			//You cannot return err here, otherwise the peer will be disconnected.
 			return nil
 		}
@@ -259,7 +260,7 @@ func (broadcaster *NewTxBroadcaster) txSyncLoop() {
 		if len(s.txs) == 0 {
 			delete(pending, s.p.ID())
 		}
-		log.Info("Sending batch of transactions", "count", len(pack.txs), "bytes", size)
+		log.DLogger.Info("Sending batch of transactions", zap.Int("count", len(pack.txs)), zap.Any("bytes", size))
 		sending = true
 
 		getPeer := func() PmAbstractPeer {
@@ -296,7 +297,7 @@ func (broadcaster *NewTxBroadcaster) txSyncLoop() {
 			sending = false
 			// Stop tracking peers that cause send failures.
 			if err != nil {
-				log.Info("Transaction send failed", "err", err)
+				log.DLogger.Info("Transaction send failed", zap.Error(err))
 				delete(pending, pack.p.ID())
 			}
 			// Schedule the next send.
@@ -341,7 +342,7 @@ func (broadcaster *NewTxBroadcaster) newTxReceiver(peer PmAbstractPeer) *txRecei
 		}
 
 		if err := receiver.broadcast(getPeer); err != nil {
-			log.Error("tx broadcast error", "err", err, "peer name", peer.NodeName())
+			log.DLogger.Error("tx broadcast error", zap.Error(err), zap.String("peer name", peer.NodeName()))
 			return
 		}
 	}()
@@ -356,9 +357,9 @@ func (r *txReceiver) asyncSendTxs(txs []model.AbstractTransaction) {
 		//for _, tx := range txs {
 		//	r.knownTxs.Add(tx.CalTxId())
 		//}
-		log.Pm.Info("asyncSendTxs finished", "p", r.peerName)
+		log.DLogger.Info("asyncSendTxs finished", zap.String("p", r.peerName))
 	default:
-		log.Info("Dropping transaction propagation", "count", len(txs))
+		log.DLogger.Info("Dropping transaction propagation", zap.Int("count", len(txs)))
 	}
 }
 
@@ -371,8 +372,7 @@ func (r *txReceiver) broadcast(getPeer getPeerFunc) error {
 		select {
 		case txs := <-r.queuedTxs:
 			if err := r.sendTxs(txs, getPeer); err != nil {
-				log.Error("send txs err", "peer id", r.peerName, "err", err)
-				log.Pm.Info("send txs to peer", "n", r.peerName)
+				log.DLogger.Error("send txs err", zap.String("peer id", r.peerName), zap.Error(err))
 				return err
 			}
 		case <-timer.C:

@@ -111,7 +111,7 @@ func (b *BloomIndexer) Commit() error {
 		}
 		chaindb.BatchSaveBloomBits(batch, b.head, uint(i), b.section, bitutil.CompressBytes(bits))
 		//if err := batch.Put(bloomBitsKey(bit, section, head), bits); err != nil {
-		//	log.Error("Failed to store bloom bits", "err", err)
+		//	log.DLogger.Error("Failed to store bloom bits", "err", err)
 		//}
 	}
 	return batch.Write()

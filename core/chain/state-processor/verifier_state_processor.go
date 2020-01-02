@@ -19,10 +19,11 @@ package state_processor
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 )
 
@@ -33,7 +34,7 @@ Stake money from balance
 func (state *AccountStateDB) Stake(addr common.Address, amount *big.Int) error {
 	balance, err := state.GetBalance(addr)
 	if err != nil || balance.Cmp(amount) < 0 {
-		log.Debug("stake failed", "addr", addr.Hex(), "err", g_error.ErrBalanceNotEnough, "balance", balance, "amount", amount)
+		log.DLogger.Debug("stake failed", zap.String("addr", addr.Hex()), zap.Error(g_error.ErrBalanceNotEnough), zap.Any("balance", balance), zap.Any("amount", amount))
 		return g_error.ErrBalanceNotEnough
 	}
 	err = state.SubBalance(addr, amount)
@@ -48,7 +49,7 @@ func (state *AccountStateDB) Stake(addr common.Address, amount *big.Int) error {
 	if err != nil {
 		return err
 	}
-	log.PBft.Info("stake money", "address", addr.Hex(), "amount", amount)
+	log.DLogger.Info("stake money", zap.String("address", addr.Hex()), zap.Any("amount", amount))
 	return nil
 }
 
@@ -62,7 +63,7 @@ func (state *AccountStateDB) UnStake(addr common.Address) error {
 		return err
 	}
 	if amount.Cmp(big.NewInt(0)) == 0 {
-		log.Warn("unStake value is zero", "address", addr.Hex())
+		log.DLogger.Warn("unStake value is zero", zap.String("address", addr.Hex()))
 		return g_error.ErrStakeNotEnough
 	}
 	err = state.AddBalance(addr, amount)
@@ -73,7 +74,7 @@ func (state *AccountStateDB) UnStake(addr common.Address) error {
 	if err != nil {
 		return err
 	}
-	log.PBft.Info("unStake", "address", addr.Hex(), "amount", amount)
+	log.DLogger.Info("unStake", zap.String("address", addr.Hex()), zap.Any("amount", amount))
 	return nil
 }
 
@@ -84,7 +85,7 @@ func (state *AccountStateDB) MoveStakeToAddress(fromAdd common.Address, toAdd co
 		return err
 	}
 	if amount.Cmp(big.NewInt(0)) == 0 {
-		log.Warn("unStake value is zero", "address", fromAdd.Hex())
+		log.DLogger.Warn("unStake value is zero", zap.String("address", fromAdd.Hex()))
 		return g_error.ErrStakeNotEnough
 	}
 
@@ -104,7 +105,7 @@ func (state *AccountStateDB) MoveStakeToAddress(fromAdd common.Address, toAdd co
 	if err != nil {
 		return err
 	}
-	log.PBft.Debug("move stake", "from", fromAdd.Hex(), "to", toAdd.Hex(), "amount", amount)
+	log.DLogger.Debug("move stake", zap.String("from", fromAdd.Hex()), zap.String("to", toAdd.Hex()), zap.Any("amount", amount))
 	return nil
 }
 
@@ -132,7 +133,7 @@ func (state *AccountStateDB) processStakeTx(tx model.AbstractTransaction) (err e
 	}
 
 	if stake.Cmp(big.NewInt(0)) == 0 && tx.Amount().Cmp(big.NewInt(minStake)) == -1 {
-		log.Debug("process register transaction failed", "err", g_error.ErrStakeNotEnough)
+		log.DLogger.Debug("process register transaction failed", zap.Error(g_error.ErrStakeNotEnough))
 		return g_error.ErrStakeNotEnough
 	}
 
@@ -141,7 +142,7 @@ func (state *AccountStateDB) processStakeTx(tx model.AbstractTransaction) (err e
 	if err != nil {
 		return
 	}
-	log.PBft.Info("success process a register transaction", "Tx hash", tx.CalTxId().Hex())
+	log.DLogger.Info("success process a register transaction", zap.String("Tx hash", tx.CalTxId().Hex()))
 
 	//TODO add receipt?
 	return
@@ -181,7 +182,7 @@ func (state *AccountStateDB) processCancelTx(tx model.AbstractTransaction, num u
 	if err != nil {
 		return
 	}
-	log.PBft.Info("success process a cancel transaction", "Tx hash", tx.CalTxId().Hex())
+	log.DLogger.Info("success process a cancel transaction", zap.String("Tx hash", tx.CalTxId().Hex()))
 
 	//TODO add receipt return?
 	return
@@ -223,7 +224,7 @@ func (state *AccountStateDB) processUnStakeTx(tx model.AbstractTransaction) (err
 	if err != nil {
 		return
 	}
-	log.PBft.Info("success process a unStake transaction", "Tx hash", tx.CalTxId().Hex())
+	log.DLogger.Info("success process a unStake transaction", zap.String("Tx hash", tx.CalTxId().Hex()))
 
 	//TODO add receipt return?
 	return

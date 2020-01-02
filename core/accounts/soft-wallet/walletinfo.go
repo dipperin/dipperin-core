@@ -22,8 +22,9 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/accounts"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 	"sync"
 )
@@ -151,7 +152,7 @@ func (w *WalletInfo) HdWalletInfoDecodeJson(decodeData []byte) (err error) {
 	defer w.lock.Unlock()
 
 	tmpData := NewHdWalletInfoJson()
-	//log.Debug(string(decodeData))
+	//log.DLogger.Debug(string(decodeData))
 	err = json.Unmarshal(decodeData, tmpData)
 	if err != nil {
 		return err
@@ -187,7 +188,7 @@ func (w *WalletInfo) GenerateKeyFromSeedAndPath(derivedPath string, index uint32
 	w.lock.Lock()
 	defer w.lock.Unlock()
 
-	log.Debug("the wallet seed is：", "seed", hexutil.Encode(w.Seed))
+	log.DLogger.Debug("the wallet seed is：", zap.String("seed", hexutil.Encode(w.Seed)))
 	//generate master key according to seed
 	extKey, err := NewMaster(w.Seed, &DipperinChainCfg)
 	if err != nil {
@@ -202,7 +203,7 @@ func (w *WalletInfo) GenerateKeyFromSeedAndPath(derivedPath string, index uint32
 	}
 	Path = append(Path, index)
 
-	log.Debug("the Path is: ", "path", Path)
+	log.DLogger.Debug("the Path is: ", zap.Any("path", Path))
 	for _, value := range Path {
 		extKey, err = extKey.Child(value)
 		if err != nil {
@@ -224,7 +225,7 @@ func (w *WalletInfo) paddingUsedAccount(GetAddressRelatedInfo accounts.AddressIn
 		//derived path to use
 		tmpPath[len(tmpPath)-1] = w.DerivedPathIndex[DefaultAccountValue] + 1
 
-		log.Info("the tmpPath is:", "tmpPath", tmpPath.String())
+		log.DLogger.Info("the tmpPath is:", zap.String("tmpPath", tmpPath.String()))
 		//determine if the derived path is legal
 		isValid, err := CheckDerivedPathValid(tmpPath)
 		if err != nil || !isValid {
@@ -237,7 +238,7 @@ func (w *WalletInfo) paddingUsedAccount(GetAddressRelatedInfo accounts.AddressIn
 			return err
 		}
 
-		log.Info("Derive tmpPath is:", "tmpPath", tmpPath)
+		log.DLogger.Info("Derive tmpPath is:", zap.Any("tmpPath", tmpPath))
 		//Generate derived keys based on path parameters and master key
 		for _, value := range tmpPath {
 			var err error
@@ -261,7 +262,7 @@ func (w *WalletInfo) paddingUsedAccount(GetAddressRelatedInfo accounts.AddressIn
 				return err
 			}
 		} else {
-			log.Info("the used address is:", "address", account.Address.Hex())
+			log.DLogger.Info("the used address is:", zap.String("address", account.Address.Hex()))
 			balance := GetAddressRelatedInfo.CurrentBalance(account.Address)
 			w.Accounts = append(w.Accounts, account)
 			w.Paths[account.Address] = tmpPath
@@ -304,9 +305,9 @@ func (w *WalletInfo) PaddingAddressNonce(GetAddressRelatedInfo accounts.AddressI
 
 	for _, account := range w.Accounts {
 		currentNonce, err := GetAddressRelatedInfo.GetTransactionNonce(account.Address)
-		log.Error("PaddingAddressNonce GetTransactionNonce error", "err", err)
-		log.Info("the padding address is:", "address", account.Address.Hex())
-		log.Info("PaddingAddressNonce is: ", "currentNonce", currentNonce)
+		log.DLogger.Error("PaddingAddressNonce GetTransactionNonce error", zap.Error(err))
+		log.DLogger.Info("the padding address is:", zap.String("address", account.Address.Hex()))
+		log.DLogger.Info("PaddingAddressNonce is: ", zap.Uint64("currentNonce", currentNonce))
 		w.Nonce[account.Address] = currentNonce
 	}
 	return nil

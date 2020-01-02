@@ -21,9 +21,10 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/economy-model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 	"sync"
 )
@@ -192,7 +193,7 @@ func (earlyToken *EarlyRewardContract) TransferEDIPToDIP(from common.Address, eD
 	//check whether address is normal
 	addressType := earlyToken.getDipperinFoundation().GetAddressType(from)
 	if addressType != economy_model.NotFoundationAddress {
-		log.Info("the addressType is:", "addressType", addressType)
+		log.DLogger.Info("the addressType is:", zap.Any("addressType", addressType))
 		return errors.New("the address isn't NotFoundationAddress")
 	}
 
@@ -200,7 +201,7 @@ func (earlyToken *EarlyRewardContract) TransferEDIPToDIP(from common.Address, eD
 		return errors.New("the token isn't enough")
 	}
 
-	log.Info("the eDIP value is:", "eDIP", eDIPValue)
+	log.DLogger.Info("the eDIP value is:", zap.Any("eDIP", eDIPValue))
 
 	//calculate DIP needed
 	decimal := earlyToken.Decimals()
@@ -208,7 +209,7 @@ func (earlyToken *EarlyRewardContract) TransferEDIPToDIP(from common.Address, eD
 	DIP := big.NewInt(0)
 	currentExchangeRate := earlyToken.ExchangeRate[len(earlyToken.ExchangeRate)-1]
 
-	log.Info("the currentExchangeRate is:", "currentExchangeRate", currentExchangeRate)
+	log.DLogger.Info("the currentExchangeRate is:", zap.Int64("currentExchangeRate", currentExchangeRate))
 
 	DIP.Mul(eDIPValue.ToInt(), big.NewInt(currentExchangeRate))
 	DIP.Mul(DIP, big.NewInt(consts.DIP))
@@ -284,8 +285,8 @@ func (earlyToken *EarlyRewardContract) RewardMineMaster(DIPReward *big.Int, bloc
 		return err
 	}
 
-	log.Info("the token owner value is:", "value", earlyToken.Balances[earlyToken.Owner.Hex()])
-	log.Info("the rewardEDIP value is:", "rewardEDIP", rewardEDIP)
+	log.DLogger.Info("the token owner value is:", zap.Any("value", earlyToken.Balances[earlyToken.Owner.Hex()]))
+	log.DLogger.Info("the rewardEDIP value is:", zap.Any("rewardEDIP", rewardEDIP))
 	if rewardEDIP.Cmp(big.NewInt(0)) == 0 {
 		return nil
 	}

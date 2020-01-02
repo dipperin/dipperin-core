@@ -19,9 +19,10 @@ package minemaster
 import (
 	"errors"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 // context must have workBuilder workBuilder, blockBuilder blockBuilder, curCoinbaseAddressFunc curCoinbaseAddressFunc
@@ -48,48 +49,48 @@ func (dispatcher *workDispatcher) onNewBlock(block model.AbstractBlock) error {
 	// new block num equal or bigger than cur work block num, reset work and dispatch a new
 	if dispatcher.curWorkBlock() != nil {
 		if block.Number() < dispatcher.curWorkBlock().Number() {
-			//log.Warn("new block is smaller than cur work, nothing to do", "block num", block.Number())
+			//log.DLogger.Warn("new block is smaller than cur work, nothing to do", "block num", block.Number())
 			return fmt.Errorf("new block is smaller than cur work, nothing to do block num: %v", block.Number())
 		}
 	}
 
-	//log.Info("mine dispatcher receive new block", "b num", block.Number(), "cur b num", dispatcher.curWorkBlock().Number())
+	//log.DLogger.Info("mine dispatcher receive new block", "b num", block.Number(), "cur b num", dispatcher.curWorkBlock().Number())
 
 	if err := dispatcher.dispatchNewWork(); err != nil {
-		//log.Warn("new block come in, but dispatch work failed", "err", err, "worker len", len(dispatcher.getWorkersFunc()))
+		//log.DLogger.Warn("new block come in, but dispatch work failed", "err", err, "worker len", len(dispatcher.getWorkersFunc()))
 		return fmt.Errorf("new block come in, but dispatch work failed err: %v, worker len: %v", err, len(dispatcher.getWorkersFunc()))
 	}
 	return nil
 }
 
 func (dispatcher *workDispatcher) dispatchNewWork() error {
-	log.PBft.Debug("dispatch mine work")
+	log.DLogger.Debug("dispatch mine work")
 	workers := dispatcher.getWorkersFunc()
 	workersLen := len(workers)
 	if workersLen == 0 {
-		log.Error("no worker to dispatch work", "worker len", workersLen)
+		log.DLogger.Error("no worker to dispatch work", zap.Int("worker len", workersLen))
 		return errors.New("no worker to dispatch work")
 	}
 	workMsgCode, works := dispatcher.makeNewWorks(workersLen)
 
 	if len(works) < workersLen {
-		log.Error("can't dispatch work, gen works failed", "works len", len(works))
+		log.DLogger.Error("can't dispatch work, gen works failed", zap.Int("works len", len(works)))
 		return errors.New("can't dispatch work, gen works failed")
 	}
 
-	//log.Debug("dispatch new work", "workers len", workersLen)
+	//log.DLogger.Debug("dispatch new work", "workers len", workersLen)
 	i := 0
 	for _, w := range workers {
 		w.SendNewWork(workMsgCode, works[i])
 		i++
 	}
-	log.PBft.Debug("finish dispatch mine work")
-	log.Info("finish dispatch work")
+	log.DLogger.Debug("finish dispatch mine work")
+	log.DLogger.Info("finish dispatch work")
 	return nil
 }
 
 func (dispatcher *workDispatcher) makeNewWorks(workerLen int) (workMsgCode int, works []minemsg.Work) {
-	log.PBft.Debug("make new works")
+	log.DLogger.Debug("make new works")
 	coinBaseAddr := dispatcher.GetCoinbaseAddr()
 	gasFloor := dispatcher.GetGasFloor()
 	gasCeil := dispatcher.GetGasCeil()

@@ -17,11 +17,12 @@
 package components
 
 import (
+	"go.uber.org/zap"
 	"time"
 
+	"github.com/dipperin/dipperin-core/common/log"
 	cmn "github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/csbft/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 var (
@@ -95,7 +96,7 @@ func (t *timeoutTicker) Chan() <-chan TimeoutInfo {
 // The timeoutRoutine is always available to read from tickChan, so this won't block.
 // The scheduling may fail if the timeoutRoutine has already scheduled a timeout for a later height/round/step.
 func (t *timeoutTicker) ScheduleTimeout(ti TimeoutInfo) {
-	log.PBft.Debug("Schedule Timeout", "timeout info", ti, "is running", t.BaseService.IsRunning())
+	log.DLogger.Debug("Schedule Timeout", zap.Any("timeout info", ti), zap.Bool("is running", t.BaseService.IsRunning()))
 	t.tickChan <- ti
 }
 
@@ -120,18 +121,18 @@ func (t *timeoutTicker) timeoutRoutine() {
 	for {
 		select {
 		case newti := <-t.tickChan:
-			log.PBft.Debug("Received tick", "old_ti", ti, "new_ti", newti)
+			log.DLogger.Debug("Received tick", zap.Any("old_ti", ti), zap.Any("new_ti", newti))
 			// ignore tickers for old height/round/step
 			if newti.Height < ti.Height {
-				log.PBft.Warn("height too low, ignore ticker")
+				log.DLogger.Warn("height too low, ignore ticker")
 				continue
 			} else if newti.Height == ti.Height {
 				if newti.Round < ti.Round {
-					log.PBft.Warn("round too low, ignore ticker")
+					log.DLogger.Warn("round too low, ignore ticker")
 					continue
 				} else if newti.Round == ti.Round {
 					if ti.Step > 0 && newti.Step < ti.Step {
-						log.PBft.Warn("step must higher than latest, ignore ticker", "new step", newti.Step, "cur step", ti.Step)
+						log.DLogger.Warn("step must higher than latest, ignore ticker", zap.Any("new step", newti.Step), zap.Any("cur step", ti.Step))
 						continue
 					}
 				}
@@ -142,9 +143,9 @@ func (t *timeoutTicker) timeoutRoutine() {
 			// NOTE time.Timer allows duration to be non-positive
 			ti = newti
 			t.timer.Reset(ti.Duration)
-			log.PBft.Info("ticker reset", "dur", ti.Duration, "height", ti.Height, "round", ti.Round, "step", ti.Step)
+			log.DLogger.Info("ticker reset", zap.Duration("dur", ti.Duration), zap.Uint64("height", ti.Height), zap.Uint64("round", ti.Round), zap.Any("step", ti.Step))
 		case <-t.timer.C:
-			log.PBft.Info("ticker timed out", "dur", ti.Duration, "height", ti.Height, "round", ti.Round, "step", ti.Step)
+			log.DLogger.Info("ticker timed out", zap.Duration("dur", ti.Duration), zap.Uint64("height", ti.Height), zap.Uint64("round", ti.Round), zap.Any("step", ti.Step))
 			// go routine here guarantees timeoutRoutine doesn't block.
 			// Determinism comes from playback in the receiveRoutine.
 			// We can eliminate it by merging the timeoutRoutine into receiveRoutine

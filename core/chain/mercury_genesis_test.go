@@ -22,11 +22,12 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -74,7 +75,7 @@ func TestSetupGenesisBlock(t *testing.T) {
 	assert.NoError(t, err)
 	_, blockHash, err = SetupGenesisBlock(defaultGenesis)
 	expect := &GenesisMismatchError{block.Hash(), genesisBlock.Hash()}
-	log.Debug("GenesisMismatchError", "err", expect.Error())
+	log.DLogger.Debug("GenesisMismatchError", zap.Error(expect))
 	assert.Equal(t, expect, err)
 	assert.Equal(t, genesisBlock.Hash(), blockHash)
 
@@ -239,7 +240,7 @@ func TestGenesis_SetEarlyTokenContract_Error(t *testing.T) {
 	err = defaultGenesis.SetEarlyTokenContract()
 	assert.Equal(t, g_error.ErrAccountNotExist, err)
 
-	log.Info("")
+	log.DLogger.Info("")
 	// set balance error
 	sProcessor, err = state_processor.MakeGenesisAccountStateProcessor(fakeStateStorage{
 		setErr:          TrieError,

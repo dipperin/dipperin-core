@@ -1,9 +1,10 @@
 package state_processor
 
 import (
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 type CallCode struct {
@@ -18,26 +19,26 @@ func (state *AccountStateDB) ProcessContract(conf *TxProcessConfig, create bool)
 	}
 	msg, err := conf.Tx.AsMessage(true)
 	if err != nil {
-		log.Error("AccountStateDB#ProcessContract", "as Message err", err)
+		log.DLogger.Error("AccountStateDB#ProcessContract", zap.Error(err))
 		return model.ReceiptPara{}, err
 	}
 	dvm := vm.NewVM(context, fullState, vm.DEFAULT_VM_CONFIG)
 	_, usedGas, failed, fee, err := ApplyMessage(dvm, &msg, conf.GasLimit)
 	if err != nil {
-		log.Error("AccountStateDB#ProcessContract", "ApplyMessage err", err)
+		log.DLogger.Error("AccountStateDB#ProcessContract", zap.Error(err))
 		return model.ReceiptPara{}, err
 	}
 
 	root, err := state.IntermediateRoot()
 	if err != nil {
-		log.Error("AccountStateDB#ProcessContract", "state finalise err", err)
+		log.DLogger.Error("AccountStateDB#ProcessContract", zap.Error(err))
 		return model.ReceiptPara{}, err
 	}
 
 	//padding fee and add block gasUsed
 	conf.TxFee = fee
 	*conf.GasUsed += usedGas
-	log.Info("ProcessContract", "CumulativeGasUsed", *conf.GasUsed, "usedGas", usedGas)
+	log.DLogger.Info("ProcessContract", zap.Uint64("CumulativeGasUsed", *conf.GasUsed), zap.Uint64("usedGas", usedGas))
 	return model.ReceiptPara{
 		Root:              root[:],
 		HandlerResult:     failed,

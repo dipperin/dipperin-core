@@ -19,13 +19,14 @@ package cs_chain
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/hashicorp/golang-lru"
+	"go.uber.org/zap"
 	"sync/atomic"
 )
 
@@ -97,7 +98,7 @@ type CacheChainState struct {
 func (chain *CacheChainState) SaveBftBlock(block model.AbstractBlock, seenCommits []model.AbstractVerification) error {
 	err := chain.WriterFactory.NewWriter(middleware.NewBftBlockContext(block, seenCommits, chain)).SaveBlock()
 	if err != nil {
-		log.Error("SaveBftBlock err", "err", err)
+		log.DLogger.Error("SaveBftBlock err", zap.Error(err))
 		return err
 	}
 
@@ -122,7 +123,7 @@ func (chain *CacheChainState) Genesis() model.AbstractBlock {
 		return genesisBlock
 	}
 
-	log.Error("chain state can't get genesis block")
+	log.DLogger.Error("chain state can't get genesis block")
 
 	return nil
 }

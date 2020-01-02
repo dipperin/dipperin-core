@@ -2,11 +2,11 @@ package call_node_rpc
 
 import (
 	"fmt"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/tests/vm"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/stretchr/testify/assert"
 	"path/filepath"
@@ -54,13 +54,13 @@ func Test_Http(t *testing.T) {
 	}
 	var resp interface{}
 	err = client.Call(resp, vm.GetRpcTXMethod("RestoreWallet"), password, mnemonic, "", identifier)
-	log.Info("the error is: ", "err", err)
+	log.DLogger.Info("the error is: ", "err", err)
 	assert.Error(t, err)
 
 	var resp1 rpc_interface.BlockResp
 	err = client.Call(&resp1, vm.GetRpcTXMethod("CurrentBlock"))
 	assert.NoError(t, err)
-	log.Info("the current block is:", "block", resp1)
+	log.DLogger.Info("the current block is:", "block", resp1)
 }
 
 func Test_WebSocket(t *testing.T) {
@@ -82,11 +82,11 @@ func Test_WebSocket(t *testing.T) {
 	}
 	var resp interface{}
 	err = client.Call(resp, vm.GetRpcTXMethod("RestoreWallet"), password, mnemonic, "", identifier)
-	log.Info("the error is: ", "err", err)
+	log.DLogger.Info("the error is: ", "err", err)
 	assert.Error(t, err)
 
 	var resp1 rpc_interface.BlockResp
 	err = client.Call(&resp1, vm.GetRpcTXMethod("CurrentBlock"))
 	assert.NoError(t, err)
-	log.Info("the current block is:", "block", resp1)
+	log.DLogger.Info("the current block is:", "block", resp1)
 }

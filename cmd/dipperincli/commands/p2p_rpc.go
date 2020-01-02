@@ -22,6 +22,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/urfave/cli"
+	"go.uber.org/zap"
 	"strings"
 )
 
@@ -45,12 +46,12 @@ func (caller *rpcCaller) AddPeer(c *cli.Context) {
 
 	var resp error
 	if err = client.Call(&resp, getP2pRpcMethodByName(mName), cParams[0]); err != nil {
-		l.Error("add peer error", "err", err)
+		l.Error("add peer error", zap.Error(err))
 		return
 	}
 
 	if resp != nil {
-		l.Error("add peer resp error", "err", err)
+		l.Error("add peer resp error", zap.Error(err))
 		return
 	}
 
@@ -66,7 +67,7 @@ func (caller *rpcCaller) Peers(c *cli.Context) {
 
 	var resp []*p2p.PeerInfo
 	if err = client.Call(&resp, getP2pRpcMethodByName(mName)); err != nil {
-		l.Error("get peers error", "err", err)
+		l.Error("get peers error", zap.Error(err))
 		return
 	}
 
@@ -78,14 +79,14 @@ func (caller *rpcCaller) Peers(c *cli.Context) {
 func (caller *rpcCaller) Debug(c *cli.Context) {
 	var respBlock rpc_interface.BlockResp
 	if err := client.Call(&respBlock, getDipperinRpcMethodByName("CurrentBlock")); err != nil {
-		l.Error("look up for current block", "err", err)
+		l.Error("look up for current block", zap.Error(err))
 		return
 	}
 
 	printBlockInfo(respBlock)
 	var resp p2p.CsPmPeerInfo
 	if err := client.Call(&resp, getP2pRpcMethodByName("CsPmInfo")); err != nil {
-		l.Error("add peer error", "err", err)
+		l.Error("add peer error", zap.Error(err))
 		return
 	}
 

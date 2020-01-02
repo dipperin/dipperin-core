@@ -21,7 +21,6 @@ import (
 	"github.com/dipperin/dipperin-core/cmd/dipperin/config"
 	"github.com/dipperin/dipperin-core/cmd/dipperin/service"
 	"github.com/dipperin/dipperin-core/cmd/utils/debug"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/urfave/cli"
 	"os"
@@ -29,7 +28,6 @@ import (
 )
 
 func main() {
-	log.Info("~~~~~~~~~start app ~~~~~~~~~~~~")
 	app := base.NewApp("dipperin", "dipperin node and console")
 	app.Flags = append(config.Flags, debug.Flags...)
 	app.Action = func(c *cli.Context) error {

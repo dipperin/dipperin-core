@@ -28,6 +28,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-metrics"
 	"github.com/dipperin/dipperin-core/common/g-timer"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
@@ -44,11 +45,11 @@ import (
 	"github.com/dipperin/dipperin-core/core/vm"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	vm_log_search "github.com/dipperin/dipperin-core/third-party/vm-log-search"
+	"go.uber.org/zap"
 	"math/big"
 	"os"
 	"strings"
@@ -157,14 +158,14 @@ type VenusFullChainService struct {
 // retrievals from possibly a range of filters and serving the data to satisfy.
 func (service *VenusFullChainService) startBloomHandlers(sectionSize uint64) {
 	for i := 0; i < vm_log_search.BloomServiceThreads; i++ {
-		//log.Info("VenusFullChainService#startBloomHandlers start")
+		//log.DLogger.Info("VenusFullChainService#startBloomHandlers start")
 		go func() {
 			for {
 				select {
 				case request := <-service.DipperinConfig.ChainIndex.BloomRequests:
-					//log.Info("VenusFullChainService#startBloomHandlers", "request", request)
+					//log.DLogger.Info("VenusFullChainService#startBloomHandlers", "request", request)
 					task := <-request
-					//log.Info("VenusFullChainService#startBloomHandlers", "request task", task)
+					//log.DLogger.Info("VenusFullChainService#startBloomHandlers", "request task", task)
 					task.Bitsets = make([][]byte, len(task.Sections))
 					for i, section := range task.Sections {
 						//head := rawdb.ReadCanonicalHash(eth.chainDb, (section+1)*sectionSize-1)
@@ -184,7 +185,7 @@ func (service *VenusFullChainService) startBloomHandlers(sectionSize uint64) {
 							task.Error = g_error.ErrBloombitsNotFound
 						}
 					}
-					//log.Info("VenusFullChainService#startBloomHandlers", "request task final", task)
+					//log.DLogger.Info("VenusFullChainService#startBloomHandlers", "request task final", task)
 					request <- task
 				}
 			}
@@ -211,7 +212,7 @@ func (service *VenusFullChainService) GetBlockByNumber(number uint64) (model.Abs
 
 func (service *VenusFullChainService) GetBlockHashByNumber(number uint64) common.Hash {
 	if number > service.CurrentBlock().Number() {
-		log.Info("GetBlockHashByNumber failed, can't get future block")
+		log.DLogger.Info("GetBlockHashByNumber failed, can't get future block")
 		return common.Hash{}
 	}
 	block, _ := service.GetBlockByNumber(number)
@@ -237,30 +238,30 @@ func (service *VenusFullChainService) GetBlockBody(hash common.Hash) model.Abstr
 func (service *VenusFullChainService) CurrentBalance(address common.Address) *big.Int {
 	curState, err := service.ChainReader.CurrentState()
 	if err != nil {
-		log.Warn("get current state failed", "err", err)
+		log.DLogger.Warn("get current state failed", zap.Error(err))
 		return nil
 	}
 	balance, err := curState.GetBalance(address)
 	if err != nil {
-		log.Info("get current balance failed", "err", err)
+		log.DLogger.Info("get current balance failed", zap.Error(err))
 		return nil
 	}
-	log.Info("call current balance", "address", address.Hex(), "balance", balance)
+	log.DLogger.Info("call current balance", zap.String("address", address.Hex()), zap.Any("balance", balance))
 	return balance
 }
 func (service *VenusFullChainService) CurrentStake(address common.Address) *big.Int {
-	log.Debug("call current balance", "address", address.Hex())
+	log.DLogger.Debug("call current balance", zap.String("address", address.Hex()))
 	curState, err := service.ChainReader.CurrentState()
 	if err != nil {
-		log.Warn("get current state failed", "err", err)
+		log.DLogger.Warn("get current state failed", zap.Error(err))
 		return nil
 	}
 	stake, err := curState.GetStake(address)
 	if err != nil {
-		log.Info("get current balance failed", "err", err)
+		log.DLogger.Info("get current balance failed", zap.Error(err))
 		return nil
 	}
-	log.Info("CurrentStake the stake is:", "stake", stake)
+	log.DLogger.Info("CurrentStake the stake is:", zap.Any("stake", stake))
 	return stake
 }
 
@@ -269,12 +270,12 @@ func (service *VenusFullChainService) Start() error {
 		if service.localWorker == nil {
 			time.Sleep(500 * time.Millisecond)
 			service.localWorker = mineworker.MakeLocalWorker(service.MineMaster.CurrentCoinbaseAddress(), 1, service.MineMasterServer)
-			log.Info("start local worker")
+			log.DLogger.Info("start local worker")
 			service.localWorker.Start()
 		}
 
-		log.Info("start mine master")
-		log.Info("the service.nodeContext.nodeConf.IsStartMine is:", "isStartMine", service.NodeConf.GetIsStartMine())
+		log.DLogger.Info("start mine master")
+		log.DLogger.Info("the service.nodeContext.nodeConf.IsStartMine is:", zap.Bool("isStartMine", service.NodeConf.GetIsStartMine()))
 		if service.NodeConf.GetIsStartMine() {
 			service.MineMaster.Start()
 		}
@@ -283,7 +284,7 @@ func (service *VenusFullChainService) Start() error {
 
 	service.startTxsMetrics()
 
-	log.Info("full chain service start success")
+	log.DLogger.Info("full chain service start success")
 	return nil
 }
 
@@ -351,7 +352,7 @@ func (service *VenusFullChainService) SetMineGasConfig(gasFloor, gasCeil uint64)
 func (service *VenusFullChainService) EstablishWallet(walletIdentifier accounts.WalletIdentifier, password, passPhrase string) (string, error) {
 	err := service.checkWalletIdentifier(&walletIdentifier)
 	if err != nil {
-		log.Info("the err1 is :", "err", err)
+		log.DLogger.Info("the err1 is :", zap.Error(err))
 		return "", err
 	}
 
@@ -359,7 +360,7 @@ func (service *VenusFullChainService) EstablishWallet(walletIdentifier accounts.
 	wallet, _ := soft_wallet.NewSoftWallet()
 	mnemonic, err := wallet.Establish(walletIdentifier.Path, walletIdentifier.WalletName, password, passPhrase)
 	if err != nil {
-		log.Info("the err3 is :", "err", err)
+		log.DLogger.Info("the err3 is :", zap.Error(err))
 		return "", err
 	}
 
@@ -369,11 +370,11 @@ func (service *VenusFullChainService) EstablishWallet(walletIdentifier accounts.
 		Type:   accounts.WalletArrived,
 	}
 
-	log.Info("send wallet manager event")
+	log.DLogger.Info("send wallet manager event")
 
 	service.WalletManager.Event <- testEvent
 
-	log.Info("wait for the wallet manager handle result")
+	log.DLogger.Info("wait for the wallet manager handle result")
 	select {
 	case <-service.WalletManager.HandleResult:
 	}
@@ -491,7 +492,7 @@ func (service *VenusFullChainService) RestoreWallet(walletIdentifier accounts.Wa
 func (service *VenusFullChainService) ListWallet() ([]accounts.WalletIdentifier, error) {
 	walletIdentifiers, err := service.WalletManager.ListWalletIdentifier()
 	if err != nil {
-		log.Info("the listWallet err is:", "err", err)
+		log.DLogger.Info("the listWallet err is:", zap.Error(err))
 		return []accounts.WalletIdentifier{}, err
 	}
 	return walletIdentifiers, nil
@@ -516,7 +517,7 @@ func (service *VenusFullChainService) StartRemainingService() {
 }
 
 func (service *VenusFullChainService) SetBftSigner(address common.Address) error {
-	log.Info("VenusFullChainService SetWalletAccountAddress run")
+	log.DLogger.Info("VenusFullChainService SetWalletAccountAddress run")
 	service.MsgSigner.SetBaseAddress(address)
 	/*if service.nodeContext.NodeConf().NodeType == chain_config.NodeTypeOfMineMaster {
 		service.nodeContext.SetMineCoinBase(address)
@@ -535,7 +536,7 @@ func (service *VenusFullChainService) AddAccount(walletIdentifier accounts.Walle
 		return accounts.Account{}, err
 	}
 
-	log.Info("AddAccount the path is:", "derivationPath", derivationPath)
+	log.DLogger.Info("AddAccount the path is:", zap.String("derivationPath", derivationPath))
 
 	var path accounts.DerivationPath
 	if derivationPath == "" {
@@ -566,21 +567,21 @@ func (service *VenusFullChainService) getSendTxInfo(from common.Address, nonce *
 	//find wallet according to address
 	tmpWallet, err := service.WalletManager.FindWalletFromAddress(from)
 	if err != nil {
-		log.Error("VenusFullChainService#getSendTxInfo FindWalletFromAddress", "err", err)
+		log.DLogger.Error("VenusFullChainService#getSendTxInfo FindWalletFromAddress", zap.Error(err))
 		return nil, 0, err
 	}
 	//generate transaction
 	state, err := service.ChainReader.CurrentState()
 	if err != nil {
-		log.Error("VenusFullChainService#getSendTxInfo  CurrentState", "err", err)
+		log.DLogger.Error("VenusFullChainService#getSendTxInfo  CurrentState", zap.Error(err))
 		return nil, 0, err
 	}
 
 	//get nonce from blockChain
 	chainNonce, err := state.GetNonce(from)
 	if err != nil {
-		log.Info("the address is:", "address", from.Hex())
-		log.Info("~~~~~~~~~~~~~~~~~~~~~~~~get nonce fail", "err", err)
+		log.DLogger.Info("the address is:", zap.String("address", from.Hex()))
+		log.DLogger.Info("~~~~~~~~~~~~~~~~~~~~~~~~get nonce fail", zap.Error(err))
 		return nil, 0, err
 	}
 
@@ -593,7 +594,7 @@ func (service *VenusFullChainService) getSendTxInfo(from common.Address, nonce *
 		spendableNonce = walletNonce
 	}
 
-	//log.Info("the nonce is:", "nonce", nonce)
+	//log.DLogger.Info("the nonce is:", "nonce", nonce)
 	var txNonce uint64
 	if nonce == nil {
 		txNonce = spendableNonce
@@ -612,9 +613,9 @@ func (service *VenusFullChainService) signTxAndSend(tmpWallet accounts.Wallet, f
 	if err != nil {
 		return nil, err
 	}
-	log.PBft.Debug("Sign and send transaction", "txid", signedTx.CalTxId().Hex())
+	log.DLogger.Debug("Sign and send transaction", zap.String("txid", signedTx.CalTxId().Hex()))
 	if err := service.TxValidator.Valid(signedTx); err != nil {
-		log.Error("Transaction not valid", "error", err)
+		log.DLogger.Error("Transaction not valid", zap.Error(err))
 		return nil, err
 	}
 
@@ -651,15 +652,15 @@ func (service *VenusFullChainService) SendTransactions(from common.Address, rpcT
 		tx := model.NewTransaction(item.Nonce, item.To, item.Value, item.GasPrice, item.GasLimit, item.Data)
 		signedTx, err := tmpWallet.SignTx(fromAccount, tx, service.ChainConfig.ChainId)
 		if err != nil {
-			log.Info("send Transactions SignTx:", "err", err)
+			log.DLogger.Info("send Transactions SignTx:", zap.Error(err))
 			return 0, err
 		}
 
 		if err := service.TxValidator.Valid(signedTx); err != nil {
-			log.Info("send Transactions ValidTx:", "err", err)
+			log.DLogger.Info("send Transactions ValidTx:", zap.Error(err))
 			return 0, err
 		}
-		log.Info("the SendTransaction txId is: ", "txId", tx.CalTxId().Hex(), "txSize", tx.Size())
+		log.DLogger.Info("the SendTransaction txId is: ", zap.String("txId", tx.CalTxId().Hex()), zap.Any("txSize", tx.Size()))
 		txs = append(txs, tx)
 	}
 	errs := service.TxPool.AddLocals(txs)
@@ -700,7 +701,7 @@ func (service *VenusFullChainService) SendTransaction(from, to common.Address, v
 		}
 	}
 
-	//log.Info("send Transaction the nonce is:", "nonce", nonce)
+	//log.DLogger.Info("send Transaction the nonce is:", "nonce", nonce)
 
 	tmpWallet, usedNonce, err := service.getSendTxInfo(from, nonce)
 	if err != nil {
@@ -710,13 +711,13 @@ func (service *VenusFullChainService) SendTransaction(from, to common.Address, v
 	tx := model.NewTransaction(usedNonce, to, value, gasPrice, gasLimit, data)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
-		log.PBft.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
+		log.DLogger.Error("send tx error", zap.String("txid", tx.CalTxId().Hex()), zap.Error(err))
 		return common.Hash{}, err
 	}
 
-	log.PBft.Info("send transaction", "txId", signTx.CalTxId().Hex())
+	log.DLogger.Info("send transaction", zap.String("txId", signTx.CalTxId().Hex()))
 	txHash := signTx.CalTxId()
-	log.Info("the Sendnot enough balance errorTransaction txId is: ", "txId", txHash.Hex(), "txSize", signTx.Size())
+	log.DLogger.Info("the Sendnot enough balance errorTransaction txId is: ", zap.String("txId", txHash.Hex()), zap.Any("txSize", signTx.Size()))
 	return txHash, nil
 }
 
@@ -738,7 +739,7 @@ func (service *VenusFullChainService) SendRegisterTransaction(from common.Addres
 	}
 
 	txHash := signTx.CalTxId()
-	log.Info("the SendRegisterTransaction txId is: ", "txId", txHash.Hex())
+	log.DLogger.Info("the SendRegisterTransaction txId is: ", zap.String("txId", txHash.Hex()))
 	return txHash, nil
 }
 
@@ -752,7 +753,7 @@ func (service *VenusFullChainService) getLuckProof(addr common.Address) (common.
 	seed, blockNumber := service.ChainReader.CurrentSeed()
 	fromAccount := accounts.Account{Address: addr}
 
-	log.Info("the seed is:", "seed", seed.String())
+	log.DLogger.Info("the seed is:", zap.String("seed", seed.String()))
 	luck, proof, err := tmpWallet.Evaluate(fromAccount, seed.Bytes())
 	if err != nil {
 		return common.Hash{}, []byte{}, 0, err
@@ -769,10 +770,10 @@ func (service *VenusFullChainService) CurrentElectPriority(addr common.Address) 
 	slot := service.GetSlot(service.CurrentBlock())
 	num := service.ChainReader.NumBeforeLastBySlot(*slot)
 	if num == nil {
-		log.Debug("CurrentElectPriority error", "slot", slot, "num", num)
+		log.DLogger.Debug("CurrentElectPriority error", zap.Uint64p("slot", slot), zap.Uint64p("num", num))
 		return 0, errors.New("number before last is nil")
 	}
-	log.Info("LastNumberBySlot:", "num", num)
+	log.DLogger.Info("LastNumberBySlot:", zap.Uint64p("num", num))
 	state, err := service.ChainReader.StateAtByBlockNumber(*num)
 	if err != nil {
 		return 0, err
@@ -834,14 +835,14 @@ func (service *VenusFullChainService) SendEvidenceTransaction(from, target commo
 	}
 
 	tx := model.NewEvidenceTransaction(usedNonce, gasPrice, gasLimit, &target, voteA, voteB)
-	//log.Debug("SendEvidenceTransaction size", "tx size", tx.Size().String())
+	//log.DLogger.Debug("SendEvidenceTransaction size", "tx size", tx.Size().String())
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
 		return common.Hash{}, err
 	}
 
 	txHash := signTx.CalTxId()
-	log.Info("the SendEvidenceTransaction txId is: ", "txId", txHash.Hex())
+	log.DLogger.Info("the SendEvidenceTransaction txId is: ", zap.String("txId", txHash.Hex()))
 	return txHash, nil
 }
 
@@ -863,7 +864,7 @@ func (service *VenusFullChainService) SendUnStakeTransaction(from common.Address
 	}
 
 	txHash := signTx.CalTxId()
-	log.Info("the SendCancelTransaction txId is: ", "txId", txHash.Hex())
+	log.DLogger.Info("the SendCancelTransaction txId is: ", zap.String("txId", txHash.Hex()))
 	return txHash, nil
 }
 
@@ -885,7 +886,7 @@ func (service *VenusFullChainService) SendCancelTransaction(from common.Address,
 	}
 
 	txHash := signTx.CalTxId()
-	log.Info("the SendCancelTransaction txId is: ", "txId", txHash.Hex())
+	log.DLogger.Info("the SendCancelTransaction txId is: ", zap.String("txId", txHash.Hex()))
 	return txHash, nil
 }
 
@@ -916,9 +917,9 @@ func (service *VenusFullChainService) GetAddressNonceFromWallet(address common.A
 func (service *VenusFullChainService) NewTransaction(transaction model.Transaction) (txHash common.Hash, err error) {
 
 	//todo delete after test
-	log.Info("NewTransaction ~~~~~~~~~~~~~~~~~~~~~~~~~~~~", "txId", transaction.CalTxId().Hex())
+	log.DLogger.Info("NewTransaction ~~~~~~~~~~~~~~~~~~~~~~~~~~~~", zap.String("txId", transaction.CalTxId().Hex()))
 	if err = service.TxValidator.Valid(&transaction); err != nil {
-		log.Info("NewTransaction validTx result is:", "err", err)
+		log.DLogger.Info("NewTransaction validTx result is:", zap.Error(err))
 		return
 	}
 
@@ -929,7 +930,7 @@ func (service *VenusFullChainService) NewTransaction(transaction model.Transacti
 
 	//todo: Here the local wallet Nonce maintains the nonce value used by the wallet. Therefore, when the wallet and the command line are used to send the transaction at the same time, the nonce may be invalid and the transaction may not be packaged in the transaction pool.
 	//broadcast  transaction
-	log.Info("[NewTransaction] broadcast transaction~~~~~~~~~~~~~~~~")
+	log.DLogger.Info("[NewTransaction] broadcast transaction~~~~~~~~~~~~~~~~")
 	service.Broadcaster.BroadcastTx([]model.AbstractTransaction{&transaction})
 
 	txHash = transaction.CalTxId()
@@ -950,7 +951,7 @@ func (service *VenusFullChainService) Transaction(hash common.Hash) (transaction
 //Test get verifiers of this round
 func (service *VenusFullChainService) GetVerifiers(slotNum uint64) (addresses []common.Address) {
 	addresses = service.ChainReader.GetVerifiers(slotNum)
-	log.Debug("Get verifiers addresses", "slot", slotNum, "Length", len(addresses), "addresses", addresses)
+	log.DLogger.Debug("Get verifiers addresses", zap.Uint64("slot", slotNum), zap.Int("Length", len(addresses)), zap.Any("addresses", addresses))
 	return addresses
 }
 
@@ -1448,7 +1449,7 @@ func (service *VenusFullChainService) NewBlock(ctx context.Context) (*rpc.Subscr
 				if !addr.IsEmpty() {
 					if b.CoinBaseAddress().IsEqual(addr) {
 						if err := notifier.Notify(rpcSub.ID, fmt.Sprintf("mined block: %v", b.Number())); err != nil {
-							log.Error("can't notify cli app", "err", err)
+							log.DLogger.Error("can't notify cli app", zap.Error(err))
 						}
 					}
 				}
@@ -1533,7 +1534,7 @@ func (service *VenusFullChainService) SubscribeBlock(ctx context.Context) (*rpc.
 					TimeStamp:    b.Timestamp(),
 					Transactions: respTxs,
 				}); err != nil {
-					log.Error("can't notify wallet", "err", err)
+					log.DLogger.Error("can't notify wallet", zap.Error(err))
 				}
 
 			case <-rpcSub.Err():
@@ -1615,8 +1616,8 @@ func (service *VenusFullChainService) SuggestGasPrice() (*big.Int, error) {
 }
 
 func (service *VenusFullChainService) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, addresses []common.Address, topics [][]common.Hash) ([]*model2.Log, error) {
-	log.Info("VenusFullChainService#GetLogs", "blockHash", blockHash, "fromBlock", fromBlock, "toBlock", toBlock)
-	log.Info("VenusFullChainService#GetLogs", "addresses", addresses, "topics", topics)
+	log.DLogger.Info("VenusFullChainService#GetLogs", zap.Any("blockHash", blockHash), zap.Uint64("fromBlock", fromBlock), zap.Uint64("toBlock", toBlock))
+	log.DLogger.Info("VenusFullChainService#GetLogs", zap.Any("addresses", addresses), zap.Any("topics", topics))
 	var filter *vm_log_search.Filter
 	if !blockHash.IsEmpty() {
 		// Block filter requested, construct a single-shot filter
@@ -1636,14 +1637,14 @@ func (service *VenusFullChainService) GetLogs(blockHash common.Hash, fromBlock, 
 		}
 		// Construct the range filter
 		filter = vm_log_search.NewRangeFilter(service.ChainReader, service.ChainIndex, int64(begin), int64(end), addresses, topics)
-		log.Info("VenusFullChainService#GetLogs", "begin", begin, "end", end)
+		log.DLogger.Info("VenusFullChainService#GetLogs", zap.Uint64("begin", begin), zap.Uint64("end", end))
 	}
 	// Run the filter and return all the logs
 	cx, cancel := context.WithTimeout(context.Background(), time.Second*150)
 	defer cancel()
 	logs, err := filter.Logs(cx)
 	if err != nil {
-		log.Info("VenusFullChainService#GetLogs", "logs", logs, "err", err)
+		log.DLogger.Info("VenusFullChainService#GetLogs", zap.Any("logs", logs), zap.Error(err))
 		return nil, err
 	}
 	return service.convertLogs(logs)
@@ -1681,13 +1682,13 @@ func (service *VenusFullChainService) convertLogs(logs []*model2.Log) ([]*model2
 func (service *VenusFullChainService) GetTxActualFee(txHash common.Hash) (*big.Int, error) {
 	receipt, err := service.GetReceiptByTxHash(txHash)
 	if err != nil {
-		log.Info("GetTxActualFee GetConvertReceiptByTxHash error", "err", err)
+		log.DLogger.Info("GetTxActualFee GetConvertReceiptByTxHash error", zap.Error(err))
 		return nil, err
 	}
 
 	tx, _, _, _, err := service.Transaction(txHash)
 	if err != nil {
-		log.Info("GetTxActualFee Transaction error", "err", err)
+		log.DLogger.Info("GetTxActualFee Transaction error", zap.Error(err))
 		return nil, err
 	}
 
@@ -1713,7 +1714,7 @@ func (service *VenusFullChainService) GetReceiptsByBlockNum(num uint64) (model2.
 		}
 		result, innerErr := service.convertLogs(value.Logs)
 		if innerErr != nil {
-			log.Info("GetReceiptsByBlockNum convertReceipt error", "innerErr", innerErr)
+			log.DLogger.Info("GetReceiptsByBlockNum convertReceipt error", zap.Error(innerErr))
 			return nil, innerErr
 		}
 		value.Logs = result
@@ -1740,7 +1741,7 @@ func (service *VenusFullChainService) GetReceiptByTxHash(txHash common.Hash) (*m
 			}
 			result, innerErr := service.convertLogs(value.Logs)
 			if innerErr != nil {
-				log.Info("GetConvertReceiptByTxHash convertReceipt error", "err", innerErr)
+				log.DLogger.Info("GetConvertReceiptByTxHash convertReceipt error", zap.Error(innerErr))
 				return nil, innerErr
 			}
 			value.Logs = result
@@ -1783,25 +1784,24 @@ func (service *VenusFullChainService) SendTransactionContract(from, to common.Ad
 
 	tmpWallet, usedNonce, err := service.getSendTxInfo(from, nonce)
 	if err != nil {
-		log.Error("VenusFullChainService#SendTransactionContract", "err", err)
+		log.DLogger.Error("VenusFullChainService#SendTransactionContract", zap.Error(err))
 		return common.Hash{}, err
 	}
 
 	tx := model.NewTransaction(usedNonce, to, value, gasPrice, gasLimit, extraData)
 	signTx, err := service.signTxAndSend(tmpWallet, from, tx, usedNonce)
 	if err != nil {
-		log.PBft.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
-		log.Error("send tx error", "txid", tx.CalTxId().Hex(), "err", err)
+		log.DLogger.Error("send tx error", zap.String("txid", tx.CalTxId().Hex()), zap.Error(err))
 		return common.Hash{}, err
 	}
 
-	//log.Info("send transaction", "txId", signTx.CalTxId().Hex())
-	//log.Info("send transaction", "gasPrice", signTx.GetGasPrice())
-	//log.Info("send transaction", "gas limit", signTx.GetGasLimit())
+	//log.DLogger.Info("send transaction", "txId", signTx.CalTxId().Hex())
+	//log.DLogger.Info("send transaction", "gasPrice", signTx.GetGasPrice())
+	//log.DLogger.Info("send transaction", "gas limit", signTx.GetGasLimit())
 	/*	signJson, _ := json.Marshal(signTx)
-		log.PBft.Info("send transaction", "signTx json", string(signJson))*/
+		log.DLogger.Info("send transaction", "signTx json", string(signJson))*/
 	txHash := signTx.CalTxId()
-	log.Info("the SendTransaction txId is: ", "txId", txHash.Hex(), "txSize", signTx.Size())
+	log.DLogger.Info("the SendTransaction txId is: ", zap.String("txId", txHash.Hex()), zap.Any("txSize", signTx.Size()))
 	return txHash, nil
 }
 
@@ -1819,22 +1819,22 @@ func (service *VenusFullChainService) GetExtraData(to common.Address, data []byt
 
 		abi, err := state.GetAbi(to)
 		if err != nil {
-			log.Error("GetExtraData#GetABI failed", "err", err)
+			log.DLogger.Error("GetExtraData#GetABI failed", zap.Error(err))
 			return nil, err
 		}
 
-		log.Info("ParseCallContractData")
+		log.DLogger.Info("ParseCallContractData")
 		extraData, err = utils.ParseCallContractData(abi, data)
 		if err != nil {
-			log.Error("GetExtraData#ParseData failed", "err", err)
+			log.DLogger.Error("GetExtraData#ParseData failed", zap.Error(err))
 			return nil, err
 		}
 	} else {
-		log.Info("ParseCreateContractData", "dataLen", len(data))
+		log.DLogger.Info("ParseCreateContractData", zap.Int("dataLen", len(data)))
 		var err error
 		extraData, err = utils.ParseCreateContractData(data)
 		if err != nil {
-			log.Error("GetExtraData ParseCreateContractData failed", "err", err)
+			log.DLogger.Error("GetExtraData ParseCreateContractData failed", zap.Error(err))
 			return nil, err
 		}
 	}
@@ -1892,14 +1892,14 @@ func (service *VenusFullChainService) Call(signedTx model.AbstractTransaction, b
 		}
 
 	}
-	log.Info("CallContract test", "response", resp)
+	log.DLogger.Info("CallContract test", zap.String("response", resp))
 	return resp, err
 }
 
 // EstimateGas returns an estimate of the amount of gas needed to execute the
 // given transaction against the current block.
 func (service *VenusFullChainService) EstimateGas(signedTx model.AbstractTransaction, blockNum uint64) (hexutil.Uint64, error) {
-	log.Info("Service#EstimateGas Start")
+	log.DLogger.Info("Service#EstimateGas Start")
 	if signedTx.To().GetAddressType() != common.AddressTypeContractCreate && signedTx.To().GetAddressType() != common.AddressTypeContractCall {
 		gasUsed, err := model.IntrinsicGas(signedTx.ExtraData(), false, false)
 		if err != nil {
@@ -1929,7 +1929,7 @@ func (service *VenusFullChainService) EstimateGas(signedTx model.AbstractTransac
 	txHash := signedTx.CalTxId()
 	msg, err := signedTx.AsMessage(false)
 	if err != nil {
-		log.Error("EstimateGas#AsMessage failed", "err", err)
+		log.DLogger.Error("EstimateGas#AsMessage failed", zap.Error(err))
 		return hexutil.Uint64(0), err
 	}
 
@@ -1937,7 +1937,7 @@ func (service *VenusFullChainService) EstimateGas(signedTx model.AbstractTransac
 	executable := func(gas uint64) bool {
 		msg.SetGas(gas)
 		_, pass, innerErr := service.doCall(&msg, txHash, block.Number(), 0)
-		log.Info("executable#doCall", "pass", pass)
+		log.DLogger.Info("executable#doCall", zap.Bool("pass", pass))
 		if innerErr != nil || pass {
 			return false
 		}
@@ -1946,7 +1946,7 @@ func (service *VenusFullChainService) EstimateGas(signedTx model.AbstractTransac
 
 	// Execute the binary search and hone in on an executable gas limit
 	index := 0
-	log.Info("executable Start", "low", low, "high", high, "cap", capacity)
+	log.DLogger.Info("executable Start", zap.Uint64("low", low), zap.Uint64("high", high), zap.Uint64("cap", capacity))
 	for low+1 < high {
 		mid := (high + low) / 2
 		if !executable(mid) {
@@ -1956,7 +1956,7 @@ func (service *VenusFullChainService) EstimateGas(signedTx model.AbstractTransac
 		}
 		index++
 	}
-	log.Info("executable End", "times", index, "low", low, "high", high, "cap", capacity)
+	log.DLogger.Info("executable End", zap.Int("times", index), zap.Uint64("low", low), zap.Uint64("high", high), zap.Uint64("cap", capacity))
 	// Reject the transaction as invalid if it still fails at the highest allowance
 	if high == capacity {
 		if !executable(high) {
@@ -2006,10 +2006,10 @@ func (service *VenusFullChainService) MakeTmpSignedTx(args CallArgs, blockNum ui
 	}
 
 	// Create tmpTransaction
-	log.Info("MakeTmpSignedTx#getSendTxInfo", "from", from)
+	log.DLogger.Info("MakeTmpSignedTx#getSendTxInfo", zap.Any("from", from))
 	tmpWallet, _, err := service.getSendTxInfo(from, nil)
 	if err != nil {
-		log.Error("MakeTmpSignedTx#getSendTxInfo failed", "err", err)
+		log.DLogger.Error("MakeTmpSignedTx#getSendTxInfo failed", zap.Error(err))
 		return nil, err
 	}
 
@@ -2017,24 +2017,26 @@ func (service *VenusFullChainService) MakeTmpSignedTx(args CallArgs, blockNum ui
 	fromAccount := accounts.Account{Address: from}
 	signedTx, err := tmpWallet.SignTx(fromAccount, tmpTx, service.ChainConfig.ChainId)
 	if err != nil {
-		log.Error("MakeTmpSignedTx#SignTx failed", "err", err)
+		log.DLogger.Error("MakeTmpSignedTx#SignTx failed", zap.Error(err))
 		return nil, err
 	}
 	return signedTx, nil
 }
 
 func (service *VenusFullChainService) doCall(msg state_processor.Message, txHash common.Hash, blockNum uint64, timeout time.Duration) ([]byte, bool, error) {
-	defer func(start time.Time) { log.Debug("Executing EVM call finished", "runtime", time.Since(start)) }(time.Now())
+	defer func(start time.Time) {
+		log.DLogger.Debug("Executing EVM call finished", zap.Duration("runtime", time.Since(start)))
+	}(time.Now())
 
 	// GetBlock and GetState
 	block, err := service.GetBlockByNumber(blockNum)
 	if err != nil {
-		log.Error("doCall#GetBlockByNumber failed", "err", err, "blockNum", blockNum)
+		log.DLogger.Error("doCall#GetBlockByNumber failed", zap.Error(err), zap.Uint64("blockNum", blockNum))
 		return nil, false, err
 	}
 	state, err := service.ChainReader.StateAtByBlockNumber(blockNum)
 	if err != nil {
-		log.Error("doCall#StateAtByBlockNumber failed", "err", err, "blockNum", blockNum)
+		log.DLogger.Error("doCall#StateAtByBlockNumber failed", zap.Error(err), zap.Uint64("blockNum", blockNum))
 		return nil, false, err
 	}
 
@@ -2052,7 +2054,7 @@ func (service *VenusFullChainService) doCall(msg state_processor.Message, txHash
 	defer cancel()
 
 	// Create NewVM
-	log.Info("doCall#gasLimit", "gasLimit", msg.Gas())
+	log.DLogger.Info("doCall#gasLimit", zap.Uint64("gasLimit", msg.Gas()))
 	conText := vm.Context{
 		Origin:      msg.From(),
 		GasPrice:    msg.GasPrice(),
@@ -2080,11 +2082,11 @@ func (service *VenusFullChainService) doCall(msg state_processor.Message, txHash
 	gp := uint64(math.MaxUint64)
 	result, _, failed, _, err := state_processor.ApplyMessage(dvm, msg, &gp)
 	if err != nil {
-		log.Error("doCall#ApplyMessage failed", "err", err)
+		log.DLogger.Error("doCall#ApplyMessage failed", zap.Error(err))
 		return result, failed, err
 	}
 	if failed {
-		log.Error("doCall#RunVm failed", "err", err)
+		log.DLogger.Error("doCall#RunVm failed", zap.Error(err))
 		return result, failed, err
 	}
 	return result, failed, nil
@@ -2093,13 +2095,13 @@ func (service *VenusFullChainService) doCall(msg state_processor.Message, txHash
 func (service *VenusFullChainService) CheckConstant(to common.Address, data []byte) (bool, string, *utils.WasmAbi, error) {
 	funcName, err := utils.ParseInputForFuncName(data)
 	if err != nil {
-		log.Error("ParseInputForFuncName failed", "err", err)
+		log.DLogger.Error("ParseInputForFuncName failed", zap.Error(err))
 		return false, "", nil, err
 	}
 
 	// check funcName
 	if strings.EqualFold(funcName, "init") {
-		log.Debug("CheckConstant failed, can't call init function")
+		log.DLogger.Debug("CheckConstant failed, can't call init function")
 		return false, "", nil, g_error.ErrFunctionInitCanNotCalled
 	}
 

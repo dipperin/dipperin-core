@@ -22,7 +22,7 @@ package chain
 //	"github.com/dipperin/dipperin-core/common"
 //	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 //	"github.com/dipperin/dipperin-core/core/model"
-//	"github.com/dipperin/dipperin-core/third-party/log"
+//	"github.com/dipperin/dipperin-core/common/log"
 //	"github.com/ethereum/go-ethereum/rlp"
 //	"math/big"
 //	"sort"
@@ -138,19 +138,19 @@ package chain
 //			fmt.Println(h.Hash(), h.GetNumber())
 //			fmt.Println(h.Link)
 //		}
-//		log.Error("interlink prefix invalid")
+//		log.DLogger.Error("interlink prefix invalid")
 //		err = errors.New("interlink prefix invalid")
 //		return
 //	}
 //
 //	if !validProof(p.Suffix) {
-//		log.Error("interlink suffix invalid")
+//		log.DLogger.Error("interlink suffix invalid")
 //		err = errors.New("interlink suffix invalid")
 //		return
 //	}
 //
 //	if !validProof(append(p.Prefix, p.Suffix...)) {
-//		log.Error("interlink proof invalid")
+//		log.DLogger.Error("interlink proof invalid")
 //		err = errors.New("interlink proof invalid")
 //		return
 //	}
@@ -666,7 +666,7 @@ package chain
 //		if Good(alpha, under, m, index, delta) {
 //			header = alpha[len(alpha)-m]
 //		} else {
-//			log.Info("header hash is not good, using lower level")
+//			log.DLogger.Info("header hash is not good, using lower level")
 //		}
 //	}
 //	p.Sort()

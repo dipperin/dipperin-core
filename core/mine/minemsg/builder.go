@@ -18,8 +18,9 @@ package minemsg
 
 import (
 	"encoding/binary"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 func MakeDefaultWorkBuilder() *DefaultWorkBuilder {
@@ -30,7 +31,7 @@ type DefaultWorkBuilder struct{}
 
 func (builder *DefaultWorkBuilder) BuildWorks(newBlock model.AbstractBlock, workerLen int) (workMsgCode int, works []Work) {
 	if newBlock == nil {
-		log.Warn("DefaultWorkBuilder build works, but got nil block")
+		log.DLogger.Warn("DefaultWorkBuilder build works, but got nil block")
 		return
 	}
 	// this build only build model.Block's work
@@ -41,9 +42,9 @@ func (builder *DefaultWorkBuilder) BuildWorks(newBlock model.AbstractBlock, work
 		newHeader := *header
 		binary.BigEndian.PutUint32(newHeader.Nonce[:4], uint32(i))
 
-		log.PBft.Info("BuildWorks", "verRoot", newHeader.VerificationRoot.Hex(), "register root", newHeader.RegisterRoot)
+		log.DLogger.Info("BuildWorks", zap.String("verRoot", newHeader.VerificationRoot.Hex()), zap.Any("register root", newHeader.RegisterRoot))
 		works = append(works, &DefaultWork{BlockHeader: newHeader})
-		log.Debug("DefaultWorkBuilder#BuildWorks", "newHeader.Nonce", newHeader.Nonce)
+		log.DLogger.Debug("DefaultWorkBuilder#BuildWorks", zap.Any("newHeader.Nonce", newHeader.Nonce))
 	}
 	workMsgCode = NewDefaultWorkMsg
 	return

@@ -17,17 +17,16 @@
 package chain_state
 
 import (
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"gopkg.in/check.v1"
 	"math/big"
 )
 
 func (suite *chainWriterSuite) TestChainState_BuildStateProcessor(t *check.C) {
-	log.Mpt.Logger = log.SetInitLogger(log.DefaultLogConf, "state_writer")
-
 	testAccount1 := tests.AccFactory.GetAccount(0)
 	suite.txBuilder.Amount = big.NewInt(100)
 	suite.txBuilder.Pk = suite.env.DefaultVerifiers()[0].Pk
@@ -36,7 +35,7 @@ func (suite *chainWriterSuite) TestChainState_BuildStateProcessor(t *check.C) {
 	suite.blockBuilder.Txs = []*model.Transaction{suite.txBuilder.Build()}
 
 	block := suite.blockBuilder.Build()
-	log.Info("block txs", "len", block.TxCount())
+	log.DLogger.Info("block txs", zap.Int("len", block.TxCount()))
 	err := suite.chainState.SaveBlock(block)
 	t.Check(err, check.IsNil)
 

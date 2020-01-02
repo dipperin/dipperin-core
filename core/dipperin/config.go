@@ -19,9 +19,10 @@ package dipperin
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/dipperin/service"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"go.uber.org/zap"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -102,16 +103,16 @@ type NodeConfig struct {
 func (conf NodeConfig) NodeConfigCheck() error {
 	if conf.NoWalletStart {
 		if conf.SoftWalletPath != "" || conf.SoftWalletPassword != "" || conf.SoftWalletPassPhrase != "" {
-			log.Error("the NoWalletStart is true but there are entered some wallet conf")
+			log.DLogger.Error("the NoWalletStart is true but there are entered some wallet conf")
 			return g_error.NodeConfWalletError
 		}
 	} else {
 		if conf.SoftWalletPassword == "" {
-			log.Error("the NoWalletStart is false but there isn't an entered wallet password")
+			log.DLogger.Error("the NoWalletStart is false but there isn't an entered wallet password")
 			return g_error.NodeConfWalletError
 		}
-		log.Info("the nodeConf nodeType is:", "nodeType", conf.NodeType)
-		log.Info("the nodeConf SoftWalletPath is:", "SoftWalletPath", conf.SoftWalletPath)
+		log.DLogger.Info("the nodeConf nodeType is:", zap.Int("nodeType", conf.NodeType))
+		log.DLogger.Info("the nodeConf SoftWalletPath is:", zap.String("SoftWalletPath", conf.SoftWalletPath))
 	}
 	return nil
 }

@@ -19,9 +19,10 @@ package model
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/bloom"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 )
 
 type BloomBlockData struct {
@@ -60,7 +61,7 @@ func (data *BloomBlockData) EiRecoverToBlock(txPoolMap map[common.Hash]AbstractT
 
 	recovered, others, err := tempGraphene.InvBloom().Subtract(bloom.InvBloom(), invBloom.InvBloom()).ListRLP()
 	if err != nil {
-		log.Error("invBloom can't recover tx", "err", err)
+		log.DLogger.Error("invBloom can't recover tx", zap.Error(err))
 		return nil, err
 	}
 
@@ -90,7 +91,7 @@ func (data *BloomBlockData) EiRecoverToBlock(txPoolMap map[common.Hash]AbstractT
 	}
 	//
 	if err != nil {
-		log.Error("recover txs err", err)
+		log.DLogger.Error("recover txs err", zap.Error(err))
 		return nil, err
 	}
 
@@ -107,7 +108,7 @@ func (data *BloomBlockData) rebuildTxs(recovered [][]byte) ([]*Transaction, erro
 	for i, txRLP := range recovered {
 		var tx Transaction
 		if err := rlp.DecodeBytes(txRLP, &tx); err != nil {
-			log.Error("rlp decode invBloom recovered data error", "tx index", i, "err", err)
+			log.DLogger.Error("rlp decode invBloom recovered data error", zap.Int("tx index", i), zap.Error(err))
 			return nil, err
 		}
 

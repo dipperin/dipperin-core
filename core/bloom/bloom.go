@@ -96,7 +96,7 @@ func (b Bloom) Hex() string {
 // For certain value k, execute the required hashes, and set
 // the value of the corresponding bloom bit to 1
 func (b *Bloom) Digest(k []byte) *Bloom {
-	//bloom_log.Info("bloom Digest")
+	//bloom_log.DLogger.Info("bloom Digest")
 	hashes := kHash(k[:], b.config.BloomBits)
 
 	for _, hash := range hashes {
@@ -153,7 +153,7 @@ func (b Bloom) LookUp(k []byte) bool {
 			return false
 		}
 	}
-	//bloom_log.Info("bloom look up", "use", time.Now().Sub(startAt), "hash len", len(hashes))
+	//bloom_log.DLogger.Info("bloom look up", "use", time.Now().Sub(startAt), "hash len", len(hashes))
 
 	return true
 }

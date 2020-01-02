@@ -21,6 +21,7 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
@@ -28,11 +29,11 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"math/big"
 	"strings"
@@ -172,13 +173,13 @@ func getTestHashFunc() func(num uint64) common.Hash {
 func getContractCode(code, abi string) []byte {
 	fileCode, err := ioutil.ReadFile(code)
 	if err != nil {
-		log.Error("Read code failed", "err", err)
+		log.DLogger.Error("Read code failed", zap.Error(err))
 		return nil
 	}
 
 	fileABI, err := ioutil.ReadFile(abi)
 	if err != nil {
-		log.Error("Read abi failed", "err", err)
+		log.DLogger.Error("Read abi failed", zap.Error(err))
 		return nil
 	}
 
@@ -192,7 +193,7 @@ func getContractCode(code, abi string) []byte {
 
 	buffer := new(bytes.Buffer)
 	if err = rlp.Encode(buffer, input); err != nil {
-		log.Error("RLP encode failed", "err", err)
+		log.DLogger.Error("RLP encode failed", zap.Error(err))
 		return nil
 	}
 	return buffer.Bytes()
@@ -210,7 +211,7 @@ func getContractInput(funcName string, param [][]byte) []byte {
 
 	buffer := new(bytes.Buffer)
 	if err := rlp.Encode(buffer, input); err != nil {
-		log.Error("RLP encode failed", "err", err)
+		log.DLogger.Error("RLP encode failed", zap.Error(err))
 		return nil
 	}
 	return buffer.Bytes()

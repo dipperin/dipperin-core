@@ -111,7 +111,7 @@ package chain_communication
 //
 //		if !transport.knownBlocks.Contains(block.Hash()) {
 //
-//			//log.Info("ei block broadcast get peer without block ", "node name", p.NodeName())
+//			//log.DLogger.Info("ei block broadcast get peer without block ", "node name", p.NodeName())
 //
 //			list = append(list, p)
 //		}
@@ -128,7 +128,7 @@ package chain_communication
 //		// if broadcast has err, break & remove peer from waitVerifyBroadcast
 //		defer func() {
 //			broadcaster.vResultBroadcast.Delete(peer.ID())
-//			log.Warn("delete ei broadcaster transport", "peer name", peer.NodeName())
+//			log.DLogger.Warn("delete ei broadcaster transport", "peer name", peer.NodeName())
 //		}()
 //
 //		getPeer := func() PmAbstractPeer {
@@ -138,11 +138,11 @@ package chain_communication
 //		if err := transport.broadcast(getPeer); err != nil {
 //			switch err {
 //			case p2p.ErrShuttingDown:
-//				log.Warn("ei verified block broadcast err is shutting down", "peer name", peer.NodeName(), "is running", peer.IsRunning())
+//				log.DLogger.Warn("ei verified block broadcast err is shutting down", "peer name", peer.NodeName(), "is running", peer.IsRunning())
 //				broadcaster.Pm.RemovePeer(peer.ID())
 //			case BroadcastTimeoutErr:
 //			default:
-//				log.Error("ei verified block broadcast failed", "err", err, "peer name", peer.NodeName(), "is running", peer.IsRunning())
+//				log.DLogger.Error("ei verified block broadcast failed", "err", err, "peer name", peer.NodeName(), "is running", peer.IsRunning())
 //			}
 //			return
 //		}
@@ -178,7 +178,7 @@ package chain_communication
 //// remote peer handle new block hash msg
 //func (broadcaster *EiBlockBroadcaster) onNewBlockHashMsg(msg p2p.Msg, p PmAbstractPeer) error {
 //	//fmt.Println("===============EiBlockBroadcaster--onNewBlockHashMsg==============")
-//	//log.Info("receive verified block", "from", p.NodeName())
+//	//log.DLogger.Info("receive verified block", "from", p.NodeName())
 //	// decode msg
 //	var data eiBroadcastMsg
 //	if err := msg.Decode(&data); err != nil {
@@ -186,10 +186,10 @@ package chain_communication
 //	}
 //	// check data block hash
 //	if data.BlockHash.IsEmpty() {
-//		log.Warn("new block hash msg data block hash is nil")
+//		log.DLogger.Warn("new block hash msg data block hash is nil")
 //		return nil
 //	}
-//	pbft_log.Info("EiBlockBroadcaster#onNewBlockHashMsg receive verified block", "from", p.NodeName(), "Height", data.Height, "blockHash", data.BlockHash)
+//	pbft_log.DLogger.Info("EiBlockBroadcaster#onNewBlockHashMsg receive verified block", "from", p.NodeName(), "Height", data.Height, "blockHash", data.BlockHash)
 //
 //	// Can't filter higher blocks (+x, x>1), otherwise you can't set head, downloader can't get new block and cause chain to get stuck
 //
@@ -200,7 +200,7 @@ package chain_communication
 //
 //	// check data tx bloom
 //	if data.TxBloom == nil {
-//		log.Warn("new block hash msg data tx bloom is nil")
+//		log.DLogger.Warn("new block hash msg data tx bloom is nil")
 //		return nil
 //	}
 //
@@ -217,7 +217,7 @@ package chain_communication
 //		_ = broadcaster.fetcher.Notify(p.NodeName(), p.ID(), data.BlockHash, data.Height, time.Now(), func() error {
 //			// peer tx pool constructs its Estimator locally
 //			estimator := broadcaster.TxPool.GetTxsEstimator(data.TxBloom)
-//			pbft_log.Info("EiBlockBroadcaster#onNewBlockHashMsg send EiEstimatorMsg", "BlockHash", data.BlockHash)
+//			pbft_log.DLogger.Info("EiBlockBroadcaster#onNewBlockHashMsg send EiEstimatorMsg", "BlockHash", data.BlockHash)
 //			return p.SendMsg(EiEstimatorMsg, &eiEstimatorReq{BlockHash: data.BlockHash, Estimator: estimator})
 //		})
 //	}()
@@ -240,7 +240,7 @@ package chain_communication
 //func (broadcaster *EiBlockBroadcaster) onEstimatorMsg(msg p2p.Msg, p PmAbstractPeer) error {
 //	//fmt.Println("===============EiBlockBroadcaster--onEstimatorMsg==============")
 //	start := time.Now()
-//	log.Info("start get block inv", "time", start.String())
+//	log.DLogger.Info("start get block inv", "time", start.String())
 //	var req eiEstimatorReq
 //	if err := msg.Decode(&req); err != nil {
 //		return err
@@ -249,17 +249,17 @@ package chain_communication
 //	// get Estimator
 //	estimator := req.Estimator
 //	if estimator == nil {
-//		log.Error("Estimator is nil", "block hash", req.BlockHash.Hex(), "peer id", p.ID())
+//		log.DLogger.Error("Estimator is nil", "block hash", req.BlockHash.Hex(), "peer id", p.ID())
 //		return nil
 //	}
-//	log.Info("finish get block inv 1", "time", time.Now().Sub(start).String())
+//	log.DLogger.Info("finish get block inv 1", "time", time.Now().Sub(start).String())
 //	// get block invBloom data
 //	data := broadcaster.getBlockInvBloomData(req.BlockHash, req.Estimator)
 //
-//	log.Info("finish get block inv 2", "time", time.Now().Sub(start).String())
+//	log.DLogger.Info("finish get block inv 2", "time", time.Now().Sub(start).String())
 //
 //	if data == nil {
-//		log.Error("con't get block inv bloom data, data is nil")
+//		log.DLogger.Error("con't get block inv bloom data, data is nil")
 //		return nil
 //	}
 //
@@ -271,7 +271,7 @@ package chain_communication
 //	block := broadcaster.Chain.GetBlockByHash(bHash)
 //	//fmt.Println("===============EiBlockBroadcaster--onEstimatorMsg==============data",block.GetVerifications())
 //	if block == nil {
-//		log.Error("EiBlockBroadcaster#getBlockInvBloomData local chain con't get block", "bHash", bHash.Hex())
+//		log.DLogger.Error("EiBlockBroadcaster#getBlockInvBloomData local chain con't get block", "bHash", bHash.Hex())
 //		return nil
 //	}
 //	vers := broadcaster.Chain.GetSeenCommit(block.Number())
@@ -288,13 +288,13 @@ package chain_communication
 //// receive target peer invBloom msg
 //func (broadcaster *EiBlockBroadcaster) onNewBloomBlock(msg p2p.Msg, p PmAbstractPeer) error {
 //	startTime := time.Now()
-//	log.Info("start onNewBloomBlock", "time", startTime.String())
+//	log.DLogger.Info("start onNewBloomBlock", "time", startTime.String())
 //
 //	//fmt.Println("===============EiBlockBroadcaster--RecoverToBlock==============msg")
 //	// decode msg
 //	var temData bloomBlockDataRLP
 //	if err := msg.Decode(&temData); err != nil {
-//		log.Error("ei verify on new bloom block decode msg failed", "err", err)
+//		log.DLogger.Error("ei verify on new bloom block decode msg failed", "err", err)
 //		return err
 //	}
 //

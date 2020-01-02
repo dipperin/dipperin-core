@@ -23,13 +23,14 @@ import (
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/urfave/cli"
+	"go.uber.org/zap"
 	"strconv"
 )
 
 func (caller *rpcCaller) TransferEDIPToDIP(c *cli.Context) {
 	_, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
-		l.Error("getRpcMethodAndParam error", "err", err)
+		l.Error("getRpcMethodAndParam error", zap.Error(err))
 		return
 	}
 
@@ -40,25 +41,25 @@ func (caller *rpcCaller) TransferEDIPToDIP(c *cli.Context) {
 
 	from, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
-		l.Error("the from is invalid", "err", err)
+		l.Error("the from is invalid", zap.Error(err))
 		return
 	}
 
 	eDIPValue, err := DecimalToInter(cParams[1], contract.DecimalUnits)
 	if err != nil {
-		l.Error("the eDIPValue is invalid", "err", err)
+		l.Error("the eDIPValue is invalid", zap.Error(err))
 		return
 	}
 
 	gasPrice, err := MoneyValueToCSCoin(cParams[2])
 	if err != nil {
-		l.Error("the parameter gasPrice invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", zap.Error(err))
 		return
 	}
 
 	gasLimit, err := strconv.ParseUint(cParams[3], 10, 64)
 	if err != nil {
-		l.Error("the parameter gasLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", zap.Error(err))
 		return
 	}
 
@@ -70,16 +71,16 @@ func (caller *rpcCaller) TransferEDIPToDIP(c *cli.Context) {
 	//send transaction
 	var resp common.Hash
 	if err := client.Call(&resp, getDipperinRpcMethodByName("SendTransaction"), from, contractAdr, 0, gasPrice, gasLimit, extraData, nil); err != nil {
-		l.Error("Call a send transaction", "err", err)
+		l.Error("Call a send transaction", zap.Error(err))
 		return
 	}
-	l.Info("SendTransaction result", "txId", resp.Hex())
+	l.Info("SendTransaction result", zap.String("txId", resp.Hex()))
 }
 
 func (caller *rpcCaller) SetExchangeRate(c *cli.Context) {
 	_, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
-		l.Error("getRpcMethodAndParam error", "err", err)
+		l.Error("getRpcMethodAndParam error", zap.Error(err))
 		return
 	}
 
@@ -90,24 +91,24 @@ func (caller *rpcCaller) SetExchangeRate(c *cli.Context) {
 
 	from, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
-		l.Error("the from is invalid", "err", err)
+		l.Error("the from is invalid", zap.Error(err))
 		return
 	}
 
 	value, err := strconv.Atoi(cParams[1])
 	if err != nil {
-		l.Error("the parameter exChangeRate invalid", "err", err)
+		l.Error("the parameter exChangeRate invalid", zap.Error(err))
 	}
 
 	gasPrice, err := MoneyValueToCSCoin(cParams[2])
 	if err != nil {
-		l.Error("the parameter gasPrice invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", zap.Error(err))
 		return
 	}
 
 	gasLimit, err := strconv.ParseUint(cParams[3], 10, 64)
 	if err != nil {
-		l.Error("the parameter gasLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", zap.Error(err))
 		return
 	}
 
@@ -119,8 +120,8 @@ func (caller *rpcCaller) SetExchangeRate(c *cli.Context) {
 	//send transaction
 	var resp common.Hash
 	if err := client.Call(&resp, getDipperinRpcMethodByName("SendTransaction"), from, contractAdr, 0, gasPrice, gasLimit, extraData, nil); err != nil {
-		l.Error("call sending transaction", "err", err)
+		l.Error("call sending transaction", zap.Error(err))
 		return
 	}
-	l.Info("SendTransaction result", "txId", resp.Hex())
+	l.Info("SendTransaction result", zap.String("txId", resp.Hex()))
 }

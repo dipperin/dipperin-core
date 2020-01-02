@@ -21,8 +21,9 @@ import (
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
+	"go.uber.org/zap"
 
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"math/big"
 )
 
@@ -181,7 +182,7 @@ func init() {
 		DIPProportion = MercuryDIPProportion
 	}
 
-	//log.Info("the EarlyTokenDIP is:", "EarlyTokenDIP", EarlyTokenDIP)
+	//log.DLogger.Info("the EarlyTokenDIP is:", "EarlyTokenDIP", EarlyTokenDIP)
 	exchangeRate := big.NewInt(0).Mul(EarlyTokenDIP, big.NewInt(EarlyTokenExchangeBase))
 	exchangeRate.Div(exchangeRate, big.NewInt(consts.DIP))
 	exchangeRate.Div(exchangeRate, EarlyTokenAmount)
@@ -255,7 +256,7 @@ type AddressDIPProportion struct {
 func MapMerge(des, src map[common.Address]*big.Int) error {
 	for address, value := range src {
 		if _, ok := des[address]; ok {
-			log.Error("address already in des", "addr", address.Hex())
+			log.DLogger.Error("address already in des", zap.String("addr", address.Hex()))
 			return ErrAddressExist
 		}
 		des[address] = value
@@ -386,7 +387,7 @@ func (economyModel *DipperinEconomyModel) GetMineMasterDIPReward(block model.Abs
 	if err != nil {
 		return big.NewInt(0), err
 	}
-	//log.Info("onBlock reward is:", "cur block total reward", totalReward)
+	//log.DLogger.Info("onBlock reward is:", "cur block total reward", totalReward)
 	return big.NewInt(0).Div(big.NewInt(0).Mul(totalReward, big.NewInt(MineMasterRewardProportion)), big.NewInt(100)), nil
 }
 
@@ -415,11 +416,11 @@ func (economyModel *DipperinEconomyModel) GetDiffVerifierAddress(preBlock, block
 	}
 
 	config := chain_config.GetChainConfig()
-	//log.Info("get address", "economyModel", economyModel)
+	//log.DLogger.Info("get address", "economyModel", economyModel)
 	slot := economyModel.Service.GetSlot(preBlock)
-	log.Debug("the slot is:", "slot", *slot)
+	log.DLogger.Debug("the slot is:", zap.Uint64("slot", *slot))
 	verifiers := economyModel.Service.GetVerifiers(*slot)
-	log.Debug("get verifiers is:", "verifier", verifiers)
+	log.DLogger.Debug("get verifiers is:", zap.Any("verifier", verifiers))
 
 	verifierAddress := make(map[VerifierType][]common.Address, 0)
 	commitVerifier := make([]common.Address, 0)
@@ -427,9 +428,9 @@ func (economyModel *DipperinEconomyModel) GetDiffVerifierAddress(preBlock, block
 	copy(notCommitVerifier, verifiers)
 
 	verifications := block.GetVerifications()
-	//log.Info("the verifications number is:","number",len(verifications))
+	//log.DLogger.Info("the verifications number is:","number",len(verifications))
 	for _, verification := range verifications {
-		//log.Info("the verification address is:","address",verification.GetAddress().Hex())
+		//log.DLogger.Info("the verification address is:","address",verification.GetAddress().Hex())
 		commitVerifier = append(commitVerifier, verification.GetAddress())
 		for i, tmpAddress := range notCommitVerifier {
 			if verification.GetAddress() == tmpAddress {
@@ -439,8 +440,8 @@ func (economyModel *DipperinEconomyModel) GetDiffVerifierAddress(preBlock, block
 	}
 
 	masterVerifierIndex := int(verifications[0].GetRound()) % config.VerifierNumber
-	log.Info("the masterVerifierIndex is:", "index", masterVerifierIndex)
-	log.Info("the verifierAddress is:", "number", len(verifiers))
+	log.DLogger.Info("the masterVerifierIndex is:", zap.Int("index", masterVerifierIndex))
+	log.DLogger.Info("the verifierAddress is:", zap.Int("number", len(verifiers)))
 	verifierAddress[MasterVerifier] = []common.Address{verifiers[masterVerifierIndex]}
 	verifierAddress[CommitVerifier] = commitVerifier
 	verifierAddress[NotCommitVerifier] = notCommitVerifier

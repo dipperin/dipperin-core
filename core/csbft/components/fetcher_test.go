@@ -20,13 +20,14 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"math/big"
 	"testing"
 
@@ -64,7 +65,6 @@ func CreateKey() (keys []*ecdsa.PrivateKey, adds []common.Address) {
 	add = append(add, cs_crypto.GetNormalAddress(key2.PublicKey))
 	add = append(add, cs_crypto.GetNormalAddress(key3.PublicKey))
 	add = append(add, cs_crypto.GetNormalAddress(key4.PublicKey))
-	log.Debug("CreateKey", "add", add)
 	return []*ecdsa.PrivateKey{key1, key2, key3, key4}, add
 }
 
@@ -97,7 +97,7 @@ type FakeCsBft struct {
 }
 
 func (fp FakePeer) SendMsg(msgCode uint64, msg interface{}) error {
-	//log.Info("send msg", "msgCode", msgCode, "peerid", fp.id)
+	//log.DLogger.Info("send msg", "msgCode", msgCode, "peerid", fp.id)
 	return p2p.Send(fp.rw, uint64(msgCode), msg)
 }
 
@@ -115,8 +115,6 @@ func newFakeCsBft(p1 *FakePeer) *FakeCsBft {
 }
 
 func TestCsBftFetcher_FetchBlock(t *testing.T) {
-	log.InitLogger(log.LvlDebug)
-	log.PBft.Logger = log.SetInitLogger(log.DefaultLogConf, "fetcher_test")
 	_, addr := CreateKey()
 	alice, bob := newFakePeer("alice", "bob")
 
@@ -149,7 +147,6 @@ func TestCsBftFetcher_FetchBlock(t *testing.T) {
 }
 
 func TestCsBftFetcher_onFetchBlock(t *testing.T) {
-	log.PBft.Logger = log.SetInitLogger(log.DefaultLogConf, "fetcher_test")
 	alice, bob := newFakePeer("alice", "bob")
 	//I'm Alice
 	fetcherA := NewFetcher(newFakeCsBft(bob))
@@ -211,7 +208,6 @@ func TestCsBftFetcher_FetchBlockResp(t *testing.T) {
 }
 
 func TestCsBftFetcher_FetchBlockResp2(t *testing.T) {
-	log.InitLogger(log.LvlDebug)
 	_, bob := newFakePeer("alice", "bob")
 
 	//I'm Alice
@@ -240,26 +236,26 @@ func ReadDataMsg(fetcher *CsBftFetcher, name string, peer *FakePeer) error {
 	}
 	switch model2.CsBftMsgType(msg.Code) {
 	case model2.TypeOfFetchBlockReqMsg:
-		log.Info(fmt.Sprintf("%v receive FetchBlock Request Msg", name))
+		log.DLogger.Info(fmt.Sprintf("%v receive FetchBlock Request Msg", name))
 		var m model2.FetchBlockReqDecodeMsg
 		if err := msg.Decode(&m); err != nil {
-			log.Debug("Decode FetchBlock Request Msg fail")
+			log.DLogger.Debug("Decode FetchBlock Request Msg fail")
 			return err
 		}
 		if err := peer.SendMsg(uint64(model2.TypeOfFetchBlockRespMsg), &FetchBlockRespMsg{
 			MsgId: m.MsgId,
 			Block: createBlock(),
 		}); err != nil {
-			log.Warn("send fetch block to client failed", "err", err)
+			log.DLogger.Warn("send fetch block to client failed", zap.Error(err))
 			return err
 		}
-		log.Info(fmt.Sprintf("%v send FetchBlock Response Msg", name))
+		log.DLogger.Info(fmt.Sprintf("%v send FetchBlock Response Msg", name))
 
 	case model2.TypeOfFetchBlockRespMsg:
-		log.Info(fmt.Sprintf("%v receive FetchBlock Response Msg", name))
+		log.DLogger.Info(fmt.Sprintf("%v receive FetchBlock Response Msg", name))
 		var m model2.FetchBlockRespDecodeMsg
 		if err := msg.Decode(&m); err != nil {
-			log.Debug("Decode FetchBlock Response Msg fail")
+			log.DLogger.Debug("Decode FetchBlock Response Msg fail")
 			return err
 		}
 		fetcher.fetchRespChan <- (&FetchBlockRespMsg{
@@ -292,8 +288,6 @@ func TestCsBftFetcher_IsNotRunning(t *testing.T) {
 
 // TODO
 func TestCsBftFetcher_IsRunning2(t *testing.T) {
-	//pbft_log.InitPbftLogger()
-	log.InitLogger(log.LvlInfo)
 	_, bob := newFakePeer("alice", "bob")
 	fetcherA := NewFetcher(newFakeCsBft(bob))
 	_, addr := CreateKey()

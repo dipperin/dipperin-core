@@ -17,8 +17,9 @@
 package dipperin
 
 import (
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"reflect"
 	"runtime"
 	"sync"
@@ -104,10 +105,9 @@ func (m *ServiceManager) startService(t ServiceType) error {
 	for _, s := range m.services[t] {
 		m.wg.Add(1)
 		// if start err, stop all services and return the err
-		log.Info("start service ", "name", reflect.TypeOf(s).String())
+		log.DLogger.Info("start service ", zap.String("name", reflect.TypeOf(s).String()))
 		if err = s.Start(); err != nil {
-			log.Info("the err service is: ", "service", s)
-			log.Error("start node service failed", "err", err)
+			log.DLogger.Error("start node service failed", zap.Error(err), zap.Any("service", s))
 			startSuccess = false
 			break
 		}
@@ -123,7 +123,7 @@ func (m *ServiceManager) startService(t ServiceType) error {
 }
 
 func (m *ServiceManager) stopService(service ServiceType) {
-	log.Info("call node stop")
+	log.DLogger.Info("call node stop")
 	x := 0
 	t := time.NewTimer(chokeTimeout)
 	// check service stop choked
@@ -140,7 +140,7 @@ func (m *ServiceManager) stopService(service ServiceType) {
 	}
 	for ; uint32(x) < i.(uint32); x++ {
 		// stop shouldn't in go
-		log.Info("stop service~~~", "x", x, "service", reflect.TypeOf(m.services[service][x]).String())
+		log.DLogger.Info("stop service~~~", zap.Int("x", x), zap.String("service", reflect.TypeOf(m.services[service][x]).String()))
 		m.services[service][x].Stop()
 		t.Reset(chokeTimeout)
 		m.wg.Done()
@@ -152,7 +152,6 @@ func (m *ServiceManager) stopService(service ServiceType) {
 func (m *ServiceManager) startRemainingServices() error {
 	startFlag := m.serviceStartFlag.Load()
 	if startFlag != nil && startFlag.(bool) {
-		log.Info("the serviceStartFlag is true")
 		return nil
 	}
 	var err error
@@ -177,7 +176,7 @@ func (m *ServiceManager) Start() error {
 	if err != nil {
 		return err
 	}
-	log.Info("the NoWalletStart is:", "NoWalletStart", m.components.nodeConfig.NoWalletStart)
+	log.DLogger.Info("the NoWalletStart is:", zap.Bool("NoWalletStart", m.components.nodeConfig.NoWalletStart))
 	if !m.components.nodeConfig.NoWalletStart {
 		err = m.startRemainingServices()
 	} else {
@@ -215,7 +214,7 @@ func (m *ServiceManager) Wait() {
 func (m *ServiceManager) AddService(service NodeService) {
 	//m.services = append(m.services, service)
 	serviceType := reflect.TypeOf(service).String()
-	log.Info("the service type is:", "name", serviceType)
+	log.DLogger.Info("the service type is:", zap.String("name", serviceType))
 
 	switch serviceType {
 	case "*service.VenusFullChainService", "*csbftnode.CsBft",
@@ -239,10 +238,8 @@ func (m *ServiceManager) AddService(service NodeService) {
 }*/
 func logDebugStack() {
 	buf := make([]byte, 5*1024*1024)
-	log.Stack.Info("the runtime stack is:~~~~~~~~~~~~~~~~~~~~")
 	buf = buf[:runtime.Stack(buf, true)]
-	log.Stack.Info(string(buf))
-	log.Stack.Info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+	log.DLogger.Info("the runtime stack", zap.String("stack", string(buf)))
 
 }
 
@@ -274,8 +271,8 @@ func printStackInfo(nodeName string) {
 		n.wg.Add(1)
 		// if start err, stop all services and return the err
 		if err = s.Start(); err != nil {
-			log.Info("the err service is: ", "service", s)
-			log.Error("start node service failed", "err", err)
+			log.DLogger.Info("the err service is: ", "service", s)
+			log.DLogger.Error("start node service failed", zap.Error(err))
 			startSuccess = false
 			n.Stop()
 			break
@@ -286,7 +283,7 @@ func printStackInfo(nodeName string) {
 }
 
 func (n *CsNode) Stop() {
-	log.Info("call node stop")
+	log.DLogger.Info("call node stop")
 	x := 0
 	t := time.NewTimer(chokeTimeout)
 	// check service stop choked

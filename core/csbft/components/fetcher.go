@@ -18,10 +18,11 @@ package components
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -38,8 +39,8 @@ func NewFetcher(fc FetcherConn) *CsBftFetcher {
 		isFetchingChan: make(chan *IsFetchingMsg),
 		rmReqChan:      make(chan uint64),
 	}
-	fetcher.BaseService = *util.NewBaseService(log.Root(), "cs_bft_fetcher", fetcher)
-	log.Info("NewFetcher", "fetcher.BaseService", fetcher.BaseService)
+	fetcher.BaseService = *util.NewBaseService(log.DLogger, "cs_bft_fetcher", fetcher)
+	log.DLogger.Info("NewFetcher", zap.Any("fetcher.BaseService", fetcher.BaseService))
 	return fetcher
 }
 
@@ -58,10 +59,10 @@ type CsBftFetcher struct {
 
 func (f *CsBftFetcher) FetchBlock(from common.Address, blockHash common.Hash) model.AbstractBlock {
 	if !f.IsRunning() {
-		log.Error("call fetch block, but fetcher not started")
+		log.DLogger.Error("call fetch block, but fetcher not started")
 		return nil
 	}
-	log.PBft.Info("CsBftFetcher#FetchBlock  call fetch block", "block hash", blockHash.Hex(), "from", from.Hex())
+	log.DLogger.Info("CsBftFetcher#FetchBlock  call fetch block", zap.String("block hash", blockHash.Hex()), zap.String("from", from.Hex()))
 	req := &FetchBlockReqMsg{
 		MsgId:      uint64(time.Now().UnixNano()),
 		From:       from,
@@ -71,15 +72,15 @@ func (f *CsBftFetcher) FetchBlock(from common.Address, blockHash common.Hash) mo
 
 	f.fetchReqQueue <- req
 
-	//log.Info("CsBftFetcher#FetchBlock: ", "req", req,"from", from)
+	//log.DLogger.Info("CsBftFetcher#FetchBlock: ", "req", req,"from", from)
 	select {
 	case result := <-req.ResultChan:
 		f.rmReq(req.MsgId)
-		//log.PBft.Info("CsBftFetcher#FetchBlock fetch block success", "block hash", result.Hash().Hex(), "from", from.Hex() )
+		//log.DLogger.Info("CsBftFetcher#FetchBlock fetch block success", "block hash", result.Hash().Hex(), "from", from.Hex() )
 		return result
 
 	case <-time.After(fetchTimeout):
-		log.PBft.Warn("fetch block timeout", "block hash", blockHash.Hex(), "from", from.Hex())
+		log.DLogger.Warn("fetch block timeout", zap.String("block hash", blockHash.Hex()), zap.String("from", from.Hex()))
 		// rm req
 		f.rmReq(req.MsgId)
 	}
@@ -91,8 +92,8 @@ func (f *CsBftFetcher) FetchBlockResp(resp *FetchBlockRespMsg) {
 	if f.IsRunning() {
 		f.fetchRespChan <- resp
 	} else {
-		log.PBft.Warn("receive fetch block resp, but fetcher not started")
-		log.Warn("receive fetch block resp, but fetcher not started")
+		log.DLogger.Warn("receive fetch block resp, but fetcher not started")
+		log.DLogger.Warn("receive fetch block resp, but fetcher not started")
 	}
 }
 
@@ -129,7 +130,7 @@ func (f *CsBftFetcher) loop() {
 			delete(f.requests, rId)
 
 		case <-f.Quit():
-			log.PBft.Info("bft fetcher stopped")
+			log.DLogger.Info("bft fetcher stopped")
 			return
 		}
 	}
@@ -158,12 +159,12 @@ func (f *CsBftFetcher) isFetching(h common.Hash) bool {
 func (f *CsBftFetcher) onFetchBlock(req *FetchBlockReqMsg) {
 	if f.isFetching(req.BlockHash) {
 		req.onResult(nil)
-		log.PBft.Info("is fetching block", "hash", req.BlockHash)
+		log.DLogger.Info("is fetching block", zap.Any("hash", req.BlockHash))
 		return
 	}
 	if len(f.requests) > 5 {
 		req.onResult(nil)
-		log.PBft.Warn("too many fetches", "req len", len(f.requests))
+		log.DLogger.Warn("too many fetches", zap.Int("req len", len(f.requests)))
 		return
 	}
 	f.requests[req.MsgId] = req
@@ -172,7 +173,7 @@ func (f *CsBftFetcher) onFetchBlock(req *FetchBlockReqMsg) {
 		BlockHash: req.BlockHash,
 	}); err != nil {
 		req.onResult(nil)
-		log.PBft.Warn("send fetch req failed", "err", err)
+		log.DLogger.Warn("send fetch req failed", zap.Error(err))
 		return
 	}
 }
@@ -181,11 +182,11 @@ func (f *CsBftFetcher) onFetchBlock(req *FetchBlockReqMsg) {
 func (f *CsBftFetcher) onFetchResp(resp *FetchBlockRespMsg) {
 	req := f.requests[resp.MsgId]
 	if req == nil {
-		log.PBft.Info("receive fetch block resp, but req has been removed")
+		log.DLogger.Info("receive fetch block resp, but req has been removed")
 		return
 	}
 
-	log.PBft.Info("onFetchResp1", "block height", resp.Block.Number())
+	log.DLogger.Info("onFetchResp1", zap.Uint64("block height", resp.Block.Number()))
 	req.onResult(resp.Block)
 }
 
@@ -206,7 +207,7 @@ func (req *FetchBlockReqMsg) onResult(block model.AbstractBlock) {
 	select {
 	case req.ResultChan <- block:
 	case <-time.After(100 * time.Millisecond):
-		log.PBft.Warn("can't send fetch resp to ResultChan, maybe already timeout")
+		log.DLogger.Warn("can't send fetch resp to ResultChan, maybe already timeout")
 	}
 }
 

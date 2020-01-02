@@ -24,6 +24,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
@@ -32,9 +33,9 @@ import (
 	"github.com/dipperin/dipperin-core/core/dipperin"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/urfave/cli"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -46,7 +47,7 @@ import (
 )
 
 var (
-	l log.Logger
+	l *zap.Logger
 
 	client RpcClient
 
@@ -69,8 +70,7 @@ type RpcClient interface {
 }
 
 func init() {
-	l = log.New()
-	l.SetHandler(log.MultiHandler(log.CliOutHandler))
+	l = log.NewLogger()
 }
 
 func InitRpcClient(info dipperin.NodeInfo) {
@@ -83,7 +83,7 @@ func InitAccountInfo(nodeType int, path, password, passPharse string) {
 	if nodeType == chain_config.NodeTypeOfNormal {
 		err := initWallet(path, password, passPharse)
 		if err != nil {
-			l.Error("init Wallet Error", "err", err)
+			l.Error("init Wallet Error", zap.Error(err))
 			osExit(1)
 		}
 	}
@@ -108,7 +108,7 @@ func InitAccountInfo(nodeType int, path, password, passPharse string) {
 //	sub, err := csSubscribe(client, context.Background(), blockCh, "newBlock")
 //
 //	if err != nil {
-//		l.Error("can't subscribe server", "err", err)
+//		l.Error("can't subscribe server", zap.Error(err))
 //		return
 //	}
 //
@@ -117,7 +117,7 @@ func InitAccountInfo(nodeType int, path, password, passPharse string) {
 //	for {
 //		select {
 //		case err := <-sub.Err():
-//			l.Info("sub result", "err", err)
+//			l.Info("sub result", zap.Error(err))
 //		case <-blockCh:
 //			// todo Make another prompt, otherwise it is difficult to operate the command.
 //			//l.Info(b)
@@ -139,7 +139,7 @@ func CheckDownloaderSyncStatus() {
 
 	var status bool
 	if err := client.Call(&status, getDipperinRpcMethodByName("GetSyncStatus")); err != nil {
-		l.Error("call GetSyncStatus", "err", err)
+		l.Error("call GetSyncStatus", zap.Error(err))
 		panic("call GetSyncStatus err")
 	}
 
@@ -154,7 +154,7 @@ func CheckDownloaderSyncStatus() {
 		select {
 		case <-timer.C:
 			if err := client.Call(&resp, getDipperinRpcMethodByName("GetSyncStatus")); err != nil {
-				l.Error("call GetSyncStatus", "err", err)
+				l.Error("call GetSyncStatus", zap.Error(err))
 			}
 
 			//l.Info("the GetSyncStatus resp is:","resp",resp)
@@ -185,7 +185,7 @@ func RpcCall(c *cli.Context) {
 
 	rvf := callerRv.MethodByName(method)
 	if rvf.Kind() != reflect.Func {
-		l.Error("not found method", "method_name", method)
+		l.Error("not found method", zap.String("method_name", method))
 		return
 	}
 
@@ -240,10 +240,10 @@ func checkSync() bool {
 		l.Error("the block downloader isn't finished")
 		var respBlock rpc_interface.BlockResp
 		if err := client.Call(&respBlock, getDipperinRpcMethodByName("CurrentBlock")); err != nil {
-			l.Error("get current Block error", "err", err)
+			l.Error("get current Block error", zap.Error(err))
 			return true
 		}
-		l.Info("the current block number is:", "number", respBlock.Header.Number)
+		l.Info("the current block number is:", zap.Uint64("number", respBlock.Header.Number))
 		return true
 	}
 	return false
@@ -252,16 +252,16 @@ func checkSync() bool {
 func (caller *rpcCaller) GetDefaultAccountBalance(c *cli.Context) {
 	var resp rpc_interface.CurBalanceResp
 	if err := client.Call(&resp, getDipperinRpcMethodByName("CurrentBalance"), defaultAccount); err != nil {
-		l.Error("call current balance error", "err", err)
+		l.Error("call current balance error", zap.Error(err))
 		return
 	}
 
-	l.Debug("GetDefaultAccountBalance", "resp", resp)
+	l.Debug("GetDefaultAccountBalance", zap.Any("resp", resp))
 	balance, err := CSCoinToMoneyValue(resp.Balance)
 	if err != nil {
 		l.Error("the address isn't on the block chain balance=0")
 	} else {
-		l.Info("address current Balance is:", "balance", balance)
+		l.Info("address current Balance is:", zap.String("balance", balance))
 	}
 }
 
@@ -283,7 +283,7 @@ func (caller *rpcCaller) CurrentBalance(c *cli.Context) {
 	} else {
 		addr, err = CheckAndChangeHexToAddress(cParams[0])
 		if err != nil {
-			l.Error("the input address is invalid", "err", err)
+			l.Error("the input address is invalid", zap.Error(err))
 			return
 		}
 	}
@@ -291,7 +291,7 @@ func (caller *rpcCaller) CurrentBalance(c *cli.Context) {
 	var resp rpc_interface.CurBalanceResp
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), addr); err != nil {
 
-		l.Error("call current balance error", "err", err)
+		l.Error("call current balance error", zap.Error(err))
 		return
 	}
 
@@ -299,7 +299,7 @@ func (caller *rpcCaller) CurrentBalance(c *cli.Context) {
 	if err != nil {
 		l.Error("the address isn't on the block chain balance=0")
 	} else {
-		l.Info("address current Balance is:", "balance", balance)
+		l.Info("address current Balance is:", zap.String("balance", balance))
 	}
 }
 
@@ -341,7 +341,7 @@ func (caller *rpcCaller) CurrentBlock(c *cli.Context) {
 	}
 	var respBlock rpc_interface.BlockResp
 	if err = client.Call(&respBlock, getDipperinRpcMethodByName(mName)); err != nil {
-		l.Error("call current block error", "err", err)
+		l.Error("call current block error", zap.Error(err))
 		return
 	}
 	printBlockInfo(respBlock)
@@ -357,7 +357,7 @@ func (caller *rpcCaller) GetGenesis(c *cli.Context) {
 	var respBlock rpc_interface.BlockResp
 	if err = client.Call(&respBlock, getDipperinRpcMethodByName(mName)); err != nil {
 
-		l.Error("call genesis block error", "err", err)
+		l.Error("call genesis block error", zap.Error(err))
 		return
 	}
 	printBlockInfo(respBlock)
@@ -380,11 +380,11 @@ func (caller *rpcCaller) GetBlockByNumber(c *cli.Context) {
 	if err != nil {
 		l.Error("the blockNumber error")
 	}
-	l.Debug("the blockNum is:", "blockNum", blockNum)
+	l.Debug("the blockNum is:", zap.Int("blockNum", blockNum))
 
 	var respBlock rpc_interface.BlockResp
 	if err = client.Call(&respBlock, getDipperinRpcMethodByName(mName), blockNum); err != nil {
-		l.Error("call block error", "err", err)
+		l.Error("call block error", zap.Error(err))
 		return
 	}
 	printBlockInfo(respBlock)
@@ -407,14 +407,14 @@ func (caller *rpcCaller) GetSlotByNumber(c *cli.Context) {
 	if err != nil {
 		l.Error("the blockNumber error")
 	}
-	l.Debug("the blockNum is:", "blockNum", blockNum)
+	l.Debug("the blockNum is:", zap.Int("blockNum", blockNum))
 
 	var resp uint64
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), blockNum); err != nil {
-		l.Error("call GetSlotByNumber error", "err", err)
+		l.Error("call GetSlotByNumber error", zap.Error(err))
 		return
 	}
-	l.Info("GetSlotByNumber result", "slot", resp)
+	l.Info("GetSlotByNumber result", zap.Uint64("slot", resp))
 }
 
 // GetBlockByHash get block information based on block hash
@@ -432,7 +432,7 @@ func (caller *rpcCaller) GetBlockByHash(c *cli.Context) {
 
 	var respBlock rpc_interface.BlockResp
 	if err = client.Call(&respBlock, getDipperinRpcMethodByName(mName), cParams[0]); err != nil {
-		l.Error("call block error", "err", err)
+		l.Error("call block error", zap.Error(err))
 		return
 	}
 	printBlockInfo(respBlock)
@@ -450,7 +450,7 @@ func (caller *rpcCaller) StartMine(c *cli.Context) {
 	}
 	var resp interface{}
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName)); err != nil {
-		l.Error("start mining error", "err", err)
+		l.Error("start mining error", zap.Error(err))
 		return
 	}
 	l.Debug("Mining Started")
@@ -465,7 +465,7 @@ func (caller *rpcCaller) StopMine(c *cli.Context) {
 
 	var resp interface{}
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName)); err != nil {
-		l.Error("stop mining error", "err", err)
+		l.Error("stop mining error", zap.Error(err))
 		return
 	}
 	l.Debug("stop mining")
@@ -486,12 +486,12 @@ func (caller *rpcCaller) SetMineCoinBase(c *cli.Context) {
 
 	address, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
-		l.Error("the input address is invalid", "err", err)
+		l.Error("the input address is invalid", zap.Error(err))
 		return
 	}
 	var resp interface{}
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), address); err != nil {
-		l.Error("setting CoinBase", "err", err)
+		l.Error("setting CoinBase", zap.Error(err))
 		return
 	}
 	l.Debug("setting CoinBase　success")
@@ -512,22 +512,22 @@ func (caller *rpcCaller) SetMineGasConfig(c *cli.Context) {
 
 	gasFloor, err := strconv.Atoi(cParams[0])
 	if err != nil {
-		l.Error("parse gasFloor error", "err", err)
+		l.Error("parse gasFloor error", zap.Error(err))
 		return
 	}
 
 	gasCeil, err := strconv.Atoi(cParams[1])
 	if err != nil {
-		l.Error("parse gasCeil error", "err", err)
+		l.Error("parse gasCeil error", zap.Error(err))
 		return
 	}
 
-	l.Debug("the gasFloor is:", "gasFloor", gasFloor)
-	l.Debug("the gasCeil is:", "gasCeil", gasCeil)
+	l.Debug("the gasFloor is:", zap.Int("gasFloor", gasFloor))
+	l.Debug("the gasCeil is:", zap.Int("gasCeil", gasCeil))
 
 	var resp interface{}
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), uint64(gasFloor), uint64(gasCeil)); err != nil {
-		l.Error("setting MinerGasConfig failed", "err", err)
+		l.Error("setting MinerGasConfig failed", zap.Error(err))
 		return
 	}
 	l.Info("setting MinerGasConfig success")
@@ -540,7 +540,7 @@ func (caller *rpcCaller) SendTx(c *cli.Context) {
 
 	_, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
-		l.Error("getRpcMethodAndParam error", "err", err)
+		l.Error("getRpcMethodAndParam error", zap.Error(err))
 		return
 	}
 
@@ -551,25 +551,25 @@ func (caller *rpcCaller) SendTx(c *cli.Context) {
 
 	toAddress, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
-		l.Error("the to address is invalid", "err", err)
+		l.Error("the to address is invalid", zap.Error(err))
 		return
 	}
 
 	value, err := MoneyValueToCSCoin(cParams[1])
 	if err != nil {
-		l.Error("the parameter value invalid", "err", err)
+		l.Error("the parameter value invalid", zap.Error(err))
 		return
 	}
 
 	gasPrice, err := MoneyValueToCSCoin(cParams[2])
 	if err != nil {
-		l.Error("the parameter gasPrice invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", zap.Error(err))
 		return
 	}
 
 	gasLimit, err := strconv.ParseUint(cParams[3], 10, 64)
 	if err != nil {
-		l.Error("the parameter gasLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", zap.Error(err))
 		return
 	}
 
@@ -579,16 +579,16 @@ func (caller *rpcCaller) SendTx(c *cli.Context) {
 	}
 
 	var resp common.Hash
-	l.Debug("the from is: ", "from", defaultAccount.Hex())
-	l.Debug("the to is: ", "to", toAddress.Hex())
-	l.Debug("the value is:", "value", MoneyWithUnit(cParams[1]))
-	l.Debug("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[2]))
-	l.Debug("the ExtraData is: ", "ExtraData", extraData)
+	l.Debug("the from is: ", zap.String("from", defaultAccount.Hex()))
+	l.Debug("the to is: ", zap.String("to", toAddress.Hex()))
+	l.Debug("the value is:", zap.String("value", MoneyWithUnit(cParams[1])))
+	l.Debug("the gasPrice is:", zap.String("gasPrice", MoneyWithUnit(cParams[2])))
+	l.Debug("the ExtraData is: ", zap.Uint8s("ExtraData", extraData))
 	if err = client.Call(&resp, getDipperinRpcMethodByName("SendTransaction"), defaultAccount, toAddress, value, gasPrice, gasLimit, extraData, nil); err != nil {
-		l.Error("call send transaction error", "err", err)
+		l.Error("call send transaction error", zap.Error(err))
 		return
 	}
-	l.Info("SendTransaction result", "txId", resp.Hex())
+	l.Info("SendTransaction result", zap.String("txId", resp.Hex()))
 }
 
 //send transaction
@@ -599,7 +599,7 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 
 	mName, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
-		l.Error("getRpcMethodAndParam error", "err", err)
+		l.Error("getRpcMethodAndParam error", zap.Error(err))
 		return
 	}
 
@@ -610,31 +610,31 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 
 	from, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
-		l.Error("the from address is invalid", "err", err)
+		l.Error("the from address is invalid", zap.Error(err))
 		return
 	}
 
 	to, err := CheckAndChangeHexToAddress(cParams[1])
 	if err != nil {
-		l.Error("the to address is invalid", "err", err)
+		l.Error("the to address is invalid", zap.Error(err))
 		return
 	}
 
 	value, err := MoneyValueToCSCoin(cParams[2])
 	if err != nil {
-		l.Error("the parameter value invalid", "err", err)
+		l.Error("the parameter value invalid", zap.Error(err))
 		return
 	}
 
 	gasPrice, err := MoneyValueToCSCoin(cParams[3])
 	if err != nil {
-		l.Error("the parameter gasPrice is invalid", "err", err)
+		l.Error("the parameter gasPrice is invalid", zap.Error(err))
 		return
 	}
 
 	gasLimit, err := strconv.ParseUint(cParams[4], 10, 64)
 	if err != nil {
-		l.Error("the parameter gasLimit is invalid", "err", err)
+		l.Error("the parameter gasLimit is invalid", zap.Error(err))
 		return
 	}
 
@@ -644,17 +644,17 @@ func (caller *rpcCaller) SendTransaction(c *cli.Context) {
 	}
 
 	var resp common.Hash
-	l.Debug("the from is: ", "from", from.Hex())
-	l.Debug("the to is: ", "to", to.Hex())
-	l.Debug("the value is:", "value", MoneyWithUnit(cParams[2]))
-	l.Debug("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[3]))
-	l.Debug("the gasLimit is:", "gasLimit", gasLimit)
-	l.Debug("the ExtraData is: ", "ExtraData", ExtraData)
+	l.Debug("the from is: ", zap.String("from", from.Hex()))
+	l.Debug("the to is: ", zap.String("to", to.Hex()))
+	l.Debug("the value is:", zap.String("value", MoneyWithUnit(cParams[2])))
+	l.Debug("the gasPrice is:", zap.String("gasPrice", MoneyWithUnit(cParams[3])))
+	l.Debug("the gasLimit is:", zap.Uint64("gasLimit", gasLimit))
+	l.Debug("the ExtraData is: ", zap.Uint8s("ExtraData", ExtraData))
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, to, value, gasPrice, gasLimit, ExtraData, nil); err != nil {
-		l.Error("call send transaction", "err", err)
+		l.Error("call send transaction", zap.Error(err))
 		return
 	}
-	l.Info("SendTransaction result", "txId", resp.Hex())
+	l.Info("SendTransaction result", zap.String("txId", resp.Hex()))
 }
 
 //check transaction from transaction hash
@@ -676,7 +676,7 @@ func (caller *rpcCaller) Transaction(c *cli.Context) {
 
 	tmpHash, err := hexutil.Decode(cParams[0])
 	if err != nil {
-		l.Error("the err is:", "err", err)
+		l.Error("the err is:", zap.Error(err))
 		l.Error("Transaction decode error")
 		return
 	}
@@ -686,7 +686,7 @@ func (caller *rpcCaller) Transaction(c *cli.Context) {
 
 	var resp rpc_interface.TransactionResp
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), hash); err != nil {
-		l.Error("Call Transaction", "err", err)
+		l.Error("Call Transaction", zap.Error(err))
 		return
 	}
 
@@ -716,7 +716,7 @@ func (caller *rpcCaller) GetReceiptByTxHash(c *cli.Context) {
 
 	var resp model.Receipt
 	if err = client.Call(&resp, getDipperinRpcMethodByName("GetReceiptByTxHash"), hash); err != nil {
-		l.Error("Call GetReceiptByTxHash", "err", err)
+		l.Error("Call GetReceiptByTxHash", zap.Error(err))
 		return
 	}
 
@@ -747,15 +747,15 @@ func (caller *rpcCaller) GetTxActualFee(c *cli.Context) {
 
 	var resp rpc_interface.CurBalanceResp
 	if err = client.Call(&resp, getDipperinRpcMethodByName("GetTxActualFee"), hash); err != nil {
-		l.Error("Call GetTxActualFee", "err", err)
+		l.Error("Call GetTxActualFee", zap.Error(err))
 		return
 	}
 
 	txFee, err := InterToDecimal(resp.Balance, consts.UnitDecimalBits)
 	if err != nil {
-		l.Error("can't get tx actual fee", "err", err)
+		l.Error("can't get tx actual fee", zap.Error(err))
 	} else {
-		l.Info("the tx actual fee is", "txActualFee", txFee+consts.CoinWuName)
+		l.Info("the tx actual fee is", zap.String("txActualFee", txFee+consts.CoinWuName))
 	}
 }
 
@@ -767,25 +767,25 @@ func (caller *rpcCaller) SuggestGasPrice(c *cli.Context) {
 	}
 	var resp rpc_interface.CurBalanceResp
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName)); err != nil {
-		l.Error("call SuggestGasPrice failed", "err", err)
+		l.Error("call SuggestGasPrice failed", zap.Error(err))
 		return
 	}
 
 	gasPrice, err := InterToDecimal(resp.Balance, consts.UnitDecimalBits)
 	if err != nil {
-		l.Error("can't get suggest gas price", "err", err)
+		l.Error("can't get suggest gas price", zap.Error(err))
 	} else {
-		l.Info("the gas price is", "gasPrice", gasPrice+consts.CoinWuName)
+		l.Info("the gas price is", zap.String("gasPrice", gasPrice+consts.CoinWuName))
 	}
 }
 
 func (caller *rpcCaller) GetLogs(c *cli.Context) {
 	//BlockHash *common.Hash, FromBlock *big.Int, ToBlock *big.Int, Addresses []common.Address, Topics [][]common.Hash
 	params := c.String("p")
-	l.Debug("GetLogs the params is:", "params", params)
+	l.Debug("GetLogs the params is:", zap.String("params", params))
 	var filterParams FilterParams
 	if err := json.Unmarshal([]byte(params), &filterParams); err != nil {
-		l.Error("json.Unmarshal failed", "err", err)
+		l.Error("json.Unmarshal failed", zap.Error(err))
 		l.Info("json needed")
 		fmt.Println("example1:", `{"block_hash":"0x000023e18421a0abfceea172867b9b4a3bcf593edd0b504554bb7d1cf5f5e7b7","addresses":["0x0014049F835be46352eD0Ec6B819272A2c8cF4feA10f"],"topics":[["0x0b5d2220daf8f0dfd95983d2ce625affbb7183c991271f49d818b4a64a268dbb"]]}`)
 		fmt.Println("example2:", `{"from_block":10,"to_block":500,"addresses":["0x0014049F835be46352eD0Ec6B819272A2c8cF4feA10f"],"topics":[["0x0b5d2220daf8f0dfd95983d2ce625affbb7183c991271f49d818b4a64a268dbb"]]}`)
@@ -793,22 +793,22 @@ func (caller *rpcCaller) GetLogs(c *cli.Context) {
 	}
 
 	if filterParams.BlockHash.IsEmpty() {
-		l.Debug("the blockHash is", "blockHash", "empty")
+		l.Debug("the blockHash is", zap.String("blockHash", "empty"))
 	} else {
-		l.Debug("the blockHash is", "blockHash", filterParams.BlockHash)
+		l.Debug("the blockHash is", zap.Any("blockHash", filterParams.BlockHash))
 	}
-	l.Debug("the fromBlock is", "num", filterParams.FromBlock)
+	l.Debug("the fromBlock is", zap.Uint64("num", filterParams.FromBlock))
 	if filterParams.ToBlock == uint64(0) {
-		l.Debug("the toBlock is", "num", "currentBlock")
+		l.Debug("the toBlock is", zap.String("num", "currentBlock"))
 	} else {
-		l.Debug("the toBlock is", "num", filterParams.ToBlock)
+		l.Debug("the toBlock is", zap.Uint64("num", filterParams.ToBlock))
 	}
-	l.Debug("the contractAddresses is", "addresses", filterParams.Addresses)
-	l.Debug("the topics is", "topics", filterParams.Topics)
+	l.Debug("the contractAddresses is", zap.Any("addresses", filterParams.Addresses))
+	l.Debug("the topics is", zap.Any("topics", filterParams.Topics))
 
 	var resp []model.Log
 	if err := client.Call(&resp, getDipperinRpcMethodByName("GetLogs"), filterParams.BlockHash, filterParams.FromBlock, filterParams.ToBlock, filterParams.Addresses, filterParams.Topics); err != nil {
-		l.Error("Call GetLogs failed", "err", err)
+		l.Error("Call GetLogs failed", zap.Error(err))
 		return
 	}
 
@@ -841,7 +841,7 @@ func (caller *rpcCaller) GetReceiptsByBlockNum(c *cli.Context) {
 
 	var resp model.Receipts
 	if err = client.Call(&resp, getDipperinRpcMethodByName("GetReceiptsByBlockNum"), blockNum); err != nil {
-		l.Error("Call GetReceiptsByBlockNum", "err", err)
+		l.Error("Call GetReceiptsByBlockNum", zap.Error(err))
 		return
 	}
 	fmt.Printf("ReceiptInfos:\r\n")
@@ -858,7 +858,7 @@ func (caller *rpcCaller) ListWallet(c *cli.Context) {
 	l.Debug(getDipperinRpcMethodByName(mName))
 	var resp []accounts.WalletIdentifier
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName)); err != nil {
-		l.Error("Call ListWallet", "err", err)
+		l.Error("Call ListWallet", zap.Error(err))
 		return
 	}
 	fmt.Println("  Call ListWallet Result:")
@@ -880,7 +880,7 @@ func (caller *rpcCaller) ListWalletAccount(c *cli.Context) {
 		identifier = defaultWallet
 	} else if len(cParams) == 2 {
 		identifier.Path, identifier.WalletName = ParseWalletPathAndName(cParams[1])
-		l.Debug("ListWalletAccount", "walletPath", identifier.Path, "walletName", identifier.WalletName)
+		l.Debug("ListWalletAccount", zap.String("walletPath", identifier.Path), zap.String("walletName", identifier.WalletName))
 		if cParams[0] == "SoftWallet" {
 			identifier.WalletType = accounts.SoftWallet
 		} else if cParams[0] == "LedgerWallet" {
@@ -900,7 +900,7 @@ func (caller *rpcCaller) ListWalletAccount(c *cli.Context) {
 	var resp []accounts.Account
 
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), identifier); err != nil {
-		l.Error("Call ListWallet", "err", err)
+		l.Error("Call ListWallet", zap.Error(err))
 		return
 	}
 
@@ -954,11 +954,11 @@ func (caller *rpcCaller) EstablishWallet(c *cli.Context) {
 
 		l.Info("call EstablishWallet")*/
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), password, "", identifier); err != nil {
-		l.Error("Call EstablishWallet", "err", err)
+		l.Error("Call EstablishWallet", zap.Error(err))
 		return
 	}
 	resp = strings.Replace(resp, " ", ",", -1)
-	l.Info("Call EstablishWallet", "mnemonic", resp)
+	l.Info("Call EstablishWallet", zap.String("mnemonic", resp))
 }
 
 //Restore Wallet
@@ -999,13 +999,13 @@ func (caller *rpcCaller) RestoreWallet(c *cli.Context) {
 
 	l.Debug(getDipperinRpcMethodByName(mName))
 	var resp interface{}
-	l.Debug("the identifier is: ", "identifier", identifier)
-	l.Debug("the password is: ", "password", password)
+	l.Debug("the identifier is: ", zap.Any("identifier", identifier))
+	l.Debug("the password is: ", zap.String("password", password))
 	//l.Debug("the passPhrase is: ", "passPhrase", passPhrase)
-	l.Debug("the mnemonic is: ", "mnemonic", mnemonic)
+	l.Debug("the mnemonic is: ", zap.String("mnemonic", mnemonic))
 
 	if err = client.Call(resp, getDipperinRpcMethodByName(mName), password, mnemonic, "", identifier); err != nil {
-		l.Error("Call RestoreWallet", "err", err)
+		l.Error("Call RestoreWallet", zap.Error(err))
 		return
 	}
 	l.Info("Call RestoreWallet success")
@@ -1047,7 +1047,7 @@ func (caller *rpcCaller) OpenWallet(c *cli.Context) {
 	var resp interface{}
 
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), password, identifier); err != nil {
-		l.Error("Call OpenWallet", "err", err)
+		l.Error("Call OpenWallet", zap.Error(err))
 		return
 	}
 	l.Info("Call OpenWallet success")
@@ -1085,7 +1085,7 @@ func (caller *rpcCaller) CloseWallet(c *cli.Context) {
 	var resp interface{}
 
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), identifier); err != nil {
-		l.Error("Call CloseWallet", "err", err)
+		l.Error("Call CloseWallet", zap.Error(err))
 		return
 	}
 	l.Info("Call CloseWallet success")
@@ -1123,10 +1123,10 @@ func (caller *rpcCaller) AddAccount(c *cli.Context) {
 	l.Debug(getDipperinRpcMethodByName(mName))
 	var resp accounts.Account
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), derivationPath, identifier); err != nil {
-		l.Error("Call AddAccount", "err", err)
+		l.Error("Call AddAccount", zap.Error(err))
 		return
 	}
-	l.Info("Call AddAccount", "Added Account Address", resp.Address.Hex())
+	l.Info("Call AddAccount", zap.String("Added Account Address", resp.Address.Hex()))
 }
 
 func (caller *rpcCaller) SendRegisterTx(c *cli.Context) {
@@ -1136,7 +1136,7 @@ func (caller *rpcCaller) SendRegisterTx(c *cli.Context) {
 
 	_, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
-		l.Error("getRpcMethodAndParam error", "err", err)
+		l.Error("getRpcMethodAndParam error", zap.Error(err))
 		return
 	}
 
@@ -1153,25 +1153,25 @@ func (caller *rpcCaller) SendRegisterTx(c *cli.Context) {
 
 	gasPrice, err := MoneyValueToCSCoin(cParams[1])
 	if err != nil {
-		l.Error("the parameter gasPrice invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", zap.Error(err))
 		return
 	}
 
 	gasLimit, err := strconv.ParseUint(cParams[2], 10, 64)
 	if err != nil {
-		l.Error("the parameter gasLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", zap.Error(err))
 		return
 	}
 
-	l.Debug("the stake is:", "stake", MoneyWithUnit(cParams[0]))
-	l.Debug("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[1]))
-	l.Debug("the gasLimit is:", "gasLimit", gasLimit)
+	l.Debug("the stake is:", zap.String("stake", MoneyWithUnit(cParams[0])))
+	l.Debug("the gasPrice is:", zap.String("gasPrice", MoneyWithUnit(cParams[1])))
+	l.Debug("the gasLimit is:", zap.Uint64("gasLimit", gasLimit))
 	var resp common.Hash
 	if err = client.Call(&resp, getDipperinRpcMethodByName("SendRegisterTransaction"), defaultAccount, stake, gasPrice, gasLimit, nil); err != nil {
-		l.Error("call send transaction", "err", err)
+		l.Error("call send transaction", zap.Error(err))
 		return
 	}
-	l.Info("SendRegisterTransaction result", "txId", resp.Hex())
+	l.Info("SendRegisterTransaction result", zap.String("txId", resp.Hex()))
 	addTrackingAccount(defaultAccount)
 	RecordRegistration(resp.Hex())
 }
@@ -1195,7 +1195,7 @@ func (caller *rpcCaller) SendRegisterTransaction(c *cli.Context) {
 	var resp common.Hash
 	from, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
-		l.Error("the from address is invalid", "err", err)
+		l.Error("the from address is invalid", zap.Error(err))
 		return
 	}
 
@@ -1207,24 +1207,24 @@ func (caller *rpcCaller) SendRegisterTransaction(c *cli.Context) {
 
 	gasPrice, err := MoneyValueToCSCoin(cParams[2])
 	if err != nil {
-		l.Error("the parameter gasPrice invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", zap.Error(err))
 		return
 	}
 
 	gasLimit, err := strconv.ParseUint(cParams[3], 10, 64)
 	if err != nil {
-		l.Error("the parameter gasLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", zap.Error(err))
 		return
 	}
 
-	l.Debug("the stake is:", "stake", MoneyWithUnit(cParams[1]))
-	l.Debug("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[2]))
-	l.Debug("the gasLimit is:", "gasLimit", gasLimit)
+	l.Debug("the stake is:", zap.String("stake", MoneyWithUnit(cParams[1])))
+	l.Debug("the gasPrice is:", zap.String("gasPrice", MoneyWithUnit(cParams[2])))
+	l.Debug("the gasLimit is:", zap.Uint64("gasLimit", gasLimit))
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, stake, gasPrice, gasLimit, nil); err != nil {
-		l.Error("call send transaction", "err", err)
+		l.Error("call send transaction", zap.Error(err))
 		return
 	}
-	l.Info("SendRegisterTransaction result", "txId", resp.Hex())
+	l.Info("SendRegisterTransaction result", zap.String("txId", resp.Hex()))
 	addTrackingAccount(from)
 	RecordRegistration(resp.Hex())
 }
@@ -1248,23 +1248,23 @@ func (caller *rpcCaller) SendUnStakeTx(c *cli.Context) {
 	var resp common.Hash
 	gasPrice, err := MoneyValueToCSCoin(cParams[0])
 	if err != nil {
-		l.Error("the parameter gasPrice invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", zap.Error(err))
 		return
 	}
 
 	gasLimit, err := strconv.ParseUint(cParams[1], 10, 64)
 	if err != nil {
-		l.Error("the parameter gasLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", zap.Error(err))
 		return
 	}
 
 	//l.Info("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[0]))
 	//l.Info("the gasLimit is:", "gasLimit", gasLimit)
 	if err = client.Call(&resp, getDipperinRpcMethodByName("SendUnStakeTransaction"), defaultAccount, gasPrice, gasLimit, nil); err != nil {
-		l.Error("call send transaction", "err", err)
+		l.Error("call send transaction", zap.Error(err))
 		return
 	}
-	l.Info("SendUnStakeTransaction result", "txId", resp.Hex())
+	l.Info("SendUnStakeTransaction result", zap.String("txId", resp.Hex()))
 }
 
 //send UnStake transaction
@@ -1287,29 +1287,29 @@ func (caller *rpcCaller) SendUnStakeTransaction(c *cli.Context) {
 	var resp common.Hash
 	from, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
-		l.Error("the from address is invalid", "err", err)
+		l.Error("the from address is invalid", zap.Error(err))
 		return
 	}
 
 	gasPrice, err := MoneyValueToCSCoin(cParams[1])
 	if err != nil {
-		l.Error("the parameter gasPrice invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", zap.Error(err))
 		return
 	}
 
 	gasLimit, err := strconv.ParseUint(cParams[2], 10, 64)
 	if err != nil {
-		l.Error("the parameter gasLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", zap.Error(err))
 		return
 	}
 
-	l.Debug("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[1]))
-	l.Debug("the gasLimit is:", "gasLimit", gasLimit)
+	l.Debug("the gasPrice is:", zap.String("gasPrice", MoneyWithUnit(cParams[1])))
+	l.Debug("the gasLimit is:", zap.Uint64("gasLimit", gasLimit))
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, gasPrice, gasLimit, nil); err != nil {
-		l.Error("call send transaction", "err", err)
+		l.Error("call send transaction", zap.Error(err))
 		return
 	}
-	l.Info("SendUnStakeTransaction result", "txId", resp.Hex())
+	l.Info("SendUnStakeTransaction result", zap.String("txId", resp.Hex()))
 }
 
 func (caller *rpcCaller) SendCancelTx(c *cli.Context) {
@@ -1331,23 +1331,23 @@ func (caller *rpcCaller) SendCancelTx(c *cli.Context) {
 	var resp common.Hash
 	gasPrice, err := MoneyValueToCSCoin(cParams[0])
 	if err != nil {
-		l.Error("the parameter gasPrice invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", zap.Error(err))
 		return
 	}
 
 	gasLimit, err := strconv.ParseUint(cParams[1], 10, 64)
 	if err != nil {
-		l.Error("the parameter gasLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", zap.Error(err))
 		return
 	}
 
-	l.Debug("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[0]))
-	l.Debug("the gasLimit is:", "gasLimit", gasLimit)
+	l.Debug("the gasPrice is:", zap.String("gasPrice", MoneyWithUnit(cParams[0])))
+	l.Debug("the gasLimit is:", zap.Uint64("gasLimit", gasLimit))
 	if err = client.Call(&resp, getDipperinRpcMethodByName("SendCancelTransaction"), defaultAccount, gasPrice, gasLimit, nil); err != nil {
-		l.Error("call send transaction", "err", err)
+		l.Error("call send transaction", zap.Error(err))
 		return
 	}
-	l.Info("SendCancelTransaction result", "txId", resp.Hex())
+	l.Info("SendCancelTransaction result", zap.String("txId", resp.Hex()))
 	removeTrackingAccount(defaultAccount)
 	RemoveRegistration()
 }
@@ -1372,29 +1372,29 @@ func (caller *rpcCaller) SendCancelTransaction(c *cli.Context) {
 	var resp common.Hash
 	from, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
-		l.Error("the from address is invalid", "err", err)
+		l.Error("the from address is invalid", zap.Error(err))
 		return
 	}
 
 	gasPrice, err := MoneyValueToCSCoin(cParams[1])
 	if err != nil {
-		l.Error("the parameter gasPrice invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", zap.Error(err))
 		return
 	}
 
 	gasLimit, err := strconv.ParseUint(cParams[2], 10, 64)
 	if err != nil {
-		l.Error("the parameter gasLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", zap.Error(err))
 		return
 	}
 
-	l.Debug("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[1]))
-	l.Debug("the gasLimit is:", "gasLimit", gasLimit)
+	l.Debug("the gasPrice is:", zap.String("gasPrice", MoneyWithUnit(cParams[1])))
+	l.Debug("the gasLimit is:", zap.Uint64("gasLimit", gasLimit))
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, gasPrice, gasLimit, nil); err != nil {
-		l.Error("call send transaction", "err", err)
+		l.Error("call send transaction", zap.Error(err))
 		return
 	}
-	l.Info("SendCancelTransaction result", "txId", resp.Hex())
+	l.Info("SendCancelTransaction result", zap.String("txId", resp.Hex()))
 	removeTrackingAccount(from)
 	RemoveRegistration()
 }
@@ -1422,7 +1422,7 @@ func (caller *rpcCaller) GetVerifiersBySlot(c *cli.Context) {
 		return
 	}
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), slotNum); err != nil {
-		l.Error("GetVerifiersBySlot", "err", err)
+		l.Error("GetVerifiersBySlot", zap.Error(err))
 		return
 	}
 	l.Info("GetVerifiersBySlot result")
@@ -1451,7 +1451,7 @@ func (caller *rpcCaller) VerifierStatus(c *cli.Context) {
 	} else {
 		addr, err = CheckAndChangeHexToAddress(cParams[0])
 		if err != nil {
-			l.Error("the input address is invalid", "err", err)
+			l.Error("the input address is invalid", zap.Error(err))
 			return
 		}
 	}
@@ -1460,7 +1460,7 @@ func (caller *rpcCaller) VerifierStatus(c *cli.Context) {
 	l.Debug(getDipperinRpcMethodByName(mName))
 
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), addr); err != nil {
-		l.Error("call verifier's status error", "err", err)
+		l.Error("call verifier's status error", zap.Error(err))
 		return
 	}
 
@@ -1471,12 +1471,12 @@ func (caller *rpcCaller) VerifierStatus(c *cli.Context) {
 	}
 
 	if resp.Status == VerifierStatusNoRegistered {
-		l.Info("Verifier status", "status", resp.Status, "balance", balance)
+		l.Info("Verifier status", zap.String("status", resp.Status), zap.String("balance", balance))
 		return
 	}
 
 	if resp.Status == VerifiedStatusUnstaked {
-		l.Info("Verifier status", "status", resp.Status, "balance", balance)
+		l.Info("Verifier status", zap.String("status", resp.Status), zap.String("balance", balance))
 		return
 	}
 
@@ -1485,11 +1485,11 @@ func (caller *rpcCaller) VerifierStatus(c *cli.Context) {
 		l.Error("The address has no stake, stake = 0 DIP")
 	}
 	if resp.Status == VerifierStatusRegistered {
-		l.Info("Verifier status", "status", resp.Status, "balance", balance, "stake", stake, "reputation", resp.Reputation, "is current verifier", resp.IsCurrentVerifier)
+		l.Info("Verifier status", zap.String("status", resp.Status), zap.String("balance", balance), zap.String("stake", stake), zap.Uint64("reputation", resp.Reputation), zap.Bool("is current verifier", resp.IsCurrentVerifier))
 	}
 
 	if resp.Status == VerifiedStatusCanceled {
-		l.Info("Verifier status", "status", resp.Status, "balance", balance, "stake", stake, "reputation", resp.Reputation)
+		l.Info("Verifier status", zap.String("status", resp.Status), zap.String("balance", balance), zap.String("stake", stake), zap.Uint64("reputation", resp.Reputation))
 	}
 }
 
@@ -1508,14 +1508,14 @@ func (caller *rpcCaller) SetBftSigner(c *cli.Context) {
 
 	addr, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
-		l.Error("the from address is invalid", "err", err)
+		l.Error("the from address is invalid", zap.Error(err))
 		return
 	}
 
 	l.Debug(getDipperinRpcMethodByName(mName))
 	var resp interface{}
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), addr); err != nil {
-		l.Error("Set wallet signer（default account）", "err", err)
+		l.Error("Set wallet signer（default account）", zap.Error(err))
 		return
 	}
 	l.Info("Set wallet signer（default account）succeed")
@@ -1545,7 +1545,7 @@ func (caller *rpcCaller) CurrentStake(c *cli.Context) {
 	} else {
 		addr, err = CheckAndChangeHexToAddress(cParams[0])
 		if err != nil {
-			l.Error("the input address is invalid", "err", err)
+			l.Error("the input address is invalid", zap.Error(err))
 			return
 		}
 	}
@@ -1554,7 +1554,7 @@ func (caller *rpcCaller) CurrentStake(c *cli.Context) {
 	l.Debug(getDipperinRpcMethodByName(mName))
 
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), addr); err != nil {
-		l.Error("lookup current stake", "err", err)
+		l.Error("lookup current stake", zap.Error(err))
 		return
 	}
 
@@ -1562,7 +1562,7 @@ func (caller *rpcCaller) CurrentStake(c *cli.Context) {
 	if err != nil {
 		l.Error("the address isn't on the block chain stake=0")
 	} else {
-		l.Info("address current stake is:", "stake", stake)
+		l.Info("address current stake is:", zap.String("stake", stake))
 	}
 }
 
@@ -1585,17 +1585,17 @@ func (caller *rpcCaller) CurrentReputation(c *cli.Context) {
 	} else {
 		addr, err = CheckAndChangeHexToAddress(cParams[0])
 		if err != nil {
-			l.Error("the input address is invalid", "err", err)
+			l.Error("the input address is invalid", zap.Error(err))
 			return
 		}
 	}
 
 	var resp uint64
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), addr); err != nil {
-		l.Error("lookup current reputation error", "err", err)
+		l.Error("lookup current reputation error", zap.Error(err))
 		return
 	}
-	l.Info("address current reputation is:", "reputation", resp)
+	l.Info("address current reputation is:", zap.Uint64("reputation", resp))
 }
 
 func inDefaultVs(addr common.Address) (bool, string) {
@@ -1621,16 +1621,16 @@ func (caller *rpcCaller) GetCurVerifiers(c *cli.Context) {
 
 	var resp []common.Address
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName)); err != nil {
-		l.Error("call failed", "err", err)
+		l.Error("call failed", zap.Error(err))
 		return
 	}
 
 	for _, a := range resp {
 		result, name := inDefaultVs(a)
 		if result {
-			l.Info("Current Verifiers:", "address", a.Hex(), "is_default", result, "name", name)
+			l.Info("Current Verifiers:", zap.String("address", a.Hex()), zap.Bool("is_default", result), zap.String("name", name))
 		} else {
-			l.Info("Current Verifiers:", "address", a.Hex(), "is_default", result)
+			l.Info("Current Verifiers:", zap.String("address", a.Hex()), zap.Bool("is_default", result))
 		}
 
 	}
@@ -1649,16 +1649,16 @@ func (caller *rpcCaller) GetNextVerifiers(c *cli.Context) {
 
 	var resp []common.Address
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName)); err != nil {
-		l.Error("call failed", "err", err)
+		l.Error("call failed", zap.Error(err))
 		return
 	}
 
 	for _, a := range resp {
 		result, name := inDefaultVs(a)
 		if result {
-			l.Info("Next Verifiers:", "address", a.Hex(), "is_default", result, "name", name)
+			l.Info("Next Verifiers:", zap.String("address", a.Hex()), zap.Bool("is_default", result), zap.String("name", name))
 		} else {
-			l.Info("Next Verifiers:", "address", a.Hex(), "is_default", result)
+			l.Info("Next Verifiers:", zap.String("address", a.Hex()), zap.Bool("is_default", result))
 		}
 
 	}
@@ -1682,14 +1682,14 @@ func getNonceInfo(c *cli.Context) (nonce uint64, err error) {
 	} else {
 		addr, err = CheckAndChangeHexToAddress(cParams[0])
 		if err != nil {
-			l.Error("the input address is invalid", "err", err)
+			l.Error("the input address is invalid", zap.Error(err))
 			return
 		}
 	}
 
 	var resp uint64
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), addr); err != nil {
-		l.Error("call GetTransactionNonce", "err", err)
+		l.Error("call GetTransactionNonce", zap.Error(err))
 		return 0, err
 	}
 	return resp, nil
@@ -1702,20 +1702,20 @@ func (caller *rpcCaller) GetTransactionNonce(c *cli.Context) {
 
 	nonce, err := getNonceInfo(c)
 	if err != nil {
-		l.Error("GetTransactionNonce error", "err", err)
+		l.Error("GetTransactionNonce error", zap.Error(err))
 		return
 	}
-	l.Info("the address nonce from chain is:", "nonce", nonce)
+	l.Info("the address nonce from chain is:", zap.Uint64("nonce", nonce))
 }
 
 func (caller *rpcCaller) GetAddressNonceFromWallet(c *cli.Context) {
 	nonce, err := getNonceInfo(c)
 	if err != nil {
-		l.Error("GetTransactionNonce error", "err", err)
+		l.Error("GetTransactionNonce error", zap.Error(err))
 		return
 	}
 
-	l.Info("the address nonce from wallet is:", "nonce", nonce)
+	l.Info("the address nonce from wallet is:", zap.Uint64("nonce", nonce))
 }
 
 func initWallet(path, password, passPhrase string) (err error) {
@@ -1726,21 +1726,21 @@ func initWallet(path, password, passPhrase string) (err error) {
 	//open
 	exit, _ := soft_wallet.PathExists(identifier.Path)
 	if exit {
-		l.Info("open wallet", "identifier", identifier)
+		l.Info("open wallet", zap.Any("identifier", identifier))
 		var resp interface{}
 		if err = client.Call(&resp, getDipperinRpcMethodByName("OpenWallet"), password, identifier); err != nil {
-			l.Error("open Wallet err", "err", err)
+			l.Error("open Wallet err", zap.Error(err))
 			return err
 		}
 	} else {
-		l.Info("establish wallet", "identifier", identifier)
+		l.Info("establish wallet", zap.Any("identifier", identifier))
 		var mnemonic string
 		if err = client.Call(&mnemonic, getDipperinRpcMethodByName("EstablishWallet"), password, passPhrase, identifier); err != nil {
-			l.Error("Call EstablishWallet", "err", err)
+			l.Error("Call EstablishWallet", zap.Error(err))
 			return err
 		}
 		mnemonic = strings.Replace(mnemonic, " ", ",", -1)
-		l.Info("EstablishWallet mnemonic is:", "mnemonic", mnemonic)
+		l.Info("EstablishWallet mnemonic is:", zap.String("mnemonic", mnemonic))
 	}
 	return nil
 }
@@ -1750,13 +1750,13 @@ func getDefaultAccount() common.Address {
 	l.Debug("getDefaultAccount")
 
 	if err := client.Call(&resp, getDipperinRpcMethodByName("ListWallet")); err != nil {
-		l.Error("Call ListWallet", "err", err)
+		l.Error("Call ListWallet", zap.Error(err))
 		return common.Address{}
 	}
 
 	var respA []accounts.Account
 	if err := client.Call(&respA, getDipperinRpcMethodByName("ListWalletAccount"), resp[0]); err != nil {
-		l.Error("Call ListWallet", "err", err)
+		l.Error("Call ListWallet", zap.Error(err))
 		return common.Address{}
 	}
 	return respA[0].Address
@@ -1772,7 +1772,7 @@ func getDefaultAccount() common.Address {
 
 	addr, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
-		l.Error("the input address is invalid", "err", err)
+		l.Error("the input address is invalid", zap.Error(err))
 	}
 
 	defaultAccount = addr
@@ -1782,7 +1782,7 @@ func getDefaultAccount() common.Address {
 func getDefaultWallet() accounts.WalletIdentifier {
 	var resp []accounts.WalletIdentifier
 	if err := client.Call(&resp, getDipperinRpcMethodByName("ListWallet")); err != nil {
-		l.Error("Call ListWallet", "err", err)
+		l.Error("Call ListWallet", zap.Error(err))
 		return accounts.WalletIdentifier{}
 	}
 	return resp[0]
@@ -1796,7 +1796,7 @@ func RecordRegistration(txHash string) {
 	exist, _ := soft_wallet.PathExists(confPath)
 	if !exist {
 		if err := os.MkdirAll(filepath.Dir(confPath), 0766); err != nil {
-			l.Error("can't make dir", "err", err)
+			l.Error("can't make dir", zap.Error(err))
 			return
 		}
 	}

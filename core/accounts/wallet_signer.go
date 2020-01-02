@@ -50,7 +50,7 @@ func (signer *WalletSigner) SetBaseAddress(address common.Address) {
 }
 
 func (signer *WalletSigner) SignHash(hash []byte) ([]byte, error) {
-	//log.Info("the signer is:","signer",signer)
+	//log.DLogger.Info("the signer is:","signer",signer)
 	wallet, err := signer.walletManager.FindWalletFromAddress(signer.account.Address)
 	if err != nil {
 		return nil, err

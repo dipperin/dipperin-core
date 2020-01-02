@@ -52,10 +52,10 @@ func ChWorkDir() {
 func Executable() string {
 	executablePath, err := osext.Executable()
 	if err != nil {
-		//cslog.Debug().Err(err).Msg("osext.Executable")
+		//cslog.DLogger.Debug().Err(err).Msg("osext.Executable")
 		executablePath, err = filepath.Abs(filepath.Dir(os.Args[0]))
 		if err != nil {
-			//cslog.Debug().Err(err).Msg("filepath.Abs")
+			//cslog.DLogger.Debug().Err(err).Msg("filepath.Abs")
 			executablePath = filepath.Dir(os.Args[0])
 		}
 	}
@@ -67,7 +67,7 @@ func Executable() string {
 	// read link
 	linkedExecutablePath, err := filepath.EvalSymlinks(executablePath)
 	if err != nil {
-		//cslog.Debug().Err(err).Msg("filepath.EvalSymlinks")
+		//cslog.DLogger.Debug().Err(err).Msg("filepath.EvalSymlinks")
 		return executablePath
 	}
 	return linkedExecutablePath

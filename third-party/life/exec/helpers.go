@@ -3,9 +3,10 @@ package exec
 import (
 	"errors"
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/perlin-network/life/compiler"
 	"github.com/perlin-network/life/utils"
+	"go.uber.org/zap"
 )
 
 var _ ImportResolver = (*NopResolver)(nil)
@@ -88,7 +89,7 @@ func (vm *VirtualMachine) Run(entryID int, params ...int64) (retVal int64, retEr
 	}
 
 	if vm.ExitError != nil {
-		log.Debug("VirtualMachine#Run ", "err", vm.ExitError)
+		log.DLogger.Debug("VirtualMachine#Run ", zap.Any("err", vm.ExitError))
 		return -1, utils.UnifyError(vm.ExitError)
 	}
 	return vm.ReturnValue, nil

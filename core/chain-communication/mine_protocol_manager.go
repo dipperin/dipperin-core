@@ -17,9 +17,10 @@
 package chain_communication
 
 import (
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"go.uber.org/zap"
 	"sync"
 )
 
@@ -51,7 +52,7 @@ type MineProtocolManager struct {
 func (pm *MineProtocolManager) handleMsg(p PmAbstractPeer) error {
 	msg, err := p.ReadMsg()
 	if err != nil {
-		log.Info("mine read msg from peer failed", "err", err)
+		log.DLogger.Info("mine read msg from peer failed", zap.Error(err))
 		return err
 	}
 
@@ -75,10 +76,10 @@ func (pm *MineProtocolManager) GetProtocol() p2p.Protocol {
 	p := p2p.Protocol{Name: protocolName, Version: version, Length: 0x200}
 
 	p.Run = func(peer *p2p.Peer, rw p2p.MsgReadWriter) error {
-		log.Info("new mine peer in", "protocol", protocolName, "id", peer.ID())
+		log.DLogger.Info("new mine peer in", zap.String("protocol", protocolName), zap.Any("id", peer.ID()))
 		// format with communication peer
 		tmpPmPeer := newPeer(int(version), peer, rw)
-		log.Info("MineProtocolManager#GetProtocol", "MineProtocolManager", pm)
+		log.DLogger.Info("MineProtocolManager#GetProtocol", zap.Any("MineProtocolManager", pm))
 		pm.wg.Add(1)
 		defer pm.wg.Done()
 		// read msg loop in here
@@ -100,14 +101,14 @@ func (pm *MineProtocolManager) handle(p PmAbstractPeer) error {
 
 	// add peer set
 	if err := pm.peers.AddPeer(p); err != nil {
-		log.Error("peer set add peer failed", "err", err, "p id", p.ID())
+		log.DLogger.Error("peer set add peer failed", zap.Error(err), zap.String("p id", p.ID()))
 		return err
 	}
 
 	defer pm.removePeer(p.ID())
 	for {
 		if err := pm.handleMsg(p); err != nil {
-			log.Info("handle mine peer msg failed, remove this peer", "err", err)
+			log.DLogger.Info("handle mine peer msg failed, remove this peer", zap.Error(err))
 			return err
 		}
 	}
@@ -121,7 +122,7 @@ func (pm *MineProtocolManager) removePeer(peerID string) {
 	}
 
 	if err := pm.peers.RemovePeer(peerID); err != nil {
-		log.Error("mine peer removal failed", "peer", peerID, "err", err)
+		log.DLogger.Error("mine peer removal failed", zap.String("peer", peerID), zap.Error(err))
 	}
 
 	// Hard disconnect at the networking layer

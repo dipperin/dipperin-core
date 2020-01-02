@@ -21,11 +21,8 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/address-util"
-	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -224,17 +221,9 @@ func TestGetERC20TxSize(t *testing.T) {
 	contractAddr, _ := address_util.GenERC20Address()
 	extra.ContractAddress = contractAddr
 
-	log.Info("the es is:", "es", es)
-	log.Info("the contractAddr is:", "contractAddr", contractAddr.Hex())
-
 	extraData := []byte(util.StringifyJson(extra))
-	log.Info("the extraData is:", "extraData", hexutil.Encode(extraData))
-	log.Info("the extraData Len is:", "len", len(extraData))
 
-	tx := CreateSignedTx(contractAddr, extraData)
-	log.Info("the tx size is:", "size", tx.Size(), "txFee", economy_model.GetMinimumTxFee(tx.Size()))
-	log.Info("the tx hash is:", "hash", tx.CalTxId().Hex())
+	CreateSignedTx(contractAddr, extraData)
 
-	normalTx := CreateSignedTx(bobAddr, []byte{})
-	log.Info("the normal tx size is:", "size", normalTx.Size(), "txFee", economy_model.GetMinimumTxFee(normalTx.Size()))
+	CreateSignedTx(bobAddr, []byte{})
 }

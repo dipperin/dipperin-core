@@ -19,8 +19,9 @@ package verifiers_halt_check
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -33,12 +34,12 @@ func GenVoteMsg(emptyBlock *model.Block, signFunc SignHashFunc, addr common.Addr
 		Timestamp: time.Now(),
 	}
 
-	log.Halt.Info("the voteMsg blockID is", "BlockID", vote.BlockID.Hex(), "height", vote.Height)
+	log.DLogger.Info("the voteMsg blockID is", zap.String("BlockID", vote.BlockID.Hex()), zap.Uint64("height", vote.Height))
 	// sign msg
-	log.Halt.Info("generate empty vote", "address", addr)
+	log.DLogger.Info("generate empty vote", zap.Any("address", addr))
 	sign, err := signFunc(vote.Hash().Bytes())
 	if err != nil {
-		log.Halt.Warn("sign aliveVerifierVote msg failed", "err", err)
+		log.DLogger.Warn("sign aliveVerifierVote msg failed", zap.Error(err))
 		return nil, err
 	}
 	vote.Witness = &model.WitMsg{
@@ -52,13 +53,13 @@ func GenVoteMsg(emptyBlock *model.Block, signFunc SignHashFunc, addr common.Addr
 func checkProposalValid(proposal ProposalMsg) error {
 
 	if proposal.EmptyBlock.Hash() != proposal.VoteMsg.BlockID {
-		log.Halt.Warn("the proposal empty block hash is different from VoteMsg", "blockHash", proposal.EmptyBlock.Hash().Hex(), "voteMsgBlockId", proposal.VoteMsg.BlockID.Hex())
+		log.DLogger.Warn("the proposal empty block hash is different from VoteMsg", zap.String("blockHash", proposal.EmptyBlock.Hash().Hex()), zap.String("voteMsgBlockId", proposal.VoteMsg.BlockID.Hex()))
 		return g_error.VoteMsgBlockHashNotMatchError
 	}
 
 	err := proposal.VoteMsg.HaltedVoteValid([]common.Address{})
 	if err != nil {
-		log.Halt.Error("the proposal VoteMsg is invalid", "err", err)
+		log.DLogger.Error("the proposal VoteMsg is invalid", zap.Error(err))
 		return err
 	}
 	return nil

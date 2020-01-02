@@ -20,13 +20,14 @@ import (
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 //go:generate mockgen -destination=./chain_reader_mock_test.go -package=verifiers_halt_check github.com/dipperin/dipperin-core/core/verifiers-halt-check NeedChainReaderFunction
@@ -78,7 +79,7 @@ func MakeHaltCheckStateHandler(needChainReader NeedChainReaderFunction, walletSi
 
 func (haltCheckStateHandle *StateHandler) GenProposalConfig(voteType model.VoteMsgType) (ProposalGeneratorConfig, error) {
 	curBlock := haltCheckStateHandle.chainReader.CurrentBlock()
-	log.Halt.Info("GenerateEmptyBlock", "num", curBlock.Number())
+	log.DLogger.Info("GenerateEmptyBlock", zap.Uint64("num", curBlock.Number()))
 	account := accounts.Account{Address: haltCheckStateHandle.walletSigner.GetAddress()}
 
 	seed, proof, err := haltCheckStateHandle.walletSigner.Evaluate(account, curBlock.Seed().Bytes())
@@ -103,7 +104,7 @@ func (haltCheckStateHandle *StateHandler) GenProposalConfig(voteType model.VoteM
 }
 
 func (haltCheckStateHandle *StateHandler) ProcessAccountAndRegisterState(block model.AbstractBlock, preStateRoot, preRegisterRoot common.Hash) (stateRoot, registerRoot common.Hash, err error) {
-	log.Halt.Info("the preStateRoot is:", "preStateRoot", preStateRoot.Hex())
+	log.DLogger.Info("the preStateRoot is:", zap.String("preStateRoot", preStateRoot.Hex()))
 	accountDB, err := haltCheckStateHandle.chainReader.BlockProcessor(preStateRoot)
 	if err != nil {
 		return common.Hash{}, common.Hash{}, err
@@ -111,7 +112,7 @@ func (haltCheckStateHandle *StateHandler) ProcessAccountAndRegisterState(block m
 
 	//process account state
 	if err = accountDB.ProcessExceptTxs(block, haltCheckStateHandle.economyModel, false); err != nil {
-		log.Halt.Error("process state except txs failed", "err", err)
+		log.DLogger.Error("process state except txs failed", zap.Error(err))
 		return common.Hash{}, common.Hash{}, err
 	}
 
@@ -121,19 +122,19 @@ func (haltCheckStateHandle *StateHandler) ProcessAccountAndRegisterState(block m
 	}
 
 	//process register state
-	log.Halt.Info("the preRegisterRoot is:", "preRegisterRoot", preRegisterRoot.Hex())
+	log.DLogger.Info("the preRegisterRoot is:", zap.String("preRegisterRoot", preRegisterRoot.Hex()))
 	registerDB, err := haltCheckStateHandle.chainReader.BuildRegisterProcessor(preRegisterRoot)
 	if err != nil {
 		return common.Hash{}, common.Hash{}, err
 	}
 
 	if err = registerDB.Process(block); err != nil {
-		log.Halt.Error("process register failed", "err", err)
+		log.DLogger.Error("process register failed", zap.Error(err))
 		return common.Hash{}, common.Hash{}, err
 	}
 	registerRoot = registerDB.Finalise()
 
-	log.Halt.Info("the calculated empty block root is:", "stateRoot", stateRoot.Hex(), "registerRoot", registerRoot.Hex())
+	log.DLogger.Info("the calculated empty block root is:", zap.String("stateRoot", stateRoot.Hex()), zap.String("registerRoot", registerRoot.Hex()))
 
 	return stateRoot, registerRoot, nil
 }
@@ -147,13 +148,13 @@ func (haltCheckStateHandle *StateHandler) SaveFinalEmptyBlock(proposal ProposalM
 		verifications = append(verifications, &tmpVote)
 	}
 
-	log.Halt.Info("save and Broadcast empty block", "blockHash", proposal.EmptyBlock.Hash())
-	log.Halt.Info("save and Broadcast verifications 3 ", "verifications", verifications)
+	log.DLogger.Info("save and Broadcast empty block", zap.Any("blockHash", proposal.EmptyBlock.Hash()))
+	log.DLogger.Info("save and Broadcast verifications 3 ", zap.Any("verifications", verifications))
 
-	log.Halt.Info("save and Broadcast verifications", "verifications", verifications[0].GetHeight())
+	log.DLogger.Info("save and Broadcast verifications", zap.Uint64("verifications", verifications[0].GetHeight()))
 	err := haltCheckStateHandle.chainReader.SaveBlock(&proposal.EmptyBlock, verifications)
 	if err != nil {
-		log.Halt.Info("verifier boot node save empty block failed", "err", err)
+		log.DLogger.Info("verifier boot node save empty block failed", zap.Error(err))
 		if err.Error() != "already have this block" {
 			return err
 		}

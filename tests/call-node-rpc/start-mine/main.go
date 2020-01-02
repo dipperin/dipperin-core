@@ -18,7 +18,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 )
 
@@ -29,8 +29,8 @@ func main() {
 	}
 	var resp interface{}
 	if err = c.Call(&resp, "dipperin_startMine"); err != nil {
-		log.Info("dipperin_startMine failed", "err", err)
+		log.DLogger.Info("dipperin_startMine failed", "err", err)
 		return
 	}
-	log.Info("dipperin_startMine successful")
+	log.DLogger.Info("dipperin_startMine successful")
 }

@@ -134,8 +134,8 @@ func (e *HybridEstimator) Decode(r *HybridEstimator) uint {
 
 	// To sum the two differences to get the total difference
 	res := s + d
-	//log.Info("strata estimator estimates difference", "difference", s)
-	//log.Info("minWise estimator estimates difference", "difference", d)
+	//log.DLogger.Info("strata estimator estimates difference", "difference", s)
+	//log.DLogger.Info("minWise estimator estimates difference", "difference", d)
 
 	// Set the sup limit and sub limit of res
 	if count < res {
@@ -146,7 +146,7 @@ func (e *HybridEstimator) Decode(r *HybridEstimator) uint {
 		res = 20
 	}
 
-	//log.Info("set difference estimated", "difference", res)
+	//log.DLogger.Info("set difference estimated", "difference", res)
 	return res
 }
 

@@ -18,8 +18,9 @@ package mineworker
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 func NewDefaultWorkExecutor(work *minemsg.DefaultWork, submitter workSubmitter) *defaultWorkExecutor {
@@ -59,7 +60,7 @@ func (executor *defaultWorkExecutor) ChangeNonce() bool {
 			index--
 		}
 	}
-	//log.Info("change nonce", "suffix", executor.nonceSuffix)
+	//log.DLogger.Info("change nonce", "suffix", executor.nonceSuffix)
 	//put result to header nonce
 	copy(executor.curWork.BlockHeader.Nonce[8:], executor.nonceSuffix[:])
 
@@ -67,7 +68,7 @@ func (executor *defaultWorkExecutor) ChangeNonce() bool {
 	//executor.nonceSuffix.Add(executor.nonceSuffix,big.NewInt(1))
 	//copy(executor.curWork.BlockHeader.Nonce[8:], executor.nonceSuffix.Bytes())
 
-	//log.Debug("defaultWorkExecutor ChangeNonce", "executor.curWork.BlockHeader.Hash()", executor.curWork.BlockHeader.Hash().Hex())
+	//log.DLogger.Debug("defaultWorkExecutor ChangeNonce", "executor.curWork.BlockHeader.Hash()", executor.curWork.BlockHeader.Hash().Hex())
 	// check nonce valid
 	//if executor.curWork.BlockHeader.Hash().ValidHashForDifficulty(executor.curWork.BlockHeader.Diff) {
 	//new hash calculation replacing upstairs
@@ -76,13 +77,12 @@ func (executor *defaultWorkExecutor) ChangeNonce() bool {
 		if bHash.ValidHashForDifficulty(executor.curWork.BlockHeader.Diff) {
 			// some thing interesting here
 			executor.curWork.ResultNonce = executor.curWork.BlockHeader.Nonce
-			log.Info("ChangeNonce successful")
 			//fmt.Println(executor.curWork.BlockHeader.String())
-			log.Health.Info("found nonce", "height", executor.curWork.BlockHeader.Number)
+			log.DLogger.Info("found nonce", zap.Uint64("height", executor.curWork.BlockHeader.Number))
 			return true
 		}
 	} else {
-		log.Info("search nonce", "error", err)
+		log.DLogger.Info("search nonce", zap.Error(err))
 	}
 	return false
 }

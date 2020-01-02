@@ -95,7 +95,7 @@ type wvBroadcastFunc func(block model.AbstractBlock)
 //	case f.notify <- msg:
 //		return nil
 //	case <-f.quit:
-//		log.Info("wv ei block fetcher terminated")
+//		log.DLogger.Info("wv ei block fetcher terminated")
 //		return nil
 //	}
 //}
@@ -108,7 +108,7 @@ type wvBroadcastFunc func(block model.AbstractBlock)
 //	case <-f.quit:
 //		return
 //	}
-//	pbft_log.Debug("Dotask,1")
+//	pbft_log.DLogger.Debug("Dotask,1")
 //	select {
 //	case taskC <- &ibltTask{peerID: peerID, data: data, time: time}:
 //	case <-f.quit:
@@ -184,13 +184,13 @@ type wvBroadcastFunc func(block model.AbstractBlock)
 //
 //func (f *WvEiBlockFetcher) handlePush() {
 //	height := f.chainHeight().Number()
-//	pbft_log.Debug("fetch chain height number", "height", height)
+//	pbft_log.DLogger.Debug("fetch chain height number", "height", height)
 //	for !f.queue.Empty() {
 //
 //		op := f.queue.PopItem().(*inject)
 //		hash := op.catchup.Block.Hash()
 //		number := op.catchup.Block.Number()
-//		pbft_log.Debug("to add block to block pool", "block number", number, "height", height)
+//		pbft_log.DLogger.Debug("to add block to block pool", "block number", number, "height", height)
 //		if number > height+1 {
 //			f.queue.Push(op, -int64(number))
 //			break
@@ -218,7 +218,7 @@ type wvBroadcastFunc func(block model.AbstractBlock)
 //	count := f.notifyCount[notification.peerID] + 1
 //
 //	if count > hashLimit {
-//		log.Error("wv ei fetcher Peer exceeded outstanding announces", "peer", notification.peerID, "limit", hashLimit)
+//		log.DLogger.Error("wv ei fetcher Peer exceeded outstanding announces", "peer", notification.peerID, "limit", hashLimit)
 //		needBreak = true
 //		return needBreak
 //	}
@@ -228,13 +228,13 @@ type wvBroadcastFunc func(block model.AbstractBlock)
 //		chainHeight := f.chainHeight().Number()
 //
 //		if notification.number < chainHeight {
-//			log.Debug("notification number < chain height")
+//			log.DLogger.Debug("notification number < chain height")
 //			needBreak = true
 //			return needBreak
 //		}
 //
 //		if dist := int64(notification.number) - int64(f.chainHeight().Number()); dist > maxQueueDist {
-//			log.Debug("Peer discarded announcement", "peer", notification.peerID, "number", notification.number, "hash", notification.hash, "distance", dist)
+//			log.DLogger.Debug("Peer discarded announcement", "peer", notification.peerID, "number", notification.number, "hash", notification.hash, "distance", dist)
 //			needBreak = true
 //			return needBreak
 //		}
@@ -284,15 +284,15 @@ type wvBroadcastFunc func(block model.AbstractBlock)
 //
 //	// Send out all get vr requests
 //	for peer, hashes := range request {
-//		log.Debug("Fetching scheduled vrs", "peer", peer, "hashes", hashes)
+//		log.DLogger.Debug("Fetching scheduled vrs", "peer", peer, "hashes", hashes)
 //
 //		req, hashes := f.fetching[hashes[0]].estimatorReq, hashes
 //
 //		go func() {
 //			for _, hash := range hashes {
-//				log.Debug("start fetching wait verify block", "hash", hash)
+//				log.DLogger.Debug("start fetching wait verify block", "hash", hash)
 //				if err := req(); err != nil {
-//					log.Error("ei fetcher handle fetcher estimator req failed", "err", err)
+//					log.DLogger.Error("ei fetcher handle fetcher estimator req failed", "err", err)
 //				}
 //			}
 //		}()
@@ -303,10 +303,10 @@ type wvBroadcastFunc func(block model.AbstractBlock)
 //}
 //
 //func (f *WvEiBlockFetcher) handleIBLTTask(task *ibltTask) {
-//	log.Debug("handle wv ei iblt task")
+//	log.DLogger.Debug("handle wv ei iblt task")
 //
 //	data := task.data
-//	//pbft_log.Debug("WvEiBlockFetcher#handleIBLTTask handle task.data","task.data", data)
+//	//pbft_log.DLogger.Debug("WvEiBlockFetcher#handleIBLTTask handle task.data","task.data", data)
 //	// Filter fetcher-requested headers from other synchronisation algorithms
 //	if msg := f.fetching[data.Header.Hash()]; msg != nil && msg.peerID == task.peerID && f.fetched[data.Header.Hash()] == nil && f.finished[data.Header.Hash()] == nil {
 //		// If the delivered header does not match the promised number, drop the peer
@@ -319,7 +319,7 @@ type wvBroadcastFunc func(block model.AbstractBlock)
 //		// Only keep if not imported by other means
 //		if f.blockPool.getBlock(data.Header.Hash()) == nil {
 //			catchup := f.bloomData2catchUp(data)
-//			//pbft_log.Debug("WvEiBlockFetcher#handleIBLTTask catchup","catchup", catchup)
+//			//pbft_log.DLogger.Debug("WvEiBlockFetcher#handleIBLTTask catchup","catchup", catchup)
 //			if catchup != nil {
 //				msg.time = task.time
 //				f.finished[data.Header.Hash()] = msg
@@ -349,7 +349,7 @@ type wvBroadcastFunc func(block model.AbstractBlock)
 //	block, err := data.EiRecoverToBlock(f.getTxPoolMap())
 //
 //	if err != nil {
-//		log.Error("ei fetcher ei recover to block failed", "err", err)
+//		log.DLogger.Error("ei fetcher ei recover to block failed", "err", err)
 //		return nil
 //	}
 //
@@ -363,7 +363,7 @@ type wvBroadcastFunc func(block model.AbstractBlock)
 //	count := f.queues[peerID] + 1
 //
 //	if count > blockLimit {
-//		log.Debug("Discarded propagated block, exceeded allowance", "peer", peerID, "number", catchup.Block.Number(), "hash", catchup.Block.Hash(), "limit", blockLimit)
+//		log.DLogger.Debug("Discarded propagated block, exceeded allowance", "peer", peerID, "number", catchup.Block.Number(), "hash", catchup.Block.Hash(), "limit", blockLimit)
 //		f.forgetHash(catchup.Block.Hash())
 //		return
 //	}
@@ -375,11 +375,11 @@ type wvBroadcastFunc func(block model.AbstractBlock)
 //
 //	// Discard any past or too distant blocks
 //	if dist := int64(catchup.Block.Number()) - int64(f.chainHeight().Number()); dist > maxQueueDist {
-//		log.Debug("Discarded propagated block, too far away", "peer", peerID, "number", catchup.Block.Number(), "hash", catchup.Block.Hash(), "distance", dist)
+//		log.DLogger.Debug("Discarded propagated block, too far away", "peer", peerID, "number", catchup.Block.Number(), "hash", catchup.Block.Hash(), "distance", dist)
 //		f.forgetHash(catchup.Block.Hash())
 //		return
 //	}
-//	//pbft_log.Debug("WvEiBlockFetcher#enqueue catchup is going to enqueue", "catchup", catchup)
+//	//pbft_log.DLogger.Debug("WvEiBlockFetcher#enqueue catchup is going to enqueue", "catchup", catchup)
 //
 //	// Schedule the wv for future importing
 //	if _, ok := f.queued[catchup.Block.Hash()]; !ok {
@@ -392,14 +392,14 @@ type wvBroadcastFunc func(block model.AbstractBlock)
 //		f.queued[catchup.Block.Hash()] = op
 //		f.queue.Push(op, -int64(catchup.Block.Number()))
 //
-//		log.Debug("Queued propagated block", "peer", peerID, "number", catchup.Block.Number(), "hash", catchup.Block.Hash(), "queued", f.queue.Size())
+//		log.DLogger.Debug("Queued propagated block", "peer", peerID, "number", catchup.Block.Number(), "hash", catchup.Block.Hash(), "queued", f.queue.Size())
 //	}
 //
 //}
 //
 //func (f *WvEiBlockFetcher) push(peerID string, catchup *catchup) {
 //	block := catchup.Block
-//	pbft_log.Debug("add block to block pool", "block", block.Number(), "height", f.chainHeight().Number())
+//	pbft_log.DLogger.Debug("add block to block pool", "block", block.Number(), "height", f.chainHeight().Number())
 //	go func() {
 //		defer func() {
 //			f.done <- block.Hash()

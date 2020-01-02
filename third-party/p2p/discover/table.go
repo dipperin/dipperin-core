@@ -35,7 +35,6 @@ import (
 
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/dipperin/dipperin-core/third-party/p2p/netutil"
 )
@@ -311,9 +310,7 @@ func (tab *Table) findnode(n *node, targetKey encPubkey, reply chan<- []*node) {
 	if err != nil || len(r) == 0 {
 		fails++
 		tab.db.UpdateFindFails(n.ID(), fails)
-		log.Debug("Findnode failed", "id", n.ID(), "failcount", fails, "err", err)
 		if fails >= maxFindnodeFailures {
-			log.Debug("Too many findnode failures, dropping", "id", n.ID(), "failcount", fails)
 			tab.delete(n)
 		}
 	} else if fails > 0 {
@@ -336,43 +333,6 @@ func (tab *Table) refresh() <-chan struct{} {
 		close(done)
 	}
 	return done
-}
-
-//print tab info for debug
-func (tab *Table) printTableInfo() {
-	return
-	log.P2P.Info("")
-	log.P2P.Info("[*********************table info**********************]")
-	log.P2P.Info("nursery number", "number", len(tab.nursery))
-	for i, node := range tab.nursery {
-		log.P2P.Info(fmt.Sprintf("node%v", i)+":", "url", node.String())
-	}
-	log.P2P.Info("bucket number", "number", len(tab.buckets))
-	for i, bucket := range tab.buckets {
-		log.P2P.Info(fmt.Sprintf("[~~bucket%v", i) + ":~~]")
-		log.P2P.Info("the bucket ips is:", "ips", bucket.ips)
-		log.P2P.Info("the bucket entries number:", "number", len(bucket.entries))
-		for j, node := range bucket.entries {
-			log.P2P.Info(fmt.Sprintf("node%v", j)+":", "url", node.String())
-		}
-		log.P2P.Info("the bucket replacements number:", "number", len(bucket.replacements))
-		for j, node := range bucket.replacements {
-			log.P2P.Info(fmt.Sprintf("node%v", j)+":", "url", node.String())
-		}
-	}
-	log.P2P.Info("")
-}
-
-func (tab *Table) debugInfo() {
-	tick := time.NewTicker(time.Minute)
-	defer tick.Stop()
-	tab.printTableInfo()
-	for {
-		select {
-		case <-tick.C:
-			tab.printTableInfo()
-		}
-	}
 }
 
 // loop schedules refresh, revalidate runs and coordinates shutdown.
@@ -473,9 +433,6 @@ func (tab *Table) loadSeedNodes() {
 	seeds = append(seeds, tab.nursery...)
 	for i := range seeds {
 		seed := seeds[i]
-		age := log.Lazy{Fn: func() interface{} { return time.Since(tab.db.LastPongReceived(seed.ID())) }}
-		log.Debug("Found seed node in database", "id", seed.ID(), "addr", seed.addr(), "age", age)
-		log.P2P.Info("table loadSeedNodes the node is:", "seedNode", seed.String())
 		tab.add(seed)
 	}
 }
@@ -499,17 +456,12 @@ func (tab *Table) doRevalidate(done chan<- struct{}) {
 	b := tab.buckets[bi]
 	if err == nil {
 		// The node responded, move it to the front.
-		log.Debug("Revalidated node", "b", bi, "id", last.ID())
 		b.bump(last)
 		return
 	}
 	// No reply received, pick a replacement or delete the node if there aren't
 	// any replacements.
-	if r := tab.replace(b, last); r != nil {
-		log.Debug("Replaced dead node", "b", bi, "id", last.ID(), "ip", last.IP(), "r", r.ID(), "rip", r.IP())
-	} else {
-		log.Debug("Removed dead node", "b", bi, "id", last.ID(), "ip", last.IP())
-	}
+	tab.replace(b, last)
 }
 
 // nodeToRevalidate returns the last node in a random, non-empty bucket.
@@ -591,9 +543,6 @@ func (tab *Table) add(n *node) {
 		return
 	}
 
-	log.P2P.Info("the tab add node~~~", "node", n.String())
-	tab.printTableInfo()
-
 	tab.mutex.Lock()
 	defer tab.mutex.Unlock()
 	b := tab.bucket(n.ID())
@@ -602,8 +551,6 @@ func (tab *Table) add(n *node) {
 		tab.addReplacement(b, n)
 	}
 
-	log.P2P.Info("the table is after add node")
-	tab.printTableInfo()
 }
 
 // addThroughPing adds the given node to the table. Compared to plain
@@ -649,11 +596,9 @@ func (tab *Table) addIP(b *bucket, ip net.IP) bool {
 		return true
 	}
 	if !tab.ips.Add(ip) {
-		log.Debug("IP exceeds table limit", "ip", ip)
 		return false
 	}
 	if !b.ips.Add(ip) {
-		log.Debug("IP exceeds bucket limit", "ip", ip)
 		tab.ips.Remove(ip)
 		return false
 	}

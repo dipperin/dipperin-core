@@ -18,10 +18,11 @@ package cachedb
 
 import (
 	"errors"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 )
 
 // decode interface data
@@ -39,7 +40,7 @@ func (d *BFTCacheDataDecoder) DecodeSeenCommits(data []byte) (result []model.Abs
 
 	var from []*model.VoteMsg
 	if err = rlp.DecodeBytes(data, &from); err != nil {
-		log.PBft.Error("Decode seen commits error", "err", err)
+		log.DLogger.Error("Decode seen commits error", zap.Error(err))
 		return []model.AbstractVerification{}, err
 	}
 

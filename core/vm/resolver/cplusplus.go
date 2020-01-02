@@ -25,11 +25,12 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/address-util"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 )
 
@@ -95,8 +96,8 @@ func (r *Resolver) envPrints(vm *exec.VirtualMachine) int64 {
 		}
 	}
 	str := vm.Memory.Memory[start:end]
-	log.Vm.Debug(string(str))
-	log.Info("envPrints called", "string", string(str))
+	log.DLogger.Debug(string(str))
+	log.DLogger.Info("envPrints called", zap.String("string", string(str)))
 	return 0
 }
 
@@ -116,8 +117,8 @@ func envPrintsl(vm *exec.VirtualMachine) int64 {
 	ptr := int(uint32(vm.GetCurrentFrame().Locals[0]))
 	msgLen := int(uint32(vm.GetCurrentFrame().Locals[1]))
 	msg := vm.Memory.Memory[ptr : ptr+msgLen]
-	log.Vm.Debug(string(msg))
-	log.Info("envPrintsl called", "string", string(msg))
+	log.DLogger.Debug(string(msg))
+	log.DLogger.Info("envPrintsl called", zap.String("string", string(msg)))
 	return 0
 }
 
@@ -129,8 +130,8 @@ func envPrintslGasCost(vm *exec.VirtualMachine) (uint64, error) {
 //libc printi()
 func envPrinti(vm *exec.VirtualMachine) int64 {
 	num := vm.GetCurrentFrame().Locals[0]
-	log.Vm.Debug(fmt.Sprintf("%d", num))
-	log.Info("envPrinti called", "int", fmt.Sprintf("%d", num))
+	log.DLogger.Debug(fmt.Sprintf("%d", num))
+	log.DLogger.Info("envPrinti called", zap.Int64("int", num))
 	return 0
 }
 
@@ -140,8 +141,8 @@ func envPrintiGasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 func envPrintui(vm *exec.VirtualMachine) int64 {
 	num := vm.GetCurrentFrame().Locals[0]
-	log.Vm.Debug(fmt.Sprintf("%d", num))
-	log.Info("envPrintui called", "uint", fmt.Sprintf("%d", num))
+	log.DLogger.Debug(fmt.Sprintf("%d", num))
+	log.DLogger.Info("envPrintui called", zap.Int64("uint", num))
 	return 0
 }
 
@@ -152,13 +153,13 @@ func envPrintuiGasCost(vm *exec.VirtualMachine) (uint64, error) {
 func envPrinti128(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
 	buf := vm.Memory.Memory[pos : pos+16]
-	lo := uint64(binary.LittleEndian.Uint64(buf[:8]))
-	ho := uint64(binary.LittleEndian.Uint64(buf[8:]))
+	lo := binary.LittleEndian.Uint64(buf[:8])
+	ho := binary.LittleEndian.Uint64(buf[8:])
 	ret := C.printi128(C.uint64_t(lo), C.uint64_t(ho))
 
 	num := C.GoString(ret)
-	log.Vm.Debug(fmt.Sprintf("%s", num))
-	log.Info("envPrinti128 called", "int128", fmt.Sprintf("%s", num))
+	log.DLogger.Debug(fmt.Sprintf("%s", num))
+	log.DLogger.Info("envPrinti128 called", zap.String("int128", num))
 	return 0
 }
 
@@ -169,13 +170,13 @@ func envPrinti128GasCost(vm *exec.VirtualMachine) (uint64, error) {
 func envPrintui128(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
 	buf := vm.Memory.Memory[pos : pos+16]
-	lo := uint64(binary.LittleEndian.Uint64(buf[:8]))
-	ho := uint64(binary.LittleEndian.Uint64(buf[8:]))
+	lo := binary.LittleEndian.Uint64(buf[:8])
+	ho := binary.LittleEndian.Uint64(buf[8:])
 	ret := C.printui128(C.uint64_t(lo), C.uint64_t(ho))
 
 	num := C.GoString(ret)
-	log.Vm.Debug(fmt.Sprintf("%s", num))
-	log.Info("envPrintui128 called", "uint128", fmt.Sprintf("%s", num))
+	log.DLogger.Debug(fmt.Sprintf("%s", num))
+	log.DLogger.Info("envPrintui128 called", zap.String("uint128", num))
 	return 0
 }
 
@@ -186,8 +187,8 @@ func envPrintui128GasCost(vm *exec.VirtualMachine) (uint64, error) {
 /*func envPrintsf(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
 	float := math.Float32frombits(uint32(pos))
-	log.Vm.Debug(fmt.Sprintf("%g", float))
-	log.Info("envPrintsf called", "float", fmt.Sprintf("%g", float))
+	log.DLogger.Debug(fmt.Sprintf("%g", float))
+	log.DLogger.Info("envPrintsf called", "float", fmt.Sprintf("%g", float))
 	return 0
 }
 
@@ -198,8 +199,8 @@ func envPrintsfGasCost(vm *exec.VirtualMachine) (uint64, error) {
 func envPrintdf(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
 	double := math.Float64frombits(uint64(pos))
-	log.Vm.Debug(fmt.Sprintf("%g", double))
-	log.Info("envPrintdf called", "double", fmt.Sprintf("%g", double))
+	log.DLogger.Debug(fmt.Sprintf("%g", double))
+	log.DLogger.Info("envPrintdf called", "double", fmt.Sprintf("%g", double))
 	return 0
 }
 
@@ -215,8 +216,8 @@ func envPrintdfGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	high := C.uint64_t(binary.LittleEndian.Uint64(vm.Memory.Memory[pos+8 : pos+16]))
 
 	buf := C.GoString(C.__printqf(low, high))
-	log.Vm.Debug(fmt.Sprintf("%s", buf))
-	log.Info("envPrintqf called", "longDouble", fmt.Sprintf("%s", buf))
+	log.DLogger.Debug(fmt.Sprintf("%s", buf))
+	log.DLogger.Info("envPrintqf called", "longDouble", fmt.Sprintf("%s", buf))
 	return 0
 }
 
@@ -227,8 +228,8 @@ func envPrintqfGasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 func envPrintn(vm *exec.VirtualMachine) int64 {
 	data := fmt.Sprintf("%d", int(uint32(vm.GetCurrentFrame().Locals[0])))
-	log.Vm.Debug(data)
-	log.Info("envPrintn called", "envPrintn", data)
+	log.DLogger.Debug(data)
+	log.DLogger.Info("envPrintn called", zap.String("envPrintn", data))
 	return 0
 }
 
@@ -240,8 +241,8 @@ func envPrinthex(vm *exec.VirtualMachine) int64 {
 	data := int(uint32(vm.GetCurrentFrame().Locals[0]))
 	dataLen := int(uint32(vm.GetCurrentFrame().Locals[1]))
 	hex := vm.Memory.Memory[data : data+dataLen]
-	log.Vm.Debug(fmt.Sprintf("%x", hex))
-	log.Info("envPrinthex called", "hex", fmt.Sprintf("%x", hex))
+	log.DLogger.Debug(fmt.Sprintf("%x", hex))
+	log.DLogger.Info("envPrinthex called", zap.Uint8s("hex", hex))
 	return 0
 }
 
@@ -304,7 +305,7 @@ func envAbortGasCost(vm *exec.VirtualMachine) (uint64, error) {
 // define: int64_t gasPrice();
 func (r *Resolver) envGasPrice(vm *exec.VirtualMachine) int64 {
 	gasPrice := r.Service.GetGasPrice().Int64()
-	log.Info("envGasPrice", "price", gasPrice)
+	log.DLogger.Info("envGasPrice", zap.Int64("price", gasPrice))
 	return gasPrice
 }
 
@@ -320,21 +321,21 @@ func (r *Resolver) envBlockHash(vm *exec.VirtualMachine) int64 {
 // define: int64_t number();
 func (r *Resolver) envNumber(vm *exec.VirtualMachine) int64 {
 	num := int64(r.Service.GetBlockNumber().Uint64())
-	log.Info("envNumber", "num", num)
+	log.DLogger.Info("envNumber", zap.Int64("num", num))
 	return num
 }
 
 // define: int64_t gasLimit();
 func (r *Resolver) envGasLimit(vm *exec.VirtualMachine) int64 {
 	gasLimit := int64(r.Service.GetGasLimit())
-	log.Info("envGasLimit", "gasLimit", gasLimit)
+	log.DLogger.Info("envGasLimit", zap.Int64("gasLimit", gasLimit))
 	return gasLimit
 }
 
 // define: int64_t timestamp();
 func (r *Resolver) envTimestamp(vm *exec.VirtualMachine) int64 {
 	time := r.Service.GetTime().Int64()
-	log.Info("envTimestamp", "time", time)
+	log.DLogger.Info("envTimestamp", zap.Int64("time", time))
 	return time
 }
 
@@ -349,7 +350,7 @@ func (r *Resolver) envCoinbase(vm *exec.VirtualMachine) int64 {
 // define: u256 balance();
 func (r *Resolver) envBalance(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
-	log.Info("the currentFrame is:", "frame", vm.GetCurrentFrame(), "local", vm.GetCurrentFrame().Locals)
+	log.DLogger.Info("the currentFrame is:", zap.Any("frame", vm.GetCurrentFrame()), zap.Int64s("local", vm.GetCurrentFrame().Locals))
 	addrLen := int(int32(vm.GetCurrentFrame().Locals[1]))
 	ptr := int(int32(vm.GetCurrentFrame().Locals[2]))
 
@@ -381,7 +382,7 @@ func (r *Resolver) envOrigin(vm *exec.VirtualMachine) int64 {
 func (r *Resolver) envCaller(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
 	caller := r.Service.Caller().Address()
-	log.Info("envCaller", "caller", caller)
+	log.DLogger.Info("envCaller", zap.Any("caller", caller))
 	copy(vm.Memory.Memory[offset:], caller.Bytes())
 	return 0
 }
@@ -406,7 +407,7 @@ func (r *Resolver) envCallValue(vm *exec.VirtualMachine) int64 {
 func (r *Resolver) envCallValueUDIP(vm *exec.VirtualMachine) int64 {
 	value := r.Service.CallValue()
 	result := int64(new(big.Int).Div(value, new(big.Int).Set(math.BigPow(10, 15))).Uint64())
-	log.Debug("envCallValueUDIP", "value", value, "result", result)
+	log.DLogger.Debug("envCallValueUDIP", zap.Any("value", value), zap.Int64("result", result))
 	return result
 }
 
@@ -426,7 +427,7 @@ func envSha3(vm *exec.VirtualMachine) int64 {
 	destSize := int(int32(vm.GetCurrentFrame().Locals[3]))
 	data := vm.Memory.Memory[offset : offset+size]
 	hash := crypto.Keccak256(data)
-	log.Info("envSha3 called", "hash", hash, "hasHex", common.Bytes2Hex(hash))
+	log.DLogger.Info("envSha3 called", zap.Uint8s("hash", hash), zap.String("hasHex", common.Bytes2Hex(hash)))
 	if destSize < len(hash) {
 		// todo
 		return 0
@@ -437,14 +438,14 @@ func envSha3(vm *exec.VirtualMachine) int64 {
 }
 
 func envHexStringSameWithVM(vm *exec.VirtualMachine) int64 {
-	log.Debug("envHexStringSameWithVM execute")
+	log.DLogger.Debug("envHexStringSameWithVM execute")
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
 	size := int(int32(vm.GetCurrentFrame().Locals[1]))
 	destOffset := int(int32(vm.GetCurrentFrame().Locals[2]))
 	//destSize := int(int32(vm.GetCurrentFrame().Locals[3]))
 	data := vm.Memory.Memory[offset : offset+size]
 	str := common.HexStringSameWithVM(string(data))
-	log.Info("envHexStringSameWithVM  ", "data", data, "str", str)
+	log.DLogger.Info("envHexStringSameWithVM  ", zap.Uint8s("data", data), zap.String("str", str))
 	copy(vm.Memory.Memory[destOffset:], str)
 	return 0
 }
@@ -495,13 +496,13 @@ func env__divti3GasCost(vm *exec.VirtualMachine) (uint64, error) {
 func (r *Resolver) envGetCallerNonce(vm *exec.VirtualMachine) int64 {
 	addr := r.Service.Caller().Address()
 	nonce, _ := r.Service.StateDBService.GetNonce(addr)
-	log.Info("envGetCallerNonce", "nonce", nonce)
+	log.DLogger.Info("envGetCallerNonce", zap.Uint64("nonce", nonce))
 	return int64(nonce)
 }
 
 /*func (r *Resolver) envCurrentTime(vm *exec.VirtualMachine) int64 {
 	curTime := time.Now().UnixNano()
-	log.Info("envCurrentTime", "time", curTime)
+	log.DLogger.Info("envCurrentTime", "time", curTime)
 	return curTime
 }*/
 
@@ -517,7 +518,7 @@ func (r *Resolver) envCallTransfer(vm *exec.VirtualMachine) int64 {
 	_, returnGas, err := r.Service.Transfer(addr, value256)
 
 	//先使用在life　vm中添加的字段，待后续看是否可以使用life自带gas机制
-	log.Info("envCallTransfer", "GasUsed", vm.GasUsed, "returnGas", returnGas, "err", err)
+	log.DLogger.Info("envCallTransfer", zap.Uint64("GasUsed", vm.GasUsed), zap.Uint64("returnGas", returnGas), zap.Error(err))
 	vm.GasUsed -= returnGas
 	if err != nil {
 		return 1
@@ -538,7 +539,7 @@ func (r *Resolver) envGetSignerAddress(vm *exec.VirtualMachine) int64 {
 
 	//crypto.VerifySignature(r.Service.Self().Address().)
 
-	log.Info("Resolver#envVerifySignature", "sha3Data", sha3Data, "signature", signature, "signature byte", common.Hex2Bytes(string(signature)))
+	log.DLogger.Info("Resolver#envVerifySignature", zap.Uint8s("sha3Data", sha3Data), zap.Uint8s("signature", signature), zap.Uint8s("signature byte", common.Hex2Bytes(string(signature))))
 
 	hashByte := common.Hex2Bytes(string(signature))
 	pK, err := crypto.SigToPub(sha3Data, hashByte)
@@ -546,7 +547,7 @@ func (r *Resolver) envGetSignerAddress(vm *exec.VirtualMachine) int64 {
 		return 0
 	}
 
-	log.Info("Resolver#envVerifySignature addr", "address ", address_util.PubKeyToAddress(*pK, common.AddressTypeNormal), "self address", r.Service.Self().Address().Hex())
+	log.DLogger.Info("Resolver#envVerifySignature addr", zap.Any("address ", address_util.PubKeyToAddress(*pK, common.AddressTypeNormal)), zap.String("self address", r.Service.Self().Address().Hex()))
 
 	addr := address_util.PubKeyToAddress(*pK, common.AddressTypeNormal)
 	copy(vm.Memory.Memory[returnStart:], addr.Bytes())
@@ -560,7 +561,7 @@ func (r *Resolver) envDipperCall(vm *exec.VirtualMachine) int64 {
 
 	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
 	inputs := vm.Memory.Memory[params : params+paramsLen]
-	log.Info("envDipperCall", "contractAddr", contractAddr, "inputs", inputs)
+	log.DLogger.Info("envDipperCall", zap.Uint8s("contractAddr", contractAddr), zap.Uint8s("inputs", inputs))
 	_, err := r.Service.ResolverCall(contractAddr, inputs)
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
@@ -576,7 +577,7 @@ func (r *Resolver) envDipperDelegateCall(vm *exec.VirtualMachine) int64 {
 
 	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
 	inputs := vm.Memory.Memory[params : params+paramsLen]
-	log.Info("envDipperDelegateCall", "contractAddr", contractAddr, "inputs", inputs)
+	log.DLogger.Info("envDipperDelegateCall", zap.Uint8s("contractAddr", contractAddr), zap.Uint8s("inputs", inputs))
 	_, err := r.Service.ResolverDelegateCall(contractAddr, inputs)
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
@@ -592,14 +593,14 @@ func (r *Resolver) envDipperCallInt64(vm *exec.VirtualMachine) int64 {
 
 	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
 	inputs := vm.Memory.Memory[params : params+paramsLen]
-	log.Info("envDipperCallInt64", "contractAddr", contractAddr, "inputs", inputs)
+	log.DLogger.Info("envDipperCallInt64", zap.Uint8s("contractAddr", contractAddr), zap.Uint8s("inputs", inputs))
 	ret, err := r.Service.ResolverCall(contractAddr, inputs)
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
 	}
 	res := utils.Align32BytesConverter(ret, "int64")
-	log.Info("envDipperCallInt64", "ret", res)
+	log.DLogger.Info("envDipperCallInt64", zap.Any("ret", res))
 	return res.(int64)
 }
 
@@ -610,14 +611,14 @@ func (r *Resolver) envDipperDelegateCallInt64(vm *exec.VirtualMachine) int64 {
 
 	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
 	inputs := vm.Memory.Memory[params : params+paramsLen]
-	log.Info("envDipperDelegateCallInt64", "contractAddr", contractAddr, "inputs", inputs)
+	log.DLogger.Info("envDipperDelegateCallInt64", zap.Uint8s("contractAddr", contractAddr), zap.Uint8s("inputs", inputs))
 	ret, err := r.Service.ResolverDelegateCall(contractAddr, inputs)
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
 	}
 	res := utils.Align32BytesConverter(ret, "int64")
-	log.Info("envDipperDelegateCallInt64", "ret", res)
+	log.DLogger.Info("envDipperDelegateCallInt64", zap.Any("ret", res))
 	return res.(int64)
 }
 
@@ -628,14 +629,14 @@ func (r *Resolver) envDipperCallString(vm *exec.VirtualMachine) int64 {
 
 	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
 	inputs := vm.Memory.Memory[params : params+paramsLen]
-	log.Info("envDipperCallString", "contractAddr", contractAddr, "inputs", inputs)
+	log.DLogger.Info("envDipperCallString", zap.Uint8s("contractAddr", contractAddr), zap.Uint8s("inputs", inputs))
 	ret, err := r.Service.ResolverCall(contractAddr, inputs)
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
 	}
 	res := utils.Align32BytesConverter(ret, "string")
-	log.Info("envDipperCallString", "ret", res)
+	log.DLogger.Info("envDipperCallString", zap.Any("ret", res))
 	return MallocString(vm, string(ret))
 }
 
@@ -646,14 +647,14 @@ func (r *Resolver) envDipperDelegateCallString(vm *exec.VirtualMachine) int64 {
 
 	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
 	inputs := vm.Memory.Memory[params : params+paramsLen]
-	log.Info("envDipperDelegateCallString", "contractAddr", contractAddr, "inputs", inputs)
+	log.DLogger.Info("envDipperDelegateCallString", zap.Uint8s("contractAddr", contractAddr), zap.Uint8s("inputs", inputs))
 	ret, err := r.Service.ResolverDelegateCall(contractAddr, inputs)
 	if err != nil {
 		fmt.Printf("call error,%s", err.Error())
 		return 0
 	}
 	res := utils.Align32BytesConverter(ret, "string")
-	log.Info("envDipperDelegateCallString", "ret", res)
+	log.DLogger.Info("envDipperDelegateCallString", zap.Any("ret", res))
 	return MallocString(vm, string(ret))
 }
 

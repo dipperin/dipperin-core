@@ -20,10 +20,11 @@ import (
 	"encoding/binary"
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 )
 
 var cacheDataDecoder CacheDataDecoder = &BFTCacheDataDecoder{}
@@ -47,12 +48,12 @@ func (cache *CacheDB) GetSeenCommits(blockHeight uint64, blockHash common.Hash) 
 	var data []byte
 	data, err = cache.get(seenCommitsKey(blockHeight, blockHash))
 	if err != nil {
-		log.Info("get seen commits failed", "height", blockHeight)
+		log.DLogger.Info("get seen commits failed", zap.Uint64("height", blockHeight))
 		return
 	}
 	if blockHeight > 1 {
 		if len(data) == 0 {
-			log.PBft.Debug("Can not get seen commits", "height", blockHeight)
+			log.DLogger.Debug("Can not get seen commits", zap.Uint64("height", blockHeight))
 			return nil, errors.New("Can not get seen commits")
 		}
 	}
@@ -61,7 +62,7 @@ func (cache *CacheDB) GetSeenCommits(blockHeight uint64, blockHash common.Hash) 
 
 // hash must be empty, if only use height for tag
 func (cache *CacheDB) SaveSeenCommits(blockHeight uint64, blockHash common.Hash, commits []model.AbstractVerification) error {
-	//log.Info("CacheDB SaveSeenCommits", "blockHeight", blockHeight, "len(commits)", len(commits))
+	//log.DLogger.Info("CacheDB SaveSeenCommits", "blockHeight", blockHeight, "len(commits)", len(commits))
 	return cache.save(seenCommitsKey(blockHeight, blockHash), commits)
 }
 
@@ -70,7 +71,7 @@ func (cache *CacheDB) DeleteSeenCommits(blockHeight uint64, blockHash common.Has
 }
 
 func (cache *CacheDB) save(key []byte, data interface{}) error {
-	//log.Info("CacheDB save key is:", "key", hexutil.Encode(key))
+	//log.DLogger.Info("CacheDB save key is:", "key", hexutil.Encode(key))
 	dataB, err := rlp.EncodeToBytes(data)
 	if err != nil {
 		return err
@@ -79,7 +80,7 @@ func (cache *CacheDB) save(key []byte, data interface{}) error {
 }
 
 func (cache *CacheDB) get(key []byte) ([]byte, error) {
-	//log.Info("CacheDB get key is:", "key", hexutil.Encode(key))
+	//log.DLogger.Info("CacheDB get key is:", "key", hexutil.Encode(key))
 	return cache.db.Get(key)
 }
 

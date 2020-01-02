@@ -20,14 +20,15 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/cs-chain"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
+	"go.uber.org/zap"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -79,21 +80,21 @@ func DefaultMinerP2PConf() p2p.Config {
 func addStaticNodeWithoutCurIp(conf *p2p.Config, n *enode.Node, localAddrs []net.Addr) {
 	for _, a := range localAddrs {
 		if strings.Contains(a.String(), n.IP().String()) {
-			log.Debug("Is the local node configuration, not added to the static node", "local ip", a.String(), "n ip", n.IP().String())
+			log.DLogger.Debug("Is the local node configuration, not added to the static node", "local ip", a.String(), "n ip", n.IP().String())
 			return
 		}
 	}
-	log.Debug("Not a native node configuration, join a static node", "n ip", n.IP().String())
+	log.DLogger.Debug("Not a native node configuration, join a static node", "n ip", n.IP().String())
 	conf.StaticNodes = append(conf.StaticNodes, n)
 }
 
 // add nodes to static nodes exclude local ip
 func addStaticNodeWithoutCurNodeId(conf *p2p.Config, n *enode.Node, curNodeId string) {
 	if n.ID().String() == curNodeId {
-		log.Debug("Is the local node configuration, not added to the static node", "curNodeId", curNodeId, "n ip", n.IP().String())
+		log.DLogger.Debug("Is the local node configuration, not added to the static node", "curNodeId", curNodeId, "n ip", n.IP().String())
 		return
 	}
-	log.Debug("Not a native node configuration, join a static node", "node id", n.ID().String())
+	log.DLogger.Debug("Not a native node configuration, join a static node", "node id", n.ID().String())
 	conf.StaticNodes = append(conf.StaticNodes, n)
 }
 
@@ -109,7 +110,7 @@ func AddStaticNodesToP2PConf(conf *p2p.Config, curNodeId string) {
 
 /*// read static node configuration into global
 func ReadStaticNodesFromDataDir(dataDir string) {
-	log.Info("read static node configuration")
+	log.DLogger.Info("read static node configuration")
 	//chain_config.VerifyNodes = readNodesFromFile(filepath.Join(dataDir, chain_config.StaticVerifiersFileName))
 	//chain_config.MineMasterNodes = readNodesFromFile(filepath.Join(dataDir, chain_config.StaticMinerMastersFileName))
 }
@@ -118,17 +119,17 @@ func ReadStaticNodesFromDataDir(dataDir string) {
 func readNodesFromFile(confFile string) (result []*enode.Node) {
 	vb, err := ioutil.ReadFile(confFile)
 	if err != nil {
-		log.Warn("unable to read node configuration", "err", err)
+		log.DLogger.Warn("unable to read node configuration", zap.Error(err))
 		return
 	}
 	var vs []string
 	if err = util.ParseJsonFromBytes(vb, &vs); err != nil {
-		log.Warn("unable to parse node configuration", "err", err)
+		log.DLogger.Warn("unable to parse node configuration", zap.Error(err))
 		return
 	}
 	for _, s := range vs {
 		if n, pErr := enode.ParseV4(s); pErr != nil {
-			log.Warn("parsing node error", "err", err)
+			log.DLogger.Warn("parsing node error", zap.Error(err))
 		} else {
 			result = append(result, n)
 		}
@@ -145,15 +146,15 @@ func loadNodeKeyFromFile(dataDir string) *ecdsa.PrivateKey {
 	if key, err := crypto.LoadECDSA(nodeKeyFilePath); err == nil {
 		return key
 	} else {
-		log.Info("can't load nodekey from data dir, gen a new key", "key file path", nodeKeyFilePath, "load err", err)
+		log.DLogger.Info("can't load nodekey from data dir, gen a new key", zap.String("key file path", nodeKeyFilePath), zap.Error(err))
 	}
 	key, err := crypto.GenerateKey()
 	if err != nil {
-		log.Error("gen node key failed", "err", err)
+		log.DLogger.Error("gen node key failed", zap.Error(err))
 		return nil
 	}
 	if err = crypto.SaveECDSA(nodeKeyFilePath, key); err != nil {
-		log.Error("save node key failed", "err", err)
+		log.DLogger.Error("save node key failed", zap.Error(err))
 	}
 	return key
 }
@@ -165,7 +166,7 @@ func getNodeList(path string) []*enode.Node {
 
 	var nodelist []string
 	if err := common.LoadJSON(path, &nodelist); err != nil {
-		log.Error(fmt.Sprintf("Can't load node file %s: %v", path, err))
+		log.DLogger.Error(fmt.Sprintf("Can't load node file %s: %v", path, err))
 		return nil
 	}
 
@@ -176,7 +177,7 @@ func getNodeList(path string) []*enode.Node {
 		}
 		node, err := enode.ParseV4(url)
 		if err != nil {
-			log.Error(fmt.Sprintf("Node URL %s: %v\n", url, err))
+			log.DLogger.Error(fmt.Sprintf("Node URL %s: %v\n", url, err))
 			continue
 		}
 		nodes = append(nodes, node)
@@ -216,7 +217,7 @@ func (verifier *ChainVerifiersReader) PrimaryNode() common.Address {
 func (verifier *ChainVerifiersReader) GetPBFTPrimaryNode() common.Address {
 	var verifiers []common.Address
 	if verifier.ShouldChangeVerifier() {
-		log.Info("GetPBFTPrimaryNode# The current height on the chain is the last block of the round, and verifiers of the next round should be taken.")
+		log.DLogger.Info("GetPBFTPrimaryNode# The current height on the chain is the last block of the round, and verifiers of the next round should be taken.")
 		verifiers = verifier.fullChain.GetNextVerifiers()
 	} else {
 		verifiers = verifier.fullChain.GetCurrVerifiers()

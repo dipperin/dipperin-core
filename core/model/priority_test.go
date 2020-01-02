@@ -19,10 +19,11 @@ package model
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"math/big"
 	"math/rand"
 	"strconv"
@@ -249,12 +250,12 @@ func TestCalculator_GetElectPriority_Multi(t *testing.T) {
 	//accounts,stakeCount := CreateMultiAccount("account", accountNum, generateNormalNonce,BaseNonce,generateNormalPerformance,BasePerformance,generateRandStake,StakeMax)
 	// generate normal nonce,performance,stake
 	accounts, stakeCount := CreateMultiAccount("account", accountNum, generateNormalNonce, BaseNonce, generateNormalPerformance, BasePerformance, generateNormalStake, StakeMax)
-	log.Info("TestCalculator_GetElectPriority_Multi stakeCount info", "stakeCount", stakeCount.Int64())
+	log.DLogger.Info("TestCalculator_GetElectPriority_Multi stakeCount info", zap.Int64("stakeCount", stakeCount.Int64()))
 	baseHashStr := "3848465468464823742384878845453654634536842542465141654353539999"
 	for j := uint(0); j < round; j++ {
 		hash := create256Seed(baseHashStr + strconv.Itoa(int(j)))
 		var jAccounts []*TestAccount
-		//log.Info("TestCalculator_GetElectPriority_Multi round info", "round", j)
+		//log.DLogger.Info("TestCalculator_GetElectPriority_Multi round info", "round", j)
 		for i := 0; i < len(accounts); i++ {
 			luck := getLuck(accounts[i].accountAddress, hash)
 			if accounts[i].performance > MaxPerformance {
@@ -263,19 +264,19 @@ func TestCalculator_GetElectPriority_Multi(t *testing.T) {
 			//priority, err := tc.GetElectPriority(luck, accounts[i].nonce, accounts[i].stake, accounts[i].performance)
 			reputation, err := CalReputation(accounts[i].nonce, accounts[i].stake, accounts[i].performance)
 			if err != nil {
-				log.Error("TestCalculator_GetElectPriority_Multi calReputation", "reputation", reputation)
+				log.DLogger.Error("TestCalculator_GetElectPriority_Multi calReputation", zap.Uint64("reputation", reputation))
 				panic("calReputation err")
 			}
 			priority, err := CalPriority(luck, reputation)
 			if err != nil {
-				log.Error("TestCalculator_GetElectPriority_Multi  priority err", "err ", err)
+				log.DLogger.Error("TestCalculator_GetElectPriority_Multi  priority err", zap.Error(err))
 				panic("priority is wrong")
 			}
-			//log.Info("priofity info", "priority", priority)
+			//log.DLogger.Info("priofity info", "priority", priority)
 			accounts[i].priority = priority
 			jAccounts = GetSortAccount(jAccounts, accounts[i])
 		}
-		//log.Info("jAccounts length", "jAccounts", len(jAccounts))
+		//log.DLogger.Info("jAccounts length", "jAccounts", len(jAccounts))
 		//PrintAccountInfo(jAccounts)
 		//random verifier-node's performance
 		// top topVerifierNum nodes,add once elections
@@ -283,7 +284,7 @@ func TestCalculator_GetElectPriority_Multi(t *testing.T) {
 		random := GenerateRand(topVerifierNum) + uint64(len(jAccounts)*2/3)
 		for k := 0; k < len(jAccounts); k++ {
 			jAccounts[k].count += 1
-			//log.Info("TestCalculator_GetElectPriority_Multi jAccounts info topVerifier", "jAccounts"+strconv.Itoa(k), jAccounts[k])
+			//log.DLogger.Info("TestCalculator_GetElectPriority_Multi jAccounts info topVerifier", "jAccounts"+strconv.Itoa(k), jAccounts[k])
 			if k < len(jAccounts)*2/3 {
 				jAccounts[k].performance += BaseReword
 			} else if k == int(random) {
@@ -320,7 +321,7 @@ func getLuck(addr common.Address, seed common.Hash) common.Hash {
 
 func PrintAccountInfo(tAccounts []*TestAccount) {
 	for i := range tAccounts {
-		log.Info("PrintAccountInfo", "account", tAccounts[i])
+		log.DLogger.Info("PrintAccountInfo", zap.Any("account", tAccounts[i]))
 	}
 }
 
@@ -333,7 +334,7 @@ func CreateMultiAccountAddress(count uint) (ta []*TestAccount) {
 		account := &TestAccount{}
 		testPriv1 = GenerateNewStr(testPriv1 + strconv.Itoa(int(i)))
 		testPriv1 = testPriv1[len(testPriv1)-privLen:]
-		//log.Info("CreateMultiAccountAddress  alicePriv info", "alicePriv", alicePriv)
+		//log.DLogger.Info("CreateMultiAccountAddress  alicePriv info", "alicePriv", alicePriv)
 		pk, err := crypto.HexToECDSA(testPriv1)
 		if err != nil {
 		}
@@ -345,7 +346,7 @@ func CreateMultiAccountAddress(count uint) (ta []*TestAccount) {
 		account.performance = BasePerformance
 		account.stake = big.NewInt(0).Add(big.NewInt(int64(GenerateRand(StakeMax))), big.NewInt(100))
 		ta[i] = account
-		//log.Info("CreateMultiAccountAddress  accounts info", "accounts", fmt.Sprintf("%v", ta[i]), "stake", ta[i].stake)
+		//log.DLogger.Info("CreateMultiAccountAddress  accounts info", "accounts", fmt.Sprintf("%v", ta[i]), "stake", ta[i].stake)
 	}
 	return
 }
@@ -359,7 +360,7 @@ func CreateMultiAccount(baseName string, count uint, generateNonce func(nonceMax
 		account := &TestAccount{}
 		testPriv1 = GenerateNewStr(testPriv1 + strconv.Itoa(int(i)))
 		testPriv1 = testPriv1[len(testPriv1)-privLen:]
-		//log.Info("CreateMultiAccountAddress  alicePriv info", "alicePriv", alicePriv)
+		//log.DLogger.Info("CreateMultiAccountAddress  alicePriv info", "alicePriv", alicePriv)
 		pk, err := crypto.HexToECDSA(testPriv1)
 		if err != nil {
 		}
@@ -373,7 +374,7 @@ func CreateMultiAccount(baseName string, count uint, generateNonce func(nonceMax
 		account.stake = generateStake(stakeMax)
 		stakeCount.Add(stakeCount, account.stake)
 		ta[i] = account
-		//log.Info("CreateMultiAccountAddress  accounts info", "accounts", fmt.Sprintf("%v", ta[i]), "stake", ta[i].stake)
+		//log.DLogger.Info("CreateMultiAccountAddress  accounts info", "accounts", fmt.Sprintf("%v", ta[i]), "stake", ta[i].stake)
 	}
 	return
 }
@@ -407,18 +408,18 @@ func PrintAccountElectResult(accountsMap map[uint][]*TestAccount, round uint, st
 	for i := uint(0); i < round; i++ {
 		accounts := accountsMap[i]
 		for j := 0; j < len(accounts); j++ {
-			//log.Info("PrintAccountElectResult", "round", i, "account.accountAddress", accounts[j].Name, "count", accounts[j].count)
+			//log.DLogger.Info("PrintAccountElectResult", "round", i, "account.accountAddress", accounts[j].Name, "count", accounts[j].count)
 			resultMap[accounts[j].Name] = accounts[j]
 		}
 	}
 	var performanceCount int
-	for key, value := range resultMap {
-		log.Info("PrintAccountElectResult", "key", key, "count", value.count, "count percentage", float64(value.count)/float64(round)/float64(topVerifierNum), "stake", value.stake, "stake percentage", float64(value.stake.Int64())/float64(stakeCount.Int64()), "nonce", value.nonce, "performance", value.performance)
+	for _, value := range resultMap {
+		//log.DLogger.Info("PrintAccountElectResult", "key", key, "count", value.count, "count percentage", float64(value.count)/float64(round)/float64(topVerifierNum), "stake", value.stake, "stake percentage", float64(value.stake.Int64())/float64(stakeCount.Int64()), "nonce", value.nonce, "performance", value.performance)
 		if value.performance > 90 {
 			performanceCount++
 		}
 	}
-	log.Info("PrintAccountElectResult", "performanceCount > 90  ", performanceCount)
+	//log.DLogger.Info("PrintAccountElectResult", "performanceCount > 90  ", performanceCount)
 
 }
 
@@ -432,10 +433,10 @@ func GetSortAccount(tAccounts []*TestAccount, account *TestAccount) []*TestAccou
 				copy(bakAccounts, tAccounts)
 				bak := bakAccounts[i]
 				front := append(append(bakAccounts[:i], account), bak)
-				//log.Info("GetSortAccount", "front",front,"bak",bak)
+				//log.DLogger.Info("GetSortAccount", "front",front,"bak",bak)
 				//PrintAccountInfo(front)
 				tAccounts = append(front, tAccounts[i+1:]...)
-				//log.Info("GetSortAccount", "i", i, "front", front)
+				//log.DLogger.Info("GetSortAccount", "i", i, "front", front)
 				//PrintAccountInfo(tAccounts)
 				isMinest = false
 				break
@@ -447,7 +448,7 @@ func GetSortAccount(tAccounts []*TestAccount, account *TestAccount) []*TestAccou
 	} else {
 		tAccounts = append(tAccounts, account)
 	}
-	//log.Info("GetSortAccount", "tAccounts", tAccounts, "account", account)
+	//log.DLogger.Info("GetSortAccount", "tAccounts", tAccounts, "account", account)
 	return tAccounts
 }
 

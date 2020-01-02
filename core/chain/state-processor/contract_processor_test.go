@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/address-util"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/model"
@@ -12,9 +13,9 @@ import (
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"math/big"
 	"testing"
 )
@@ -157,10 +158,10 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 	contractAddr := cs_crypto.CreateContractAddress(ownAddress, uint64(0))
 	contractNonce, err := processor.GetNonce(contractAddr)
-	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce)
+	log.DLogger.Info("TestAccountStateDB_ProcessContract", zap.Uint64("contractNonce", contractNonce))
 	_, err = processor.GetCode(contractAddr)
 	abi, err := processor.GetAbi(contractAddr)
-	//log.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
+	//log.DLogger.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
 	assert.NoError(t, err)
 	//assert.Equal(t, code, tx.ExtraData())
 	processor.Commit()
@@ -184,7 +185,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	assert.NoError(t, err)
 
 	//  合约调用approve方法
-	log.Info("==========================================")
+	log.DLogger.Info("==========================================")
 	ownTransferNonce++
 	callTxApprove, err := newContractCallTx(nil, &contractAddr, big.NewInt(0), new(big.Int).SetUint64(1), uint64(1500000), "approve", brotherAddress.Hex()+",50", ownTransferNonce, abi)
 	//accountAlice := accounts.Account{aliceAddress}
@@ -192,7 +193,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 
 	assert.NoError(t, err)
 	block5 := CreateBlock(5, common.Hash{}, []*model.Transaction{signCallTxApprove}, gasLimit)
-	log.Info("signCallTxApprove info", "signCallTxApprove", signCallTxApprove)
+	log.DLogger.Info("signCallTxApprove info", zap.Any("signCallTxApprove", signCallTxApprove))
 
 	txConfig5 := &TxProcessConfig{
 		Tx:       signCallTxApprove,
@@ -211,7 +212,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	assert.NoError(t, err)*/
 
 	//  合约调用transferFrom方法
-	log.Info("==========================================")
+	log.DLogger.Info("==========================================")
 	callTxTransferFrom, err := newContractCallTx(nil, &contractAddr, big.NewInt(0), new(big.Int).SetUint64(1), uint64(1500000), "transferFrom", ownAddress.Hex()+","+aliceAddress.Hex()+",5", 0, abi)
 	assert.NoError(t, err)
 	accountBrother := accounts.Account{Address: brotherAddress}
@@ -220,7 +221,7 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	signCallTxTransferFrom, err := callTxTransferFrom.SignTx(brotherSK, singer)
 	assert.NoError(t, err)
 	block7 := CreateBlock(7, common.Hash{}, []*model.Transaction{signCallTxTransferFrom}, gasLimit)
-	log.Info("signCallTxTransferFrom info", "signCallTxTransferFrom", signCallTxTransferFrom)
+	log.DLogger.Info("signCallTxTransferFrom info", zap.Any("signCallTxTransferFrom", signCallTxTransferFrom))
 
 	txConfig7 := &TxProcessConfig{
 		Tx:       signCallTxTransferFrom,
@@ -268,11 +269,10 @@ func TestAccountStateDB_ProcessContractToken(t *testing.T) {
 	err = processContractCall(t, contractAddr, big.NewInt(0), abi, ownSK, processor, accountOwn, ownTransferNonce, "setName", "wujinhai", 14, singer)
 	assert.NoError(t, err)
 
-	log.Info("TestAccountStateDB_ProcessContract++", "callRecipt", "", "err", err)
+	log.DLogger.Info("TestAccountStateDB_ProcessContract++", zap.Error(err))
 }
 
 func TestContractNewFeature(t *testing.T) {
-	log.InitLogger(log.LvlDebug)
 	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
 	ownSK, _ := crypto.GenerateKey()
 	ownPk := ownSK.PublicKey
@@ -374,10 +374,10 @@ func TestContractWithNewFeature(t *testing.T) {
 
 	contractAddr := cs_crypto.CreateContractAddress(ownAddress, uint64(0))
 	contractNonce, err := processor.GetNonce(contractAddr)
-	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce)
+	log.DLogger.Info("TestAccountStateDB_ProcessContract", zap.Uint64("contractNonce", contractNonce))
 	code, err := processor.GetCode(contractAddr)
 	abi, err := processor.GetAbi(contractAddr)
-	log.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
+	log.DLogger.Info("TestAccountStateDB_ProcessContract", zap.Uint8s("code  get from state", code))
 	assert.NoError(t, err)
 	//assert.Equal(t, code, tx.ExtraData())
 	processor.Commit()
@@ -455,10 +455,10 @@ func TestContractWithNewFeature(t *testing.T) {
 //
 //	contractAddr := cs_crypto.CreateContractAddress(ownAddress, uint64(0))
 //	contractNonce, err := processor.GetNonce(contractAddr)
-//	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce)
+//	log.DLogger.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce)
 //	code, err := processor.GetCode(contractAddr)
 //	abi, err := processor.GetAbi(contractAddr)
-//	log.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
+//	log.DLogger.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
 //	assert.NoError(t, err)
 //	//assert.Equal(t, code, tx.ExtraData())
 //	processor.Commit()
@@ -540,12 +540,12 @@ func TestContractPaymentChannel(t *testing.T) {
 	assert.NoError(t, err)
 
 	contractAddr := cs_crypto.CreateContractAddress(ownAddress, uint64(0))
-	log.Info("TestContractPaymentChannel contractAddr", "contractAddr", contractAddr)
+	log.DLogger.Info("TestContractPaymentChannel contractAddr", zap.Any("contractAddr", contractAddr))
 	contractNonce, err := processor.GetNonce(contractAddr)
-	log.Info("TestAccountStateDB_ProcessContract", "contractNonce", contractNonce)
+	log.DLogger.Info("TestAccountStateDB_ProcessContract", zap.Uint64("contractNonce", contractNonce))
 	code, err := processor.GetCode(contractAddr)
 	abi, err := processor.GetAbi(contractAddr)
-	log.Info("TestAccountStateDB_ProcessContract", "code  get from state", code)
+	log.DLogger.Info("TestAccountStateDB_ProcessContract", zap.Uint8s("code  get from state", code))
 	assert.NoError(t, err)
 	//assert.Equal(t, code, tx.ExtraData())
 	processor.Commit()
@@ -565,10 +565,10 @@ func TestContractPaymentChannel(t *testing.T) {
 
 	// 合约调用  close 方法
 	signMessage := contractAddr.Hex() + "1" + aliceAddress.Hex()
-	log.Info("TestContractPaymentChannel#signature", "signMessage", signMessage)
+	log.DLogger.Info("TestContractPaymentChannel#signature", zap.String("signMessage", signMessage))
 	signHash := crypto.Keccak256([]byte(signMessage))
 	signature, err := crypto.Sign(signHash, ownSK)
-	log.Info("TestContractPaymentChannel#signature", "signature", signature, "signHash", signHash, "sign byte", common.Bytes2Hex(signature))
+	log.DLogger.Info("TestContractPaymentChannel#signature", zap.Uint8s("signature", signature), zap.Uint8s("signHash", signHash), zap.String("sign byte", common.Bytes2Hex(signature)))
 	assert.NoError(t, err)
 
 	err = processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, 0,
@@ -584,7 +584,6 @@ func TestContractPaymentChannel(t *testing.T) {
 }
 
 func TestContractPortfolioManage(t *testing.T) {
-	log.InitLogger(log.LvlDebug)
 	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
 
 	ownSK, _ := crypto.GenerateKey()
@@ -648,12 +647,12 @@ func TestContractPortfolioManage(t *testing.T) {
 	receipt := tx.GetReceipt()
 	fmt.Println("receipt  log", "receipt log", receipt)
 	contractAddr := cs_crypto.CreateContractAddress(ownAddress, uint64(0))
-	log.Info("TestContractPortfolioManage contractAddr", "contractAddr", contractAddr)
+	log.DLogger.Info("TestContractPortfolioManage contractAddr", zap.Any("contractAddr", contractAddr))
 	contractNonce, err := processor.GetNonce(contractAddr)
-	log.Info("TestContractPortfolioManage  ", "contractNonce", contractNonce)
+	log.DLogger.Info("TestContractPortfolioManage  ", zap.Uint64("contractNonce", contractNonce))
 	code, err := processor.GetCode(contractAddr)
 	abi, err := processor.GetAbi(contractAddr)
-	log.Info("TestContractPortfolioManage  ", "code  get from state", code)
+	log.DLogger.Info("TestContractPortfolioManage  ", zap.Uint8s("code  get from state", code))
 	assert.NoError(t, err)
 	//assert.Equal(t, code, tx.ExtraData())
 	processor.Commit()
@@ -713,14 +712,14 @@ func newContractCallTx(from *common.Address, to *common.Address, amount *big.Int
 		funcName, input,
 	})
 	if err != nil {
-		log.Error("input rlp err")
+		log.DLogger.Error("input rlp err")
 		return
 	}
 
 	extraData, err := utils.ParseCallContractData(code, inputRlp)
 
 	if err != nil {
-		log.Error("ParseCallContractData  inputRlp", "err", err)
+		log.DLogger.Error("ParseCallContractData  inputRlp", zap.Error(err))
 		return
 	}
 
@@ -747,7 +746,7 @@ type contractCallConf struct {
 func processContractCall(t *testing.T, contractAddress common.Address, amount *big.Int, code []byte, priKey *ecdsa.PrivateKey, processor *AccountStateDB, accountOwn accounts.Account, nonce uint64, funcName string, params string, blockNum uint64, singer model.Signer) error {
 	gasUsed2 := uint64(0)
 	gasLimit := testGasLimit * 10000000000
-	log.Info("processContractCall=================================================")
+	log.DLogger.Info("processContractCall=================================================")
 	callTx, err := newContractCallTx(nil, &contractAddress, amount, new(big.Int).SetUint64(1), uint64(150000000000), funcName, params, nonce, code)
 	assert.NoError(t, err)
 	signCallTx, err := callTx.SignTx(priKey, singer)
@@ -759,7 +758,7 @@ func processContractCall(t *testing.T, contractAddress common.Address, amount *b
 	//sw.SignTx(accountOwn, callTx, nil)
 	assert.NoError(t, err)
 	block := CreateBlock(blockNum, common.Hash{}, []*model.Transaction{signCallTx}, gasLimit)
-	log.Info("callTx info", "callTx", callTx)
+	log.DLogger.Info("callTx info", zap.Any("callTx", callTx))
 	txConfig := &TxProcessConfig{
 		Tx:       signCallTx,
 		Header:   block.Header().(*model.Header),

@@ -29,7 +29,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/golang/mock/gomock"
@@ -967,7 +966,6 @@ func TestTxFee_Pop(t *testing.T) {
 }
 
 func TestAddressesByHeartbeat_Len(t *testing.T) {
-	log.InitLogger(log.LvlError)
 	pool := setupTxPool()
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
@@ -984,7 +982,6 @@ func TestAddressesByHeartbeat_Len(t *testing.T) {
 }
 
 func TestTxBatch(t *testing.T) {
-	log.InitLogger(log.LvlError)
 	accountNum := 400
 	pool := setupTxPoolBatch(accountNum)
 	addrs, keys := createTestAddrs(accountNum)
@@ -1002,8 +999,6 @@ func TestTxBatch(t *testing.T) {
 }
 
 func TestTxCalId(t *testing.T) {
-	log.InitLogger(log.LvlError)
-
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
 	txs := []model.AbstractTransaction{}
@@ -1065,8 +1060,6 @@ func dummy() {
 }
 
 func TestTxCacher_TxRecover(t *testing.T) {
-	log.InitLogger(log.LvlError)
-
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
 	txs := []model.AbstractTransaction{}
@@ -1108,8 +1101,6 @@ func TestTxCacher_TxRecover(t *testing.T) {
 }
 
 func TestTxPool_TxsCaching(t *testing.T) {
-	log.InitLogger(log.LvlError)
-
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
 	txs := []model.AbstractTransaction{}
@@ -1138,8 +1129,6 @@ func TestTxPool_TxsCaching(t *testing.T) {
 }
 
 func TestTxPool_TxCacheAfterCopy(t *testing.T) {
-	log.InitLogger(log.LvlError)
-
 	pool := setupTxPool()
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
@@ -1181,8 +1170,6 @@ func TestTxPool_TxCacheAfterCopy(t *testing.T) {
 }
 
 func TestTxPool_TxsInBlockCache(t *testing.T) {
-	log.InitLogger(log.LvlError)
-
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
 	txs := []model.AbstractTransaction{}
@@ -1244,8 +1231,6 @@ func TestTxPool_PoolSetup(t *testing.T) {
 	//
 	//pending, queue := pool.Stats()
 	//fmt.Println(pending, queue)
-
-	log.InitLogger(log.LvlError)
 
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)

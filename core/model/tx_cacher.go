@@ -66,7 +66,7 @@ func (cacher *TxCacher) cache(no int) {
 	//i := 0
 	for task := range cacher.tasks {
 		//i++
-		//log.Debug("TxCacher#cache", "i", i)
+		//log.DLogger.Debug("TxCacher#cache", "i", i)
 		length := len(task.txs)
 		for i := 0; i < length; i += task.inc {
 			if task.txs[i] == nil {

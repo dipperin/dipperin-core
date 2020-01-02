@@ -2,7 +2,7 @@ package mem_manage
 
 import (
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"math"
 	"sync"
 )
@@ -106,7 +106,7 @@ func (tp *TreePool) PutTree(tree []int) {
 	key := int(math.Log2(float64(pages)))
 
 	if tree[0] != size {
-		log.VmMem.Debug("reset memory Tree...")
+		log.DLogger.Debug("reset memory Tree...")
 		reset(tree, tp.trees[key], tp.emptyTree[key])
 	}
 	treeArr, ok := tp.trees[key]

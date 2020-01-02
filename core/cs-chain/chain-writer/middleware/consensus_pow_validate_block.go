@@ -19,12 +19,13 @@ package middleware
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 	"reflect"
 	"time"
@@ -42,7 +43,7 @@ import (
 */
 func ValidateBlockNumber(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("the save block info is:", "block", c.Block)
+		log.DLogger.Info("the save block info is:", zap.Any("block", c.Block))
 		if c.Chain == nil || c.Block == nil {
 			return g_error.ErrChainOrBlockIsNil
 		}
@@ -60,20 +61,20 @@ func ValidateBlockNumber(c *BlockContext) Middleware {
 		if curBlock.Number()+1 < c.Block.Number() {
 			max := big.NewInt(time.Now().Add(time.Second * maxTimeFutureBlocks).UnixNano())
 			cmpResult := c.Block.Timestamp().Cmp(max)
-			//log.Info("check future block valid", "cmp result", cmpResult, "block timestamp", block.Timestamp().String(), "max to", max.String())
+			//log.DLogger.Info("check future block valid", "cmp result", cmpResult, "block timestamp", block.Timestamp().String(), "max to", max.String())
 			if cmpResult > 0 {
 				return g_error.ErrFutureBlockTooFarAway
 			}
 			return g_error.ErrFutureBlock
 		}
-		log.Middleware.Info("ValidateBlockNumber success")
+		log.DLogger.Info("ValidateBlockNumber success")
 		return c.Next()
 	}
 }
 
 func ValidateBlockHash(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("ValidateBlockHash start")
+		log.DLogger.Info("ValidateBlockHash start")
 		preBlock := c.Chain.GetBlockByNumber(c.Block.Number() - 1)
 		preRv := reflect.ValueOf(preBlock)
 		if !preRv.IsValid() || preRv.IsNil() {
@@ -81,20 +82,20 @@ func ValidateBlockHash(c *BlockContext) Middleware {
 		}
 
 		if !c.Block.PreHash().IsEqual(preBlock.Hash()) {
-			log.Error("pre block hash not match", "block pre hash", c.Block.PreHash().Hex(),
-				"pre block hash", preBlock.Hash().Hex())
+			log.DLogger.Error("pre block hash not match", zap.String("block pre hash", c.Block.PreHash().Hex()),
+				zap.Any("pre block hash", preBlock.Hash().Hex()))
 			return g_error.ErrPreBlockHashNotMatch
 		}
-		log.Middleware.Info("ValidateBlockHash end")
+		log.DLogger.Info("ValidateBlockHash end")
 		return c.Next()
 	}
 }
 
 func ValidateBlockDifficulty(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("ValidateBlockDifficulty start")
+		log.DLogger.Info("ValidateBlockDifficulty start")
 		if c.Block.IsSpecial() {
-			log.Middleware.Info("ValidateBlockDifficulty the block is special")
+			log.DLogger.Info("ValidateBlockDifficulty the block is special")
 			return c.Next()
 
 		}
@@ -116,44 +117,44 @@ func ValidateBlockDifficulty(c *BlockContext) Middleware {
 		//targetDiff := model.CalNewWorkDiff(preSpanBlock, lastBlock)
 
 		if !targetDiff.Equal(c.Block.Difficulty()) {
-			log.Error("the c.Block number is:", "number", c.Block.Number())
-			log.Error("valid difficulty error", "targetDiff", targetDiff.Hex(), "blockDifficulty", c.Block.Difficulty().Hex())
+			log.DLogger.Error("the c.Block number is:", zap.Uint64("number", c.Block.Number()))
+			log.DLogger.Error("valid difficulty error", zap.String("targetDiff", targetDiff.Hex()), zap.String("blockDifficulty", c.Block.Difficulty().Hex()))
 			return g_error.ErrInvalidDiff
 		}
 
 		// valid block hash for difficulty
-		log.Info("ValidateBlockDifficulty", "calculate difficulty", c.Block.RefreshHashCache().Hex(), "block difficulty", c.Block.Difficulty().DiffToTarget().Hex())
+		log.DLogger.Info("ValidateBlockDifficulty", zap.String("calculate difficulty", c.Block.RefreshHashCache().Hex()), zap.String("block difficulty", c.Block.Difficulty().DiffToTarget().Hex()))
 		if !c.Block.RefreshHashCache().ValidHashForDifficulty(c.Block.Difficulty()) {
-			log.Error("ValidateBlockDifficulty failed")
+			log.DLogger.Error("ValidateBlockDifficulty failed")
 			fmt.Println(c.Block.Header().(*model.Header).String())
 			return g_error.ErrInvalidHashDiff
 		}
-		log.Middleware.Info("ValidateBlockDifficulty success")
+		log.DLogger.Info("ValidateBlockDifficulty success")
 		return c.Next()
 	}
 }
 
 func ValidateBlockCoinBase(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("ValidateBlockCoinBase start")
+		log.DLogger.Info("ValidateBlockCoinBase start")
 		if c.Block.IsSpecial() {
 			if !model.CheckAddressIsVerifierBootNode(c.Block.CoinBaseAddress()) {
 				return g_error.ErrInvalidCoinBase
 			}
 		}
-		log.Middleware.Info("ValidateBlockCoinBase success")
+		log.DLogger.Info("ValidateBlockCoinBase success")
 		return c.Next()
 	}
 }
 
 func ValidateSeed(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("ValidateSeed start")
+		log.DLogger.Info("ValidateSeed start")
 		block := c.Block
 		preBlockHeight := block.Number() - 1
-		log.Middleware.Info("ValidateSeed the preBlockHeight is:", "preBlockHeight", preBlockHeight)
+		log.DLogger.Info("ValidateSeed the preBlockHeight is:", zap.Uint64("preBlockHeight", preBlockHeight))
 		preBlock := c.Chain.GetBlockByNumber(preBlockHeight)
-		log.Middleware.Info("ValidateSeed the preBlock is:", "preBlock", preBlock)
+		log.DLogger.Info("ValidateSeed the preBlock is:", zap.Any("preBlock", preBlock))
 
 		seed := preBlock.Header().GetSeed().Bytes()
 		proof := block.Header().GetProof()
@@ -174,30 +175,30 @@ func ValidateSeed(c *BlockContext) Middleware {
 		if !address.IsEqual(block.CoinBaseAddress()) {
 			return g_error.ErrCoinBaseNotMatch
 		}
-		log.Middleware.Info("ValidateSeed success")
+		log.DLogger.Info("ValidateSeed success")
 		return c.Next()
 	}
 }
 
 func ValidateBlockVersion(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("ValidateBlockVersion start")
+		log.DLogger.Info("ValidateBlockVersion start")
 		if c.Block.Version() != c.Chain.GetChainConfig().Version {
 			return g_error.ErrInvalidBlockVersion
 		}
-		log.Middleware.Info("ValidateBlockVersion end")
+		log.DLogger.Info("ValidateBlockVersion end")
 		return c.Next()
 	}
 }
 
 func ValidateBlockTime(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("ValidateBlockTime start")
+		log.DLogger.Info("ValidateBlockTime start")
 		blockTime := c.Block.Timestamp().Int64()
 		if time.Now().Add(c.Chain.GetChainConfig().BlockTimeRestriction).UnixNano() < blockTime {
 			return g_error.ErrInvalidBlockTimeStamp
 		}
-		log.Middleware.Info("ValidateBlockTime success")
+		log.DLogger.Info("ValidateBlockTime success")
 		return c.Next()
 	}
 }
@@ -205,14 +206,14 @@ func ValidateBlockTime(c *BlockContext) Middleware {
 // valid gas limit
 func ValidateGasLimit(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("ValidateGasLimit start")
+		log.DLogger.Info("ValidateGasLimit start")
 		if c.Block.IsSpecial() {
 			return c.Next()
 		}
 		currentGasLimit := c.Block.Header().GetGasLimit()
 		// Verify that the gas limit is <= 2^63-1
 		if currentGasLimit > chain_config.MaxGasLimit || currentGasLimit < model2.MinGasLimit {
-			log.Error("Invalid GasLimit", "curGasLimit", currentGasLimit, "maxGasLimit", chain_config.MaxGasLimit, "minGasLimit", model2.MinGasLimit)
+			log.DLogger.Error("Invalid GasLimit", zap.Uint64("curGasLimit", currentGasLimit), zap.Uint64("maxGasLimit", chain_config.MaxGasLimit), zap.Uint64("minGasLimit", model2.MinGasLimit))
 			return g_error.ErrInvliadHeaderGasLimit
 		}
 		parentGasLimit := c.Chain.GetLatestNormalBlock().Header().GetGasLimit()
@@ -223,10 +224,10 @@ func ValidateGasLimit(c *BlockContext) Middleware {
 		limit := parentGasLimit / model2.GasLimitBoundDivisor
 
 		if uint64(diff) >= limit {
-			log.Error("Invalid GasLimit with parent block", "curGasLimit", currentGasLimit, "parentGasLimit", parentGasLimit, "limitDiff", limit)
+			log.DLogger.Error("Invalid GasLimit with parent block", zap.Uint64("curGasLimit", currentGasLimit), zap.Uint64("parentGasLimit", parentGasLimit), zap.Uint64("limitDiff", limit))
 			return g_error.ErrHeaderGasLimitNotEnough
 		}
-		log.Middleware.Info("ValidateGasLimit success")
+		log.DLogger.Info("ValidateGasLimit success")
 		return c.Next()
 	}
 }

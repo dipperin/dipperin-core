@@ -17,9 +17,10 @@
 package soft_wallet
 
 import (
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/accounts"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap/zapcore"
 	"testing"
 )
 
@@ -93,7 +94,10 @@ func TestGetAccountFromExtendedKey(t *testing.T) {
 }
 
 func TestEncryptWalletContent(t *testing.T) {
-	log.InitLogger(log.LvlDebug)
+	log.InitLogger(log.LoggerConfig{
+		Lvl:         zapcore.DebugLevel,
+		WithConsole: true,
+	})
 
 	cipher, err := EncryptWalletContent(testWalletPlain[:], testIv[:], encKey)
 	assert.NoError(t, err)

@@ -19,10 +19,11 @@ package trie
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 	"io"
 	"sync"
 	"time"
@@ -444,8 +445,8 @@ func (db *Database) Dereference(root common.Hash) {
 	memcacheGCSizeMeter.Mark(int64(storage - db.nodesSize))
 	memcacheGCNodesMeter.Mark(int64(nodes - len(db.nodes)))
 
-	log.Debug("Dereferenced trie from memory database", "nodes", nodes-len(db.nodes), "size", storage-db.nodesSize, "time", time.Since(start),
-		"gcnodes", db.gcnodes, "gcsize", db.gcsize, "gctime", db.gctime, "livenodes", len(db.nodes), "livesize", db.nodesSize)
+	log.DLogger.Debug("Dereferenced trie from memory database", zap.Int("nodes", nodes-len(db.nodes)), zap.Any("size", storage-db.nodesSize), zap.Duration("time", time.Since(start)),
+		zap.Uint64("gcnodes", db.gcnodes), zap.Any("gcsize", db.gcsize), zap.Duration("gctime", db.gctime), zap.Int("livenodes", len(db.nodes)), zap.Any("livesize", db.nodesSize))
 }
 
 // dereference is the private locked version of Dereference.
@@ -525,7 +526,7 @@ func (db *Database) Cap(limit common.StorageSize) error {
 			//}
 
 			if err := batch.Put(db.secureKey(hash[:]), preimage); err != nil {
-				log.Error("Failed to commit preimage from trie database", "err", err)
+				log.DLogger.Error("Failed to commit preimage from trie database", zap.Error(err))
 				db.lock.Unlock()
 				return err
 			}
@@ -550,7 +551,7 @@ func (db *Database) Cap(limit common.StorageSize) error {
 		// If we exceeded the ideal batch size, commit and reset
 		if batch.ValueSize() >= ethdb.IdealBatchSize {
 			if err := batch.Write(); err != nil {
-				log.Error("Failed to write flush list to disk", "err", err)
+				log.DLogger.Error("Failed to write flush list to disk", zap.Error(err))
 				db.lock.Unlock()
 				return err
 			}
@@ -565,7 +566,7 @@ func (db *Database) Cap(limit common.StorageSize) error {
 	}
 	// Flush out any remainder data from the last batch
 	if err := batch.Write(); err != nil {
-		log.Error("Failed to write flush list to disk", "err", err)
+		log.DLogger.Error("Failed to write flush list to disk", zap.Error(err))
 		db.lock.Unlock()
 		return err
 	}
@@ -598,8 +599,8 @@ func (db *Database) Cap(limit common.StorageSize) error {
 	memcacheFlushSizeMeter.Mark(int64(storage - db.nodesSize))
 	memcacheFlushNodesMeter.Mark(int64(nodes - len(db.nodes)))
 
-	log.Debug("Persisted nodes from memory database", "nodes", nodes-len(db.nodes), "size", storage-db.nodesSize, "time", time.Since(start),
-		"flushnodes", db.flushnodes, "flushsize", db.flushsize, "flushtime", db.flushtime, "livenodes", len(db.nodes), "livesize", db.nodesSize)
+	log.DLogger.Debug("Persisted nodes from memory database", zap.Int("nodes", nodes-len(db.nodes)), zap.Any("size", storage-db.nodesSize), zap.Duration("time", time.Since(start)),
+		zap.Uint64("flushnodes", db.flushnodes), zap.Any("flushsize", db.flushsize), zap.Duration("flushtime", db.flushtime), zap.Int("livenodes", len(db.nodes)), zap.Any("livesize", db.nodesSize))
 
 	return nil
 }
@@ -629,7 +630,7 @@ func (db *Database) Commit(node common.Hash, report bool) error {
 		//}
 
 		if err := batch.Put(db.secureKey(hash[:]), preimage); err != nil {
-			log.Error("Failed to commit preimage from trie database", "err", err)
+			log.DLogger.Error("Failed to commit preimage from trie database", zap.Error(err))
 			db.lock.Unlock()
 			return err
 		}
@@ -643,13 +644,13 @@ func (db *Database) Commit(node common.Hash, report bool) error {
 	// Move the trie itself into the batch, flushing if enough data is accumulated
 	nodes, storage := len(db.nodes), db.nodesSize
 	if err := db.commit(node, batch); err != nil {
-		log.Error("Failed to commit trie from trie database", "err", err)
+		log.DLogger.Error("Failed to commit trie from trie database", zap.Error(err))
 		db.lock.Unlock()
 		return err
 	}
 	// Write batch ready, unlock for readers during persistence
 	if err := batch.Write(); err != nil {
-		log.Error("Failed to write trie to disk", "err", err)
+		log.DLogger.Error("Failed to write trie to disk", zap.Error(err))
 		db.lock.Unlock()
 		return err
 	}
@@ -669,12 +670,12 @@ func (db *Database) Commit(node common.Hash, report bool) error {
 	memcacheCommitSizeMeter.Mark(int64(storage - db.nodesSize))
 	memcacheCommitNodesMeter.Mark(int64(nodes - len(db.nodes)))
 
-	logger := log.Info
+	logger := log.DLogger.Info
 	if !report {
-		logger = log.Debug
+		logger = log.DLogger.Debug
 	}
-	logger("Persisted trie from memory database", "nodes", nodes-len(db.nodes)+int(db.flushnodes), "size", storage-db.nodesSize+db.flushsize, "time", time.Since(start)+db.flushtime,
-		"gcnodes", db.gcnodes, "gcsize", db.gcsize, "gctime", db.gctime, "livenodes", len(db.nodes), "livesize", db.nodesSize)
+	logger("Persisted trie from memory database", zap.Int("nodes", nodes-len(db.nodes)+int(db.flushnodes)), zap.Any("size", storage-db.nodesSize+db.flushsize), zap.Duration("time", time.Since(start)+db.flushtime),
+		zap.Uint64("gcnodes", db.gcnodes), zap.Any("gcsize", db.gcsize), zap.Duration("gctime", db.gctime), zap.Int("livenodes", len(db.nodes)), zap.Any("livesize", db.nodesSize))
 
 	// reset the garbage collection statistics
 	db.gcnodes, db.gcsize, db.gctime = 0, 0, 0

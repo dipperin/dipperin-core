@@ -18,7 +18,8 @@ package config
 
 import (
 	"github.com/c-bata/go-prompt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
+	"go.uber.org/zap"
 	"strings"
 )
 
@@ -60,7 +61,7 @@ func optionCompleterNew(args []string, long bool) []prompt.Suggest {
 	var suggests []prompt.Suggest
 	commandArgs := excludeOptions(args)
 	//fmt.Println("optionCompleterNew", "commandArgs", commandArgs)
-	log.Debug("optionCompleterNew", "commandArgs", commandArgs)
+	log.DLogger.Debug("optionCompleterNew", zap.Strings("commandArgs", commandArgs))
 
 	if len(args) == 2 {
 		suggests = getSuggestFromModuleName(commandArgs[0])
@@ -73,8 +74,8 @@ func optionCompleterNew(args []string, long bool) []prompt.Suggest {
 		}
 	}
 
-	log.Debug("optionCompleterNew", "suggests", suggests)
-	defer log.Debug("optionCompleterNew", "suggests  defer", suggests)
+	log.DLogger.Debug("optionCompleterNew", zap.Any("suggests", suggests))
+	defer log.DLogger.Debug("optionCompleterNew", zap.Any("suggests  defer", suggests))
 	arg := args[l-1]
 	for i := l - 1; arg == ""; i-- {
 		arg = args[i]
@@ -86,7 +87,7 @@ func optionCompleterNew(args []string, long bool) []prompt.Suggest {
 			true,
 		)
 	}
-	log.Debug("optionCompleterNew", "suggests1", suggests)
+	log.DLogger.Debug("optionCompleterNew", zap.Any("suggests1", suggests))
 	return prompt.FilterContains(suggests, strings.TrimLeft(args[l-1], "--"), true)
 }
 

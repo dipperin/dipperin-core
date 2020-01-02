@@ -20,12 +20,13 @@ import (
 	"bytes"
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 )
 
 var (
@@ -123,33 +124,33 @@ func (register RegisterDB) GetRegisterData() []common.Address {
 }
 
 func (register RegisterDB) Process(block model.AbstractBlock) (err error) {
-	log.Debug("r db process", "tx len", block.TxCount(), "block num", block.Number())
+	log.DLogger.Debug("r db process", zap.Int("tx len", block.TxCount()), zap.Uint64("block num", block.Number()))
 	//　get all register data
 	if err := block.TxIterator(func(index int, tx model.AbstractTransaction) error {
 		switch tx.GetType() {
 		case common.AddressTypeCancel:
 			sender, innerError := tx.Sender(tx.GetSigner())
 			if innerError != nil {
-				log.Error("tx.Sender(tx.GetSigner()) has error", "tx index", index, "err", innerError)
+				log.DLogger.Error("tx.Sender(tx.GetSigner()) has error", zap.Int("tx index", index), zap.Error(innerError))
 				return innerError
 			}
 			if err := register.deleteRegisterData(sender); err != nil {
 				return err
 			}
-			log.PBft.Info("deletedRegisterData", "sender", sender)
+			log.DLogger.Info("deletedRegisterData", zap.Any("sender", sender))
 			return nil
 
 		case common.AddressTypeStake:
 			sender, innerError := tx.Sender(tx.GetSigner())
-			log.Debug("register db deal stake", "sender", sender)
+			log.DLogger.Debug("register db deal stake", zap.Any("sender", sender))
 			if innerError != nil {
-				log.Error("tx.Sender(tx.GetSigner()) has error", "tx index", index, "err", innerError)
+				log.DLogger.Error("tx.Sender(tx.GetSigner()) has error", zap.Int("tx index", index), zap.Error(innerError))
 				return innerError
 			}
 			if err := register.saveRegisterData(sender); err != nil {
 				return err
 			}
-			log.PBft.Info("savedRegisterData", "sender", sender)
+			log.DLogger.Info("savedRegisterData", zap.Any("sender", sender))
 			return nil
 
 		default:
@@ -176,7 +177,7 @@ func (register RegisterDB) processSlot(preBlock model.AbstractBlock) error {
 
 	slot, err := register.GetSlot()
 	if err != nil {
-		log.Info("get slot failed", "err", err)
+		log.DLogger.Info("get slot failed", zap.Error(err))
 		return err
 	}
 
@@ -188,7 +189,7 @@ func (register RegisterDB) processSlot(preBlock model.AbstractBlock) error {
 		if err = register.saveChangePointData(preBlock.Number()); err != nil {
 			return err
 		}
-		log.Info("save slot successful", "cur slot", slot+1, "change point", preBlock.Number())
+		log.DLogger.Info("save slot successful", zap.Uint64("cur slot", slot+1), zap.Uint64("change point", preBlock.Number()))
 	}
 	return nil
 }
@@ -197,7 +198,7 @@ func (register RegisterDB) processSlot(preBlock model.AbstractBlock) error {
 func (register RegisterDB) IsChangePoint(block model.AbstractBlock, isProcessPackageBlock bool) bool {
 	point, err := register.GetLastChangePoint()
 	if err != nil {
-		log.Debug("GetLastChangePoint failed", "err", err)
+		log.DLogger.Debug("GetLastChangePoint failed", zap.Error(err))
 		return false
 	}
 

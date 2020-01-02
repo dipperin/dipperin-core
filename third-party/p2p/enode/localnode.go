@@ -26,7 +26,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enr"
 	"github.com/dipperin/dipperin-core/third-party/p2p/netutil"
 )
@@ -237,7 +236,6 @@ func (ln *LocalNode) sign() {
 		panic(fmt.Errorf("enode: can't verify local record: %v", err))
 	}
 	ln.cur.Store(n)
-	log.P2P.Info("New local node record", "seq", ln.seq, "id", n.ID(), "ip", n.IP(), "udp", n.UDP(), "tcp", n.TCP())
 }
 
 func (ln *LocalNode) bumpSeq() {

@@ -18,13 +18,14 @@ package rpc
 
 import (
 	"context"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
+	"go.uber.org/zap"
 	"net"
 )
 
 // DialInProc attaches an in-process connection to the given RPC server.
 func DialInProc(handler *Server) *Client {
-	log.Info("the handler is:", "handler", handler)
+	log.DLogger.Info("the handler is:", zap.Any("handler", handler))
 	initctx := context.Background()
 	c, _ := newClient(initctx, func(context.Context) (net.Conn, error) {
 		p1, p2 := net.Pipe()

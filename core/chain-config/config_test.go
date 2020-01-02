@@ -19,12 +19,13 @@ package chain_config
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain-config/env-conf"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"net"
 	"os"
@@ -34,7 +35,7 @@ import (
 
 func TestLoadDefaultBootID(t *testing.T) {
 	if GetChainConfig().VerifierNumber != 22 {
-		log.Info("the verifier number is", "number", GetChainConfig().VerifierNumber)
+		log.DLogger.Info("the verifier number is", zap.Int("number", GetChainConfig().VerifierNumber))
 		panic("verifier num is not 22")
 	}
 

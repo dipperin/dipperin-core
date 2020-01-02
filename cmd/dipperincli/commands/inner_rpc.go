@@ -23,6 +23,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/urfave/cli"
+	"go.uber.org/zap"
 	"strconv"
 )
 
@@ -40,7 +41,7 @@ func (caller *rpcCaller) GetBlockDiffVerifierInfo(c *cli.Context) {
 
 	mName, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
-		l.Error("getRpcMethodAndParam error", "err", err)
+		l.Error("getRpcMethodAndParam error", zap.Error(err))
 		return
 	}
 
@@ -57,7 +58,7 @@ func (caller *rpcCaller) GetBlockDiffVerifierInfo(c *cli.Context) {
 
 	var resp map[economy_model.VerifierType][]common.Address
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), blockNumber); err != nil {
-		l.Error("call failed", "err", err)
+		l.Error("call failed", zap.Error(err))
 		return
 	}
 
@@ -88,7 +89,7 @@ func (caller *rpcCaller) CheckVerifierType(c *cli.Context) {
 	config := chain_config.GetChainConfig()
 	_, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
-		l.Error("getRpcMethodAndParam error", "err", err)
+		l.Error("getRpcMethodAndParam error", zap.Error(err))
 		return
 	}
 
@@ -108,7 +109,7 @@ func (caller *rpcCaller) CheckVerifierType(c *cli.Context) {
 	// get currentBlockNumber
 	var respBlock rpc_interface.BlockResp
 	if err = client.Call(&respBlock, getDipperinRpcMethodByName("CurrentBlock")); err != nil {
-		l.Error("look up for current block", "err", err)
+		l.Error("look up for current block", zap.Error(err))
 		return
 	}
 
@@ -123,7 +124,7 @@ func (caller *rpcCaller) CheckVerifierType(c *cli.Context) {
 
 	addr, err := CheckAndChangeHexToAddress(cParams[1])
 	if err != nil {
-		l.Error("the input address is invalid", "err", err)
+		l.Error("the input address is invalid", zap.Error(err))
 		return
 	}
 
@@ -131,7 +132,7 @@ func (caller *rpcCaller) CheckVerifierType(c *cli.Context) {
 		findType := false
 		var resp map[economy_model.VerifierType][]common.Address
 		if err = client.Call(&resp, getDipperinRpcMethodByName("GetBlockDiffVerifierInfo"), i); err != nil {
-			l.Error("call failed", "err", err)
+			l.Error("call failed", zap.Error(err))
 			return
 		}
 
@@ -140,13 +141,13 @@ func (caller *rpcCaller) CheckVerifierType(c *cli.Context) {
 				if addr == address {
 					addressType := []string{"MasterVerifier", "CommitVerifier", "NotCommitVerifier"}
 					findType = true
-					l.Info("the address type is: ", addressType[key], "blockNumber", i)
+					l.Info("the address type is: ", zap.String("addressType", addressType[key]), zap.Uint64("blockNumber", i))
 				}
 			}
 		}
 
 		if findType == false {
-			l.Info("the address isn't verifier in the block", "blockNumber", i)
+			l.Info("the address isn't verifier in the block", zap.Uint64("blockNumber", i))
 		}
 	}
 }
@@ -155,7 +156,7 @@ func (caller *rpcCaller) CheckVerifierType(c *cli.Context) {
 func (caller *rpcCaller)SpecialCharDebug(c *cli.Context){
 	_, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
-		l.Error("getRpcMethodAndParam error", "err", err)
+		l.Error("getRpcMethodAndParam error", zap.Error(err))
 		return
 	}
 	l.Info("the cParams is:","cParams",cParams)
