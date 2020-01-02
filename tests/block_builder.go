@@ -382,6 +382,8 @@ func (builder *BlockBuilder) BuildSpecialBlock() model.AbstractBlock {
 	return block
 }
 
+
+
 func (builder *BlockBuilder) commitTransaction(conf *state_processor.TxProcessConfig, state *chain.BlockProcessor) error {
 	snap := state.Snapshot()
 	//err := state.ProcessTx(tx, height)

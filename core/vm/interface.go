@@ -24,7 +24,7 @@ import (
 
 type StateDB interface {
 	GetBalance(common.Address) *big.Int
-	CreateAccount(common.Address)
+	CreateAccount(common.Address) error
 	GetNonce(common.Address) (uint64, error)
 	AddNonce(common.Address, uint64)
 	GetCodeHash(common.Address) common.Hash
@@ -33,8 +33,8 @@ type StateDB interface {
 	GetAbiHash(common.Address) common.Hash
 	GetAbi(common.Address) []byte
 	SetAbi(common.Address, []byte)
-	AddBalance(addr common.Address, amount *big.Int)
-	SubBalance(addr common.Address, amount *big.Int)
+	AddBalance(addr common.Address, amount *big.Int) error
+	SubBalance(addr common.Address, amount *big.Int) error
 
 	/*AddRefund(uint64)
 	SubRefund(uint64)

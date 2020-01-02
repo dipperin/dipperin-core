@@ -19,8 +19,9 @@ func NewFullState(state *AccountStateDB) *Fullstate {
 	}
 }
 
-func (f *Fullstate) CreateAccount(address common.Address) {
-	f.state.newContractAccount(address)
+func (f *Fullstate) CreateAccount(address common.Address) error {
+	_, err := f.state.newContractAccount(address)
+	return err
 }
 
 func (f *Fullstate) GetBalance(addr common.Address) *big.Int {
@@ -43,19 +44,21 @@ func (f *Fullstate) AddNonce(addr common.Address, add uint64) {
 	}
 }
 
-func (f *Fullstate) AddBalance(addr common.Address, amount *big.Int) {
+func (f *Fullstate) AddBalance(addr common.Address, amount *big.Int) error {
 	err := f.state.AddBalance(addr, amount)
 	if err != nil {
 		log.Error("Fullstate#AddBalance", "AddBalance failed; err ", err)
 		//panic(fmt.Sprintf("AddBalance failed, err=%v", err))
 	}
+	return err
 }
-func (f *Fullstate) SubBalance(addr common.Address, amount *big.Int) {
+func (f *Fullstate) SubBalance(addr common.Address, amount *big.Int) error {
 	err := f.state.SubBalance(addr, amount)
 	if err != nil {
 		log.Error("Fullstate#AddBalance", "SubBalance failed; err ", err)
 		//panic(fmt.Sprintf("SubBalance failed, err=%v", err))
 	}
+	return err
 }
 
 func (f *Fullstate) GetCodeHash(addr common.Address) common.Hash {

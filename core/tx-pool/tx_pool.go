@@ -416,8 +416,15 @@ func (pool *TxPool) add(tx model.AbstractTransaction, local bool) (bool, error) 
 	hash := tx.CalTxId()
 	// vaildate the transaction before add it to pool
 	if pool.all.Get(hash) != nil {
-		log.Info("the the transaction is already in tx pool", "txId", hash.Hex())
-		return false, fmt.Errorf("this transaction already in tx pool")
+		from, _ := tx.Sender(pool.signer)
+		if pool.pending[from] == nil {
+			log.Info("TxPool  add " + from.Hex() +"to pending ", "txId", tx.CalTxId())
+			pool.promoteExecutables([]common.Address{from})
+			log.Info("TxPool  add  after promoteExecutables", "txId", tx.CalTxId(), "is in pending?", pool.pending[from] == nil)
+		}else {
+			log.Info("the the transaction is already in tx pool", "txId", hash.Hex())
+			return false, fmt.Errorf("this transaction already in tx pool")
+		}
 	}
 
 	if err := pool.validateTx(tx, local); err != nil {
@@ -634,7 +641,7 @@ func (pool *TxPool) promoteExecutables(accounts []common.Address) {
 				hash := tx.CalTxId()
 				pool.all.Remove(hash)
 				pool.feeList.Removed()
-				log.Debug("Removed cap-exceeding queued transaction", "hash", hash)
+				log.Info("Removed cap-exceeding queued transaction", "hash", hash)
 			}
 		}
 
@@ -887,6 +894,7 @@ func (pool *TxPool) removeTx(hash common.Hash, outofbound bool) {
 func (pool *TxPool) addTx(tx model.AbstractTransaction, local bool) error {
 	pool.mu.Lock()
 	defer pool.mu.Unlock()
+
 
 	// Try to inject the transaction and update any state
 	replace, err := pool.add(tx, local)

@@ -146,22 +146,25 @@ func (state *fakeStateDB) AddLog(addedLog *model.Log) {
 	return
 }
 
-func (state *fakeStateDB) CreateAccount(addr common.Address) {
+func (state *fakeStateDB) CreateAccount(addr common.Address) error {
 	state.balanceMap[addr] = big.NewInt(0)
 	state.nonceMap[addr] = uint64(0)
 	state.codeMap[addr] = []byte{}
 	state.abiMap[addr] = []byte{}
 	state.stateMap[addr] = make(map[string][]byte)
+	return nil
 }
 
-func (state *fakeStateDB) SubBalance(addr common.Address, amount *big.Int) {
+func (state *fakeStateDB) SubBalance(addr common.Address, amount *big.Int)  error {
 	balance := state.balanceMap[addr]
 	state.balanceMap[addr] = big.NewInt(0).Sub(balance, amount)
+	return nil
 }
 
-func (state *fakeStateDB) AddBalance(addr common.Address, amount *big.Int) {
+func (state *fakeStateDB) AddBalance(addr common.Address, amount *big.Int) error {
 	balance := state.balanceMap[addr]
 	state.balanceMap[addr] = big.NewInt(0).Add(balance, amount)
+	return nil
 }
 
 func (state *fakeStateDB) GetBalance(addr common.Address) *big.Int {
