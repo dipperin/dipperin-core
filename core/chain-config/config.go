@@ -62,6 +62,13 @@ const (
 	BootEnvVenus   = "venus"
 	BootEnvTest    = "test"
 	BootEnvLocal   = "local"
+
+	NormalTransactionGas = int64(2100)
+	DefaultGasPrice      = int64(1)
+
+	// BloomBitsBlocks is the number of blocks a single bloom bit section vector
+	// contains on the server side.
+	BloomBitsBlocks uint64 = 4096
 )
 
 const (

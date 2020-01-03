@@ -1,7 +1,7 @@
 package gasprice
 
 import (
-	config2 "github.com/dipperin/dipperin-core/common/config"
+	chain_config "github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -12,7 +12,7 @@ func TestNewOracle(t *testing.T) {
 	config := GasPriceConfig{
 		Blocks:     -20,
 		Percentile: -60,
-		Default:    big.NewInt(config2.DEFAULT_GAS_PRICE),
+		Default:    big.NewInt(chain_config.DefaultGasPrice),
 	}
 	oracle := NewOracle(nil, config)
 	assert.Equal(t, 1, oracle.checkBlocks)
@@ -30,7 +30,7 @@ func TestOracle_SuggestPrice(t *testing.T) {
 	config := GasPriceConfig{
 		Blocks:     20,
 		Percentile: 60,
-		Default:    big.NewInt(config2.DEFAULT_GAS_PRICE),
+		Default:    big.NewInt(chain_config.DefaultGasPrice),
 	}
 
 	insertBlockToChain(t, csChain, 5, nil)
