@@ -19,14 +19,15 @@ package p2p
 import (
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"io"
 	"net"
 	"sort"
 	"sync"
 	"time"
 
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/mclock"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enr"
 	"github.com/ethereum/go-ethereum/event"
@@ -103,7 +104,7 @@ type PeerEvent struct {
 type Peer struct {
 	rw      *conn
 	running map[string]*protoRW
-	log     log.Logger
+	log     *zap.Logger
 	created mclock.AbsTime
 
 	wg       sync.WaitGroup
@@ -185,12 +186,12 @@ func newPeer(conn *conn, protocols []Protocol) *Peer {
 		disc:     make(chan DiscReason),
 		protoErr: make(chan error, len(protomap)+1), // protocols + pingLoop
 		closed:   make(chan struct{}),
-		log:      log.New("id", conn.node.ID(), "conn", conn.flags),
+		log:      log.DLogger.With(zap.Any("id", conn.node.ID()), zap.Any("conn", conn.flags)),
 	}
 	return p
 }
 
-func (p *Peer) Log() log.Logger {
+func (p *Peer) Log() *zap.Logger {
 	return p.log
 }
 
@@ -312,8 +313,8 @@ func countMatchingProtocols(protocols []Protocol, caps []Cap) int {
 	n := 0
 	for _, cap := range caps {
 		for _, proto := range protocols {
-			log.Info("the local server protocol info is:", "name", proto.Name, "version", proto.Version)
-			log.Info("the remote server protocol info is:", "name", cap.Name, "version", cap.Version)
+			log.DLogger.Info("the local server protocol info is:", zap.String("name", proto.Name), zap.Uint("version", proto.Version))
+			log.DLogger.Info("the remote server protocol info is:", zap.String("name", cap.Name), zap.Uint("version", cap.Version))
 			if proto.Name == cap.Name && proto.Version == cap.Version {
 				n++
 			}
@@ -365,7 +366,7 @@ func (p *Peer) startProtocols(writeStart <-chan struct{}, writeErr chan<- error)
 				p.log.Debug(fmt.Sprintf("Protocol %s/%d returned", proto.Name, proto.Version))
 				err = errProtocolReturned
 			} else if err != io.EOF {
-				p.log.Debug(fmt.Sprintf("Protocol %s/%d failed", proto.Name, proto.Version), "err", err)
+				p.log.Debug(fmt.Sprintf("Protocol %s/%d failed", proto.Name, proto.Version), zap.Error(err))
 			}
 			p.protoErr <- err
 			p.wg.Done()

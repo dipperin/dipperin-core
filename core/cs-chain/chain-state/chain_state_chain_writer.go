@@ -17,25 +17,26 @@
 package chain_state
 
 import (
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 // just used by test
 func (cs *ChainState) SaveBlock(block model.AbstractBlock) error {
-	log.Info("chain state save block")
+	log.DLogger.Info("chain state save block")
 	return cs.WriterFactory.NewWriter(middleware.NewBlockContext(block, cs)).SaveBlock()
 }
 
 // just used by test
 func (cs *ChainState) SaveBlockWithoutVotes(block model.AbstractBlock) error {
-	log.Info("chain state SaveBlockWithoutVotes")
+	log.DLogger.Info("chain state SaveBlockWithoutVotes")
 	return cs.WriterFactory.NewWriter(middleware.NewBftBlockContextWithoutVotes(block, cs)).SaveBlock()
 }
 
 func (cs *ChainState) Rollback(target uint64) error {
 	cs.ChainDB.DeleteBlockHashByNumber(target)
-	log.Info("chain state DeleteBlockHashByNumber", "num", target)
+	log.DLogger.Info("chain state DeleteBlockHashByNumber", zap.Uint64("num", target))
 	return nil
 }

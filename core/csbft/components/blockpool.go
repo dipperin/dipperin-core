@@ -19,8 +19,9 @@ package components
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 type poolEventNotifier interface {
@@ -153,15 +154,15 @@ func (p *BlockPool) NewHeight(h uint64) {
 
 // modify the height and empty blocks
 func (p *BlockPool) doNewHeight(h uint64) {
-	log.PBft.Info("Update pool height", "original height", p.height, "new height", h)
+	log.DLogger.Info("Update pool height", zap.Uint64("original height", p.height), zap.Uint64("new height", h))
 	if h < p.height {
-		log.Warn("call block pool change to new height, but new height is lower than cur block pool height", "pool height", p.height, "new h", h)
+		log.DLogger.Warn("call block pool change to new height, but new height is lower than cur block pool height", zap.Uint64("pool height", p.height), zap.Uint64("new h", h))
 		return
 	}
 
 	p.height = h
 	p.blocks = []model.AbstractBlock{}
-	log.PBft.Debug("block pool", "len", len(p.blocks))
+	log.DLogger.Debug("block pool", zap.Int("len", len(p.blocks)))
 }
 
 func (p *BlockPool) AddBlock(b model.AbstractBlock) error {
@@ -192,9 +193,9 @@ Exclude duplicate blocks based on hashExclude duplicate blocks based on hash.
 func (p *BlockPool) doAddBlock(nb newBlockWithResultErr) {
 	b := nb.block
 
-	log.PBft.Debug("Pool received a block of height", "height", b.Number(), "pool height", p.height)
+	log.DLogger.Debug("Pool received a block of height", zap.Uint64("height", b.Number()), zap.Uint64("pool height", p.height))
 	if b.Number() != p.height {
-		log.PBft.Debug("receive invalid height block", "b", b.Number(), "p", p.height)
+		log.DLogger.Debug("receive invalid height block", zap.Uint64("b", b.Number()), zap.Uint64("p", p.height))
 
 		nb.resultChan <- errors.New("invalid height block")
 		return
@@ -202,16 +203,16 @@ func (p *BlockPool) doAddBlock(nb newBlockWithResultErr) {
 	for _, oldB := range p.blocks {
 		// delete repeated block
 		if oldB.Hash().IsEqual(b.Hash()) {
-			//log.PBft.Info("receive dul block")
+			//log.DLogger.Info("receive dul block")
 
 			nb.resultChan <- errors.New("dul block")
 			return
 		}
-		log.PBft.Info("the oldB in block pool", "blockHash", oldB.Hash().Hex())
+		log.DLogger.Info("the oldB in block pool", zap.String("blockHash", oldB.Hash().Hex()))
 	}
-	log.PBft.Info("the add block in block pool", "blockHash", b.Hash().Hex())
+	log.DLogger.Info("the add block in block pool", zap.String("blockHash", b.Hash().Hex()))
 	p.blocks = append(p.blocks, b)
-	log.PBft.Debug("pool length", "height", p.height, "len", len(p.blocks))
+	log.DLogger.Debug("pool length", zap.Uint64("height", p.height), zap.Int("len", len(p.blocks)))
 
 	// send result
 	nb.resultChan <- nil
@@ -222,8 +223,8 @@ func (p *BlockPool) doAddBlock(nb newBlockWithResultErr) {
 	}
 }
 func (p *BlockPool) GetProposalBlock() model.AbstractBlock {
-	log.PBft.Info("[GetProposalBlock] start~~~~~~~~~~~~~~~")
-	defer log.PBft.Info("[GetProposalBlock] end~~~~~~~~~~~~~~~")
+	log.DLogger.Info("[GetProposalBlock] start~~~~~~~~~~~~~~~")
+	defer log.DLogger.Info("[GetProposalBlock] end~~~~~~~~~~~~~~~")
 	resultC := make(chan model.AbstractBlock)
 	p.getBlock(&blockPoolGetter{
 		resultChan: resultC,
@@ -241,7 +242,7 @@ func (p *BlockPool) getBlock(getter *blockPoolGetter) {
 		p.getterChan <- getter
 		return
 	}
-	log.Warn("call get block from pool, but pool not started")
+	log.DLogger.Warn("call get block from pool, but pool not started")
 }
 
 /*
@@ -252,9 +253,9 @@ If the hash is passed, it means that the block matching the master is obtained.
 */
 func (p *BlockPool) doGetBlock(getter *blockPoolGetter) {
 	var result model.AbstractBlock = nil
-	log.PBft.Info("~~~~~~~~~~~~~~~~~~~~~~~~~~get Block From blockPool~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-	log.PBft.Info("doGetBlock the blockPool len is:", "len", len(p.blocks))
-	log.PBft.Info("want get block hash is:", "id", getter.blockHash.Hex())
+	log.DLogger.Info("~~~~~~~~~~~~~~~~~~~~~~~~~~get Block From blockPool~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+	log.DLogger.Info("doGetBlock the blockPool len is:", zap.Int("len", len(p.blocks)))
+	log.DLogger.Info("want get block hash is:", zap.String("id", getter.blockHash.Hex()))
 	// proposer get first block
 	if getter.blockHash.IsEqual(common.Hash{}) {
 		if len(p.blocks) == 0 {
@@ -265,7 +266,7 @@ func (p *BlockPool) doGetBlock(getter *blockPoolGetter) {
 		// get match hash block
 	} else {
 		for _, b := range p.blocks {
-			log.PBft.Info("block in block Pool", "id", b.Hash().Hex())
+			log.DLogger.Info("block in block Pool", zap.String("id", b.Hash().Hex()))
 			if b.Hash().IsEqual(getter.blockHash) {
 				result = b
 				break

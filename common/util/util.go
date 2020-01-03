@@ -126,7 +126,7 @@ func HomeDir() string {
 // kill some app
 //func KillProcess(appName string) {
 //	exec.Command("/bin/bash", "-c", fmt.Sprintf("ps aux|grep %v|awk '{print $2}'|xargs kill ", appName)).Output()
-//	//cslog.Info().Err(err).Str("result", string(rb)).Str("app Name", appName).Msg("execute kill program command ")
+//	//cslog.DLogger.Info().Err(err).Str("result", string(rb)).Str("app Name", appName).Msg("execute kill program command ")
 //}
 //
 //// kill a remote application
@@ -172,10 +172,10 @@ func GetCurPcIp(matcher string) string {
 //// be sure not to enter a username
 //func CpFileToTargetHost(filePath string, loginUser string, targetHost string, targetPath string) {
 //	scpCmdStr := fmt.Sprintf("scp %v %v@%v:%v", filePath, loginUser, targetHost, targetPath)
-//	log.Debug("execute copy file to remote", "cmd", scpCmdStr)
+//	log.DLogger.Debug("execute copy file to remote", "cmd", scpCmdStr)
 //	rb, err := exec.Command("/bin/bash", "-c", scpCmdStr).Output()
 //	if err != nil {
-//		log.Warn("execute copy file to remote error ", "err", err, "result", string(rb))
+//		log.DLogger.Warn("execute copy file to remote error ", "err", err, "result", string(rb))
 //	}
 //}
 //
@@ -186,10 +186,10 @@ func GetCurPcIp(matcher string) string {
 //	ioutil.WriteFile(tmpShFile, []byte(cmdStr), 0755)
 //
 //	cmdExecStr := fmt.Sprintf(`ssh %v bash -s < %v`, sshConnStr, tmpShFile)
-//	log.Debug("run the remote ssh command", "cmd exec str", cmdExecStr, "cmdStr", cmdStr)
+//	log.DLogger.Debug("run the remote ssh command", "cmd exec str", cmdExecStr, "cmdStr", cmdStr)
 //	rb, err := exec.Command("/bin/bash", "-c", cmdExecStr).Output()
 //	if err != nil {
-//		log.Warn("run the remote ssh command error", "err", err, "result", string(rb))
+//		log.DLogger.Warn("run the remote ssh command error", "err", err, "result", string(rb))
 //	}
 //	os.RemoveAll(tmpShFile)
 //}

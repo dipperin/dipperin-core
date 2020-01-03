@@ -18,11 +18,11 @@ package bft_spec
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/csbft/state-machine"
 	model2 "github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

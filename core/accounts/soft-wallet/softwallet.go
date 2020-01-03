@@ -21,14 +21,15 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/go-bip39"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/tidwall/gjson"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -72,7 +73,7 @@ func NewSoftWallet() (*SoftWallet, error) {
 
 //Generate relevant wallet information according to mnemonics, passwords, mnemonic passwords, wallet file storage paths, and KDF key-derived parameters
 func (w *SoftWallet) paddingWalletInfo(mnemonic, password, passPhrase string, kdfPara *KDFParameter) (err error) {
-	//log.Debug("the kdfPara is: ","kdfPara",kdfPara)
+	//log.DLogger.Debug("the kdfPara is: ","kdfPara",kdfPara)
 	if kdfPara == nil {
 		//If no parameters are passed in when creating a new one, use the default value.
 		w.walletFileInfo.KDFParams["n"] = WalletLightScryptN
@@ -82,7 +83,7 @@ func (w *SoftWallet) paddingWalletInfo(mnemonic, password, passPhrase string, kd
 		w.walletFileInfo.KDFParams["keyLen"] = WalletscryptDKLen
 		//randomly generated salt value
 		tmpSalt := cspRngEntropy(32)
-		//log.Debug("the generate tmpSalt is: ","tmpSalt",tmpSalt)
+		//log.DLogger.Debug("the generate tmpSalt is: ","tmpSalt",tmpSalt)
 		w.walletFileInfo.KDFParams["salt"] = hex.EncodeToString(tmpSalt)
 	} else {
 		w.walletFileInfo.KDFParams = kdfPara.KDFParams
@@ -105,7 +106,7 @@ func (w *SoftWallet) paddingWalletInfo(mnemonic, password, passPhrase string, kd
 		return err
 	}
 
-	//log.Debug("the seed is: ","seed",w.WalletInfo.Seed)
+	//log.DLogger.Debug("the seed is: ","seed",w.WalletInfo.Seed)
 	//get account based on master key
 	var tmpPath accounts.DerivationPath
 	extKey, tmpPath, err := w.walletInfo.GenerateKeyFromSeedAndPath(DefaultDerivedPath, AddressIndexStartValue)
@@ -124,11 +125,11 @@ func (w *SoftWallet) paddingWalletInfo(mnemonic, password, passPhrase string, kd
 	w.walletInfo.Paths[account.Address] = tmpPath
 	w.walletInfo.DerivedPathIndex[DefaultAccountValue] = AddressIndexStartValue
 
-	//log.Debug("the extKey is: ","extKey",*extKey)
+	//log.DLogger.Debug("the extKey is: ","extKey",*extKey)
 
 	w.walletInfo.ExtendKeys[account.Address] = *extKey
 
-	//log.Debug("wallet info after padding","wallet",*w)
+	//log.DLogger.Debug("wallet info after padding","wallet",*w)
 
 	return nil
 }
@@ -141,9 +142,9 @@ func (w *SoftWallet) encryptWalletAndWriteFile(operation int) (err error) {
 		return err
 	}
 
-	log.Debug("encryptWalletAndWriteFile 1")
+	log.DLogger.Debug("encryptWalletAndWriteFile 1")
 
-	//log.Debug("===establish: the walletFileInfo salt is: ","salt",w.walletFileInfo.KDFParams["salt"])
+	//log.DLogger.Debug("===establish: the walletFileInfo salt is: ","salt",w.walletFileInfo.KDFParams["salt"])
 	//write wallet cipher to local file
 	writeData, err := json.Marshal(w.walletFileInfo)
 	if err != nil {
@@ -173,14 +174,14 @@ func (w *SoftWallet) encryptWalletAndWriteFile(operation int) (err error) {
 			os.MkdirAll(path, 0766)
 		}
 	}
-	log.Debug("write walletPath", "walletPath", walletPath)
+	log.DLogger.Debug("write walletPath", zap.String("walletPath", walletPath))
 	ioutil.WriteFile(walletPath, writeData, 0666)
 
 	return nil
 }
 
 func (w *SoftWallet) decryptWallet(password string) (passwordValid bool, walletPlain []byte, keyData EncryptKey, err error) {
-	log.Info("SoftWallet#decryptWallet", "password", password)
+	log.DLogger.Info("SoftWallet#decryptWallet", zap.String("password", password))
 	var walletPath string
 	if w.Identifier.Path == "" {
 		walletPath = WalletDefaultPath
@@ -191,7 +192,7 @@ func (w *SoftWallet) decryptWallet(password string) (passwordValid bool, walletP
 	//Read wallet cipher and encryption parameter data according to wallet path
 	walletJsonData, err := ioutil.ReadFile(walletPath)
 	if err != nil {
-		log.Info("the err is:", "err", err)
+		log.DLogger.Info("the err is:", zap.Error(err))
 		return
 	}
 
@@ -217,7 +218,7 @@ func (w *SoftWallet) decryptWallet(password string) (passwordValid bool, walletP
 	//decrypt wallet plaintext
 	WalletPlain, err1 := DecryptWalletContent(w.walletFileInfo.WalletCipher, w.walletFileInfo.IV[:], keyData)
 	if err1 != nil {
-		log.Warn("decrypt wallet failed", "err", err1)
+		log.DLogger.Warn("decrypt wallet failed", zap.Error(err1))
 		err = accounts.ErrWalletPasswordNotValid
 		return
 	}
@@ -248,7 +249,7 @@ func (w *SoftWallet) decryptWalletFromJsonData(JsonData []byte, password string)
 	//decrypt wallet plaintext
 	WalletPlain, err1 := DecryptWalletContent(w.walletFileInfo.WalletCipher, w.walletFileInfo.IV[:], keyData)
 	if err1 != nil {
-		log.Warn("decrypt wallet failed", "err", err1)
+		log.DLogger.Warn("decrypt wallet failed", zap.Error(err1))
 		err = accounts.ErrWalletPasswordNotValid
 		return
 	}
@@ -309,13 +310,13 @@ func (w *SoftWallet) Establish(path, name, password, passPhrase string) (string,
 	//kdfPara default program built in
 	err = w.paddingWalletInfo(mnemonic, password, passPhrase, nil)
 	if err != nil {
-		log.Info("paddingWalletInfo error", "err", err)
+		log.DLogger.Info("paddingWalletInfo error", zap.Error(err))
 		return "", err
 	}
 	//The main account balance is 0 when creating a new wallet
 	w.walletInfo.Balances[w.walletInfo.Accounts[0].Address] = big.NewInt(0)
 
-	log.Debug("set wallet status is open")
+	log.DLogger.Debug("set wallet status is open")
 	w.status = accounts.Opened
 
 	err = w.encryptWalletAndWriteFile(EstablishWallet)
@@ -476,7 +477,7 @@ func (w *SoftWallet) Derive(path accounts.DerivationPath, save bool) (accounts.A
 	var tmpPath accounts.DerivationPath
 	var err error
 
-	log.Info("the derive path is: ", "path", path)
+	log.DLogger.Info("the derive path is: ", zap.Any("path", path))
 
 	if path.String() == "m" {
 		tmpPath, err = accounts.ParseDerivationPath(DefaultDerivedPath)
@@ -515,7 +516,7 @@ func (w *SoftWallet) Derive(path accounts.DerivationPath, save bool) (accounts.A
 			ClearSensitiveData(extKey)
 		}
 	}()
-	log.Info("Derive tmpPath is:", "tmpPath", tmpPath)
+	log.DLogger.Info("Derive tmpPath is:", zap.Any("tmpPath", tmpPath))
 	//Generate derived keys based on path parameters and master key
 	for _, value := range tmpPath {
 		var err error
@@ -611,7 +612,7 @@ func (w *SoftWallet) SignTx(account accounts.Account, tx *model.Transaction, cha
 		return nil, err
 	}
 
-	//log.Debug("softWallet SignTx end")
+	//log.DLogger.Debug("softWallet SignTx end")
 	return signedTx, nil
 }
 

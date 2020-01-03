@@ -18,8 +18,8 @@ package main
 
 import (
 	"context"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 )
 
@@ -35,24 +35,24 @@ func csSubscribe(c *rpc.Client, ctx context.Context, channel interface{}, args .
 func main() {
 	//client, err := rpc.Dial("ws://localhost:10002")
 	client, err := rpc.Dial("ws://" + chain_config.TestServer + "+:10002")
-	log.Info("the err is:", "err", err)
+	log.DLogger.Info("the err is:", "err", err)
 	if err != nil {
 		panic(err)
 	}
 
 	xx := make(chan HaHa)
 	sub, err := csSubscribe(client, context.Background(), xx, "subscribeBlock")
-	log.Info("the err is:", "err", err)
+	log.DLogger.Info("the err is:", "err", err)
 	if err != nil {
 		panic(err)
 	}
 	for {
 		select {
 		case err := <-sub.Err():
-			log.Info("sub result", "err", err)
+			log.DLogger.Info("sub result", "err", err)
 		case h := <-xx:
 			// todo Make another prompt, otherwise issuing commands is difficult to operate.
-			log.Info("sdfnoiwef", "h", h)
+			log.DLogger.Info("sdfnoiwef", "h", h)
 		}
 	}
 }

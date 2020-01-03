@@ -19,8 +19,9 @@ package accounts
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-timer"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/ethereum/go-ethereum/event"
+	"go.uber.org/zap"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -108,9 +109,9 @@ func (manager *WalletManager) StartOtherServices() {
 
 //listen wallet　event
 func (manager *WalletManager) backend() {
-	log.Info("backend start")
+	log.DLogger.Info("backend start")
 	sub := manager.feed.Subscribe(manager.ManagerClose)
-	log.Info("backend subscribe ManagerClose")
+	log.DLogger.Info("backend subscribe ManagerClose")
 	for {
 		select {
 		case walletEvent := <-manager.Event:
@@ -130,7 +131,7 @@ func (manager *WalletManager) backend() {
 			manager.Lock.Unlock()
 		case <-manager.ManagerClose:
 			sub.Unsubscribe()
-			log.Info("Wallet manager backend return")
+			log.DLogger.Info("Wallet manager backend return")
 			return
 		}
 	}
@@ -156,7 +157,7 @@ func (manager *WalletManager) refreshWalletNonce() {
 		select {
 		case <-manager.ManagerClose:
 			sub.Unsubscribe()
-			log.Info("refresh Wallet backend return")
+			log.DLogger.Info("refresh Wallet backend return")
 			return
 		}
 	}
@@ -186,7 +187,7 @@ func (manager *WalletManager) remove(wallet Wallet) {
 			} else {
 				manager.Wallets = append(manager.Wallets[:i], manager.Wallets[i+1:]...)
 			}
-			log.Info("the manager.Wallets is: ", "manager.Wallets", manager.Wallets)
+			log.DLogger.Info("the manager.Wallets is: ", zap.Any("manager.Wallets", manager.Wallets))
 		}
 	}
 }
@@ -281,9 +282,9 @@ func (manager *WalletManager) Start() error {
 
 //close wallet manager
 func (manager *WalletManager) Stop() {
-	log.Info("WalletManager close")
-	log.Info("close request lock")
-	log.Info("close request end")
+	log.DLogger.Info("WalletManager close")
+	log.DLogger.Info("close request lock")
+	log.DLogger.Info("close request end")
 
 	manager.Lock.Lock()
 	defer manager.Lock.Unlock()
@@ -291,7 +292,7 @@ func (manager *WalletManager) Stop() {
 	//close backend
 	manager.feed.Send(true)
 	//manager.ManagerClose <- true
-	log.Info("the feed send end")
+	log.DLogger.Info("the feed send end")
 
 	//close all wallets in the manager
 	for _, wallet := range manager.Wallets {

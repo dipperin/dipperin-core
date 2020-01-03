@@ -20,7 +20,7 @@ package chain
 //	"fmt"
 //	"github.com/dipperin/dipperin-core/common"
 //	"github.com/dipperin/dipperin-core/core/model"
-//	"github.com/dipperin/dipperin-core/third-party/log"
+//	"github.com/dipperin/dipperin-core/common/log"
 //	"github.com/stretchr/testify/assert"
 //	"math/big"
 //	"testing"
@@ -34,7 +34,7 @@ package chain
 //func setUpInterlinkTest(t *testing.T) *testSetup {
 //	genesis := reader.Genesis()
 //	preHash := genesis.Hash()
-//	log.Info("the genesis hash is:","hash",preHash.Hex())
+//	log.DLogger.Info("the genesis hash is:","hash",preHash.Hex())
 //	preBlock := genesis
 //	//tReader := NewFakeFullChain()
 //

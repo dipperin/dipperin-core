@@ -180,7 +180,7 @@ type ibltTask struct {
 //	case f.notify <- msg:
 //		return nil
 //	case <-f.quit:
-//		log.Info("block fetcher terminated")
+//		log.DLogger.Info("block fetcher terminated")
 //		return nil
 //	}
 //}
@@ -194,7 +194,7 @@ type ibltTask struct {
 //	case <-f.quit:
 //		return
 //	}
-//	pbft_log.Debug("Dotask,1")
+//	pbft_log.DLogger.Debug("Dotask,1")
 //	select {
 //	case taskC <- &ibltTask{peerID: peerID, data: data, time: time}:
 //	case <-f.quit:
@@ -342,7 +342,7 @@ type ibltTask struct {
 //		op := f.queue.PopItem().(*inject)
 //		hash := op.catchup.Block.Hash()
 //		number := op.catchup.Block.Number()
-//		pbft_log.Debug("add block to pool", "block number", number, "height", height)
+//		pbft_log.DLogger.Debug("add block to pool", "block number", number, "height", height)
 //		if number > height+1 {
 //			f.queue.Push(op, -int64(number))
 //			break
@@ -363,7 +363,7 @@ type ibltTask struct {
 //	count := f.notifyCount[notification.peerID] + 1
 //
 //	if count > hashLimit {
-//		log.Error("Peer exceeded outstanding announces", "peer", notification.peerID, "limit", hashLimit)
+//		log.DLogger.Error("Peer exceeded outstanding announces", "peer", notification.peerID, "limit", hashLimit)
 //		needBreak = true
 //		return needBreak
 //	}
@@ -371,7 +371,7 @@ type ibltTask struct {
 //	// If we have a valid block number, check that it's potentially useful
 //	if notification.number > 0 {
 //		if dist := int64(notification.number) - int64(f.chainHeight().Number()); dist > maxQueueDist {
-//			log.Debug("Peer discarded announcement", "peer", notification.peerID, "number", notification.number, "hash", notification.hash, "distance", dist)
+//			log.DLogger.Debug("Peer discarded announcement", "peer", notification.peerID, "number", notification.number, "hash", notification.hash, "distance", dist)
 //			needBreak = true
 //			return needBreak
 //		}
@@ -394,7 +394,7 @@ type ibltTask struct {
 //	f.notifyCount[notification.peerID] = count
 //	f.notified[notification.hash] = append(f.notified[notification.hash], notification)
 //
-//	//log.Info("----------get block new hash", "hash", notification.hash.Hex(), "height", notification.number,
+//	//log.DLogger.Info("----------get block new hash", "hash", notification.hash.Hex(), "height", notification.number,
 //	//	"peer name", notification.nodeName)
 //
 //	if len(f.notified) == 1 {
@@ -424,15 +424,15 @@ type ibltTask struct {
 //
 //	// Send out all get vr requests
 //	for peer, hashes := range request {
-//		log.Debug("Fetching scheduled vrs", "peer", peer, "hashes", hashes)
+//		log.DLogger.Debug("Fetching scheduled vrs", "peer", peer, "hashes", hashes)
 //
 //		req, hashes := f.fetching[hashes[0]].estimatorReq, hashes
 //
 //		go func() {
 //			for _, hash := range hashes {
-//				log.Debug("start fetching block vr", "hash", hash)
+//				log.DLogger.Debug("start fetching block vr", "hash", hash)
 //				if err := req(); err != nil {
-//					log.Error("ei fetcher handle fetcher estimator req failed", "err", err)
+//					log.DLogger.Error("ei fetcher handle fetcher estimator req failed", "err", err)
 //				}
 //			}
 //		}()
@@ -443,7 +443,7 @@ type ibltTask struct {
 //}
 //
 //func (f *EiBlockFetcher) handleIBLTTask(task *ibltTask) {
-//	pbft_log.Debug("Handle vr task")
+//	pbft_log.DLogger.Debug("Handle vr task")
 //	data := task.data
 //
 //	// Filter fetcher-requested headers from other synchronisation algorithms
@@ -492,7 +492,7 @@ type ibltTask struct {
 //	block, err := data.EiRecoverToBlock(f.getTxPoolMap())
 //
 //	if err != nil {
-//		log.Error("ei fetcher ei recover to block failed", "err", err)
+//		log.DLogger.Error("ei fetcher ei recover to block failed", "err", err)
 //		return nil
 //	}
 //
@@ -545,14 +545,14 @@ type ibltTask struct {
 //	count := f.queues[peerID] + 1
 //
 //	if count > blockLimit {
-//		log.Debug("Discarded propagated block, exceeded allowance", "peer", peerID, "number", catchup.Block.Number(), "hash", catchup.Block.Hash(), "limit", blockLimit)
+//		log.DLogger.Debug("Discarded propagated block, exceeded allowance", "peer", peerID, "number", catchup.Block.Number(), "hash", catchup.Block.Hash(), "limit", blockLimit)
 //		f.forgetHash(catchup.Block.Hash())
 //		return
 //	}
 //
 //	// Discard any past or too distant blocks
 //	if dist := int64(catchup.Block.Number()) - int64(f.chainHeight().Number()); dist > maxQueueDist {
-//		log.Debug("Discarded propagated block, too far away", "peer", peerID, "number", catchup.Block.Number(), "hash", catchup.Block.Hash(), "distance", dist)
+//		log.DLogger.Debug("Discarded propagated block, too far away", "peer", peerID, "number", catchup.Block.Number(), "hash", catchup.Block.Hash(), "distance", dist)
 //		f.forgetHash(catchup.Block.Hash())
 //		return
 //	}
@@ -568,14 +568,14 @@ type ibltTask struct {
 //		f.queued[catchup.Block.Hash()] = op
 //		f.queue.Push(op, -int64(catchup.Block.Number()))
 //
-//		log.Debug("Queued propagated block", "peer", peerID, "number", catchup.Block.Number(), "hash", catchup.Block.Hash(), "queued", f.queue.Size())
+//		log.DLogger.Debug("Queued propagated block", "peer", peerID, "number", catchup.Block.Number(), "hash", catchup.Block.Hash(), "queued", f.queue.Size())
 //	}
 //
 //}
 //
 //func (f *EiBlockFetcher) insert(peerID string, catchup *catchup) {
 //	block := catchup.Block
-//	pbft_log.Debug("Insert a block", "block", block.Number(), "height", f.chainHeight().Number())
+//	pbft_log.DLogger.Debug("Insert a block", "block", block.Number(), "height", f.chainHeight().Number())
 //	go func() {
 //		defer func() {
 //			f.done <- block.Hash()
@@ -583,18 +583,18 @@ type ibltTask struct {
 //
 //		parent := f.getBlock(block.PreHash())
 //		if parent == nil {
-//			pbft_log.Debug("Insert a block", "block", block.Number(), "height", f.chainHeight().Number(), "err", "Unknown parent of propagated block")
-//			log.Error("Unknown parent of propagated block", "peer", peerID, "number", block.Number(), "hash", block.Hash(), "parent", block.PreHash())
+//			pbft_log.DLogger.Debug("Insert a block", "block", block.Number(), "height", f.chainHeight().Number(), "err", "Unknown parent of propagated block")
+//			log.DLogger.Error("Unknown parent of propagated block", "peer", peerID, "number", block.Number(), "hash", block.Hash(), "parent", block.PreHash())
 //			return
 //		}
 //
 //		if err := f.saveBlock(catchup.Block, catchup.SeenCommit); err != nil {
-//			pbft_log.Debug("Save a block", "block", block.Number(), "height", f.chainHeight().Number(), "err", err)
-//			log.Error("Propagated block import failed", "peer", peerID, "number", block.Number(), "hash", block.Hash(), "err", err)
+//			pbft_log.DLogger.Debug("Save a block", "block", block.Number(), "height", f.chainHeight().Number(), "err", err)
+//			log.DLogger.Error("Propagated block import failed", "peer", peerID, "number", block.Number(), "hash", block.Hash(), "err", err)
 //			return
 //		}
-//		pbft_log.Debug("Saved a block", "block", block.Number(), "height", f.chainHeight().Number())
-//		log.Info("fetcher save block vr", "hash", block.Hash(), "number", block.Number())
+//		pbft_log.DLogger.Debug("Saved a block", "block", block.Number(), "height", f.chainHeight().Number())
+//		log.DLogger.Info("fetcher save block vr", "hash", block.Hash(), "number", block.Number())
 //
 //		go f.broadcast(catchup.Block)
 //

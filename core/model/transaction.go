@@ -22,10 +22,11 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 	"io"
 	"math/big"
 	"sort"
@@ -435,12 +436,12 @@ func (tx *Transaction) GetActualTxFee() (fee *big.Int) {
 	if feeLoad := tx.actualTxFee.Load(); feeLoad != nil {
 		return feeLoad.(*big.Int)
 	}
-	log.Error("the transaction fee cache is nil")
+	log.DLogger.Error("the transaction fee cache is nil")
 	return nil
 }
 
 func (tx *Transaction) PaddingReceipt(parameters ReceiptPara) {
-	log.Info("Call PaddingReceipt", "handlerResult", parameters.HandlerResult)
+	log.DLogger.Info("Call PaddingReceipt", zap.Bool("handlerResult", parameters.HandlerResult))
 	receipt := model.NewReceipt(parameters.Root, parameters.HandlerResult, parameters.CumulativeGasUsed, parameters.Logs)
 	tx.receipt.Store(receipt)
 }
@@ -449,7 +450,7 @@ func (tx *Transaction) GetReceipt() *model.Receipt {
 	if receiptLoad := tx.receipt.Load(); receiptLoad != nil {
 		return receiptLoad.(*model.Receipt)
 	}
-	log.Error("the receipt cache is nil")
+	log.DLogger.Error("the receipt cache is nil")
 	return nil
 }
 
@@ -544,7 +545,7 @@ func NewTransactionsByFeeAndNonce(signer Signer, txs map[common.Address][]Abstra
 	// Initialize a price based heap with the head transactions
 	heads := make(TxByFee, 0, len(txs))
 	for from, accTxs := range txs {
-		log.Info("NewTransactionsByFeeAndNonce ", "from", from, "len(heads)", len(heads))
+		log.DLogger.Info("NewTransactionsByFeeAndNonce ", zap.Any("from", from), zap.Int("len(heads)", len(heads)))
 		// 此处 ethereum　的写法,假设from != acc这种异常情况出现，txs map会被新增acc字段交易或将原acc字段替换成from的相关交易
 		//　导致txs 异常．此外会导致range 不确定性，修改的acc　txs有可能遍历到，也有可能遍历不到
 		//　因此统一修改逻辑为:当出现此异常时，将此from的txs直接删除，heads里也不处理此类交易．
@@ -556,12 +557,12 @@ func NewTransactionsByFeeAndNonce(signer Signer, txs map[common.Address][]Abstra
 					delete(txs, from)
 				}*/
 		if len(accTxs) == 0 {
-			log.Warn("theaccTxs is nil")
+			log.DLogger.Warn("theaccTxs is nil")
 			delete(txs, from)
 		} else {
 			acc, _ := accTxs[0].Sender(signer)
 			if from != acc {
-				log.Warn("the tx sender and from is different")
+				log.DLogger.Warn("the tx sender and from is different")
 				delete(txs, from)
 			} else {
 				heads = append(heads, accTxs[0])

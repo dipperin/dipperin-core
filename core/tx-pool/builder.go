@@ -18,9 +18,10 @@ package tx_pool
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"runtime"
 	"time"
 )
@@ -50,10 +51,10 @@ func NewTxPool(config TxPoolConfig, chainConfig chain_config.ChainConfig, chain 
 		pool.journal = newTxJournal(config.Journal)
 
 		if err := pool.journal.load(pool.AddLocals); err != nil {
-			log.Warn("Failed to load transaction journal", "err", err)
+			log.DLogger.Warn("Failed to load transaction journal", zap.Error(err))
 		}
 		if err := pool.journal.rotate(pool.local()); err != nil {
-			log.Warn("Failed to rotate transaction journal", "err", err)
+			log.DLogger.Warn("Failed to rotate transaction journal", zap.Error(err))
 		}
 	}
 

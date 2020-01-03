@@ -2487,30 +2487,30 @@ func TestCsProtocolManager_PrintPeerHealthCheck(t *testing.T) {
 
 	// mock peer
 	mockPeer := NewMockPmAbstractPeer(ctrl)
-	mockPeer.EXPECT().NodeName().Return("aaa")
-	mockPeer.EXPECT().RemoteVerifierAddress().Return(common.StringToAddress("dfs"))
-	mockPeer.EXPECT().IsRunning().Return(true)
+	mockPeer.EXPECT().NodeName().Return("aaa").AnyTimes()
+	mockPeer.EXPECT().RemoteVerifierAddress().Return(common.StringToAddress("dfs")).AnyTimes()
+	mockPeer.EXPECT().IsRunning().Return(true).AnyTimes()
 	mockPeerSetBasePeers.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"1": mockPeer}).AnyTimes()
 
 	// mock peer
 	mockPeer1 := NewMockPmAbstractPeer(ctrl)
-	mockPeer1.EXPECT().NodeName().Return("aaa")
-	mockPeer1.EXPECT().RemoteVerifierAddress().Return(common.StringToAddress("dfs"))
-	mockPeer1.EXPECT().IsRunning().Return(true)
+	mockPeer1.EXPECT().NodeName().Return("aaa").AnyTimes()
+	mockPeer1.EXPECT().RemoteVerifierAddress().Return(common.StringToAddress("dfs")).AnyTimes()
+	mockPeer1.EXPECT().IsRunning().Return(true).AnyTimes()
 	mockPeerSetCurrentVerifierPeers.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"2": mockPeer1}).AnyTimes()
 
 	// mock peer
 	mockPeer2 := NewMockPmAbstractPeer(ctrl)
-	mockPeer2.EXPECT().NodeName().Return("aaa")
-	mockPeer2.EXPECT().RemoteVerifierAddress().Return(common.StringToAddress("dfs"))
-	mockPeer2.EXPECT().IsRunning().Return(true)
+	mockPeer2.EXPECT().NodeName().Return("aaa").AnyTimes()
+	mockPeer2.EXPECT().RemoteVerifierAddress().Return(common.StringToAddress("dfs")).AnyTimes()
+	mockPeer2.EXPECT().IsRunning().Return(true).AnyTimes()
 	mockPeerSetnNextVerifierPeers.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"3": mockPeer2}).AnyTimes()
 
 	// mock peer
 	mockPeer3 := NewMockPmAbstractPeer(ctrl)
-	mockPeer3.EXPECT().NodeName().Return("aaa")
-	mockPeer3.EXPECT().RemoteVerifierAddress().Return(common.StringToAddress("dfs"))
-	mockPeer3.EXPECT().IsRunning().Return(true)
+	mockPeer3.EXPECT().NodeName().Return("aaa").AnyTimes()
+	mockPeer3.EXPECT().RemoteVerifierAddress().Return(common.StringToAddress("dfs")).AnyTimes()
+	mockPeer3.EXPECT().IsRunning().Return(true).AnyTimes()
 	mockPeerSetVerifierBootNode.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"4": mockPeer3}).AnyTimes()
 
 	psm := &CsPmPeerSetManager{

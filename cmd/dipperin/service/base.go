@@ -19,9 +19,10 @@ package service
 import (
 	"github.com/dipperin/dipperin-core/cmd/dipperin/config"
 	"github.com/dipperin/dipperin-core/cmd/utils/debug"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/dipperin"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/urfave/cli"
+	"go.uber.org/zap"
 	"os"
 	"os/signal"
 	"syscall"
@@ -59,7 +60,7 @@ func extraBeforeStart(c *cli.Context, logToConsole bool, logToFile bool) {
 	logLevel := c.String(config.LogLevelFlagName)
 	lv, err := log.LvlFromString(logLevel)
 	if err != nil {
-		log.Error(err.Error())
+		log.DLogger.Error("parse log level", zap.Error(err))
 	}
 
 	if !logToFile && os.Getenv("cslog") == "enable" {
@@ -68,16 +69,15 @@ func extraBeforeStart(c *cli.Context, logToConsole bool, logToFile bool) {
 	}
 
 	dataDir := c.String(config.DataDirFlagName)
-	log.Info("init logger", "lv", lv, "log to file", logToFile)
-	log.InitCsLogger(lv, dataDir, logToConsole, logToFile)
+	log.DLogger.Info("init logger", zap.String("lv", lv.String()), zap.Bool("log to file", logToFile))
+	log.InitLogger(log.LoggerConfig{
+		Lvl:         lv,
+		FilePath:    dataDir,
+		Filename:    "",
+		WithConsole: logToConsole,
+		WithFile:    logToFile,
+	})
 
-	// use new log
-	//nLv, _ := cslog.LvlFromString(logLevel)
-	//logTo := ""
-	//if logToFile {
-	//	logTo = filepath.Join(dataDir, "Dipperin_zap.log")
-	//}
-	//cslog.InitLogger(nLv, logTo, logToConsole)
 }
 
 func getNodeConf(c *cli.Context) dipperin.NodeConfig {
@@ -113,7 +113,7 @@ func getNodeConf(c *cli.Context) dipperin.NodeConfig {
 		nodeConf.IsStartMine = true
 	}
 
-	log.Info("getNodeConf the node type is:", "nodeType", nodeConf.NodeType)
+	log.DLogger.Info("getNodeConf the node type is:", zap.Int("nodeType", nodeConf.NodeType))
 
 	return nodeConf
 }
@@ -122,7 +122,7 @@ func signalListen(n dipperin.Node) {
 	c := make(chan os.Signal)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 	s := <-c
-	log.Info("got system signal", "signal", s)
+	log.DLogger.Info("got system signal", zap.Any("signal", s))
 	debug.Exit()
 	n.Stop()
 }

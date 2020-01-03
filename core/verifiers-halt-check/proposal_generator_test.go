@@ -18,12 +18,12 @@ package verifiers_halt_check_test
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/verifiers-halt-check"
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/tests/factory"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -32,7 +32,7 @@ var bootNodeIndex int
 var testVerBootAccounts []tests.Account
 
 func init() {
-	log.Info("change ver boot node address for test")
+	log.DLogger.Info("change ver boot node address for test")
 	var err error
 	testVerBootAccounts, err = tests.ChangeVerBootNodeAddress()
 	if err != nil {

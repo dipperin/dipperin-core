@@ -19,15 +19,16 @@ package middleware
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 func UpdateStateRoot(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("UpdateStateRoot start")
+		log.DLogger.Info("UpdateStateRoot start")
 		processor, err := validStateRoot(c)
 		if err != nil {
 			return err
@@ -36,7 +37,7 @@ func UpdateStateRoot(c *BlockContext) Middleware {
 		if _, err := processor.Commit(); err != nil {
 			return err
 		}
-		log.Middleware.Info("UpdateStateRoot end")
+		log.DLogger.Info("UpdateStateRoot end")
 		return c.Next()
 	}
 }
@@ -55,13 +56,13 @@ func validStateRoot(c *BlockContext) (*chain.BlockProcessor, error) {
 	preBlockHeight := c.Block.Number() - 1
 	preBlock := c.Chain.GetBlockByNumber(preBlockHeight)
 
-	log.Mpt.Debug("the preBlock stateRoot is:", "preBlockStateRoot", preBlock.StateRoot().Hex())
+	log.DLogger.Debug("the preBlock stateRoot is:", zap.String("preBlockStateRoot", preBlock.StateRoot().Hex()))
 	processor, gErr := c.Chain.BlockProcessor(preBlock.StateRoot())
 	if gErr != nil {
 		return nil, gErr
 	}
 
-	log.Mpt.Debug("process the block", "blockId", c.Block.Hash().Hex())
+	log.DLogger.Debug("process the block", zap.String("blockId", c.Block.Hash().Hex()))
 	if err := processor.Process(c.Block, c.Chain.GetEconomyModel()); err != nil {
 		return nil, err
 	}
@@ -72,8 +73,8 @@ func validStateRoot(c *BlockContext) (*chain.BlockProcessor, error) {
 	}
 
 	if !roots.IsEqual(c.Block.StateRoot()) {
-		log.Mpt.Debug("state root not match", "got", roots.Hex(), "in block", c.Block.StateRoot().Hex())
-		log.Error("state root not match", "got", roots.Hex(), "in block", c.Block.StateRoot().Hex())
+		log.DLogger.Debug("state root not match", zap.String("got", roots.Hex()), zap.String("in block", c.Block.StateRoot().Hex()))
+		log.DLogger.Error("state root not match", zap.String("got", roots.Hex()), zap.String("in block", c.Block.StateRoot().Hex()))
 		//fmt.Println("state root check not match", c.Block)
 		return nil, errors.New("state root not match")
 	}
@@ -86,13 +87,13 @@ func validStateRoot(c *BlockContext) (*chain.BlockProcessor, error) {
 type BlockProcessor func(root common.Hash) (*chain.BlockProcessor, error)
 
 func ValidSateRootForTest(preStateRoot common.Hash, economyModel economy_model.EconomyModel, blockProcess BlockProcessor, processBlock model.AbstractBlock) error {
-	log.Mpt.Debug("the preBlock stateRoot is:", "preBlockStateRoot", preStateRoot.Hex())
+	log.DLogger.Debug("the preBlock stateRoot is:", zap.String("preBlockStateRoot", preStateRoot.Hex()))
 	processor, gErr := blockProcess(preStateRoot)
 	if gErr != nil {
 		return gErr
 	}
 
-	log.Mpt.Debug("process the block", "blockId", processBlock.Hash().Hex())
+	log.DLogger.Debug("process the block", zap.String("blockId", processBlock.Hash().Hex()))
 	if err := processor.Process(processBlock, economyModel); err != nil {
 		return err
 	}
@@ -103,8 +104,8 @@ func ValidSateRootForTest(preStateRoot common.Hash, economyModel economy_model.E
 	}
 
 	if !roots.IsEqual(processBlock.StateRoot()) {
-		log.Mpt.Debug("state root not match", "got", roots.Hex(), "in block", processBlock.StateRoot().Hex())
-		log.Debug("state root not match", "got", roots.Hex(), "in block", processBlock.StateRoot().Hex())
+		log.DLogger.Debug("state root not match", zap.String("got", roots.Hex()), zap.String("in block", processBlock.StateRoot().Hex()))
+		log.DLogger.Debug("state root not match", zap.String("got", roots.Hex()), zap.String("in block", processBlock.StateRoot().Hex()))
 		return errors.New("state root not match")
 	}
 

@@ -19,8 +19,9 @@ package tx_pool
 import (
 	"container/heap"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 	"sort"
 )
@@ -272,7 +273,7 @@ func (l *txList) Add(tx model.AbstractTransaction, feeBump uint64) (bool, model.
 		// Have to ensure that the new gas price is higher than the old gas
 		// price as well as checking the percentage threshold to ensure that
 		// this is accurate for low (Wei-level) gas price replacements
-		log.Info("the threshold is:", "threshold", threshold, "old", old.GetGasPrice(), "new", tx.GetGasPrice())
+		log.DLogger.Info("the threshold is:", zap.Any("threshold", threshold), zap.Any("old", old.GetGasPrice()), zap.Any("new", tx.GetGasPrice()))
 		if old.GetGasPrice().Cmp(tx.GetGasPrice()) >= 0 || threshold.Cmp(tx.GetGasPrice()) > 0 {
 			return false, nil
 		}
@@ -499,7 +500,7 @@ func (l *txFeeList) UnderPriced(tx model.AbstractTransaction, local *accountSet)
 	}
 	// Check if the transaction is under feeList or not
 	if len(*l.items) == 0 {
-		log.Error("Pricing query for empty pool") // This cannot happen, print to catch programming errors
+		log.DLogger.Error("Pricing query for empty pool") // This cannot happen, print to catch programming errors
 		return false
 	}
 	cheapest := []model.AbstractTransaction(*l.items)[0]

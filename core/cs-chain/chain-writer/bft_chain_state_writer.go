@@ -17,9 +17,10 @@
 package chain_writer
 
 import (
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 type BftChainWriter struct {
@@ -32,7 +33,7 @@ func NewBftChainWriter(context *middleware.BftBlockContext, chain middleware.Cha
 }
 
 func (cw *BftChainWriter) SaveBlock() error {
-	log.Info("bftChainWriter save block")
+	log.DLogger.Info("bftChainWriter save block")
 
 	//Create a BlockProcessor
 	c := cw.context
@@ -59,7 +60,7 @@ func (cw *BftChainWriter) SaveBlock() error {
 
 	err := c.Process()
 	if err != nil {
-		log.Error("bft save block failed!", "err", err)
+		log.DLogger.Error("bft save block failed!", zap.Error(err))
 	}
 
 	return err
@@ -75,7 +76,7 @@ func NewBftChainWriterWithoutVotes(context *middleware.BftBlockContextWithoutVot
 }
 
 func (cw *BftChainWriterWithoutVotes) SaveBlock() error {
-	log.Info("bftChainWriter save block")
+	log.DLogger.Info("bftChainWriter save block")
 	//Create a BlockProcessor
 	c := cw.context
 
@@ -102,7 +103,7 @@ func (cw *BftChainWriterWithoutVotes) SaveBlock() error {
 
 	err := c.Process()
 	if err != nil {
-		log.Error("bft save block failed", "err", err)
+		log.DLogger.Error("bft save block failed", zap.Error(err))
 	}
 
 	return err

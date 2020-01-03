@@ -107,7 +107,7 @@ package chain_communication
 //func (broadcaster *EiWaitVerifyBlockBroadcaster) getPeersWithoutBlock(block model.AbstractBlock) []PmAbstractPeer {
 //	// get peers
 //	peers := broadcaster.Pm.GetPeers()
-//	pbft_log.Debug("EiWaitVerifyBlockBroadcaster_getPeersWithoutBlock", "block", block, "peers", peers)
+//	pbft_log.DLogger.Debug("EiWaitVerifyBlockBroadcaster_getPeersWithoutBlock", "block", block, "peers", peers)
 //
 //	var list []PmAbstractPeer
 //
@@ -141,11 +141,11 @@ package chain_communication
 //		if err := transport.broadcast(getPeer); err != nil {
 //			switch err {
 //			case p2p.ErrShuttingDown:
-//				log.Warn("broadcast err is shutting down", "peer name", peer.NodeName(), "is running", peer.IsRunning())
+//				log.DLogger.Warn("broadcast err is shutting down", "peer name", peer.NodeName(), "is running", peer.IsRunning())
 //				broadcaster.Pm.RemovePeer(peer.ID())
 //			case BroadcastTimeoutErr:
 //			default:
-//				log.Error("ei wait verify block broadcast failed", "err", err, "peer name", peer.NodeName(), "is running", peer.IsRunning())
+//				log.DLogger.Error("ei wait verify block broadcast failed", "err", err, "peer name", peer.NodeName(), "is running", peer.IsRunning())
 //			}
 //			return
 //		}
@@ -165,9 +165,9 @@ package chain_communication
 //	if broadcaster.NodeConf.GetNodeType() == chain_config.NodeTypeOfMineMaster {
 //		broadcaster.fetcher.blockPool.addBlock(block)
 //	}
-//	//log.Info("EiWaitVerifyBlockBroadcaster#BroadcastBlock", "broadcaster", broadcaster)
+//	//log.DLogger.Info("EiWaitVerifyBlockBroadcaster#BroadcastBlock", "broadcaster", broadcaster)
 //	peers := broadcaster.getPeersWithoutBlock(block)
-//	pbft_log.Debug("EiWaitVerifyBlockBroadcaster_BroadcastBlock", "block", block, "peers", peers)
+//	pbft_log.DLogger.Debug("EiWaitVerifyBlockBroadcaster_BroadcastBlock", "block", block, "peers", peers)
 //
 //	bHash := block.Hash()
 //	txBloom := block.GetBlockTxsBloom()
@@ -197,16 +197,16 @@ package chain_communication
 //	}
 //	transfer := rPeers[:transferLen]
 //
-//	//log.Info("Miner broad cast block to", "Height", block.Number(), "v peer len", len(vPeers), "other peer len", len(transfer))
+//	//log.DLogger.Info("Miner broad cast block to", "Height", block.Number(), "v peer len", len(vPeers), "other peer len", len(transfer))
 //	for i := range vPeers {
 //		receiver := broadcaster.getTransport(vPeers[i])
-//		//log.Info("Miner broad cast block to","Peer",receiver.peerName,"Height",block.Number(), "block.hash", block.Hash().Hex())
+//		//log.DLogger.Info("Miner broad cast block to","Peer",receiver.peerName,"Height",block.Number(), "block.hash", block.Hash().Hex())
 //		receiver.asyncSendEiBroadcastMsg(msg)
 //	}
 //
 //	for i := range transfer {
 //		receiver := broadcaster.getTransport(transfer[i])
-//		//log.Info("Miner broad cast block to","Peer",receiver.peer.NodeName(),"Height",block.Number())
+//		//log.DLogger.Info("Miner broad cast block to","Peer",receiver.peer.NodeName(),"Height",block.Number())
 //		receiver.asyncSendEiBroadcastMsg(msg)
 //	}
 //
@@ -215,8 +215,8 @@ package chain_communication
 //// remote peer handle new block hash msg
 //func (broadcaster *EiWaitVerifyBlockBroadcaster) onNewBlockHashMsg(msg p2p.Msg, p PmAbstractPeer) error {
 //	// decode msg
-//	pbft_log.Debug("EiWaitVerifyBlockBroadcaster#onNewBlockHashMsg  Receive on new block hash msg", "from", p.NodeName())
-//	//pbft_log.Debug("EiWaitVerifyBlockBroadcaster#onNewBlockHashMsg  Receive on new block hash msg", "from", p.NodeName())
+//	pbft_log.DLogger.Debug("EiWaitVerifyBlockBroadcaster#onNewBlockHashMsg  Receive on new block hash msg", "from", p.NodeName())
+//	//pbft_log.DLogger.Debug("EiWaitVerifyBlockBroadcaster#onNewBlockHashMsg  Receive on new block hash msg", "from", p.NodeName())
 //
 //	var data eiBroadcastMsg
 //	if err := msg.Decode(&data); err != nil {
@@ -225,7 +225,7 @@ package chain_communication
 //
 //	// check data block hash
 //	if data.BlockHash.IsEmpty() {
-//		log.Warn("ei wait verify broadcast msg hash is nil", "p name", p.NodeName())
+//		log.DLogger.Warn("ei wait verify broadcast msg hash is nil", "p name", p.NodeName())
 //		return nil
 //	}
 //
@@ -243,7 +243,7 @@ package chain_communication
 //
 //	// check data tx bloom
 //	if data.TxBloom == nil {
-//		log.Warn("ei wait verify broadcast msg tx bloom is nil")
+//		log.DLogger.Warn("ei wait verify broadcast msg tx bloom is nil")
 //		return nil
 //	}
 //
@@ -252,22 +252,22 @@ package chain_communication
 //	ts := broadcaster.getTransport(p)
 //	ts.markHash(data.BlockHash)
 //
-//	pbft_log.Debug("send EiWaitVerifyEstimatorMsg", "to", p.NodeName())
-//	//pbft_log.Debug("send EiWaitVerifyEstimatorMsg", "to", p.NodeName())
+//	pbft_log.DLogger.Debug("send EiWaitVerifyEstimatorMsg", "to", p.NodeName())
+//	//pbft_log.DLogger.Debug("send EiWaitVerifyEstimatorMsg", "to", p.NodeName())
 //
 //	go func() {
 //		_ = broadcaster.fetcher.Notify(p.NodeName(), p.ID(), data.BlockHash, data.Height, time.Now(), func() error {
 //
 //			txPool := broadcaster.TxPool
 //			pending, queued := txPool.Stats()
-//			log.Info("cur tx pool", "pending", pending, "queued", queued)
+//			log.DLogger.Info("cur tx pool", "pending", pending, "queued", queued)
 //
 //			//startAt := time.Now()
 //
 //			// peer tx pool constructs its Estimator locally
 //			estimator := broadcaster.TxPool.GetTxsEstimator(data.TxBloom)
 //
-//			//log.Info("EiWaitVerifyBlockBroadcaster GetTxsEstimator use time", "t", time.Now().Sub(startAt), "node name", p.NodeName())
+//			//log.DLogger.Info("EiWaitVerifyBlockBroadcaster GetTxsEstimator use time", "t", time.Now().Sub(startAt), "node name", p.NodeName())
 //
 //			return p.SendMsg(EiWaitVerifyEstimatorMsg, &eiEstimatorReq{BlockHash: data.BlockHash, Estimator: estimator})
 //		})
@@ -290,7 +290,7 @@ package chain_communication
 //// receive request Estimator msg
 //func (broadcaster *EiWaitVerifyBlockBroadcaster) onEstimatorMsg(msg p2p.Msg, p PmAbstractPeer) error {
 //	//fmt.Println("===============EiWaitVerifyBlockBroadcaster--onEstimatorMsg==============")
-//	pbft_log.Debug("recieve onEstimatiorMsg", "from", p.NodeName())
+//	pbft_log.DLogger.Debug("recieve onEstimatiorMsg", "from", p.NodeName())
 //	var req eiEstimatorReq
 //	if err := msg.Decode(&req); err != nil {
 //		return err
@@ -299,16 +299,16 @@ package chain_communication
 //	// get Estimator
 //	estimator := req.Estimator
 //	if estimator == nil {
-//		log.Error("Estimator is nil", "block hash", req.BlockHash.Hex(), "peer id", p.ID())
+//		log.DLogger.Error("Estimator is nil", "block hash", req.BlockHash.Hex(), "peer id", p.ID())
 //		return nil
 //	}
 //
 //	// get block invBloom data
 //	//startAt := time.Now()
 //	data := broadcaster.getBlockInvBloomData(req.BlockHash, req.Estimator)
-//	//log.Info("EiWaitVerifyBlockBroadcaster getBlockInvBloomData use time", "t", time.Now().Sub(startAt), "node name", p.NodeName())
+//	//log.DLogger.Info("EiWaitVerifyBlockBroadcaster getBlockInvBloomData use time", "t", time.Now().Sub(startAt), "node name", p.NodeName())
 //	if data == nil {
-//		log.Error("can't get block inv bloom data, data is nil")
+//		log.DLogger.Error("can't get block inv bloom data, data is nil")
 //		return nil
 //	}
 //
@@ -323,7 +323,7 @@ package chain_communication
 //	// get block
 //	block := broadcaster.fetcher.blockPool.getBlock(bHash)
 //	if block == nil {
-//		log.Error("local chain can't get block", "bHash", bHash.Hex())
+//		log.DLogger.Error("local chain can't get block", "bHash", bHash.Hex())
 //		return nil
 //	}
 //
@@ -339,11 +339,11 @@ package chain_communication
 //
 //// receive target peer invBloom msg
 //func (broadcaster *EiWaitVerifyBlockBroadcaster) onNewBloomBlock(msg p2p.Msg, p PmAbstractPeer) error {
-//	//log.Info("receive wait verify block", "remote", p.NodeName())
+//	//log.DLogger.Info("receive wait verify block", "remote", p.NodeName())
 //	// decode msg
 //	var temData bloomBlockDataRLP
 //	if err := msg.Decode(&temData); err != nil {
-//		log.Error("ei wait verify on new bloom block decode msg failed", "err", err)
+//		log.DLogger.Error("ei wait verify on new bloom block decode msg failed", "err", err)
 //		return err
 //	}
 //

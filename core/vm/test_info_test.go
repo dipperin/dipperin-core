@@ -19,10 +19,10 @@ package vm
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -142,7 +142,7 @@ func (state *fakeStateDB) GetLogs(txHash common.Hash) []*model.Log {
 }
 
 func (state *fakeStateDB) AddLog(addedLog *model.Log) {
-	log.Info("add log success")
+	log.DLogger.Info("add log success")
 	return
 }
 

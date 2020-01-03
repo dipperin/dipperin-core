@@ -20,8 +20,9 @@ import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
@@ -45,15 +46,15 @@ func newInfoOfContract(contract interface{}) *InfoOfContract {
 	cvt := reflect.New(contractT).Type()
 	info := &InfoOfContract{TypeOfContract: contractT, MethodArgs: map[string][]reflect.Type{}}
 	nm := cvt.NumMethod()
-	//log.Debug("initialize contract", "method num", nm, "contract", info.TypeOfContract.String())
+	//log.DLogger.Debug("initialize contract", "method num", nm, "contract", info.TypeOfContract.String())
 	for i := 0; i < nm; i++ {
 		tmpM := cvt.Method(i)
 		info.MethodArgs[tmpM.Name] = []reflect.Type{}
-		//cslog.Debug().Str("method name", tmpM.Name).Msg("init method")
+		//cslog.DLogger.Debug().Str("method name", tmpM.Name).Msg("init method")
 		nIn := tmpM.Type.NumIn()
 		for j := 0; j < nIn; j++ {
 			if j != 0 {
-				//cslog.Debug().Str("parameter", tmpM.Type.In(j).String()).Msg("parameter")
+				//cslog.DLogger.Debug().Str("parameter", tmpM.Type.In(j).String()).Msg("parameter")
 				info.MethodArgs[tmpM.Name] = append(info.MethodArgs[tmpM.Name], tmpM.Type.In(j))
 			}
 		}
@@ -121,7 +122,7 @@ func GetContractId(path, node string) (cAdr []common.Address, err error) {
 func ParseExtraDataForContract(data []byte) *ExtraDataForContract {
 	var eData ExtraDataForContract
 	if err := util.ParseJsonFromBytes(data, &eData); err != nil {
-		log.Info("contract information of extra data extracting error", "err", err)
+		log.DLogger.Info("contract information of extra data extracting error", zap.Error(err))
 		return nil
 	} else {
 		return &eData
@@ -156,7 +157,7 @@ func GetContractMethodArgs(cType string, mName string) ([]reflect.Type, error) {
 	// create contract
 	nContract := reflect.New(ct)
 	if err := util.ParseJsonFromBytes(cb, nContract.Interface()); err != nil {
-		log.Debug("parse contract error", "err", err)
+		log.DLogger.Debug("parse contract error", zap.Error(err))
 		return nil, err
 	}
 	return nContract.Interface(), nil

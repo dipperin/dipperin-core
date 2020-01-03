@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/chaindb"
@@ -32,7 +33,6 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/tests/factory"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -141,18 +141,18 @@ func createGenesis() *Genesis {
 func pathIsExist(path string) bool {
 	_, err := os.Stat(path)
 	if err != nil {
-		log.Info("stat temp dir error,maybe is not exist, maybe not")
+		log.DLogger.Info("stat temp dir error,maybe is not exist, maybe not")
 		if os.IsNotExist(err) {
-			log.Info("temp dir is not exist")
+			log.DLogger.Info("temp dir is not exist")
 			err = os.MkdirAll(path, os.ModePerm)
 			if err != nil {
-				log.Info(fmt.Sprintf("mkdir failed![%v]\n", err))
+				log.DLogger.Info(fmt.Sprintf("mkdir failed![%v]\n", err))
 				return false
 			}
-			log.Info("make path sucessful")
+			log.DLogger.Info("make path sucessful")
 			return true
 		}
-		log.Info("stat file error")
+		log.DLogger.Info("stat file error")
 		return false
 	}
 	return true

@@ -20,6 +20,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/g-event"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/chaindb"
@@ -27,8 +28,8 @@ import (
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
+	"go.uber.org/zap"
 	"path/filepath"
 )
 
@@ -118,7 +119,7 @@ func initEthDB(dataDir string) ethdb.Database {
 
 	default:
 		dataDir = filepath.Join(dataDir, "full_chain_data")
-		log.Info("open chain data", "dir", dataDir)
+		log.DLogger.Info("open chain data", zap.String("dir", dataDir))
 		tmpDB, err := ethdb.NewLDBDatabase(dataDir, 0, 0)
 
 		if err != nil {

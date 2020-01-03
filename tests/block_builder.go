@@ -20,6 +20,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-config"
@@ -31,8 +32,8 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 	"math/big"
 	"time"
 )
@@ -185,7 +186,7 @@ func (builder *BlockBuilder) BuildFuture() model.AbstractBlock {
 	block.SetReceiptHash(receiptHash)
 	//block.SetBloomLog(model2.CreateBloom(receipts))
 	//bloomLog := block.GetBloomLog()
-	//log.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
+	//log.DLogger.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
 
 	linkList := model.NewInterLink(curBlock.GetInterlinks(), block)
 	block.SetInterLinks(linkList)
@@ -193,7 +194,7 @@ func (builder *BlockBuilder) BuildFuture() model.AbstractBlock {
 	block.SetInterLinkRoot(linkRoot)
 
 	if err = processor.ProcessExceptTxs(block, builder.ChainState.GetEconomyModel(), true); err != nil {
-		log.Error("process state except txs failed", "err", err)
+		log.DLogger.Error("process state except txs failed", zap.Error(err))
 		return nil
 	}
 
@@ -206,7 +207,7 @@ func (builder *BlockBuilder) BuildFuture() model.AbstractBlock {
 	// deal register
 	register, err := registerdb.NewRegisterDB(curBlock.GetRegisterRoot(), builder.ChainState.GetStateStorage(), builder.ChainState)
 	if err = register.Process(block); err != nil {
-		log.Error("process register failed", "err", err)
+		log.DLogger.Error("process register failed", zap.Error(err))
 		return nil
 	}
 	registerRoot := register.Finalise()
@@ -215,7 +216,7 @@ func (builder *BlockBuilder) BuildFuture() model.AbstractBlock {
 	// calculate block nonce
 	model.CalNonce(block)
 	block.RefreshHashCache()
-	log.Info("calculate block nonce successful", "num", block.Number())
+	log.DLogger.Info("calculate block nonce successful", zap.Uint64("num", block.Number()))
 	return block
 }
 
@@ -280,7 +281,7 @@ func (builder *BlockBuilder) Build() model.AbstractBlock {
 	block.SetReceiptHash(receiptHash)
 	//block.SetBloomLog(model2.CreateBloom(receipts))
 	//bloomLog := block.GetBloomLog()
-	//log.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
+	//log.DLogger.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
 
 	linkList := model.NewInterLink(curBlock.GetInterlinks(), block)
 	block.SetInterLinks(linkList)
@@ -288,7 +289,7 @@ func (builder *BlockBuilder) Build() model.AbstractBlock {
 	block.SetInterLinkRoot(linkRoot)
 
 	if err = processor.ProcessExceptTxs(block, builder.ChainState.GetEconomyModel(), true); err != nil {
-		log.Error("process state except txs failed", "err", err)
+		log.DLogger.Error("process state except txs failed", zap.Error(err))
 		return nil
 	}
 
@@ -301,18 +302,18 @@ func (builder *BlockBuilder) Build() model.AbstractBlock {
 	// deal register
 	register, err := registerdb.NewRegisterDB(curBlock.GetRegisterRoot(), builder.ChainState.GetStateStorage(), builder.ChainState)
 	if err = register.Process(block); err != nil {
-		log.Error("process register failed", "err", err)
+		log.DLogger.Error("process register failed", zap.Error(err))
 		return nil
 	}
 	registerRoot := register.Finalise()
-	//log.Info("set the register root is:","registerRoot",registerRoot.Hex(),"preRoot",curBlock.GetRegisterRoot().Hex())
+	//log.DLogger.Info("set the register root is:","registerRoot",registerRoot.Hex(),"preRoot",curBlock.GetRegisterRoot().Hex())
 	block.SetRegisterRoot(registerRoot)
 
 	// calculate block nonce
 	model.CalNonce(block)
 	//refresh block hash
 	block.RefreshHashCache()
-	log.Info("calculate block nonce successful", "num", block.Number())
+	log.DLogger.Info("calculate block nonce successful", zap.Uint64("num", block.Number()))
 	return block
 }
 
@@ -347,7 +348,7 @@ func (builder *BlockBuilder) BuildSpecialBlock() model.AbstractBlock {
 	block.SetReceiptHash(receiptHash)
 	//block.SetBloomLog(model2.CreateBloom(receipts))
 	//bloomLog := block.GetBloomLog()
-	//log.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
+	//log.DLogger.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
 
 	// set interlink root
 	linkList := model.NewInterLink(preBlock.GetInterlinks(), block)
@@ -358,23 +359,23 @@ func (builder *BlockBuilder) BuildSpecialBlock() model.AbstractBlock {
 	// calculate state root
 	processor, err := builder.ChainState.BlockProcessor(preBlock.StateRoot())
 	if err = processor.ProcessExceptTxs(block, builder.ChainState.GetEconomyModel(), false); err != nil {
-		log.Error("process state failed", "err", err)
+		log.DLogger.Error("process state failed", zap.Error(err))
 	}
 
 	root, err := processor.Finalise()
 	if err != nil {
-		log.Error("finalise state failed", "err", err)
+		log.DLogger.Error("finalise state failed", zap.Error(err))
 	}
 	block.SetStateRoot(root)
 
 	// calculate register root
 	registerPro, gErr := builder.ChainState.BuildRegisterProcessor(preBlock.GetRegisterRoot())
 	if gErr != nil {
-		log.Error("get register processor failed", "err", gErr)
+		log.DLogger.Error("get register processor failed", zap.Error(gErr))
 	}
 
 	if err = registerPro.Process(block); err != nil {
-		log.Error("process register failed", "err", err)
+		log.DLogger.Error("process register failed", zap.Error(err))
 	}
 	registerRoot := registerPro.Finalise()
 	block.SetRegisterRoot(registerRoot)
@@ -446,13 +447,13 @@ func (builder *BlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndN
 		}
 		err := builder.commitTransaction(&conf, state)
 		if err != nil {
-			log.Info("transaction is not processable because:", "err", err, "txID", tx.CalTxId(), "nonce:", tx.Nonce())
+			log.DLogger.Info("transaction is not processable because:", zap.Error(err), zap.Any("txID", tx.CalTxId()), zap.Uint64("nonce:", tx.Nonce()))
 			txs.Pop()
 			invalidList = append(invalidList, tx.(*model.Transaction))
 		} else {
 			receipt := tx.GetReceipt()
 			if receipt == nil {
-				log.Info("empty receipt", "txId", tx.CalTxId().Hex())
+				log.DLogger.Info("empty receipt", zap.String("txId", tx.CalTxId().Hex()))
 				txs.Pop()
 				invalidList = append(invalidList, tx.(*model.Transaction))
 			} else {

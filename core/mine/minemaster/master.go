@@ -20,10 +20,11 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-event"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 	"time"
 )
@@ -113,13 +114,13 @@ func (ms *master) loop() {
 
 		case worker := <-ms.registerWorkerChan:
 			//if ms.workers[worker.GetId()] != nil {
-			//	log.Warn("register WorkerForMaster, but WorkerForMaster already exist in mine master, replace old", "worker id", worker.GetId(), "workers len", len(ms.workers))
+			//	log.DLogger.Warn("register WorkerForMaster, but WorkerForMaster already exist in mine master, replace old", "worker id", worker.GetId(), "workers len", len(ms.workers))
 			//	//continue
 			//}
 			ms.workers[worker.GetId()] = worker
 
 		case wId := <-ms.unRegisterWorkerChan:
-			log.Info("un register worker", "w id", wId)
+			log.DLogger.Info("un register worker", zap.Any("w id", wId))
 			if ms.workers[wId] != nil {
 				ms.workers[wId].Stop()
 			}
@@ -129,7 +130,7 @@ func (ms *master) loop() {
 			ms.doOnNewBlock(block)
 
 		case <-ms.startTimerChan:
-			log.Info("start mine wait timer")
+			log.DLogger.Info("start mine wait timer")
 			ms.stopWait()
 
 			// set a time of 3 seconds
@@ -141,21 +142,21 @@ func (ms *master) loop() {
 			}, waitTimeout)
 
 		case <-ms.timeoutChan:
-			//log.Info("on timeout chan")
+			//log.DLogger.Info("on timeout chan")
 			ms.stopWait()
-			log.Warn("wait block verified timeout, dispatch a new work")
+			log.DLogger.Warn("wait block verified timeout, dispatch a new work")
 			if err := ms.workDispatcher.dispatchNewWork(); err != nil {
-				log.Error(fmt.Sprintf("master dispatch work failed, err: %v, w len: %v", err, len(ms.workers)))
+				log.DLogger.Error(fmt.Sprintf("master dispatch work failed, err: %v, w len: %v", err, len(ms.workers)))
 			}
 
 		case <-ms.stopChan:
-			//log.Info("on stop chan")
+			//log.DLogger.Info("on stop chan")
 
 			ms.stopWait()
 			return
 		}
 	}
-	//log.Info("finish mine master loop")
+	//log.DLogger.Info("finish mine master loop")
 }
 
 func (ms *master) getWorker(id WorkerId) WorkerForMaster {
@@ -175,18 +176,18 @@ func (ms *master) MineTxCount() int {
 }
 
 func (ms *master) Start() {
-	log.Info("start mine master", "worker len", len(ms.workers))
+	log.DLogger.Info("start mine master", zap.Int("worker len", len(ms.workers)))
 	if !ms.stopped() {
-		log.Info("call miner master start, bug it already started")
+		log.DLogger.Info("call miner master start, bug it already started")
 		return
 	}
 	ms.stopChan = make(chan struct{})
 
-	log.Info("run mine master loop")
+	log.DLogger.Info("run mine master loop")
 	go ms.loop()
 	// wait local worker connect
 
-	log.Info("start mine workers", "worker len", len(ms.workers))
+	log.DLogger.Info("start mine workers", zap.Int("worker len", len(ms.workers)))
 	for _, w := range ms.workers {
 		w.Start()
 	}
@@ -200,7 +201,7 @@ func (ms *master) Start() {
 
 func (ms *master) Stop() {
 	if ms.stopped() {
-		log.Info("call miner master stop, but it already stopped")
+		log.DLogger.Info("call miner master stop, but it already stopped")
 		return
 	}
 
@@ -237,7 +238,7 @@ func (ms *master) OnNewBlock(block model.AbstractBlock) {
 
 //
 func (ms *master) doOnNewBlock(block model.AbstractBlock) {
-	log.Info("on new block chan", "new block", block.Number(), "cur block height", ms.curNewBlockHeight)
+	log.DLogger.Info("on new block chan", zap.Uint64("new block", block.Number()), zap.Uint64("cur block height", ms.curNewBlockHeight))
 
 	if block.Number() <= ms.curNewBlockHeight {
 		return
@@ -251,12 +252,12 @@ func (ms *master) doOnNewBlock(block model.AbstractBlock) {
 		ms.curNewBlockHeight = block.Number()
 		ms.stopWait()
 	} else {
-		log.Warn("dispatcher process new block failed", "err", err)
+		log.DLogger.Warn("dispatcher process new block failed", zap.Error(err))
 	}
 }
 
 func (ms *master) Workers() map[WorkerId]WorkerForMaster {
-	//log.Info("get mine master workers", "workers len", len(ms.workers))
+	//log.DLogger.Info("get mine master workers", "workers len", len(ms.workers))
 	return ms.workers
 }
 
@@ -274,10 +275,10 @@ func (ms *master) setWorkDispatcher(dispatcher dispatcher) {
 
 func (ms *master) stopWait() {
 	if ms.stopTimerFunc == nil {
-		log.Info("no timer to stop")
+		log.DLogger.Info("no timer to stop")
 		return
 	}
-	log.Info("stop timer")
+	log.DLogger.Info("stop timer")
 	ms.stopTimerFunc()
 	ms.stopTimerFunc = nil
 }
@@ -285,9 +286,9 @@ func (ms *master) stopWait() {
 // if it remains waiting status 5 seconds after a block
 // is submitted by miners, a new block generation is automated
 func (ms *master) startWaitTimer() {
-	//log.Info("start wait timer")
+	//log.DLogger.Info("start wait timer")
 	if ms.stopped() {
-		//log.Info("miner stopped not start timer")
+		//log.DLogger.Info("miner stopped not start timer")
 		return
 	}
 	ms.startTimerChan <- struct{}{}

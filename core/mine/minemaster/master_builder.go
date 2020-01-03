@@ -22,7 +22,7 @@ func MakeMineMaster(config MineConfig) (Master, MasterServer) {
 	// interface of minemaster
 	master := newMaster(config)
 
-	//log.Info("the coinbaseAddress is: ","coinbaseAddress", config.CoinbaseAddress.Hex())
+	//log.DLogger.Info("the coinbaseAddress is: ","coinbaseAddress", config.CoinbaseAddress.Hex())
 
 	dispatcher := newWorkDispatcher(config, master.Workers)
 	// manage worker's work and submit work to broadcast

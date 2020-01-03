@@ -19,11 +19,12 @@ package mineworker
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests/factory"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"testing"
 	"time"
 )
@@ -52,7 +53,7 @@ out:
 		select {
 		case rw := <-result:
 			rw.FillSealResult(block)
-			log.Info("result work", "nonce", rw.BlockHeader.Nonce, "block header nonce", block.Nonce().Hex())
+			log.DLogger.Info("result work", zap.Any("nonce", rw.BlockHeader.Nonce), zap.String("block header nonce", block.Nonce().Hex()))
 			assert.True(t, block.Hash().ValidHashForDifficulty(diff), block.Hash().Hex())
 			break out
 		case <-tick:
@@ -61,7 +62,7 @@ out:
 		default:
 			if !found && executor.ChangeNonce() {
 				found = true
-				log.Info("found nonce")
+				log.DLogger.Info("found nonce")
 				result <- *executor.curWork
 			}
 		}

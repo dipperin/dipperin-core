@@ -18,13 +18,14 @@ package middleware
 
 import (
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 func UpdateBlockVerifier(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("UpdateStateRoot start")
+		log.DLogger.Info("UpdateStateRoot start")
 		registerPro, err := validBlockVerifier(c)
 		if err != nil {
 			return err
@@ -33,7 +34,7 @@ func UpdateBlockVerifier(c *BlockContext) Middleware {
 		if _, err := registerPro.Commit(); err != nil {
 			return err
 		}
-		log.Middleware.Info("UpdateStateRoot success")
+		log.DLogger.Info("UpdateStateRoot success")
 		return c.Next()
 	}
 }
@@ -71,7 +72,7 @@ func validBlockVerifier(c *BlockContext) (*registerdb.RegisterDB, error) {
 
 func NextRoundVerifier(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("NextRoundVerifier start", "blockNumber", c.Block.Number())
+		log.DLogger.Info("NextRoundVerifier start", zap.Uint64("blockNumber", c.Block.Number()))
 		chain := c.Chain
 		// check register
 		// insert success then calculate verifiers
@@ -79,7 +80,7 @@ func NextRoundVerifier(c *BlockContext) Middleware {
 		if chain.IsChangePoint(c.Block, false) {
 			chain.GetVerifiers(*slot + chain.GetChainConfig().SlotMargin)
 		}
-		log.Middleware.Info("NextRoundVerifier end success")
+		log.DLogger.Info("NextRoundVerifier end success")
 		return c.Next()
 	}
 }

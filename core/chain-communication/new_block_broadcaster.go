@@ -20,13 +20,14 @@ import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-metrics"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/hashicorp/golang-lru"
+	"go.uber.org/zap"
 	"math"
 	"reflect"
 	"sync"
@@ -96,8 +97,8 @@ func (broadcaster *NewBlockBroadcaster) getPeersWithoutBlock(block model.Abstrac
 
 // broadcast new block
 func (broadcaster *NewBlockBroadcaster) BroadcastBlock(block model.AbstractBlock) {
-	log.Info("new block broadcaster BroadcastBlock", "num", block.Number())
-	log.PBft.Debug("broadcast block", "num", block.Number(), "txs", block.TxCount())
+	log.DLogger.Info("new block broadcaster BroadcastBlock", zap.Uint64("num", block.Number()))
+	log.DLogger.Debug("broadcast block", zap.Uint64("num", block.Number()), zap.Int("txs", block.TxCount()))
 	peers := broadcaster.getPeersWithoutBlock(block)
 
 	var vPeers []PmAbstractPeer
@@ -113,7 +114,7 @@ func (broadcaster *NewBlockBroadcaster) BroadcastBlock(block model.AbstractBlock
 
 	transfer := broadcaster.getTransferPeers(rPeers)
 
-	log.Info("Miner broad cast block to", "Height", block.Number(), "v peer len", len(vPeers), "other peer len", len(transfer))
+	log.DLogger.Info("Miner broad cast block to", zap.Uint64("Height", block.Number()), zap.Int("v peer len", len(vPeers)), zap.Int("other peer len", len(transfer)))
 
 	broadcaster.broadcastBlock(block, vPeers)
 	broadcaster.broadcastBlock(block, transfer)
@@ -134,14 +135,14 @@ func (broadcaster *NewBlockBroadcaster) broadcastBlock(block model.AbstractBlock
 	for i := range peers {
 		receiver := broadcaster.getReceiver(peers[i])
 		receiver.asyncSendBlock(block)
-		log.PBft.Debug("broadcast block", "to", peers[i].NodeName(), "type", peers[i].NodeType(), "num", block.Number(), "txs", block.TxCount())
+		log.DLogger.Debug("broadcast block", zap.String("to", peers[i].NodeName()), zap.Uint64("type", peers[i].NodeType()), zap.Uint64("num", block.Number()), zap.Int("txs", block.TxCount()))
 	}
 }
 
 func (broadcaster *NewBlockBroadcaster) onNewBlock(msg p2p.Msg, p PmAbstractPeer) error {
 	g_metrics.Add(g_metrics.ReceivedWaitVBlockCount, "", 1)
 
-	log.PBft.Debug("receive new block", "from", p.NodeName())
+	log.DLogger.Debug("receive new block", zap.String("from", p.NodeName()))
 	var block model.Block
 	err := msg.Decode(&block)
 	if err != nil {
@@ -149,13 +150,13 @@ func (broadcaster *NewBlockBroadcaster) onNewBlock(msg p2p.Msg, p PmAbstractPeer
 	}
 	//receiptHash := block.GetReceiptHash()
 	//bloomLog := block.GetBloomLog()
-	//log.Info("NewBlockBroadcaster#onNewBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receiptHash, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
+	//log.DLogger.Info("NewBlockBroadcaster#onNewBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receiptHash, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
 
 	// load blockReceiver
 	broadcaster.getReceiver(p).markBlock(&block)
 
 	pbftNode := broadcaster.PbftNode
-	log.Info("Get new block", "from", p.NodeName(), "Is pbft", !reflect.ValueOf(pbftNode).IsNil())
+	log.DLogger.Info("Get new block", zap.String("from", p.NodeName()), zap.Bool("Is pbft", !reflect.ValueOf(pbftNode).IsNil()))
 	if !reflect.ValueOf(pbftNode).IsNil() {
 		pbftNode.OnNewWaitVerifyBlock(&block, p.ID())
 	}
@@ -164,7 +165,7 @@ func (broadcaster *NewBlockBroadcaster) onNewBlock(msg p2p.Msg, p PmAbstractPeer
 }
 
 func (broadcaster *NewBlockBroadcaster) newBlockReceiver(peer PmAbstractPeer) *blockReceiver {
-	log.Info("new block receiver", "p", peer.NodeName())
+	log.DLogger.Info("new block receiver", zap.String("p", peer.NodeName()))
 
 	kb, _ := lru.New(500)
 	receiver := &blockReceiver{
@@ -183,7 +184,7 @@ func (broadcaster *NewBlockBroadcaster) newBlockReceiver(peer PmAbstractPeer) *b
 		}
 
 		if err := receiver.broadcast(getPeer); err != nil {
-			log.Error("wait verify block broadcast error", "err", err, "peer name", peer.NodeName())
+			log.DLogger.Error("wait verify block broadcast error", zap.Error(err), zap.String("peer name", peer.NodeName()))
 			return
 		}
 	}()
@@ -210,7 +211,7 @@ func (r *blockReceiver) asyncSendBlock(block model.AbstractBlock) {
 	case r.queuedBlock <- block:
 		//r.knownBlocks.Add(block.Hash())
 	default:
-		log.Info("Dropping block propagation", "number", block.Number(), "hash", block.Hash())
+		log.DLogger.Info("Dropping block propagation", zap.Uint64("number", block.Number()), zap.Any("hash", block.Hash()))
 	}
 }
 
@@ -220,7 +221,7 @@ func (r *blockReceiver) asyncSendBlockHash(block model.AbstractBlock) {
 	case r.queuedBlockHash <- block:
 		//r.knownBlocks.Add(block.Hash())
 	default:
-		log.Info("Dropping block propagation", "number", block.Number(), "hash", block.Hash())
+		log.DLogger.Info("Dropping block propagation", zap.Uint64("number", block.Number()), zap.Any("hash", block.Hash()))
 	}
 }
 
@@ -231,7 +232,7 @@ func (r *blockReceiver) asyncSendVerifyResult(result *model2.VerifyResult) {
 
 		//r.knownBlocks.Add(result.Block.Hash())
 	default:
-		log.Info("Dropping result propagation", "number", result.Block.Number(), "hash", result.Block.Hash())
+		log.DLogger.Info("Dropping result propagation", zap.Uint64("number", result.Block.Number()), zap.Any("hash", result.Block.Hash()))
 	}
 }
 
@@ -241,7 +242,7 @@ func (r *blockReceiver) asyncSendVerifyResultHash(result *model2.VerifyResult) {
 	case r.queuedVerifyResultHash <- result:
 		//r.knownBlocks.Add(result.Block.Hash())
 	default:
-		log.Info("Dropping result propagation", "number", result.Block.Number(), "chan len", len(r.queuedVerifyResultHash))
+		log.DLogger.Info("Dropping result propagation", zap.Uint64("number", result.Block.Number()), zap.Int("chan len", len(r.queuedVerifyResultHash)))
 	}
 }
 
@@ -250,25 +251,25 @@ func (r *blockReceiver) broadcast(getPeer getPeerFunc) error {
 		select {
 		case block := <-r.queuedBlock:
 			if err := r.sendBlock(block, getPeer); err != nil {
-				log.Error("send block err", "err", err)
+				log.DLogger.Error("send block err", zap.Error(err))
 				return err
 			}
 
 		case block := <-r.queuedBlockHash:
-			//log.Info("blockReceiver send wait verify block hash", "num", block.Number())
+			//log.DLogger.Info("blockReceiver send wait verify block hash", "num", block.Number())
 			if err := r.sendBlockHash(block, getPeer); err != nil {
-				log.Error("send block hash err", "err", err)
+				log.DLogger.Error("send block hash err", zap.Error(err))
 				return err
 			}
 
 		case result := <-r.queuedVerifyResult:
-			//log.Info("blockReceiver send v result block", "num", result.Block.Number(), "commits len", len(result.SeenCommits))
+			//log.DLogger.Info("blockReceiver send v result block", "num", result.Block.Number(), "commits len", len(result.SeenCommits))
 			if err := r.sendVerifyResult(result, getPeer); err != nil {
 				return err
 			}
 
 		case result := <-r.queuedVerifyResultHash:
-			//log.Info("blockReceiver send v result block hash", "node name", r.peerName)
+			//log.DLogger.Info("blockReceiver send v result block hash", "node name", r.peerName)
 			if err := r.sendVerifyResultHash(result, getPeer); err != nil {
 				return err
 			}
@@ -281,12 +282,12 @@ func (r *blockReceiver) sendBlock(block model.AbstractBlock, getPeer getPeerFunc
 	rlpValue, _ := rlp.EncodeToBytes(block)
 	size := common.StorageSize(len(rlpValue))
 
-	log.Debug("send block size", "storage size", size.String(), "block tx size", block.TxCount())
+	log.DLogger.Debug("send block size", zap.String("storage size", size.String()), zap.Int("block tx size", block.TxCount()))
 
 	r.markBlock(block)
 
 	if peer := getPeer(); peer != nil {
-		log.PBft.Debug("send block", "block", block.Number(), "peer", peer.NodeName())
+		log.DLogger.Debug("send block", zap.Uint64("block", block.Number()), zap.String("peer", peer.NodeName()))
 		return peer.SendMsg(NewBlockV1Msg, block)
 	}
 

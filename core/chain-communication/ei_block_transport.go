@@ -112,37 +112,37 @@ type eiBlockTransport struct {
 //		select {
 //		case msg := <-receiver.queuedEiBroadcastMsg:
 //			if err := receiver.sendEiBroadcastMsg(msg, getPeer); err != nil {
-//				log.Error("send ei failed", "err", err)
+//				log.DLogger.Error("send ei failed", "err", err)
 //				return err
 //			}
 //
 //		case msg := <-receiver.queuedWvEiBroadcastMsg:
 //			if err := receiver.sendWvEiBroadcastMsg(msg, getPeer); err != nil {
-//				log.Error("send wv ei failed", "err", err)
+//				log.DLogger.Error("send wv ei failed", "err", err)
 //				return err
 //			}
 //
 //		case msg := <-receiver.queuedEiBlockBloomMsg:
 //			if err := receiver.sendEiBlockByBloomMsg(msg, getPeer); err != nil {
-//				log.Error("send ei block bloom failed", "err", err)
+//				log.DLogger.Error("send ei block bloom failed", "err", err)
 //				return err
 //			}
 //
 //		case msg := <-receiver.queuedWvEiBlockBloomMsg:
 //			if err := receiver.sendWvEiBlockByBloomMsg(msg, getPeer); err != nil {
-//				log.Error("send wv ei block bloom failed", "err", err)
+//				log.DLogger.Error("send wv ei block bloom failed", "err", err)
 //				return err
 //			}
 //
 //		case msg := <-receiver.queuedWvEstimatorMsg:
 //			if err := receiver.sendWvEstimatorMsg(msg, getPeer); err != nil {
-//				log.Error("send wv estimator failed", "err", err)
+//				log.DLogger.Error("send wv estimator failed", "err", err)
 //				return err
 //			}
 //
 //		case msg := <-receiver.queuedEstimatorMsg:
 //			if err := receiver.sendEstimatorMsg(msg, getPeer); err != nil {
-//				log.Error("send estimator failed", "err", err)
+//				log.DLogger.Error("send estimator failed", "err", err)
 //				return err
 //			}
 //		case <- timer.C:
@@ -154,18 +154,18 @@ type eiBlockTransport struct {
 //}
 //
 //func (receiver *eiBlockTransport) asyncSendEiBroadcastMsg(msg *eiBroadcastMsg) {
-//	//log.Info("eiBlockTransport#asyncSendEiBroadcastMsg", "receiver.wvTs", receiver.wvTs)
+//	//log.DLogger.Info("eiBlockTransport#asyncSendEiBroadcastMsg", "receiver.wvTs", receiver.wvTs)
 //	if receiver.wvTs {
 //		select {
 //		case receiver.queuedWvEiBroadcastMsg <- msg:
 //		default:
-//			log.Info("Dropping wv ei propagation", "hash", msg.BlockHash, "height", msg.Height)
+//			log.DLogger.Info("Dropping wv ei propagation", "hash", msg.BlockHash, "height", msg.Height)
 //		}
 //	} else {
 //		select {
 //		case receiver.queuedEiBroadcastMsg <- msg:
 //		default:
-//			log.Info("Dropping ei propagation", "hash", msg.BlockHash, "height", msg.Height)
+//			log.DLogger.Info("Dropping ei propagation", "hash", msg.BlockHash, "height", msg.Height)
 //		}
 //	}
 //}
@@ -175,13 +175,13 @@ type eiBlockTransport struct {
 //		select {
 //		case receiver.queuedWvEstimatorMsg <- msg:
 //		default:
-//			log.Info("Dropping wv estimator propagation", "hash", msg.BlockHash)
+//			log.DLogger.Info("Dropping wv estimator propagation", "hash", msg.BlockHash)
 //		}
 //	} else {
 //		select {
 //		case receiver.queuedEstimatorMsg <- msg:
 //		default:
-//			log.Info("Dropping ei propagation", "hash", msg.BlockHash)
+//			log.DLogger.Info("Dropping ei propagation", "hash", msg.BlockHash)
 //		}
 //	}
 //}
@@ -191,13 +191,13 @@ type eiBlockTransport struct {
 //		select {
 //		case receiver.queuedWvEiBlockBloomMsg <- msg:
 //		default:
-//			log.Info("Dropping wv blockByBloom propagation", "hash", msg.Header.Hash().Hex(), "height", msg.Header.Number)
+//			log.DLogger.Info("Dropping wv blockByBloom propagation", "hash", msg.Header.Hash().Hex(), "height", msg.Header.Number)
 //		}
 //	} else {
 //		select {
 //		case receiver.queuedEiBlockBloomMsg <- msg:
 //		default:
-//			log.Info("Dropping ei blockByBloom propagation", "hash", msg.Header.Hash().Hex(), "height", msg.Header.Number)
+//			log.DLogger.Info("Dropping ei blockByBloom propagation", "hash", msg.Header.Hash().Hex(), "height", msg.Header.Number)
 //		}
 //	}
 //}
@@ -205,7 +205,7 @@ type eiBlockTransport struct {
 //func (receiver *eiBlockTransport) sendEiBroadcastMsg(msg *eiBroadcastMsg, getPeer getPeerFunc) error {
 //	// mark hash
 //	receiver.knownBlocks.Add(msg.BlockHash, 1)
-//	log.Info("eiBlockTransport#sendEiBroadcastMsg   send block to peer", "node", receiver.peerName)
+//	log.DLogger.Info("eiBlockTransport#sendEiBroadcastMsg   send block to peer", "node", receiver.peerName)
 //
 //	if peer := getPeer(); peer != nil {
 //		return peer.SendMsg(EiNewBlockHashMsg, msg)
@@ -217,7 +217,7 @@ type eiBlockTransport struct {
 //func (receiver *eiBlockTransport) sendWvEiBroadcastMsg(msg *eiBroadcastMsg, getPeer getPeerFunc) error {
 //	// mark hash
 //	receiver.knownBlocks.Add(msg.BlockHash, 1)
-//	//log.Info("send block to peer", "node", receiver.peerName)
+//	//log.DLogger.Info("send block to peer", "node", receiver.peerName)
 //
 //	if peer := getPeer(); peer != nil {
 //		return peer.SendMsg(EiWaitVerifyBlockHashMsg, msg)

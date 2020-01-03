@@ -21,11 +21,12 @@ package discover
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"net"
 	"sort"
 	"time"
 
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 )
 
 const (
@@ -49,10 +50,10 @@ func checkClockDrift() {
 		return
 	}
 	if drift < -driftThreshold || drift > driftThreshold {
-		log.Warn(fmt.Sprintf("System clock seems off by %v, which can prevent network connectivity", drift))
-		log.Warn("Please enable network time synchronisation in system settings.")
+		log.DLogger.Warn(fmt.Sprintf("System clock seems off by %v, which can prevent network connectivity", drift))
+		log.DLogger.Warn("Please enable network time synchronisation in system settings.")
 	} else {
-		log.Debug("NTP sanity check done", "drift", drift)
+		log.DLogger.Debug("NTP sanity check done", zap.String("drift", drift.String()))
 	}
 }
 

@@ -18,12 +18,12 @@ package minemaster
 
 import (
 	"errors"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
-	"reflect"
+	"go.uber.org/zap"
 )
 
 func newServer(mineMaster mineMaster, wManager workManager, getCurWorkBlockFunc getCurWorkBlockFunc) *server {
@@ -55,7 +55,7 @@ func (s *server) ReceiveMsg(workerID WorkerId, code uint64, msg interface{}) {
 	case minemsg.SubmitDefaultWorkMsg:
 		w, ok := msg.(minemsg.Work)
 		if !ok {
-			log.Warn("receive wrong work submit msg", "work", reflect.TypeOf(msg))
+			log.DLogger.Warn("receive wrong work submit msg", zap.Any("work", msg))
 			return
 		}
 
@@ -64,33 +64,33 @@ func (s *server) ReceiveMsg(workerID WorkerId, code uint64, msg interface{}) {
 		// TODO: verify different block difficulty
 		s.onSubmitBlock(workerID, w)
 	default:
-		log.Debug("receive wrong msg", "code", code)
+		log.DLogger.Debug("receive wrong msg", zap.Uint64("code", code))
 	}
 }
 
 func (s *server) onSubmitBlock(workerID WorkerId, work minemsg.Work) {
 
 	block := s.getCurWorkBlockFunc()
-	log.PBft.Debug("onSubmitBlock", "block id", block.Number(), "block txs", block.TxCount())
+	log.DLogger.Debug("onSubmitBlock", zap.Uint64("block id", block.Number()), zap.Int("block txs", block.TxCount()))
 	if err := work.FillSealResult(block); err != nil {
-		log.Warn("fill seal result failed", "err", err)
+		log.DLogger.Warn("fill seal result failed", zap.Error(err))
 		return
 	}
 
-	log.Info("mine master before submit block", "hash", block.RefreshHashCache())
+	log.DLogger.Info("mine master before submit block", zap.Any("hash", block.RefreshHashCache()))
 	// check block valid
 	if !block.RefreshHashCache().ValidHashForDifficulty(block.Difficulty()) {
-		log.Warn("master receive invalid mined block", "do unregister worker", workerID)
+		log.DLogger.Warn("master receive invalid mined block", zap.Any("do unregister worker", workerID))
 		//s.UnRegisterWorker(workerID)
 		return
 	}
 
 	//receiptHash := block.GetReceiptHash()
 	//bloomLog := block.GetBloomLog()
-	//log.Info("server#onSubmitBlock", "receipts", receiptHash)
+	//log.DLogger.Info("server#onSubmitBlock", "receipts", receiptHash)
 
 	//fmt.Println("mine master prepare broadcast block", util.StringifyJson(block), block.Hash())
-	//log.Info("mine master receive new work", "block hash", block.Hash().Hex(), "block number", block.Number())
+	//log.DLogger.Info("mine master receive new work", "block hash", block.Hash().Hex(), "block number", block.Number())
 	s.workManager.submitBlock(work.GetWorkerCoinbaseAddress(), block)
 }
 
@@ -115,7 +115,7 @@ func (s *server) OnNewMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer) err
 
 		return nil
 	case minemsg.UnRegisterMsg:
-		log.Info("receive un register msg", "worker id", workerId)
+		log.DLogger.Info("receive un register msg", zap.Any("worker id", workerId))
 		s.UnRegisterWorker(workerId)
 
 	case minemsg.SetCurrentCoinbaseMsg:
@@ -139,7 +139,7 @@ func (s *server) OnNewMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer) err
 		s.ReceiveMsg(workerId, msg.Code, &defaultWork)
 
 	default:
-		log.Warn("receive unknown msg", "code", msg.Code)
+		log.DLogger.Warn("receive unknown msg", zap.Uint64("code", msg.Code))
 		return errors.New("unknown msg")
 	}
 	return nil

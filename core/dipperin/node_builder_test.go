@@ -17,11 +17,12 @@
 package dipperin
 
 import (
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/cs-chain"
 	"github.com/dipperin/dipperin-core/tests/factory"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -128,7 +129,7 @@ func TestGetServiceName(t *testing.T) {
 
 	serviceType := reflect.TypeOf(service)
 
-	log.Info("the service name is:", "serviceType", serviceType.String())
+	log.DLogger.Info("the service name is:", zap.String("serviceType", serviceType.String()))
 
-	log.Info("the a type name is:", "name", reflect.TypeOf("hello").Name())
+	log.DLogger.Info("the a type name is:", zap.String("name", reflect.TypeOf("hello").Name()))
 }

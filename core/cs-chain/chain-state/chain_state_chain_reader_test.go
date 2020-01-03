@@ -22,7 +22,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"gopkg.in/check.v1"
 	"testing"
 )
@@ -39,7 +38,6 @@ type ChainStateSuite struct {
 var _ = check.Suite(&ChainStateSuite{})
 
 func (suite *ChainStateSuite) SetUpTest(c *check.C) {
-	log.InitLogger(log.LvlError)
 	suite.BaseChainSuite.SetUpTest(c)
 
 	// insert block

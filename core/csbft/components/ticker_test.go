@@ -20,13 +20,11 @@ import (
 	"fmt"
 	cmn "github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/csbft/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"testing"
 	"time"
 )
 
 func TestNewTimeoutTicker(t *testing.T) {
-	log.InitLogger(log.LvlDebug)
 	tt := NewTimeoutTicker()
 	tt.Start()
 	go func() {

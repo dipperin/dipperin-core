@@ -18,11 +18,12 @@ package util
 
 import (
 	"errors"
+	"go.uber.org/zap"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -92,11 +93,9 @@ func TestBaseService_MulStart(t *testing.T) {
 func TestBaseService_SetLogger(t *testing.T) {
 	ts := &testService{}
 	ts.BaseService = *NewBaseService(nil, "TestService", ts)
-	var logger log.Logger
-	log.New(&logger)
-	ts.SetLogger(logger)
+	ts.SetLogger(log.DLogger)
 
-	assert.Equal(t, ts.Logger, logger)
+	assert.Equal(t, ts.Logger, log.DLogger)
 }
 
 func TestBaseService_Start(t *testing.T) {
@@ -201,7 +200,7 @@ func (e *errService) String() string {
 	return "errService"
 }
 
-func (e *errService) SetLogger(logger log.Logger) {
+func (e *errService) SetLogger(logger *zap.Logger) {
 	panic("implement me")
 }
 
@@ -220,7 +219,7 @@ func TestStart2(t *testing.T) {
 
 func TestNewBaseService(t *testing.T) {
 	type args struct {
-		logger log.Logger
+		logger *zap.Logger
 		name   string
 		impl   Service
 	}

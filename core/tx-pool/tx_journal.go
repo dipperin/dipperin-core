@@ -19,9 +19,10 @@ package tx_pool
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 	"io"
 	"os"
 )
@@ -81,7 +82,7 @@ func (journal *txJournal) load(add func([]model.AbstractTransaction) []error) er
 	loadBatch := func(txs []model.AbstractTransaction) {
 		for _, err := range add(txs) {
 			if err != nil {
-				log.Debug("Failed to add journaled transaction", "err", err)
+				log.DLogger.Debug("Failed to add journaled transaction", zap.Error(err))
 				dropped++
 			}
 		}
@@ -111,7 +112,7 @@ func (journal *txJournal) load(add func([]model.AbstractTransaction) []error) er
 			batch = batch[:0]
 		}
 	}
-	log.Info("Loaded local transaction journal", "transactions", total, "dropped", dropped)
+	log.DLogger.Info("Loaded local transaction journal", zap.Int("transactions", total), zap.Int("dropped", dropped))
 
 	return failure
 }
@@ -163,7 +164,7 @@ func (journal *txJournal) rotate(all map[common.Address][]model.AbstractTransact
 		return err
 	}
 	journal.writer = sink
-	log.Info("Regenerated local transaction journal", "transactions", journaled, "accounts", len(all))
+	log.DLogger.Info("Regenerated local transaction journal", zap.Int("transactions", journaled), zap.Int("accounts", len(all)))
 
 	return nil
 }

@@ -19,8 +19,9 @@ package mineworker
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 var (
@@ -61,14 +62,14 @@ type workManager struct {
 }
 
 func (workManager *workManager) OnNewWork(msg workMsg) {
-	log.Info("work manager receive new work", "msg code", msg.MsgCode())
+	log.DLogger.Info("work manager receive new work", zap.Int("msg code", msg.MsgCode()))
 	miners := workManager.getMinersFunc()
 	executors, err := workManager.executorBuilder.CreateExecutor(msg, len(miners), workManager)
 	if err != nil {
-		log.Warn("build executor for msg failed", "err", err)
+		log.DLogger.Warn("build executor for msg failed", zap.Error(err))
 		return
 	}
-	log.Info("dispatch work to miners", "executors len", len(executors))
+	log.DLogger.Info("dispatch work to miners", zap.Int("executors len", len(executors)))
 	for i, executor := range executors {
 		miners[i].receiveWork(executor)
 	}
@@ -77,6 +78,6 @@ func (workManager *workManager) OnNewWork(msg workMsg) {
 func (workManager *workManager) SubmitWork(work minemsg.Work) {
 	work.SetWorkerCoinbaseAddress(workManager.getCoinbaseAddressFunc())
 	if err := workManager.msgSender.SendMsg(minemsg.SubmitDefaultWorkMsg, work); err != nil {
-		log.Warn("submit work failed", "err", err)
+		log.DLogger.Warn("submit work failed", zap.Error(err))
 	}
 }

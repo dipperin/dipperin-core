@@ -185,10 +185,8 @@ func TestBaseProtocolManager_handleMsg1(t *testing.T) {
 
 	mPeer := NewMockPmAbstractPeer(ctrl)
 
-	mPeer.EXPECT().NodeName().Return("aaaa")
+	mPeer.EXPECT().NodeName().Return("aaaa").AnyTimes()
 	mPeer.EXPECT().ReadMsg().Return(p2p.Msg{}, errors.New("dddd"))
-	mPeer.EXPECT().NodeName().Return("aaaa")
-	mPeer.EXPECT().NodeName().Return("aaaa")
 	assert.EqualError(t, bpm.handleMsg(mPeer), "dddd")
 }
 

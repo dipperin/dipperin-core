@@ -3,8 +3,9 @@ package exec
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/third-party/life/mem-manage"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math"
 	"math/bits"
 	"runtime/debug"
@@ -428,12 +429,12 @@ func (f *Frame) Destroy(vm *VirtualMachine) {
 
 // GetCurrentFrame returns the current frame.
 func (vm *VirtualMachine) GetCurrentFrame() *Frame {
-	//log.Info("GetCurrentFrame~~~~~~~~~~~~~~~~~~~~~")
+	//log.DLogger.Info("GetCurrentFrame~~~~~~~~~~~~~~~~~~~~~")
 	if vm.Config.MaxCallStackDepth != 0 && vm.CurrentFrame >= vm.Config.MaxCallStackDepth {
 		panic("max call stack depth exceeded")
 	}
-	//log.Info("the current frame is:","currentFrame",vm.CurrentFrame)
-	//log.Info("the len(vm.CallStack) is:","len(vm.CallStack)",len(vm.CallStack))
+	//log.DLogger.Info("the current frame is:","currentFrame",vm.CurrentFrame)
+	//log.DLogger.Info("the len(vm.CallStack) is:","len(vm.CallStack)",len(vm.CallStack))
 	if vm.CurrentFrame >= len(vm.CallStack) {
 		panic("call stack overflow")
 		//vmcommon.CallStack = append(vmcommon.CallStack, make([]Frame, DefaultCallStackSize / 2)...)
@@ -489,8 +490,8 @@ func (vm *VirtualMachine) Ignite(functionID int, params ...int64) {
 	}
 
 	code := vm.FunctionCode[functionID]
-	log.Info("the NumParams is:", "NumParams", code.NumParams)
-	log.Info("the params number is:", "param-len", len(params))
+	log.DLogger.Info("the NumParams is:", zap.Int("NumParams", code.NumParams))
+	log.DLogger.Info("the params number is:", zap.Int("param-len", len(params)))
 	if code.NumParams != len(params) {
 		panic("param count mismatch")
 	}
@@ -549,13 +550,13 @@ func (vm *VirtualMachine) Execute() {
 			vm.Exited = true
 			vm.ExitError = err
 			vm.StackTrace = string(debug.Stack())
-			//log.Debug("VirtualMachine#Execute", "StackTrace", vm.StackTrace)
+			//log.DLogger.Debug("VirtualMachine#Execute", "StackTrace", vm.StackTrace)
 			//fmt.Println("VirtualMachine#Execute", vm.StackTrace)
 		}
 	}()
 
 	frame := vm.GetCurrentFrame()
-	//log.Debug("VirtualMachine#Execute", "frame  id ", frame.FunctionID)
+	//log.DLogger.Debug("VirtualMachine#Execute", "frame  id ", frame.FunctionID)
 	for {
 		valueID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
 		ins := opcodes.Opcode(frame.Code[frame.IP+4])
@@ -567,10 +568,10 @@ func (vm *VirtualMachine) Execute() {
 		}
 		vm.GasUsed += cost
 
-		//log.Debug("VirtualMachine#Execute", "frame", frame.FunctionID, "ins", ins)
+		//log.DLogger.Debug("VirtualMachine#Execute", "frame", frame.FunctionID, "ins", ins)
 
 		//fmt.Printf("INS: [%d] %s\n", valueID, ins.String(), )
-		//log.Info("VirtualMachine#Execute", "ins", ins.String(), "valueID", valueID)
+		//log.DLogger.Info("VirtualMachine#Execute", "ins", ins.String(), "valueID", valueID)
 		switch ins {
 		case opcodes.Nop:
 		case opcodes.Unreachable:
@@ -1526,7 +1527,7 @@ func (vm *VirtualMachine) Execute() {
 
 			effective := int(uint64(base) + uint64(offset))
 			//if frame.FunctionID == 513 {
-			//log.Debug("VirtualMachine#I32Load ", "effective", effective, "vm.Memory len ", len(vm.Memory.Memory))
+			//log.DLogger.Debug("VirtualMachine#I32Load ", "effective", effective, "vm.Memory len ", len(vm.Memory.Memory))
 			//}
 			frame.Regs[valueID] = int64(uint32(LE.Uint32(vm.Memory.Memory[effective : effective+4])))
 		case opcodes.I64Load32S:
@@ -1790,7 +1791,7 @@ func (vm *VirtualMachine) Execute() {
 			importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
 			frame.IP += 4
 			vm.Delegate = func() {
-				//log.Debug("the call func is:", "f", vm.FunctionImports[importID])
+				//log.DLogger.Debug("the call func is:", "f", vm.FunctionImports[importID])
 				frame.Regs[valueID] = vm.FunctionImports[importID].F.Execute(vm)
 			}
 			return

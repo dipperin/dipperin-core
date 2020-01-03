@@ -23,11 +23,12 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-event"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
+	"go.uber.org/zap"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -106,7 +107,7 @@ func (c *ChainIndexer) Start() error {
 }
 
 func (c *ChainIndexer) Stop() {
-	log.Info("ChainIndexer Stop")
+	log.DLogger.Info("ChainIndexer Stop")
 }
 
 // NewChainIndexer creates a new chain indexer to do background processing on
@@ -272,7 +273,7 @@ func (c *ChainIndexer) newHead(head uint64) {
 				}
 				//syncedHead := rawdb.ReadCanonicalHash(c.chainDb, c.checkpointSections*c.sectionSize-1)
 				if syncedHead != c.checkpointHead {
-					log.Error("Synced chain does not match checkpoint", "number", c.checkpointSections*c.sectionSize-1, "expected", c.checkpointHead, "synced", syncedHead)
+					log.DLogger.Error("Synced chain does not match checkpoint", zap.Uint64("number", c.checkpointSections*c.sectionSize-1), zap.Any("expected", c.checkpointHead), zap.Any("synced", syncedHead))
 					return
 				}
 			}
@@ -303,14 +304,14 @@ func (c *ChainIndexer) updateLoop() {
 
 		case <-c.update:
 			// Section headers completed (or rolled back), update the index
-			log.Info("ChainIndexer#updateLoop start", "knownSections", c.knownSections, "storedSections", c.storedSections)
+			log.DLogger.Info("ChainIndexer#updateLoop start", zap.Uint64("knownSections", c.knownSections), zap.Uint64("storedSections", c.storedSections))
 			c.lock.Lock()
 			if c.knownSections > c.storedSections {
 				// Periodically print an upgrade log message to the user
 				if time.Since(updated) > 8*time.Second {
 					if c.knownSections > c.storedSections+1 {
 						updating = true
-						log.Info("Upgrading chain index", "percentage", c.storedSections*100/c.knownSections)
+						log.DLogger.Info("Upgrading chain index", zap.Uint64("percentage", c.storedSections*100/c.knownSections))
 					}
 					updated = time.Now()
 				}
@@ -330,7 +331,7 @@ func (c *ChainIndexer) updateLoop() {
 						return
 					default:
 					}
-					log.Error("Section processing failed", "error", err)
+					log.DLogger.Error("Section processing failed", zap.Error(err))
 				}
 				c.lock.Lock()
 
@@ -340,16 +341,16 @@ func (c *ChainIndexer) updateLoop() {
 					c.setValidSections(section + 1)
 					if c.storedSections == c.knownSections && updating {
 						updating = false
-						log.Info("Finished upgrading chain index")
+						log.DLogger.Info("Finished upgrading chain index")
 					}
 					c.cascadedHead = c.storedSections*c.sectionSize - 1
 					for _, child := range c.children {
-						log.Debug("Cascading chain index update", "head", c.cascadedHead)
+						log.DLogger.Debug("Cascading chain index update", zap.Uint64("head", c.cascadedHead))
 						child.newHead(c.cascadedHead)
 					}
 				} else {
 					// If processing failed, don't retry until further notification
-					log.Debug("Chain index processing failed", "section", section, "err", err)
+					log.DLogger.Debug("Chain index processing failed", zap.Uint64("section", section), zap.Error(err))
 					c.knownSections = c.storedSections
 				}
 			}
@@ -372,7 +373,7 @@ func (c *ChainIndexer) updateLoop() {
 // held while processing, the continuity can be broken by a long reorg, in which
 // case the function returns with an error.
 func (c *ChainIndexer) processSection(section uint64, lastHead common.Hash) (common.Hash, error) {
-	log.Info("Processing new chain section", "section", section)
+	log.DLogger.Info("Processing new chain section", zap.Uint64("section", section))
 
 	// Reset and partial processing
 
@@ -406,7 +407,7 @@ func (c *ChainIndexer) processSection(section uint64, lastHead common.Hash) (com
 	if err := c.backend.Commit(); err != nil {
 		return common.Hash{}, err
 	}
-	log.Info("ChainIndexer#processSection", "section", section, "lastHead", lastHead)
+	log.DLogger.Info("ChainIndexer#processSection", zap.Uint64("section", section), zap.Any("lastHead", lastHead))
 	return lastHead, nil
 }
 

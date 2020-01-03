@@ -18,8 +18,9 @@ package economy_model
 
 import (
 	"github.com/dipperin/dipperin-core/common/consts"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"math/big"
 	"testing"
 )
@@ -52,7 +53,7 @@ func TestDipperinFoundation_GetMineMasterEDIPReward(t *testing.T) {
 		testReward.Div(testReward, big.NewInt(10))
 		testReward.Div(testReward, big.NewInt(consts.DIP))
 
-		log.Info("the reward is:", "reward", reward)
+		log.DLogger.Info("the reward is:", zap.Any("reward", reward))
 		assert.EqualValues(t, testReward, reward)
 	}
 
@@ -82,7 +83,7 @@ func TestDipperinEconomyModel_GetVerifierEDIPReward(t *testing.T) {
 			testReward.Div(testReward, big.NewInt(10))
 			testReward.Div(testReward, big.NewInt(consts.DIP))
 
-			log.Info("the reward is:", "type", key, "value", value)
+			log.DLogger.Info("the reward is:", zap.Any("type", key), zap.Any("value", value))
 			assert.EqualValues(t, testReward, value)
 		}
 

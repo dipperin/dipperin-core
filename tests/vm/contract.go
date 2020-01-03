@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -19,7 +19,7 @@ import (
 
 func LogTestPrint(function, msg string, ctx ...interface{}) {
 	printMsg := "[~wjw~" + function + "]" + msg
-	log.Info(printMsg, ctx...)
+	log.DLogger.Info(printMsg, ctx...)
 }
 
 func GetRpcTXMethod(methodName string) string {
@@ -132,7 +132,7 @@ func SendCreateContract(t *testing.T, cluster *node_cluster.NodeCluster, nodeNam
 	data, err := g_testData.GetCreateExtraData(wasmPath, abiPath, params)
 	assert.NoError(t, err)
 
-	log.Info("SendCreateContract the extraData is:", "data", hexutil.Encode(data))
+	log.DLogger.Info("SendCreateContract the extraData is:", "data", hexutil.Encode(data))
 
 	value := big.NewInt(0)
 	gasLimit := g_testData.TestGasLimit * 10000

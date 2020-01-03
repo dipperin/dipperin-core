@@ -25,7 +25,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
@@ -259,9 +258,7 @@ func (db *DB) expirer() {
 	for {
 		select {
 		case <-tick.C:
-			if err := db.expireNodes(); err != nil {
-				log.Error("Failed to expire nodedb items", "err", err)
-			}
+			db.expireNodes()
 		case <-db.quit:
 			return
 		}

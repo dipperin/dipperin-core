@@ -23,9 +23,10 @@ import (
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 	"path/filepath"
 )
@@ -40,7 +41,7 @@ func CheckRegistration() bool {
 func CheckAndChangeHexToAddress(address string) (common.Address, error) {
 	// Ignore 0x
 	if len(address)-2 != common.AddressLength*2 {
-		log.Error("the address is:", "len", len(address), "addr", address)
+		log.DLogger.Error("the address is:", zap.Int("len", len(address)), zap.String("addr", address))
 		return common.Address{}, g_error.ErrInvalidAddressLen
 	}
 
@@ -152,7 +153,7 @@ func InterToDecimal(csCoinValue *hexutil.Big, unitBit int) (string, error) {
 		}
 	}
 
-	//log.Info("the coinValue is:","coinValue",coinValue,"coinValueLen",coinValueLen,"zeroNumber",zeroNumber)
+	//log.DLogger.Info("the coinValue is:","coinValue",coinValue,"coinValueLen",coinValueLen,"zeroNumber",zeroNumber)
 
 	coinValue = coinValue[:coinValueLen-zeroNumber]
 	if coinValueLen <= unitBit {
@@ -161,7 +162,7 @@ func InterToDecimal(csCoinValue *hexutil.Big, unitBit int) (string, error) {
 			padding[index] = '0'
 		}
 		tmpBytes := append(padding[:], coinValue[:]...)
-		//log.Info("the tmpBytes is:","tmpBytes",tmpBytes,"string",string(tmpBytes[:]))
+		//log.DLogger.Info("the tmpBytes is:","tmpBytes",tmpBytes,"string",string(tmpBytes[:]))
 		return "0." + string(tmpBytes[:]), nil
 	} else {
 		pointPos := coinValueLen - unitBit

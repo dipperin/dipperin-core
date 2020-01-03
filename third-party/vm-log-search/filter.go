@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 )
 
@@ -86,7 +87,7 @@ func (f *Filter) Logs(ctx context.Context) ([]*model2.Log, error) {
 		if header == nil {
 			return nil, errors.New("unknown block")
 		}
-		log.Info("Filter#Logs", "header", header.Hash(), "block", f.block)
+		log.DLogger.Info("Filter#Logs", zap.Any("header", header.Hash()), zap.Any("block", f.block))
 		return f.blockLogs(ctx, &header, f.ChainReader.GetBloomLog(header.Hash(), header.GetNumber()))
 	}
 	// Figure out the limits of the filter range
@@ -111,9 +112,9 @@ func (f *Filter) Logs(ctx context.Context) ([]*model2.Log, error) {
 	)
 	size := BloomBitsBlocks
 	sections, _, _ := f.ChainIndex.Sections()
-	log.Info("Filter#Logs", "sections", sections)
+	log.DLogger.Info("Filter#Logs", zap.Uint64("sections", sections))
 	if indexed := sections * size; indexed > uint64(f.begin) {
-		log.Info("Filter#Logs", "sections", sections, "indexed", indexed)
+		log.DLogger.Info("Filter#Logs", zap.Uint64("sections", sections), zap.Uint64("indexed", indexed))
 		if indexed > end {
 			logs, err = f.indexedLogs(ctx, end)
 		} else {
@@ -131,21 +132,21 @@ func (f *Filter) Logs(ctx context.Context) ([]*model2.Log, error) {
 // indexedLogs returns the logs matching the filter criteria based on the bloom
 // bits indexed available locally or via the network.
 func (f *Filter) indexedLogs(ctx context.Context, end uint64) ([]*model2.Log, error) {
-	//log.Info("indexedLogs start", "end", end)
+	//log.DLogger.Info("indexedLogs start", "end", end)
 	// Create a matcher session and request servicing from the backend
 	matches := make(chan uint64, 64)
 
 	session, err := f.matcher.Start(ctx, uint64(f.begin), end, matches)
-	//log.Info("indexedLogs start01", "end", end)
+	//log.DLogger.Info("indexedLogs start01", "end", end)
 
 	if err != nil {
 		return nil, err
 	}
 	defer session.Close()
-	//log.Info("indexedLogs start02", "end", end)
+	//log.DLogger.Info("indexedLogs start02", "end", end)
 
 	f.ChainIndex.ServiceFilter(ctx, session)
-	//log.Info("indexedLogs start03", "end", end)
+	//log.DLogger.Info("indexedLogs start03", "end", end)
 
 	// Iterate over the matches until exhausted or context closed
 	var logs []*model2.Log
@@ -153,7 +154,7 @@ func (f *Filter) indexedLogs(ctx context.Context, end uint64) ([]*model2.Log, er
 	for {
 		select {
 		case number, ok := <-matches:
-			log.Info("Filter#indexedLogs find matches", "number", number, "ok", ok)
+			log.DLogger.Info("Filter#indexedLogs find matches", zap.Uint64("number", number), zap.Bool("ok", ok))
 			// Abort if all matches have been fulfilled
 			if !ok {
 				err := session.Error()
@@ -177,7 +178,7 @@ func (f *Filter) indexedLogs(ctx context.Context, end uint64) ([]*model2.Log, er
 			logs = append(logs, found...)
 
 		case <-ctx.Done():
-			log.Info("Filter#indexedLogs ctx.Done()")
+			log.DLogger.Info("Filter#indexedLogs ctx.Done()")
 			return logs, ctx.Err()
 		}
 	}
@@ -189,13 +190,13 @@ func (f *Filter) unindexedLogs(ctx context.Context, end uint64) ([]*model2.Log, 
 	var logs []*model2.Log
 
 	for ; f.begin <= int64(end); f.begin++ {
-		log.Info("Filter#unindexedLogs", "begin", f.begin, "end", f.end)
+		log.DLogger.Info("Filter#unindexedLogs", zap.Int64("begin", f.begin), zap.Int64("end", f.end))
 		header := f.ChainReader.GetHeaderByNumber(uint64(f.begin))
 		if header == nil {
 			return logs, nil
 		}
 		found, err := f.blockLogs(ctx, &header, f.ChainReader.GetBloomLog(header.Hash(), header.GetNumber()))
-		log.Info("Filter#unindexedLogs", "begin", f.begin, "end", f.end, "found", found)
+		log.DLogger.Info("Filter#unindexedLogs", zap.Int64("begin", f.begin), zap.Int64("end", f.end), zap.Any("found", found))
 		if err != nil {
 			return logs, err
 		}
@@ -206,10 +207,10 @@ func (f *Filter) unindexedLogs(ctx context.Context, end uint64) ([]*model2.Log, 
 
 // blockLogs returns the logs matching the filter criteria within a single block.
 func (f *Filter) blockLogs(ctx context.Context, header *model.AbstractHeader, bloom model2.Bloom) (logs []*model2.Log, err error) {
-	log.Info("Filter#blockLogs", "header bloomLog", bloom)
+	log.DLogger.Info("Filter#blockLogs", zap.Any("header bloomLog", bloom))
 	if bloomFilter(bloom, f.addresses, f.topics) {
 		found, err := f.checkMatches(ctx, header)
-		log.Info("Filter#blockLogs", "found", found)
+		log.DLogger.Info("Filter#blockLogs", zap.Any("found", found))
 		if err != nil {
 			return logs, err
 		}
@@ -236,7 +237,7 @@ func (f *Filter) checkMatches(ctx context.Context, header *model.AbstractHeader)
 	// Get the logs of the block
 	//logsList, err := f.backend.GetLogs(ctx, header)
 	logsList := f.GetLogs(header)
-	//log.Info("Filter#checkMatches", "logsList", logsList)
+	//log.DLogger.Info("Filter#checkMatches", "logsList", logsList)
 	if logsList == nil {
 		return nil, err
 	}
@@ -245,7 +246,7 @@ func (f *Filter) checkMatches(ctx context.Context, header *model.AbstractHeader)
 		unfiltered = append(unfiltered, logs...)
 	}
 	logs = filterLogs(unfiltered, nil, nil, f.addresses, f.topics)
-	//log.Info("Filter#checkMatches", "logs", logs)
+	//log.DLogger.Info("Filter#checkMatches", "logs", logs)
 	if len(logs) > 0 {
 		// We have matching logs, check if we need to resolve full logs via the light client
 		if logs[0].TxHash == (common.Hash{}) {
@@ -279,27 +280,27 @@ func filterLogs(logs []*model2.Log, fromBlock, toBlock *big.Int, addresses []com
 	var ret []*model2.Log
 Logs:
 	for _, lg := range logs {
-		//log.Info("filterLogs before", "lg", lg)
+		//log.DLogger.Info("filterLogs before", "lg", lg)
 		if fromBlock != nil && fromBlock.Int64() >= 0 && fromBlock.Uint64() > lg.BlockNumber {
 			continue
 		}
-		//log.Info("filterLogs before1", "lg", lg)
+		//log.DLogger.Info("filterLogs before1", "lg", lg)
 		if toBlock != nil && toBlock.Int64() >= 0 && toBlock.Uint64() < lg.BlockNumber {
 			continue
 		}
 
-		//log.Info("filterLogs before2", "lg", lg, "addresses", addresses, "lg.Address", lg.Address)
+		//log.DLogger.Info("filterLogs before2", "lg", lg, "addresses", addresses, "lg.Address", lg.Address)
 		if len(addresses) > 0 && !includes(addresses, lg.Address) {
 			continue
 		}
 		// If the to filtered topics is greater than the amount of topics in logs, skip.
 		// todo to be understand
-		//log.Info("filterLogs before3", "lg", lg, "len(topics)", len(topics), "len(le.Topics", len(lg.Topics))
+		//log.DLogger.Info("filterLogs before3", "lg", lg, "len(topics)", len(topics), "len(le.Topics", len(lg.Topics))
 		if len(topics) > len(lg.Topics) {
 			continue Logs
 		}
 
-		//log.Info("filterLogs before4", "lg", lg)
+		//log.DLogger.Info("filterLogs before4", "lg", lg)
 		if len(topics) > 0 {
 			for i, sub := range topics {
 				match := len(sub) == 0 // empty rule set == wildcard
@@ -314,7 +315,7 @@ Logs:
 				}
 			}
 		}
-		//log.Info("filterLogs after", "lg", lg)
+		//log.DLogger.Info("filterLogs after", "lg", lg)
 		ret = append(ret, lg)
 	}
 	return ret

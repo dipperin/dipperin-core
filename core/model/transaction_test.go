@@ -20,13 +20,14 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"math/big"
 	"testing"
 )
@@ -53,11 +54,11 @@ func TestTransaction_EncodeRLP(t *testing.T) {
 
 func TestTransaction_EncodeRlpToBytes(t *testing.T) {
 	tx := CreateSignedTx(0, big.NewInt(10000))
-	//log.Info("the tx is:","txData",tx)
+	//log.DLogger.Info("the tx is:","txData",tx)
 	result, err := tx.EncodeRlpToBytes()
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	//log.Info("the tx rlp data is:","rlpData",hexutil.Encode(result))
+	//log.DLogger.Info("the tx rlp data is:","rlpData",hexutil.Encode(result))
 }
 
 func TestTransaction_RLP(t *testing.T) {
@@ -193,20 +194,20 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 		}
 	}
 
-	/*	log.Info("the group txs is:")
+	/*	log.DLogger.Info("the group txs is:")
 		for addr,txs:=range groups{
-			log.Info("the addr is:","addr",addr.Hex())
+			log.DLogger.Info("the addr is:","addr",addr.Hex())
 			for _,tx := range txs{
-				log.Info("the tx is:","txId",tx.CalTxId().Hex())
+				log.DLogger.Info("the tx is:","txId",tx.CalTxId().Hex())
 			}
 		}*/
 
 	// Sort the transactions and cross check the nonce ordering
 	txset := NewTransactionsByFeeAndNonce(signer, groups)
 
-	log.Info("the txset head is:")
+	log.DLogger.Info("the txset head is:")
 	for _, tx := range txset.heads {
-		log.Info("the head tx is:", "txId", tx.CalTxId().Hex())
+		log.DLogger.Info("the head tx is:", zap.String("txId", tx.CalTxId().Hex()))
 	}
 
 	txs := make([]AbstractTransaction, 0)

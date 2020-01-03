@@ -20,8 +20,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -33,7 +34,7 @@ func NewRoundMsgWithSign(height uint64, round uint64, signer SignHashFunc, addr 
 
 	sign, err := signer(msg.Hash().Bytes())
 	if err != nil {
-		log.Warn("sign new round msg failed", "err", err)
+		log.DLogger.Warn("sign new round msg failed", zap.Error(err))
 		return nil
 	}
 	msg.Witness = &model.WitMsg{
@@ -71,7 +72,7 @@ func NewProposalWithSign(h, r uint64, blockID common.Hash, hashFunc SignHashFunc
 	p := &Proposal{Height: h, Round: r, BlockID: blockID, Timestamp: time.Now()}
 	sign, err := hashFunc(p.Hash().Bytes())
 	if err != nil {
-		log.Warn("sign new proposal msg failed", "err", err)
+		log.DLogger.Warn("sign new proposal msg failed", zap.Error(err))
 		return nil
 	}
 	p.Witness = &model.WitMsg{

@@ -2,7 +2,8 @@ package mem_manage
 
 import (
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
+	"go.uber.org/zap"
 	"sync"
 )
 
@@ -46,9 +47,9 @@ func NewVmMemory(initialLimit int) *VmMemory {
 func (m *VmMemory) Malloc(size int) int {
 	m.lock.Lock()
 	defer m.lock.Unlock()
-	log.VmMem.Debug("[~~VmMemory malloc~~]", "size", size)
+	log.DLogger.Debug("[~~VmMemory malloc~~]", zap.Int("size", size))
 	//size > 2048 malloc from buddy
-	log.VmMem.Debug("the slab max chunkSize is:", "chunkSize", m.Slab.MaxChunkSize())
+	log.DLogger.Debug("the slab max chunkSize is:", zap.Int("chunkSize", m.Slab.MaxChunkSize()))
 	if size > m.Slab.MaxChunkSize() {
 		return m.BuddyMemory.Malloc(size)
 	}
@@ -58,7 +59,7 @@ func (m *VmMemory) Malloc(size int) int {
 	if err != nil {
 		panic(fmt.Errorf("VmMemory malloc error : %v", size))
 	}
-	log.VmMem.Debug("[~~VmMemory malloc from slab ~~]", "addr", offset)
+	log.DLogger.Debug("[~~VmMemory malloc from slab ~~]", zap.Int("addr", offset))
 	//clear malloc memory from slab
 	clear(offset, offset+size, m.Memory)
 	return offset
@@ -67,7 +68,7 @@ func (m *VmMemory) Malloc(size int) int {
 func (m *VmMemory) Free(offset int) error {
 	m.lock.Lock()
 	defer m.lock.Unlock()
-	log.VmMem.Debug("[~~VmMemory free~~]", "offset", offset)
+	log.DLogger.Debug("[~~VmMemory free~~]", zap.Int("offset", offset))
 	//free from SlabMemory
 	err := m.Slab.Free(offset)
 	if err == nil {

@@ -19,13 +19,14 @@ package verifiers_halt_check
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 func NewHaltHandler(conf ProposalGeneratorConfig) *VBHaltHandler {
-	log.Halt.Info("NewHaltHandler start~~~~~~~~~~~~~~~~~~~~~~~~`")
+	log.DLogger.Info("NewHaltHandler start~~~~~~~~~~~~~~~~~~~~~~~~`")
 	return &VBHaltHandler{
 		pgConfig:                 conf,
 		proposalMessagesByOthers: make([]ProposalMsg, 0),
@@ -51,16 +52,16 @@ type VBHaltHandler struct {
 
 // generate proposalMsg
 func (handler *VBHaltHandler) ProposeEmptyBlock() (pm ProposalMsg, err error) {
-	log.Halt.Info("VBHaltHandler ProposeEmptyBlock start~~~~~~")
+	log.DLogger.Info("VBHaltHandler ProposeEmptyBlock start~~~~~~")
 	handler.proposalMsg, err = GenProposalMsg(handler.pgConfig)
 	if err != nil {
-		log.Halt.Info("VBHaltHandler GenProposalMsg error", "err", err)
+		log.DLogger.Info("VBHaltHandler GenProposalMsg error", zap.Error(err))
 		return ProposalMsg{}, err
 	}
 	pm = *handler.proposalMsg
 	handler.minProposalMsg = *handler.proposalMsg
 
-	log.Halt.Info("VBHaltHandler ProposeEmptyBlock end~~~~~~")
+	log.DLogger.Info("VBHaltHandler ProposeEmptyBlock end~~~~~~")
 	return
 }
 
@@ -73,9 +74,9 @@ func (handler *VBHaltHandler) OnNewProposalMsg(msg ProposalMsg) error {
 		}
 	}
 
-	log.Halt.Info("the received msg is:", "receivedMsg", msg)
-	log.Halt.Info("the own proposal is:", "ownProposal", handler.proposalMsg)
-	log.Halt.Info("the own proposal is:", "ownProposal", *handler.proposalMsg)
+	log.DLogger.Info("the received msg is:", zap.Any("receivedMsg", msg))
+	log.DLogger.Info("the own proposal is:", zap.Any("ownProposal", handler.proposalMsg))
+	log.DLogger.Info("the own proposal is:", zap.Any("ownProposal", *handler.proposalMsg))
 
 	// whether the height matches
 	if msg.EmptyBlock.Number() != handler.proposalMsg.EmptyBlock.Number() {
@@ -89,7 +90,7 @@ func (handler *VBHaltHandler) OnNewProposalMsg(msg ProposalMsg) error {
 
 	// select the minimal msg
 	handler.minProposalMsg = selectEmptyProposal(handler.minProposalMsg, msg)
-	log.Halt.Info("the handler minProposalMsg is:", "hash", handler.minProposalMsg.EmptyBlock.Hash().Hex())
+	log.DLogger.Info("the handler minProposalMsg is:", zap.String("hash", handler.minProposalMsg.EmptyBlock.Hash().Hex()))
 
 	return nil
 }
@@ -115,11 +116,11 @@ func (handler *VBHaltHandler) HandlerProposalMessages(msg ProposalMsg, selectedP
 	}
 
 	handler.proposalMessagesByOthers = append(handler.proposalMessagesByOthers, msg)
-	log.Halt.Info("the handler votesLen is:", "len", handler.VotesLen(), "verBootNodeNumber", chainConfig.VerifierBootNodeNumber)
+	log.DLogger.Info("the handler votesLen is:", zap.Int("len", handler.VotesLen()), zap.Int("verBootNodeNumber", chainConfig.VerifierBootNodeNumber))
 	if handler.VotesLen() == chainConfig.VerifierBootNodeNumber {
 		//collect all empty block, send the block with minimal hash to verifier
 		//only minimal hash node send the block
-		log.Halt.Info("the own proposal block hash is:", "hash", handler.proposalMsg.EmptyBlock.Hash(), "minimalHash", handler.minProposalMsg.EmptyBlock.Hash())
+		log.DLogger.Info("the own proposal block hash is:", zap.Any("hash", handler.proposalMsg.EmptyBlock.Hash()), zap.Any("minimalHash", handler.minProposalMsg.EmptyBlock.Hash()))
 		if handler.proposalMsg.EmptyBlock.Hash() == handler.minProposalMsg.EmptyBlock.Hash() {
 			selectedProposal <- handler.minProposalMsg
 		}
@@ -131,18 +132,18 @@ func (handler *VBHaltHandler) HandlerProposalMessages(msg ProposalMsg, selectedP
 func (handler *VBHaltHandler) HandlerAliveVerVotes(vote model.VoteMsg, currentVerifiers []common.Address) error {
 	err := vote.HaltedVoteValid(currentVerifiers)
 	if err != nil {
-		log.Halt.Error("the aliveVerifierVote received from alive verifier is invalid", "err", err)
+		log.DLogger.Error("the aliveVerifierVote received from alive verifier is invalid", zap.Error(err))
 		return err
 	}
 
-	log.Halt.Info("the vote is:", "vote", vote.GetAddress().Hex())
-	//log.Halt.Info("the own proposal is:","ownProposal",*handler.proposalMsg)
+	log.DLogger.Info("the vote is:", zap.String("vote", vote.GetAddress().Hex()))
+	//log.DLogger.Info("the own proposal is:","ownProposal",*handler.proposalMsg)
 	if vote.BlockID != handler.proposalMsg.EmptyBlock.Hash() {
-		log.Halt.Error("the vote block hash error")
+		log.DLogger.Error("the vote block hash error")
 		return g_error.AliveVoteBlockHashError
 	}
 
-	log.Halt.Info("the vote witness address is:", "address", vote.Witness.Address)
+	log.DLogger.Info("the vote witness address is:", zap.Any("address", vote.Witness.Address))
 	if _, ok := handler.aliveVerVotes[vote.Witness.Address]; !ok {
 		handler.aliveVerVotes[vote.Witness.Address] = vote
 	}

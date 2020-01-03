@@ -18,8 +18,9 @@ package rpc_interface
 
 import (
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"go.uber.org/zap"
 	"net"
 	"strings"
 	"time"
@@ -56,23 +57,23 @@ func (service *Service) AddApis(apis []rpc.API) {
 }
 
 func (service *Service) Start() error {
-	log.Info("start rpc service")
+	log.DLogger.Info("start rpc service")
 	if err := service.startInProc(service.apis); err != nil {
 		return err
 	}
 	//start ipc
-	log.Info("start ipc service")
+	log.DLogger.Info("start ipc service")
 	if err := service.startIPC(service.apis); err != nil {
 		service.stopInProc()
 		return err
 	}
-	log.Info("start http service")
+	log.DLogger.Info("start http service")
 	if err := service.startHTTP(service.httpEndpoint, service.apis, []string{}, service.allowHosts, service.allowHosts); err != nil {
 		service.stopInProc()
 		service.stopIPC()
 		return err
 	}
-	log.Info("start websocket", "allow hosts", service.allowHosts)
+	log.DLogger.Info("start websocket", zap.Strings("allow hosts", service.allowHosts))
 	if err := service.startWS(service.wsEndpoint, service.apis, []string{}, service.allowHosts, false); err != nil {
 		service.stopInProc()
 		service.stopIPC()
@@ -92,7 +93,7 @@ func (service *Service) Stop() {
 
 // startInProc initializes an in-process RPC endpoint.
 func (service *Service) startInProc(apis []rpc.API) error {
-	log.Debug("startInProc")
+	log.DLogger.Debug("startInProc")
 	// AddPeerSet all the APIs exposed by the services
 	handler := rpc.NewServer()
 	for _, api := range apis {
@@ -113,7 +114,7 @@ func (service *Service) stopInProc() {
 }
 
 func (service *Service) startHTTP(endpoint string, apis []rpc.API, modules []string, cors []string, vhosts []string) error {
-	log.Debug("start rpc http", "endpoint", endpoint)
+	log.DLogger.Debug("start rpc http", zap.String("endpoint", endpoint))
 	if endpoint == "" {
 		return nil
 	}
@@ -125,7 +126,7 @@ func (service *Service) startHTTP(endpoint string, apis []rpc.API, modules []str
 	if err != nil {
 		return err
 	}
-	log.Info("HTTP endpoint opened", "url", fmt.Sprintf("http://%s", endpoint), "cors", strings.Join(cors, ","), "vhosts", strings.Join(vhosts, ","))
+	log.DLogger.Info("HTTP endpoint opened", zap.String("url", fmt.Sprintf("http://%s", endpoint)), zap.String("cors", strings.Join(cors, ",")), zap.String("vhosts", strings.Join(vhosts, ",")))
 	service.httpListener = listener
 	service.httpHandler = handler
 	return nil
@@ -144,7 +145,7 @@ func (service *Service) stopHTTP() {
 
 // startWS initializes and starts the websocket RPC endpoint.
 func (service *Service) startWS(endpoint string, apis []rpc.API, modules []string, wsOrigins []string, exposeAll bool) error {
-	log.Debug("startWS", "endpoint", endpoint)
+	log.DLogger.Debug("startWS", zap.String("endpoint", endpoint))
 	// Short circuit if the WS endpoint isn't being exposed
 	if endpoint == "" {
 		return nil
@@ -153,7 +154,7 @@ func (service *Service) startWS(endpoint string, apis []rpc.API, modules []strin
 	if err != nil {
 		return err
 	}
-	log.Info("WebSocket endpoint opened", "url", fmt.Sprintf("ws://%v", endpoint))
+	log.DLogger.Info("WebSocket endpoint opened", zap.String("url", fmt.Sprintf("ws://%v", endpoint)))
 	// All listeners booted successfully
 	service.wsListener = listener
 	service.wsHandler = handler
@@ -183,7 +184,7 @@ func (service *Service) startIPC(apis []rpc.API) error {
 	}
 	service.ipcListener = listener
 	service.ipcHandler = handler
-	log.Info("IPC endpoint opened", "url", service.ipcEndpoint)
+	log.DLogger.Info("IPC endpoint opened", zap.String("url", service.ipcEndpoint))
 	return nil
 }
 
@@ -193,7 +194,7 @@ func (service *Service) stopIPC() {
 		service.ipcListener.Close()
 		service.ipcListener = nil
 
-		log.Info("IPC endpoint closed", "url", service.ipcEndpoint)
+		log.DLogger.Info("IPC endpoint closed", zap.String("url", service.ipcEndpoint))
 	}
 	if service.ipcHandler != nil {
 		service.ipcHandler.Stop()

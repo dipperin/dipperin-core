@@ -19,9 +19,10 @@ package common
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap/zapcore"
 	"math/big"
 	"testing"
 )
@@ -70,6 +71,12 @@ func TestDifficulty_Big(t *testing.T) {
 }
 
 func TestHexStringSameWithVM(t *testing.T) {
-	log.InitLogger(log.LvlDebug)
+	log.InitLogger(log.LoggerConfig{
+		Lvl:         zapcore.DebugLevel,
+		FilePath:    "",
+		Filename:    "",
+		WithConsole: true,
+		WithFile:    false,
+	})
 	HexStringSameWithVM("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
 }

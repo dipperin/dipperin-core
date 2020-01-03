@@ -18,7 +18,8 @@ package mineworker
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
+	"go.uber.org/zap"
 	"sync/atomic"
 )
 
@@ -55,9 +56,9 @@ func (worker *worker) Miners() []miner {
 }
 
 func (worker *worker) Start() {
-	log.Info("call worker start mine")
+	log.DLogger.Info("call worker start mine")
 	if err := worker.register(); err != nil {
-		log.Error("register to master failed, can't start worker", "err", err)
+		log.DLogger.Error("register to master failed, can't start worker", zap.Error(err))
 		return
 	}
 	// start miners
@@ -72,7 +73,7 @@ func (worker *worker) register() error {
 }
 
 func (worker *worker) Stop() {
-	log.Info("stop worker's miner")
+	log.DLogger.Info("stop worker's miner")
 	// stop miners
 	for _, m := range worker.miners {
 		m.stopMine()

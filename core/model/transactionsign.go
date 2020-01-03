@@ -21,10 +21,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 )
 
@@ -44,7 +45,7 @@ func (tx *Transaction) SignTx(priKey *ecdsa.PrivateKey, s Signer) (*Transaction,
 		return nil, err
 	}
 
-	//log.Debug("the tx hash is:","hash",h.Hex())
+	//log.DLogger.Debug("the tx hash is:","hash",h.Hex())
 	sig, err := crypto.Sign(h[:], priKey)
 	if err != nil {
 		return nil, err
@@ -99,8 +100,8 @@ func (ds DipperinSigner) Equal(s2 Signer) bool {
 
 // GetSignHash will return the VRFHash of the transaction with have the raw transaction data and chainId
 func (ds DipperinSigner) GetSignHash(rtx *Transaction) (common.Hash, error) {
-	//log.Debug("DipperinSigner GetSignHash","tx",rtx.data)
-	//log.Debug("DipperinSigner GetSignHash","chainId",fs.chainId)
+	//log.DLogger.Debug("DipperinSigner GetSignHash","tx",rtx.data)
+	//log.DLogger.Debug("DipperinSigner GetSignHash","chainId",fs.chainId)
 	res, err := rlpHash([]interface{}{rtx.data, ds.chainId})
 	return res, err
 }
@@ -129,11 +130,11 @@ func (ds DipperinSigner) GetSender(tx *Transaction) (common.Address, error) {
 		return common.Address{}, err
 	}
 
-	//log.Health.Info("GetSender the tx wit r s v is:","r",tx.wit.R,"s",tx.wit.S,"v",tx.wit.V)
-	//log.Health.Info("GetSender the ds chainId is:","chainId",ds.chainId)
+	//log.DLogger.Info("GetSender the tx wit r s v is:","r",tx.wit.R,"s",tx.wit.S,"v",tx.wit.V)
+	//log.DLogger.Info("GetSender the ds chainId is:","chainId",ds.chainId)
 	temp := big.NewInt(0).Sub(tx.wit.V, big.NewInt(0).Mul(ds.chainId, big.NewInt(2)))
 	v := big.NewInt(0).Sub(temp, big.NewInt(54))
-	//log.Health.Info("the calculated v is:","v",v)
+	//log.DLogger.Info("the calculated v is:","v",v)
 
 	return recoverNormalSender(hash, tx.wit.R, tx.wit.S, v)
 }
@@ -152,11 +153,11 @@ func (ds DipperinSigner) GetSenderPublicKey(tx *Transaction) (*ecdsa.PublicKey, 
 	S := tx.wit.S
 
 	if V.BitLen() > 8 {
-		log.Health.Info("GetSenderPublicKey the error V is:", "V", V)
+		log.DLogger.Info("GetSenderPublicKey the error V is:", zap.Any("V", V))
 		return &emptyPk, ErrInvalidSig
 	}
 	if !cs_crypto.ValidSigValue(R, S, V) {
-		log.Health.Error("GetSenderPublicKey valid Signature Value error")
+		log.DLogger.Error("GetSenderPublicKey valid Signature Value error")
 		return &emptyPk, ErrInvalidSig
 	}
 	// encode the signature in uncompressed format
@@ -179,11 +180,11 @@ func (ds DipperinSigner) GetSenderPublicKey(tx *Transaction) (*ecdsa.PublicKey, 
 
 func recoverNormalSender(sigHash common.Hash, R, S, V *big.Int) (common.Address, error) {
 	if V.BitLen() > 8 {
-		log.Health.Error("recoverNormalSender v bitLen is more than 8")
+		log.DLogger.Error("recoverNormalSender v bitLen is more than 8")
 		return common.Address{}, ErrInvalidSig
 	}
 	if !cs_crypto.ValidSigValue(R, S, V) {
-		log.Health.Error("recoverNormalSender valid signature error")
+		log.DLogger.Error("recoverNormalSender valid signature error")
 		return common.Address{}, ErrInvalidSig
 	}
 	// encode the signature in uncompressed format

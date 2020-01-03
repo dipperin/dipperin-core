@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"math/big"
 	"testing"
@@ -220,7 +221,7 @@ func FakeContract(t *testing.T) *model.Transaction {
 	tx := model.NewTransaction(uint64(11), to, big.NewInt(0), big.NewInt(1), uint64(20000000), buffer.Bytes())
 	key, _ := createKey()
 
-	log.Info("the tx receipt is:", "to", tx.To().Hex())
+	log.DLogger.Info("the tx receipt is:", zap.String("to", tx.To().Hex()))
 	tx.SignTx(key, fs)
 	return tx
 }

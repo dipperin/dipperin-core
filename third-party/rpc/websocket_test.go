@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/dipperin/dipperin-core/common/hexutil"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -12,7 +12,7 @@ import (
 func webSocketUnmarshal(input string, t *testing.T) error {
 	msg, err := hexutil.Decode(input)
 	assert.NoError(t, err)
-	log.Info("the msg len is:", "msgLen", len(msg))
+	log.DLogger.Info("the msg len is:", "msgLen", len(msg))
 
 	dec := json.NewDecoder(bytes.NewReader(msg))
 	dec.UseNumber()

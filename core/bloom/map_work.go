@@ -19,7 +19,7 @@ package iblt
 import (
 	"errors"
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"runtime"
 )
 
@@ -80,7 +80,7 @@ func (work *MapWork) SetOperation(task Operation) {
 func (work *MapWork) workThread() {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Debug(fmt.Sprintf("recover err：%s\n", r))
+			log.DLogger.Debug(fmt.Sprintf("recover err：%s\n", r))
 		}
 	}()
 

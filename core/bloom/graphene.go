@@ -18,8 +18,9 @@ package iblt
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 )
 
 // Graphene are made of a bloom and an invBloom
@@ -68,7 +69,7 @@ func (g *Graphene) InsertRLP(k, v interface{}) {
 	data, err := rlp.EncodeToBytes(k)
 
 	if err != nil {
-		log.Error("key RLP encode error")
+		log.DLogger.Error("key RLP encode error")
 		return
 	}
 
@@ -121,14 +122,14 @@ func (g Graphene) FilterRLP(i interface{}) map[interface{}]interface{} {
 
 	for k, v := range m {
 		if k == nil {
-			log.Error("insert key is nil", "key", k)
+			log.DLogger.Error("insert key is nil")
 			return nil
 		}
 
 		kBytes, kError := rlp.EncodeToBytes(k)
 
 		if kError != nil {
-			log.Error("key RLP encode error", "error", kError, "key", k)
+			log.DLogger.Error("key RLP encode error", zap.Error(kError), zap.Any("key", k))
 			return nil
 		}
 

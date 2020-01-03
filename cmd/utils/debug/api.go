@@ -18,9 +18,10 @@ package debug
 
 import (
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/fjl/memsize/memsizeui"
 	"github.com/urfave/cli"
+	"go.uber.org/zap"
 	"net/http"
 	_ "net/http/pprof"
 	"runtime"
@@ -85,8 +86,8 @@ func Setup(ctx *cli.Context) error {
 		}
 	}
 
-	log.Info("the pprofFlag is:", "pprofFlag", ctx.GlobalBool(pprofFlag.Name))
-	log.Info("the pprofPortFlag is:", "pprofPortFlag", ctx.GlobalInt(pprofPortFlag.Name))
+	log.DLogger.Info("the pprofFlag is:", zap.Bool("pprofFlag", ctx.GlobalBool(pprofFlag.Name)))
+	log.DLogger.Info("the pprofPortFlag is:", zap.Int("pprofPortFlag", ctx.GlobalInt(pprofPortFlag.Name)))
 
 	// pprof server
 	if ctx.GlobalBool(pprofFlag.Name) {
@@ -101,10 +102,10 @@ func StartPProf(address string) {
 	// from the registry into expvar, and execute regular expvar handler.
 	//exp.Exp(metrics.DefaultRegistry)
 	http.Handle("/memsize/", http.StripPrefix("/memsize", &Memsize))
-	log.Info("Starting pprof server", "addr", fmt.Sprintf("http://%s/debug/pprof", address))
+	log.DLogger.Info("Starting pprof server", zap.String("addr", fmt.Sprintf("http://%s/debug/pprof", address)))
 	go func() {
 		if err := http.ListenAndServe(address, nil); err != nil {
-			log.Error("Failure in running pprof server", "err", err)
+			log.DLogger.Error("Failure in running pprof server", zap.Error(err))
 		}
 	}()
 }

@@ -20,15 +20,16 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"math/big"
 	"testing"
 )
@@ -235,7 +236,6 @@ func TestDipperinEconomyModel_GetInvestorLockDIP(t *testing.T) {
 		unlockDIP.Div(unlockDIP, big.NewInt(4))
 		lockValue := big.NewInt(0).Sub(investorTotalDIP, unlockDIP)
 
-		log.Info("the unlockDIP is:", "unlockDIP", unlockDIP)
 		assert.EqualValues(t, lockValue, lockDIP)
 	}
 
@@ -272,7 +272,7 @@ func TestGenerateAddress(t *testing.T) {
 		sk, err := crypto.GenerateKey()
 		assert.NoError(t, err)
 		address := cs_crypto.GetNormalAddress(sk.PublicKey)
-		log.Info("the address is:", "address", address.Hex())
+		log.DLogger.Info("the address is:", zap.String("address", address.Hex()))
 	}
 }
 
@@ -314,14 +314,11 @@ func TestDipperinEconomyModel_GetDiffVerifierAddress(t *testing.T) {
 
 	verAddr, err := economyModel.GetDiffVerifierAddress(mockPreBlock, mockBlock)
 	assert.NoError(t, err)
-	log.Info("the verAddr is:", "verAddr", verAddr)
+	log.DLogger.Info("the verAddr is:", zap.Any("verAddr", verAddr))
 	//assert.Equal(t,map[economy_model.VerifierType][]common.Address{},verAddr)
 }
 
 func TestDIP(t *testing.T) {
 	tmpValue := int64(^uint64(1) >> 1)
 	fmt.Printf("the tmpValue is:%x\r\n", tmpValue)
-
-	log.Info("the const.DIP is:", "DIP", consts.DIP)
-	log.Info("the tmpValue < 1E18 is:", "compareResult", tmpValue < 1e18)
 }

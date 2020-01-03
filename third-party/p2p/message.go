@@ -20,7 +20,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
+	"go.uber.org/zap"
 	"io"
 	"io/ioutil"
 	"os"
@@ -94,7 +95,7 @@ type MsgReadWriter interface {
 func Send(w MsgWriter, msgcode uint64, data interface{}) error {
 	size, r, err := rlp.EncodeToReader(data)
 	if os.Getenv("boots_env") == "local" {
-		log.Info("send message size ", "size", size, "msgcode ", msgcode)
+		log.DLogger.Info("send message size ", zap.Int("size", size), zap.Uint64("msgcode ", msgcode))
 	}
 	if err != nil {
 		return err
