@@ -22,6 +22,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
+	"go.uber.org/zap"
 	"sync"
 	"time"
 )
@@ -36,7 +37,7 @@ var (
 func loadDefaultAccountStake() {
 	var resp rpc_interface.CurBalanceResp
 	if err := client.Call(&resp, getDipperinRpcMethodByName("CurrentStake"), defaultAccount); err != nil {
-		l.Error("call get current deposit error", "err", err)
+		l.Error("call get current deposit error", zap.Error(err))
 		return
 	}
 
@@ -58,7 +59,7 @@ func PrintCommandsModuleName() {
 }
 
 func PrintDefaultAccountStake() {
-	l.Info("address current stake is:", "address", defaultAccount, "stake", defaultAccountStake)
+	l.Info("address current stake is:", zap.Any("address", defaultAccount), zap.String("stake", defaultAccountStake))
 }
 
 // tag sending campaigns tx
@@ -104,13 +105,13 @@ func AsyncLogElectionTx() *time.Ticker {
 func loadRegistedAccounts() {
 	var resp []accounts.WalletIdentifier
 	if err := client.Call(&resp, getDipperinRpcMethodByName("ListWallet")); err != nil {
-		l.Error("Call ListWallet", "err", err)
+		l.Error("Call ListWallet", zap.Error(err))
 		return
 	}
 	var respA []accounts.Account
 
 	if err := client.Call(&respA, getDipperinRpcMethodByName("ListWalletAccount"), resp[0]); err != nil {
-		l.Error("Call ListWallet", "err", err)
+		l.Error("Call ListWallet", zap.Error(err))
 		return
 	}
 
@@ -118,7 +119,7 @@ func loadRegistedAccounts() {
 		var resp rpc_interface.VerifierStatus
 
 		if err := client.Call(&resp, getDipperinRpcMethodByName("VerifierStatus"), respA[i].Address.Hex()); err != nil {
-			l.Error("call verifier status error", "err", err)
+			l.Error("call verifier status error", zap.Error(err))
 			return
 		}
 
@@ -136,32 +137,32 @@ func logElection() {
 
 	//var config chain_config.ChainConfig
 	//if err := client.Call(&config, getDipperinRpcMethodByName("GetChainConfig")); err != nil {
-	//	l.Error("get chain config", "err", err)
+	//	l.Error("get chain config", zap.Error(err))
 	//	return
 	//}
 
 	var respBlock rpc_interface.BlockResp
 	if err := client.Call(&respBlock, getDipperinRpcMethodByName("CurrentBlock")); err != nil {
-		l.Error("get current Block error", "err", err)
+		l.Error("get current Block error", zap.Error(err))
 		return
 	}
 
 	var respSlot uint64
 	if err := client.Call(&respSlot, getDipperinRpcMethodByName("GetSlotByNum"), respBlock.Header.Number); err != nil {
-		l.Error("get current Block error", "err", err)
+		l.Error("get current Block error", zap.Error(err))
 		return
 	}
 
 	var resp []common.Address
 	if err := client.Call(&resp, getDipperinRpcMethodByName("GetVerifiersBySlot"), respSlot); err != nil {
-		l.Error("get verifiers by slot error", "err", err)
+		l.Error("get verifiers by slot error", zap.Error(err))
 	}
 
 	for i := range trackingAccounts {
 		isV := isVerifier(trackingAccounts[i].Address, resp)
 		var resp rpc_interface.VerifierStatus
 		if err := client.Call(&resp, getDipperinRpcMethodByName("VerifierStatus"), trackingAccounts[i].Address.Hex()); err != nil {
-			l.Error("call verifier status error", "err", err)
+			l.Error("call verifier status error", zap.Error(err))
 			continue
 		}
 
@@ -171,11 +172,11 @@ func logElection() {
 			balance = "0 DIP"
 		}
 
-		l.Info("[Verifier Tracking]", "current height", respBlock.Header.Number, "slot", respSlot, trackingAccounts[i].Address.String()+" is verifier", isV)
+		l.Info("[Verifier Tracking]", zap.Uint64("current height", respBlock.Header.Number), zap.Uint64("slot", respSlot), zap.Bool(trackingAccounts[i].Address.String()+" is verifier", isV))
 
 		if resp.Status == VerifierStatusNoRegistered || resp.Status == VerifiedStatusUnstaked {
 
-			l.Info("[Verifier Tracking]", "Verifier status", resp.Status, "balance", balance)
+			l.Info("[Verifier Tracking]", zap.String("Verifier status", resp.Status), zap.String("balance", balance))
 			continue
 		}
 
@@ -185,7 +186,7 @@ func logElection() {
 			l.Error("The address has no stake, stake = 0 DIP")
 		}
 
-		l.Info("[Verifier Tracking]", "Verifier status", resp.Status, "balance", balance, "stake", stake, "reputation", resp.Reputation)
+		l.Info("[Verifier Tracking]", zap.String("Verifier status", resp.Status), zap.String("balance", balance), zap.String("stake", stake), zap.Uint64("reputation", resp.Reputation))
 
 	}
 
@@ -226,14 +227,14 @@ func removeTrackingAccount(adds common.Address) {
 //
 //	//var config chain_config.ChainConfig
 //	//if err := client.Call(&config, getDipperinRpcMethodByName("GetChainConfig")); err != nil {
-//	//	l.Error("get chain config", "err", err)
+//	//	l.Error("get chain config", zap.Error(err))
 //	//	return
 //	//}
 //	//
 //	//
 //	//var electionStatus rpc_interface.GetElectionStatus
 //	//if err := client.Call(&electionStatus, getDipperinRpcMethodByName("GetElectionStatus"), txHash); err != nil {
-//	//	l.Error("GetElectionStatus error", "err", err)
+//	//	l.Error("GetElectionStatus error", zap.Error(err))
 //	//	return
 //	//}
 //	//
@@ -261,7 +262,7 @@ func removeTrackingAccount(adds common.Address) {
 	// go to the chain to query tx
 	var resp rpc_interface.TransactionResp
 	if err := client.Call(&resp, getDipperinRpcMethodByName("Transaction"), txHash); err != nil {
-		l.Error("Call Transaction", "err", err)
+		l.Error("Call Transaction", zap.Error(err))
 		return
 	}
 
@@ -276,7 +277,7 @@ func removeTrackingAccount(adds common.Address) {
 	// block number converted to block current round
 	var config chain_config.ChainConfig
 	if err := client.Call(&config, getDipperinRpcMethodByName("GetChainConfig")); err != nil {
-		l.Error("get chain config", "err", err)
+		l.Error("get chain config", zap.Error(err))
 		return
 	}
 
@@ -290,7 +291,7 @@ func removeTrackingAccount(adds common.Address) {
 	l.Debug("targetRound", "targetRound", targetRound)
 	var verifiers []common.Address
 	if err := client.Call(&verifiers, getDipperinRpcMethodByName("GetVerifiersBySlot"), targetRound); err != nil {
-		l.Error("GetVerifiersBySlot", "err", err)
+		l.Error("GetVerifiersBySlot", zap.Error(err))
 		return
 	}
 

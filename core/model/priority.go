@@ -19,7 +19,8 @@ package model
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
+	"go.uber.org/zap"
 	"math"
 	"math/big"
 )
@@ -60,7 +61,7 @@ func CalPriority(hash common.Hash, reputation uint64) (uint64, error) {
 func CalReputation(nonce uint64, stake *big.Int, performance uint64) (uint64, error) {
 	stakeVal := float64(stake.Int64())
 	if stakeVal < StakeValMin {
-		log.Info("the stakeVal is:", "stakeVal", stakeVal)
+		log.DLogger.Info("the stakeVal is:", zap.Float64("stakeVal", stakeVal))
 		return 0, errors.New("stake not sufficient")
 	}
 
@@ -109,9 +110,9 @@ type TestCalculator struct {
 
 // hash means luck which calculate by block seed and address
 func (tc TestCalculator) GetElectPriority(hash common.Hash, nonce uint64, stake *big.Int, performance uint64) (uint64, error) {
-	//log.Info("get elect priority", "hash", hash.Hex(), "nonce", nonce, "stake", stake.String(), "performance", performance)
+	//log.DLogger.Info("get elect priority", "hash", hash.Hex(), "nonce", nonce, "stake", stake.String(), "performance", performance)
 	reputation, err := CalReputation(nonce, stake, performance)
-	//log.Info("TestCalculator#GetElectPriority", "reputation", reputation, "seed", hash.Hex(), "nonce", nonce, "stake", stake.String(), "performance", performance)
+	//log.DLogger.Info("TestCalculator#GetElectPriority", "reputation", reputation, "seed", hash.Hex(), "nonce", nonce, "stake", stake.String(), "performance", performance)
 	if err != nil {
 		return uint64(0), err
 	}
@@ -125,6 +126,6 @@ func (tc TestCalculator) GetElectPriority(hash common.Hash, nonce uint64, stake 
 
 // acquire reputation value
 func (tc TestCalculator) GetReputation(nonce uint64, stake *big.Int, performance uint64) (uint64, error) {
-	//log.Info("get reputation", "nonce", nonce, "stake", stake.String(), "performance", performance)
+	//log.DLogger.Info("get reputation", "nonce", nonce, "stake", stake.String(), "performance", performance)
 	return CalReputation(nonce, stake, performance)
 }

@@ -18,8 +18,9 @@ package g_metrics
 
 import (
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -45,14 +46,14 @@ type PrometheusMetricsServer struct {
 
 func (p *PrometheusMetricsServer) Start() error {
 	if p.port == 0 {
-		log.Info("port is 0, do not start prometheus metrics server")
+		log.DLogger.Info("port is 0, do not start prometheus metrics server")
 		return nil
 	}
 
-	log.Info("start prometheus metrics", "addr", p.server.Addr)
+	log.DLogger.Info("start prometheus metrics", zap.String("addr", p.server.Addr))
 	go func() {
 		if err := p.server.ListenAndServe(); err != nil {
-			log.Error("pMetrics serve failed: " + err.Error())
+			log.DLogger.Error("pMetrics serve failed: " + err.Error())
 		}
 	}()
 	return nil

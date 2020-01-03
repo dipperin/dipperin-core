@@ -17,13 +17,13 @@
 package verifiers_halt_check_test
 
 import (
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/verifiers-halt-check"
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -33,7 +33,7 @@ var testVerAccounts []tests.Account
 var verNodeIndex int
 
 func init() {
-	log.Info("change ver boot node address for test")
+	log.DLogger.Info("change ver boot node address for test")
 	var err error
 	testVerAccounts, err = tests.ChangeVerifierAddress(nil)
 	if err != nil {
@@ -96,7 +96,7 @@ func TestVBHaltHandler_HandlerProposalMessages(t *testing.T) {
 
 		assert.NoError(t, err)
 		testMessages[i] = *proposal
-		//log.Info("the other proposal hash is:","hash",proposal.EmptyBlock.Hash().Hex())
+		//log.DLogger.Info("the other proposal hash is:","hash",proposal.EmptyBlock.Hash().Hex())
 	}
 
 	//propose empty block
@@ -105,7 +105,7 @@ func TestVBHaltHandler_HandlerProposalMessages(t *testing.T) {
 	if testMinProposal.EmptyBlock.Hash().Hex() > testHandler.GetProposalMsg().EmptyBlock.Hash().Hex() {
 		testMinProposal = *testHandler.GetProposalMsg()
 	}
-	//log.Info("the own proposal hash is:","hash",testHandler.GetProposalMsg().EmptyBlock.Hash().Hex())
+	//log.DLogger.Info("the own proposal hash is:","hash",testHandler.GetProposalMsg().EmptyBlock.Hash().Hex())
 
 	//test handler proposal messages
 	testChan := make(chan verifiers_halt_check.ProposalMsg, 0)
@@ -173,7 +173,7 @@ type A struct {
 		C: 1,
 	}
 
-	log.Info("the *testA.B is:","value",*testA.B)
-	log.Info("the *testA.B is:","value",(*testA).B)
+	log.DLogger.Info("the *testA.B is:","value",*testA.B)
+	log.DLogger.Info("the *testA.B is:","value",(*testA).B)
 }
 */

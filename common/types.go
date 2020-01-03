@@ -23,10 +23,11 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 	"math/big"
 	"strconv"
 )
@@ -198,12 +199,12 @@ func BigToHash(b *big.Int) Hash  { return BytesToHash(b.Bytes()) }
 
 // ValidHashForDifficulty check is it a hash that meets the corresponding difficulty?
 func (h Hash) ValidHashForDifficulty(difficulty Difficulty) bool {
-	//log.Debug("h ValidHashForDifficulty", "hash", h.Hex(), "diff", difficulty.Hex())
+	//log.DLogger.Debug("h ValidHashForDifficulty", "hash", h.Hex(), "diff", difficulty.Hex())
 	result := h.Cmp(difficulty.DiffToTarget())
 	if result <= 0 {
-		//log.Info("===============received-hash==============", "hash hex", h.Hex())
-		//log.Info("===============block info ==============", "block info", h.Hex())
-		//log.Info("===============difftohash==============", "diffculty", difficulty.DiffToTarget().Hex())
+		//log.DLogger.Info("===============received-hash==============", "hash hex", h.Hex())
+		//log.DLogger.Info("===============block info ==============", "block info", h.Hex())
+		//log.DLogger.Info("===============difftohash==============", "diffculty", difficulty.DiffToTarget().Hex())
 		return true
 	} else {
 		return false
@@ -237,9 +238,9 @@ func (addr *Address) UnmarshalJSON(input []byte) error {
 
 // GetAddressType get the type of address based on the first two digits of the address
 func (addr Address) GetAddressType() TxType {
-	//cslog.Debug().Str("addr", addr.Hex()).Msg("GetAddressType")
+	//cslog.DLogger.Debug().Str("addr", addr.Hex()).Msg("GetAddressType")
 	//if len(addr) < 2 {
-	//	//cslog.Warn().Msg("GetAddressType but the length of the address is less than 2")
+	//	//cslog.DLogger.Warn().Msg("GetAddressType but the length of the address is less than 2")
 	//	return AddressTypeNormal
 	//}
 	return TxType(binary.BigEndian.Uint16(addr[:2]))
@@ -343,15 +344,15 @@ func (addr Address) Hex() string {
 }
 
 func HexStringSameWithVM(unchecksummed string) string {
-	//log.Debug("HexStringSameWithVM ", "addr", addr)
+	//log.DLogger.Debug("HexStringSameWithVM ", "addr", addr)
 	//addrSlice := StringToAddress(addr)
 
-	//log.Debug("HexStringSameWithVM addrSlice", "addrSlice", addrSlice)
+	//log.DLogger.Debug("HexStringSameWithVM addrSlice", "addrSlice", addrSlice)
 	//unchecksummed := hex.EncodeToString(addrSlice[:])
 	//unchecksummed = unchecksummed[:len(unchecksummed)-1]
-	log.Debug("HexStringSameWithVM unchecksummed", "unchecksummed", unchecksummed)
+	log.DLogger.Debug("HexStringSameWithVM unchecksummed", zap.String("unchecksummed", unchecksummed))
 	hash := crypto.Keccak256([]byte(unchecksummed))
-	log.Debug("HexStringSameWithVM hash", "hash", hash, "hashStr", string(hash))
+	log.DLogger.Debug("HexStringSameWithVM hash", zap.Uint8s("hash", hash), zap.String("hashStr", string(hash)))
 
 	result := []byte(unchecksummed)
 	for i := 0; i < len(result); i++ {
@@ -414,7 +415,7 @@ func (d Difficulty) Hex() string {
 func (d Difficulty) DiffToTarget() (target Hash) {
 	a := HashLength - d[0]
 	if a+2 > HashLength-1 || HashLength < d[0] {
-		log.Error("DiffToTarget failed", "diff", d.Hex())
+		log.DLogger.Error("DiffToTarget failed", zap.String("diff", d.Hex()))
 		panic("The first digit of diff cannot be less than 3 and cannot be greater than 0x20")
 	}
 	target[a] = d[1]

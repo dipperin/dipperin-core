@@ -19,9 +19,9 @@ package main
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 )
 
@@ -37,10 +37,10 @@ func main() {
 
 	var resp rpc_interface.CurBalanceResp
 	if err := c.Call(&resp, "dipperin_currentBalance", curAddr); err != nil {
-		log.Error("dipperin_call currentBalance failed", "err", err)
+		log.DLogger.Error("dipperin_call currentBalance failed", "err", err)
 		return
 	}
-	log.Info("current balance", "balance", curAddr.Hex(), resp.Balance.ToInt().String())
+	log.DLogger.Info("current balance", "balance", curAddr.Hex(), resp.Balance.ToInt().String())
 }
 
 func getDefaultAccount(c *rpc.Client) common.Address {

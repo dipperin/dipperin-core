@@ -20,10 +20,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"go.uber.org/zap"
 	"math/big"
 	"sync"
 )
@@ -66,13 +67,12 @@ func (pm *BaseProtocolManager) RemovePeer(id string) { panic("impl me") }
 // handle msg for GetPeers,
 func (pm *BaseProtocolManager) handleMsg(p PmAbstractPeer) error {
 
-	log.Info("base protocol handle msg", "remote node", p.NodeName())
+	log.DLogger.Info("base protocol handle msg", zap.String("remote node", p.NodeName()))
 
 	msg, err := p.ReadMsg()
 
 	if err != nil {
-		log.Info("base protocol read msg from peer failed", "err", err, "peer name", p.NodeName())
-		log.Pm.Info("base protocol read msg from peer failed", "node", p.NodeName(), "err", err)
+		log.DLogger.Info("base protocol read msg from peer failed", zap.Error(err), zap.String("peer name", p.NodeName()))
 		return err
 	}
 
@@ -84,7 +84,7 @@ func (pm *BaseProtocolManager) handleMsg(p PmAbstractPeer) error {
 	// find handler for this msg
 	tmpHandler := pm.msgHandlers[uint64(msg.Code)]
 	if tmpHandler == nil {
-		log.Error("Get message processing error", "msg code", uint64(msg.Code))
+		log.DLogger.Error("Get message processing error", zap.Uint64("msg code", msg.Code))
 		return msgHandleFuncNotFoundErr
 	}
 
@@ -143,14 +143,14 @@ func (status *StatusData) Sender() (result common.Address) {
 	if err := validSign(status.DataHash().Bytes(), status.PubKey, status.Sign); err == nil {
 		pubKey, err := crypto2.DecompressPubkey(status.PubKey)
 		if err != nil {
-			log.Debug("can't decode pub key from status data")
+			log.DLogger.Debug("can't decode pub key from status data")
 			return
 		}
 		// pass check sign, then get address from pubkey
 		result = cs_crypto.GetNormalAddress(*pubKey)
-		log.Info("verifier hand shake, get sender", "sender", result.Hex())
+		log.DLogger.Info("verifier hand shake, get sender", zap.String("sender", result.Hex()))
 	} else {
-		log.Debug("verifier hand shake verify signature failed", "err", err)
+		log.DLogger.Debug("verifier hand shake verify signature failed", zap.Error(err))
 	}
 	return
 }

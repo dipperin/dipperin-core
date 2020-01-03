@@ -15,6 +15,7 @@ export GOPROXY=https://goproxy.io
 root=`pwd`
 
 GoPath=$HOME/go/src/
+MonitorPath=$HOME/go/src/gitlab2018.com/luyun/
 
 cover () {
 target_dir=${root}/test-summary
@@ -96,7 +97,7 @@ jks_test () {
 build_ci() {
     echo 'build dipperin'
 
-    monitor_path="${GoPath}/chainstack-monitor/core"
+    monitor_path="${MonitorPath}/chainstack-monitor/core"
     #rm ~/go/bin/dipperin;
     cd ${monitor_path}/cmd/dipperin; go install
 
@@ -224,7 +225,7 @@ main () {
 
         compile_monitor )
              {
-                cross_compile  ${GoPath}/chainstack-monitor/core/cmd/dipperin
+                cross_compile  ${MonitorPath}/chainstack-monitor/core/cmd/dipperin
         };;
 
         travisTest )

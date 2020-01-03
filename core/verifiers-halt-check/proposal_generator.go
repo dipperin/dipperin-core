@@ -18,10 +18,11 @@ package verifiers_halt_check
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 	"time"
 )
@@ -76,7 +77,7 @@ func (g *ProposalGenerator) GenProposal() (*ProposalMsg, error) {
 
 func (g *ProposalGenerator) GenEmptyBlock() (*model.Block, error) {
 	curBlock := g.CurBlock
-	log.Info("GenerateEmptyBlock", "num", curBlock.Number())
+	log.DLogger.Info("GenerateEmptyBlock", zap.Uint64("num", curBlock.Number()))
 
 	currentHeight := curBlock.Number()
 	header := &model.Header{
@@ -110,7 +111,7 @@ func (g *ProposalGenerator) GenEmptyBlock() (*model.Block, error) {
 	//avoid hash error
 	block.RefreshHashCache()
 
-	log.Halt.Info("the GenEmptyBlock block hash is:", "hash", block.Hash().Hex())
+	log.DLogger.Info("the GenEmptyBlock block hash is:", zap.String("hash", block.Hash().Hex()))
 	return block, nil
 }
 

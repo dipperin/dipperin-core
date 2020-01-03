@@ -19,11 +19,12 @@ package chain_communication
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/prque"
 	"github.com/dipperin/dipperin-core/common/util"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/rand"
 	"time"
 )
@@ -143,7 +144,7 @@ func (f *BlockFetcher) Notify(pID string, hash common.Hash, number uint64, time 
 	case f.notify <- msg:
 		return nil
 	case <-f.quit:
-		log.Info("block fetcher terminated")
+		log.DLogger.Info("block fetcher terminated")
 		return nil
 	}
 }
@@ -157,7 +158,7 @@ func (f *BlockFetcher) DoTask(peerID string, vr *model2.VerifyResult, time time.
 	case <-f.quit:
 		return
 	}
-	log.PBft.Debug("Dotask,1")
+	log.DLogger.Debug("Dotask,1")
 	select {
 	case taskC <- &vrTask{peerID: peerID, catchup: &catchup{Block: vr.Block, SeenCommit: vr.SeenCommits}, time: time}:
 	case <-f.quit:
@@ -275,13 +276,13 @@ func (f *BlockFetcher) loop() {
 // used for insert
 func (f *BlockFetcher) handleInsert() {
 	height := f.chainHeight().Number()
-	log.PBft.Debug("fetch chain height number", "height", height)
+	log.DLogger.Debug("fetch chain height number", zap.Uint64("height", height))
 	for !f.queue.Empty() {
 
 		op := f.queue.PopItem().(*inject)
 		hash := op.catchup.Block.Hash()
 		number := op.catchup.Block.Number()
-		log.PBft.Debug("to insert block", "block number", number, "height", height)
+		log.DLogger.Debug("to insert block", zap.Uint64("block number", number), zap.Uint64("height", height))
 		if number > height+1 {
 			f.queue.Push(op, -int64(number))
 			break
@@ -302,7 +303,7 @@ func (f *BlockFetcher) handleNotify(notification *vrMsg, fetchTimer *time.Timer)
 	count := f.notifyCount[notification.peerID] + 1
 
 	if count > hashLimit {
-		log.Debug("Peer exceeded outstanding announces", "peer", notification.peerID, "limit", hashLimit)
+		log.DLogger.Debug("Peer exceeded outstanding announces", zap.String("peer", notification.peerID), zap.Int("limit", hashLimit))
 		needBreak = true
 		return needBreak
 	}
@@ -310,7 +311,7 @@ func (f *BlockFetcher) handleNotify(notification *vrMsg, fetchTimer *time.Timer)
 	// If we have a valid block number, check that it's potentially useful
 	if notification.number > 0 {
 		if dist := int64(notification.number) - int64(f.chainHeight().Number()); dist > maxQueueDist {
-			log.Debug("Peer discarded announcement", "peer", notification.peerID, "number", notification.number, "hash", notification.hash, "distance", dist)
+			log.DLogger.Debug("Peer discarded announcement", zap.String("peer", notification.peerID), zap.Uint64("number", notification.number), zap.Any("hash", notification.hash), zap.Int64("distance", dist))
 			needBreak = true
 			return needBreak
 		}
@@ -361,13 +362,13 @@ func (f *BlockFetcher) handleFetching(fetchTimer *time.Timer) {
 
 	// Send out all get vr requests
 	for peer, hashes := range request {
-		log.Debug("Fetching scheduled vrs", "peer", peer, "hashes", hashes)
+		log.DLogger.Debug("Fetching scheduled vrs", zap.String("peer", peer), zap.Any("hashes", hashes))
 
 		getVr, hashes := f.fetching[hashes[0]].getVR, hashes
 
 		go func() {
 			for _, hash := range hashes {
-				log.Debug("start fetching block vr", "hash", hash)
+				log.DLogger.Debug("start fetching block vr", zap.Any("hash", hash))
 				getVr(hash)
 			}
 		}()
@@ -378,7 +379,7 @@ func (f *BlockFetcher) handleFetching(fetchTimer *time.Timer) {
 }
 
 func (f *BlockFetcher) handleVrTask(task *vrTask) {
-	log.PBft.Debug("Handle vr task")
+	log.DLogger.Debug("Handle vr task")
 	catchup := task.catchup
 
 	// Filter fetcher-requested headers from other synchronisation algorithms
@@ -448,14 +449,14 @@ func (f *BlockFetcher) enqueue(peerID string, catchup *catchup) {
 	count := f.queues[peerID] + 1
 
 	if count > blockLimit {
-		log.Debug("Discarded propagated block, exceeded allowance", "peer", peerID, "number", catchup.Block.Number(), "hash", catchup.Block.Hash(), "limit", blockLimit)
+		log.DLogger.Debug("Discarded propagated block, exceeded allowance", zap.String("peer", peerID), zap.Uint64("number", catchup.Block.Number()), zap.Any("hash", catchup.Block.Hash()), zap.Int("limit", blockLimit))
 		f.forgetHash(catchup.Block.Hash())
 		return
 	}
 
 	// Discard any past or too distant blocks
 	if dist := int64(catchup.Block.Number()) - int64(f.chainHeight().Number()); dist > maxQueueDist {
-		log.Debug("Discarded propagated block, too far away", "peer", peerID, "number", catchup.Block.Number(), "hash", catchup.Block.Hash(), "distance", dist)
+		log.DLogger.Debug("Discarded propagated block, too far away", zap.String("peer", peerID), zap.Uint64("number", catchup.Block.Number()), zap.Any("hash", catchup.Block.Hash()), zap.Int64("distance", dist))
 		f.forgetHash(catchup.Block.Hash())
 		return
 	}
@@ -471,14 +472,14 @@ func (f *BlockFetcher) enqueue(peerID string, catchup *catchup) {
 		f.queued[catchup.Block.Hash()] = op
 		f.queue.Push(op, -int64(catchup.Block.Number()))
 
-		log.Debug("Queued propagated block", "peer", peerID, "number", catchup.Block.Number(), "hash", catchup.Block.Hash(), "queued", f.queue.Size())
+		log.DLogger.Debug("Queued propagated block", zap.String("peer", peerID), zap.Uint64("number", catchup.Block.Number()), zap.Any("hash", catchup.Block.Hash()), zap.Int("queued", f.queue.Size()))
 	}
 
 }
 
 func (f *BlockFetcher) insert(peerID string, catchup *catchup) {
 	block := catchup.Block
-	log.PBft.Debug("Insert a block", "block", block.Number(), "height", f.chainHeight().Number())
+	log.DLogger.Debug("Insert a block", zap.Uint64("block", block.Number()), zap.Uint64("height", f.chainHeight().Number()))
 	go func() {
 		defer func() {
 			f.done <- block.Hash()
@@ -486,18 +487,18 @@ func (f *BlockFetcher) insert(peerID string, catchup *catchup) {
 
 		parent := f.getBlock(block.PreHash())
 		if parent == nil {
-			log.PBft.Debug("Insert a block", "block", block.Number(), "height", f.chainHeight().Number(), "err", "Unknown parent of propagated block")
-			log.Error("Unknown parent of propagated block", "peer", peerID, "number", block.Number(), "hash", block.Hash(), "parent", block.PreHash())
+			log.DLogger.Debug("Insert a block", zap.Uint64("block", block.Number()), zap.Uint64("height", f.chainHeight().Number()), zap.String("err", "Unknown parent of propagated block"))
+			log.DLogger.Error("Unknown parent of propagated block", zap.String("peer", peerID), zap.Uint64("number", block.Number()), zap.Any("hash", block.Hash()), zap.Any("parent", block.PreHash()))
 			return
 		}
 
 		if err := f.saveBlock(catchup.Block, catchup.SeenCommit); err != nil {
-			log.PBft.Debug("Save a block", "block", block.Number(), "height", f.chainHeight().Number(), "err", err)
-			log.Error("Propagated block import failed", "peer", peerID, "number", block.Number(), "hash", block.Hash(), "err", err)
+			log.DLogger.Debug("Save a block", zap.Uint64("block", block.Number()), zap.Uint64("height", f.chainHeight().Number()), zap.Error(err))
+			log.DLogger.Error("Propagated block import failed", zap.String("peer", peerID), zap.Uint64("number", block.Number()), zap.Any("hash", block.Hash()), zap.Error(err))
 			return
 		}
-		log.PBft.Debug("Saved a block", "block", block.Number(), "height", f.chainHeight().Number())
-		log.Info("fetcher save block vr", "hash", block.Hash(), "number", block.Number())
+		log.DLogger.Debug("Saved a block", zap.Uint64("block", block.Number()), zap.Uint64("height", f.chainHeight().Number()))
+		log.DLogger.Info("fetcher save block vr", zap.Any("hash", block.Hash()), zap.Uint64("number", block.Number()))
 
 		go f.blockBroadcaster(&model2.VerifyResult{Block: catchup.Block, SeenCommits: catchup.SeenCommit})
 

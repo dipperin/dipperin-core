@@ -20,12 +20,13 @@ import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/g-timer"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 	"io"
 	"strings"
 	"sync/atomic"
@@ -97,12 +98,12 @@ func (fd *NewPbftDownloader) MsgHandlers() map[uint64]func(msg p2p.Msg, p PmAbst
 
 // TODO
 func (fd *NewPbftDownloader) onGetBlocks(msg p2p.Msg, p PmAbstractPeer) error {
-	log.Info("receive get blocks msg1")
+	log.DLogger.Info("receive get blocks msg1")
 	var query getBlockHeaders
 	if err := msg.Decode(&query); err != nil {
 		return errors.New("decode error, invalid message")
 	}
-	log.Info("receive get blocks msg2", "OriginHeight", query.OriginHeight, "amount", query.Amount, "remote node", p.NodeName())
+	log.DLogger.Info("receive get blocks msg2", zap.Uint64("OriginHeight", query.OriginHeight), zap.Uint64("amount", query.Amount), zap.String("remote node", p.NodeName()))
 
 	var (
 		blocks []*catchup
@@ -112,7 +113,7 @@ func (fd *NewPbftDownloader) onGetBlocks(msg p2p.Msg, p PmAbstractPeer) error {
 		origin := fd.Chain.GetBlockByNumber(query.OriginHeight)
 		cmt := fd.Chain.GetSeenCommit(query.OriginHeight)
 		if origin == nil {
-			log.Info("can't get block for downloader", "height", query.OriginHeight)
+			log.DLogger.Info("can't get block for downloader", zap.Uint64("height", query.OriginHeight))
 			break
 		}
 
@@ -123,22 +124,22 @@ func (fd *NewPbftDownloader) onGetBlocks(msg p2p.Msg, p PmAbstractPeer) error {
 	// todo rm here
 	//bb, _ := rlp.EncodeToBytes(blocks)
 	//, "data size(Mb)", len(bb) * 8.0 / 1024 / 1024
-	log.Info("downloader send blocks to remote", "remote node", p.NodeName(), "block len", len(blocks))
+	log.DLogger.Info("downloader send blocks to remote", zap.String("remote node", p.NodeName()), zap.Int("block len", len(blocks)))
 	return p.SendMsg(BlocksMsg, blocks)
 }
 
 func (fd *NewPbftDownloader) onBlocks(msg p2p.Msg, p PmAbstractPeer) error {
 	var blocks []*catchupRlp
 	if err := msg.Decode(&blocks); err != nil {
-		log.Error("downloader decode blocks failed", "err", err)
+		log.DLogger.Error("downloader decode blocks failed", zap.Error(err))
 		return err
 	}
 
-	log.Info("downloader receive blocks from", "node", p.NodeName(), "block len", len(blocks))
+	log.DLogger.Info("downloader receive blocks from", zap.String("node", p.NodeName()), zap.Int("block len", len(blocks)))
 	if len(blocks) > 0 {
 		// Filter out any explicitly requested block vr, deliver the rest to the downloader
 		filter := fd.fetcher.DoFilter(p.ID(), blocks)
-		log.Info("fetcher filter catchup list", "origin size", len(blocks), "filter", len(filter))
+		log.DLogger.Info("fetcher filter catchup list", zap.Int("origin size", len(blocks)), zap.Int("filter", len(filter)))
 		pack := &npbPack{
 			peerID: p.ID(),
 			blocks: filter,
@@ -154,7 +155,7 @@ func (fd *NewPbftDownloader) onBlocks(msg p2p.Msg, p PmAbstractPeer) error {
 }
 
 func (fd *NewPbftDownloader) Start() error {
-	log.PBft.Debug("Start New PBFT Downloader")
+	log.DLogger.Debug("Start New PBFT Downloader")
 	go fd.loop()
 	return nil
 }
@@ -163,11 +164,11 @@ func (fd *NewPbftDownloader) loop() {
 	//tickHandler := func() {
 	//	log.PBft.Debug("pbft downloader call download")
 	//	if fd.getBestPeer() == nil {
-	//		log.Warn("downloader can't get best peer, do nothing")
+	//		log.DLogger.Warn("downloader can't get best peer, do nothing")
 	//		return
 	//	}
 	//
-	//	log.Info("downloader run sync")
+	//	log.DLogger.Info("downloader run sync")
 	//	fd.runSync()
 	//}
 	forceSync := g_timer.SetPeriodAndRun(fd.runSync, pollingInterval)
@@ -185,33 +186,32 @@ func (fd *NewPbftDownloader) getBestPeer() PmAbstractPeer {
 
 	// ensure bestPeer no nil
 	if bestPeer == nil {
-		log.Info("====================bestPeer == nil====================")
+		log.DLogger.Info("====================bestPeer == nil====================")
 		return nil
 	}
 
 	currentBlock := fd.Chain.CurrentBlock()
 	if currentBlock == nil {
-		log.Error("=======================currentBlock is nil===================")
+		log.DLogger.Error("=======================currentBlock is nil===================")
 		return nil
 	}
 
 	// check local blockchain current block height < bestPeer height
 	_, height := bestPeer.GetHead()
 	if height <= currentBlock.Number() {
-		log.Info("local higher than best peer", "bestPeer", bestPeer.NodeName(), "remote h", height, "local h", currentBlock.Number())
+		log.DLogger.Info("local higher than best peer", zap.String("bestPeer", bestPeer.NodeName()), zap.Uint64("remote h", height), zap.Uint64("local h", currentBlock.Number()))
 		return nil
 	}
 
-	log.Info("downloader got best peer", "p height", height, "p name", bestPeer.NodeName())
+	log.DLogger.Info("downloader got best peer", zap.Uint64("p height", height), zap.String("p name", bestPeer.NodeName()))
 	return bestPeer
 }
 
 //run synchronise
 func (fd *NewPbftDownloader) runSync() {
-	log.Info("bft downloader run sync")
-	log.PBft.Debug("bft downloader run sync")
+	log.DLogger.Info("bft downloader run sync")
 	if !atomic.CompareAndSwapInt32(&fd.synchronising, 0, 1) {
-		log.Info("downloader is busy")
+		log.DLogger.Info("downloader is busy")
 		return
 	}
 	defer atomic.StoreInt32(&fd.synchronising, 0)
@@ -244,10 +244,10 @@ func (fd *NewPbftDownloader) fetchBlocks(bestPeer PmAbstractPeer) {
 		nextNumber = fd.Chain.GetBlockByNumber(curNumber - rollBackNum + 1).Number()
 	}
 
-	log.Info("send get blocks msg", "remote peer name", bestPeer.NodeName(), "remote peer height", height)
+	log.DLogger.Info("send get blocks msg", zap.String("remote peer name", bestPeer.NodeName()), zap.Uint64("remote peer height", height))
 
 	if err := bestPeer.SendMsg(GetBlocksMsg, &getBlockHeaders{OriginHeight: nextNumber, Amount: MaxBlockFetch}); err != nil {
-		log.Error("first send get blocks msg failed", "err", err)
+		log.DLogger.Error("first send get blocks msg failed", zap.Error(err))
 		return
 	}
 
@@ -260,13 +260,13 @@ func (fd *NewPbftDownloader) fetchBlocks(bestPeer PmAbstractPeer) {
 		select {
 		case packet := <-fd.blockC:
 			if packet.peerID != bestPeer.ID() {
-				log.Warn("Received skeleton from incorrect peer", "peer", packet.peerID)
+				log.DLogger.Warn("Received skeleton from incorrect peer", zap.String("peer", packet.peerID))
 				break
 			}
 
 			blocks := packet.blocks
 			size := len(blocks)
-			log.Info("fetchBlocks1", "blocks len", size)
+			log.DLogger.Info("fetchBlocks1", zap.Int("blocks len", size))
 
 			// no block return from remote
 			if size <= 0 {
@@ -275,7 +275,7 @@ func (fd *NewPbftDownloader) fetchBlocks(bestPeer PmAbstractPeer) {
 
 			// If the insertion is slow, it will cause a timeout, then the Peer is broken.
 			if err := fd.importBlockResults(blocks); err != nil {
-				log.Error("downloader save block failed", "err", err, "remote node", bestPeer.NodeName())
+				log.DLogger.Error("downloader save block failed", zap.Error(err), zap.String("remote node", bestPeer.NodeName()))
 				return
 			}
 			nextNumber += uint64(size)
@@ -299,39 +299,39 @@ func (fd *NewPbftDownloader) fetchBlocks(bestPeer PmAbstractPeer) {
 						quitCh <- struct{}{}
 						return
 					}
-					log.Error("run sync send msg: GetBlocksMsg", "err", err.Error())
+					log.DLogger.Error("run sync send msg: GetBlocksMsg", zap.Error(err))
 				}
 			}()
 		case <-timeoutTimer.C:
-			log.Warn("Waiting for fetchHeaders headers timed out", "node name", bestPeer.NodeName())
+			log.DLogger.Warn("Waiting for fetchHeaders headers timed out", zap.String("node name", bestPeer.NodeName()))
 			return
 
 		case <-fd.quitCh:
 			return
 
 		case <-quitCh:
-			log.Warn("peer disconnect: GetBlocksMsg", "node name", bestPeer.NodeName())
+			log.DLogger.Warn("peer disconnect: GetBlocksMsg", zap.String("node name", bestPeer.NodeName()))
 			return
 		}
 	}
 }
 
 func (fd *NewPbftDownloader) importBlockResults(list []*catchupRlp) error {
-	log.Info("insert blocks from downloader", "len", len(list))
+	log.DLogger.Info("insert blocks from downloader", zap.Int("len", len(list)))
 	for _, b := range list {
 		commits := make([]model.AbstractVerification, len(b.SeenCommit))
 		util.InterfaceSliceCopy(commits, b.SeenCommit)
 
 		if len(commits) > 0 {
-			log.PBft.Debug("pbft download call save block", "block height", b.Block.Number(), "commits", len(commits), "commits", commits[0].GetBlockId().Hex())
+			log.DLogger.Debug("pbft download call save block", zap.Uint64("block height", b.Block.Number()), zap.Int("commits", len(commits)), zap.String("commits", commits[0].GetBlockId().Hex()))
 		} else {
-			log.PBft.Warn("commits is empty", "height", b.Block.Number())
+			log.DLogger.Warn("commits is empty", zap.Uint64("height", b.Block.Number()))
 		}
 
-		log.Info("importBlockResults save block number is:", "blockNumber", b.Block.Number())
+		log.DLogger.Info("importBlockResults save block number is:", zap.Uint64("blockNumber", b.Block.Number()))
 		if err := fd.Chain.SaveBlock(b.Block, commits); err != nil {
 			if err == g_error.ErrNormalBlockHeightTooLow {
-				log.Info("importBlockResults the block height is same as the current block ")
+				log.DLogger.Info("importBlockResults the block height is same as the current block ")
 				continue
 			} else {
 				return err

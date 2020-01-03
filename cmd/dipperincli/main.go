@@ -28,12 +28,14 @@ import (
 	config2 "github.com/dipperin/dipperin-core/cmd/dipperincli/config"
 	"github.com/dipperin/dipperin-core/cmd/dipperincli/service"
 	"github.com/dipperin/dipperin-core/cmd/utils/debug"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/dipperin"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/urfave/cli"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"io/ioutil"
 	_ "net/http/pprof"
 	"os"
@@ -54,8 +56,19 @@ var (
 )
 
 func main() {
-	log.InitLogger(log.LvlInfo)
-	//cslog.InitLogger(zap.InfoLevel, "", true)
+	cnf := log.LoggerConfig{
+		Lvl:           zapcore.DebugLevel,
+		FilePath:      "",
+		Filename:      "",
+		WithConsole:   true,
+		WithFile:      false,
+		DisableCaller: true,
+	}
+	switch chain_config.GetCurBootsEnv() {
+	case "venus", "mercury":
+		cnf.Lvl = zapcore.InfoLevel
+	}
+	log.InitLogger(cnf)
 	app = newApp()
 	app.Run(os.Args)
 }
@@ -101,7 +114,7 @@ func initStartFlag() *startConf {
 	if err = util.ParseJsonFromBytes(fb, &conf); err != nil || len(conf.P2PListener) == 0 {
 		doPrompts(&conf, startConfPath)
 	}
-	log.Info("load start flags file, you can open and change it, or rm it for reset. then must restart dipperincli", "conf_path", startConfPath)
+	log.DLogger.Info("load start flags file, you can open and change it, or rm it for reset. then must restart dipperincli", zap.String("conf_path", startConfPath))
 	return &conf
 }
 
@@ -115,7 +128,7 @@ func doPrompts(conf *startConf, saveTo string) {
 	conf.WSPort, _ = dipperin_prompts.WSPort()
 
 	if conf.P2PListener == conf.HTTPPort || conf.P2PListener == conf.WSPort || conf.HTTPPort == conf.WSPort {
-		//log.Error("three of the Ports repeated,please try again")
+		//log.DLogger.Error("three of the Ports repeated,please try again")
 		return
 	}
 	// write to file
@@ -125,7 +138,7 @@ func doPrompts(conf *startConf, saveTo string) {
 	}
 
 	ioutil.WriteFile(saveTo, util.StringifyJsonToBytes(conf), 0644)
-	log.Info("write start flags file, you can open and change it, or rm it for reset. then must restart dipperincli", "conf_path", saveTo)
+	log.DLogger.Info("write start flags file, you can open and change it, or rm it for reset. then must restart dipperincli", zap.String("conf_path", saveTo))
 }
 
 func appAction(c *cli.Context) {
@@ -136,18 +149,18 @@ func appAction(c *cli.Context) {
 	//commands.InitLog(lv)
 
 	if chain_config.GetCurBootsEnv() != "local" && chain_config.GetCurBootsEnv() != "test" && chain_config.GetCurBootsEnv() != "venus" && chain_config.GetCurBootsEnv() != "mercury" {
-		log.Error("boots_env set error,please check!")
+		log.DLogger.Error("boots_env set error,please check!")
 		return
 	}
 
 	startFlagsConf := initStartFlag()
 
 	if startFlagsConf.P2PListener == startFlagsConf.HTTPPort || startFlagsConf.P2PListener == startFlagsConf.WSPort || startFlagsConf.HTTPPort == startFlagsConf.WSPort {
-		log.Error("port conflict,please try again")
+		log.DLogger.Error("port conflict,please try again")
 		return
 	}
 
-	log.Debug("set loaded conf flags")
+	log.DLogger.Debug("set loaded conf flags")
 	c.Set(config.NodeNameFlagName, startFlagsConf.NodeName)
 	c.Set(config.NodeTypeFlagName, fmt.Sprintf("%v", startFlagsConf.NodeType))
 	c.Set(config.DataDirFlagName, startFlagsConf.DataDir)
@@ -164,29 +177,30 @@ func appAction(c *cli.Context) {
 	passPhrase, _ := dipperin_prompts.WalletPassPhrase()
 	c.Set(config.SoftWalletPassPhraseFlagName, passPhrase)
 
-	log.Debug("the c.Args number is:", "number", c.NArg())
-	log.Debug("the c.Args is:", "args", c.Args())
+	log.DLogger.Debug("the c.Args number is:", zap.Int("number", c.NArg()))
+	log.DLogger.Debug("the c.Args is:", zap.Any("args", c.Args()))
 
 	nodeType := getNodeType(c.Int("node_type"))
 	if nodeType == "" {
 		return
 	}
 
-	log.Info("node info", "name", c.String(config.NodeNameFlagName),
-		"type", nodeType,
-		"P2PListener", c.String(config.P2PListenerFlagName),
-		"HttpPort", c.String(config.HttpPortFlagName),
-		"WebSocketPort", c.String(config.WsPortFlagName),
-		"DataPath", c.String(config.DataDirFlagName))
+	log.DLogger.Info("node info",
+		zap.String("name", c.String(config.NodeNameFlagName)),
+		zap.String("type", nodeType),
+		zap.String("P2PListener", c.String(config.P2PListenerFlagName)),
+		zap.String("HttpPort", c.String(config.HttpPortFlagName)),
+		zap.String("WebSocketPort", c.String(config.WsPortFlagName)),
+		zap.String("DataPath", c.String(config.DataDirFlagName)))
 
 	if err := debug.Setup(c); err != nil {
-		log.Error("debug setup failed", "err", err)
+		log.DLogger.Error("debug setup failed", zap.Error(err))
 	}
 
-	log.Info("network info", "name", os.Getenv("boots_env"))
+	log.DLogger.Info("network info", zap.String("name", os.Getenv("boots_env")))
 
 	if os.Getenv("boots_env") == "mercury" {
-		log.Error("the Mercury testnet is not stopped forever, please try set boots_env = venus.")
+		log.DLogger.Error("the Mercury testnet is not stopped forever, please try set boots_env = venus.")
 		// return
 	}
 
@@ -219,7 +233,7 @@ func appAction(c *cli.Context) {
 		}
 		err = csConsole.History.DoWriteHistory()
 		if err != nil {
-			log.Error("do write history error", "err", err)
+			log.DLogger.Error("do write history error", zap.Error(err))
 		}
 		closeApp()
 	}()
@@ -241,13 +255,13 @@ func getNodeType(nodeType int) (nodeTypeStr string) {
 	switch nodeType {
 	case 0:
 		if commands.CheckRegistration() {
-			log.Warn("You are registered and are not allowed to open the normal node. Please switch the verifier node to send the cancellation transaction and link up before switching the normal node")
+			log.DLogger.Warn("You are registered and are not allowed to open the normal node. Please switch the verifier node to send the cancellation transaction and link up before switching the normal node")
 			return
 		}
 		nodeTypeStr = "normal"
 	case 1:
 		if commands.CheckRegistration() {
-			log.Warn("You are registered and are not allowed to open the miner node. Please switch the verifier node to send the cancellation transaction and link up before switching the miner node")
+			log.DLogger.Warn("You are registered and are not allowed to open the miner node. Please switch the verifier node to send the cancellation transaction and link up before switching the miner node")
 			return
 		}
 		nodeTypeStr = "mine master"
@@ -293,13 +307,13 @@ func Executor(c *cli.Context) prompt.Executor {
 		if len(cmdArgs) >= 2 {
 			if config2.CheckModuleMethodIsRight(cmdArgs[0], cmdArgs[1]) {
 				err := c.App.Run(s)
-				log.Info("Executor", "err", err)
+				log.DLogger.Info("Executor", zap.Error(err))
 			} else {
 				fmt.Println("module", cmdArgs[0], "has not method", cmdArgs[1])
 			}
 		} else {
 			err := c.App.Run(s)
-			log.Info("Executor", "err", err)
+			log.DLogger.Info("Executor", zap.Error(err))
 		}
 	}
 }

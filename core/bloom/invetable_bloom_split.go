@@ -20,8 +20,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 	"reflect"
 	"sort"
 )
@@ -30,12 +31,12 @@ import (
 // it prints error if input is invalid or encode throws error
 func (b *InvBloom) InsertRLP(k, v interface{}) {
 	if k == nil {
-		log.Error("insert key is nil", "key", k)
+		log.DLogger.Error("insert key is nil")
 		return
 	}
 
 	if v == nil {
-		log.Error("insert value is nil", "value", v)
+		log.DLogger.Error("insert value is nil")
 		return
 	}
 
@@ -43,12 +44,12 @@ func (b *InvBloom) InsertRLP(k, v interface{}) {
 	vBytes, vError := rlp.EncodeToBytes(v)
 
 	if kError != nil {
-		log.Error("key RLP encode error", "error", kError, "key", k)
+		log.DLogger.Error("key RLP encode error", zap.Error(kError), zap.Any("key", k))
 		return
 	}
 
 	if vError != nil {
-		log.Error("value RLP encode error", "error", vError, "value", v)
+		log.DLogger.Error("value RLP encode error", zap.Error(vError), zap.Any("value", v))
 		return
 	}
 
@@ -168,7 +169,7 @@ func (b *InvBloom) reconstructByteSlice(m map[common.Hash]Data) (byteSlice [][]b
 			byteSlice[byteIdx] = append(byteSlice[byteIdx], key[b.config.KeyLen+b.config.SerNumLen:]...)
 			keyIdx++
 		} else {
-			log.Error("wrong bloom slice index", "keyIdx", keyIdx, "key", key)
+			log.DLogger.Error("wrong bloom slice index", zap.Uint16("keyIdx", keyIdx), zap.Any("key", key))
 		}
 	}
 

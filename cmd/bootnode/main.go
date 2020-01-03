@@ -22,14 +22,16 @@ import (
 	"flag"
 	"fmt"
 	"github.com/dipperin/dipperin-core/cmd/utils"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p/discover"
 	"github.com/dipperin/dipperin-core/third-party/p2p/discv5"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/dipperin/dipperin-core/third-party/p2p/nat"
 	"github.com/dipperin/dipperin-core/third-party/p2p/netutil"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"net"
 	"os"
 	"strconv"
@@ -47,14 +49,14 @@ var (
 )
 
 func printBootNodeFlag() {
-	log.Info("the listenAddr is:", "listenAddr", *listenAddr)
-	log.Info("the genKey is:", "genKey", *genKey)
-	log.Info("the writeAddr is:", "writeAddr", *writeAddr)
-	log.Info("the nodeKeyFile is:", "nodeKeyFile", *nodeKeyFile)
-	log.Info("the nodeKeyHex is:", "nodeKeyHex", *nodeKeyHex)
-	log.Info("the natdesc is:", "natdesc", *natdesc)
-	log.Info("the netrestrict is:", "netrestrict", *netrestrict)
-	log.Info("the runv5 is:", "runv5", *runv5)
+	log.DLogger.Info("the listenAddr is:", zap.String("listenAddr", *listenAddr))
+	log.DLogger.Info("the genKey is:", zap.String("genKey", *genKey))
+	log.DLogger.Info("the writeAddr is:", zap.Bool("writeAddr", *writeAddr))
+	log.DLogger.Info("the nodeKeyFile is:", zap.String("nodeKeyFile", *nodeKeyFile))
+	log.DLogger.Info("the nodeKeyHex is:", zap.String("nodeKeyHex", *nodeKeyHex))
+	log.DLogger.Info("the natdesc is:", zap.String("natdesc", *natdesc))
+	log.DLogger.Info("the netrestrict is:", zap.String("netrestrict", *netrestrict))
+	log.DLogger.Info("the runv5 is:", zap.Bool("runv5", *runv5))
 }
 
 func main() {
@@ -64,8 +66,18 @@ func main() {
 		nodeKey *ecdsa.PrivateKey
 		err     error
 	)
-
-	log.InitLogger(log.LvlInfo)
+	cnf := log.LoggerConfig{
+		Lvl:         zapcore.DebugLevel,
+		FilePath:    "",
+		Filename:    "",
+		WithConsole: true,
+		WithFile:    false,
+	}
+	switch chain_config.GetCurBootsEnv() {
+	case "venus", "mercury":
+		cnf.Lvl = zapcore.InfoLevel
+	}
+	log.InitLogger(cnf)
 
 	natm, err := nat.Parse(*natdesc)
 	if err != nil {

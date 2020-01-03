@@ -20,6 +20,7 @@ import (
 	"github.com/dipperin/dipperin-core/cmd/utils/debug"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-metrics"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
@@ -41,12 +42,12 @@ import (
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/core/tx-pool"
 	"github.com/dipperin/dipperin-core/core/verifiers-halt-check"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/nat"
 	"github.com/dipperin/dipperin-core/third-party/p2p/netutil"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/dipperin/dipperin-core/third-party/vm-log-search"
+	"go.uber.org/zap"
 	"os"
 	"path/filepath"
 	"strings"
@@ -170,11 +171,6 @@ func newBaseComponent(nodeConfig NodeConfig) *BaseComponent {
 	model.SetBlockRlpHandler(&model.PBFTBlockRlpHandler{})
 	model.SetBlockJsonHandler(&model.PBFTBlockJsonHandler{})
 
-	// init log path
-	log.InitAgentLog(nodeConfig.DataDir)
-	nodeName := nodeConfig.GetNodeName()
-
-	log.InitDPLogger(nodeName)
 	return b
 }
 
@@ -203,7 +199,6 @@ func (b *BaseComponent) setNodeSignerInfo() error {
 	}
 
 	//mineMaster
-	log.Info("the mineMaster in baseComponents is:", "mineMaster", b.mineMaster)
 	if b.nodeConfig.NodeType == chain_config.NodeTypeOfMineMaster {
 		b.mineMaster.SetMsgSigner(b.msgSigner)
 		b.mineMaster.SetCoinbaseAddress(b.defaultAccountAddress)
@@ -351,25 +346,25 @@ func (b *BaseComponent) initWalletManager() {
 
 	var mnemonic string
 	exit, _ := soft_wallet.PathExists(b.nodeConfig.SoftWalletFile())
-	log.Info("initWalletManager the wallet exit", "exit", exit)
+	log.DLogger.Info("initWalletManager the wallet exit", zap.Bool("exit", exit))
 	if exit {
 		err = defaultWallet.Open(b.nodeConfig.SoftWalletFile(), b.nodeConfig.SoftWalletName(), b.nodeConfig.SoftWalletPassword)
 	} else {
 		mnemonic, err = defaultWallet.Establish(b.nodeConfig.SoftWalletFile(), b.nodeConfig.SoftWalletName(), b.nodeConfig.SoftWalletPassword, b.nodeConfig.SoftWalletPassPhrase)
 		mnemonic = strings.Replace(mnemonic, " ", ",", -1)
-		log.Info("EstablishWallet mnemonic is:", "mnemonic", mnemonic)
+		log.DLogger.Info("EstablishWallet mnemonic is:", zap.String("mnemonic", mnemonic))
 	}
 
 	if err != nil {
-		log.Info("open or establish wallet error ", "err", err)
+		log.DLogger.Info("open or establish wallet error ", zap.Error(err))
 		panic("initWalletManager open or establish wallet error: " + err.Error())
 	}
 	if b.walletManager, err = accounts.NewWalletManager(b.chainService, defaultWallet); err != nil {
-		log.Info("init wallet manager failed:", "walletManager", b.walletManager, "err", err)
+		log.DLogger.Info("init wallet manager failed:", zap.Any("walletManager", b.walletManager), zap.Error(err))
 		panic("init wallet manager failed: " + err.Error())
 	}
 
-	log.Info("the wallet number is:", "number", len(b.walletManager.Wallets))
+	log.DLogger.Info("the wallet number is:", zap.Int("number", len(b.walletManager.Wallets)))
 	return
 }
 
@@ -377,7 +372,7 @@ func (b *BaseComponent) initWalletManager() {
 	tmpLog := log.New()
 	tmpLog.SetHandler(log.StdoutHandler)
 	var err error
-	log.Info("the nodeType is:", "nodeType", b.nodeConfig.NodeType)
+	log.DLogger.Info("the nodeType is:", "nodeType", b.nodeConfig.NodeType)
 	// No need to create or open a default wallet when the normal node starts
 	if b.nodeConfig.NodeType == chain_config.NodeTypeOfNormal {
 		if b.walletManager, err = accounts.NewWalletManager(b.chainService); err != nil {
@@ -402,23 +397,23 @@ func (b *BaseComponent) initWalletManager() {
 	}
 
 	if err != nil {
-		tmpLog.Info("open or establish wallet error ", "err", err)
+		tmpLog.Info("open or establish wallet error ", zap.Error(err))
 		os.Exit(1)
 	}
 
 	if b.walletManager, err = accounts.NewWalletManager(b.chainService, defaultWallet); err != nil {
-		tmpLog.Info("init wallet manager failed: ", "err", err)
-		log.Info("init wallet manager failed:", "walletManager", b.walletManager, "err", err)
+		tmpLog.Info("init wallet manager failed: ", zap.Error(err))
+		log.DLogger.Info("init wallet manager failed:", "walletManager", b.walletManager, zap.Error(err))
 		os.Exit(1)
 	}
 	var defaultAccounts []accounts.Account
 	if defaultAccounts, err = defaultWallet.Accounts(); err != nil {
-		tmpLog.Info("get default accounts failed: ", "err", err)
+		tmpLog.Info("get default accounts failed: ", zap.Error(err))
 		os.Exit(1)
 	}
 	b.coinbaseAddr.Store(defaultAccounts[0].Address)
 	b.defaultAccountAddress = defaultAccounts[0].Address
-	log.Info("open wallet success", "b.defaultAccountAddress", b.defaultAccountAddress)
+	log.DLogger.Info("open wallet success", "b.defaultAccountAddress", b.defaultAccountAddress)
 }*/
 
 func (b *BaseComponent) initP2PService() {
@@ -532,7 +527,6 @@ func (b *BaseComponent) initMineMaster() {
 
 	// p2p server not init
 	b.minePm = minePm
-	log.Info("initMineMaster the mineMaster is:", "mineMaster", mineMaster)
 	b.mineMaster = mineMaster
 	b.mineMasterServer = mineMasterServer
 }
@@ -542,7 +536,7 @@ func (b *BaseComponent) initMsgSigner() {
 	if b.nodeConfig.NodeType == chain_config.NodeTypeOfNormal {
 		b.msgSigner = nil
 	} else {
-		log.Info("setup default sign address", "addr", b.defaultAccountAddress.Hex())
+		log.DLogger.Info("setup default sign address", zap.String("addr", b.defaultAccountAddress.Hex()))
 		b.msgSigner = accounts.MakeWalletSigner(b.defaultAccountAddress, b.walletManager)
 	}
 }

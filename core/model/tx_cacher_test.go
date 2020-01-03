@@ -17,8 +17,9 @@
 package model
 
 import (
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"math/big"
 	"runtime"
 	"testing"
@@ -30,7 +31,6 @@ func TestNewTxCacher(t *testing.T) {
 }
 
 func TestTxCacher_TxRecover(t *testing.T) {
-	log.InitLogger(log.LvlDebug)
 	//go  func() {debug.PrintStack()}()
 	cacher := NewTxCacher(runtime.NumCPU())
 	assert.NotNil(t, cacher)
@@ -38,11 +38,11 @@ func TestTxCacher_TxRecover(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		txs = append(txs, CreateSignedTx(uint64(i), big.NewInt(10)))
 	}
-	log.Debug("TestTxCacher_TxRecover", "txs", txs[0].CalTxId())
+	log.DLogger.Debug("TestTxCacher_TxRecover", zap.Any("txs", txs[0].CalTxId()))
 
 	cacher.TxRecover(txs)
 
-	log.Debug("TestTxCacher_TxRecover after ", "txs", txs)
+	log.DLogger.Debug("TestTxCacher_TxRecover after ", zap.Any("txs", txs))
 	//cacher.TxRecover([]AbstractTransaction{})
 	cacher.StopTxCacher()
 }

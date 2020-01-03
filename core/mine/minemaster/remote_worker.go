@@ -18,15 +18,16 @@ package minemaster
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"sync/atomic"
 )
 
 func newRemoteWorker(peer chain_communication.PmAbstractPeer, curCoinbaseAddr common.Address, workerId WorkerId) *remoteWorker {
 	if peer == nil || curCoinbaseAddr.IsEqual(common.Address{}) || workerId == "" {
-		log.Warn("invalid remote worker", "curCoinbaseAddr", curCoinbaseAddr, "workerId", workerId)
+		log.DLogger.Warn("invalid remote worker", zap.Any("curCoinbaseAddr", curCoinbaseAddr), zap.Any("workerId", workerId))
 		return nil
 	}
 	worker := &remoteWorker{

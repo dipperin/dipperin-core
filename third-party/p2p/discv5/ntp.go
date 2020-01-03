@@ -26,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 )
 
 const (
@@ -54,12 +54,12 @@ func checkClockDrift() {
 		howtofix := fmt.Sprintf("Please enable network time synchronisation in system settings")
 		separator := strings.Repeat("-", len(warning))
 
-		log.Warn(separator)
-		log.Warn(warning)
-		log.Warn(howtofix)
-		log.Warn(separator)
+		log.DLogger.Warn(separator)
+		log.DLogger.Warn(warning)
+		log.DLogger.Warn(howtofix)
+		log.DLogger.Warn(separator)
 	} else {
-		log.Debug(fmt.Sprintf("Sanity NTP check reported %v drift, all ok", drift))
+		log.DLogger.Debug(fmt.Sprintf("Sanity NTP check reported %v drift, all ok", drift))
 	}
 }
 

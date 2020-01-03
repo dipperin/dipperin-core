@@ -22,9 +22,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"reflect"
 )
 
@@ -59,7 +60,7 @@ func (p *Processor) Process(tx model.AbstractTransaction) (err error) {
 	}
 	// must be to
 	eData.ContractAddress = *tx.To()
-	log.Debug("Processor Process", "eData.Action", eData.Action, "eData.ContractAddress", eData.ContractAddress)
+	log.DLogger.Debug("Processor Process", zap.String("eData.Action", eData.Action), zap.Any("eData.ContractAddress", eData.ContractAddress))
 
 	var result reflect.Value
 	switch eData.Action {
@@ -92,7 +93,7 @@ func (p *Processor) DoCreate(eData *ExtraDataForContract) (reflect.Value, error)
 	}
 
 	contractType := eData.ContractAddress.GetAddressTypeStr()
-	log.Debug("Processor doCreate")
+	log.DLogger.Debug("Processor doCreate")
 	ct, ctErr := GetContractTempByType(contractType)
 	if ctErr != nil {
 		return reflect.Value{}, ctErr
@@ -129,7 +130,7 @@ func (p *Processor) DoCreate(eData *ExtraDataForContract) (reflect.Value, error)
 func (p *Processor) Run(executorAddress common.Address, eData *ExtraDataForContract) (reflect.Value, error) {
 	// get contract type
 	contractType := eData.ContractAddress.GetAddressTypeStr()
-	log.Debug("run contract method", "contract type", contractType, "method", eData.Action)
+	log.DLogger.Debug("run contract method", zap.String("contract type", contractType), zap.String("method", eData.Action))
 	// get contract from type
 	ct, ctErr := GetContractTempByType(contractType)
 	if ctErr != nil {
@@ -169,9 +170,9 @@ func (p *Processor) Run(executorAddress common.Address, eData *ExtraDataForContr
 	codec := NewParamsCodec(bufio.NewReader(bytes.NewBufferString(eData.Params)))
 	rValue, pErr := codec.ParseRequestArguments(mArgs)
 	if pErr != nil {
-		log.Info("parse parameter error", "params", eData.Params, "err", pErr)
+		log.DLogger.Info("parse parameter error", zap.String("params", eData.Params), zap.Error(pErr))
 		for _, ma := range mArgs {
-			log.Info("arg type", "arg t", ma.String())
+			log.DLogger.Info("arg type", zap.String("arg t", ma.String()))
 		}
 		return reflect.Value{}, pErr
 	}
@@ -179,7 +180,7 @@ func (p *Processor) Run(executorAddress common.Address, eData *ExtraDataForContr
 
 	// check result
 	if len(result) == 0 {
-		log.Warn("contract method return nothing", "contract type", contractType, "contract address", eData.ContractAddress.Hex())
+		log.DLogger.Warn("contract method return nothing", zap.String("contract type", contractType), zap.String("contract address", eData.ContractAddress.Hex()))
 		return reflect.Value{}, ContractMethodRetNilErr
 	}
 
@@ -204,7 +205,7 @@ func (p *Processor) Run(executorAddress common.Address, eData *ExtraDataForContr
 
 // get contract readonly infomation（not modify contract）
 func (p *Processor) GetContractReadOnlyInfo(eData *ExtraDataForContract) (interface{}, error) {
-	log.Info("GetContractReadOnlyInfo", "addr", eData.ContractAddress, "action", eData.Action)
+	log.DLogger.Info("GetContractReadOnlyInfo", zap.Any("addr", eData.ContractAddress), zap.String("action", eData.Action))
 	contractType := eData.ContractAddress.GetAddressTypeStr()
 	// get contract by type
 	ct, ctErr := GetContractTempByType(contractType)
@@ -231,14 +232,14 @@ func (p *Processor) GetContractReadOnlyInfo(eData *ExtraDataForContract) (interf
 	codec := NewParamsCodec(bufio.NewReader(bytes.NewBufferString(eData.Params)))
 	rValue, pErr := codec.ParseRequestArguments(mArgs)
 	if pErr != nil {
-		log.Debug("parse parameter error", "err", pErr, "params", eData.Params, "m args", mArgs)
+		log.DLogger.Debug("parse parameter error", zap.Error(pErr), zap.String("params", eData.Params), zap.Any("m args", mArgs))
 		return nil, pErr
 	}
 	result := method.Call(rValue)
 
 	// check result
 	if len(result) == 0 {
-		log.Warn("contract method return nothing", "contract type", contractType, "contract address", eData.ContractAddress.Hex())
+		log.DLogger.Warn("contract method return nothing", zap.String("contract type", contractType), zap.String("contract address", eData.ContractAddress.Hex()))
 		return nil, ContractMethodRetNilErr
 	}
 	return result[0].Interface(), nil

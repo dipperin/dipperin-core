@@ -21,12 +21,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 	"math/big"
 )
 
@@ -68,13 +69,13 @@ func (chainDB *ChainDB) GetBlockHashByNumber(number uint64) common.Hash {
 
 func (chainDB *ChainDB) SaveBlockHash(hash common.Hash, number uint64) {
 	if err := chainDB.db.Put(headerHashKey(number), hash.Bytes()); err != nil {
-		log.Crit("Failed to store number to hash mapping", "err", err)
+		log.DLogger.Error("Failed to store number to hash mapping", zap.Error(err))
 	}
 }
 
 func (chainDB *ChainDB) DeleteBlockHashByNumber(number uint64) {
 	if err := chainDB.db.Delete(headerHashKey(number)); err != nil {
-		log.Crit("Failed to delete number to hash mapping", "err", err)
+		log.DLogger.Error("Failed to delete number to hash mapping", zap.Error(err))
 	}
 }
 
@@ -89,13 +90,13 @@ func (chainDB *ChainDB) GetHeaderNumber(hash common.Hash) *uint64 {
 
 func (chainDB *ChainDB) SaveHeaderNumber(hash common.Hash, number uint64) {
 	if err := chainDB.db.Put(headerNumberKey(hash), encodeBlockNumber(number)); err != nil {
-		log.Crit("Failed to store hash to number mapping", "err", err)
+		log.DLogger.Error("Failed to store hash to number mapping", zap.Error(err))
 	}
 }
 
 func (chainDB *ChainDB) DeleteHeaderNumber(hash common.Hash) {
 	if err := chainDB.db.Delete(headerNumberKey(hash)); err != nil {
-		log.Crit("Failed to delete hash to number mapping", "err", err)
+		log.DLogger.Error("Failed to delete hash to number mapping", zap.Error(err))
 	}
 }
 
@@ -109,7 +110,7 @@ func (chainDB *ChainDB) GetHeadBlockHash() common.Hash {
 
 func (chainDB *ChainDB) SaveHeadBlockHash(hash common.Hash) {
 	if err := chainDB.db.Put(headBlockKey, hash.Bytes()); err != nil {
-		log.Crit("Failed to store last block's hash", "err", err)
+		log.DLogger.Error("Failed to store last block's hash", zap.Error(err))
 	}
 }
 
@@ -120,7 +121,7 @@ func (chainDB *ChainDB) GetHeaderRLP(hash common.Hash, number uint64) rlp.RawVal
 
 func (chainDB *ChainDB) SaveHeaderRLP(hash common.Hash, number uint64, rlp rlp.RawValue) {
 	if err := chainDB.db.Put(headerKey(number, hash), rlp); err != nil {
-		log.Crit("Failed to store header", "err", err)
+		log.DLogger.Error("Failed to store header", zap.Error(err))
 	}
 }
 
@@ -139,7 +140,7 @@ func (chainDB *ChainDB) GetHeader(hash common.Hash, number uint64) model.Abstrac
 
 	header, err := chainDB.decoder.DecodeRlpHeaderFromBytes(data)
 	if err != nil {
-		log.Error("Invalid block header RLP", "hash", hash, "err", err)
+		log.DLogger.Error("Invalid block header RLP", zap.Any("hash", hash), zap.Error(err))
 		return nil
 	}
 
@@ -156,7 +157,7 @@ func (chainDB *ChainDB) SaveHeader(header model.AbstractHeader) {
 
 	rlpData, err := header.EncodeRlpToBytes()
 	if err != nil {
-		log.Crit("Failed to RLP encode header", "err", err)
+		log.DLogger.Error("Failed to RLP encode header", zap.Error(err))
 		return
 	}
 
@@ -165,7 +166,7 @@ func (chainDB *ChainDB) SaveHeader(header model.AbstractHeader) {
 
 func (chainDB *ChainDB) DeleteHeader(hash common.Hash, number uint64) {
 	if err := chainDB.db.Delete(headerKey(number, hash)); err != nil {
-		log.Crit("Failed to delete header", "err", err)
+		log.DLogger.Error("Failed to delete header", zap.Error(err))
 	}
 	chainDB.DeleteHeaderNumber(hash)
 }
@@ -177,7 +178,7 @@ func (chainDB *ChainDB) GetBodyRLP(hash common.Hash, number uint64) rlp.RawValue
 
 func (chainDB *ChainDB) SaveBodyRLP(hash common.Hash, number uint64, rlp rlp.RawValue) {
 	if err := chainDB.db.Put(blockBodyKey(number, hash), rlp); err != nil {
-		log.Crit("Failed to store block body", "err", err)
+		log.DLogger.Error("Failed to store block body", zap.Error(err))
 	}
 }
 
@@ -196,7 +197,7 @@ func (chainDB *ChainDB) GetBody(hash common.Hash, number uint64) model.AbstractB
 
 	body, err := chainDB.decoder.DecodeRlpBodyFromBytes(data)
 	if err != nil {
-		log.Error("Invalid block body RLP", "hash", hash, "err", err)
+		log.DLogger.Error("Invalid block body RLP", zap.Any("hash", hash), zap.Error(err))
 		return nil
 	}
 
@@ -206,7 +207,7 @@ func (chainDB *ChainDB) GetBody(hash common.Hash, number uint64) model.AbstractB
 func (chainDB *ChainDB) SaveBody(hash common.Hash, number uint64, body model.AbstractBody) {
 	data, err := body.EncodeRlpToBytes()
 	if err != nil {
-		log.Crit("Failed to RLP encode body", "err", err)
+		log.DLogger.Error("Failed to RLP encode body", zap.Error(err))
 		return
 	}
 
@@ -215,7 +216,7 @@ func (chainDB *ChainDB) SaveBody(hash common.Hash, number uint64, body model.Abs
 
 func (chainDB *ChainDB) DeleteBody(hash common.Hash, number uint64) {
 	if err := chainDB.db.Delete(blockBodyKey(number, hash)); err != nil {
-		log.Crit("Failed to delete block body", "err", err)
+		log.DLogger.Error("Failed to delete block body", zap.Error(err))
 	}
 }
 
@@ -223,19 +224,19 @@ func (chainDB *ChainDB) GetBlock(hash common.Hash, number uint64) model.Abstract
 	//log.Middleware.Info("chainDB get block start", "hash", hash.Hex(), "num", number)
 	headerRlp := chainDB.GetHeaderRLP(hash, number)
 	if len(headerRlp) == 0 {
-		log.Debug("block header not found")
+		log.DLogger.Debug("block header not found")
 		return nil
 	}
 	bodyRlp := chainDB.GetBodyRLP(hash, number)
 	if len(bodyRlp) == 0 {
-		log.Debug("block body not found")
+		log.DLogger.Debug("block body not found")
 		return nil
 	}
 
 	block, err := chainDB.decoder.DecodeRlpBlockFromHeaderAndBodyBytes(headerRlp, bodyRlp)
 
 	if err != nil {
-		log.Warn("decode block failed", "err", err)
+		log.DLogger.Warn("decode block failed", zap.Error(err))
 		return nil
 	}
 	//log.Middleware.Info("chainDB get block end")
@@ -261,12 +262,12 @@ func (chainDB *ChainDB) SaveReceipts(hash common.Hash, number uint64, receipts m
 	}
 	bytes, err := rlp.EncodeToBytes(storageReceipts)
 	if err != nil {
-		log.Crit("Failed to encode block receipts", "err", err)
+		log.DLogger.Error("Failed to encode block receipts", zap.Error(err))
 		return err
 	}
 	// Store the flattened receipt slice
 	if err := chainDB.db.Put(blockReceiptsKey(number, hash), bytes); err != nil {
-		log.Crit("Failed to store block receipts", "err", err)
+		log.DLogger.Error("Failed to store block receipts", zap.Error(err))
 		return err
 	}
 	return nil
@@ -282,7 +283,7 @@ func (chainDB *ChainDB) GetReceipts(hash common.Hash, number uint64) model2.Rece
 	// Convert the receipts from their storage form to their internal representation
 	var storageReceipts []*model2.ReceiptForStorage
 	if err := rlp.DecodeBytes(data, &storageReceipts); err != nil {
-		log.Error("Invalid receipt array RLP", "hash", hash, "err", err)
+		log.DLogger.Error("Invalid receipt array RLP", zap.Any("hash", hash), zap.Error(err))
 		return nil
 	}
 
@@ -295,7 +296,7 @@ func (chainDB *ChainDB) GetReceipts(hash common.Hash, number uint64) model2.Rece
 	block := chainDB.GetBlock(hash, number)
 	err := DeriveFields(receipts, block)
 	if err != nil {
-		log.Error("DeriveFields failed", "err", err)
+		log.DLogger.Error("DeriveFields failed", zap.Error(err))
 		return nil
 	}
 	return receipts
@@ -353,7 +354,7 @@ func DeriveFields(r model2.Receipts, block model.AbstractBlock) error {
 func (chainDB *ChainDB) GetBloomBits(head common.Hash, bit uint, section uint64) []byte {
 	bloomBits, err := chainDB.db.Get(bloomBitsKey(bit, section, head))
 	if err != nil {
-		log.Error("ChainDB#GetBloomBits err", "hash", head, "err", err)
+		log.DLogger.Error("ChainDB#GetBloomBits err", zap.Any("hash", head), zap.Error(err))
 		return nil
 	}
 	return bloomBits
@@ -361,7 +362,7 @@ func (chainDB *ChainDB) GetBloomBits(head common.Hash, bit uint, section uint64)
 
 func BatchSaveBloomBits(db DatabaseWriter, head common.Hash, bit uint, section uint64, bits []byte) error {
 	if err := db.Put(bloomBitsKey(bit, section, head), bits); err != nil {
-		log.Error("Failed to store bloom bits", "err", err)
+		log.DLogger.Error("Failed to store bloom bits", zap.Error(err))
 		return err
 	}
 	return nil
@@ -400,7 +401,7 @@ func (chainDB *ChainDB) GetTxLookupEntry(txHash common.Hash) (common.Hash, uint6
 	}
 	var entry TxLookupEntry
 	if err := rlp.DecodeBytes(data, &entry); err != nil {
-		log.Error("Invalid transaction lookup entry RLP", "hash", txHash, "err", err)
+		log.DLogger.Error("Invalid transaction lookup entry RLP", zap.Any("hash", txHash), zap.Error(err))
 		return common.Hash{}, 0, 0
 	}
 	return entry.BlockHash, entry.BlockIndex, entry.Index
@@ -419,19 +420,19 @@ func (chainDB *ChainDB) SaveTxLookupEntries(block model.AbstractBlock) {
 
 			data, _ := rlp.EncodeToBytes(entry)
 			if err := batch.Put(txLookupKey(tx.CalTxId()), data); err != nil {
-				log.Crit("Failed to store transaction lookup entry", "err", err)
+				log.DLogger.Error("Failed to store transaction lookup entry", zap.Error(err))
 				return err
 			}
 
 			return nil
 
 		}); err != nil {
-			log.Error("block tx iterator failed", "err", err)
+			log.DLogger.Error("block tx iterator failed", zap.Error(err))
 			return
 		}
 
 		if err := batch.Write(); err != nil {
-			log.Error("tx batch write failed", "err", err)
+			log.DLogger.Error("tx batch write failed", zap.Error(err))
 			return
 		}
 	}
@@ -442,13 +443,13 @@ func (chainDB *ChainDB) DeleteTxLookupEntry(block model.AbstractBlock) {
 	if block.TxCount() > 0 {
 		if err := block.TxIterator(func(index int, tx model.AbstractTransaction) error {
 			if err := chainDB.db.Delete(txLookupKey(tx.CalTxId())); err != nil {
-				log.Error("tx lookup entry delete failed", "err", err)
+				log.DLogger.Error("tx lookup entry delete failed", zap.Error(err))
 				return err
 			}
 			return nil
 
 		}); err != nil {
-			log.Error("block tx iterator failed", "err", err)
+			log.DLogger.Error("block tx iterator failed", zap.Error(err))
 			return
 		}
 	}
@@ -463,7 +464,7 @@ func (chainDB *ChainDB) GetTransaction(txHash common.Hash) (model.AbstractTransa
 	body := chainDB.GetBody(blockHash, blockNumber)
 
 	if body == nil || body.GetTxsSize() <= int(txIndex) {
-		log.Error("Transaction referenced missing", "number", blockNumber, "hash", blockHash, "index", txIndex)
+		log.DLogger.Error("Transaction referenced missing", zap.Uint64("number", blockNumber), zap.Any("hash", blockHash), zap.Uint64("index", txIndex))
 		return nil, common.Hash{}, 0, 0
 	}
 	return body.GetTxByIndex(int(txIndex)), blockHash, blockNumber, txIndex
@@ -477,11 +478,11 @@ func (chainDB *ChainDB) SaveInterLink(root common.Hash, link model.InterLink) {
 	rlpData, err := rlp.EncodeToBytes(link)
 
 	if err != nil {
-		log.Crit("Failed to RLP encode interlinks", "err", err)
+		log.DLogger.Error("Failed to RLP encode interlinks", zap.Error(err))
 		return
 	}
 
 	if err := chainDB.db.Put(interLinkKey(root), rlpData); err != nil {
-		log.Crit("Failed to store interlink", "err", err)
+		log.DLogger.Error("Failed to store interlink", zap.Error(err))
 	}
 }*/

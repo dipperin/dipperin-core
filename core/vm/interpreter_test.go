@@ -17,12 +17,13 @@
 package vm
 
 import (
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"testing"
 )
 
@@ -31,8 +32,8 @@ func TestWASMInterpreter_Run_DIPCLibContract(t *testing.T) {
 	testVm := getTestVm()
 	interpreter := testVm.Interpreter
 	inputs := genInput(t, g_testData.ContractTestPar.CallFuncName, [][]byte{})
-	log.Info("the wasmPath is:", "wasmPath", g_testData.ContractTestPar.WASMPath)
-	log.Info("the abiPath is:", "abiPath", g_testData.ContractTestPar.AbiPath)
+	log.DLogger.Info("the wasmPath is:", zap.String("wasmPath", g_testData.ContractTestPar.WASMPath))
+	log.DLogger.Info("the abiPath is:", zap.String("abiPath", g_testData.ContractTestPar.AbiPath))
 	contract := getContract(g_testData.ContractTestPar.WASMPath, g_testData.ContractTestPar.AbiPath, inputs)
 	_, err := interpreter.Run(testVm, contract, false)
 	assert.NoError(t, err)

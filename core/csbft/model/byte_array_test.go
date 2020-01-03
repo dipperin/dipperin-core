@@ -18,8 +18,9 @@ package model
 
 import (
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"regexp"
 	"testing"
 )
@@ -138,7 +139,7 @@ func TestBitArray_print(t *testing.T) {
 	var bz = []byte("\"_x\"")
 	var b = string(bz)
 	match := bitArrayJSONRegexp.FindStringSubmatch(b)
-	log.Info("TestBitArray_print", "result", bitArrayJSONRegexp.Match([]byte("\"_x\"")))
-	log.Info("TestBitArray_print", "result2", bitArrayJSONRegexp.Match([]byte("_x___yt")))
+	log.DLogger.Info("TestBitArray_print", zap.Bool("result", bitArrayJSONRegexp.Match([]byte("\"_x\""))))
+	log.DLogger.Info("TestBitArray_print", zap.Bool("result2", bitArrayJSONRegexp.Match([]byte("_x___yt"))))
 	fmt.Println(match)
 }

@@ -19,9 +19,10 @@ package chain_communication
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"go.uber.org/zap"
 	"reflect"
 	"sort"
 	"sync"
@@ -151,16 +152,14 @@ func (ps *CsPmPeerSetManager) removePeer(peerID string) {
 		return
 	}
 
-	log.Pm.Info("Removing Dipperin peer", "peer", peerID, "peerName", peer.NodeName())
+	log.DLogger.Info("Removing Dipperin peer", zap.String("peer", peerID), zap.String("peerName", peer.NodeName()))
 
 	if err := ps.basePeers.RemovePeer(peerID); err != nil {
-		log.Pm.Error("Peer removal failed", "peer", peerID, "err", err)
+		log.DLogger.Error("Peer removal failed", zap.String("peer", peerID), zap.Error(err))
 	}
 
 	// Hard disconnect at the networking layer
-	if peer != nil {
-		peer.DisconnectPeer()
-	}
+	peer.DisconnectPeer()
 }
 
 func (ps *CsPmPeerSetManager) removeCurrentVerifierPeers(peerID string) {
@@ -170,16 +169,14 @@ func (ps *CsPmPeerSetManager) removeCurrentVerifierPeers(peerID string) {
 		return
 	}
 
-	log.Pm.Info("Removing Dipperin nextVerifierPeers", "peer", peerID, "peerName", peer.NodeName())
+	log.DLogger.Info("Removing Dipperin nextVerifierPeers", zap.String("peer", peerID), zap.String("peerName", peer.NodeName()))
 
 	if err := ps.currentVerifierPeers.RemovePeer(peerID); err != nil {
-		log.Pm.Error("Peer removal failed", "peer", peerID, "err", err)
+		log.DLogger.Error("Peer removal failed", zap.String("peer", peerID), zap.Error(err))
 	}
 
 	// Hard disconnect at the networking layer
-	if peer != nil {
-		peer.DisconnectPeer()
-	}
+	peer.DisconnectPeer()
 }
 
 func (ps *CsPmPeerSetManager) removeNextVerifierPeers(peerID string) {
@@ -189,16 +186,14 @@ func (ps *CsPmPeerSetManager) removeNextVerifierPeers(peerID string) {
 		return
 	}
 
-	log.Pm.Info("Removing Dipperin nextVerifierPeers", "peer", peerID, "peerName", peer.NodeName())
+	log.DLogger.Info("Removing Dipperin nextVerifierPeers", zap.String("peer", peerID), zap.String("peerName", peer.NodeName()))
 
 	if err := ps.nextVerifierPeers.RemovePeer(peerID); err != nil {
-		log.Pm.Error("Peer removal failed", "peer", peerID, "err", err)
+		log.DLogger.Error("Peer removal failed", zap.String("peer", peerID), zap.Error(err))
 	}
 
 	// Hard disconnect at the networking layer
-	if peer != nil {
-		peer.DisconnectPeer()
-	}
+	peer.DisconnectPeer()
 }
 
 func (ps *CsPmPeerSetManager) removeVerifierBootNodePeers(peerID string) {
@@ -208,16 +203,14 @@ func (ps *CsPmPeerSetManager) removeVerifierBootNodePeers(peerID string) {
 		return
 	}
 
-	log.Pm.Info("Removing Dipperin verifierBootNode", "peer", peerID, "peerName", peer.NodeName())
+	log.DLogger.Info("Removing Dipperin verifierBootNode", zap.String("peer", peerID), zap.String("peerName", peer.NodeName()))
 
 	if err := ps.verifierBootNode.RemovePeer(peerID); err != nil {
-		log.Pm.Error("Peer removal failed", "peer", peerID, "err", err)
+		log.DLogger.Error("Peer removal failed", zap.String("peer", peerID), zap.Error(err))
 	}
 
 	// Hard disconnect at the networking layer
-	if peer != nil {
-		peer.DisconnectPeer()
-	}
+	peer.DisconnectPeer()
 }
 
 // base add peer
@@ -228,7 +221,7 @@ func (ps *CsPmPeerSetManager) baseAddPeer(p PmAbstractPeer) error {
 	}
 
 	if err := ps.basePeers.AddPeer(p); err != nil {
-		log.Pm.Error("peer set add peer failed", "err", err, "p id", p.ID())
+		log.DLogger.Error("peer set add peer failed", zap.Error(err), zap.String("p id", p.ID()))
 		return err
 	}
 
@@ -251,7 +244,7 @@ func (ps *CsPmPeerSetManager) verifierAddPeer(p PmAbstractPeer) error {
 	case chain_config.NodeTypeOfVerifierBoot:
 		// the remote peer is verifier boot node ?
 		if ps.isVerifierBootNode(p) {
-			log.Pm.Info("verifier add verifier boot node", "nodeName", p.NodeName())
+			log.DLogger.Info("verifier add verifier boot node", zap.String("nodeName", p.NodeName()))
 			return ps.verifierBootNode.AddPeer(p)
 		}
 
@@ -280,7 +273,7 @@ func (ps *CsPmPeerSetManager) verifierBootAddPeer(p PmAbstractPeer) error {
 				return p2p.DiscTooManyPeers
 			}
 
-			log.Pm.Info("verifier boot node add current verifier peer", "peerName", p.NodeName())
+			log.DLogger.Info("verifier boot node add current verifier peer", zap.String("peerName", p.NodeName()))
 			if err := ps.currentVerifierPeers.AddPeer(p); err != nil {
 				return err
 			}
@@ -294,7 +287,7 @@ func (ps *CsPmPeerSetManager) verifierBootAddPeer(p PmAbstractPeer) error {
 				return p2p.DiscTooManyPeers
 			}
 
-			log.Pm.Info("verifier boot node add next verifier peer", "peerName", p.NodeName())
+			log.DLogger.Info("verifier boot node add next verifier peer", zap.String("peerName", p.NodeName()))
 			if err := ps.nextVerifierPeers.AddPeer(p); err != nil {
 				return err
 			}
@@ -311,7 +304,7 @@ func (ps *CsPmPeerSetManager) verifierBootAddPeer(p PmAbstractPeer) error {
 	case chain_config.NodeTypeOfVerifierBoot:
 		// the remote peer is verifier boot node ?
 		if ps.isVerifierBootNode(p) {
-			log.Pm.Info("verifier boot node add verifier boot node peer", "peerName", p.NodeName())
+			log.DLogger.Info("verifier boot node add verifier boot node peer", zap.String("peerName", p.NodeName()))
 			return ps.verifierBootNode.AddPeer(p)
 		}
 
@@ -352,7 +345,7 @@ func (ps *CsPmPeerSetManager) verifierAddVerifierSet(p PmAbstractPeer) error {
 			return p2p.DiscTooManyPeers
 		}
 
-		log.Pm.Info("verifier add current verifier peer", "peerName", p.NodeName())
+		log.DLogger.Info("verifier add current verifier peer", zap.String("peerName", p.NodeName()))
 		if err := ps.currentVerifierPeers.AddPeer(p); err != nil {
 			return err
 		}
@@ -367,7 +360,7 @@ func (ps *CsPmPeerSetManager) verifierAddVerifierSet(p PmAbstractPeer) error {
 			return p2p.DiscTooManyPeers
 		}
 
-		log.Pm.Info("verifier add next verifier peer", "peerName", p.NodeName())
+		log.DLogger.Info("verifier add next verifier peer", zap.String("peerName", p.NodeName()))
 		if err := ps.nextVerifierPeers.AddPeer(p); err != nil {
 			return err
 		}
@@ -388,7 +381,7 @@ func (ps *CsPmPeerSetManager) verifierAddVerifierSet(p PmAbstractPeer) error {
 func (ps *CsPmPeerSetManager) OrganizeVerifiersSet(curs []common.Address, nexts []common.Address) {
 	ps.changeVerifiersLock.Lock()
 	defer ps.changeVerifiersLock.Unlock()
-	log.PBft.Info("do OrganizeVerifiersSet", "curs", curs, "nexts", nexts)
+	log.DLogger.Info("do OrganizeVerifiersSet", zap.Any("curs", curs), zap.Any("nexts", nexts))
 
 	// collect all peers
 	peers := ps.collectAllPeers()
@@ -401,13 +394,13 @@ func (ps *CsPmPeerSetManager) OrganizeVerifiersSet(curs []common.Address, nexts 
 	// todo check and reduce peer count
 
 	// logs
-	log.PBft.Info("after change verifiers", "total len", len(peers), "new base", len(newBase), "new cur", len(newCur), "new next", len(newNext))
+	log.DLogger.Info("after change verifiers", zap.Int("total len", len(peers)), zap.Int("new base", len(newBase)), zap.Int("new cur", len(newCur)), zap.Int("new next", len(newNext)))
 	// only for debug
 	//for _, c := range newCur {
-	//	log.PBft.Info("cur verifier", "name", c.NodeName(), "addr", c.RemoteVerifierAddress())
+	//	log.DLogger.Info("cur verifier", "name", c.NodeName(), "addr", c.RemoteVerifierAddress())
 	//}
 	//for _, c := range newNext {
-	//	log.PBft.Info("next verifier", "name", c.NodeName(), "addr", c.RemoteVerifierAddress())
+	//	log.DLogger.Info("next verifier", "name", c.NodeName(), "addr", c.RemoteVerifierAddress())
 	//}
 }
 
@@ -437,7 +430,7 @@ func filterPeers(from map[string]PmAbstractPeer, curs []common.Address, nexts []
 			if len(base) < NormalMaxPeerCount {
 				base[id] = p
 			} else {
-				log.Info("too many base peers, do disconnect", "p name", p.NodeName())
+				log.DLogger.Info("too many base peers, do disconnect", zap.String("p name", p.NodeName()))
 				p.DisconnectPeer()
 			}
 		}

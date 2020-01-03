@@ -22,13 +22,15 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-metrics"
 	"github.com/dipperin/dipperin-core/common/g-timer"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
+	"go.uber.org/zap"
+	"os"
 	"path/filepath"
 	"sync/atomic"
 	"time"
@@ -136,7 +138,7 @@ func (pm *CsProtocolManager) GetPeers() map[string]PmAbstractPeer {
 	mergePeersTo(curPs, result)
 	mergePeersTo(nextPs, result)
 	mergePeersTo(vbPs, result)
-	//log.Info("get pm peers", "total", len(result))
+	//log.DLogger.Info("get pm peers", "total", len(result))
 	return result
 }
 
@@ -160,21 +162,21 @@ func (pm *CsProtocolManager) getCsProtocol() p2p.Protocol {
 	protocolName := chain_config.AppName + "_cs_local"
 	switch chain_config.GetCurBootsEnv() {
 	case "mercury":
-		log.Info("use mercury cs protocol")
+		log.DLogger.Info("use mercury cs protocol")
 		protocolName = chain_config.AppName + "_cs"
 	case "test":
-		log.Info("use test cs protocol")
+		log.DLogger.Info("use test cs protocol")
 		protocolName = chain_config.AppName + "_cs_test"
 	case "venus":
-		log.Info("use test cs protocol")
+		log.DLogger.Info("use test cs protocol")
 		protocolName = chain_config.AppName + "_vs"
 	default:
-		log.Info("use local cs protocol")
+		log.DLogger.Info("use local cs protocol")
 	}
 	p := p2p.Protocol{Name: protocolName, Version: version, Length: 0x200}
 	p.Run = func(peer *p2p.Peer, rw p2p.MsgReadWriter) error {
 		g_metrics.Add(g_metrics.TotalHandledPeer, "", 1)
-		log.Info("getPbftProtocol new pbft peer in", "protocol", protocolName)
+		log.DLogger.Info("getPbftProtocol new pbft peer in", zap.String("protocol", protocolName))
 		// format with communication peer
 		tmpPmPeer := newPeer(int(version), peer, rw)
 		pm.wg.Add(1)
@@ -229,7 +231,7 @@ func (pm *CsProtocolManager) Start() error {
 		}
 
 		if err := pm.handleInsertEventForBft(); err != nil {
-			log.Error("cs protocol manager handle insert event failed", "err", err)
+			log.DLogger.Error("cs protocol manager handle insert event failed", zap.Error(err))
 			return
 		}
 	}()
@@ -267,27 +269,27 @@ func (pm *CsProtocolManager) Stop() {
 
 func (pm *CsProtocolManager) BroadcastMsg(msgCode uint64, msg interface{}) {
 	vPeers := pm.peerSetManager.currentVerifierPeers.GetPeers()
-	log.PBft.Info("broadcast msg to pbft nodes", "msg code", msgCode, "peer len", len(vPeers))
+	log.DLogger.Info("broadcast msg to pbft nodes", zap.Uint64("msg code", msgCode), zap.Int("peer len", len(vPeers)))
 	for _, p := range vPeers {
-		//log.PBft.Info("broadcast msg to pbft nodes", "msg code", msgCode, "to", p.NodeName())
+		//log.DLogger.Info("broadcast msg to pbft nodes", "msg code", msgCode, "to", p.NodeName())
 		if err := p.SendMsg(msgCode, msg); err != nil {
-			log.Warn("broadcast pbft msg failed", "to", p.NodeName(), "msg code", msgCode, "err", err)
+			log.DLogger.Warn("broadcast pbft msg failed", zap.String("to", p.NodeName()), zap.Uint64("msg code", msgCode), zap.Error(err))
 		}
 	}
 }
 
 func (pm *CsProtocolManager) BroadcastMsgToTargetVerifiers(msgCode uint64, from []common.Address, msg interface{}) {
-	log.PBft.Debug("Broadcast msg to targets called", "len", len(from), "cur v len", pm.peerSetManager.currentVerifierPeers.Len())
+	log.DLogger.Debug("Broadcast msg to targets called", zap.Int("len", len(from)), zap.Int("cur v len", pm.peerSetManager.currentVerifierPeers.Len()))
 	vPeers := pm.peerSetManager.currentVerifierPeers.GetPeers()
 	for _, add := range from {
 		for _, p := range vPeers {
 			if p.RemoteVerifierAddress().IsEqual(add) {
-				log.PBft.Debug("send fetch round msg", "to", p.NodeName())
+				log.DLogger.Debug("send fetch round msg", zap.String("to", p.NodeName()))
 				if err := p.SendMsg(msgCode, msg); err != nil {
-					log.Warn("broadcast pbft msg to target verifier failed", "to", p.NodeName(),
-						"msg code", msgCode, "err", err)
-					log.PBft.Warn("broadcast pbft msg to target verifier failed", "to", p.NodeName(),
-						"msg code", msgCode, "err", err)
+					log.DLogger.Warn("broadcast pbft msg to target verifier failed", zap.String("to", p.NodeName()),
+						zap.Uint64("msg code", msgCode), zap.Error(err))
+					log.DLogger.Warn("broadcast pbft msg to target verifier failed", zap.String("to", p.NodeName()),
+						zap.Uint64("msg code", msgCode), zap.Error(err))
 				}
 			}
 		}
@@ -298,7 +300,7 @@ func (pm *CsProtocolManager) SendFetchBlockMsg(msgCode uint64, from common.Addre
 	vPeers := pm.peerSetManager.currentVerifierPeers.GetPeers()
 	for _, p := range vPeers {
 		if p.RemoteVerifierAddress().IsEqual(from) {
-			log.PBft.Info("send fetch block msg", "to", p.NodeName())
+			log.DLogger.Info("send fetch block msg", zap.String("to", p.NodeName()))
 			return p.SendMsg(msgCode, msg)
 		}
 	}
@@ -308,7 +310,7 @@ func (pm *CsProtocolManager) SendFetchBlockMsg(msgCode uint64, from common.Addre
 // change verifier，
 //This method is only triggered when the change is made, so if there is a problem when in the peer handling process, it is difficult to correct it.
 func (pm *CsProtocolManager) ChangeVerifiers() {
-	log.PBft.Info("Change verifiers", "is new slot verifier", pm.SelfIsCurrentVerifier())
+	log.DLogger.Info("Change verifiers", zap.Bool("is new slot verifier", pm.SelfIsCurrentVerifier()))
 	vReader := pm.VerifiersReader
 	nextVerifiers := vReader.NextVerifiers()
 	if pm.NodeConf.GetNodeType() == verifier {
@@ -337,14 +339,14 @@ func (pm *CsProtocolManager) HaveEnoughVerifiers(withOrganizeVSet bool) (mc uint
 
 	if missCur <= 0 {
 		mc = 0
-		log.Warn("too many v peers", "cur len", cLen)
+		log.DLogger.Warn("too many v peers", zap.Int("cur len", cLen))
 	} else {
 		mc = uint(missCur)
 	}
 
 	if missNext <= 0 {
 		mn = 0
-		log.Warn("too many v peers", "next len", nLen)
+		log.DLogger.Warn("too many v peers", zap.Int("next len", nLen))
 	} else {
 		mn = uint(missNext)
 	}
@@ -414,7 +416,7 @@ func (pm *CsProtocolManager) MatchCurrentVerifiersToNext() {
 	if nextVPeersLen == (totalVerifier - 1) {
 		return
 	}
-	log.Health.Info("MatchCurrentVerifiersToNext", "next p len", nextVPeersLen, "total", totalVerifier)
+	log.DLogger.Info("MatchCurrentVerifiersToNext", zap.Int("next p len", nextVPeersLen), zap.Int("total", totalVerifier))
 
 	nextVs := vReader.NextVerifiers()
 	pm.pickNextVerifierFromPs(nextVs)
@@ -432,19 +434,19 @@ func (pm *CsProtocolManager) pickNextVerifierFromPs(nextVs []common.Address) {
 				// If it already exists in next, it should be removed from the normal
 				if pm.peerSetManager.nextVerifierPeers.Peer(cp.ID()) != nil {
 					if err := pm.peerSetManager.basePeers.RemovePeer(cp.ID()); err != nil {
-						log.Error("remove peer from peer set failed", "err", err)
+						log.DLogger.Error("remove peer from peer set failed", zap.Error(err))
 					}
 					break
 				}
 
 				if err := pm.peerSetManager.nextVerifierPeers.AddPeer(cp); err != nil {
-					log.Error("add peer to next verifier set failed", "err", err)
+					log.DLogger.Error("add peer to next verifier set failed", zap.Error(err))
 					break
 				}
 
 				// need to be removed from normal
 				if err := pm.peerSetManager.basePeers.RemovePeer(cp.ID()); err != nil {
-					log.Error("remove peer from peer set failed", "err", err)
+					log.DLogger.Error("remove peer from peer set failed", zap.Error(err))
 				}
 
 				break
@@ -466,7 +468,7 @@ func (pm *CsProtocolManager) pickNextVerifierFromCps(nextVs []common.Address) {
 				}
 
 				if err := pm.peerSetManager.nextVerifierPeers.AddPeer(cp); err != nil {
-					log.Error("add peer to next verifier set failed", "err", err)
+					log.DLogger.Error("add peer to next verifier set failed", zap.Error(err))
 				}
 
 				break
@@ -497,7 +499,7 @@ func (pm *CsProtocolManager) selfPmType() int {
 	if nodeType == chain_config.NodeTypeOfVerifierBoot {
 
 		curNodeID := pm.P2PServer.Self().ID().String()
-		//log.Info("the node id is:","curNodeId",curNodeID)
+		//log.DLogger.Info("the node id is:","curNodeId",curNodeID)
 
 		for _, n := range pm.verifierBootNodes {
 			if curNodeID == n.ID().String() {
@@ -513,7 +515,7 @@ func (pm *CsProtocolManager) selfPmType() int {
 // determine whether the peer is a verifier boot node
 func (pm *CsProtocolManager) isVerifierBootNode(p PmAbstractPeer) bool {
 	for _, bn := range pm.verifierBootNodes {
-		//log.Info("-----------------check remote peer is boot node", "saved b", bn.ID.String(), "p id", p.ID())
+		//log.DLogger.Info("-----------------check remote peer is boot node", "saved b", bn.ID.String(), "p id", p.ID())
 		if p.ID() == bn.ID().String() {
 			return true
 		}
@@ -578,13 +580,13 @@ func (pm *CsProtocolManager) SelfIsCurrentVerifier() bool {
 	if shouldChange {
 		curs = ns
 		ns = []common.Address{}
-		log.Info("check self is cur verifier, cur block should change verifier, so next trans to cur")
+		log.DLogger.Info("check self is cur verifier, cur block should change verifier, so next trans to cur")
 	}
 
 	baseAddr := pbftSigner.GetAddress()
 
-	//log.Pm.Info("check self is current verifier","selfAddr",baseAddr.Hex())
-	//log.Pm.Info("check self is current verifier","currentVer",curs)
+	//log.DLogger.Info("check self is current verifier","selfAddr",baseAddr.Hex())
+	//log.DLogger.Info("check self is current verifier","currentVer",curs)
 
 	if baseAddr.InSlice(curs) {
 		return true
@@ -614,7 +616,7 @@ func (pm *CsProtocolManager) SelfIsNextVerifier() bool {
 	shouldChange := vReader.ShouldChangeVerifier()
 	if shouldChange {
 		ns = []common.Address{}
-		log.Info("check self is next verifier, cur block should change verifier, so next is remote next")
+		log.DLogger.Info("check self is next verifier, cur block should change verifier, so next is remote next")
 	}
 
 	baseAddr := pbftSigner.GetAddress()
@@ -651,14 +653,14 @@ func (pm *CsProtocolManager) handle(p PmAbstractPeer) error {
 
 	// check the number of connections
 	if pm.checkConnCount() {
-		log.Warn("too many peers, can't add new peer")
+		log.DLogger.Warn("too many peers, can't add new peer")
 		g_metrics.Add(g_metrics.TotalFailedHandle, "", 1)
 		return p2p.DiscTooManyPeers
 	}
 
 	if err := pm.HandShake(p); err != nil {
 		g_metrics.Add(g_metrics.TotalFailedHandle, "", 1)
-		log.Warn("CsProtocolManager hand shake failed", "err", err, "remote host", p.RemoteAddress())
+		log.DLogger.Warn("CsProtocolManager hand shake failed", zap.Error(err), zap.Any("remote host", p.RemoteAddress()))
 		return err
 	}
 
@@ -684,7 +686,7 @@ func (pm *CsProtocolManager) handle(p PmAbstractPeer) error {
 
 	// The add peer that is repeated will report an error, so there is no need to check if there is a duplicate peer.
 	if err := pm.peerSetManager.AddPeer(p); err != nil {
-		log.Warn("add peer to peer set failed", "err", err)
+		log.DLogger.Warn("add peer to peer set failed", zap.Error(err))
 
 		g_metrics.Add(g_metrics.TotalFailedHandle, "", 1)
 		return err
@@ -703,13 +705,13 @@ func (pm *CsProtocolManager) handle(p PmAbstractPeer) error {
 
 	for {
 		if err := pm.handleMsg(p); err != nil {
-			log.Error("handle peer msg failed", "err", err, "p name", p.NodeName())
+			log.DLogger.Error("handle peer msg failed", zap.Error(err), zap.String("p name", p.NodeName()))
 
 			if InPmBrokenError(err) {
 				p.SetNotRunning()
 				return err
 			} else {
-				log.Info("handleMsg err is not broken err, do not disconnect", "err", err)
+				log.DLogger.Info("handleMsg err is not broken err, do not disconnect", zap.Error(err))
 				// todo This is not very good, but can avoid the for engage completely CPU
 				time.Sleep(10 * time.Millisecond)
 			}
@@ -720,13 +722,13 @@ func (pm *CsProtocolManager) handle(p PmAbstractPeer) error {
 
 func (pm *CsProtocolManager) handleMsg(p PmAbstractPeer) error {
 
-	//log.Info("the protocolManager connected peer number is:","number",len(pm.peers.GetPeers()))
+	//log.DLogger.Info("the protocolManager connected peer number is:","number",len(pm.peers.GetPeers()))
 
 	msg, err := p.ReadMsg()
 
 	if err != nil {
-		log.Info("base protocol read msg from peer failed", "err", err, "peer name", p.NodeName())
-		log.Pm.Info("base protocol read msg from peer failed", "node", p.NodeName(), "err", err)
+		log.DLogger.Info("base protocol read msg from peer failed", zap.Error(err), zap.String("peer name", p.NodeName()))
+		log.DLogger.Info("base protocol read msg from peer failed", zap.String("node", p.NodeName()), zap.Error(err))
 		return err
 	}
 
@@ -740,10 +742,10 @@ func (pm *CsProtocolManager) handleMsg(p PmAbstractPeer) error {
 			// log debug stack
 			debugStackFile := filepath.Join(util.HomeDir(), "tmp", "cs_debug", "stack", pm.NodeConf.GetNodeName(), time.Now().Format("2006-1-2 15:04:05")+".log")
 			if err := util.WriteDebugStack(debugStackFile); err != nil {
-				log.Error("write debug stack failed", "err", err)
+				log.DLogger.Error("write debug stack failed", zap.Error(err))
 			}
 			//panic(fmt.Sprintf("handle msg use more than 10s, msg code: 0x%x", msg.Code))
-			log.Error(fmt.Sprintf("handle msg use more than 10s, msg code: 0x%x, remote node: %v. disconnect this peer, and write debug stack to: %v", msg.Code, p.NodeName(), debugStackFile))
+			log.DLogger.Error(fmt.Sprintf("handle msg use more than 10s, msg code: 0x%x, remote node: %v. disconnect this peer, and write debug stack to: %v", msg.Code, p.NodeName(), debugStackFile))
 			// not disconnect, the handle may be indeed time-consuming
 			//pm.removePeerFromAllSet(p.ID())
 		}
@@ -755,7 +757,7 @@ func (pm *CsProtocolManager) handleMsg(p PmAbstractPeer) error {
 		select {
 		case finishedChan <- struct{}{}:
 		case <-timer.C:
-			log.Error("can't write to finishedChan. means handle msg finished, but use more than 10s")
+			log.DLogger.Error("can't write to finishedChan. means handle msg finished, but use more than 10s")
 		}
 		timer.Stop()
 	}()
@@ -768,7 +770,7 @@ func (pm *CsProtocolManager) handleMsg(p PmAbstractPeer) error {
 	if pm.selfPmType() != base && uint64(msg.Code) > 0x100 {
 		// handle this msg
 		if err = pm.PbftNode.OnNewP2PMsg(msg, p); err != nil {
-			log.PBft.Error("handle pbft msg failed", "err", err, "msg code", fmt.Sprintf("%x", msg.Code))
+			log.DLogger.Error("handle pbft msg failed", zap.Error(err), zap.String("msg code", fmt.Sprintf("%x", msg.Code)))
 			return err
 		}
 
@@ -778,19 +780,19 @@ func (pm *CsProtocolManager) handleMsg(p PmAbstractPeer) error {
 
 	// I am the current round verifier, but the node type that is started is not verifier
 	if uint64(msg.Code) > 0x100 {
-		log.Warn("self in current verifiers, but node not start with verifier type", "cur node type", pm.NodeConf.GetNodeType())
+		log.DLogger.Warn("self in current verifiers, but node not start with verifier type", zap.Int("cur node type", pm.NodeConf.GetNodeType()))
 		return nil
 	}
 	// find handler for this msg
 	tmpHandler := pm.msgHandlers[uint64(msg.Code)]
 	if tmpHandler == nil {
-		log.Error("Get message processing error", "msg code", fmt.Sprintf("0x%x", msg.Code))
+		log.DLogger.Error("Get message processing error", zap.String("msg code", fmt.Sprintf("0x%x", msg.Code)))
 		return msgHandleFuncNotFoundErr
 	}
 
 	// handle this msg
 	if err = tmpHandler(msg, p); err != nil {
-		log.Warn("handle msg failed", "err", err, "msg code", fmt.Sprintf("%x", msg.Code))
+		log.DLogger.Warn("handle msg failed", zap.Error(err), zap.String("msg code", fmt.Sprintf("%x", msg.Code)))
 		return err
 	}
 
@@ -809,7 +811,7 @@ func (pm *CsProtocolManager) HandShake(p PmAbstractPeer) error {
 
 	go func() {
 		curB := chainReader.CurrentBlock()
-		//log.Info("send hand shake msg", "cur block", curB.Number())
+		//log.DLogger.Info("send hand shake msg", "cur block", curB.Number())
 		sData := StatusData{
 			HandShakeData: HandShakeData{
 				ChainID:            chainConf.ChainId,
@@ -824,12 +826,12 @@ func (pm *CsProtocolManager) HandShake(p PmAbstractPeer) error {
 			},
 			//NodeType:
 		}
-		log.Debug("before sign hand shake msg", "data hash", sData.DataHash().Hex())
+		log.DLogger.Debug("before sign hand shake msg", zap.String("data hash", sData.DataHash().Hex()))
 		if nodeConf.GetNodeType() != chain_config.NodeTypeOfNormal {
 			// sign
 			if signB, err := pbftSigner.SignHash(sData.DataHash().Bytes()); err != nil {
 				// send even if there is an error
-				log.Error("sign status data hash failed", "err", err)
+				log.DLogger.Error("sign status data hash failed", zap.Error(err))
 			} else {
 				sData.Sign = signB
 				sData.PubKey = crypto.CompressPubkey(pbftSigner.PublicKey())
@@ -837,30 +839,30 @@ func (pm *CsProtocolManager) HandShake(p PmAbstractPeer) error {
 		}
 
 		if err := p.SendMsg(StatusMsg, sData); err != nil {
-			log.Error("send status msg error", "err", err)
+			log.DLogger.Error("send status msg error", zap.Error(err))
 		}
-		log.Debug("send hand shake message success")
+		log.DLogger.Debug("send hand shake message success")
 	}()
 
 	go func() {
 		msg, err := p.ReadMsg()
 		if err != nil {
-			log.Error("read handshake response error", "err", err)
+			log.DLogger.Error("read handshake response error", zap.Error(err))
 			statusDataChan <- nil
 			return
 		}
 		defer func() {
 			if err := msg.Discard(); err != nil {
-				log.Error("discard status msg err")
+				log.DLogger.Error("discard status msg err")
 			}
 		}()
 
 		var tmpStatus StatusData
 		if err = msg.Decode(&tmpStatus); err != nil {
-			log.Warn("decode hand shake msg failed", "err", err)
+			log.DLogger.Warn("decode hand shake msg failed", zap.Error(err))
 		}
 
-		//log.Debug("read  handshake data is:", "tmpStatus", tmpStatus)
+		//log.DLogger.Debug("read  handshake data is:", "tmpStatus", tmpStatus)
 		statusDataChan <- &tmpStatus
 	}()
 
@@ -870,12 +872,12 @@ func (pm *CsProtocolManager) HandShake(p PmAbstractPeer) error {
 			return errors.New("can't read hand shake msg from remote")
 		}
 		if remoteStatus.NetworkId != chainConf.NetworkID {
-			log.Error(fmt.Sprintf("network id not match, remote: %v local: %v", remoteStatus.NetworkId, chainConf.NetworkID))
+			log.DLogger.Error(fmt.Sprintf("network id not match, remote: %v local: %v", remoteStatus.NetworkId, chainConf.NetworkID))
 			return errors.New("network id not match")
 		}
 		if !genesisBlock.Hash().IsEqual(remoteStatus.GenesisBlock) {
 
-			log.Error(fmt.Sprintf("genesis block not match, local: %v remote: %v", genesisBlock.Hash(), remoteStatus.GenesisBlock))
+			log.DLogger.Error(fmt.Sprintf("genesis block not match, local: %v remote: %v", genesisBlock.Hash(), remoteStatus.GenesisBlock))
 			return errors.New("genesis block not match")
 		}
 		if remoteStatus.ProtocolVersion == 0 {
@@ -896,7 +898,7 @@ func (pm *CsProtocolManager) HandShake(p PmAbstractPeer) error {
 		remoteStatus.RawUrl = getRealRawUrl(remoteStatus.RawUrl, p.RemoteAddress().String())
 		p.SetPeerRawUrl(remoteStatus.RawUrl)
 
-		log.Info("cs protocol hand shake success", "remote", remoteStatus.NodeName, "remote bh", remoteStatus.CurrentBlockHeight, "remote nt", remoteStatus.NodeType, "raw url", remoteStatus.RawUrl)
+		log.DLogger.Info("cs protocol hand shake success", zap.String("remote", remoteStatus.NodeName), zap.Uint64("remote bh", remoteStatus.CurrentBlockHeight), zap.Uint64("remote nt", remoteStatus.NodeType), zap.String("raw url", remoteStatus.RawUrl))
 	}
 
 	return nil
@@ -913,7 +915,7 @@ func (pm *CsProtocolManager) checkAndHandleVerBootNodes() {
 	}
 
 	if pm.chainHeightTooLow() {
-		//log.Info("chain height too low, disconnect v boots")
+		//log.DLogger.Info("chain height too low, disconnect v boots")
 		//pm.disconnectVBoots()
 		return
 	}
@@ -932,7 +934,7 @@ func (pm *CsProtocolManager) checkAndHandleVerBootNodes() {
 //		return
 //	}
 //
-//	log.Info("do disconnectVBoots")
+//	log.DLogger.Info("do disconnectVBoots")
 //
 //	for _, vbNode := range chain_config.VerifierBootNodes {
 //		pm.P2PServer.RemovePeer(vbNode)
@@ -947,21 +949,21 @@ func (pm *CsProtocolManager) connectVBoots() {
 		return
 	}
 
-	log.Info("do connectVBoots", "chain_config.VerifierBootNodes len", len(chain_config.VerifierBootNodes))
+	log.DLogger.Info("do connectVBoots", zap.Int("chain_config.VerifierBootNodes len", len(chain_config.VerifierBootNodes)))
 
 	selfID := pm.P2PServer.Self().ID().String()
 	for _, vbNode := range chain_config.VerifierBootNodes {
 		vbID := vbNode.ID().String()
 		if vbID == selfID {
-			log.Info("v boot is cur node", "id", selfID)
+			log.DLogger.Info("v boot is cur node", zap.String("id", selfID))
 			continue
 		}
 
 		if pm.peerSetManager.verifierBootNode.Peer(vbID) != nil {
-			log.Info("v boot in verifierBootSet", "vbID", vbID, "self id", selfID)
+			log.DLogger.Info("v boot in verifierBootSet", zap.String("vbID", vbID), zap.String("self id", selfID))
 			continue
 		}
-		log.Info("add v boot", "conn", vbNode.String())
+		log.DLogger.Info("add v boot", zap.String("conn", vbNode.String()))
 		pm.P2PServer.AddPeer(vbNode)
 	}
 }
@@ -969,7 +971,7 @@ func (pm *CsProtocolManager) connectVBoots() {
 func (pm *CsProtocolManager) chainHeightTooLow() bool {
 	bp := pm.BestPeer()
 	if bp == nil {
-		log.Error("can't get best peer, for chainHeightTooLow check")
+		log.DLogger.Error("can't get best peer, for chainHeightTooLow check")
 		return true
 	}
 	_, h := bp.GetHead()
@@ -983,7 +985,7 @@ func (pm *CsProtocolManager) chainHeightTooLow() bool {
 // check the connection boot node periodically
 func (pm *CsProtocolManager) bootVerifierConnCheck() {
 	if pm.NodeConf.GetNodeType() != chain_config.NodeTypeOfVerifier && pm.NodeConf.GetNodeType() != chain_config.NodeTypeOfVerifierBoot {
-		log.Info("cur node isn't verifier or verifier boot node, do not check v boot conn")
+		log.DLogger.Info("cur node isn't verifier or verifier boot node, do not check v boot conn")
 		return
 	}
 
@@ -1019,8 +1021,8 @@ func (pm *CsProtocolManager) IsSync() bool {
 
 	_, bestPeerHeight := bestPeer.GetHead()
 
-	//log.Info("the currentBlock.Number is:","number",currentBlock.Number())
-	//log.Info("the bestPeerHeight is:","bestPeerHeight",bestPeerHeight)
+	//log.DLogger.Info("the currentBlock.Number is:","number",currentBlock.Number())
+	//log.DLogger.Info("the bestPeerHeight is:","bestPeerHeight",bestPeerHeight)
 	// if peer current block number + 10 > best peer height , node is sync, but return false
 	if currentBlock.Number()+10 >= bestPeerHeight {
 		return false
@@ -1035,19 +1037,19 @@ func (pm *CsProtocolManager) PrintPeerHealthCheck() {
 	nextPeers := pm.peerSetManager.nextVerifierPeers.GetPeers()
 	vBootPeers := pm.peerSetManager.verifierBootNode.GetPeers()
 
-	if log.OutputHealthLog() {
+	if os.Getenv("boots_env") == "venus" {
 		printPeerInfo("base", basePeers)
 		printPeerInfo("cur", curPeers)
 		printPeerInfo("next", nextPeers)
 		printPeerInfo("vboot", vBootPeers)
-		log.Health.Debug("======================")
+		log.DLogger.Debug("======================")
 	}
 
 	norLen := len(basePeers)
 	curLen := len(curPeers)
 	nextLen := len(nextPeers)
 	vBootLen := len(vBootPeers)
-	log.Health.Info("pm print cur peers info", "normal", norLen, "cur vers", curLen, "next vers", nextLen, "v boots", vBootLen)
+	log.DLogger.Info("pm print cur peers info", zap.Int("normal", norLen), zap.Int("cur vers", curLen), zap.Int("next vers", nextLen), zap.Int("v boots", vBootLen))
 
 	g_metrics.Set(g_metrics.NorPeerSetGauge, "", float64(norLen))
 	g_metrics.Set(g_metrics.CurPeerSetGauge, "", float64(curLen))
@@ -1057,6 +1059,6 @@ func (pm *CsProtocolManager) PrintPeerHealthCheck() {
 
 func printPeerInfo(pSet string, ps map[string]PmAbstractPeer) {
 	for _, p := range ps {
-		log.Health.Debug("peer conn info", "node", p.NodeName(), "is running", p.IsRunning(), "remote addr", p.RemoteVerifierAddress(), "in set", pSet)
+		log.DLogger.Debug("peer conn info", zap.String("node", p.NodeName()), zap.Bool("is running", p.IsRunning()), zap.Any("remote addr", p.RemoteVerifierAddress()), zap.String("in set", pSet))
 	}
 }

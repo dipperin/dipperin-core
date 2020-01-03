@@ -19,9 +19,10 @@ package chain_config
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -122,7 +123,7 @@ func defaultChainConfig() *ChainConfig {
 		c.NetworkID = 1601
 		c.ChainId = big.NewInt(1601)
 	}
-	log.Info("the verifierNumber is:", "number", c.VerifierNumber)
+	log.DLogger.Info("the verifierNumber is:", zap.Int("number", c.VerifierNumber))
 	return c
 }
 
@@ -225,7 +226,7 @@ var (
 )
 
 func InitBootNodes(dataDir string) {
-	log.Info("the boot env is:", "env", os.Getenv(BootEnvTagName))
+	log.DLogger.Info("the boot env is:", zap.String("env", os.Getenv(BootEnvTagName)))
 	// If the environment variable is set during deploy use, these environment variables are automatically taken when the startup command is used.
 	switch os.Getenv(BootEnvTagName) {
 	case "test":
@@ -238,14 +239,14 @@ func InitBootNodes(dataDir string) {
 		initVenusBoots(dataDir)
 	default:
 		//log.Agent("use local boot env")
-		log.Info("use local boot env")
+		log.DLogger.Info("use local boot env")
 		initLocalBoots(dataDir)
 	}
 	for _, vb := range VerifierBootNodes {
-		log.Info("VerifierBootNodes", "vb", vb.String())
+		log.DLogger.Info("VerifierBootNodes", zap.String("vb", vb.String()))
 	}
 	for _, kn := range KBucketNodes {
-		log.Info("KBucketNodes", "vb", kn.String())
+		log.DLogger.Info("KBucketNodes", zap.String("vb", kn.String()))
 	}
 }
 
@@ -327,24 +328,24 @@ func LoadVerifierBootNodesFromFile(dataDir string) (vBootNodes []*enode.Node) {
 func LoadNodesFromFile(fileP string) (bootNodes []*enode.Node) {
 	data, err := ioutil.ReadFile(fileP)
 	if err != nil {
-		log.Debug("load boot nodes from file failed", "err", err)
+		log.DLogger.Debug("load boot nodes from file failed", zap.Error(err))
 		return
 	}
 
 	var nodesStr []string
 	if err = util.ParseJsonFromBytes(data, &nodesStr); err != nil {
-		log.Debug("can't parse boot nodes", "err", err)
+		log.DLogger.Debug("can't parse boot nodes", zap.Error(err))
 		return
 	}
 
 	for _, nStr := range nodesStr {
 		if node, err := enode.ParseV4(nStr); err != nil {
-			log.Debug("parse boot node failed", "err", err)
+			log.DLogger.Debug("parse boot node failed", zap.Error(err))
 		} else {
 			bootNodes = append(bootNodes, node)
 		}
 	}
-	log.Debug("load boot nodes from file", "nodes len", len(bootNodes))
+	log.DLogger.Debug("load boot nodes from file", zap.Int("nodes len", len(bootNodes)))
 	return
 
 }

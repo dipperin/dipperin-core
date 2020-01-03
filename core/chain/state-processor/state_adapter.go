@@ -3,9 +3,10 @@ package state_processor
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 )
 
@@ -19,8 +20,9 @@ func NewFullState(state *AccountStateDB) *Fullstate {
 	}
 }
 
-func (f *Fullstate) CreateAccount(address common.Address) {
-	f.state.newContractAccount(address)
+func (f *Fullstate) CreateAccount(address common.Address) error {
+	_, err := f.state.newContractAccount(address)
+	return err
 }
 
 func (f *Fullstate) GetBalance(addr common.Address) *big.Int {
@@ -38,24 +40,26 @@ func (f *Fullstate) GetNonce(addr common.Address) (uint64, error) {
 func (f *Fullstate) AddNonce(addr common.Address, add uint64) {
 	err := f.state.AddNonce(addr, add)
 	if err != nil {
-		log.Error("Fullstate#AddBalance", "AddNonce failed; err ", err)
+		log.DLogger.Error("Fullstate#AddBalance", zap.Error(err))
 		//panic(fmt.Sprintf("AddNonce failed, err=%v", err))
 	}
 }
 
-func (f *Fullstate) AddBalance(addr common.Address, amount *big.Int) {
+func (f *Fullstate) AddBalance(addr common.Address, amount *big.Int) error {
 	err := f.state.AddBalance(addr, amount)
 	if err != nil {
-		log.Error("Fullstate#AddBalance", "AddBalance failed; err ", err)
+		log.DLogger.Error("Fullstate#AddBalance", zap.Error(err))
 		//panic(fmt.Sprintf("AddBalance failed, err=%v", err))
 	}
+	return err
 }
-func (f *Fullstate) SubBalance(addr common.Address, amount *big.Int) {
+func (f *Fullstate) SubBalance(addr common.Address, amount *big.Int) error {
 	err := f.state.SubBalance(addr, amount)
 	if err != nil {
-		log.Error("Fullstate#AddBalance", "SubBalance failed; err ", err)
+		log.DLogger.Error("Fullstate#AddBalance", zap.Error(err))
 		//panic(fmt.Sprintf("SubBalance failed, err=%v", err))
 	}
+	return err
 }
 
 func (f *Fullstate) GetCodeHash(addr common.Address) common.Hash {
@@ -137,7 +141,7 @@ func (f *Fullstate) Exist(addr common.Address) bool {
 }
 
 func (f *Fullstate) RevertToSnapshot(id int) {
-	log.Debug("State Reverted", "id", id)
+	log.DLogger.Debug("State Reverted", zap.Int("id", id))
 	f.state.RevertToSnapshot(id)
 }
 

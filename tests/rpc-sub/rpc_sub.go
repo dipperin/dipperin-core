@@ -18,9 +18,9 @@ package main
 
 import (
 	"context"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"time"
 )
@@ -46,13 +46,13 @@ func (api *TestApi) SubscribeBlock(ctx context.Context) (*rpc.Subscription, erro
 		for {
 			select {
 			case <-time.NewTicker(2 * time.Second).C:
-				log.Info("notify client")
+				log.DLogger.Info("notify client")
 				notifier.Notify(rpcSub.ID, HaHa{ID: 123})
 				//if rV, err := rlp.EncodeToBytes(b); err != nil {
-				//	log.Error("block can't encode to bytes", "err", err)
+				//	log.DLogger.Error("block can't encode to bytes", "err", err)
 				//} else {
 				//	if err := notifier.Notify(rpcSub.ID, rV); err != nil {
-				//		log.Error("can't notify wallet", "err", err)
+				//		log.DLogger.Error("can't notify wallet", "err", err)
 				//	}
 				//}
 

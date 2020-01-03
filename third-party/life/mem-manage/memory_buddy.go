@@ -2,7 +2,8 @@ package mem_manage
 
 import (
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
+	"go.uber.org/zap"
 )
 
 type BuddyMemory struct {
@@ -15,7 +16,7 @@ type BuddyMemory struct {
 const BuddyMinimumSize = 4 * 1024
 
 func (m *BuddyMemory) Malloc(size int) int {
-	log.VmMem.Debug("[malloc from buddy memory]", "size", size, "start", m.Start, "treeLen", len(m.Tree))
+	log.DLogger.Debug("[malloc from buddy memory]", zap.Int("size", size), zap.Int("start", m.Start), zap.Int("treeLen", len(m.Tree)))
 	//minimum memory is 4K in buddy
 	if size <= 0 {
 		panic(fmt.Errorf("wrong Size=%d", size))
@@ -51,15 +52,15 @@ func (m *BuddyMemory) Malloc(size int) int {
 	}
 	//Clear the memory data corresponding to the node
 	clear(offset+m.Start, offset+m.Start+nodeSize, m.Memory)
-	log.VmMem.Debug("[the buddy memory malloc offset is:]", "addr", offset+m.Start)
+	log.DLogger.Debug("[the buddy memory malloc offset is:]", zap.Int("addr", offset+m.Start))
 	return offset + m.Start
 }
 
 func (m *BuddyMemory) Free(offset int) error {
-	log.VmMem.Debug("[the buddy memory free offset is:]", "addr", offset)
+	log.DLogger.Debug("[the buddy memory free offset is:]", zap.Int("addr", offset))
 	//todo: 有的wasm会多一个free(0),待在cdt端解决
 	if offset == 0 {
-		log.VmMem.Debug("free offset = 0...")
+		log.DLogger.Debug("free offset = 0...")
 		return nil
 	}
 

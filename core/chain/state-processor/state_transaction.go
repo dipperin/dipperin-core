@@ -3,10 +3,11 @@ package state_processor
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 )
 
@@ -69,13 +70,13 @@ func (st *StateTransition) buyGas() error {
 		st.state.AddBalance(st.msg.From(), msgVal)
 	}
 	balance := st.lifeVm.GetStateDB().GetBalance(st.msg.From())
-	log.Info("Call buyGas", "gasLimit", st.msg.Gas(), "gasPrice", st.gasPrice, "moneyUsed", msgVal)
-	log.Info("Balance before buyGas", "balance", balance)
+	log.DLogger.Info("Call buyGas", zap.Uint64("gasLimit", st.msg.Gas()), zap.Any("gasPrice", st.gasPrice), zap.Any("moneyUsed", msgVal))
+	log.DLogger.Info("Balance before buyGas", zap.Any("balance", balance))
 	if balance.Cmp(msgVal) < 0 {
-		log.Error("balance not enough", "msgValue", msgVal, "balance", balance)
+		log.DLogger.Error("balance not enough", zap.Any("msgValue", msgVal), zap.Any("balance", balance))
 		return g_error.ErrInsufficientBalanceForGas
 	}
-	log.Info("GasPool Remain", "gasPool", *st.gp, "gasLimit", st.msg.Gas())
+	log.DLogger.Info("GasPool Remain", zap.Uint64("gasPool", *st.gp), zap.Uint64("gasLimit", st.msg.Gas()))
 	if *st.gp < st.msg.Gas() {
 		return g_error.ErrGasLimitReached
 	}
@@ -84,8 +85,8 @@ func (st *StateTransition) buyGas() error {
 
 	st.initialGas = st.msg.Gas()
 	st.state.SubBalance(st.msg.From(), msgVal)
-	log.Info("BuyGas successful", "gasPool", *st.gp, "gasLeft", st.gas, "initialGas", st.initialGas)
-	log.Info("Balance after buyGas", "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()))
+	log.DLogger.Info("BuyGas successful", zap.Uint64("gasPool", *st.gp), zap.Uint64("gasLeft", st.gas), zap.Uint64("initialGas", st.initialGas))
+	log.DLogger.Info("Balance after buyGas", zap.Any("balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From())))
 	return nil
 }
 
@@ -96,7 +97,7 @@ func (st *StateTransition) preCheck() error {
 		if err != nil {
 			return err
 		}
-		log.Info("CheckNonce successful", "stateNonce", nonce, "msgNonce", st.msg.Nonce())
+		log.DLogger.Info("CheckNonce successful", zap.Uint64("stateNonce", nonce), zap.Uint64("msgNonce", st.msg.Nonce()))
 		if nonce < st.msg.Nonce() {
 			return g_error.ErrNonceTooHigh
 		} else if nonce > st.msg.Nonce() {
@@ -125,11 +126,11 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 	}
 
 	if err = st.useGas(gas); err != nil {
-		log.Error("TransitionDb#IntrinsicGas", "err", err)
+		log.DLogger.Error("TransitionDb#IntrinsicGas", zap.Error(err))
 		return nil, 0, false, nil, err
 	}
 
-	log.Info("IntrinsicGas Used", "used", gas, "left", st.gas)
+	log.DLogger.Info("IntrinsicGas Used", zap.Uint64("used", gas), zap.Uint64("left", st.gas))
 	var (
 		lifeVm = st.lifeVm
 		// lifeVm errors do not effect consensus and are therefor
@@ -145,7 +146,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		ret, st.gas, vmErr = lifeVm.Call(sender, st.to(), st.data, st.gas, st.value)
 	}
 	if vmErr != nil {
-		log.Info("VM returned with error", "err", vmErr)
+		log.DLogger.Info("VM returned with error", zap.Error(vmErr))
 		// The only possible consensus-error would be if there wasn't
 		// sufficient balance to make the transfer happen. The first
 		// balance transfer may never fail.
@@ -158,7 +159,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 	//add coinBase reward in ProcessExceptTxs
 	fee = new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice)
 	//st.state.AddBalance(st.lifeVm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.testGasPrice))
-	log.Info("TransitionDb successful", "failed", vmErr != nil, "gasUsed Total", st.gasUsed())
+	log.DLogger.Info("TransitionDb successful", zap.Bool("failed", vmErr != nil), zap.Uint64("gasUsed Total", st.gasUsed()))
 	return ret, st.gasUsed(), vmErr != nil, fee, err
 }
 
@@ -168,7 +169,7 @@ func (st *StateTransition) refundGas() {
 	if refund > st.lifeVm.GetStateDB().GetRefund() {
 		refund = st.lifeVm.GetStateDB().GetRefund()
 	}*/
-	log.Info("Call refundGas", "gasPool", *st.gp, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()))
+	log.DLogger.Info("Call refundGas", zap.Uint64("gasPool", *st.gp), zap.Any("balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From())))
 	// Return ETH for remaining gas, exchanged at the original rate.
 	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
 	st.state.AddBalance(st.msg.From(), remaining)
@@ -179,7 +180,7 @@ func (st *StateTransition) refundGas() {
 		panic("gas pool pushed above uint64")
 	}
 	*st.gp += st.gas
-	log.Info("Gas Refund successful", "gasPool", *st.gp, "balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From()))
+	log.DLogger.Info("Gas Refund successful", zap.Uint64("gasPool", *st.gp), zap.Any("balance", st.lifeVm.GetStateDB().GetBalance(st.msg.From())))
 }
 
 // gasUsed returns the amount of gas used up by the state transition.

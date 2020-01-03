@@ -19,13 +19,13 @@ package spec_util
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 )
 
@@ -63,7 +63,7 @@ func (suite *BaseChainSuite) SetupTest() {
 		MinerPk:    suite.Env.Miner().Pk,
 	}
 
-	log.Info("the suit preBlock is~~~~:", "preBlock", suite.ChainState.CurrentBlock())
+	log.DLogger.Info("the suit preBlock is~~~~:", "preBlock", suite.ChainState.CurrentBlock())
 }
 
 func (suite *BaseChainSuite) TearDownTest() {

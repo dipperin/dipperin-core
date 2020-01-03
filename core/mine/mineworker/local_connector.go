@@ -19,9 +19,10 @@ package mineworker
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/mine/minemaster"
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"reflect"
 )
 
@@ -75,7 +76,7 @@ func (conn *localConnector) GetId() minemaster.WorkerId {
 	return conn.id
 }
 func (conn *localConnector) SendNewWork(msgCode int, work minemsg.Work) {
-	log.Debug("localConnector SendNewWork", "msg code", msgCode)
+	log.DLogger.Debug("localConnector SendNewWork", zap.Int("msg code", msgCode))
 	msg := &localWorkMsg{code: msgCode, work: work}
 	go conn.receiver.OnNewWork(msg)
 }

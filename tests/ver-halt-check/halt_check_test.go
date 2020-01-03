@@ -23,6 +23,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/cs-chain"
@@ -33,7 +34,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/verifiers-halt-check"
 	"github.com/dipperin/dipperin-core/tests"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"reflect"
@@ -269,16 +269,16 @@ func TestSaveInvalidDifficultyBlock(t *testing.T) {
 		reflect.ValueOf(common.Difficulty{}),
 	}
 
-	log.Info("the block method number is:", "number", block.NumMethod())
+	log.DLogger.Info("the block method number is:", "number", block.NumMethod())
 	for i := 0; i < block.NumMethod(); i++ {
-		log.Info("the method is:", "method", block.Method(i))
+		log.DLogger.Info("the method is:", "method", block.Method(i))
 	}
 	block.MethodByName("SetDifficulty").Call(param)
 	sameHeightBlock.RefreshHashCache()
 
-	log.Info("the mockBlock diff is:", "diff", sameHeightBlock.Difficulty().Hex())
+	log.DLogger.Info("the mockBlock diff is:", "diff", sameHeightBlock.Difficulty().Hex())
 	err = testConf.SaveBlock(sameHeightBlock, sameHeightBlock.GetVerifications())
-	log.Info("the err is:", "err", err)
+	log.DLogger.Info("the err is:", "err", err)
 	assert.Equal(t, g_error.ErrInvalidDiff, err)
 }
 
@@ -312,18 +312,18 @@ func TestSystemBug(t *testing.T) {
 	})
 
 	currentBlock := vb2ChainState.CurrentBlock()
-	log.Info("the vb2 currentBlock is:", "number", currentBlock.Number())
+	log.DLogger.Info("the vb2 currentBlock is:", "number", currentBlock.Number())
 	testBlock := vb2ChainState.GetBlockByNumber(13867)
-	log.Info("the vb2 13867 block info is:", "id", testBlock.Hash().Hex(), "preHash", testBlock.PreHash().Hex())
-	log.Info("the vb2 13866 block info is:", "id", vb2ChainState.GetBlockByNumber(13866).Hash().Hex())
+	log.DLogger.Info("the vb2 13867 block info is:", "id", testBlock.Hash().Hex(), "preHash", testBlock.PreHash().Hex())
+	log.DLogger.Info("the vb2 13866 block info is:", "id", vb2ChainState.GetBlockByNumber(13866).Hash().Hex())
 
 	blockHash, err := hexutil.Decode("0x000000e9cd7031841cdbef5465b80a04b18f00e49278e56588a4a541092046d8")
 	assert.NoError(t, err)
 	errBlock := vb2ChainState.GetBlockByHash(common.BytesToHash(blockHash))
 	assert.NotEqual(t, nil, errBlock)
-	log.Info("the errBlock number is:", "errBlockNumber", errBlock.Number())
+	log.DLogger.Info("the errBlock number is:", "errBlockNumber", errBlock.Number())
 
-	log.Info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+	log.DLogger.Info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
 	v1 := "/home/qydev/yc/debug/err-log-20190329/v1Data"
 	v1ChainState := chain_state.NewChainState(&chain_state.ChainStateConfig{
@@ -333,14 +333,14 @@ func TestSystemBug(t *testing.T) {
 	})
 
 	currentBlock2 := v1ChainState.CurrentBlock()
-	log.Info("the v1 currentBlock is:", "number", currentBlock2.Number())
+	log.DLogger.Info("the v1 currentBlock is:", "number", currentBlock2.Number())
 	testBlock2 := vb2ChainState.GetBlockByNumber(13866)
-	log.Info("the v1 block 13866 blockHash is:", "blockHash", testBlock2.Hash().Hex())
-	log.Info("the correct block is:", "correctBlock", testBlock2)
+	log.DLogger.Info("the v1 block 13866 blockHash is:", "blockHash", testBlock2.Hash().Hex())
+	log.DLogger.Info("the correct block is:", "correctBlock", testBlock2)
 
 	assert.NoError(t, err)
 	errBlock = v1ChainState.GetBlockByHash(common.BytesToHash(blockHash))
 	assert.NotEqual(t, nil, errBlock)
-	log.Info("the errBlock is:", "errBlock", errBlock)
-	log.Info("the errBlock number is:", "errBlockNumber", errBlock.Number())
+	log.DLogger.Info("the errBlock is:", "errBlock", errBlock)
+	log.DLogger.Info("the errBlock number is:", "errBlockNumber", errBlock.Number())
 }

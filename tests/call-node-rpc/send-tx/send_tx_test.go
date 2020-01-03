@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/tests/node-cluster"
 	"github.com/dipperin/dipperin-core/tests/vm"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -94,7 +94,7 @@ func Test_CurrentBalance(t *testing.T) {
 	// current balance
 	for i := 0; i < number; i++ {
 		resp := vm.CurrentBalance(verifierClient[i], verifierAddr[i])
-		log.Info("balance", "node", verifierName[i], "balance", resp.Balance.ToInt(), "address", verifierAddr[i])
+		log.DLogger.Info("balance", "node", verifierName[i], "balance", resp.Balance.ToInt(), "address", verifierAddr[i])
 	}
 }
 

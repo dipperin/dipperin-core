@@ -18,11 +18,12 @@ package tx_pool
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 	"testing"
 	"time"
@@ -71,7 +72,7 @@ func (p *testPool) GetTxsEstimator(broadcastBloom *iblt.Bloom) *iblt.HybridEstim
 			estimator.EncodeByte(b)
 		}
 	}
-	log.Info("broadcastBloom.LookUp", "use", time.Now().Sub(startAt1))
+	log.DLogger.Info("broadcastBloom.LookUp", zap.Duration("use", time.Now().Sub(startAt1)))
 
 	return estimator
 }

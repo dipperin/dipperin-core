@@ -67,7 +67,7 @@ type DerivationPath []uint32
 func ParseDerivationPath(path string) (DerivationPath, error) {
 	var result DerivationPath
 
-	//log.Debug("the parse derivation path is ","path",path)
+	//log.DLogger.Debug("the parse derivation path is ","path",path)
 
 	// Handle absolute or relative paths
 	components := strings.Split(path, "/")

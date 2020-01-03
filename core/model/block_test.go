@@ -22,14 +22,15 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"math/big"
 	"testing"
 	"time"
@@ -121,26 +122,26 @@ func Test_RlpHash(t *testing.T) {
 	from := common.HexToAddress("0x0000d28Eb0154A96F4af6E631766939593554c7E5577")
 	to := common.HexToAddress("0x0000E21391AA1ccAcb7c8E7E2E645Bb2cF811fe1E30D")
 	value := big.NewInt(100000000000000)
-	log.Info("the value is:", "value", hexutil.Encode(value.Bytes()))
+	log.DLogger.Info("the value is:", zap.String("value", hexutil.Encode(value.Bytes())))
 
 	transactionFee := big.NewInt(100000000)
-	log.Info("the transactionFee is:", "transactionFee", hexutil.Encode(transactionFee.Bytes()))
+	log.DLogger.Info("the transactionFee is:", zap.String("transactionFee", hexutil.Encode(transactionFee.Bytes())))
 
 	data := make([]byte, 0)
 	tx := NewTransaction(uint64(testNonce), to, value, g_testData.TestGasPrice, g_testData.TestGasLimit, data)
 	txId, err := rlpHash([]interface{}{tx.data, from})
 	assert.NoError(t, err)
-	log.Debug("the txId is :", "txId", txId.Hex())
+	log.DLogger.Debug("the txId is :", zap.String("txId", txId.Hex()))
 
 	/*encodeBytes ,err:= rlp.EncodeToBytes(tx.data)
 	assert.NoError(t,err)
-	log.Debug("the encodeBytes is :","encodeBytes",hexutil.Encode(encodeBytes))*/
+	log.DLogger.Debug("the encodeBytes is :","encodeBytes",hexutil.Encode(encodeBytes))*/
 
 	hashSrcData, err := hexutil.Decode("0xf83fe704960000e21391aa1ccacb7c8e7e2e645bb2cf811fe1e30d8080865af3107a40008405f5e10080960000d28eb0154a96f4af6e631766939593554c7e5577")
 	assert.NoError(t, err)
 
 	txId2 := cs_crypto.Keccak256Hash(hashSrcData)
-	log.Debug("the txId2 is :", "txId2", txId2.Hex())
+	log.DLogger.Debug("the txId2 is :", zap.String("txId2", txId2.Hex()))
 }
 
 func TestRunWorkMap(t *testing.T) {
@@ -780,7 +781,7 @@ func Test_BlockTxNumber(t *testing.T) {
 
 	tmpBlock := creatBlockWithAllTx(int(maxNormalTxNumber), t)
 	blockByte, err := tmpBlock.EncodeRlpToBytes()
-	log.Info("the block size is:", "size", len(blockByte))
-	log.Info("the tx number is:", "txNumber", tmpBlock.Body().GetTxsSize())
+	log.DLogger.Info("the block size is:", zap.Int("size", len(blockByte)))
+	log.DLogger.Info("the tx number is:", zap.Int("txNumber", tmpBlock.Body().GetTxsSize()))
 	assert.NoError(t, err)
 }

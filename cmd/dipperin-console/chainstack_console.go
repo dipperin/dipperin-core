@@ -20,8 +20,9 @@ import (
 	"fmt"
 	"github.com/c-bata/go-prompt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -66,7 +67,7 @@ func GetConfigDir() string {
 	default:
 		dataPath, ok := os.LookupEnv("HOME")
 		if !ok {
-			log.Warn("Environment HOME not set")
+			log.DLogger.Warn("Environment HOME not set")
 			return oldConfigDir
 		}
 		//configDir = filepath.Join(dataPath, ".config", AppName)
@@ -75,7 +76,7 @@ func GetConfigDir() string {
 		// check if it is writable
 		err = os.MkdirAll(configDir, 0700)
 		if err != nil {
-			log.Warn("check config dir error", "err", err)
+			log.DLogger.Warn("check config dir error", zap.Error(err))
 			return oldConfigDir
 		}
 		return configDir
@@ -85,7 +86,7 @@ func GetConfigDir() string {
 func getWinConfigDir(oldConfigDir string) string {
 	dataPath, ok := os.LookupEnv("APPDATA")
 	if !ok {
-		log.Warn("Environment APPDATA not set")
+		log.DLogger.Warn("Environment APPDATA not set")
 		return oldConfigDir
 	}
 	return filepath.Join(dataPath, AppName)
@@ -103,7 +104,7 @@ func NewConsole(executor prompt.Executor, completer prompt.Completer) *Console {
 	var err error
 	c := &Console{}
 
-	log.Info("historyFilePath", "historyFilePath", historyFilePath)
+	log.DLogger.Info("historyFilePath", zap.String("historyFilePath", historyFilePath))
 	if !common.FileExist(historyFilePath) {
 		_ = os.MkdirAll(filepath.Dir(historyFilePath), 0644)
 	}
@@ -137,7 +138,7 @@ func NewConsole(executor prompt.Executor, completer prompt.Completer) *Console {
 // Wrap the executor function for add the input to history
 func (c *Console) WrapExecutor(executor prompt.Executor) prompt.Executor {
 	return func(s string) {
-		//log.Info("add history", "s", s)
+		//log.DLogger.Info("add history", "s", s)
 		c.History.AddHistoryItem(s)
 		executor(s)
 	}

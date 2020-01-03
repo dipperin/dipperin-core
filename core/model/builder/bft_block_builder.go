@@ -25,12 +25,13 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"go.uber.org/zap"
 
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"math/big"
 	"time"
 )
@@ -68,7 +69,7 @@ func (builder *BftBlockBuilder) commitTransaction(conf *state_processor.TxProces
 
 func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeAndNonce, state *chain.BlockProcessor, header *model.Header, vers []model.AbstractVerification) (txBuf []model.AbstractTransaction, receipts model2.Receipts) {
 	var invalidList []*model.Transaction
-	log.Info("BftBlockBuilder#commitTransactions  start ~~~~~++")
+	log.DLogger.Info("BftBlockBuilder#commitTransactions  start ~~~~~++")
 	metricTimer := g_metrics.NewTimer(g_metrics.CommitTxsDuration)
 	if metricTimer != nil {
 		defer metricTimer.ObserveDuration()
@@ -82,7 +83,7 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 		if tx == nil {
 			break
 		}
-		log.Info("BftBlockBuilder#commitTransactions ", "tx hash", tx.CalTxId())
+		log.DLogger.Info("BftBlockBuilder#commitTransactions ", zap.Any("tx hash", tx.CalTxId()))
 		//from, _ := tx.Sender(builder.nodeContext.TxSigner())
 		conf := state_processor.TxProcessConfig{
 			Tx:       tx,
@@ -93,13 +94,13 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 		}
 		err := builder.commitTransaction(&conf, state)
 		if err != nil {
-			log.Info("transaction is not processable because:", "err", err, "txID", tx.CalTxId(), "nonce:", tx.Nonce())
+			log.DLogger.Info("transaction is not processable because:", zap.Error(err), zap.Any("txID", tx.CalTxId()), zap.Uint64("nonce:", tx.Nonce()))
 			txs.Pop()
 			invalidList = append(invalidList, tx.(*model.Transaction))
 		} else {
 			receipt := tx.GetReceipt()
 			if receipt == nil {
-				log.Info("cant get tx receipt", "txId", tx.CalTxId().Hex())
+				log.DLogger.Info("cant get tx receipt", zap.String("txId", tx.CalTxId().Hex()))
 				txs.Pop()
 				invalidList = append(invalidList, tx.(*model.Transaction))
 			} else {
@@ -114,7 +115,7 @@ func (builder *BftBlockBuilder) commitTransactions(txs *model.TransactionsByFeeA
 	if len(invalidList) != 0 {
 		block := model.NewBlock(header, invalidList, vers)
 		builder.TxPool.RemoveTxs(block)
-		log.Info("remove invalid Txs from pool", "num of txs", len(invalidList))
+		log.DLogger.Info("remove invalid Txs from pool", zap.Int("num of txs", len(invalidList)))
 	}
 
 	//update gasUsed in header
@@ -140,7 +141,7 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 		panic("can't get current block when call NewBlockFromLastBlock")
 	}
 	curHeight := curBlock.Number()
-	log.PBft.Debug("build wait pack block", "height", curHeight+1)
+	log.DLogger.Debug("build wait pack block", zap.Uint64("height", curHeight+1))
 
 	pubKey := builder.MsgSigner.PublicKey()
 	coinbaseAddr = cs_crypto.GetNormalAddress(*pubKey)
@@ -148,13 +149,13 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 	account := accounts.Account{Address: coinbaseAddr}
 	seed, proof, err := builder.MsgSigner.Evaluate(account, curBlock.Seed().Bytes())
 	if err != nil {
-		log.Error("VRF seed failed")
+		log.DLogger.Error("VRF seed failed")
 		return nil
 	}
 
 	lastNormalBlock := builder.ChainReader.GetLatestNormalBlock()
 	tmpValue := CalcGasLimit(lastNormalBlock.(*model.Block), gasFloor, gasCeil)
-	log.Info("build block", "gasFloor", gasFloor, "gasCeil", gasCeil, "newGasLimit", tmpValue, "coinBase", coinbaseAddr)
+	log.DLogger.Info("build block", zap.Uint64("gasFloor", gasFloor), zap.Uint64("gasCeil", gasCeil), zap.Uint64("newGasLimit", tmpValue), zap.Any("coinBase", coinbaseAddr))
 
 	header := &model.Header{
 		Version:     curBlock.Version(),
@@ -181,46 +182,46 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 
 	pending, err := builder.TxPool.Pending()
 	if err != nil {
-		log.Error("Failed to fetch pending transactions", "err", err)
+		log.DLogger.Error("Failed to fetch pending transactions", zap.Error(err))
 		return nil
 	}
 
 	// deal state
-	processor, err := builder.ChainReader.BlockProcessor(curBlock.StateRoot())
+	processor, _ := builder.ChainReader.BlockProcessor(curBlock.StateRoot())
 	//processor, err := builder.BuildStateProcessor.BuildStateProcessor(curBlock.StateRoot(), builder.ChainReader, builder.StateStorage)
 
-	log.Info("~~~~~~~~~~~~~~~the pending len is:", "number", len(pending))
+	log.DLogger.Info("~~~~~~~~~~~~~~~the pending len is:", zap.Int("number", len(pending)))
 	txs := model.NewTransactionsByFeeAndNonce(builder.TxSigner, pending)
 	txBuf, receipts := builder.commitTransactions(txs, processor, header, vers)
 
-	//log.Info("~~~~~~~~~~~~~~ the txBuf len is: ", "txBuf Len", len(txBuf))
+	//log.DLogger.Info("~~~~~~~~~~~~~~ the txBuf len is: ", "txBuf Len", len(txBuf))
 
 	var tmpTxs []*model.Transaction
 	//var logs []*model2.Log
 	for _, tx := range txBuf {
-		//log.Info("the packaged tx is:", "txId", tx.CalTxId().Hex())
+		//log.DLogger.Info("the packaged tx is:", "txId", tx.CalTxId().Hex())
 		tmpTxs = append(tmpTxs, tx.(*model.Transaction))
 
 	}
 
 	if len(vers) == 0 && curHeight > 0 {
-		log.Warn("can't load pre verifications for height", "new height", curHeight+1)
+		log.DLogger.Warn("can't load pre verifications for height", zap.Uint64("new height", curHeight+1))
 		return nil
 	}
-	log.Info("build bft block1", "vers", len(vers), "height", curHeight)
+	log.DLogger.Info("build bft block1", zap.Int("vers", len(vers)), zap.Uint64("height", curHeight))
 
 	block := model.NewBlock(header, tmpTxs, vers)
 	if block.Number() == 1 && !block.VerificationRoot().IsEqual(model.EmptyVerfRoot) {
 		panic(fmt.Sprintf("invalid v root: %v", block.VerificationRoot()))
 	}
-	log.Info("build bft block2", "vers", len(block.GetVerifications()))
+	log.DLogger.Info("build bft block2", zap.Int("vers", len(block.GetVerifications())))
 
 	//calculate receipt hash
 	receiptHash := model.DeriveSha(&receipts)
 	block.SetReceiptHash(receiptHash)
 	//block.SetBloomLog(model2.CreateBloom(receipts))
 	//bloomLog := block.GetBloomLog()
-	//log.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
+	//log.DLogger.Info("BftBlockBuilder#BuildWaitPackBlock", "bloomLog", (&bloomLog).Hex(), "receipts", receipts, "bloomLogs2", fmt.Sprintf("%s", (&bloomLog).Hex()))
 
 	//TODO:calculate block interlinks
 	linkList := model.NewInterLink(curBlock.GetInterlinks(), block)
@@ -230,9 +231,9 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 	block.SetInterLinkRoot(linkRoot)
 
 	//Txs processed in commitTransactions(),no use process()
-	log.Info("the processor is:", "processor", processor)
+	log.DLogger.Info("the processor is:", zap.Any("processor", processor))
 	if err = processor.ProcessExceptTxs(block, builder.ChainReader.GetEconomyModel(), true); err != nil {
-		log.Error("process state except txs failed", "err", err)
+		log.DLogger.Error("process state except txs failed", zap.Error(err))
 		return nil
 	}
 
@@ -241,19 +242,19 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 		panic(err)
 	}
 
-	log.Info("the block build calculated block stateRoot is:", "blockNumber", block.Number(), "stateRoot", root.Hex())
+	log.DLogger.Info("the block build calculated block stateRoot is:", zap.Uint64("blockNumber", block.Number()), zap.String("stateRoot", root.Hex()))
 	block.SetStateRoot(root)
-	log.PBft.Debug("build block", "preBlock root", curBlock.StateRoot().Hex(), "process result", root.Hex(), "this block", block.StateRoot())
+	log.DLogger.Debug("build block", zap.String("preBlock root", curBlock.StateRoot().Hex()), zap.String("process result", root.Hex()), zap.Any("this block", block.StateRoot()))
 
 	// deal register
-	register, err := builder.ChainReader.BuildRegisterProcessor(curBlock.GetRegisterRoot())
+	register, _ := builder.ChainReader.BuildRegisterProcessor(curBlock.GetRegisterRoot())
 	if err = register.Process(block); err != nil {
-		log.Error("process register failed", "err", err)
+		log.DLogger.Error("process register failed", zap.Error(err))
 		return nil
 	}
 	registerRoot := register.Finalise()
 	block.SetRegisterRoot(registerRoot)
-	log.PBft.Debug("build block", "block id", block.Hash().Hex(), "transaction", block.TxCount())
+	log.DLogger.Debug("build block", zap.String("block id", block.Hash().Hex()), zap.Int("transaction", block.TxCount()))
 	return block
 }
 
@@ -293,17 +294,17 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 //	// process state root
 //	processor, err := builder.stateProcessorBuilder(curBlock.StateRoot(), builder.chainDB, builder.accountStorage)
 //	if err != nil {
-//		log.Error("can't create state processor", "err", err)
+//		log.DLogger.Error("can't create state processor", zap.Error(err))
 //		return nil
 //	}
 //	if _, err := processor.Process(block); err != nil {
-//		log.Warn("pack block builder process block err", "err", err)
+//		log.DLogger.Warn("pack block builder process block err", zap.Error(err))
 //		return nil
 //	}
 //	roots := processor.Finalise()
 //	root := roots[state_processor.AccountStateRootKey]
 //	if root.IsEmpty() {
-//		log.Warn("pack block builder process block got empty state root")
+//		log.DLogger.Warn("pack block builder process block got empty state root")
 //		return nil
 //	}
 //
@@ -320,7 +321,7 @@ func (builder *BftBlockBuilder) GetDifficulty() common.Difficulty {
 		lastPNum = 1
 	}
 
-	log.Debug("call GetDifficulty for mine, get lastPeriodBlock", "num", lastPNum)
+	log.DLogger.Debug("call GetDifficulty for mine, get lastPeriodBlock", zap.Uint64("num", lastPNum))
 	lastPeriodBlock := chainReader.GetBlockByNumber(lastPNum)
 	if curBlock == nil {
 		panic("mine master get difficulty error,block is nil")
@@ -331,7 +332,7 @@ func (builder *BftBlockBuilder) GetDifficulty() common.Difficulty {
 
 	diff := model.NewCalNewWorkDiff(lastPeriodBlock, findBlock, curBlock.Number())
 
-	log.Debug("mine master difficulty", "diff", diff.Hex())
+	log.DLogger.Debug("mine master difficulty", zap.String("diff", diff.Hex()))
 	return diff
 }
 
@@ -351,7 +352,7 @@ func CalcGasLimit(parent *model.Block, gasFloor, gasCeil uint64) uint64 {
 	// decay = parentGasLimit / 1024 -1
 	decay := parent.GasLimit()/model2.GasLimitBoundDivisor - 1
 
-	log.Info("the contrib and decay is:", "contrib", contrib, "decay", decay)
+	log.DLogger.Info("the contrib and decay is:", zap.Uint64("contrib", contrib), zap.Uint64("decay", decay))
 	/*
 		strategy: gasLimit of block-to-mine is set based on parent's
 		gasUsed value.  if parentGasUsed > parentGasLimit * (2/3) then we
@@ -364,7 +365,7 @@ func CalcGasLimit(parent *model.Block, gasFloor, gasCeil uint64) uint64 {
 		limit = model2.MinGasLimit
 	}
 
-	log.Info("the limit after change is:", "limit", limit)
+	log.DLogger.Info("the limit after change is:", zap.Uint64("limit", limit))
 	// If we're outside our allowed gas range, we try to hone towards them
 	if limit < gasFloor {
 		limit = parent.GasLimit() + decay

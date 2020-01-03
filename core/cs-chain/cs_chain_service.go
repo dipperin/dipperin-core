@@ -22,6 +22,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-event"
 	"github.com/dipperin/dipperin-core/common/g-metrics"
 	"github.com/dipperin/dipperin-core/common/g-timer"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-config"
@@ -29,8 +30,8 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/hashicorp/golang-lru"
+	"go.uber.org/zap"
 	"math/big"
 	"sort"
 	"sync"
@@ -108,21 +109,21 @@ func NewCsChainService(config *CsChainServiceConfig, cs *chain_state.ChainState)
 func (cs *CsChainService) Stop() {
 	close(cs.Quit)
 	cs.wg.Wait()
-	log.Info("Blockchain manager stopped")
+	log.DLogger.Info("Blockchain manager stopped")
 }
 
 func (cs *CsChainService) CurrentBalance(address common.Address) *big.Int {
 	curState, err := cs.CurrentState()
 	if err != nil {
-		log.Warn("get current state failed", "err", err)
+		log.DLogger.Warn("get current state failed", zap.Error(err))
 		return nil
 	}
 	balance, err := curState.GetBalance(address)
 	if err != nil {
-		log.Info("get current balance failed", "err", err)
+		log.DLogger.Info("get current balance failed", zap.Error(err))
 		return nil
 	}
-	log.Info("call current balance", "address", address.Hex(), "balance", balance)
+	log.DLogger.Info("call current balance", zap.String("address", address.Hex()), zap.Any("balance", balance))
 	return balance
 }
 
@@ -174,12 +175,12 @@ func (cs *CsChainService) GetSeenCommit(height uint64) []model.AbstractVerificat
 		return nil
 	}
 
-	log.Info("load seen commits", "height", height)
+	log.DLogger.Info("load seen commits", zap.Uint64("height", height))
 
 	result, err := cs.CacheDB.GetSeenCommits(height, common.Hash{})
 
 	if err != nil {
-		log.Warn("read seen commits failed", "err", err)
+		log.DLogger.Warn("read seen commits failed", zap.Error(err))
 	}
 
 	return result
@@ -209,7 +210,7 @@ func (cs *CsChainService) SaveBlock(block model.AbstractBlock, seenCommits []mod
 
 	curHeight := cs.CurrentBlock().Number()
 	g_metrics.Set(g_metrics.CurChainHeight, "", float64(curHeight))
-	log.PBft.Info("Save Block Success", "block height", block.Number(), "chain height", curHeight)
+	log.DLogger.Info("Save Block Success", zap.Uint64("block height", block.Number()), zap.Uint64("chain height", curHeight))
 
 	//metric tps
 	if curHeight != 0 {
@@ -218,7 +219,7 @@ func (cs *CsChainService) SaveBlock(block model.AbstractBlock, seenCommits []mod
 		lastTimestamp := lastBlock.Timestamp().Int64()
 		totalSec := float64(nowTimestamp-lastTimestamp) / float64(1e9)
 		tps := float64(block.TxCount()) / totalSec
-		log.Info("metric tps and tx number", "tps", tps, "txNumber", float64(block.TxCount()))
+		log.DLogger.Info("metric tps and tx number", zap.Float64("tps", tps), zap.Float64("txNumber", float64(block.TxCount())))
 		g_metrics.Set(g_metrics.TpsValue, "", tps)
 		g_metrics.Set(g_metrics.BlockTxNumber, "", float64(block.TxCount()))
 	}
@@ -228,7 +229,7 @@ func (cs *CsChainService) SaveBlock(block model.AbstractBlock, seenCommits []mod
 func (cs *CsChainService) checkBftBlock(block model.AbstractBlock, seenCommits []model.AbstractVerification) error {
 	// todo this can be optimized in middleware
 	if block.Number() <= cs.CurrentBlock().Number() {
-		log.PBft.Debug("fullChain#SaveBlock  Save previous height", "chain height", cs.CurrentBlock().Number(), "block height", block.Number())
+		log.DLogger.Debug("fullChain#SaveBlock  Save previous height", zap.Uint64("chain height", cs.CurrentBlock().Number()), zap.Uint64("block height", block.Number()))
 		if cs.CurrentBlock().Number()-block.Number() > numLowBlockToReturnErr {
 			return g_error.ErrAlreadyHaveThisBlock
 		}
@@ -254,7 +255,7 @@ func (cs *CsChainService) saveBftBlock(block model.AbstractBlock, seenCommits []
 	switch err {
 	case nil:
 		if err = cs.CacheDB.SaveSeenCommits(block.Number(), common.Hash{}, seenCommits); err != nil {
-			log.PBft.Error("save seenCommits failed", "err", err)
+			log.DLogger.Error("save seenCommits failed", zap.Error(err))
 			return err
 		}
 
@@ -290,7 +291,7 @@ func (cs *CsChainService) saveBftBlock(block model.AbstractBlock, seenCommits []
 		return nil
 
 	default:
-		log.Error("CsChainService saveBftBlock error", "err", err)
+		log.DLogger.Error("CsChainService saveBftBlock error", zap.Error(err))
 		return err
 	}
 }
@@ -367,9 +368,9 @@ func (cs *CsChainService) initService() error {
 		cs.CalVerifiers(cs.GetBlockByNumber(*lastPoint))
 	}
 
-	log.Info("Loaded most recent local header", "number", currentHeader.GetNumber(), "hash", currentHeader.Hash().Hex())
-	log.Info("Loaded most recent local full block", "number", currentBlock.Number(), "hash", currentBlock.Hash().Hex())
-	log.Info("initChain", "Chain version", cs.genesisBlock.Version())
+	log.DLogger.Info("Loaded most recent local header", zap.Uint64("number", currentHeader.GetNumber()), zap.String("hash", currentHeader.Hash().Hex()))
+	log.DLogger.Info("Loaded most recent local full block", zap.Uint64("number", currentBlock.Number()), zap.String("hash", currentBlock.Hash().Hex()))
+	log.DLogger.Info("initChain", zap.Uint64("Chain version", cs.genesisBlock.Version()))
 
 	// handle future block
 	go cs.handleFutureBlockTask()

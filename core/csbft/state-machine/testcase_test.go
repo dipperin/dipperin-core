@@ -370,7 +370,7 @@ func (signer *fakeSigner) GetAddress() common.Address {
 
 func (signer *fakeSigner) SignHash(hash []byte) ([]byte, error) {
 	//pb := crypto.CompressPubkey(&signer.privateKey.PublicKey)
-	//log.Info("fake signer sign", "p k", hexutil.Encode(pb))
+	//log.DLogger.Info("fake signer sign", "p k", hexutil.Encode(pb))
 	return crypto.Sign(hash, signer.privateKey)
 }
 

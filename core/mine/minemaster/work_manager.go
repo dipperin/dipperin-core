@@ -18,8 +18,9 @@ package minemaster
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 	"sync"
 )
@@ -52,10 +53,10 @@ func (manager *defaultWorkManager) subtractPerformance(address common.Address, p
 		if op > performance {
 			manager.performance[address].setPerformance(op - performance)
 		} else {
-			log.Debug("reward is less than current performance", "performance", performance, "current performance", op)
+			log.DLogger.Debug("reward is less than current performance", zap.Uint64("performance", performance), zap.Uint64("current performance", op))
 		}
 	} else {
-		log.Debug("address is invalid", "address", address)
+		log.DLogger.Debug("address is invalid", zap.Any("address", address))
 	}
 
 }
@@ -67,10 +68,10 @@ func (manager *defaultWorkManager) subtractReward(address common.Address, reward
 			manager.clearReward(address)
 			manager.reward[address] = newPer
 		} else {
-			log.Debug("reward is less than current reward", "reward", reward, "current reward", r)
+			log.DLogger.Debug("reward is less than current reward", zap.Any("reward", reward), zap.Any("current reward", r))
 		}
 	} else {
-		log.Debug("address is invalid", "address", address)
+		log.DLogger.Debug("address is invalid", zap.Any("address", address))
 	}
 }
 
@@ -158,7 +159,7 @@ func (manager *defaultWorkManager) submitBlock(workerAddress common.Address, blo
 	// TODO: do something to the block, otherwise change the function signature
 	manager.submitBlockLock.Lock()
 	defer manager.submitBlockLock.Unlock()
-	//pbft_log.Debug("submitBlock","block id",block.Number(),"block txs",block.TxCount())
+	//pbft_log.DLogger.Debug("submitBlock","block id",block.Number(),"block txs",block.TxCount())
 
 	if manager.performance[workerAddress] == nil {
 		manager.performance[workerAddress] = newDefaultPerformance()
@@ -166,6 +167,6 @@ func (manager *defaultWorkManager) submitBlock(workerAddress common.Address, blo
 	manager.performance[workerAddress].updatePerformance()
 
 	// broadcast block
-	//pbft_log.Debug("submitBlock broad cast block","block id",block.Number(),"block txs",block.TxCount())
+	//pbft_log.DLogger.Debug("submitBlock broad cast block","block id",block.Number(),"block txs",block.TxCount())
 	manager.BlockBroadcaster.BroadcastMinedBlock(block)
 }

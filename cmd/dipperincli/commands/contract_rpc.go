@@ -4,9 +4,10 @@ import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/urfave/cli"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"reflect"
 	"strconv"
@@ -32,16 +33,16 @@ func (caller *rpcCaller) GetContractAddressByTxHash(c *cli.Context) {
 
 	var resp common.Address
 	if err = client.Call(&resp, getDipperinRpcMethodByName("GetContractAddressByTxHash"), hash); err != nil {
-		l.Error("Call GetContractAddressByTxHash failed", "err", err)
+		l.Error("Call GetContractAddressByTxHash failed", zap.Error(err))
 		return
 	}
-	l.Info("Call GetContractAddressByTxHash", "Contract Address", resp)
+	l.Info("Call GetContractAddressByTxHash", zap.Any("Contract Address", resp))
 }
 
 func (caller *rpcCaller) CallContract(c *cli.Context) {
 	mName, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
-		l.Error("getRpcMethodAndParam error", "err", err)
+		l.Error("getRpcMethodAndParam error", zap.Error(err))
 		return
 	}
 	if len(cParams) != 2 && len(cParams) != 3 {
@@ -50,12 +51,12 @@ func (caller *rpcCaller) CallContract(c *cli.Context) {
 	}
 	from, err := CheckAndChangeHexToAddress(cParams[0])
 	if err != nil {
-		l.Error("call the from address is invalid", "err", err)
+		l.Error("call the from address is invalid", zap.Error(err))
 		return
 	}
 	to, err := CheckAndChangeHexToAddress(cParams[1])
 	if err != nil {
-		l.Error("call the to address is invalid", "err", err)
+		l.Error("call the to address is invalid", zap.Error(err))
 		return
 	}
 
@@ -63,7 +64,7 @@ func (caller *rpcCaller) CallContract(c *cli.Context) {
 	if len(cParams) == 3 {
 		blockNum, err = strconv.ParseUint(cParams[2], 10, 64)
 		if err != nil {
-			l.Error("ParseUint failed", "err", err)
+			l.Error("ParseUint failed", zap.Error(err))
 			return
 		}
 	}
@@ -77,22 +78,22 @@ func (caller *rpcCaller) CallContract(c *cli.Context) {
 	// RLP([funcName][param1,param2,param3...])
 	inputRlp, err := rlp.EncodeToBytes([]interface{}{funcName, input})
 	if err != nil {
-		log.Error("input rlp err")
+		log.DLogger.Error("input rlp err")
 		return
 	}
 
-	l.Debug("the from is: ", "from", from.Hex())
-	l.Debug("the to is: ", "to", to.Hex())
-	l.Debug("the blockNum is: ", "num", blockNum)
-	l.Debug("the funcName is:", "funcName", funcName)
+	l.Debug("the from is: ", zap.String("from", from.Hex()))
+	l.Debug("the to is: ", zap.String("to", to.Hex()))
+	l.Debug("the blockNum is: ", zap.Uint64("num", blockNum))
+	l.Debug("the funcName is:", zap.String("funcName", funcName))
 	//l.Debug("the ExtraData is: ", "ExtraData", inputRlp)
 
 	var resp string
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, to, inputRlp, blockNum); err != nil {
-		l.Error("CallContract failed", "err", err)
+		l.Error("CallContract failed", zap.Error(err))
 		return
 	}
-	l.Info("CallContract", "resp", resp)
+	l.Info("CallContract", zap.String("resp", resp))
 }
 
 func (caller *rpcCaller) EstimateGas(c *cli.Context) {
@@ -104,22 +105,22 @@ func (caller *rpcCaller) EstimateGas(c *cli.Context) {
 	if isCreate(c) {
 		resp, err = contractCreate(c)
 		if err != nil {
-			l.Error("EstimateGas failed", "err", err.Error())
+			l.Error("EstimateGas failed", zap.Error(err))
 			return
 		}
 	} else {
 		resp, err = contractCall(c)
 		if err != nil {
-			l.Error("EstimateGas failed", "err", err.Error())
+			l.Error("EstimateGas failed", zap.Error(err))
 			return
 		}
 	}
 
 	value, err := hexutil.DecodeUint64(reflect.ValueOf(resp).String())
 	if err != nil {
-		l.Error("EstimateGas failed", "err", err.Error())
+		l.Error("EstimateGas failed", zap.Error(err))
 	}
-	l.Info(" EstimateGas successful", "estimated gas", value)
+	l.Info(" EstimateGas successful", zap.Uint64("estimated gas", value))
 }
 
 func (caller *rpcCaller) SendTransactionContract(c *cli.Context) {
@@ -135,17 +136,17 @@ func (caller *rpcCaller) SendTransactionContract(c *cli.Context) {
 	if isCreate(c) {
 		resp, err = contractCreate(c)
 		if err != nil {
-			l.Error("SendTransactionContract failed", "err", err.Error())
+			l.Error("SendTransactionContract failed", zap.Error(err))
 			return
 		}
 	} else {
 		resp, err = contractCall(c)
 		if err != nil {
-			l.Error("SendTransactionContract failed", "err", err.Error())
+			l.Error("SendTransactionContract failed", zap.Error(err))
 			return
 		}
 	}
-	l.Info("SendTransactionContract successful", "txId", reflect.ValueOf(resp).String())
+	l.Info("SendTransactionContract successful", zap.String("txId", reflect.ValueOf(resp).String()))
 }
 
 func contractCreate(c *cli.Context) (resp interface{}, err error) {
@@ -166,19 +167,19 @@ func contractCreate(c *cli.Context) (resp interface{}, err error) {
 	to := common.HexToAddress(common.AddressContractCreate)
 	value, err := MoneyValueToCSCoin(cParams[1])
 	if err != nil {
-		l.Error("the parameter value invalid", "err", err)
+		l.Error("the parameter value invalid", zap.Error(err))
 		return
 	}
 
 	gasPrice, err := MoneyValueToCSCoin(cParams[2])
 	if err != nil {
-		l.Error("the parameter gasPrice invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", zap.Error(err))
 		return
 	}
 
 	gasLimit, err := strconv.ParseUint(cParams[3], 10, 64)
 	if err != nil {
-		l.Error("the parameter gasLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", zap.Error(err))
 		return
 	}
 
@@ -187,10 +188,10 @@ func contractCreate(c *cli.Context) (resp interface{}, err error) {
 		return
 	}
 
-	l.Debug("the from is: ", "from", from.Hex())
-	l.Debug("the value is:", "value", MoneyWithUnit(cParams[1]))
-	l.Debug("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[2]))
-	l.Debug("the gasLimit is:", "gasLimit", gasLimit)
+	l.Debug("the from is: ", zap.String("from", from.Hex()))
+	l.Debug("the value is:", zap.String("value", MoneyWithUnit(cParams[1])))
+	l.Debug("the gasPrice is:", zap.String("gasPrice", MoneyWithUnit(cParams[2])))
+	l.Debug("the gasLimit is:", zap.Uint64("gasLimit", gasLimit))
 	//l.Debug("the ExtraData is: ", "ExtraData", ExtraData)
 	err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, to, value, gasPrice, gasLimit, ExtraData, nil)
 	return
@@ -219,19 +220,19 @@ func contractCall(c *cli.Context) (resp interface{}, err error) {
 
 	value, err := MoneyValueToCSCoin(cParams[2])
 	if err != nil {
-		l.Error("the parameter value invalid", "err", err)
+		l.Error("the parameter value invalid", zap.Error(err))
 		return
 	}
 
 	gasPrice, err := MoneyValueToCSCoin(cParams[3])
 	if err != nil {
-		l.Error("the parameter gasPrice invalid", "err", err)
+		l.Error("the parameter gasPrice invalid", zap.Error(err))
 		return
 	}
 
 	gasLimit, err := strconv.ParseUint(cParams[4], 10, 64)
 	if err != nil {
-		l.Error("the parameter gasLimit invalid", "err", err)
+		l.Error("the parameter gasLimit invalid", zap.Error(err))
 		return
 	}
 
@@ -244,16 +245,16 @@ func contractCall(c *cli.Context) (resp interface{}, err error) {
 	// RLP([funcName][param1,param2,param3...])
 	inputRlp, err := rlp.EncodeToBytes([]interface{}{funcName, input})
 	if err != nil {
-		log.Error("input rlp err")
+		log.DLogger.Error("input rlp err")
 		return
 	}
 
-	l.Debug("the from is: ", "from", from.Hex())
-	l.Debug("the to is: ", "to", to.Hex())
-	l.Debug("the value is:", "value", MoneyWithUnit(cParams[2]))
-	l.Debug("the gasPrice is:", "gasPrice", MoneyWithUnit(cParams[3]))
-	l.Debug("the gasLimit is:", "gasLimit", gasLimit)
-	l.Debug("the funcName is:", "funcName", funcName)
+	l.Debug("the from is: ", zap.String("from", from.Hex()))
+	l.Debug("the to is: ", zap.String("to", to.Hex()))
+	l.Debug("the value is:", zap.String("value", MoneyWithUnit(cParams[2])))
+	l.Debug("the gasPrice is:", zap.String("gasPrice", MoneyWithUnit(cParams[3])))
+	l.Debug("the gasLimit is:", zap.Uint64("gasLimit", gasLimit))
+	l.Debug("the funcName is:", zap.String("funcName", funcName))
 	//l.Debug("the ExtraData is: ", "ExtraData", inputRlp)
 
 	err = client.Call(&resp, getDipperinRpcMethodByName(mName), from, to, value, gasPrice, gasLimit, inputRlp, nil)

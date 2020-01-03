@@ -17,7 +17,7 @@
 package mineworker
 
 import (
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -30,7 +30,7 @@ type fakeWork struct {
 }
 
 func (fw *fakeWork) ChangeNonce() bool {
-	//log.Debug("fake work change nonce", "cur count", fw.count)
+	//log.DLogger.Debug("fake work change nonce", "cur count", fw.count)
 	if fw.count < 10 {
 		fw.count++
 		return false
@@ -39,7 +39,7 @@ func (fw *fakeWork) ChangeNonce() bool {
 }
 
 func (fw *fakeWork) Submit() {
-	//log.Debug("fakeWork submit", "id", fw.id, "fw", fw)
+	//log.DLogger.Debug("fakeWork submit", "id", fw.id, "fw", fw)
 	fw.submitWorkChan <- fw.id
 }
 
@@ -88,7 +88,7 @@ func TestReadFromAClosedChannel(t *testing.T) {
 	tmp := make(chan struct{})
 	close(tmp)
 	if _, ok := <-tmp; !ok {
-		log.Debug("channel closed")
+		log.DLogger.Debug("channel closed")
 	}
 }
 

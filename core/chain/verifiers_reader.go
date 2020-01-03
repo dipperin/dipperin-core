@@ -18,7 +18,7 @@ package chain
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"sync"
 )
 
@@ -52,7 +52,7 @@ func (verifier *VerifiersReader) GetPBFTPrimaryNode() common.Address {
 	var verifiers []common.Address
 	if verifier.ShouldChangeVerifier() {
 		//The current height on the chain is the last block of the round, and the next round of verifiers should be taken
-		log.Info("[GetPBFTPrimaryNode]:The current height on the chain is the last block of the round, and the next round of verifiers should be taken")
+		log.DLogger.Info("[GetPBFTPrimaryNode]:The current height on the chain is the last block of the round, and the next round of verifiers should be taken")
 		verifiers = verifier.fullChain.GetNextVerifiers()
 	} else {
 		verifiers = verifier.fullChain.GetCurrVerifiers()

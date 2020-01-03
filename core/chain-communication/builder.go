@@ -18,10 +18,11 @@ package chain_communication
 
 import (
 	"github.com/dipperin/dipperin-core/cmd/utils/debug"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 const (
@@ -64,7 +65,7 @@ type BroadcastDelegate struct {
 }
 
 func (delegate *BroadcastDelegate) BroadcastMinedBlock(block model.AbstractBlock) {
-	log.PBft.Debug("BroadcastBlock", "block id", block.Hash().Hex(), "txs", block.TxCount())
+	log.DLogger.Debug("BroadcastBlock", zap.String("block id", block.Hash().Hex()), zap.Int("txs", block.TxCount()))
 	delegate.blockBroadcaster.BroadcastBlock(block) //IBLT-method
 }
 

@@ -20,9 +20,10 @@ import (
 	"encoding/hex"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 	"strings"
 )
@@ -77,7 +78,7 @@ func (service *resolverNeedExternalService) Transfer(toAddr common.Address, valu
 	if value.Sign() != 0 {
 		gas += params.CallStipend
 	}*/
-	log.Info("Service#Transfer", "from", service.Self().Address(), "to", toAddr, "value", value, "gasLimit", gas)
+	log.DLogger.Info("Service#Transfer", zap.Any("from", service.Self().Address()), zap.Any("to", toAddr), zap.Any("value", value), zap.Any("gasLimit", gas))
 	ret, returnGas, err := service.Call(service.Self(), toAddr, nil, gas, value)
 	return ret, returnGas, err
 }
@@ -85,18 +86,18 @@ func (service *resolverNeedExternalService) Transfer(toAddr common.Address, valu
 func (service *resolverNeedExternalService) ResolverCall(addr, param []byte) ([]byte, error) {
 	funcName, err := utils.ParseInputForFuncName(param)
 	if err != nil {
-		log.Error("ResolverCall#ParseInputForFuncName failed", "err", err)
+		log.DLogger.Error("ResolverCall#ParseInputForFuncName failed", zap.Error(err))
 		return nil, err
 	}
 
 	// check funcName
 	if strings.EqualFold(funcName, "init") {
-		log.Error("ResolverCall can't call init function")
+		log.DLogger.Error("ResolverCall can't call init function")
 		return nil, g_error.ErrFunctionInitCanNotCalled
 	}
 
 	contractAddr := common.HexToAddress(hex.EncodeToString(addr))
-	log.Info("Call ResolverCall", "caller", service.Self().Address(), "contractAddr", contractAddr, "gas", service.GetGas(), "value", service.CallValue(), "inputs", param)
+	log.DLogger.Info("Call ResolverCall", zap.Any("caller", service.Self().Address()), zap.Any("contractAddr", contractAddr), zap.Uint64("gas", service.GetGas()), zap.Any("value", service.CallValue()), zap.Uint8s("inputs", param))
 	ret, _, err := service.Call(service.ContractService, contractAddr, param, service.GetGas(), service.CallValue())
 	return ret, err
 }
@@ -104,18 +105,18 @@ func (service *resolverNeedExternalService) ResolverCall(addr, param []byte) ([]
 func (service *resolverNeedExternalService) ResolverDelegateCall(addr, param []byte) ([]byte, error) {
 	funcName, err := utils.ParseInputForFuncName(param)
 	if err != nil {
-		log.Error("ResolverDelegateCall#ParseInputForFuncName failed", "err", err)
+		log.DLogger.Error("ResolverDelegateCall#ParseInputForFuncName failed", zap.Error(err))
 		return nil, err
 	}
 
 	// check funcName
 	if strings.EqualFold(funcName, "init") {
-		log.Error("ResolverDelegateCall can't call init function")
+		log.DLogger.Error("ResolverDelegateCall can't call init function")
 		return nil, g_error.ErrFunctionInitCanNotCalled
 	}
 
 	contractAddr := common.HexToAddress(hex.EncodeToString(addr))
-	log.Info("Call ResolverDelegateCall", "caller", service.Self().Address(), "contractAddr", contractAddr, "gas", service.GetGas(), "inputs", param)
+	log.DLogger.Info("Call ResolverDelegateCall", zap.Any("caller", service.Self().Address()), zap.Any("contractAddr", contractAddr), zap.Uint64("gas", service.GetGas()), zap.Uint8s("inputs", param))
 	ret, _, err := service.DelegateCall(service.ContractService, contractAddr, param, service.GetGas())
 	return ret, err
 }

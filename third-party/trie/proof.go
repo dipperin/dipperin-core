@@ -20,8 +20,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
 )
@@ -57,7 +57,7 @@ func (t *Trie) Prove(key []byte, fromLevel uint, proofDb ethdb.Putter) error {
 			var err error
 			tn, err = t.resolveHash(n, nil)
 			if err != nil {
-				log.Error(fmt.Sprintf("Unhandled trie error: %v", err))
+				log.DLogger.Error(fmt.Sprintf("Unhandled trie error: %v", err))
 				return err
 			}
 		default:

@@ -19,8 +19,9 @@ package iblt
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 // Create a new InvBloom Config according two the config of buckets
@@ -307,7 +308,7 @@ func (b *InvBloom) Decode(alice, bob map[common.Hash]Data) bool {
 		// todo only for debug
 		loopCount++
 		if loopCount > 200000 {
-			log.Error("infinite loop in InvBloom Decode")
+			log.DLogger.Error("infinite loop in InvBloom Decode")
 			//panic("infinite loop in InvBloom Decode")
 			return false
 		}
@@ -345,7 +346,7 @@ func (b *InvBloom) Decode(alice, bob map[common.Hash]Data) bool {
 
 	for i := range b.buckets {
 		if b.buckets[i] != nil && !b.buckets[i].IsEmpty() {
-			log.Error("invertible bloom lookup table decode failed", "failed bucket index", i)
+			log.DLogger.Error("invertible bloom lookup table decode failed", zap.Int("failed bucket index", i))
 			return false
 		}
 	}

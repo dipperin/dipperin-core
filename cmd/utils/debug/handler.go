@@ -19,7 +19,8 @@ package debug
 import (
 	"bytes"
 	"errors"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
+	"go.uber.org/zap"
 	"io"
 	"os"
 	"os/user"
@@ -102,7 +103,7 @@ func (h *HandlerT) StartCPUProfile(file string) error {
 	}
 	h.cpuW = f
 	h.cpuFile = file
-	log.Info("CPU profiling started", "dump", h.cpuFile)
+	log.DLogger.Info("CPU profiling started", zap.String("dump", h.cpuFile))
 	return nil
 }
 
@@ -114,7 +115,7 @@ func (h *HandlerT) StopCPUProfile() error {
 	if h.cpuW == nil {
 		return errors.New("CPU profiling not in progress")
 	}
-	log.Info("Done writing CPU profile", "dump", h.cpuFile)
+	log.DLogger.Info("Done writing CPU profile", zap.String("dump", h.cpuFile))
 	if err := h.cpuW.Close(); err != nil {
 		panic(err)
 	}
@@ -202,7 +203,7 @@ func (*HandlerT) SetGCPercent(v int) int {
 
 func writeProfile(name, file string) error {
 	p := pprof.Lookup(name)
-	log.Info("Writing profile records", "count", p.Count(), "type", name, "dump", file)
+	log.DLogger.Info("Writing profile records", zap.Int("count", p.Count()), zap.String("type", name), zap.String("dump", file))
 	f, err := os.Create(expandHome(file))
 	if err != nil {
 		return err
@@ -246,7 +247,7 @@ func (h *HandlerT) StartGoTrace(file string) error {
 	}
 	h.traceW = f
 	h.traceFile = file
-	log.Info("Go tracing started", "dump", h.traceFile)
+	log.DLogger.Info("Go tracing started", zap.String("dump", h.traceFile))
 	return nil
 }
 
@@ -258,7 +259,7 @@ func (h *HandlerT) StopGoTrace() error {
 	if h.traceW == nil {
 		return errors.New("trace not in progress")
 	}
-	log.Info("Done writing Go trace", "dump", h.traceFile)
+	log.DLogger.Info("Done writing Go trace", zap.String("dump", h.traceFile))
 	if err := h.traceW.Close(); err != nil {
 		panic(err)
 	}

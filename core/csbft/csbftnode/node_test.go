@@ -28,11 +28,12 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"go.uber.org/zap"
 	"math/big"
 	"net"
 	"testing"
 	//"github.com/ethereum/go-ethereum/node"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -73,7 +74,7 @@ func TestCsBft_AddPeer2(t *testing.T) {
 
 	node1 := NewCsBft(config)
 	node1.SetFetcher(fetcher)
-	log.Info("TestCsBft_AddPeer2", "fetcher", node1.fetcher)
+	log.DLogger.Info("TestCsBft_AddPeer2", zap.Any("fetcher", node1.fetcher))
 	err := node1.Start()
 	assert.NoError(t, err)
 	adderr := node1.AddPeer(nil)
@@ -141,7 +142,7 @@ func (fc *FakeFullChain) GetSeenCommit(height uint64) []model.AbstractVerificati
 }
 
 func (fc *FakeFullChain) SaveBlock(block model.AbstractBlock, seenCommits []model.AbstractVerification) error {
-	log.PBft.Debug("save block", "height", block.Number())
+	log.DLogger.Debug("save block", zap.Uint64("height", block.Number()))
 	fc.Blocks = block
 	fc.Height = block.Number()
 	fc.commits = seenCommits
@@ -368,7 +369,7 @@ func (signer *fakeSigner) GetAddress() common.Address {
 
 func (signer *fakeSigner) SignHash(hash []byte) ([]byte, error) {
 	//pb := crypto.CompressPubkey(&signer.privateKey.PublicKey)
-	//log.Info("fake signer sign", "p k", hexutil.Encode(pb))
+	//log.DLogger.Info("fake signer sign", "p k", hexutil.Encode(pb))
 	return crypto.Sign(hash, signer.privateKey)
 }
 
@@ -379,7 +380,7 @@ type FakeFetcher struct {
 }
 
 func (fc *FakeFetcher) Start() error {
-	log.Info("FakeFetcher start")
+	log.DLogger.Info("FakeFetcher start")
 	return nil
 }
 
@@ -415,7 +416,7 @@ func (fc *FakeFetcher) String() string {
 	panic("implement me")
 }
 
-func (fc *FakeFetcher) SetLogger(logger log.Logger) {
+func (fc *FakeFetcher) SetLogger(logger *zap.Logger) {
 	panic("implement me")
 }
 

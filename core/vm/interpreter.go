@@ -21,12 +21,13 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 	"math/big"
 	"reflect"
 	"runtime"
@@ -76,7 +77,9 @@ func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) 
 func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []byte, err error) {
 	defer func() {
 		if er := recover(); er != nil {
-			fmt.Println(stack())
+			//fmt.Println(stack())
+			stackInfo := stack()
+			log.DLogger.Info("WASMInterpreter panic err", zap.String("stackInfo", stackInfo))
 			ret, err = nil, fmt.Errorf("VM execute fail: %v", er)
 		}
 	}()
@@ -84,12 +87,12 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 	defer func() {
 		vm.depth--
 		if vm.depth == 0 {
-			log.Info("VM depth = 0")
+			log.DLogger.Info("VM depth = 0")
 		}
 	}()
 
 	if len(contract.Code) == 0 || len(contract.ABI) == 0 {
-		log.Debug("Code or ABI Length is 0", "code", len(contract.Code), "abi", len(contract.ABI))
+		log.DLogger.Debug("Code or ABI Length is 0", zap.Int("code", len(contract.Code)), zap.Int("abi", len(contract.ABI)))
 		return nil, nil
 	}
 
@@ -97,7 +100,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 	solver := resolver.NewResolver(vm, contract, in.state)
 	lifeVm, err := exec.NewVirtualMachine(contract.Code, in.config, solver, nil)
 	if err != nil {
-		log.Info("NewVirtualMachine failed", "err", err)
+		log.DLogger.Info("NewVirtualMachine failed", zap.Error(err))
 		return nil, err
 	}
 	lifeVm.GasLimit = contract.Gas
@@ -116,7 +119,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 		funcName = "init"
 		params, returnType, err = ParseInitFunctionByABI(lifeVm, contract.Input, contract.ABI)
 		if err != nil {
-			log.Error("ParseInitFunctionByABI failed", "err", err)
+			log.DLogger.Error("ParseInitFunctionByABI failed", zap.Error(err))
 			return nil, err
 		}
 	} else {
@@ -126,11 +129,11 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 			if err == errInsufficientParams { // transfer to contract address.
 				return nil, nil
 			}
-			log.Error("ParseCallExtraDataByABI failed", "err", err)
+			log.DLogger.Error("ParseCallExtraDataByABI failed", zap.Error(err))
 			return nil, err
 		}
 	}
-	log.Info("WASMInterpreter Run", "funcName", funcName, "params", params, "return", returnType, "err", err)
+	log.DLogger.Info("WASMInterpreter Run", zap.String("funcName", funcName), zap.Int64s("params", params), zap.String("return", returnType), zap.Error(err))
 
 	//　获取entryID
 	entryID, ok := lifeVm.GetFunctionExport(funcName)
@@ -139,9 +142,9 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 	}
 
 	res, err := lifeVm.Run(entryID, params...)
-	log.Info("Run lifeVm", "gasUsed", lifeVm.GasUsed, "gasLimit", lifeVm.GasLimit)
+	log.DLogger.Info("Run lifeVm", zap.Uint64("gasUsed", lifeVm.GasUsed), zap.Uint64("gasLimit", lifeVm.GasLimit))
 	if err != nil {
-		log.Error("throw exception:", "err", err)
+		log.DLogger.Error("throw exception:", zap.Error(err))
 		return nil, err
 	}
 
@@ -189,7 +192,7 @@ func (in *WASMInterpreter) CanRun(code []byte) bool {
 // returnType must void
 func ParseInitFunctionByABI(vm *exec.VirtualMachine, input []byte, abi []byte) (params []int64, returnType string, err error) {
 	if input == nil || len(input) <= 1 {
-		log.Info("InitFunc has no input")
+		log.DLogger.Info("InitFunc has no input")
 		return
 	}
 
@@ -263,7 +266,7 @@ func findParams(vm *exec.VirtualMachine, abi []byte, funcName string, inputList 
 	wasmAbi := new(utils.WasmAbi)
 	err = wasmAbi.FromJson(abi)
 	if err != nil {
-		log.Error("findParams#FromJson failed", "err", err)
+		log.DLogger.Error("findParams#FromJson failed", zap.Error(err))
 		err = errInvalidAbi
 		return
 	}
@@ -272,7 +275,7 @@ func findParams(vm *exec.VirtualMachine, abi []byte, funcName string, inputList 
 	for _, v := range wasmAbi.AbiArr {
 		if strings.EqualFold(v.Name, funcName) && strings.EqualFold(v.Type, "function") {
 			abiParam = v.Inputs
-			log.Info("findParams", "len outputs", len(v.Outputs), "abiParam", len(abiParam), "inputList", len(inputList))
+			log.DLogger.Info("findParams", zap.Int("len outputs", len(v.Outputs)), zap.Int("abiParam", len(abiParam)), zap.Int("inputList", len(inputList)))
 			if len(v.Outputs) != 0 {
 				returnType = v.Outputs[0].Type
 			} else {
@@ -283,7 +286,7 @@ func findParams(vm *exec.VirtualMachine, abi []byte, funcName string, inputList 
 	}
 
 	if len(abiParam) != len(inputList) {
-		log.Error("findParams failed", "err", errInputAbiNotMatch, "abiLen", len(abiParam), "inputLen", len(inputList))
+		log.DLogger.Error("findParams failed", zap.Error(errInputAbiNotMatch), zap.Int("abiLen", len(abiParam)), zap.Int("inputLen", len(inputList)))
 		err = errInputAbiNotMatch
 		return
 	}

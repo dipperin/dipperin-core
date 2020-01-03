@@ -20,15 +20,16 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/common/util/json-kv"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 	"math/big"
 	"reflect"
 	"sort"
@@ -70,15 +71,15 @@ func (state *AccountStateDB) getContractTrie(addr common.Address) (StateTrie, er
 
 	//notice: can't get the trie if the contract root had been changed but not commit
 	cRoot, err := state.blockStateTrie.TryGet(GetDataRootKey(addr))
-	log.Mpt.Debug("get address contract root", "addr", addr.Hex(), "root", common.BytesToHash(cRoot).Hex())
+	log.DLogger.Debug("get address contract root", zap.String("addr", addr.Hex()), zap.String("root", common.BytesToHash(cRoot).Hex()))
 	if err != nil {
-		log.Info("no contract for addr", "addr", addr.Hex())
+		log.DLogger.Info("no contract for addr", zap.String("addr", addr.Hex()))
 		return nil, err
 	}
 
 	t, err := state.contractTrieCache.OpenTrie(common.BytesToHash(cRoot))
 	if err != nil {
-		//log.Error("open contract trie failed", "")
+		//log.DLogger.Error("open contract trie failed", "")
 		return nil, err
 	}
 
@@ -97,7 +98,7 @@ func (state *AccountStateDB) ContractExist(addr common.Address) bool {
 //not save the return data if there is an error. only save it in DB when commit in the end
 func (state *AccountStateDB) PutContract(addr common.Address, v reflect.Value) error {
 	if !v.IsValid() || v.IsNil() {
-		log.Warn("invalid contract data", "data", v)
+		log.DLogger.Warn("invalid contract data", zap.Any("data", v))
 		return g_error.ErrInvalidContractData
 	}
 	old := state.contractData[addr]
@@ -112,7 +113,7 @@ func (state *AccountStateDB) GetContract(addr common.Address, vType reflect.Type
 		return
 	}
 
-	//log.Info("get contract", "addr", addr)
+	//log.DLogger.Info("get contract", "addr", addr)
 	kv, err := state.getContractKV(addr)
 	if err != nil {
 		return reflect.Value{}, err
@@ -121,7 +122,7 @@ func (state *AccountStateDB) GetContract(addr common.Address, vType reflect.Type
 	nContract := reflect.New(vType)
 	//change kv to value
 	if err = json_kv.KV2JsonObj(kv, nContract.Interface()); err != nil {
-		log.Debug("init contract error form db when call contract function")
+		log.DLogger.Debug("init contract error form db when call contract function")
 		return reflect.Value{}, err
 	}
 	state.contractData[addr] = nContract
@@ -142,11 +143,11 @@ func (state *AccountStateDB) getContractKV(addr common.Address) (kv map[string]s
 	for it.Next() {
 		cAddr, key := GetContractAddrAndKey(t.GetKey(it.Key))
 		value := it.Value
-		log.Mpt.Debug("get contract", string(key), string(value), "pre state", state.preStateRoot.Hex())
+		log.DLogger.Debug("get contract", zap.String(string(key), string(value)), zap.String("pre state", state.preStateRoot.Hex()))
 		if addr.IsEqual(cAddr) {
 			kv[string(key)] = string(value)
 		} else {
-			log.Error("got invalid kv from contract mpt", "passKey", key, "contract addr", addr.Hex())
+			log.DLogger.Error("got invalid kv from contract mpt", zap.Uint8s("passKey", key), zap.String("contract addr", addr.Hex()))
 		}
 	}
 
@@ -157,7 +158,7 @@ func (state *AccountStateDB) getContractKV(addr common.Address) (kv map[string]s
 }
 
 //func (state *AccountStateDB) ProcessHeader(Header model.AbstractHeader) (receipt model.AbstractReceipt, err error) {
-//	log.Debug("add reward to coinbase address", "addr", Header.CoinBaseAddress().Hex())
+//	log.DLogger.Debug("add reward to coinbase address", "addr", Header.CoinBaseAddress().Hex())
 //	if state.IsEmptyAccount(Header.CoinBaseAddress()) {
 //		if err = state.NewAccountState(Header.CoinBaseAddress()); err != nil {
 //			return
@@ -457,14 +458,14 @@ func (state *AccountStateDB) setBalance(addr common.Address, amount *big.Int) er
 	}
 
 	if amount.Cmp(big.NewInt(0)) < 0 {
-		log.Debug("set address balance failed", "addr", addr.Hex(), "amount", amount)
+		log.DLogger.Debug("set address balance failed", zap.String("addr", addr.Hex()), zap.Any("amount", amount))
 		return g_error.ErrBalanceNegative
 	}
 
-	log.Mpt.Debug("setBalance", "addr", addr.Hex(), "v", amount, "pre state", state.preStateRoot.Hex())
+	log.DLogger.Debug("setBalance", zap.String("addr", addr.Hex()), zap.Any("v", amount), zap.String("pre state", state.preStateRoot.Hex()))
 	newEnc, _ := rlp.EncodeToBytes(amount)
 	balanceKey := GetBalanceKey(addr)
-	//log.Debug("SetBalance", "balanceKey", hexutil.Encode(balanceKey), "amount", amount.String())
+	//log.DLogger.Debug("SetBalance", "balanceKey", hexutil.Encode(balanceKey), "amount", amount.String())
 	err := state.blockStateTrie.TryUpdate(balanceKey, newEnc)
 	if err != nil {
 		return err
@@ -517,7 +518,7 @@ func (state *AccountStateDB) setNonce(addr common.Address, amount uint64) error 
 		return g_error.ErrAccountNotExist
 	}
 
-	log.Mpt.Debug("setNonce", "addr", addr.Hex(), "v", amount, "pre state", state.preStateRoot.Hex())
+	log.DLogger.Debug("setNonce", zap.String("addr", addr.Hex()), zap.Uint64("v", amount), zap.String("pre state", state.preStateRoot.Hex()))
 	newEnc, _ := rlp.EncodeToBytes(amount)
 	err := state.blockStateTrie.TryUpdate(GetNonceKey(addr), newEnc)
 	if err != nil {
@@ -556,7 +557,7 @@ func (state *AccountStateDB) setTimeLock(addr common.Address, timeLock *big.Int)
 		return g_error.ErrAccountNotExist
 	}
 
-	log.Mpt.Debug("setTimeLock", "addr", addr.Hex(), "v", timeLock, "pre state", state.preStateRoot.Hex())
+	log.DLogger.Debug("setTimeLock", zap.String("addr", addr.Hex()), zap.Any("v", timeLock), zap.String("pre state", state.preStateRoot.Hex()))
 	newEnc, _ := rlp.EncodeToBytes(timeLock)
 	err := state.blockStateTrie.TryUpdate(GetTimeLockKey(addr), newEnc)
 	if err != nil {
@@ -582,7 +583,7 @@ func (state *AccountStateDB) setHashLock(addr common.Address, hashLock common.Ha
 		return g_error.ErrAccountNotExist
 	}
 
-	log.Mpt.Debug("setHashLock", "addr", addr.Hex(), "v", hashLock.Hex(), "pre state", state.preStateRoot.Hex())
+	log.DLogger.Debug("setHashLock", zap.String("addr", addr.Hex()), zap.String("v", hashLock.Hex()), zap.String("pre state", state.preStateRoot.Hex()))
 	newEnc, _ := rlp.EncodeToBytes(hashLock)
 	err := state.blockStateTrie.TryUpdate(GetHashLockKey(addr), newEnc)
 	if err != nil {
@@ -607,7 +608,7 @@ func (state *AccountStateDB) setAbi(addr common.Address, abi []byte) error {
 		return g_error.ErrAccountNotExist
 	}
 
-	log.Mpt.Debug("setAbi", "addr", addr.Hex())
+	log.DLogger.Debug("setAbi", zap.String("addr", addr.Hex()))
 	newEnc, _ := rlp.EncodeToBytes(abi)
 	err := state.blockStateTrie.TryUpdate(GetAbiKey(addr), newEnc)
 	if err != nil {
@@ -631,7 +632,7 @@ func (state *AccountStateDB) setCode(addr common.Address, code []byte) error {
 	if empty {
 		return g_error.ErrAccountNotExist
 	}
-	log.Mpt.Debug("setCode", "addr", addr.Hex())
+	log.DLogger.Debug("setCode", zap.String("addr", addr.Hex()))
 	newEnc, _ := rlp.EncodeToBytes(code)
 	err := state.blockStateTrie.TryUpdate(GetCodeKey(addr), newEnc)
 	if err != nil {
@@ -657,7 +658,7 @@ func (state *AccountStateDB) setDataRoot(addr common.Address, dataRoot common.Ha
 		return g_error.ErrAccountNotExist
 	}
 
-	log.Mpt.Debug("setDataRoot", "addr", addr.Hex(), "v", dataRoot.Hex(), "pre state", state.preStateRoot.Hex())
+	log.DLogger.Debug("setDataRoot", zap.String("addr", addr.Hex()), zap.String("v", dataRoot.Hex()), zap.String("pre state", state.preStateRoot.Hex()))
 	newEnc, _ := rlp.EncodeToBytes(dataRoot)
 	err := state.blockStateTrie.TryUpdate(GetDataRootKey(addr), newEnc)
 	if err != nil {
@@ -683,7 +684,7 @@ func (state *AccountStateDB) setStake(addr common.Address, amount *big.Int) erro
 		return g_error.ErrAccountNotExist
 	}
 
-	log.Mpt.Debug("setStake", "addr", addr.Hex(), "v", amount, "pre state", state.preStateRoot.Hex())
+	log.DLogger.Debug("setStake", zap.String("addr", addr.Hex()), zap.Any("v", amount), zap.String("pre state", state.preStateRoot.Hex()))
 	newEnc, _ := rlp.EncodeToBytes(amount)
 	err := state.blockStateTrie.TryUpdate(GetStakeKey(addr), newEnc)
 	if err != nil {
@@ -727,7 +728,7 @@ func (state *AccountStateDB) setCommitNum(addr common.Address, amount uint64) er
 		return g_error.ErrAccountNotExist
 	}
 
-	log.Mpt.Debug("setCommitNum", "addr", addr.Hex(), "v", amount, "pre state", state.preStateRoot.Hex())
+	log.DLogger.Debug("setCommitNum", zap.String("addr", addr.Hex()), zap.Uint64("v", amount), zap.String("pre state", state.preStateRoot.Hex()))
 	newEnc, _ := rlp.EncodeToBytes(amount)
 	err := state.blockStateTrie.TryUpdate(GetCommitNumKey(addr), newEnc)
 	if err != nil {
@@ -752,7 +753,7 @@ func (state *AccountStateDB) setPerformance(addr common.Address, amount uint64) 
 		return g_error.ErrAccountNotExist
 	}
 
-	log.Mpt.Debug("setPerformance", "addr", addr.Hex(), "v", amount, "pre state", state.preStateRoot.Hex())
+	log.DLogger.Debug("setPerformance", zap.String("addr", addr.Hex()), zap.Uint64("v", amount), zap.String("pre state", state.preStateRoot.Hex()))
 	newEnc, _ := rlp.EncodeToBytes(amount)
 	err := state.blockStateTrie.TryUpdate(GetPerformanceKey(addr), newEnc)
 	if err != nil {
@@ -779,7 +780,7 @@ func (state *AccountStateDB) setVerifyNum(addr common.Address, amount uint64) er
 		return g_error.ErrAccountNotExist
 	}
 
-	log.Mpt.Debug("setVerifyNum", "addr", addr.Hex(), "v", amount, "pre state", state.preStateRoot.Hex())
+	log.DLogger.Debug("setVerifyNum", zap.String("addr", addr.Hex()), zap.Uint64("v", amount), zap.String("pre state", state.preStateRoot.Hex()))
 	newEnc, _ := rlp.EncodeToBytes(amount)
 	err := state.blockStateTrie.TryUpdate(GetVerifyNumKey(addr), newEnc)
 	if err != nil {
@@ -805,7 +806,7 @@ func (state *AccountStateDB) setLastElect(addr common.Address, blockID uint64) e
 		return g_error.ErrAccountNotExist
 	}
 
-	log.Mpt.Debug("setLastElect", "addr", addr.Hex(), "v", blockID, "pre state", state.preStateRoot.Hex())
+	log.DLogger.Debug("setLastElect", zap.String("addr", addr.Hex()), zap.Uint64("v", blockID), zap.String("pre state", state.preStateRoot.Hex()))
 	encBlockId, _ := rlp.EncodeToBytes(blockID)
 	err := state.blockStateTrie.TryUpdate(GetLastElectKey(addr), encBlockId)
 	if err != nil {
@@ -1017,23 +1018,23 @@ func (state *AccountStateDB) GetAccountState(addr common.Address) (*account, err
 // commit contract data
 func (state *AccountStateDB) commitContractData() error {
 	for addr, root := range state.finalisedContractRoot {
-		log.Mpt.Debug("commit contract", "addr", addr.Hex(), "root", root.Hex(), "pre state", state.preStateRoot.Hex())
-		//log.Info("commit contract trie", "root", root.Hex())
+		log.DLogger.Debug("commit contract", zap.String("addr", addr.Hex()), zap.String("root", root.Hex()), zap.String("pre state", state.preStateRoot.Hex()))
+		//log.DLogger.Info("commit contract trie", "root", root.Hex())
 		if err := state.contractTrieCache.TrieDB().Commit(root, false); err != nil {
 			return err
 		}
 	}
-	//log.Info("commit contract trie end")
+	//log.DLogger.Info("commit contract trie end")
 	return nil
 }
 
 // put contract data to trie
 func (state *AccountStateDB) putContractDataToTrie(addr common.Address, data []byte) (StateTrie, error) {
-	log.Mpt.Info("put contract", "addr", addr)
+	log.DLogger.Info("put contract", zap.String("addr", addr.String()))
 	ct, err := state.getContractTrie(addr)
 	//check err first and return err if not find trie, otherwise there isn't this trie if th ct is nil
 	if err != nil && !strings.Contains(err.Error(), "missing trie node") {
-		log.Warn("can't get contract trie from db", "err", err)
+		log.DLogger.Warn("can't get contract trie from db", zap.Error(err))
 		return nil, err
 	}
 	// todo ct is nil?
@@ -1045,7 +1046,7 @@ func (state *AccountStateDB) putContractDataToTrie(addr common.Address, data []b
 		return nil, err
 	}
 	for k, v := range kv {
-		log.Mpt.Debug("putContractDataToTrie", "k", k, "v", v, "pre state", state.preStateRoot.Hex())
+		log.DLogger.Debug("putContractDataToTrie", zap.String("k", k), zap.String("v", v), zap.String("pre state", state.preStateRoot.Hex()))
 		if err := ct.TryUpdate(GetContractFieldKey(addr, k), []byte(v)); err != nil {
 			return nil, err
 		}
@@ -1065,7 +1066,7 @@ func (state *AccountStateDB) Commit() (common.Hash, error) {
 	if err := state.commitContractData(); err != nil {
 		//need clear finalised contract root if yes. At the same time, you'd better throw away this accountStateDB
 		//state.resetThisStateDB()
-		log.Warn("commit contract data failed", "err", err)
+		log.DLogger.Warn("commit contract data failed", zap.Error(err))
 		return common.Hash{}, err
 	}
 
@@ -1107,11 +1108,11 @@ func (state *AccountStateDB) finaliseContractData() error {
 		if err != nil {
 			return err
 		}
-		log.Mpt.Info("finaliseContractData update contract root", "contract addr", addr.Hex(), "root", ch.Hex())
+		log.DLogger.Info("finaliseContractData update contract root", zap.String("contract addr", addr.Hex()), zap.String("root", ch.Hex()))
 		if err := state.blockStateTrie.TryUpdate(GetDataRootKey(addr), ch.Bytes()); err != nil {
 			// change blockStateTrie to origin pre hash？If you want, clear the finalised contract root. But it is best to discard the AccountStateDB directly after the error is reported.
 			//state.resetThisStateDB()
-			log.Error("Commit update contract root failed", "err", err)
+			log.DLogger.Error("Commit update contract root failed", zap.Error(err))
 			return err
 		}
 		state.finalisedContractRoot[addr] = ch
@@ -1125,7 +1126,7 @@ func (state *AccountStateDB) finaliseContractData() error {
 func (state *AccountStateDB) Finalise() (result common.Hash, err error) {
 	if state.finalised() {
 		result = state.blockStateTrie.Hash()
-		log.Mpt.Debug("Finalise", "cur root", result.Hex(), "pre state", state.preStateRoot.Hex())
+		log.DLogger.Debug("Finalise", zap.String("cur root", result.Hex()), zap.String("pre state", state.preStateRoot.Hex()))
 		return
 	}
 	// finalise contracts
@@ -1133,27 +1134,27 @@ func (state *AccountStateDB) Finalise() (result common.Hash, err error) {
 		// change blockStateTrie to origin pre hash？
 		// If you want, clear the finalised contract root. But it is best to discard the AccountStateDB directly after the error is reported.
 		//state.resetThisStateDB()
-		log.Mpt.Debug("Finalise failed", "err", err, "pre state", state.preStateRoot.Hex())
+		log.DLogger.Debug("Finalise failed", zap.Error(err), zap.String("pre state", state.preStateRoot.Hex()))
 		result = common.Hash{}
 		return
 	}
 
 	if err = state.finalSmartData(); err != nil {
-		log.Mpt.Debug("Finalise smart data failed", "err", err, "pre state", state.preStateRoot.Hex())
+		log.DLogger.Debug("Finalise smart data failed", zap.Error(err), zap.String("pre state", state.preStateRoot.Hex()))
 		result = common.Hash{}
 		return
 	}
 
 	state.alreadyFinalised = true
 	result, err = state.blockStateTrie.Commit(nil)
-	log.Mpt.Debug("Finalise", "cur root", result.Hex(), "pre state", state.preStateRoot.Hex())
+	log.DLogger.Debug("Finalise", zap.Any("cur root", result), zap.String("pre state", state.preStateRoot.Hex()))
 	return
 }
 
 func (state *AccountStateDB) IntermediateRoot() (result common.Hash, err error) {
 	if state.finalised() {
 		result = state.blockStateTrie.Hash()
-		log.Mpt.Debug("Finalise", "cur root", result.Hex(), "pre state", state.preStateRoot.Hex())
+		log.DLogger.Debug("Finalise", zap.String("cur root", result.Hex()), zap.String("pre state", state.preStateRoot.Hex()))
 		return result, nil
 	}
 	// finalise contracts
@@ -1161,14 +1162,14 @@ func (state *AccountStateDB) IntermediateRoot() (result common.Hash, err error) 
 		// change blockStateTrie to origin pre hash？
 		// If you want, clear the finalised contract root. But it is best to discard the AccountStateDB directly after the error is reported.
 		// state.resetThisStateDB()
-		log.Mpt.Debug("Finalise failed", "err", err, "pre state", state.preStateRoot.Hex())
+		log.DLogger.Debug("Finalise failed", zap.Error(err), zap.String("pre state", state.preStateRoot.Hex()))
 		result = common.Hash{}
 		return
 	}
 
 	// finalise smart contracts data
 	if err = state.finalSmartData(); err != nil {
-		log.Mpt.Debug("Finalise smart data failed", "err", err, "pre state", state.preStateRoot.Hex())
+		log.DLogger.Debug("Finalise smart data failed", zap.Error(err), zap.String("pre state", state.preStateRoot.Hex()))
 		result = common.Hash{}
 		return
 	}
@@ -1181,7 +1182,7 @@ func (state *AccountStateDB) IntermediateRoot() (result common.Hash, err error) 
 	// All transactions must be done with processBasicTx, and transactionBasicTx only deducts transaction fees. Amount is selectively handled in each type of transaction
 	err = state.processBasicTx(tx)
 	if err != nil {
-		log.Debug("processBasicTx failed", "err", err)
+		log.DLogger.Debug("processBasicTx failed", "err", err)
 		return
 	}
 	switch tx.GetType() {
@@ -1247,7 +1248,7 @@ func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
 	if conf.Tx.GetType() != common.AddressTypeContractCall && conf.Tx.GetType() != common.AddressTypeContractCreate {
 		err = state.processBasicTx(conf)
 		if err != nil {
-			log.Debug("processBasicTx failed", "err", err)
+			log.DLogger.Debug("processBasicTx failed", zap.Error(err))
 			return
 		}
 	}
@@ -1296,11 +1297,11 @@ func (state *AccountStateDB) processBasicTx(conf *TxProcessConfig) (err error) {
 	sender, err := conf.Tx.Sender(nil)
 	receiver := *(conf.Tx.To())
 	if err != nil {
-		log.Debug("get Tx sender failed", "err", err)
+		log.DLogger.Debug("get Tx sender failed", zap.Error(err))
 		return
 	}
 	if sender.IsEmpty() || receiver.IsEmpty() {
-		log.Warn("Tx ("+conf.Tx.CalTxId().Hex()+") but sender or receiver is empty", "sender", sender, "receiver", receiver)
+		log.DLogger.Warn("Tx ("+conf.Tx.CalTxId().Hex()+") but sender or receiver is empty", zap.Any("sender", sender), zap.Any("receiver", receiver))
 		return g_error.ErrSenderOrReceiverIsEmpty
 	}
 	if empty := state.IsEmptyAccount(sender); empty {
@@ -1309,7 +1310,7 @@ func (state *AccountStateDB) processBasicTx(conf *TxProcessConfig) (err error) {
 
 	curNonce, _ := state.GetNonce(sender)
 	if conf.Tx.Nonce() != curNonce {
-		log.Info("Tx nonce not match", "Tx n", conf.Tx.Nonce(), "cur account nonce", curNonce)
+		log.DLogger.Info("Tx nonce not match", zap.Uint64("Tx n", conf.Tx.Nonce()), zap.Uint64("cur account nonce", curNonce))
 		return g_error.ErrTxNonceNotMatch
 	}
 	/*	if empty := state.IsEmptyAccount(receiver); empty {
@@ -1399,7 +1400,7 @@ func (state *AccountStateDB) SetData(addr common.Address, key string, value []by
 		return g_error.ErrAccountNotExist
 	}
 
-	log.Debug("SetData", "addr", addr.String(), "key", key, "keybyte", []byte(key), "value", value)
+	log.DLogger.Debug("SetData", zap.Any("addr", addr), zap.String("key", key), zap.Uint8s("keybyte", []byte(key)), zap.Uint8s("value", value))
 	var preValue []byte
 	if state.smartContractData[addr] == nil {
 		state.smartContractData[addr] = make(map[string][]byte)
@@ -1414,7 +1415,7 @@ func (state *AccountStateDB) SetData(addr common.Address, key string, value []by
 		}
 	}
 
-	log.Debug("SetData result", "key", key, "result", state.smartContractData[addr][key])
+	log.DLogger.Debug("SetData result", zap.String("key", key), zap.Uint8s("result", state.smartContractData[addr][key]))
 	state.stateChangeList.append(dataChange{Account: &addr, Key: key, Prev: preValue, Current: value, ChangeType: DataChange})
 	return
 }
@@ -1422,9 +1423,9 @@ func (state *AccountStateDB) SetData(addr common.Address, key string, value []by
 //fixme can not roll back
 func (state *AccountStateDB) GetData(addr common.Address, key string) (data []byte) {
 	if state.smartContractData[addr] != nil {
-		log.Debug("AccountStateDB#GetData", "addr", addr)
+		log.DLogger.Debug("AccountStateDB#GetData", zap.Any("addr", addr))
 		if state.smartContractData[addr][key] != nil {
-			log.Debug("GetData called", "key", key, "restring", string(state.smartContractData[addr][key]), "result", state.smartContractData[addr][key])
+			log.DLogger.Debug("GetData called", zap.String("key", key), zap.String("restring", string(state.smartContractData[addr][key])), zap.Uint8s("result", state.smartContractData[addr][key]))
 			return state.smartContractData[addr][key]
 		}
 	}
@@ -1436,7 +1437,7 @@ func (state *AccountStateDB) GetData(addr common.Address, key string) (data []by
 	if err != nil {
 		return
 	}
-	log.Debug("GetData called", "key", key, "restring", string(data), "result", data)
+	log.DLogger.Debug("GetData called", zap.String("key", key), zap.String("restring", string(data)), zap.Uint8s("result", data))
 	return
 }
 
@@ -1445,12 +1446,12 @@ func (state *AccountStateDB) AddLog(addedLog *model2.Log) error {
 		return g_error.ErrAddedLogIsNil
 	}
 
-	log.Info("AddLog Called")
+	log.DLogger.Info("AddLog Called")
 	txHash := addedLog.TxHash
 	old := state.GetLogs(txHash)
 	current := append(old, addedLog)
 	state.logs[txHash] = current
-	//log.Info("Log Added", "txHash", txHash, "logData", addedLog.Data)
+	//log.DLogger.Info("Log Added", "txHash", txHash, "logData", addedLog.Data)
 	state.stateChangeList.append(logsChange{TxHash: &txHash, Prev: old, Current: current, ChangeType: LogsChange})
 	return nil
 }
@@ -1471,12 +1472,12 @@ func (state *AccountStateDB) finalSmartData() error {
 		if err != nil {
 			return err
 		}
-		log.Mpt.Info("finaliseContractData update contract root", "contract addr", addr.Hex(), "root", ch.Hex())
+		log.DLogger.Info("finaliseContractData update contract root", zap.String("contract addr", addr.Hex()), zap.String("root", ch.Hex()))
 
 		if err := state.SetDataRoot(addr, ch); err != nil {
 			// change blockStateTrie to origin pre hash？If you want, clear the finalised contract root. But it is best to discard the AccountStateDB directly after the error is reported.
 			//state.resetThisStateDB()
-			log.Error("Commit update contract root failed", "err", err)
+			log.DLogger.Error("Commit update contract root failed", zap.Error(err))
 			return err
 		}
 		state.finalisedContractRoot[addr] = ch
@@ -1487,16 +1488,16 @@ func (state *AccountStateDB) finalSmartData() error {
 
 // put contract data to trie
 func (state *AccountStateDB) putSmartDataToTrie(addr common.Address, data map[string][]byte) (StateTrie, error) {
-	log.Mpt.Info("put contract", "addr", addr)
+	log.DLogger.Info("put contract", zap.Any("addr", addr))
 	ct, err := state.getContractTrie(addr)
 	//check err first and return err if not find trie, otherwise there isn't this trie if th ct is nil
 	if err != nil && !strings.Contains(err.Error(), "missing trie node") {
-		log.Warn("can't get contract trie from db", "err", err)
+		log.DLogger.Warn("can't get contract trie from db", zap.Error(err))
 		return nil, err
 	}
 	// todo ct is nil?
 	for k, v := range data {
-		log.Mpt.Debug("putContractDataToTrie", "k", k, "v", v, "pre state", state.preStateRoot.Hex())
+		log.DLogger.Debug("putContractDataToTrie", zap.String("k", k), zap.Uint8s("v", v), zap.String("pre state", state.preStateRoot.Hex()))
 		if err := ct.TryUpdate(GetContractFieldKey(addr, k), v); err != nil {
 			return nil, err
 		}

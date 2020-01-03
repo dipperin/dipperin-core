@@ -18,9 +18,10 @@ package mineworker
 
 import (
 	"github.com/dipperin/dipperin-core/common/g-metrics"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.uber.org/zap"
 	"sync"
 	"time"
 )
@@ -56,7 +57,7 @@ func (miner *defaultMiner) receiveWork(work workExecutor) {
 		t.Stop()
 		// set receive timeout
 	case <-t.C:
-		log.Info("receive new work time out, miner maybe stopped")
+		log.DLogger.Info("receive new work time out, miner maybe stopped")
 	}
 }
 
@@ -82,10 +83,10 @@ func (miner *defaultMiner) loop() {
 	if !miner.stopped() {
 		miner.lock.Unlock()
 
-		log.Info("call start miner, but miner already started")
+		log.DLogger.Info("call start miner, but miner already started")
 		return
 	}
-	log.Info("miner start mine loop")
+	log.DLogger.Info("miner start mine loop")
 	// reset stop chan
 	miner.stopChan = make(chan struct{})
 
@@ -98,9 +99,9 @@ out:
 		case miner.curWork = <-miner.newWorkChan:
 			miner.mineStartAt = time.Now()
 			miner.metricTimer = g_metrics.NewTimer(g_metrics.FindNonceDuration)
-			log.Info("miner receive new work1")
+			log.DLogger.Info("miner receive new work1")
 		case <-miner.stopChan:
-			log.Info("stop mine")
+			log.DLogger.Info("stop mine")
 			break out
 		default:
 			miner.doMine()
@@ -109,13 +110,13 @@ out:
 }
 
 func (miner *defaultMiner) doMine() {
-	//log.Debug("miner do mine")
+	//log.DLogger.Debug("miner do mine")
 	if miner.curWork == nil {
 		miner.waitNewWork()
 	}
 	// Submit if it is discovered, and wait for a new task
 	if miner.curWork != nil && miner.curWork.ChangeNonce() {
-		log.Info("miner found nonce", "use time", time.Now().Sub(miner.mineStartAt))
+		log.DLogger.Info("miner found nonce", zap.Duration("use time", time.Now().Sub(miner.mineStartAt)))
 		miner.curWork.Submit()
 		if miner.metricTimer != nil {
 			miner.metricTimer.ObserveDuration()
@@ -126,12 +127,12 @@ func (miner *defaultMiner) doMine() {
 }
 
 func (miner *defaultMiner) waitNewWork() {
-	//log.Debug("miner waitNewWork")
+	//log.DLogger.Debug("miner waitNewWork")
 	select {
 	case miner.curWork = <-miner.newWorkChan:
 		miner.mineStartAt = time.Now()
 		miner.metricTimer = g_metrics.NewTimer(g_metrics.FindNonceDuration)
-		//log.Info("miner receive new work2")
+		//log.DLogger.Info("miner receive new work2")
 	case <-miner.stopChan:
 	}
 }

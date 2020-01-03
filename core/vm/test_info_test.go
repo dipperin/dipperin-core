@@ -19,10 +19,10 @@ package vm
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -142,26 +142,29 @@ func (state *fakeStateDB) GetLogs(txHash common.Hash) []*model.Log {
 }
 
 func (state *fakeStateDB) AddLog(addedLog *model.Log) {
-	log.Info("add log success")
+	log.DLogger.Info("add log success")
 	return
 }
 
-func (state *fakeStateDB) CreateAccount(addr common.Address) {
+func (state *fakeStateDB) CreateAccount(addr common.Address) error {
 	state.balanceMap[addr] = big.NewInt(0)
 	state.nonceMap[addr] = uint64(0)
 	state.codeMap[addr] = []byte{}
 	state.abiMap[addr] = []byte{}
 	state.stateMap[addr] = make(map[string][]byte)
+	return nil
 }
 
-func (state *fakeStateDB) SubBalance(addr common.Address, amount *big.Int) {
+func (state *fakeStateDB) SubBalance(addr common.Address, amount *big.Int) error {
 	balance := state.balanceMap[addr]
 	state.balanceMap[addr] = big.NewInt(0).Sub(balance, amount)
+	return nil
 }
 
-func (state *fakeStateDB) AddBalance(addr common.Address, amount *big.Int) {
+func (state *fakeStateDB) AddBalance(addr common.Address, amount *big.Int) error {
 	balance := state.balanceMap[addr]
 	state.balanceMap[addr] = big.NewInt(0).Add(balance, amount)
+	return nil
 }
 
 func (state *fakeStateDB) GetBalance(addr common.Address) *big.Int {

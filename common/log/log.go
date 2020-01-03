@@ -17,6 +17,7 @@
 package log
 
 import (
+	"fmt"
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -24,114 +25,114 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"time"
 )
-
-var (
-	DLogger *zap.Logger // common
-
-	Mpt        *zap.Logger
-	Halt       *zap.Logger
-	Health     *zap.Logger
-	PBft       *zap.Logger
-	Witch      *zap.Logger
-	Vm         *zap.Logger
-	VmMem      *zap.Logger
-	Pm         *zap.Logger
-	Middleware *zap.Logger
-	P2P        *zap.Logger
-	Stack      *zap.Logger
-	Rpc        *zap.Logger
-)
-
-func init() {
-	DLogger = defaultLogger()
-	Mpt = defaultLogger()
-	Halt = defaultLogger()
-	Health = defaultLogger()
-	PBft = defaultLogger()
-	Witch = defaultLogger()
-	Vm = defaultLogger()
-	VmMem = defaultLogger()
-	Pm = defaultLogger()
-	Middleware = defaultLogger()
-	P2P = defaultLogger()
-	Stack = defaultLogger()
-	Rpc = defaultLogger()
-}
 
 func defaultLogger() *zap.Logger {
 	cnf := zap.NewDevelopmentConfig()
 	cnf.DisableCaller = true
 	cnf.OutputPaths = []string{"stdout"}
-	cnf.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
+	lvl := zapcore.DebugLevel
+	switch os.Getenv("boots_env") {
+	case "venus", "mercury":
+		lvl = zapcore.InfoLevel
+	}
+	cnf.Level = zap.NewAtomicLevelAt(lvl)
+	cnf.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	cnf.DisableStacktrace = true
 	logger, _ := cnf.Build()
 	return logger
 }
 
-// init logger
-func InitLogger(debug bool, targetDir, filename string) {
-	DLogger = newLogger(debug, path.Join(targetDir, "dipperin"), filename)
-	Mpt = newLogger(debug, path.Join(targetDir, "mpt"), filename)
-	Halt = newLogger(debug, path.Join(targetDir, "halt"), filename)
-	Health = newLogger(debug, path.Join(targetDir, "health"), filename)
-	PBft = newLogger(debug, path.Join(targetDir, "pbft"), filename)
-	Witch = newLogger(debug, path.Join(targetDir, "witch"), filename)
-	Vm = newLogger(debug, path.Join(targetDir, "vm"), filename)
-	VmMem = newLogger(debug, path.Join(targetDir, "vmmem"), filename)
-	Pm = newLogger(debug, path.Join(targetDir, "pm"), filename)
-	Middleware = newLogger(debug, path.Join(targetDir, "middleware"), filename)
-	P2P = newLogger(debug, path.Join(targetDir, "p2p"), filename)
-	Stack = newLogger(debug, path.Join(targetDir, "stack"), filename)
-	Rpc = newLogger(debug, path.Join(targetDir, "rpc"), filename)
+func NewLogger() *zap.Logger {
+	cnf := zap.NewProductionConfig()
+	cnf.DisableCaller = true
+	cnf.OutputPaths = []string{"stdout"}
+	cnf.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
+	cnf.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	logger, _ := cnf.Build()
+	return logger
 }
 
-func newLogger(debug bool, targetDir, filename string) *zap.Logger {
-	return zap.New(
-		newLogCore(debug, targetDir, filename),
-		newLogOptions(debug)...,
-	)
+var DLogger *zap.Logger // root
+
+func init() {
+	DLogger = defaultLogger()
 }
 
-func newLogOptions(debug bool) []zap.Option {
-	if debug {
-		return []zap.Option{
-			// print stack messages
-			zap.AddStacktrace(zapcore.ErrorLevel),
+type LoggerConfig struct {
+	Lvl           zapcore.Level
+	FilePath      string
+	Filename      string
+	WithConsole   bool
+	WithFile      bool
+	DisableCaller bool
+}
+
+func InitLogger(cnf LoggerConfig) {
+	var cores []zapcore.Core
+
+	if cnf.WithFile {
+		jsonEncoder := newJSONEncoder(newFileEncoderConfig())
+
+		highPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+			return lvl >= zapcore.ErrorLevel
+		})
+		if cnf.Lvl >= zapcore.ErrorLevel {
+			cnf.Lvl = zapcore.WarnLevel
 		}
+		lowPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+			return lvl >= cnf.Lvl && lvl < zapcore.ErrorLevel
+		})
+
+		if cnf.FilePath == "" {
+			homeDir, _ := os.UserHomeDir()
+			cnf.FilePath = path.Join(homeDir, "tmp", "logs", "dipperin")
+		}
+
+		if cnf.Filename == "" {
+			cnf.Filename = "dipperin.log"
+		}
+
+		out, errOut := getLogFilePath(cnf.FilePath, cnf.Filename)
+		logFileOutW := backupsLogWriteSyncer(out)
+		logFileErrW := backupsLogWriteSyncer(errOut)
+
+		cores = append(cores,
+			zapcore.NewCore(jsonEncoder, logFileErrW, highPriority),
+			zapcore.NewCore(jsonEncoder, logFileOutW, lowPriority))
 	}
-	return nil
+
+	if cnf.WithConsole {
+		priority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+			return lvl >= cnf.Lvl && lvl <= zapcore.FatalLevel
+		})
+
+		consoleEncoder := newConsoleEncoder(newConsoleEncoderConfig())
+		stdoutW := stdoutWriteSyncer()
+		cores = append(cores,
+			zapcore.NewCore(consoleEncoder, stdoutW, priority))
+	}
+
+	DLogger = zap.New(zapcore.NewTee(cores...))
+	if !cnf.DisableCaller {
+		DLogger = DLogger.WithOptions(zap.AddCaller())
+	}
 }
 
-func newLogCore(debug bool, targetDir, filename string) zapcore.Core {
-	encoderConfig := newLogEncoderConfig()
-	jsonEncoder := newJSONEncoder(encoderConfig)
-	consoleEncoder := newConsoleEncoder(encoderConfig)
-	highPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-		return lvl >= zapcore.ErrorLevel
-	})
-	lowPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-		return lvl >= zapcore.InfoLevel && lvl < zapcore.ErrorLevel
-	})
-	if debug {
-		lowPriority = func(lvl zapcore.Level) bool {
-			return lvl < zapcore.ErrorLevel
-		}
+func LvlFromString(lv string) (zapcore.Level, error) {
+	switch lv {
+	case "debug", "dbug":
+		return zapcore.DebugLevel, nil
+	case "info":
+		return zapcore.InfoLevel, nil
+	case "warn":
+		return zapcore.WarnLevel, nil
+	case "error", "eror":
+		return zapcore.ErrorLevel, nil
+	default:
+		return zapcore.DebugLevel, fmt.Errorf("unknown level: %s", lv)
 	}
-
-	stdoutW := stdoutWriteSyncer()
-	stderrW := stderrWriteSyncer()
-
-	out, errOut := getLogFilePath(targetDir, filename)
-	logFileOutW := backupsLogWriteSyncer(out)
-	logFileErrW := backupsLogWriteSyncer(errOut)
-
-	return zapcore.NewTee(
-		zapcore.NewCore(consoleEncoder, stderrW, highPriority),
-		zapcore.NewCore(consoleEncoder, stdoutW, lowPriority),
-		zapcore.NewCore(jsonEncoder, logFileErrW, highPriority),
-		zapcore.NewCore(jsonEncoder, logFileOutW, lowPriority))
 }
 
 /*
@@ -184,8 +185,8 @@ func newConsoleEncoder(cnf zapcore.EncoderConfig) zapcore.Encoder {
 	return zapcore.NewConsoleEncoder(cnf)
 }
 
-// encoder config
-func newLogEncoderConfig() zapcore.EncoderConfig {
+// console encoder config
+func newConsoleEncoderConfig() zapcore.EncoderConfig {
 	cnf := zap.NewProductionEncoderConfig()
 	cnf.EncodeDuration = zapcore.SecondsDurationEncoder
 	cnf.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
@@ -193,10 +194,28 @@ func newLogEncoderConfig() zapcore.EncoderConfig {
 	}
 	cnf.EncodeCaller = func(caller zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
 		var invokeName string
-		if pc, _, lineNo, ok := runtime.Caller(6); ok {
-			invokeName = runtime.FuncForPC(pc).Name() + ":" + strconv.FormatInt(int64(lineNo), 10)
+		if _, file, lineNo, ok := runtime.Caller(5); ok {
+			invokeName = fmt.Sprintf("%s:%d", file, lineNo)
 		}
-		enc.AppendString(os.Getenv("HOSTNAME") + "	" + invokeName)
+		enc.AppendString(invokeName)
+	}
+	cnf.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	return cnf
+}
+
+// file encoder config
+func newFileEncoderConfig() zapcore.EncoderConfig {
+	cnf := zap.NewProductionEncoderConfig()
+	cnf.EncodeDuration = zapcore.SecondsDurationEncoder
+	cnf.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+		enc.AppendString(t.Format("2006-01-02 15:04:05.000"))
+	}
+	cnf.EncodeCaller = func(caller zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
+		var invokeName string
+		if _, file, lineNo, ok := runtime.Caller(5); ok {
+			invokeName = fmt.Sprintf("%s:%d", file, lineNo)
+		}
+		enc.AppendString(invokeName)
 	}
 	return cnf
 }

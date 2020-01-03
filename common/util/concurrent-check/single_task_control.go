@@ -17,7 +17,8 @@
 package concurrent_check
 
 import (
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
+	"go.uber.org/zap"
 	"sync"
 	"sync/atomic"
 )
@@ -37,7 +38,7 @@ func (stc *SingleTaskControl) TryDo(count int) bool {
 		stc.count = count
 		return true
 	}
-	log.Warn("try start task, but last task haven't done", "remain count", stc.count)
+	log.DLogger.Warn("try start task, but last task haven't done", zap.Any("remain count", stc.count))
 	return false
 }
 
@@ -48,7 +49,7 @@ func (stc *SingleTaskControl) Done() {
 	stc.count--
 	if stc.count <= 0 {
 		if !atomic.CompareAndSwapInt32(&stc.isDoing, 1, 0) {
-			log.Warn("try call task done, but not started")
+			log.DLogger.Warn("try call task done, but not started")
 		}
 	}
 }

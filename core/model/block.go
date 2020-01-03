@@ -20,10 +20,11 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 	"math/big"
 	"sort"
 	"sync"
@@ -381,16 +382,16 @@ func (b *Block) GetEiBloomBlockData(reqEstimator *iblt.HybridEstimator) *BloomBl
 	//startAt := time.Now()
 	txs := b.GetTransactions()
 	estimator := iblt.NewHybridEstimator(reqEstimator.Config())
-	//log.Info("==block.go ==GetEiBloomBlockData==iblt.NewHybridEstimator()==1", "t", time.Now().Sub(startAt))
+	//log.DLogger.Info("==block.go ==GetEiBloomBlockData==iblt.NewHybridEstimator()==1", "t", time.Now().Sub(startAt))
 
 	startAt := time.Now()
 	if len(txs) > DefaultTxs {
 		fmt.Println("1")
 		// run multiple procedure
-		log.Witch.Info("start MapWork")
+		log.DLogger.Info("start MapWork")
 		mapWorkEstimator := newMapWorkHybridEstimator(estimator)
 		if err := RunWorkMap(mapWorkEstimator, txs); err != nil {
-			log.Witch.Info("RunWorkMap by mapWorkEstimator failed", "err", err)
+			log.DLogger.Info("RunWorkMap by mapWorkEstimator failed", zap.Error(err))
 		}
 	} else {
 		for _, tx := range txs {
@@ -405,7 +406,7 @@ func (b *Block) GetEiBloomBlockData(reqEstimator *iblt.HybridEstimator) *BloomBl
 		// run multiple procedure
 		mapWorkBloom := newMapWorkInvBloom(invBloom)
 		if err := RunWorkMap(mapWorkBloom, txs); err != nil {
-			log.Witch.Info("RunWorkMap by mapWorkBloom failed", "err", err)
+			log.DLogger.Info("RunWorkMap by mapWorkBloom failed", zap.Error(err))
 		}
 	} else {
 		for _, tx := range txs {
@@ -416,12 +417,12 @@ func (b *Block) GetEiBloomBlockData(reqEstimator *iblt.HybridEstimator) *BloomBl
 
 	diff := time.Now().Sub(startAt)
 	if diff > time.Second {
-		log.Witch.Info("GetEiBloomBlockData", "cost", diff, "len", len(txs), "num", b.Number())
+		log.DLogger.Info("GetEiBloomBlockData", zap.Duration("cost", diff), zap.Int("len", len(txs)), zap.Uint64("num", b.Number()))
 	}
 
 	invBloomRLP, err := rlp.EncodeToBytes(invBloom)
 	if err != nil {
-		log.Error("con't rlp invBloom", "block hash", b.Hash().Hex())
+		log.DLogger.Error("con't rlp invBloom", zap.String("block hash", b.Hash().Hex()))
 		return nil
 	}
 	return &BloomBlockData{
@@ -458,9 +459,9 @@ func (b *Block) GetAbsTransactions() []AbstractTransaction {
 }
 
 func (b *Block) SetNonce(nonce common.BlockNonce) {
-	//log.Debug("set block nonce", "nonce", nonce.Hex())
+	//log.DLogger.Debug("set block nonce", "nonce", nonce.Hex())
 	b.header.Nonce = nonce
-	//log.Debug("after change nonce", "header nonce", b.header.Nonce.Hex())
+	//log.DLogger.Debug("after change nonce", "header nonce", b.header.Nonce.Hex())
 }
 
 func (b *Block) FormatForRpc() interface{} {
@@ -539,10 +540,10 @@ func NewBlock(header *Header, txs []*Transaction, msgs []AbstractVerification) *
 		copy(b.body.Txs, txs)
 	}
 
-	/*	pbft_log.Info("the calculated tx root is:", "root", b.header.TransactionRoot.Hex())
-		pbft_log.Info("the block txs is:", "len", len(txs))
+	/*	pbft_log.DLogger.Info("the calculated tx root is:", "root", b.header.TransactionRoot.Hex())
+		pbft_log.DLogger.Info("the block txs is:", "len", len(txs))
 		for _, tx := range txs {
-			pbft_log.Info("the tx is:", "tx", tx)
+			pbft_log.DLogger.Info("the tx is:", "tx", tx)
 		}*/
 
 	// calculate verification Root

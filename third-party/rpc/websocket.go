@@ -24,7 +24,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/hexutil"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
+	"go.uber.org/zap"
 	"net"
 	"net/http"
 	"net/url"
@@ -47,12 +48,12 @@ var websocketJSONCodec = websocket.Codec{
 	},
 	// Unmarshal is a specialized unmarshaller to properly convert numbers.
 	Unmarshal: func(msg []byte, payloadType byte, v interface{}) error {
-		log.Rpc.Info("websocketJSONCodec unmarshal msg is:", "msgLen", len(msg), "msg", hexutil.Encode(msg))
-		log.Rpc.Info("the unmarshal type is:", "type", reflect.TypeOf(v))
+		log.DLogger.Info("websocketJSONCodec unmarshal msg is:", zap.Int("msgLen", len(msg)), zap.String("msg", hexutil.Encode(msg)))
+		log.DLogger.Info("the unmarshal type is:", zap.String("type", reflect.TypeOf(v).String()))
 		dec := json.NewDecoder(bytes.NewReader(msg))
 		dec.UseNumber()
 		err := dec.Decode(v)
-		log.Rpc.Info("websocketJSONCodec unmarshal decode result is:", "err", err)
+		log.DLogger.Info("websocketJSONCodec unmarshal decode result is:", zap.Error(err))
 
 		return err
 	},
@@ -66,7 +67,7 @@ func (srv *Server) WebsocketHandler(allowedOrigins []string) http.Handler {
 	return websocket.Server{
 		Handshake: wsHandshakeValidator(allowedOrigins),
 		Handler: func(conn *websocket.Conn) {
-			log.Rpc.Info("call websocket handle start ~~~~~~~~~~~~~~~~~")
+			log.DLogger.Info("call websocket handle start ~~~~~~~~~~~~~~~~~")
 			// Create a custom encode/decode pair to enforce payload size and number encoding
 			conn.MaxPayloadBytes = maxRequestContentLength
 
@@ -76,13 +77,13 @@ func (srv *Server) WebsocketHandler(allowedOrigins []string) http.Handler {
 			decoder := func(v interface{}) error {
 				err := websocketJSONCodec.Receive(conn, v)
 				if err != nil {
-					log.Rpc.Error("WebsocketHandler the receive error", "err", err)
+					log.DLogger.Error("WebsocketHandler the receive error", zap.Error(err))
 				}
 				return err
 			}
 			srv.ServeCodec(NewCodec(conn, encoder, decoder), OptionMethodInvocation|OptionSubscriptions)
-			log.Rpc.Info("call websocket handle end ~~~~~~~~~~~~~~~~~")
-			log.Rpc.Info("")
+			log.DLogger.Info("call websocket handle end ~~~~~~~~~~~~~~~~~")
+			log.DLogger.Info("")
 		},
 	}
 }
@@ -118,14 +119,14 @@ func wsHandshakeValidator(allowedOrigins []string) func(*websocket.Config, *http
 		}
 	}
 
-	log.Debug(fmt.Sprintf("Allowed origin(s) for WS RPC interface %v\n", origins.ToSlice()))
+	log.DLogger.Debug(fmt.Sprintf("Allowed origin(s) for WS RPC interface %v\n", origins.ToSlice()))
 
 	f := func(cfg *websocket.Config, req *http.Request) error {
 		origin := req.RemoteAddr[:strings.Index(req.RemoteAddr, ":")]
 		if allowAllOrigins || origins.Contains(origin) || strings.Contains(req.RemoteAddr, "[::1]:") {
 			return nil
 		}
-		log.Warn(fmt.Sprintf("origin '%s' not allowed on WS-RPC interface\n", origin))
+		log.DLogger.Warn(fmt.Sprintf("origin '%s' not allowed on WS-RPC interface\n", origin))
 		return fmt.Errorf("origin %s not allowed", origin)
 	}
 

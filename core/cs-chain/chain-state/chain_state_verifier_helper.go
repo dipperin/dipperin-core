@@ -19,10 +19,11 @@ package chain_state
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 func (cs *ChainState) BuildRegisterProcessor(preBlockRegisterRoot common.Hash) (*registerdb.RegisterDB, error) {
@@ -49,7 +50,7 @@ func (cs *ChainState) IsChangePoint(block model.AbstractBlock, isProcessPackageB
 	process, err := cs.BuildRegisterProcessor(preBlock.GetRegisterRoot())
 	point, err := process.GetLastChangePoint()
 	if err != nil {
-		log.Error("GetLastChangePoint failed", "err", err)
+		log.DLogger.Error("GetLastChangePoint failed", zap.Error(err))
 		return false
 	}
 
@@ -88,7 +89,7 @@ func (cs *ChainState) GetLastChangePoint(block model.AbstractBlock) *uint64 {
 	process, _ := cs.BuildRegisterProcessor(preBlock.GetRegisterRoot())
 	point, err := process.GetLastChangePoint()
 	if err != nil {
-		log.Error("get last change point failed", "err", err)
+		log.DLogger.Error("get last change point failed", zap.Error(err))
 		return nil
 	}
 
@@ -112,12 +113,12 @@ func (cs *ChainState) GetSlotByNum(num uint64) *uint64 {
 	}
 	process, err := cs.BuildRegisterProcessor(preBlock.GetRegisterRoot())
 	if err != nil {
-		log.Error("can't BuildRegisterProcessor", "r root", preBlock.GetRegisterRoot())
+		log.DLogger.Error("can't BuildRegisterProcessor", zap.Any("r root", preBlock.GetRegisterRoot()))
 		return nil
 	}
 	slot, err := process.GetSlot()
 	if err != nil {
-		log.Error("get slot failed", "err", err)
+		log.DLogger.Error("get slot failed", zap.Error(err))
 		return nil
 	}
 
@@ -136,7 +137,7 @@ func (cs *ChainState) GetSlot(block model.AbstractBlock) *uint64 {
 func (cs *ChainState) GetCurrVerifiers() []common.Address {
 	cb := cs.CurrentBlock()
 	if cb == nil {
-		log.Error("can't no get current block")
+		log.DLogger.Error("can't no get current block")
 		return nil
 	}
 
@@ -156,7 +157,7 @@ func (cs *ChainState) GetVerifiers(slot uint64) []common.Address {
 
 	num := cs.NumBeforeLastBySlot(slot)
 	if num == nil {
-		log.Error("get verifiers error", "slot", slot, "num", num)
+		log.DLogger.Error("get verifiers error", zap.Uint64("slot", slot), zap.Uint64p("num", num))
 		//panic("can't get block number before the last ")
 		return nil
 	}
@@ -171,7 +172,7 @@ func (cs *ChainState) GetVerifiers(slot uint64) []common.Address {
 func (cs *ChainState) GetNextVerifiers() []common.Address {
 	cb := cs.CurrentBlock()
 	if cb == nil {
-		log.Error("can't no get current block")
+		log.DLogger.Error("can't no get current block")
 		return nil
 	}
 	slot := cs.GetSlot(cb)
@@ -202,16 +203,16 @@ func (cs *ChainState) GetNumBySlot(slot uint64) *uint64 {
 	for {
 		blockSlot := cs.GetSlot(block)
 		if slot > *blockSlot {
-			log.Error("input slot can't larger than current slot")
+			log.DLogger.Error("input slot can't larger than current slot")
 			return nil
 		}
 		if *blockSlot == slot {
-			log.Info("GetNumBySlot return ", "input slot", slot, "return num", block.Number())
+			log.DLogger.Info("GetNumBySlot return ", zap.Uint64("input slot", slot), zap.Uint64("return num", block.Number()))
 			if cs.IsChangePoint(block, false) {
 				num := block.Number()
 				return &num
 			} else {
-				log.Error("the last block in input slot doesn't exist")
+				log.DLogger.Error("the last block in input slot doesn't exist")
 				return nil
 			}
 		} else {
@@ -228,15 +229,15 @@ func (cs *ChainState) CalVerifiers(block model.AbstractBlock) []common.Address {
 	//log.PBft.Debug("CalVerifiers", "num", block.Number())
 
 	root := block.GetRegisterRoot()
-	log.Info("the register root is:", "root", root.Hex())
+	log.DLogger.Info("the register root is:", zap.String("root", root.Hex()))
 	register, err := cs.BuildRegisterProcessor(root)
 	if err != nil {
-		log.PBft.Debug("BuildRegisterProcessor failed", "err", err)
+		log.DLogger.Debug("BuildRegisterProcessor failed", zap.Error(err))
 	}
 	list := register.GetRegisterData()
-	log.Info("the register list len is:", "len", len(list))
+	log.DLogger.Info("the register list len is:", zap.Int("len", len(list)))
 	//log.PBft.Debug("GetRegisterData", "register data", list, "root", root)
-	//log.Info("GetRegisterData", "register data", list, "root", root)
+	//log.DLogger.Info("GetRegisterData", "register data", list, "root", root)
 
 	// get top verifiers
 	var topAddress []common.Address
@@ -244,7 +245,7 @@ func (cs *ChainState) CalVerifiers(block model.AbstractBlock) []common.Address {
 	for i := 0; i < len(list); i++ {
 		priority, err := cs.calPriority(list[i], block.Number())
 		if err != nil {
-			log.PBft.Info("calPriority", "err", err)
+			log.DLogger.Info("calPriority", zap.Error(err))
 		}
 		topAddress, topPriority = cs.getTopVerifiers(list[i], priority, topAddress, topPriority)
 	}

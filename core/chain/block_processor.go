@@ -19,12 +19,13 @@ package chain
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"reflect"
 )
 
@@ -65,14 +66,14 @@ func NewBlockProcessor(fullChain AccountDBChainReader, preStateRoot common.Hash,
 
 func (state *BlockProcessor) GetBlockHashByNumber(number uint64) common.Hash {
 	if number > state.fullChain.CurrentBlock().Number() {
-		log.Info("GetBlockHashByNumber failed, can't get future block")
+		log.DLogger.Info("GetBlockHashByNumber failed, can't get future block")
 		return common.Hash{}
 	}
 	return state.fullChain.GetBlockByNumber(number).Hash()
 }
 
 func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel economy_model.EconomyModel) (err error) {
-	log.Mpt.Debug("AccountStateDB Process begin~~~~~~~~~~~~~~", "pre state", state.PreStateRoot().Hex(), "blockId", block.Hash().Hex())
+	log.DLogger.Debug("AccountStateDB Process begin~~~~~~~~~~~~~~", zap.String("pre state", state.PreStateRoot().Hex()), zap.String("blockId", block.Hash().Hex()))
 
 	state.economyModel = economyModel
 	blockHeader := block.Header().(*model.Header)
@@ -91,7 +92,7 @@ func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel eco
 			innerError := state.ProcessTxNew(&conf)
 			/*// unrecognized tx means no processing of the tx
 			if innerError == g_error.ErrUnknownTxType {
-				log.Warn("unknown tx type", "type", tx.GetType())
+				log.DLogger.Warn("unknown tx type", "type", tx.GetType())
 				return g_error.ErrUnknownTxType
 			}*/
 			if innerError != nil {
@@ -107,26 +108,26 @@ func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel eco
 	if err = state.ProcessExceptTxs(block, economyModel, false); err != nil {
 		return
 	}
-	log.Mpt.Debug("AccountStateDB Process end~~~~~~~~~~~~~~~~~", "pre state", state.PreStateRoot().Hex())
+	log.DLogger.Debug("AccountStateDB Process end~~~~~~~~~~~~~~~~~", zap.String("pre state", state.PreStateRoot().Hex()))
 	return
 }
 
 func (state *BlockProcessor) ProcessExceptTxs(block model.AbstractBlock, economyModel economy_model.EconomyModel, isProcessPackageBlock bool) (err error) {
-	log.Mpt.Debug("ProcessExceptTxs begin", "pre state", state.PreStateRoot().Hex())
+	log.DLogger.Debug("ProcessExceptTxs begin", zap.String("pre state", state.PreStateRoot().Hex()))
 	state.economyModel = economyModel
 	if block.Number() == 0 {
-		log.Mpt.Debug("ProcessExceptTxs bug block num is 0")
+		log.DLogger.Debug("ProcessExceptTxs bug block num is 0")
 		return nil
 	}
 
 	// do rewards
 	if err = state.doRewards(block); err != nil {
-		log.Mpt.Debug("ProcessExceptTxs doRewards failed", "storageErr", err)
+		log.DLogger.Debug("ProcessExceptTxs doRewards failed", zap.Error(err))
 		return
 	}
 	// process commits
 	err = state.processCommitList(block, isProcessPackageBlock)
-	log.Mpt.Debug("ProcessExceptTxs finished ---", "pre state", state.PreStateRoot().Hex())
+	log.DLogger.Debug("ProcessExceptTxs finished ---", zap.String("pre state", state.PreStateRoot().Hex()))
 	return
 }
 
@@ -145,7 +146,7 @@ func (state *BlockProcessor) processCommitList(block model.AbstractBlock, isProc
 		for index, ver := range verifiers {
 			innerErr := state.ProcessVerifierNumber(ver)
 			if innerErr != nil {
-				log.Error("process block verifiers error", "storageErr", innerErr, "verifier", ver, "index", index)
+				log.DLogger.Error("process block verifiers error", zap.Error(innerErr), zap.Any("verifier", ver), zap.Int("index", index))
 				return innerErr
 			}
 		}
@@ -159,7 +160,7 @@ func (state *BlockProcessor) processCommitList(block model.AbstractBlock, isProc
 		for _, ver := range verifications {
 			innerErr := state.ProcessVerification(ver, 0)
 			if innerErr != nil {
-				log.Error("process block verifications error", "storageErr", innerErr, "verifier", ver)
+				log.DLogger.Error("process block verifications error", zap.Error(innerErr), zap.Any("verifier", ver))
 				return innerErr
 			}
 		}
@@ -181,12 +182,12 @@ func (state *BlockProcessor) processCommitList(block model.AbstractBlock, isProc
 				firstStateBySlot, _ = state.fullChain.StateAtByBlockNumber(*lastPoint + 1)
 			}
 
-			log.Info("process performance", "slot", slot, "current num", block.Number(), "len(vers)", verifiers)
+			log.DLogger.Info("process performance", zap.Uint64p("slot", slot), zap.Uint64("current num", block.Number()), zap.Any("len(vers)", verifiers))
 			for _, ver := range verifiers {
 				commitNum, _ := state.GetCommitNum(ver)
 				firstCommitNumBySlot, err := firstStateBySlot.GetCommitNum(ver)
 				if err != nil {
-					log.Error("process performance error")
+					log.DLogger.Error("process performance error")
 					return err
 				}
 				amount := reward
@@ -216,7 +217,7 @@ func (state *BlockProcessor) doRewards(block model.AbstractBlock) (err error) {
 	if !block.IsSpecial() {
 		err = state.RewardCoinBase(block, earlyContract)
 		if err != nil {
-			log.Error("process block reward coin base error", "num", block.Number(), "storageErr", err)
+			log.DLogger.Error("process block reward coin base error", zap.Uint64("num", block.Number()), zap.Error(err))
 			return err
 		}
 	}
@@ -225,18 +226,18 @@ func (state *BlockProcessor) doRewards(block model.AbstractBlock) (err error) {
 	if block.Number() != 0 && block.Number() != 1 {
 		// fixme reward to cur block verifiers list
 		previous := block.Number() - 1
-		//	log.Info("the chainReader is:","chainReader",state.fullChain)
-		//	log.Info("the previous is:","previous",previous)
+		//	log.DLogger.Info("the chainReader is:","chainReader",state.fullChain)
+		//	log.DLogger.Info("the previous is:","previous",previous)
 		preBlock := state.fullChain.GetBlockByNumber(previous)
 
-		//log.Info("the preBlock info is:","blockNumber",preBlock.Number(),"ver",preBlock.GetVerifications())
+		//log.DLogger.Info("the preBlock info is:","blockNumber",preBlock.Number(),"ver",preBlock.GetVerifications())
 		if preBlock == nil {
 			return g_error.NotHavePreBlockErr
 		}
 
 		err = state.RewardByzantiumVerifier(block, earlyContract)
 		if err != nil {
-			log.Error("process block reward pre block verifiers error", "num", block.Number(), "storageErr", err)
+			log.DLogger.Error("process block reward pre block verifiers error", zap.Uint64("num", block.Number()), zap.Error(err))
 			return
 		}
 	}

@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/chain-config"
@@ -31,7 +32,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -46,10 +47,10 @@ var VerifierAddress []common.Address
 //delete angle verifier csWallet cipher in the Dipperin-core source code
 func init() {
 	env := os.Getenv("boots_env")
-	log.Info("start env: " + env)
+	log.DLogger.Info("start env: " + env)
 	if env == "mercury" {
 		VerifierAddress = chain_config.MercuryVerifierAddress
-		log.Debug("default mercury verifier", "count", len(VerifierAddress))
+		log.DLogger.Debug("default mercury verifier", zap.Int("count", len(VerifierAddress)))
 	} else {
 		VerifierAddress = chain_config.LocalVerifierAddress
 	}
@@ -129,7 +130,7 @@ type GenesisAlloc map[common.Address]*big.Int
 // The returned chain configuration is never nil.
 func SetupGenesisBlock(genesis *Genesis) (*chain_config.ChainConfig, common.Hash, error) {
 	if genesis == nil {
-		log.Info("Writing default main-net genesis block")
+		log.DLogger.Info("Writing default main-net genesis block")
 		return nil, common.Hash{}, errors.New("genesis can't be nil")
 	}
 
@@ -140,17 +141,17 @@ func SetupGenesisBlock(genesis *Genesis) (*chain_config.ChainConfig, common.Hash
 	chainDB := genesis.ChainDB
 	// Just commit the new block if there is no stored genesis block.
 	stored := chainDB.GetBlockHashByNumber(0)
-	log.Info("get stored genesis hash", "hash", stored.Hex())
+	log.DLogger.Info("get stored genesis hash", zap.String("hash", stored.Hex()))
 
 	// prepare genesis block
 	// Every time you start, you must compare the configured Genesis block with the Genesis block on the chain. If it is not the same, you need to report an error.
 	block, err := genesis.Prepare()
 	if err != nil {
-		log.Error("prepare genesis failed", "storageErr", err)
+		log.DLogger.Error("prepare genesis failed", zap.Error(err))
 		return nil, common.Hash{}, err
 	}
 	if (stored == common.Hash{}) {
-		log.Info("write genesis block", "hash", block.Hash().Hex())
+		log.DLogger.Info("write genesis block", zap.String("hash", block.Hash().Hex()))
 		err = genesis.Commit(block)
 		// check contract committed
 		genesis.checkEarlyContractExist()
@@ -187,7 +188,7 @@ func (g *Genesis) checkEarlyContractExist() {
 	if !earlyC.Owner.IsEqual(originEarlyC.Owner) {
 		panic(fmt.Sprintf("early contract owner not match, is: %v, should be: %v", earlyC.Owner.Hex(), originEarlyC.Owner.Hex()))
 	}
-	//log.Debug("originEarlyC", "addr", "0x000095Cfdd141b0aF2Bb92F0074d5Dbc9b5F554fF807", "eDIP balance", originEarlyC.Balances["0x000095Cfdd141b0aF2Bb92F0074d5Dbc9b5F554fF807"])
+	//log.DLogger.Debug("originEarlyC", "addr", "0x000095Cfdd141b0aF2Bb92F0074d5Dbc9b5F554fF807", "eDIP balance", originEarlyC.Balances["0x000095Cfdd141b0aF2Bb92F0074d5Dbc9b5F554fF807"])
 
 	// check if the alloc value is correct
 	for addr, a := range g.Alloc {
@@ -203,7 +204,7 @@ func (g *Genesis) checkEarlyContractExist() {
 			panic(fmt.Sprintf("alloc value not right, addr: %v, got: %v, should be: %v", addr, b, shouldBe))
 		}
 	}
-	log.Info("genesis early contract check success")
+	log.DLogger.Info("genesis early contract check success")
 }
 
 /*func (g *Genesis) resetDataDirIfMercury(dataDir string) {
@@ -211,7 +212,7 @@ func (g *Genesis) checkEarlyContractExist() {
 		return
 	}
 	if !common.FileExist(dataDir) {
-		log.Error("can't reset mercury datadir", "datadir", dataDir)
+		log.DLogger.Error("can't reset mercury datadir", "datadir", dataDir)
 		return
 	}
 	bakDir := filepath.Join(util.HomeDir(), "dipperin_mercury_latest_datadir_bak")
@@ -219,7 +220,7 @@ func (g *Genesis) checkEarlyContractExist() {
 	if storageErr := os.Rename(dataDir, bakDir); storageErr != nil {
 		panic(fmt.Sprintf("bak datadir failed, storageErr: %v", storageErr))
 	}
-	log.Info("genesis not match reset datadir, you should restart dipperin", "bak to", bakDir)
+	log.DLogger.Info("genesis not match reset datadir, you should restart dipperin", "bak to", bakDir)
 	os.Exit(1)
 }*/
 
@@ -285,13 +286,13 @@ func (g *Genesis) ToBlock() *model.Block {
 func (g *Genesis) Commit(block model.AbstractBlock) error {
 	// commit states
 	if _, err := g.AccountStateProcessor.Commit(); err != nil {
-		log.Error("init accountStateProcessor failed", "storageErr", err)
+		log.DLogger.Error("init accountStateProcessor failed", zap.Error(err))
 		return err
 	}
 
 	// commit register
 	if _, err := g.RegisterProcessor.Commit(); err != nil {
-		log.Error("init registerProcessor failed", "storageErr", err)
+		log.DLogger.Error("init registerProcessor failed", zap.Error(err))
 		return err
 	}
 
@@ -348,7 +349,7 @@ func (g *Genesis) SetEarlyTokenContract() error {
 
 	balance, err := g.AccountStateProcessor.GetBalance(earlyTokenContract.Owner)
 	if err != nil {
-		log.Info("the account address is:", "address", earlyTokenContract.Owner.Hex())
+		log.DLogger.Info("the account address is:", zap.String("address", earlyTokenContract.Owner.Hex()))
 		return err
 	}
 
@@ -390,7 +391,7 @@ func (g *Genesis) Prepare() (model.AbstractBlock, error) {
 
 	// write state，Must be placed after the initial verifier account, otherwise the amount of the verifier in alloc will be overwritten to 0
 	for k, v := range g.Alloc {
-		//log.Debug("add genesis balance", "addr", k.Hex(), "balance", v)
+		//log.DLogger.Debug("add genesis balance", "addr", k.Hex(), "balance", v)
 		if err := g.AccountStateProcessor.NewAccountState(k); err != nil {
 			return nil, err
 		}
@@ -410,7 +411,7 @@ func (g *Genesis) Prepare() (model.AbstractBlock, error) {
 		if storageErr != nil {
 			return nil, storageErr
 		}
-		log.Info("the genesis contract is:","result",string(result))*/
+		log.DLogger.Info("the genesis contract is:","result",string(result))*/
 
 	stateRoot, err := g.AccountStateProcessor.Finalise()
 	if err != nil {
@@ -425,7 +426,7 @@ func (g *Genesis) Prepare() (model.AbstractBlock, error) {
 
 	registerRoot := g.RegisterProcessor.Finalise()
 	block.SetRegisterRoot(registerRoot)
-	log.Info("set genesis registerDB successful", "root", registerRoot)
+	log.DLogger.Info("set genesis registerDB successful", zap.Any("root", registerRoot))
 
 	return block, nil
 }
@@ -452,7 +453,7 @@ func (g *Genesis) Prepare() (model.AbstractBlock, error) {
 
 // DefaultGenesisBlock returns the Ethereum main net genesis block.
 func DefaultGenesisBlock(chainDB chaindb.Database, accountStateProcessor state_processor.AccountStateProcessor, registerProcessor registerdb.RegisterProcessor, chainConf *chain_config.ChainConfig) *Genesis {
-	log.Debug("call DefaultGenesisBlock")
+	log.DLogger.Debug("call DefaultGenesisBlock")
 
 	//read config file first
 	if mGenesis := GenesisBlockFromFile(chainDB, accountStateProcessor); mGenesis != nil {
@@ -518,19 +519,19 @@ type genesisCfgFile struct {
 }
 
 func GenesisBlockFromFile(chainDB chaindb.Database, accountStateProcessor state_processor.AccountStateProcessor) *Genesis {
-	log.Debug("call GenesisBlockFromFile")
+	log.DLogger.Debug("call GenesisBlockFromFile")
 
 	gFPath := filepath.Join(util.HomeDir(), "softwares", "dipperin_deploy", "genesis.json")
 	ge, e := ioutil.ReadFile(gFPath)
 	if e != nil {
 		return nil
 	}
-	log.Info("load genesis file", "path", gFPath)
+	log.DLogger.Info("load genesis file", zap.String("path", gFPath))
 
 	var info genesisCfgFile
 	err := json.Unmarshal(ge, &info)
 	if err != nil {
-		log.Error("unmarshal genesisCfgFile failed", "storageErr", err)
+		log.DLogger.Error("unmarshal genesisCfgFile failed", zap.Error(err))
 		return nil
 	}
 

@@ -20,8 +20,9 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 	"reflect"
 	"strings"
 )
@@ -51,7 +52,7 @@ func ParseCallContractData(abi []byte, rlpInput []byte) (extraData []byte, err e
 
 	inRlpList := inputRlpList.([]interface{})
 	if len(inRlpList) < 1 || len(inRlpList) > 2 {
-		log.Info("ParseCallContractData#inRlpList.Len", "len", len(inRlpList), "rlpInput", rlpInput)
+		log.DLogger.Info("ParseCallContractData#inRlpList.Len", zap.Int("len", len(inRlpList)), zap.Uint8s("rlpInput", rlpInput))
 		err = errInsufficientParams
 		return
 	}
@@ -64,7 +65,7 @@ func ParseCallContractData(abi []byte, rlpInput []byte) (extraData []byte, err e
 	wasmAbi := new(WasmAbi)
 	err = wasmAbi.FromJson(abi)
 	if err != nil {
-		log.Error("ParseCallContractData#wasmAbi.FromJson", "err", err)
+		log.DLogger.Error("ParseCallContractData#wasmAbi.FromJson", zap.Error(err))
 		return nil, err
 	}
 
@@ -79,7 +80,7 @@ func ParseCallContractData(abi []byte, rlpInput []byte) (extraData []byte, err e
 	}
 
 	if !found {
-		log.Error("ParseCallContractData failed", "err", errFuncNameNotFound, "funcName", funcName)
+		log.DLogger.Error("ParseCallContractData failed", zap.Error(errFuncNameNotFound), zap.String("funcName", funcName))
 		err = errFuncNameNotFound
 		return
 	}
@@ -94,7 +95,7 @@ func ParseCallContractData(abi []byte, rlpInput []byte) (extraData []byte, err e
 		return rlpInput, nil
 	} else {
 		if len(inRlpList) == 1 {
-			log.Error("ParseCallContractData failed", "err", fmt.Sprintf("rlpInput:%v, abi:%v", len(params), len(args)))
+			log.DLogger.Error("ParseCallContractData failed", zap.Int("rlpInput", len(params)), zap.Int("abi", len(args)))
 			return nil, errLengthInputAbiNotMatch
 		}
 
@@ -108,7 +109,7 @@ func ParseCallContractData(abi []byte, rlpInput []byte) (extraData []byte, err e
 	}
 
 	if len(args) != len(params) {
-		log.Error("ParseCallContractData failed", "err", fmt.Sprintf("rlpInput:%v, abi:%v", len(params), len(args)))
+		log.DLogger.Error("ParseCallContractData failed", zap.Int("rlpInput", len(params)), zap.Int("abi", len(args)))
 		return nil, errLengthInputAbiNotMatch
 	}
 
@@ -172,7 +173,7 @@ func ParseCreateContractData(rlpData []byte) (extraData []byte, err error) {
 	}
 
 	if !found {
-		log.Error("ParseCreateContractData failed", "err", errFuncNameNotFound, "funcName", "init")
+		log.DLogger.Error("ParseCreateContractData failed", zap.Error(errFuncNameNotFound), zap.String("funcName", "init"))
 		err = errFuncNameNotFound
 		return
 	}
@@ -186,7 +187,7 @@ func ParseCreateContractData(rlpData []byte) (extraData []byte, err error) {
 		return rlpData, nil
 	} else {
 		if len(iRlpList) == 2 {
-			log.Error("ParseCallContractData failed", "err", fmt.Sprintf("rlpInput:%v, abi:%v", len(params), len(args)))
+			log.DLogger.Error("ParseCallContractData failed", zap.Int("rlpInput", len(params)), zap.Int("abi", len(args)))
 			return nil, errLengthInputAbiNotMatch
 		}
 
@@ -200,7 +201,7 @@ func ParseCreateContractData(rlpData []byte) (extraData []byte, err error) {
 	}
 
 	if len(args) != len(params) {
-		log.Error("ParseCallContractData failed", "err", fmt.Sprintf("rlpInput:%v, abi:%v", len(params), len(args)))
+		log.DLogger.Error("ParseCallContractData failed", zap.Int("rlpInput", len(params)), zap.Int("abi", len(args)))
 		return nil, errLengthInputAbiNotMatch
 	}
 
@@ -245,7 +246,7 @@ func ParseInputForFuncName(rlpData []byte) (funcName string, err error) {
 
 func ConvertInputs(src []byte, abiInput []InputParam) ([]byte, error) {
 	if src == nil || len(src) == 0 {
-		log.Error("ConvertInputs failed", "err", errEmptyInput)
+		log.DLogger.Error("ConvertInputs failed", zap.Error(errEmptyInput))
 		return nil, errEmptyInput
 	}
 
@@ -258,7 +259,7 @@ func ConvertInputs(src []byte, abiInput []InputParam) ([]byte, error) {
 
 	inputList := rlpList.([]interface{})
 	if len(inputList) != len(abiInput) {
-		log.Error("ConvertInputs failed", "length", fmt.Sprintf("input:%v, abi:%v", len(inputList), len(abiInput)))
+		log.DLogger.Error("ConvertInputs failed", zap.Int("input", len(inputList)), zap.Int("abi", len(abiInput)))
 		return nil, errLengthInputAbiNotMatch
 	}
 

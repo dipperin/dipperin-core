@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/dipperin/dipperin-core/common/mclock"
-	"github.com/dipperin/dipperin-core/third-party/log"
 )
 
 const (
@@ -236,7 +235,6 @@ func (t *topicTable) deleteEntry(e *topicEntry) {
 
 // It is assumed that topics and waitPeriods have the same length.
 func (t *topicTable) useTicket(node *Node, serialNo uint32, topics []Topic, idx int, issueTime uint64, waitPeriods []uint32) (registered bool) {
-	log.Debug("Using discovery ticket", "serial", serialNo, "topics", topics, "waits", waitPeriods)
 	//fmt.Println("useTicket", serialNo, topics, waitPeriods)
 	t.collectGarbage()
 

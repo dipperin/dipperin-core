@@ -19,9 +19,12 @@ package main
 import (
 	"github.com/dipperin/dipperin-core/cmd/base"
 	"github.com/dipperin/dipperin-core/cmd/dipperin/config"
+	"github.com/dipperin/dipperin-core/common/log"
+	chain_config "github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/dipperin"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/urfave/cli"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"os"
 	"os/signal"
 	"syscall"
@@ -34,6 +37,19 @@ const (
 )
 
 func main() {
+	cnf := log.LoggerConfig{
+		Lvl:           zapcore.DebugLevel,
+		FilePath:      "",
+		Filename:      "",
+		WithConsole:   true,
+		WithFile:      false,
+		DisableCaller: true,
+	}
+	switch chain_config.GetCurBootsEnv() {
+	case "venus", "mercury":
+		cnf.Lvl = zapcore.InfoLevel
+	}
+	log.InitLogger(cnf)
 	app := base.NewApp("dipperin miner", "miner for dipperin")
 	app.Action = action
 	app.Flags = []cli.Flag{
@@ -56,7 +72,7 @@ func main() {
 		},
 	}
 	if err := app.Run(os.Args); err != nil {
-		log.Error("miner run failed", "err", err)
+		log.DLogger.Error("miner run failed", zap.Error(err))
 	}
 }
 
@@ -78,6 +94,6 @@ func signalListen(n dipperin.Node) {
 	c := make(chan os.Signal)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 	s := <-c
-	log.Info("got system signal", "signal", s)
+	log.DLogger.Info("got system signal", zap.String("signal", s.String()))
 	n.Stop()
 }

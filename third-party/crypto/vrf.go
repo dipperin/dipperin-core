@@ -10,8 +10,9 @@ import (
 	"encoding/binary"
 	"errors"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/third-party/crypto/secp256k1"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 	"math/big"
 )
 
@@ -164,7 +165,7 @@ func ProofToHash(pk *ecdsa.PublicKey, seed []byte, proof []byte) (index [32]byte
 	nilIndex := [32]byte{}
 	// verifier checks that s == hashToInt(m, [t]G + [s]([k]G), [t]hashToCurve(m) + [s]VRF_k(m))
 	if got, want := len(proof), 64+65; got != want {
-		log.Info("vrp len check failed", "got", got, "want", want)
+		log.DLogger.Info("vrp len check failed", zap.Int("got", got), zap.Int("want", want))
 		return nilIndex, ErrInvalidVRF
 	}
 
@@ -195,7 +196,7 @@ func ProofToHash(pk *ecdsa.PublicKey, seed []byte, proof []byte) (index [32]byte
 
 	uHx, uHy := elliptic.Unmarshal(curve, vrf)
 	if uHx == nil {
-		log.Info("elliptic.Unmarshal(curve, vrf) failed")
+		log.DLogger.Info("elliptic.Unmarshal(curve, vrf) failed")
 		return nilIndex, ErrInvalidVRF
 	}
 
@@ -230,7 +231,7 @@ func ProofToHash(pk *ecdsa.PublicKey, seed []byte, proof []byte) (index [32]byte
 	buf.Write(h2.Bytes())
 
 	if !hmac.Equal(s, buf.Bytes()) {
-		log.Info("!hmac.Equal(s, buf.Bytes()) check failed", "s", hexutil.Encode(s), "buf.Bytes()", hexutil.Encode(buf.Bytes()))
+		log.DLogger.Info("!hmac.Equal(s, buf.Bytes()) check failed", zap.String("s", hexutil.Encode(s)), zap.String("buf.Bytes()", hexutil.Encode(buf.Bytes())))
 		return nilIndex, ErrInvalidVRF
 	}
 	return sha256.Sum256(vrf), nil

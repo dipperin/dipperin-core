@@ -21,13 +21,14 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/g-metrics"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/csbft/components"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/csbft/state-machine"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -67,9 +68,9 @@ func (bft *CsBft) SetFetcher(fetcher *components.CsBftFetcher) {
 }*/
 
 func (bft *CsBft) Start() error {
-	log.PBft.Info("start CsBft", "cur height", bft.ChainReader.CurrentBlock().Number())
+	log.DLogger.Info("start CsBft", zap.Uint64("cur height", bft.ChainReader.CurrentBlock().Number()))
 	if !bft.canStart() {
-		log.PBft.Info("isn't cur verifier, can't start CsBft", "err", g_error.ErrIsNotCurVerifierCannotStartBft)
+		log.DLogger.Info("isn't cur verifier, can't start CsBft", zap.Error(g_error.ErrIsNotCurVerifierCannotStartBft))
 		return nil
 	}
 
@@ -77,42 +78,42 @@ func (bft *CsBft) Start() error {
 		return nil
 	}
 	err := bft.stateHandler.Start()
-	log.PBft.Debug("start git", "is running", bft.stateHandler.IsRunning(), "err", err)
+	log.DLogger.Debug("start git", zap.Bool("is running", bft.stateHandler.IsRunning()), zap.Error(err))
 	err = bft.blockPool.Start()
-	log.PBft.Debug("start pool", "is running", bft.blockPool.IsRunning(), "err", err)
+	log.DLogger.Debug("start pool", zap.Bool("is running", bft.blockPool.IsRunning()), zap.Error(err))
 	err = bft.fetcher.Start()
-	log.PBft.Debug("start fetcher", "is running", bft.fetcher.IsRunning(), "err", err)
+	log.DLogger.Debug("start fetcher", zap.Bool("is running", bft.fetcher.IsRunning()), zap.Error(err))
 
 	return nil
 }
 
 func (bft *CsBft) Stop() {
-	log.PBft.Info("stop CsBft", "cur height", bft.ChainReader.CurrentBlock().Number())
+	log.DLogger.Info("stop CsBft", zap.Uint64("cur height", bft.ChainReader.CurrentBlock().Number()))
 
 	bft.stateHandler.Stop()
 	if err := bft.stateHandler.Reset(); err != nil {
-		log.Warn("reset state handler failed", "err", err)
+		log.DLogger.Warn("reset state handler failed", zap.Error(err))
 	}
-	log.PBft.Debug("Stop state handler", "state handler is running", bft.blockPool.IsRunning())
+	log.DLogger.Debug("Stop state handler", zap.Bool("state handler is running", bft.blockPool.IsRunning()))
 	bft.blockPool.Stop()
-	log.PBft.Debug("Stop pool", "pool is running", bft.blockPool.IsRunning())
+	log.DLogger.Debug("Stop pool", zap.Bool("pool is running", bft.blockPool.IsRunning()))
 	bft.fetcher.Stop()
-	log.PBft.Debug("Stop fetcher", "fetcher is running", bft.blockPool.IsRunning())
+	log.DLogger.Debug("Stop fetcher", zap.Bool("fetcher is running", bft.blockPool.IsRunning()))
 	bft.fetcher.Reset()
 }
 
 func (bft *CsBft) OnNewWaitVerifyBlock(block model.AbstractBlock, id string) {
-	//log.PBft.Debug("cs onNewWatVerifyBlock")
+	//log.DLogger.Debug("cs onNewWatVerifyBlock")
 	//check the node is or isn't current verifier node
 	if !bft.stateHandler.IsRunning() || !bft.blockPool.IsRunning() {
-		log.PBft.Debug("cs onNewWatVerifyBlock, bft not running")
+		log.DLogger.Debug("cs onNewWatVerifyBlock, bft not running")
 		return
 	}
-	log.PBft.Info("cs bft OnNewWaitVerifyBlock", "block num", block.Number())
+	log.DLogger.Info("cs bft OnNewWaitVerifyBlock", zap.Uint64("block num", block.Number()))
 
 	// todo check block valid here?
 	if err := bft.blockPool.AddBlock(block); err != nil {
-		log.PBft.Info("pool add block failed", "err", err)
+		log.DLogger.Info("pool add block failed", zap.Error(err))
 		return
 	}
 	// wait and sync block to other verifiers
@@ -122,7 +123,7 @@ func (bft *CsBft) OnNewWaitVerifyBlock(block model.AbstractBlock, id string) {
 func (bft *CsBft) broadcastFetchBlockMsg(blockHash common.Hash) {
 	// maybe other node is receiving this block
 	time.Sleep(500 * time.Millisecond)
-	log.PBft.Info("broadcast sync block msg", "hash", blockHash.Hex())
+	log.DLogger.Info("broadcast sync block msg", zap.String("hash", blockHash.Hex()))
 	bft.Sender.BroadcastMsg(uint64(model2.TypeOfSyncBlockMsg), blockHash)
 }
 
@@ -133,15 +134,15 @@ func (bft *CsBft) OnNewMsg(msg interface{}) error {
 func (bft *CsBft) AddPeer(p chain_communication.PmAbstractPeer) error { return nil }
 
 func (bft *CsBft) ChangePrimary(primary string) {
-	log.PBft.Debug("Change Primary Called")
-	log.PBft.Debug("Current num", "num", bft.ChainReader.CurrentBlock().Number())
+	log.DLogger.Debug("Change Primary Called")
+	log.DLogger.Debug("Current num", zap.Uint64("num", bft.ChainReader.CurrentBlock().Number()))
 	if bft.canStart() {
-		log.PBft.Debug("Start state handler")
+		log.DLogger.Debug("Start state handler")
 		bft.Start()
 		bft.stateHandler.NewHeight(bft.ChainReader.CurrentBlock().Number() + 1)
 		return
 	}
-	log.PBft.Debug("Stop state handler")
+	log.DLogger.Debug("Stop state handler")
 	bft.Stop()
 }
 
@@ -158,7 +159,7 @@ func (bft *CsBft) canStart() bool {
 func (bft *CsBft) isCurrentVerifier() bool {
 	vs := bft.ChainReader.GetCurrVerifiers()
 	curAccount := bft.Signer.GetAddress()
-	log.PBft.Info("CsBft isCurrentVerifier", "cur vs", vs, "cur account", curAccount)
+	log.DLogger.Info("CsBft isCurrentVerifier", zap.Any("cur vs", vs), zap.Any("cur account", curAccount))
 	for _, v := range vs {
 		if v.IsEqual(curAccount) {
 			return true
@@ -181,7 +182,7 @@ func (bft *CsBft) isNextVerifier() bool {
 // The processing here can't be blocked, it must be quickly put into a coroutine and returned after processing, otherwise msg read will be blocked.
 func (bft *CsBft) OnNewP2PMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer) error {
 	if !bft.stateHandler.IsRunning() {
-		log.PBft.Warn("[Node-OnNewMsg]receive bft msg, but state handler not started")
+		log.DLogger.Warn("[Node-OnNewMsg]receive bft msg, but state handler not started")
 		return nil
 	}
 
@@ -191,21 +192,21 @@ func (bft *CsBft) OnNewP2PMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer)
 		if err := msg.Decode(&m); err != nil {
 			return err
 		}
-		log.PBft.Info("[Node-OnNewMsg]receive new round msg", "node", p.NodeName(), "height", m.Height, "round", m.Round)
+		log.DLogger.Info("[Node-OnNewMsg]receive new round msg", zap.String("node", p.NodeName()), zap.Uint64("height", m.Height), zap.Uint64("round", m.Round))
 		bft.stateHandler.NewRound(&m)
 	case model2.TypeOfProposalMsg:
 		var m model2.Proposal
 		if err := msg.Decode(&m); err != nil {
 			return err
 		}
-		log.PBft.Info("[Node-OnNewMsg]receive proposal msg", "node", p.NodeName(), "height", m.Height, "round", m.Round, "block", m.BlockID.Hex())
+		log.DLogger.Info("[Node-OnNewMsg]receive proposal msg", zap.String("node", p.NodeName()), zap.Uint64("height", m.Height), zap.Uint64("round", m.Round), zap.String("block", m.BlockID.Hex()))
 		bft.stateHandler.NewProposal(&m)
 	case model2.TypeOfPreVoteMsg:
 		var m model.VoteMsg
 		if err := msg.Decode(&m); err != nil {
 			return err
 		}
-		log.PBft.Info("[Node-OnNewMsg]receive prevote msg", "node", p.NodeName(), "height", m.Height, "round", m.Round, "block", m.BlockID.Hex())
+		log.DLogger.Info("[Node-OnNewMsg]receive prevote msg", zap.String("node", p.NodeName()), zap.Uint64("height", m.Height), zap.Uint64("round", m.Round), zap.String("block", m.BlockID.Hex()))
 		bft.stateHandler.PreVote(&m)
 
 	case model2.TypeOfVoteMsg:
@@ -213,12 +214,12 @@ func (bft *CsBft) OnNewP2PMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer)
 		if err := msg.Decode(&m); err != nil {
 			return err
 		}
-		log.PBft.Info("[Node-OnNewMsg]receive vote msg", "node", p.NodeName(), "height", m.Height, "round", m.Round, "block", m.BlockID.Hex())
+		log.DLogger.Info("[Node-OnNewMsg]receive vote msg", zap.String("node", p.NodeName()), zap.Uint64("height", m.Height), zap.Uint64("round", m.Round), zap.String("block", m.BlockID.Hex()))
 		bft.stateHandler.Vote(&m)
 
 	case model2.TypeOfFetchBlockReqMsg:
 		//fmt.Println("receive fetch block msg")
-		log.PBft.Info("[Node-OnNewMsg]receive fetch block msg", "from", p.NodeName())
+		log.DLogger.Info("[Node-OnNewMsg]receive fetch block msg", zap.String("from", p.NodeName()))
 		var m model2.FetchBlockReqDecodeMsg
 		if err := msg.Decode(&m); err != nil {
 			return err
@@ -228,7 +229,7 @@ func (bft *CsBft) OnNewP2PMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer)
 		if b == nil {
 			b = bft.stateHandler.GetProposalBlock(m.BlockHash)
 		}
-		log.PBft.Info("[Node-OnNewMsg] fetch result", "to", p.NodeName(), "block_is_nil", b == nil)
+		log.DLogger.Info("[Node-OnNewMsg] fetch result", zap.String("to", p.NodeName()), zap.Bool("block_is_nil", b == nil))
 
 		// todo check will panic if b is nil?
 		if b == nil {
@@ -238,24 +239,24 @@ func (bft *CsBft) OnNewP2PMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer)
 			MsgId: m.MsgId,
 			Block: b,
 		}); err != nil {
-			log.PBft.Warn("[Node-OnNewMsg] send fetch block to client failed", "err", err)
+			log.DLogger.Warn("[Node-OnNewMsg] send fetch block to client failed", zap.Error(err))
 		}
-		log.PBft.Info("[Node-OnNewMsg] send fetch result 2")
+		log.DLogger.Info("[Node-OnNewMsg] send fetch result 2")
 
 	case model2.TypeOfFetchBlockRespMsg:
 		var m model2.FetchBlockRespDecodeMsg
 		if err := msg.Decode(&m); err != nil {
-			log.PBft.Debug("[Node-OnNewMsg] Decode Error, FetchBlockRespMsg", "err", err)
+			log.DLogger.Debug("[Node-OnNewMsg] Decode Error, FetchBlockRespMsg", zap.Error(err))
 			return err
 		}
-		log.PBft.Info("[Node-OnNewMsg] receive fetch block resp", "node", p.NodeName())
+		log.DLogger.Info("[Node-OnNewMsg] receive fetch block resp", zap.String("node", p.NodeName()))
 		bft.fetcher.FetchBlockResp(&components.FetchBlockRespMsg{
 			MsgId: m.MsgId,
 			Block: m.Block,
 		})
 
 	case model2.TypeOfSyncBlockMsg:
-		log.PBft.Info("[Node-OnNewMsg] receive sync block", "node", p.NodeName())
+		log.DLogger.Info("[Node-OnNewMsg] receive sync block", zap.String("node", p.NodeName()))
 		var m common.Hash
 		if err := msg.Decode(&m); err != nil {
 			return err
@@ -265,18 +266,18 @@ func (bft *CsBft) OnNewP2PMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer)
 	case model2.TypeOfReqNewRoundMsg:
 		var m model2.ReqRoundMsg
 		if err := msg.Decode(&m); err != nil {
-			log.PBft.Error("decode req new round msg error", "err", err)
+			log.DLogger.Error("decode req new round msg error", zap.Error(err))
 			return err
 		}
-		log.PBft.Info("[Node-OnNewMsg] receive req new round", "node", p.NodeName(), "height", m.Height, "round", m.Round)
+		log.DLogger.Info("[Node-OnNewMsg] receive req new round", zap.String("node", p.NodeName()), zap.Uint64("height", m.Height), zap.Uint64("round", m.Round))
 
 		round := m.Round
 		for {
 			msg := bft.stateHandler.GetRoundMsg(m.Height, round)
 			if msg != nil {
-				log.PBft.Info("[Node-OnNewMsg]  response round request", "to", p.NodeName(), "height", m.Height, "round", round, "msg", msg)
+				log.DLogger.Info("[Node-OnNewMsg]  response round request", zap.String("to", p.NodeName()), zap.Uint64("height", m.Height), zap.Uint64("round", m.Round), zap.Any("msg", msg))
 				if err := p.SendMsg(uint64(model2.TypeOfNewRoundMsg), msg); err != nil {
-					log.PBft.Error("response round request error", "err", err)
+					log.DLogger.Error("response round request error", zap.Error(err))
 				}
 			} else {
 				break
@@ -285,11 +286,11 @@ func (bft *CsBft) OnNewP2PMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer)
 		}
 
 		//msg := bft.stateHandler.GetRoundMsg(m.Height, m.Round)
-		//log.PBft.Debug("[Node-OnNewMsg] response", "msg == nil", msg == nil)
+		//log.DLogger.Debug("[Node-OnNewMsg] response", "msg == nil", msg == nil)
 		//if msg != nil {
-		//	log.PBft.Info("[Node-OnNewMsg]  response round request", "to", p.NodeName(), "height", m.Height, "round", m.Round)
+		//	log.DLogger.Info("[Node-OnNewMsg]  response round request", "to", p.NodeName(), "height", m.Height, "round", m.Round)
 		//	if err := p.SendMsg(uint64(model2.TypeOfNewRoundMsg), msg); err != nil {
-		//		log.PBft.Error("response round request error", "err", err)
+		//		log.DLogger.Error("response round request error", zap.Error(err))
 		//	}
 		//}
 	default:
@@ -304,16 +305,16 @@ func (bft *CsBft) onSyncBlockMsg(from common.Address, h common.Hash) {
 	defer g_metrics.Sub(g_metrics.FetchBlockGoCount, "", 1)
 
 	if from.IsEmpty() {
-		log.PBft.Warn("from is empty, do nothing for sync msg")
+		log.DLogger.Warn("from is empty, do nothing for sync msg")
 		return
 	}
 	if h.IsEmpty() {
-		log.PBft.Warn("block hash is empty, do nothing for sync msg")
+		log.DLogger.Warn("block hash is empty, do nothing for sync msg")
 		return
 	}
 
 	if !bft.blockPool.IsEmpty() {
-		//log.PBft.Warn("pool not empty, ignore sync block msg")
+		//log.DLogger.Warn("pool not empty, ignore sync block msg")
 		return
 	}
 
@@ -323,7 +324,7 @@ func (bft *CsBft) onSyncBlockMsg(from common.Address, h common.Hash) {
 		b = bft.stateHandler.GetProposalBlock(h)
 	}
 	if b != nil {
-		log.PBft.Info("onSyncBlockMsg already have this block")
+		log.DLogger.Info("onSyncBlockMsg already have this block")
 		return
 	}
 
@@ -331,9 +332,9 @@ func (bft *CsBft) onSyncBlockMsg(from common.Address, h common.Hash) {
 	b = bft.fetcher.FetchBlock(from, h)
 	if b != nil {
 		if err := bft.blockPool.AddBlock(b); err != nil {
-			log.PBft.Warn("fetcher add block failed", "err", err)
+			log.DLogger.Warn("fetcher add block failed", zap.Error(err))
 		}
 		return
 	}
-	log.PBft.Info("fetch block failed")
+	log.DLogger.Info("fetch block failed")
 }

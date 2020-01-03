@@ -18,13 +18,14 @@ package middleware
 
 import (
 	"github.com/dipperin/dipperin-core/common/g-error"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
+	"go.uber.org/zap"
 )
 
 func InsertBlock(c *BlockContext) Middleware {
 	return func() error {
 		curBlock := c.Chain.CurrentBlock()
-		log.Middleware.Info("InsertBlock start", "curNum", curBlock.Number(), "blockNum", c.Block.Number())
+		log.DLogger.Info("InsertBlock start", zap.Uint64("curNum", curBlock.Number()), zap.Uint64("blockNum", c.Block.Number()))
 
 		// roll back chain if insert special block
 		if c.Block.IsSpecial() {
@@ -33,7 +34,7 @@ func InsertBlock(c *BlockContext) Middleware {
 			}
 		}
 
-		log.Info("insert block", "cur number", curBlock.Number(), "new number", c.Block.Number())
+		log.DLogger.Info("insert block", zap.Uint64("cur number", curBlock.Number()), zap.Uint64("new number", c.Block.Number()))
 		// check block number
 		if c.Chain.CurrentBlock().Number()+1 != c.Block.Number() {
 			return g_error.ErrInvalidBlockNum
@@ -42,19 +43,19 @@ func InsertBlock(c *BlockContext) Middleware {
 		if err := c.Chain.GetChainDB().InsertBlock(c.Block); err != nil {
 			return err
 		}
-		log.Info("insert block successful", "num", c.Block.Number())
+		log.DLogger.Info("insert block successful", zap.Uint64("num", c.Block.Number()))
 		//currentBlock := c.Chain.CurrentBlock()
-		//log.Info("the currentBlock number is~~~~~~~~~~~~~`:","number",currentBlock.Number())
+		//log.DLogger.Info("the currentBlock number is~~~~~~~~~~~~~`:","number",currentBlock.Number())
 
 		//insert receipts
 		if !c.Block.IsSpecial() {
 			if err := c.Chain.GetChainDB().SaveReceipts(c.Block.Hash(), c.Block.Number(), c.receipts); err != nil {
 				return err
 			}
-			log.Info("insert receipts successful", "num", c.Block.Number())
+			log.DLogger.Info("insert receipts successful", zap.Uint64("num", c.Block.Number()))
 		}
 
-		log.Middleware.Info("InsertBlock success")
+		log.DLogger.Info("InsertBlock success")
 		return c.Next()
 	}
 }

@@ -18,20 +18,21 @@ package middleware
 
 import (
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 func ValidGasUsedAndReceipts(c *BlockContext) Middleware {
 	return func() error {
-		log.Middleware.Info("ValidGasUsedAndReceipts start")
+		log.DLogger.Info("ValidGasUsedAndReceipts start")
 		if c.Block.IsSpecial() {
-			log.Middleware.Info("ValidGasUsedAndReceipts the block is empty block")
+			log.DLogger.Info("ValidGasUsedAndReceipts the block is empty block")
 			return c.Next()
 		}
 		curBlock := c.Chain.CurrentBlock()
-		log.Info("Insert block receipts", "cur number", curBlock.Number(), "new number", c.Block.Number())
+		log.DLogger.Info("Insert block receipts", zap.Uint64("cur number", curBlock.Number()), zap.Uint64("new number", c.Block.Number()))
 		receipts := make(model2.Receipts, 0, c.Block.TxCount())
 		var accumulatedGas uint64
 		if err := c.Block.TxIterator(func(i int, transaction model.AbstractTransaction) error {
@@ -49,12 +50,12 @@ func ValidGasUsedAndReceipts(c *BlockContext) Middleware {
 		//check receipt hash
 		receiptHash := model.DeriveSha(receipts)
 		if receiptHash != c.Block.GetReceiptHash() {
-			log.Error("InsertReceipts receiptHash not match", "receiptHash", receiptHash, "block.ReciptHash", c.Block.GetReceiptHash())
+			log.DLogger.Error("InsertReceipts receiptHash not match", zap.Any("receiptHash", receiptHash), zap.Any("block.ReciptHash", c.Block.GetReceiptHash()))
 			return g_error.ErrReceiptHashNotMatch
 		}
 
 		if accumulatedGas != c.Block.Header().GetGasUsed() {
-			log.Error("InsertReceipts accumulatedGas not match", "accumulatedGas", accumulatedGas, "headerGasUsed", c.Block.Header().GetGasUsed())
+			log.DLogger.Error("InsertReceipts accumulatedGas not match", zap.Uint64("accumulatedGas", accumulatedGas), zap.Uint64("headerGasUsed", c.Block.Header().GetGasUsed()))
 			return g_error.ErrInvalidHeaderGasUsed
 		}
 
@@ -65,7 +66,7 @@ func ValidGasUsedAndReceipts(c *BlockContext) Middleware {
 
 		//padding receipts
 		c.receipts = receipts
-		log.Middleware.Info("ValidGasUsedAndReceipts success")
+		log.DLogger.Info("ValidGasUsedAndReceipts success")
 		return c.Next()
 	}
 }

@@ -19,9 +19,10 @@ package chain_communication
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
+	"go.uber.org/zap"
 	"net"
 	"sync"
 )
@@ -87,7 +88,7 @@ func (p *peer) GetCsPeerInfo() *p2p.CsPeerInfo {
 }
 
 func (p *peer) SetNotRunning() {
-	log.Info("set peer not running", "node name", p.nodeName)
+	log.DLogger.Info("set peer not running", zap.String("node name", p.nodeName))
 	p.notRunning = true
 }
 
@@ -136,7 +137,7 @@ func (p *peer) SetHead(hash common.Hash, height uint64) {
 }
 
 func (p *peer) DisconnectPeer() {
-	log.Info("call peer disconnect", "p", p.nodeName)
+	log.DLogger.Info("call peer disconnect", zap.String("p", p.nodeName))
 	p.p2pPeer.Disconnect(p2p.DiscQuitting)
 	p.SetNotRunning()
 }
@@ -179,10 +180,10 @@ func (ps *peerSet) BestPeer() PmAbstractPeer {
 		bestHeight uint64
 	)
 
-	log.Debug("get BestPeer the peers number is:", "number", len(ps.peers))
+	log.DLogger.Debug("get BestPeer the peers number is:", zap.Int("number", len(ps.peers)))
 	for _, p := range ps.peers {
 		_, height := p.GetHead()
-		log.Debug("get best peer", "nodeName", p.NodeName(), "p height", height)
+		log.DLogger.Debug("get best peer", zap.String("nodeName", p.NodeName()), zap.Uint64("p height", height))
 		if bestPeer == nil || height > bestHeight {
 			bestPeer, bestHeight = p, height
 		}
@@ -226,7 +227,7 @@ func (ps *peerSet) AddPeer(p PmAbstractPeer) error {
 	}
 
 	if _, ok := ps.peers[p.ID()]; ok {
-		log.Warn("duplicate peer replace old", "p name", p.NodeName())
+		log.DLogger.Warn("duplicate peer replace old", zap.String("p name", p.NodeName()))
 		//You must return error to ensure that the handle exits. If it is a replacement, may be have a problem: AddPeer grabs the lock first than RemovePeer, after Add replaces the old unlock, Remove continues to remove the newly added peer.
 		return errors.New("duplicate peer error")
 	}

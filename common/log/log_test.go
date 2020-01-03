@@ -18,22 +18,20 @@ package log
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
-	"os"
-	"path"
-	"sync"
+	"go.uber.org/zap/zapcore"
 	"testing"
-	"time"
 )
 
-func TestDefaultPrint(t *testing.T) {
+func TestDefaultCsPrint(t *testing.T) {
 	DLogger.Debug("test Debug", zap.String("a", "b"))
 	DLogger.Info("test Info", zap.String("a", "b"))
 	DLogger.Warn("test Warn", zap.String("a", "b"))
 	DLogger.Error("test Error", zap.String("a", "b"))
 }
 
-func TestDefaultPrint_DPainc(t *testing.T) {
+func TestDefaultCsPrint_DPainc(t *testing.T) {
 	defer func() {
 		e := recover()
 		fmt.Println(e)
@@ -41,7 +39,7 @@ func TestDefaultPrint_DPainc(t *testing.T) {
 	DLogger.DPanic("test DPanic", zap.String("a", "b"))
 }
 
-func TestDefaultPrint_Panic(t *testing.T) {
+func TestDefaultCsPrint_Panic(t *testing.T) {
 	defer func() {
 		e := recover()
 		fmt.Println(e)
@@ -49,7 +47,7 @@ func TestDefaultPrint_Panic(t *testing.T) {
 	DLogger.Panic("test Panic", zap.String("a", "b"))
 }
 
-func TestDefaultPrint_Fatal(t *testing.T) {
+func TestDefaultCsPrint_Fatal(t *testing.T) {
 	t.Skip()
 	defer func() {
 		e := recover()
@@ -59,68 +57,92 @@ func TestDefaultPrint_Fatal(t *testing.T) {
 }
 
 func TestInitLogger(t *testing.T) {
-	InitLogger(false, "", "")
+	cnf := LoggerConfig{
+		Lvl:         zapcore.InfoLevel,
+		FilePath:    "",
+		Filename:    "",
+		WithConsole: false,
+		WithFile:    false,
+	}
+	InitLogger(cnf)
 	DLogger.Debug("test Debug", zap.String("a", "b"))
 	DLogger.Info("test Info", zap.String("a", "b"))
 	DLogger.Warn("test Warn", zap.String("a", "b"))
 	DLogger.Error("test Error", zap.String("a", "b"))
 }
 
-func TestInitLogger_debug(t *testing.T) {
-	InitLogger(true, "", "")
+func TestInitLogger_WithConsole_AddCaller(t *testing.T) {
+	cnf := LoggerConfig{
+		Lvl:           zapcore.InfoLevel,
+		FilePath:      "",
+		Filename:      "",
+		WithConsole:   true,
+		WithFile:      false,
+		DisableCaller: false,
+	}
+	InitLogger(cnf)
 	DLogger.Debug("test Debug", zap.String("a", "b"))
 	DLogger.Info("test Info", zap.String("a", "b"))
 	DLogger.Warn("test Warn", zap.String("a", "b"))
 	DLogger.Error("test Error", zap.String("a", "b"))
 }
 
-func TestInitLogger_LogFile(t *testing.T) {
-	testDir, err := os.UserHomeDir()
-	if err != nil {
-		t.Skip()
+func TestInitLogger_WithConsole_DisableCaller(t *testing.T) {
+	cnf := LoggerConfig{
+		Lvl:           zapcore.InfoLevel,
+		FilePath:      "",
+		Filename:      "",
+		WithConsole:   true,
+		WithFile:      false,
+		DisableCaller: true,
 	}
-	testDir = path.Join(testDir, "tmp")
-	InitLogger(false, testDir, fmt.Sprintf("%d.log", time.Now().Unix()))
+	InitLogger(cnf)
 	DLogger.Debug("test Debug", zap.String("a", "b"))
 	DLogger.Info("test Info", zap.String("a", "b"))
 	DLogger.Warn("test Warn", zap.String("a", "b"))
 	DLogger.Error("test Error", zap.String("a", "b"))
 }
 
-func TestInitLogger_LogFile_debug(t *testing.T) {
-	testDir, err := os.UserHomeDir()
-	if err != nil {
-		t.Skip()
+func TestInitLogger_WithFile(t *testing.T) {
+	cnf := LoggerConfig{
+		Lvl:         zapcore.InfoLevel,
+		FilePath:    "",
+		Filename:    "",
+		WithConsole: false,
+		WithFile:    true,
 	}
-	testDir = path.Join(testDir, "tmp")
-	InitLogger(true, testDir, fmt.Sprintf("%d.log", time.Now().Unix()))
+	InitLogger(cnf)
 	DLogger.Debug("test Debug", zap.String("a", "b"))
 	DLogger.Info("test Info", zap.String("a", "b"))
 	DLogger.Warn("test Warn", zap.String("a", "b"))
 	DLogger.Error("test Error", zap.String("a", "b"))
 }
 
-func TestInitLogger_backups(t *testing.T) {
-	t.Skip("Backups: only local")
-	testDir, err := os.UserHomeDir()
-	if err != nil {
-		t.Skip()
+func TestInitLogger_WithConsole_WithFile(t *testing.T) {
+	cnf := LoggerConfig{
+		Lvl:         zapcore.InfoLevel,
+		FilePath:    "",
+		Filename:    "",
+		WithConsole: true,
+		WithFile:    true,
 	}
-	testDir = path.Join(testDir, "tmp", "logs")
-	InitLogger(true, testDir, fmt.Sprintf("%d.log", time.Now().Unix()))
-	sw := sync.WaitGroup{}
-	bt := time.Now()
-	for i := 0; i < (1 << 20); i++ {
-		i := i
-		sw.Add(1)
-		go func() {
-			defer sw.Done()
-			DLogger.Debug("test Debug", zap.String("a", "b"), zap.Int("count", i))
-			DLogger.Info("test Info", zap.String("a", "b"), zap.Int("count", i))
-			DLogger.Warn("test Warn", zap.String("a", "b"), zap.Int("count", i))
-			DLogger.Error("test Error", zap.String("a", "b"), zap.Int("count", i))
-		}()
+	InitLogger(cnf)
+	DLogger.Debug("test Debug", zap.String("a", "b"))
+	DLogger.Info("test Info", zap.String("a", "b"))
+	DLogger.Warn("test Warn", zap.String("a", "b"))
+	DLogger.Error("test Error", zap.String("a", "b"))
+}
+
+func TestLvlFromString(t *testing.T) {
+	for v, r := range map[string]zapcore.Level{
+		"error": zapcore.ErrorLevel,
+		"eror":  zapcore.ErrorLevel,
+		"warn":  zapcore.WarnLevel,
+		"debug": zapcore.DebugLevel,
+		"dbug":  zapcore.DebugLevel,
+		"info":  zapcore.InfoLevel,
+	} {
+		lv, _ := LvlFromString(v)
+		assert.Equal(t, r, lv)
 	}
-	sw.Wait()
-	fmt.Println(time.Since(bt))
 }

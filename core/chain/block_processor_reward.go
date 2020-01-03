@@ -19,9 +19,10 @@ package chain
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
+	"go.uber.org/zap"
 )
 
 //Reward Verifiers, current block reward previous block
@@ -108,7 +109,7 @@ func (state *BlockProcessor) rewardCoinBase(block model.AbstractBlock, earlyCont
 		return err
 	}
 
-	log.Info("reward to coinBase", "total", total, "address", block.CoinBaseAddress(), "num", block.Number())
+	log.DLogger.Info("reward to coinBase", zap.Any("total", total), zap.Any("address", block.CoinBaseAddress()), zap.Uint64("num", block.Number()))
 	err = state.AddBalance(coinBaseAddress, total)
 	if err != nil {
 		return err

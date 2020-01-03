@@ -26,6 +26,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/config"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/chain-config"
@@ -35,9 +36,9 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/ethereum/go-ethereum/rlp"
+	"go.uber.org/zap"
 	"math/big"
 )
 
@@ -74,10 +75,10 @@ func (api *DipperinVenusApi) CurrentBlock() (*BlockResp, error) {
 	blockResp.Header = *curBlock.Header().(*model.Header)
 	blockResp.Body = *curBlock.Body().(*model.Body)
 
-	//	log.Debug("the blockResp header is: ","header",blockResp.Header)
-	log.Debug("the blockResp body is: ", "body", blockResp.Body)
+	//	log.DLogger.Debug("the blockResp header is: ","header",blockResp.Header)
+	log.DLogger.Debug("the blockResp body is: ", zap.Any("body", blockResp.Body))
 
-	//log.Debug("the blockResp transactions is:","txs",*blockResp.Body.Txs[0])
+	//log.DLogger.Debug("the blockResp transactions is:","txs",*blockResp.Body.Txs[0])
 
 	return blockResp, nil
 }
@@ -108,18 +109,18 @@ func (api *DipperinVenusApi) GetBlockByNumber(number uint64) (*BlockResp, error)
 	}
 
 	curBlock, err := api.service.GetBlockByNumber(number)
-	log.Info("DipperinVenusApi#GetBlockByNumber", "curBlock", curBlock)
+	log.DLogger.Info("DipperinVenusApi#GetBlockByNumber", zap.Any("curBlock", curBlock))
 	if err != nil || curBlock == nil {
 		return nil, g_error.ErrBlockNotFound
 	}
 
-	//	log.Debug("the current block is: ","current block",*curBlock.(*model.Block))
+	//	log.DLogger.Debug("the current block is: ","current block",*curBlock.(*model.Block))
 
 	blockResp.Header = *curBlock.Header().(*model.Header)
 	blockResp.Body = *curBlock.Body().(*model.Body)
 
-	//	log.Debug("the blockResp header is: ","header",blockResp.Header)
-	log.Debug("the blockResp body is: ", "body", blockResp.Body)
+	//	log.DLogger.Debug("the blockResp header is: ","header",blockResp.Header)
+	log.DLogger.Debug("the blockResp body is: ", zap.Any("body", blockResp.Body))
 
 	return blockResp, nil
 }
@@ -204,15 +205,15 @@ func (api *DipperinVenusApi) GetGenesis() (*BlockResp, error) {
 		return nil, err
 	}
 
-	//	log.Debug("the current block is: ","current block",*curBlock.(*model.Block))
+	//	log.DLogger.Debug("the current block is: ","current block",*curBlock.(*model.Block))
 
 	blockResp.Header = *curBlock.Header().(*model.Header)
 	blockResp.Body = *curBlock.Body().(*model.Body)
 
-	//	log.Debug("the blockResp header is: ","header",blockResp.Header)
-	log.Debug("the blockResp body is: ", "body", blockResp.Body)
+	//	log.DLogger.Debug("the blockResp header is: ","header",blockResp.Header)
+	log.DLogger.Debug("the blockResp body is: ", zap.Any("body", blockResp.Body))
 
-	//	log.Debug("the blockResp transactions is:","txs",*blockResp.Body.Txs[0])
+	//	log.DLogger.Debug("the blockResp transactions is:","txs",*blockResp.Body.Txs[0])
 
 	return blockResp, nil
 }
@@ -291,10 +292,10 @@ func (api *DipperinVenusApi) Transaction(hash common.Hash) (resp *TransactionRes
 		return nil, err
 	}
 
-	//log.Info("the resp.Transaction is: ","tx",tmpResp.Transaction)
-	/*	log.Info("the resp.BlockHash is: ","blockHash",tmpResp.BlockHash)
-		log.Info("the resp.BlockNumber is: ","blockNum",tmpResp.BlockNumber)
-		log.Info("the resp.TxIndex is: ","txIndex",tmpResp.TxIndex)*/
+	//log.DLogger.Info("the resp.Transaction is: ","tx",tmpResp.Transaction)
+	/*	log.DLogger.Info("the resp.BlockHash is: ","blockHash",tmpResp.BlockHash)
+		log.DLogger.Info("the resp.BlockNumber is: ","blockNum",tmpResp.BlockNumber)
+		log.DLogger.Info("the resp.TxIndex is: ","txIndex",tmpResp.TxIndex)*/
 
 	return &tmpResp, nil
 }
@@ -339,16 +340,16 @@ func (api *DipperinVenusApi) NewTransaction(transactionRlpB []byte) (TxHash comm
 	var transaction model.Transaction
 	err = rlp.DecodeBytes(transactionRlpB, &transaction)
 	if err != nil {
-		log.TagError("decode client tx failed", "err", err)
+		log.DLogger.Error("decode client tx failed", zap.Error(err))
 		return common.Hash{}, err
 	}
 
-	log.Info("[NewTransaction] the tx is: ", "tx", transaction)
+	log.DLogger.Info("[NewTransaction] the tx is: ", zap.Any("tx", transaction))
 	if TxHash, err = api.service.NewTransaction(transaction); err != nil {
-		log.TagError("add and broadcast client tx failed", "err", err)
+		log.DLogger.Error("add and broadcast client tx failed", zap.Error(err))
 	}
 
-	log.Info("NewTransaction the txId is:", "txId", TxHash.Hex())
+	log.DLogger.Info("NewTransaction the txId is:", zap.String("txId", TxHash.Hex()))
 	return
 }
 
@@ -357,7 +358,7 @@ func (api *DipperinVenusApi) NewContract(transactionRlpB []byte, blockNum uint64
 	var transaction model.Transaction
 	err = rlp.DecodeBytes(transactionRlpB, &transaction)
 	if err != nil {
-		log.TagError("decode client tx failed", "err", err)
+		log.DLogger.Error("decode client tx failed", zap.Error(err))
 		return "", err
 	}
 
@@ -372,7 +373,7 @@ func (api *DipperinVenusApi) NewEstimateGas(transactionRlpB []byte) (resp hexuti
 	var transaction model.Transaction
 	err = rlp.DecodeBytes(transactionRlpB, &transaction)
 	if err != nil {
-		log.TagError("decode client tx failed", "err", err)
+		log.DLogger.Error("decode client tx failed", zap.Error(err))
 		return hexutil.Uint64(0), err
 	}
 
@@ -381,21 +382,21 @@ func (api *DipperinVenusApi) NewEstimateGas(transactionRlpB []byte) (resp hexuti
 }
 
 //func (apiB *DipperinVenusApi) RetrieveSingleSC(req *req_params.SingleSCReq) *req_params.RetrieveSingleSCResp {
-//	cslog.Info().Msg("fetch a single contract")
+//	cslog.DLogger.Info().Msg("fetch a single contract")
 //	return &req_params.RetrieveSingleSCResp{
 //		BaseResp: req_params.NewBaseRespWithErr(nil, "Sent successfully"),
 //	}
 //}
 //
 //func (apiB *DipperinVenusApi) NewSC(req *req_params.NewSCReq) *req_params.NewSCResp {
-//	cslog.Info().Msg("create a new smart contract")
+//	cslog.DLogger.Info().Msg("create a new smart contract")
 //	return &req_params.NewSCResp{
 //		BaseResp: req_params.NewBaseRespWithErr(nil, "Sent successfully"),
 //	}
 //}
 //
 //func (apiB *DipperinVenusApi) GetSCConfig(req *req_params.SingleSCReq) *req_params.GetSCConfigResp {
-//	cslog.Info().Msg("get contract settings")
+//	cslog.DLogger.Info().Msg("get contract settings")
 //	return &req_params.GetSCConfigResp{
 //		BaseResp:       req_params.NewBaseRespWithErr(nil, "Sent successfully"),
 //		PagingRespBase: req_params.PagingRespBase{TotalCount: 103, TotalPages: 13},
@@ -403,7 +404,7 @@ func (api *DipperinVenusApi) NewEstimateGas(transactionRlpB []byte) (resp hexuti
 //}
 
 //func (apiB *DipperinVenusApi) GetBlockInfo(req *req_params.GetBlockInfoReq) *req_params.GetBlockInfoResp {
-//	cslog.Info().Msg("get contract settings")
+//	cslog.DLogger.Info().Msg("get contract settings")
 //	return &req_params.GetBlockInfoResp{
 //		BaseResp:       req_params.NewBaseRespWithErr(nil, "Sent successfully"),
 //		PagingRespBase: req_params.PagingRespBase{TotalCount: 104, TotalPages: 14},
@@ -738,7 +739,7 @@ func (api *DipperinVenusApi) ListWalletAccount(walletIdentifier accounts.WalletI
 	tmpAccounts, err := api.service.ListWalletAccount(walletIdentifier)
 
 	/*	for _,account := range tmpAccounts{
-		log.Info("the accounts is: ","accounts.Address",account.Address.Hex())
+		log.DLogger.Info("the accounts is: ","accounts.Address",account.Address.Hex())
 	}*/
 
 	if err != nil {
@@ -769,7 +770,7 @@ func (api *DipperinVenusApi) StartRemainingService() {
 //   "200":
 //        description: return account list and the operation result
 func (api *DipperinVenusApi) SetBftSigner(address common.Address) error {
-	log.Info("DipperinVenusApi SetBftSigner run")
+	log.DLogger.Info("DipperinVenusApi SetBftSigner run")
 	return api.service.SetBftSigner(address)
 }
 
@@ -1334,8 +1335,8 @@ func (api *DipperinVenusApi) CallContract(from, to common.Address, data []byte, 
 		gasLimit = block.Header().GetGasLimit()
 	}
 	args.Gas = hexutil.Uint64(gasLimit)
-	log.Info("API#CallContract start", "from", from, "to", to, "blockNum", blockNum)
-	log.Info("API#CallContract start", "gasLimit", gasLimit)
+	log.DLogger.Info("API#CallContract start", zap.Any("from", from), zap.Any("to", to), zap.Uint64("blockNum", blockNum))
+	log.DLogger.Info("API#CallContract start", zap.Uint64("gasLimit", gasLimit))
 	signedTx, err := api.service.MakeTmpSignedTx(args, blockNum)
 	if err != nil {
 		return "", err
@@ -1367,8 +1368,8 @@ func (api *DipperinVenusApi) EstimateGas(from, to common.Address, value, gasPric
 	}
 
 	blockNum := api.service.CurrentBlock().Number()
-	log.Info("API#EstimateGas start", "from", from, "to", to, "blockNum", blockNum)
-	log.Info("API#EstimateGas start", "value", value, "gasPrice", gasPrice, "gasLimit", gasLimit)
+	log.DLogger.Info("API#EstimateGas start", zap.Any("from", from), zap.Any("to", to), zap.Uint64("blockNum", blockNum))
+	log.DLogger.Info("API#EstimateGas start", zap.Any("value", value), zap.Any("gasPrice", gasPrice), zap.Uint64("gasLimit", gasLimit))
 	signedTx, err := api.service.MakeTmpSignedTx(args, blockNum)
 	if err != nil {
 		return hexutil.Uint64(0), err

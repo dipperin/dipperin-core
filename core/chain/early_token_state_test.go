@@ -21,7 +21,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/economy-model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"reflect"
@@ -35,8 +34,6 @@ test foundation contract execution is correct
 */
 
 func TestProcessEarlyContract(t *testing.T) {
-	log.Mpt.Logger = log.SetInitLogger(log.DefaultLogConf, "TestProcessEarlyContract")
-
 	eModel := economy_model.MakeDipperinEconomyModel(&earlyContractFakeChainService{}, economy_model.DIPProportion)
 	cReader := &fakeAccountDBChain{}
 	kvDB, originStateRoot := createTestStateDB(t)
@@ -85,8 +82,6 @@ func TestProcessEarlyContract(t *testing.T) {
 }
 
 func TestProcessEarlyContract2(t *testing.T) {
-	log.Mpt.Logger = log.SetInitLogger(log.DefaultLogConf, "TestProcessEarlyContract")
-
 	eModel := economy_model.MakeDipperinEconomyModel(&earlyContractFakeChainService{}, economy_model.DIPProportion)
 	cReader := &fakeAccountDBChain{}
 	kvDB, originStateRoot := createTestStateDB(t)

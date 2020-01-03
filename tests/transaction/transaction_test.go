@@ -4,6 +4,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/hexutil"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/model"
@@ -11,7 +12,6 @@ import (
 	"github.com/dipperin/dipperin-core/tests/factory"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
@@ -28,9 +28,9 @@ func TestDebugTxRlp(t *testing.T) {
 	err = rlp.DecodeBytes(txData, &transaction)
 	assert.NoError(t, err)
 
-	log.Info("the tx is:", "transaction", transaction)
+	log.DLogger.Info("the tx is:", "transaction", transaction)
 
-	log.Info("the tx extraData is:", "extraData", hexutil.Encode(transaction.ExtraData()))
+	log.DLogger.Info("the tx extraData is:", "extraData", hexutil.Encode(transaction.ExtraData()))
 }
 
 func TestTxSize(t *testing.T) {
@@ -38,12 +38,12 @@ func TestTxSize(t *testing.T) {
 	ms := model.NewSigner(big.NewInt(1))
 	tempTx := model.NewTransaction(uint64(0), factory.BobAddrV, big.NewInt(1000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	tempTx.SignTx(keyAlice, ms)
-	log.Info("the tx size is:", "size", tempTx.Size())
+	log.DLogger.Info("the tx size is:", "size", tempTx.Size())
 
 	bytes, err := tempTx.EncodeRlpToBytes()
 	assert.NoError(t, err)
 
-	log.Info("the tx rlpBytes len is:", "len", len(bytes))
+	log.DLogger.Info("the tx rlpBytes len is:", "len", len(bytes))
 }
 
 func TestCalculateMiniTxFee(t *testing.T) {
@@ -53,7 +53,7 @@ func TestCalculateMiniTxFee(t *testing.T) {
 		extraData = append(extraData, byte(i%2))
 	}
 
-	log.Info("the extra data is:", "extraData", hexutil.Encode(extraData))
+	log.DLogger.Info("the extra data is:", "extraData", hexutil.Encode(extraData))
 	tempTx := model.NewTransaction(uint64(0), factory.BobAddrV, big.NewInt(1000), g_testData.TestGasPrice, g_testData.TestGasLimit, extraData)
 	keyAlice, _ := model.CreateKey()
 	ms := model.NewSigner(big.NewInt(1))
@@ -62,11 +62,11 @@ func TestCalculateMiniTxFee(t *testing.T) {
 	txData, err := tempTx.EncodeRlpToBytes()
 	assert.NoError(t, err)
 
-	log.Info("the txSize is:", "txSize", tempTx.Size(), "txRlpLen", len(txData))
+	log.DLogger.Info("the txSize is:", "txSize", tempTx.Size(), "txRlpLen", len(txData))
 
 	gasUsed, err := model.IntrinsicGas(extraData, false, false)
 	assert.NoError(t, err)
-	log.Info("the gasUsed is:", "gasUsed", gasUsed)
+	log.DLogger.Info("the gasUsed is:", "gasUsed", gasUsed)
 }
 
 func createTestStateDB(addrInfo map[common.Address]*big.Int) (ethdb.Database, common.Hash) {
@@ -119,7 +119,7 @@ func TestWASMContactMiniTxFee(t *testing.T) {
 	ms := model.NewSigner(big.NewInt(1))
 	tempTx.SignTx(keyAlice, ms)
 
-	log.Info("the tx extra data size is:", "extraData size", len(tempTx.ExtraData()))
+	log.DLogger.Info("the tx extra data size is:", "extraData size", len(tempTx.ExtraData()))
 
 	//creat test stateDB
 	sender := cs_crypto.GetNormalAddress(keyAlice.PublicKey)
@@ -145,7 +145,7 @@ func TestWASMContactMiniTxFee(t *testing.T) {
 	assert.NoError(t, err)
 
 	receipt := txConfigCreate.Tx.GetReceipt()
-	log.Info("the contract tx gasUsed is:", "gasUsed", receipt.GasUsed)
-	log.Info("the contract tx used TxFee is:", "txFee", txConfigCreate.Tx.GetActualTxFee())
-	log.Info("the contract tx size is: ", "size", txConfigCreate.Tx.Size())
+	log.DLogger.Info("the contract tx gasUsed is:", "gasUsed", receipt.GasUsed)
+	log.DLogger.Info("the contract tx used TxFee is:", "txFee", txConfigCreate.Tx.GetActualTxFee())
+	log.DLogger.Info("the contract tx size is: ", "size", txConfigCreate.Tx.Size())
 }

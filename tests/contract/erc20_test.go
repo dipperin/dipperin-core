@@ -23,11 +23,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"testing"
 	//"github.com/dipperin/dipperin-core/core/chain"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"reflect"
 )
 

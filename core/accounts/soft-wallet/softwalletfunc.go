@@ -21,13 +21,14 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/go-bip39"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/tidwall/gjson"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/scrypt"
 	"io"
 	"regexp"
@@ -183,15 +184,15 @@ func EncryptWalletContent(walletPlain []byte, iv []byte, sysKey EncryptKey) (wal
 
 	//padding random number when the plaintext data length is not 16 integer multiples
 	encryptData := make([]byte, 4)
-	//log.Debug("EncryptWalletContent 1", "encryptData len", len(encryptData))
+	//log.DLogger.Debug("EncryptWalletContent 1", "encryptData len", len(encryptData))
 
 	binary.BigEndian.PutUint32(encryptData, uint32(len(walletPlain)))
 
 	encryptData = append(encryptData, walletPlain...)
-	//log.Debug("EncryptWalletContent 2 ", "encryptData len", len(encryptData))
+	//log.DLogger.Debug("EncryptWalletContent 2 ", "encryptData len", len(encryptData))
 
 	calcHashSrcDataLen := len(encryptData)
-	//log.Debug("EncryptWalletContent 3 ", "encryptData len", len(encryptData))
+	//log.DLogger.Debug("EncryptWalletContent 3 ", "encryptData len", len(encryptData))
 
 	if len(encryptData)%16 != 0 {
 		padding := cspRngEntropy(16 - len(encryptData)%16)
@@ -324,8 +325,8 @@ func CheckPassword(password string) (err error) {
 //judge the incoming wallet path
 func CheckWalletPath(path string) (err error) {
 	homeDir := util.HomeDir()
-	log.Info("the path is:", "path", path)
-	log.Info("the home dir is", "homeDir", homeDir)
+	log.DLogger.Info("the path is:", zap.String("path", path))
+	log.DLogger.Info("the home dir is", zap.String("homeDir", homeDir))
 	if len(path) < len(homeDir) {
 		return accounts.ErrWalletPathError
 	}

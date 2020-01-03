@@ -20,14 +20,12 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
-	"github.com/dipperin/dipperin-core/third-party/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
 
 func TestByzantine(t *testing.T) {
-	log.PBft.Logger = log.SetInitLogger(log.DefaultLogConf, "byzantine_test")
 	fakeblock := &FakeBlock{uint64(1), common.HexToHash("0x232"), nil}
 	fakeblock2 := &FakeBlock{uint64(1), common.HexToHash("0x2d32"), nil}
 	sh0 := NewFakeStateHandle(0)

@@ -67,20 +67,20 @@ func MerkleComputation(TdHash []common.Hash, BranchPos uint32, pMutated *bool) (
 
 	// check the incoming parameters
 	if pMutated == nil {
-		//cslog.Error().Msg("the pBranch or pMutated is nil")
+		//cslog.DLogger.Error().Msg("the pBranch or pMutated is nil")
 		return
 	}
 
 	if len(TdHash) == 0 {
-		//cslog.Error().Msg("the tx number is 0")
+		//cslog.DLogger.Error().Msg("the tx number is 0")
 		return
 	} else if len(TdHash) > MaxRouteNumber {
-		//cslog.Error().Msg("the tx number exceed 2^32")
+		//cslog.DLogger.Error().Msg("the tx number exceed 2^32")
 		return
 	}
 
 	if BranchPos >= uint32(len(TdHash)) {
-		//cslog.Error().Msg("the BranchPos exceed the transaction number")
+		//cslog.DLogger.Error().Msg("the BranchPos exceed the transaction number")
 		return
 	}
 
@@ -135,12 +135,12 @@ func MerkleComputation(TdHash []common.Hash, BranchPos uint32, pMutated *bool) (
 
 	}
 	/*
-		cslog.Debug().Msg("the inner data is: ")
+		cslog.DLogger.Debug().Msg("the inner data is: ")
 		for TestNum,testdata := range inner{
 			cslog.Printf("%v:%v",TestNum,testdata)
 		}
 
-		cslog.Debug().Msg("the pBranch is: ")
+		cslog.DLogger.Debug().Msg("the pBranch is: ")
 		for TestNum1,testdata1 := range pBranch{
 			cslog.Printf("%v:%v",TestNum1,testdata1)
 		}
