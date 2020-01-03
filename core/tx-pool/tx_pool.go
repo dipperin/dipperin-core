@@ -418,7 +418,7 @@ func (pool *TxPool) add(tx model.AbstractTransaction, local bool) (bool, error) 
 	if pool.all.Get(hash) != nil {
 		from, _ := tx.Sender(pool.signer)
 		if pool.pending[from] == nil {
-			log.Info("TxPool  add "+from.Hex()+"to pending ", "txId", tx.CalTxId())
+			log.Info("TxPool  add "+from.Hex()+" to pending ", "txId", tx.CalTxId())
 			pool.promoteExecutables([]common.Address{from})
 			log.Info("TxPool  add  after promoteExecutables", "txId", tx.CalTxId(), "is in pending?", pool.pending[from] == nil)
 		} else {
