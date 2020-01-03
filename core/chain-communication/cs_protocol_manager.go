@@ -30,7 +30,6 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"go.uber.org/zap"
-	"os"
 	"path/filepath"
 	"sync/atomic"
 	"time"
@@ -161,13 +160,13 @@ func (pm *CsProtocolManager) getCsProtocol() p2p.Protocol {
 	// Use a different protocol to make it unable to connect in the underlying layer
 	protocolName := chain_config.AppName + "_cs_local"
 	switch chain_config.GetCurBootsEnv() {
-	case "mercury":
+	case chain_config.BootEnvMercury:
 		log.DLogger.Info("use mercury cs protocol")
 		protocolName = chain_config.AppName + "_cs"
-	case "test":
+	case chain_config.BootEnvTest:
 		log.DLogger.Info("use test cs protocol")
 		protocolName = chain_config.AppName + "_cs_test"
-	case "venus":
+	case chain_config.BootEnvVenus:
 		log.DLogger.Info("use test cs protocol")
 		protocolName = chain_config.AppName + "_vs"
 	default:
@@ -1037,7 +1036,7 @@ func (pm *CsProtocolManager) PrintPeerHealthCheck() {
 	nextPeers := pm.peerSetManager.nextVerifierPeers.GetPeers()
 	vBootPeers := pm.peerSetManager.verifierBootNode.GetPeers()
 
-	if os.Getenv("boots_env") == "venus" {
+	if chain_config.GetCurBootsEnv() == chain_config.BootEnvVenus {
 		printPeerInfo("base", basePeers)
 		printPeerInfo("cur", curPeers)
 		printPeerInfo("next", nextPeers)

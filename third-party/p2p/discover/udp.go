@@ -72,13 +72,13 @@ type NetType uint64
 func (netType NetType) String() string {
 	switch netType {
 	case local:
-		return "local"
+		return chain_config.BootEnvLocal
 	case venus:
-		return "venus"
+		return chain_config.BootEnvVenus
 	case test:
-		return "test"
+		return chain_config.BootEnvTest
 	case mercury:
-		return "mercury"
+		return chain_config.BootEnvMercury
 	default:
 		return "errorNetType"
 	}
@@ -94,11 +94,11 @@ const (
 func getNetType() NetType {
 	env := chain_config.GetCurBootsEnv()
 	switch env {
-	case "mercury":
+	case chain_config.BootEnvMercury:
 		return mercury
-	case "test":
+	case chain_config.BootEnvTest:
 		return test
-	case "venus":
+	case chain_config.BootEnvVenus:
 		return venus
 	default:
 		return local
