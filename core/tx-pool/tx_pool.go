@@ -417,15 +417,15 @@ func (pool *TxPool) add(tx model.AbstractTransaction, local bool) (bool, error) 
 	hash := tx.CalTxId()
 	// vaildate the transaction before add it to pool
 	if pool.all.Get(hash) != nil {
-		from, _ := tx.Sender(pool.signer)
-		if pool.pending[from] == nil {
-			log.DLogger.Info("TxPool  add "+from.Hex()+"to pending ", zap.Any("txId", tx.CalTxId()))
-			pool.promoteExecutables([]common.Address{from})
-			log.DLogger.Info("TxPool  add  after promoteExecutables", zap.Any("txId", tx.CalTxId()), zap.Bool("is in pending?", pool.pending[from] == nil))
-		} else {
-			log.DLogger.Info("the the transaction is already in tx pool", zap.String("txId", hash.Hex()))
-			return false, fmt.Errorf("this transaction already in tx pool")
-		}
+		//from, _ := tx.Sender(pool.signer)
+		//if pool.pending[from] == nil {
+		//	log.DLogger.Info("TxPool  add "+from.Hex()+"to pending ", zap.Any("txId", tx.CalTxId()))
+		//	pool.promoteExecutables([]common.Address{from})
+		//	log.DLogger.Info("TxPool  add  after promoteExecutables", zap.Any("txId", tx.CalTxId()), zap.Bool("is in pending?", pool.pending[from] == nil))
+		//} else {
+		log.DLogger.Info("the the transaction is already in tx pool", zap.String("txId", hash.Hex()))
+		return false, fmt.Errorf("this transaction already in tx pool")
+		//}
 	}
 
 	if err := pool.validateTx(tx, local); err != nil {
