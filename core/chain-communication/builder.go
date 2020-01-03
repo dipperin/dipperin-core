@@ -159,7 +159,7 @@ func MakeCsProtocolManager(pmConfig *CsProtocolManagerConfig, txBConf *NewTxBroa
 	}
 
 	// add mem size info
-	if chain_config.GetCurBootsEnv() != "mercury" {
+	if chain_config.GetCurBootsEnv() != chain_config.BootEnvMercury {
 		debug.Memsize.Add("cs_protocol", pm)
 		debug.Memsize.Add("newTxBroadcaster", newTxBroadcaster)
 		debug.Memsize.Add("blockBroadcaster", blockBroadcaster)

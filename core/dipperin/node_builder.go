@@ -48,7 +48,6 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/dipperin/dipperin-core/third-party/vm-log-search"
 	"go.uber.org/zap"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync/atomic"
@@ -300,7 +299,7 @@ func (b *BaseComponent) initFullChain() {
 	b.consensusBeforeInsertBlocks = middleware.NewBftBlockValidator(b.fullChain)
 
 	// Add Venus Testnet
-	if chain_config.GetCurBootsEnv() != "mercury" && chain_config.GetCurBootsEnv() != "venus" {
+	if chain_config.GetCurBootsEnv() != chain_config.BootEnvMercury && chain_config.GetCurBootsEnv() != chain_config.BootEnvVenus {
 		debug.Memsize.Add("fullChain", b.fullChain)
 		// TODo confirm if you need
 		//debug.Memsize.Add("consensusBeforeInsertBlocks", consensusBeforeInsertBlocks)
@@ -317,7 +316,7 @@ func (b *BaseComponent) initTxPool() {
 	b.txPool = tx_pool.NewTxPool(txPoolConfig, *b.chainConfig, b.fullChain)
 	b.csChainServiceConfig.TxPool = b.txPool
 
-	if chain_config.GetCurBootsEnv() != "mercury" {
+	if chain_config.GetCurBootsEnv() != chain_config.BootEnvMercury {
 		debug.Memsize.Add("tx pool", b.txPool)
 	}
 }
@@ -439,7 +438,7 @@ func (b *BaseComponent) initP2PService() {
 		p2pConf.NAT = p2pNat
 	}
 
-	if os.Getenv("boots_env") == "test" {
+	if chain_config.GetCurBootsEnv() == chain_config.BootEnvTest {
 		restrictList, err := netutil.ParseNetlist(chain_config.TestIPWhiteList)
 		if err != nil {
 			panic(err)
@@ -461,7 +460,7 @@ func (b *BaseComponent) initP2PService() {
 	b.csPm = csPm
 	b.broadcastDelegate = broadcastDelegate
 
-	if chain_config.GetCurBootsEnv() != "mercury" && chain_config.GetCurBootsEnv() != "venus" {
+	if chain_config.GetCurBootsEnv() != chain_config.BootEnvMercury && chain_config.GetCurBootsEnv() != chain_config.BootEnvVenus {
 		debug.Memsize.Add("p2p server", p2pServer)
 	}
 }
@@ -506,7 +505,7 @@ func (b *BaseComponent) initRpc() {
 		},
 	}, b.nodeConfig.GetAllowHosts())
 
-	if chain_config.GetCurBootsEnv() != "mercury" {
+	if chain_config.GetCurBootsEnv() != chain_config.BootEnvMercury {
 		debug.Memsize.Add("rpc server", b.rpcService)
 	}
 

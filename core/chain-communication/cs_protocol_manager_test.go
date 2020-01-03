@@ -479,13 +479,13 @@ func TestCsProtocolManager_Protocols(t *testing.T) {
 
 func TestCsProtocolManager_getCsProtocol(t *testing.T) {
 	pm := &CsProtocolManager{}
-	_ = os.Setenv("boots_env", "local")
+	_ = os.Setenv(chain_config.BootEnvTagName, chain_config.BootEnvLocal)
 	assert.Equal(t, chain_config.AppName+"_cs_local", pm.getCsProtocol().Name)
 }
 
 func TestCsProtocolManager_getCsProtocol1(t *testing.T) {
 	pm := &CsProtocolManager{}
-	_ = os.Setenv("boots_env", "mercury")
+	_ = os.Setenv("boots_env", chain_config.BootEnvMercury)
 	assert.Equal(t, chain_config.AppName+"_cs", pm.getCsProtocol().Name)
 }
 

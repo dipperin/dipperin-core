@@ -65,7 +65,7 @@ func main() {
 		DisableCaller: true,
 	}
 	switch chain_config.GetCurBootsEnv() {
-	case "venus", "mercury":
+	case chain_config.BootEnvVenus, chain_config.BootEnvMercury:
 		cnf.Lvl = zapcore.InfoLevel
 	}
 	log.InitLogger(cnf)
@@ -148,8 +148,11 @@ func appAction(c *cli.Context) {
 	//cslog.InitLogger(lv, "", true)
 	//commands.InitLog(lv)
 
-	if chain_config.GetCurBootsEnv() != "local" && chain_config.GetCurBootsEnv() != "test" && chain_config.GetCurBootsEnv() != "venus" && chain_config.GetCurBootsEnv() != "mercury" {
-		log.DLogger.Error("boots_env set error,please check!")
+	switch env := chain_config.GetCurBootsEnv(); env {
+	case chain_config.BootEnvVenus, chain_config.BootEnvMercury,
+		chain_config.BootEnvTest, chain_config.BootEnvLocal:
+	default:
+		log.DLogger.Error("boots_env set error,please check!", zap.String("bootEnv", env))
 		return
 	}
 
@@ -197,9 +200,9 @@ func appAction(c *cli.Context) {
 		log.DLogger.Error("debug setup failed", zap.Error(err))
 	}
 
-	log.DLogger.Info("network info", zap.String("name", os.Getenv("boots_env")))
+	log.DLogger.Info("network info", zap.String("name", chain_config.GetCurBootsEnv()))
 
-	if os.Getenv("boots_env") == "mercury" {
+	if chain_config.GetCurBootsEnv() == chain_config.BootEnvMercury {
 		log.DLogger.Error("the Mercury testnet is not stopped forever, please try set boots_env = venus.")
 		// return
 	}
