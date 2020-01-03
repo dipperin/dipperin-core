@@ -865,9 +865,13 @@ func TestContractPortfolioManageForCreateOrder(t *testing.T) {
 	assert.NoError(t, err)
 
 	// 合约调用  withdrawPortfolio 方法 alice
+	aliceBalance, err := processor.GetBalance(aliceAddress)
+	fmt.Println("alice before withdraw balance ", aliceBalance)
 	_, err = processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce, "withdrawPortfolio", "liu,1000", blockNum, singer)
 	blockNum++
 	aliceNonce++
+	aliceBalance, err = processor.GetBalance(aliceAddress)
+	fmt.Println("alice after withdraw balance ", aliceBalance)
 	assert.NoError(t, err)
 
 	// 合约调用  withdrawPortfolio 方法 own

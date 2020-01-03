@@ -291,7 +291,7 @@ func findParams(vm *exec.VirtualMachine, abi []byte, funcName string, inputList 
 		return
 	}
 
-	// uint64 uint32  uint16 uint8 int64 int32  int16 int8 string void
+	// uint64 uint32  uint16 uint8 int64 int32  int16 int8 string void bool
 	for i, v := range abiParam {
 		input := inputList[i].([]byte)
 		switch v.Type {
