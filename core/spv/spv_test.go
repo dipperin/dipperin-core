@@ -1,11 +1,11 @@
 package spv
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests/factory"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestSPVProof_Validate(t *testing.T) {

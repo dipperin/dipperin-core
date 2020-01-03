@@ -41,6 +41,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/mine/minemaster"
 	"github.com/dipperin/dipperin-core/core/mine/mineworker"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/core/spv"
 	"github.com/dipperin/dipperin-core/core/vm"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
@@ -49,12 +50,11 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	vm_log_search "github.com/dipperin/dipperin-core/third-party/vm-log-search"
+	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
 	"os"
 	"strings"
 	"time"
-	"github.com/dipperin/dipperin-core/core/spv"
-	"github.com/ethereum/go-ethereum/rlp"
 )
 
 type NodeConf interface {
@@ -2140,7 +2140,7 @@ func (service *VenusFullChainService) GetSPVProof(txHash common.Hash) (string, e
 
 	}
 
-	proof, err :=spv.NewSPVProof(*tx, block)
+	proof, err := spv.NewSPVProof(*tx, block)
 	if err != nil {
 		return "", err
 

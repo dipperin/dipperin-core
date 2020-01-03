@@ -1,8 +1,8 @@
 package spv
 
 import (
-	"github.com/dipperin/dipperin-core/common"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common"
 )
 
 // HexBytes is a type alias to make JSON hex ser/deser easier
@@ -10,9 +10,9 @@ type HexBytes []byte
 
 // SPVHeader is a parsed header
 type SPVHeader struct {
-	Hash    common.Hash `json:"hash"`
-	Height  uint64      `json:"height"`
-	TxRoot  common.Hash `json:"tx_root"`
+	Hash   common.Hash `json:"hash"`
+	Height uint64      `json:"height"`
+	TxRoot common.Hash `json:"tx_root"`
 }
 
 // SPVProof is the base struct for an SPV proof

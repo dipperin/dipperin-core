@@ -1,13 +1,13 @@
 package spv
 
 import (
-	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/trie"
-	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/rlp"
 	"bytes"
 	"errors"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/third-party/trie"
+	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 var invalidProof = errors.New("invalid proof")
