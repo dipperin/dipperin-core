@@ -262,11 +262,11 @@ func (api *DipperinVenusApi) CurrentBalance(address common.Address) (resp *CurBa
 	}, nil
 }
 
-// fetch transaction data from TxID
+// fetch transaction data from TxHash
 // swagger:operation POST /url/Transaction transaction information TransactionReq
 // ---
-// summary: fetch transaction data, the height and block ID from TxID
-// description: fetch transaction data, the height and block ID from TxID
+// summary: fetch transaction data, the height and block ID from TxHash
+// description: fetch transaction data, the height and block ID from TxHash
 // parameters:
 // - name: hash
 //   in: body

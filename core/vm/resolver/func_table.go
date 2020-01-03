@@ -143,6 +143,7 @@ func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
 			// "currentTime": &exec.FunctionImport{Execute: r.envCurrentTime, GasCost: constGasFunc(GasQuickStep)},
 			"callTransfer":     &exec.FunctionImport{Execute: r.envCallTransfer, GasCost: constGasFunc(GasQuickStep)},
 			"getSignerAddress": &exec.FunctionImport{Execute: r.envGetSignerAddress, GasCost: constGasFunc(GasQuickStep)},
+			"validateSPVProof": &exec.FunctionImport{Execute: r.envValidateSPVProof, GasCost: constGasFunc(GasQuickStep)},
 
 			"dipcCall":               &exec.FunctionImport{Execute: r.envDipperCall, GasCost: envDipperCallGasCost},
 			"dipcCallInt64":          &exec.FunctionImport{Execute: r.envDipperCallInt64, GasCost: envDipperCallInt64GasCost},

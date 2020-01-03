@@ -1664,6 +1664,40 @@ func (caller *rpcCaller) GetNextVerifiers(c *cli.Context) {
 	}
 }
 
+func (caller *rpcCaller) GetSPVProof(c *cli.Context) {
+	if checkSync() {
+		return
+	}
+
+	mName, cParams, err := getRpcMethodAndParam(c)
+	if err != nil {
+		l.Error("getRpcMethodAndParam error")
+		return
+	}
+
+	if len(cParams) < 1 {
+		l.Error("Transaction need：txHash")
+		return
+	}
+
+	tmpHash, err := hexutil.Decode(cParams[0])
+	if err != nil {
+		l.Error("the err is:", "err", err)
+		l.Error("Transaction decode error")
+		return
+	}
+
+	var hash common.Hash
+	_ = copy(hash[:], tmpHash)
+
+	var resp string
+	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), hash); err != nil {
+		l.Error("Call GetSPVProof", "err", err)
+		return
+	}
+	l.Info("SPV Proof", "proof", resp)
+}
+
 func getNonceInfo(c *cli.Context) (nonce uint64, err error) {
 	mName, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {

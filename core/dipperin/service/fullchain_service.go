@@ -53,6 +53,8 @@ import (
 	"os"
 	"strings"
 	"time"
+	"github.com/dipperin/dipperin-core/core/spv"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 type NodeConf interface {
@@ -2124,4 +2126,31 @@ func (service *VenusFullChainService) CheckConstant(to common.Address, data []by
 		}
 	}
 	return false, funcName, abi, g_error.ErrFuncNameNotFoundInABI
+}
+
+func (service *VenusFullChainService) GetSPVProof(txHash common.Hash) (string, error) {
+	tx, _, num, _, err := service.Transaction(txHash)
+	if err != nil {
+		return "", err
+	}
+
+	block, err := service.GetBlockByNumber(num)
+	if err != nil {
+		return "", err
+
+	}
+
+	proof, err :=spv.NewSPVProof(*tx, block)
+	if err != nil {
+		return "", err
+
+	}
+
+	rlpProof, err := rlp.EncodeToBytes(proof)
+	if err != nil {
+		return "", err
+
+	}
+
+	return string(rlpProof), nil
 }
