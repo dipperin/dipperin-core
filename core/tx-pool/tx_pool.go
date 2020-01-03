@@ -423,8 +423,8 @@ func (pool *TxPool) add(tx model.AbstractTransaction, local bool) (bool, error) 
 		//	pool.promoteExecutables([]common.Address{from})
 		//	log.DLogger.Info("TxPool  add  after promoteExecutables", zap.Any("txId", tx.CalTxId()), zap.Bool("is in pending?", pool.pending[from] == nil))
 		//} else {
-			log.DLogger.Info("the the transaction is already in tx pool", zap.String("txId", hash.Hex()))
-			return false, fmt.Errorf("this transaction already in tx pool")
+		log.DLogger.Info("the the transaction is already in tx pool", zap.String("txId", hash.Hex()))
+		return false, fmt.Errorf("this transaction already in tx pool")
 		//}
 	}
 
