@@ -80,7 +80,7 @@ type CsChainService struct {
 func NewCsChainService(config *CsChainServiceConfig, cs *chain_state.ChainState) *CsChainService {
 	futureBlocks, _ := lru.New(maxFutureBlocks)
 
-	if chain_config.GetCurBootsEnv() == "test" {
+	if chain_config.GetCurBootsEnv() == chain_config.BootEnvTest {
 		futureBlocks, _ = lru.New(maxFutureBlocksTestEnv)
 	}
 

@@ -124,7 +124,7 @@ func main() {
 					utils.Fatalf("-netrestrict: %v", err)
 				}
 			}*/
-	case "test":
+	case chain_config.BootEnvTest:
 		restrictList, _ = netutil.ParseNetlist(chain_config.TestIPWhiteList)
 	}
 

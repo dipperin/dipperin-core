@@ -461,7 +461,7 @@ func DefaultGenesisBlock(chainDB chaindb.Database, accountStateProcessor state_p
 
 	gTime, _ := time.Parse("2006-01-02 15:04:05", "2018-08-08 08:08:08")
 	// use to reset test chain
-	if chain_config.GetCurBootsEnv() == "test" {
+	if chain_config.GetCurBootsEnv() == chain_config.BootEnvTest {
 		gTime, _ = time.Parse("2006-01-02 15:04:05", "2019-01-14 08:08:08")
 	}
 	return &Genesis{
