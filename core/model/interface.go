@@ -147,6 +147,7 @@ type AbstractVerification interface {
 	GetBlockHash() string
 	Valid() error
 	HaltedVoteValid(verifiers []common.Address) error
+	String() string
 }
 
 // TxDifference returns a new set which is the difference between a and b.

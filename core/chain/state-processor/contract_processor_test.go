@@ -28,17 +28,17 @@ import (
 var (
 	singer = model.NewSigner(new(big.Int).SetInt64(int64(1)))
 
-	ownSK, _ = crypto.GenerateKey()
-	ownPk = ownSK.PublicKey
+	ownSK, _   = crypto.GenerateKey()
+	ownPk      = ownSK.PublicKey
 	ownAddress = cs_crypto.GetNormalAddress(ownPk)
 
-	aliceSK, _ = crypto.GenerateKey()
-	alicePk = aliceSK.PublicKey
+	aliceSK, _   = crypto.GenerateKey()
+	alicePk      = aliceSK.PublicKey
 	aliceAddress = cs_crypto.GetNormalAddress(alicePk)
 	//alicdAddr := address_util.PubKeyToAddress(alicePk, common.AddressTypeNormal)
 
-	brotherSK, _ = crypto.GenerateKey()
-	brotherPk = brotherSK.PublicKey
+	brotherSK, _   = crypto.GenerateKey()
+	brotherPk      = brotherSK.PublicKey
 	brotherAddress = cs_crypto.GetNormalAddress(brotherPk)
 
 	addressSlice = []common.Address{
@@ -46,11 +46,9 @@ var (
 		aliceAddress,
 		brotherAddress,
 	}
-
-
 )
 
-func init()  {
+func init() {
 
 }
 
@@ -1014,9 +1012,7 @@ func TestContractPasswordManage(t *testing.T) {
 	fmt.Println(result)
 }
 
-
 func TestContractDNSManage(t *testing.T) {
-
 
 	//WASMPath := g_testData.GetWASMPath("token", g_testData.CoreVmTestData)
 	//abiPath := g_testData.GetAbiPath("token", g_testData.CoreVmTestData)
@@ -1090,9 +1086,6 @@ func TestContractDNSManage(t *testing.T) {
 	blockNum++
 	aliceNonce++
 	assert.NoError(t, err)
-
-
-
 
 	// 合约调用  queryAddrByPassword 方法 alice
 	_, _, err = processContractConstant(t, contractAddr, big.NewInt(0), abi, aliceSK, accountOwn, aliceNonce, "queryAddrByPassword", "winner", blockuse.Number(), singer, blockuse, processor, time.Second*20, abistr)
