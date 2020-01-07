@@ -25,6 +25,35 @@ import (
 	"time"
 )
 
+var (
+	singer = model.NewSigner(new(big.Int).SetInt64(int64(1)))
+
+	ownSK, _ = crypto.GenerateKey()
+	ownPk = ownSK.PublicKey
+	ownAddress = cs_crypto.GetNormalAddress(ownPk)
+
+	aliceSK, _ = crypto.GenerateKey()
+	alicePk = aliceSK.PublicKey
+	aliceAddress = cs_crypto.GetNormalAddress(alicePk)
+	//alicdAddr := address_util.PubKeyToAddress(alicePk, common.AddressTypeNormal)
+
+	brotherSK, _ = crypto.GenerateKey()
+	brotherPk = brotherSK.PublicKey
+	brotherAddress = cs_crypto.GetNormalAddress(brotherPk)
+
+	addressSlice = []common.Address{
+		ownAddress,
+		aliceAddress,
+		brotherAddress,
+	}
+
+
+)
+
+func init()  {
+
+}
+
 func TestAccountStateDB_ProcessContract(t *testing.T) {
 	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
 	abiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
@@ -712,26 +741,6 @@ func TestContractPortfolioManage(t *testing.T) {
 }
 
 func TestContractPortfolioManageForCreateOrder(t *testing.T) {
-	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
-
-	ownSK, _ := crypto.GenerateKey()
-	ownPk := ownSK.PublicKey
-	ownAddress := cs_crypto.GetNormalAddress(ownPk)
-
-	aliceSK, _ := crypto.GenerateKey()
-	alicePk := aliceSK.PublicKey
-	aliceAddress := cs_crypto.GetNormalAddress(alicePk)
-	//alicdAddr := address_util.PubKeyToAddress(alicePk, common.AddressTypeNormal)
-
-	brotherSK, _ := crypto.GenerateKey()
-	brotherPk := brotherSK.PublicKey
-	brotherAddress := cs_crypto.GetNormalAddress(brotherPk)
-
-	addressSlice := []common.Address{
-		ownAddress,
-		aliceAddress,
-		brotherAddress,
-	}
 
 	//WASMPath := g_testData.GetWASMPath("token", g_testData.CoreVmTestData)
 	//abiPath := g_testData.GetAbiPath("token", g_testData.CoreVmTestData)
@@ -1003,6 +1012,97 @@ func TestContractPasswordManage(t *testing.T) {
 	result, _, err := processContractConstant(t, contractAddr, big.NewInt(0), abi, aliceSK, accountOwn, aliceNonce, "queryExistPasswords", "", blockuse.Number(), singer, blockuse, processor, time.Second*20, abistr)
 	assert.NoError(t, err)
 	fmt.Println(result)
+}
+
+
+func TestContractDNSManage(t *testing.T) {
+
+
+	//WASMPath := g_testData.GetWASMPath("token", g_testData.CoreVmTestData)
+	//abiPath := g_testData.GetAbiPath("token", g_testData.CoreVmTestData)
+	WASMPath := g_testData.GetWASMPath("DNSManage", g_testData.CoreVmTestData)
+	abiPath := g_testData.GetAbiPath("DNSManage", g_testData.CoreVmTestData)
+	fmt.Println("aliceAddr hex", aliceAddress.Hex())
+	fmt.Println("ownAddr hex", ownAddress.Hex())
+	//input := []string{"123456789012345678901234","1573293024432297000","10"}
+	input := []string{}
+
+	data, err := getCreateExtraData(WASMPath, abiPath, input)
+	assert.NoError(t, err)
+
+	addr := common.HexToAddress(common.AddressContractCreate)
+	//fmt.Println("bigint", new(big.Int).Mul(new(big.Int).SetInt64(10), math.BigPow(10, 18)))
+	eachValue := new(big.Int).Mul(new(big.Int).SetInt64(10), math.BigPow(10, 18))
+	tx := model.NewTransaction(0, addr, eachValue, new(big.Int).SetInt64(1), 26427000, data)
+	signCreateTx := getSignedTx(t, ownSK, tx, singer)
+
+	gasLimit := uint64(3360000000)
+	blockNum := uint64(1)
+	//gasLimit := testGasLimit * 10000000000
+	block := CreateBlock(blockNum, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
+	blockNum++
+	processor, err := CreateProcessorAndInitAccount(t, addressSlice)
+
+	tmpGasLimit := block.GasLimit()
+	gasUsed := block.GasUsed()
+	config := &TxProcessConfig{
+		Tx:       tx,
+		Header:   block.Header(),
+		GetHash:  getTestHashFunc(),
+		GasLimit: &tmpGasLimit,
+		GasUsed:  &gasUsed,
+		TxFee:    big.NewInt(0),
+	}
+
+	err = processor.ProcessTxNew(config)
+	assert.NoError(t, err)
+
+	receipt := tx.GetReceipt()
+	fmt.Println("receipt  log", "receipt log", receipt)
+	contractAddr := cs_crypto.CreateContractAddress(ownAddress, uint64(0))
+	t.Log("TestContractPortfolioManage contractAddr", "contractAddr", contractAddr)
+	contractNonce, err := processor.GetNonce(contractAddr)
+	t.Log("TestContractPortfolioManage  ", "contractNonce", contractNonce)
+	code, err := processor.GetCode(contractAddr)
+	abi, err := processor.GetAbi(contractAddr)
+	abistr := new(utils.WasmAbi)
+	err = json.Unmarshal(abi, &abistr.AbiArr)
+	assert.NoError(t, err)
+	t.Log("TestContractPortfolioManage  ", "code  get from state", code)
+	assert.NoError(t, err)
+	//assert.Equal(t, code, tx.ExtraData())
+	processor.Commit()
+
+	accountOwn := accounts.Account{ownAddress}
+	//  合约调用registerPassword方法，注册password
+	//ownTransferNonce, err := processor.GetNonce(ownAddress)
+	assert.NoError(t, err)
+	aliceNonce := uint64(0)
+	//_, err = processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce, "registerPassword", "winner", blockNum, singer)
+	//blockNum++
+	//aliceNonce++
+	//assert.NoError(t, err)
+
+	// 合约调用  registerPassword 方法
+
+	blockuse, err := processContractCall(t, contractAddr, big.NewInt(0), abi, aliceSK, processor, accountOwn, aliceNonce,
+		"registerPassword", "winner", blockNum, singer)
+	blockNum++
+	aliceNonce++
+	assert.NoError(t, err)
+
+
+
+
+	// 合约调用  queryAddrByPassword 方法 alice
+	_, _, err = processContractConstant(t, contractAddr, big.NewInt(0), abi, aliceSK, accountOwn, aliceNonce, "queryAddrByPassword", "winner", blockuse.Number(), singer, blockuse, processor, time.Second*20, abistr)
+	aliceNonce++
+	assert.NoError(t, err)
+
+	// 合约调用  queryPasswordByAddr 方法 alice
+	_, _, err = processContractConstant(t, contractAddr, big.NewInt(0), abi, aliceSK, accountOwn, aliceNonce, "queryPasswordByAddr", aliceAddress.Hex(), blockuse.Number(), singer, blockuse, processor, time.Second*20, abistr)
+	aliceNonce++
+	assert.NoError(t, err)
 }
 
 func newContractCallTx(from *common.Address, to *common.Address, amount *big.Int, gasPrice *big.Int, gasLimit uint64, funcName string, input string, nonce uint64, code []byte) (tx *model.Transaction, err error) {
