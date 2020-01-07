@@ -14,31 +14,4 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-package main
-
-import (
-	"github.com/dipperin/dipperin-core/common/g-metrics"
-	"github.com/prometheus/client_golang/prometheus"
-	"math/rand"
-	"time"
-)
-
-func main() {
-	g_metrics.NewPrometheusMetricsServer(9200).Start()
-
-	timeoutCount := prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "time_out_count",
-		Help: "mem info",
-	}, []string{"count"})
-	prometheus.MustRegister(timeoutCount)
-	for {
-		rand.Seed(time.Now().UnixNano())
-		x := rand.Intn(100)
-		if x%2 == 0 {
-			timeoutCount.WithLabelValues("prepare").Add(1)
-		} else {
-			timeoutCount.WithLabelValues("prevote").Add(1)
-		}
-		time.Sleep(5 * time.Second)
-	}
-}
+package mock
