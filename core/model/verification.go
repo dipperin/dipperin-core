@@ -27,7 +27,6 @@ import (
 	"time"
 )
 
-
 type VoteMsgType byte
 
 const (
@@ -121,8 +120,6 @@ func (v VoteMsg) String() string {
 func (v VoteMsg) GetString() string {
 	return util.StringifyJson(v)
 }
-
-
 
 func (v VoteMsg) GetViewID() uint64 {
 	return 0

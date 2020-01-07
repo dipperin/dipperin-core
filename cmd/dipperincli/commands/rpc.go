@@ -315,7 +315,7 @@ func printBlockInfo(respBlock rpc_interface.BlockResp) {
 	fmt.Printf("\r\n[the current Block commit address is]:")
 	for _, ver := range respBlock.Body.Vers {
 		fmt.Printf("\r\n[commit address]:%v", ver.GetAddress().Hex())
-		fmt.Printf("\r\n[commit ver msg]:%v", ver.String())
+		fmt.Printf("\r\n[commit ver msg]:%v", ver.GetString())
 	}
 
 	fmt.Printf("\r\n")
