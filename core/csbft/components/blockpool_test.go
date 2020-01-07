@@ -23,6 +23,7 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/stretchr/testify/assert"
 	"math/big"
+	"os"
 	"testing"
 	"time"
 )
@@ -128,6 +129,7 @@ func TestBlockPool_GetProposalBlock(t *testing.T) {
 }
 
 func TestBlockPool_NewHeight(t *testing.T) {
+	t.Log("boots_env",os.Getenv("boots_env"))
 	blockPool := NewBlockPool(1, FakePoolEventNotifier{})
 	blockPool.Start()
 
