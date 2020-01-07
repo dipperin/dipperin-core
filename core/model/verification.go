@@ -27,7 +27,7 @@ import (
 	"time"
 )
 
-//go:generate stringer -type=VoteMsgType
+
 type VoteMsgType byte
 
 const (
@@ -117,6 +117,12 @@ func NewVoteMsgWithSign(height, round uint64, blockID common.Hash, voteType Vote
 func (v VoteMsg) String() string {
 	return util.StringifyJson(v)
 }
+
+func (v VoteMsg) GetString() string {
+	return util.StringifyJson(v)
+}
+
+
 
 func (v VoteMsg) GetViewID() uint64 {
 	return 0

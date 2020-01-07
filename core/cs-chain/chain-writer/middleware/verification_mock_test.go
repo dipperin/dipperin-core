@@ -104,6 +104,20 @@ func (mr *MockAbstractVerificationMockRecorder) GetRound() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRound", reflect.TypeOf((*MockAbstractVerification)(nil).GetRound))
 }
 
+// GetString mocks base method
+func (m *MockAbstractVerification) GetString() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetString")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetString indicates an expected call of GetString
+func (mr *MockAbstractVerificationMockRecorder) GetString() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetString", reflect.TypeOf((*MockAbstractVerification)(nil).GetString))
+}
+
 // GetType mocks base method
 func (m *MockAbstractVerification) GetType() model.VoteMsgType {
 	m.ctrl.T.Helper()
@@ -144,20 +158,6 @@ func (m *MockAbstractVerification) HaltedVoteValid(arg0 []common.Address) error 
 func (mr *MockAbstractVerificationMockRecorder) HaltedVoteValid(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HaltedVoteValid", reflect.TypeOf((*MockAbstractVerification)(nil).HaltedVoteValid), arg0)
-}
-
-// String mocks base method
-func (m *MockAbstractVerification) String() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "String")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// String indicates an expected call of String
-func (mr *MockAbstractVerificationMockRecorder) String() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "String", reflect.TypeOf((*MockAbstractVerification)(nil).String))
 }
 
 // Valid mocks base method
