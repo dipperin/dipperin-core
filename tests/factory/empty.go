@@ -14,23 +14,4 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-package main
-
-import (
-	"fmt"
-	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/third-party/rpc"
-)
-
-func main() {
-	c, err := rpc.Dial(fmt.Sprintf("ws://%v:%v", "localhost", 8005))
-	if err != nil {
-		panic(err)
-	}
-	var resp interface{}
-	if err = c.Call(&resp, "dipperin_startMine"); err != nil {
-		log.DLogger.Info("dipperin_startMine failed", "err", err)
-		return
-	}
-	log.DLogger.Info("dipperin_startMine successful")
-}
+package factory
