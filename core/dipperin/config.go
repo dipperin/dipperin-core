@@ -139,7 +139,7 @@ func (conf NodeConfig) GetUploadURL() string {
 	//	log.Agent("use test upload url for monitor")
 	//	return fmt.Sprintf("http://%v:8887/api/Dipperin_nodes", chain_config.TestServer)
 	// Mercury is configured directly through the startup parameters
-	//case "mercury":
+	//case chain_config.BootEnvMercury:
 	//	log.Agent("use mercury upload url for monitor")
 	//	return fmt.Sprintf("http://%v:8887/api/dipperin_nodes", chain_config.TestServer)
 	//}

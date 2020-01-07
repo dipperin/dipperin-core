@@ -57,6 +57,18 @@ const (
 	MaxGasLimit = uint64(0x7fffffffffffffff)
 
 	CallCreateDepth uint64 = 1024
+
+	BootEnvMercury = "mercury"
+	BootEnvVenus   = "venus"
+	BootEnvTest    = "test"
+	BootEnvLocal   = "local"
+
+	NormalTransactionGas = int64(2100)
+	DefaultGasPrice      = int64(1)
+
+	// BloomBitsBlocks is the number of blocks a single bloom bit section vector
+	// contains on the server side.
+	BloomBitsBlocks uint64 = 4096
 )
 
 const (
@@ -104,17 +116,17 @@ func defaultChainConfig() *ChainConfig {
 		BlockTimeRestriction:   15 * time.Second,
 		RollBackNum:            uint64(3),
 	}
-	switch os.Getenv(BootEnvTagName) {
-	case "mercury":
+	switch GetCurBootsEnv() {
+	case BootEnvMercury:
 		c.NetworkID = 99
 		c.ChainId = big.NewInt(1)
-	case "venus":
+	case BootEnvVenus:
 		c.NetworkID = 100
 		c.ChainId = big.NewInt(2)
-	case "test":
+	case BootEnvTest:
 		c.NetworkID = 1600
 		c.ChainId = big.NewInt(1600)
-	case "local":
+	case BootEnvLocal:
 		c.VerifierNumber = 4
 		c.NetworkID = 1601
 		c.ChainId = big.NewInt(1601)
@@ -184,7 +196,7 @@ func GetChainConfig() *ChainConfig {
 
 // Get the operating environment：test mercury
 func GetCurBootsEnv() string {
-	return os.Getenv("boots_env")
+	return os.Getenv(BootEnvTagName)
 }
 
 func DefaultDataDir() string {
@@ -226,16 +238,16 @@ var (
 )
 
 func InitBootNodes(dataDir string) {
-	log.DLogger.Info("the boot env is:", zap.String("env", os.Getenv(BootEnvTagName)))
+	log.DLogger.Info("the boot env is:", zap.String("env", GetCurBootsEnv()))
 	// If the environment variable is set during deploy use, these environment variables are automatically taken when the startup command is used.
-	switch os.Getenv(BootEnvTagName) {
-	case "test":
+	switch GetCurBootsEnv() {
+	case BootEnvTest:
 		//log.Agent("use test boot env", "boot server", TestServer, "v boot port", TestVerifierBootNodePort)
 		initTestBoots(dataDir)
-	case "mercury":
+	case BootEnvMercury:
 		//log.Agent("use mercury boot env")
 		initMercuryBoots(dataDir)
-	case "venus":
+	case BootEnvVenus:
 		initVenusBoots(dataDir)
 	default:
 		//log.Agent("use local boot env")
