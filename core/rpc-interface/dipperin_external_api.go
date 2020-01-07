@@ -342,3 +342,7 @@ func (api *DipperExternalApi) NewBlock(ctx context.Context) (*rpc.Subscription, 
 func (api *DipperExternalApi) SubscribeBlock(ctx context.Context) (*rpc.Subscription, error) {
 	return api.allApis.SubscribeBlock(ctx)
 }
+
+func (api *DipperExternalApi) GetSPVProof(txHash common.Hash) ([]byte, error) {
+	return api.allApis.GetSPVProof(txHash)
+}

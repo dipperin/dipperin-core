@@ -118,7 +118,7 @@ func envPrintsGasCost(vm *exec.VirtualMachine) (uint64, error) {
 func envPrintsl(vm *exec.VirtualMachine) int64 {
 	ptr := int(uint32(vm.GetCurrentFrame().Locals[0]))
 	msgLen := int(uint32(vm.GetCurrentFrame().Locals[1]))
-	msg := vm.Memory.Memory[ptr : ptr+msgLen]
+	msg := vm.Memory.Memory[ptr: ptr+msgLen]
 	log.DLogger.Debug(string(msg))
 	log.DLogger.Info("envPrintsl called", zap.String("string", string(msg)))
 	return 0
@@ -154,7 +154,7 @@ func envPrintuiGasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 func envPrinti128(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
-	buf := vm.Memory.Memory[pos : pos+16]
+	buf := vm.Memory.Memory[pos: pos+16]
 	lo := binary.LittleEndian.Uint64(buf[:8])
 	ho := binary.LittleEndian.Uint64(buf[8:])
 	ret := C.printi128(C.uint64_t(lo), C.uint64_t(ho))
@@ -171,7 +171,7 @@ func envPrinti128GasCost(vm *exec.VirtualMachine) (uint64, error) {
 
 func envPrintui128(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
-	buf := vm.Memory.Memory[pos : pos+16]
+	buf := vm.Memory.Memory[pos: pos+16]
 	lo := binary.LittleEndian.Uint64(buf[:8])
 	ho := binary.LittleEndian.Uint64(buf[8:])
 	ret := C.printui128(C.uint64_t(lo), C.uint64_t(ho))
@@ -242,7 +242,7 @@ func envPrintnGasCost(vm *exec.VirtualMachine) (uint64, error) {
 func envPrinthex(vm *exec.VirtualMachine) int64 {
 	data := int(uint32(vm.GetCurrentFrame().Locals[0]))
 	dataLen := int(uint32(vm.GetCurrentFrame().Locals[1]))
-	hex := vm.Memory.Memory[data : data+dataLen]
+	hex := vm.Memory.Memory[data: data+dataLen]
 	log.DLogger.Debug(fmt.Sprintf("%x", hex))
 	log.DLogger.Info("envPrinthex called", zap.Uint8s("hex", hex))
 	return 0
@@ -356,7 +356,7 @@ func (r *Resolver) envBalance(vm *exec.VirtualMachine) int64 {
 	addrLen := int(int32(vm.GetCurrentFrame().Locals[1]))
 	ptr := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	address := vm.Memory.Memory[addr : addr+addrLen]
+	address := vm.Memory.Memory[addr: addr+addrLen]
 	balance := r.Service.GetBalance(common.BytesToAddress(address))
 	// 256 bits
 	if len(balance.Bytes()) > 32 {
@@ -427,7 +427,7 @@ func envSha3(vm *exec.VirtualMachine) int64 {
 	size := int(int32(vm.GetCurrentFrame().Locals[1]))
 	destOffset := int(int32(vm.GetCurrentFrame().Locals[2]))
 	destSize := int(int32(vm.GetCurrentFrame().Locals[3]))
-	data := vm.Memory.Memory[offset : offset+size]
+	data := vm.Memory.Memory[offset: offset+size]
 	hash := crypto.Keccak256(data)
 	log.DLogger.Info("envSha3 called", zap.Uint8s("hash", hash), zap.String("hasHex", common.Bytes2Hex(hash)))
 	if destSize < len(hash) {
@@ -445,7 +445,7 @@ func envHexStringSameWithVM(vm *exec.VirtualMachine) int64 {
 	size := int(int32(vm.GetCurrentFrame().Locals[1]))
 	destOffset := int(int32(vm.GetCurrentFrame().Locals[2]))
 	//destSize := int(int32(vm.GetCurrentFrame().Locals[3]))
-	data := vm.Memory.Memory[offset : offset+size]
+	data := vm.Memory.Memory[offset: offset+size]
 	str := common.HexStringSameWithVM(string(data))
 	log.DLogger.Info("envHexStringSameWithVM  ", zap.Uint8s("data", data), zap.String("str", str))
 	copy(vm.Memory.Memory[destOffset:], str)
@@ -514,9 +514,9 @@ func (r *Resolver) envCallTransfer(vm *exec.VirtualMachine) int64 {
 	value := int(vm.GetCurrentFrame().Locals[2])
 	bValue := new(big.Int)
 	// 256 bits
-	bValue.SetBytes(vm.Memory.Memory[value : value+32])
+	bValue.SetBytes(vm.Memory.Memory[value: value+32])
 	value256 := math.U256(bValue)
-	addr := common.BytesToAddress(vm.Memory.Memory[key : key+keyLen])
+	addr := common.BytesToAddress(vm.Memory.Memory[key: key+keyLen])
 	_, returnGas, err := r.Service.Transfer(addr, value256)
 
 	//先使用在life　vm中添加的字段，待后续看是否可以使用life自带gas机制
@@ -536,8 +536,8 @@ func (r *Resolver) envGetSignerAddress(vm *exec.VirtualMachine) int64 {
 	signatureLen := int(int32(vm.GetCurrentFrame().Locals[3]))
 	returnStart := int(int32(vm.GetCurrentFrame().Locals[4]))
 
-	sha3Data := vm.Memory.Memory[sha3DataStart : sha3DataStart+sha3DataLen]
-	signature := vm.Memory.Memory[signatureStart : signatureStart+signatureLen]
+	sha3Data := vm.Memory.Memory[sha3DataStart: sha3DataStart+sha3DataLen]
+	signature := vm.Memory.Memory[signatureStart: signatureStart+signatureLen]
 
 	//crypto.VerifySignature(r.Service.Self().Address().)
 
@@ -560,7 +560,7 @@ func (r *Resolver) envCallTransferUDIP(vm *exec.VirtualMachine) int64 {
 	keyLen := int(int32(vm.GetCurrentFrame().Locals[1]))
 	value := int64(vm.GetCurrentFrame().Locals[2])
 	value256 := math.U256(new(big.Int).Mul(new(big.Int).SetInt64(value), math.BigPow(10, 15)))
-	addr := common.BytesToAddress(vm.Memory.Memory[key : key+keyLen])
+	addr := common.BytesToAddress(vm.Memory.Memory[key: key+keyLen])
 	_, returnGas, err := r.Service.Transfer(addr, value256)
 
 	//先使用在life　vm中添加的字段，待后续看是否可以使用life自带gas机制
@@ -574,21 +574,38 @@ func (r *Resolver) envCallTransferUDIP(vm *exec.VirtualMachine) int64 {
 }
 
 func (r *Resolver) envValidateSPVProof(vm *exec.VirtualMachine) int64 {
+	log.DLogger.Info("Call envValidateSPVProof")
 	proofStart := int(int32(vm.GetCurrentFrame().Locals[0]))
 	proofLen := int(int32(vm.GetCurrentFrame().Locals[1]))
+	fromStart := int(int32(vm.GetCurrentFrame().Locals[2]))
+	fromLen := int(int32(vm.GetCurrentFrame().Locals[3]))
+	toStart := int(int32(vm.GetCurrentFrame().Locals[4]))
+	toLen := int(int32(vm.GetCurrentFrame().Locals[5]))
+	value := uint64(vm.GetCurrentFrame().Locals[6])
+	chainID := uint64(vm.GetCurrentFrame().Locals[7])
+	height := uint64(vm.GetCurrentFrame().Locals[8])
+	value256 := math.U256(new(big.Int).Mul(new(big.Int).SetUint64(value), math.BigPow(10, 15)))
 
-	proof := vm.Memory.Memory[proofStart : proofStart+proofLen]
+	proof := vm.Memory.Memory[proofStart: proofStart+proofLen]
+	from := common.BytesToAddress(vm.Memory.Memory[fromStart: fromStart+fromLen])
+	to := common.BytesToAddress(vm.Memory.Memory[toStart: toStart+toLen])
+
+	log.DLogger.Info("envValidateSPVProof", zap.ByteString("proof", proof), zap.Any("from", from), zap.Any("to", to), zap.Uint64("amount", value), zap.Uint64("chainID", chainID), zap.Uint64("height", height))
+
 	var spvProof spv.SPVProof
-	err := rlp.DecodeBytes(proof, spvProof)
+	err := rlp.DecodeBytes(common.Hex2Bytes(string(proof)), &spvProof)
 	if err != nil {
+		log.DLogger.Info("Decode byte failed", zap.Error(err))
 		return 1
 	}
 
-	err = spvProof.Validate()
+	err = spvProof.Validate(chainID, height, from, to, value256)
 	if err != nil {
+		log.DLogger.Info("validate failed", zap.Error(err))
 		return 1
 	}
 
+	log.DLogger.Info("validate successful")
 	return 0
 }
 
@@ -597,8 +614,8 @@ func (r *Resolver) envDipperCall(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
-	inputs := vm.Memory.Memory[params : params+paramsLen]
+	contractAddr := vm.Memory.Memory[addr: addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params: params+paramsLen]
 	log.DLogger.Info("envDipperCall", zap.Uint8s("contractAddr", contractAddr), zap.Uint8s("inputs", inputs))
 	_, err := r.Service.ResolverCall(contractAddr, inputs)
 	if err != nil {
@@ -613,8 +630,8 @@ func (r *Resolver) envDipperDelegateCall(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
-	inputs := vm.Memory.Memory[params : params+paramsLen]
+	contractAddr := vm.Memory.Memory[addr: addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params: params+paramsLen]
 	log.DLogger.Info("envDipperDelegateCall", zap.Uint8s("contractAddr", contractAddr), zap.Uint8s("inputs", inputs))
 	_, err := r.Service.ResolverDelegateCall(contractAddr, inputs)
 	if err != nil {
@@ -629,8 +646,8 @@ func (r *Resolver) envDipperCallInt64(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
-	inputs := vm.Memory.Memory[params : params+paramsLen]
+	contractAddr := vm.Memory.Memory[addr: addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params: params+paramsLen]
 	log.DLogger.Info("envDipperCallInt64", zap.Uint8s("contractAddr", contractAddr), zap.Uint8s("inputs", inputs))
 	ret, err := r.Service.ResolverCall(contractAddr, inputs)
 	if err != nil {
@@ -647,8 +664,8 @@ func (r *Resolver) envDipperDelegateCallInt64(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
-	inputs := vm.Memory.Memory[params : params+paramsLen]
+	contractAddr := vm.Memory.Memory[addr: addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params: params+paramsLen]
 	log.DLogger.Info("envDipperDelegateCallInt64", zap.Uint8s("contractAddr", contractAddr), zap.Uint8s("inputs", inputs))
 	ret, err := r.Service.ResolverDelegateCall(contractAddr, inputs)
 	if err != nil {
@@ -665,8 +682,8 @@ func (r *Resolver) envDipperCallString(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
-	inputs := vm.Memory.Memory[params : params+paramsLen]
+	contractAddr := vm.Memory.Memory[addr: addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params: params+paramsLen]
 	log.DLogger.Info("envDipperCallString", zap.Uint8s("contractAddr", contractAddr), zap.Uint8s("inputs", inputs))
 	ret, err := r.Service.ResolverCall(contractAddr, inputs)
 	if err != nil {
@@ -683,8 +700,8 @@ func (r *Resolver) envDipperDelegateCallString(vm *exec.VirtualMachine) int64 {
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
 	paramsLen := int(int32(vm.GetCurrentFrame().Locals[2]))
 
-	contractAddr := vm.Memory.Memory[addr : addr+common.AddressLength]
-	inputs := vm.Memory.Memory[params : params+paramsLen]
+	contractAddr := vm.Memory.Memory[addr: addr+common.AddressLength]
+	inputs := vm.Memory.Memory[params: params+paramsLen]
 	log.DLogger.Info("envDipperDelegateCallString", zap.Uint8s("contractAddr", contractAddr), zap.Uint8s("inputs", inputs))
 	ret, err := r.Service.ResolverDelegateCall(contractAddr, inputs)
 	if err != nil {

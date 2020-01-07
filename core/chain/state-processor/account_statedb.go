@@ -952,7 +952,7 @@ func (state *AccountStateDB) deleteAccountState(addr common.Address) (err error)
 }
 
 func (state *AccountStateDB) GetAccountState(addr common.Address) (*account, error) {
-	account := new(account)
+	acc := new(account)
 	if state.IsEmptyAccount(addr) {
 		return nil, g_error.ErrAccountNotExist
 	}
@@ -960,59 +960,60 @@ func (state *AccountStateDB) GetAccountState(addr common.Address) (*account, err
 	if err != nil {
 		return nil, err
 	}
-	account.Nonce = nonce
+	acc.Nonce = nonce
 	balance, err := state.GetBalance(addr)
 	if err != nil {
 		return nil, err
 	}
-	account.Balance = balance
+	acc.Balance = balance
 	hashLock, err := state.GetHashLock(addr)
 	if err != nil {
 		return nil, err
 	}
-	account.HashLock = hashLock
+	acc.HashLock = hashLock
 	timeLock, err := state.GetTimeLock(addr)
 	if err != nil {
 		return nil, err
 	}
-	account.TimeLock = timeLock
+	acc.TimeLock = timeLock
 	stake, err := state.GetStake(addr)
 	if err != nil {
 		return nil, err
 	}
-	account.Stake = stake
+	acc.Stake = stake
 	commitNum, err := state.GetCommitNum(addr)
 	if err != nil {
 		return nil, err
 	}
-	account.CommitNum = commitNum
+	acc.CommitNum = commitNum
 	verifyNum, err := state.GetVerifyNum(addr)
 	if err != nil {
 		return nil, err
 	}
-	account.VerifyNum = verifyNum
+	acc.VerifyNum = verifyNum
 	lastElect, err := state.GetLastElect(addr)
 	if err != nil {
 		return nil, err
 	}
-	account.LastElect = lastElect
+	acc.LastElect = lastElect
 	performance, err := state.GetPerformance(addr)
 	if err != nil {
 		return nil, err
 	}
-	account.Performance = performance
+	acc.Performance = performance
 	//contractRoot, err := state.GetContractRoot(addr)
 	//if err != nil {
 	//    return nil, err
 	//}
-	//account.ContractRoot = contractRoot
+	//acc.ContractRoot = contractRoot
 	dataRoot, err := state.GetDataRoot(addr)
 	if err != nil {
 		return nil, err
 	}
-	account.DataRoot = dataRoot
+	acc.DataRoot = dataRoot
+
 	// Insert into the live set.
-	return account, nil
+	return acc, nil
 }
 
 // commit contract data

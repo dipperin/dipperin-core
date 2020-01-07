@@ -34,7 +34,7 @@ func TestWitMsg_Valid(t *testing.T) {
 	sign, err := crypto.Sign(common.HexToHash("123").Bytes(), key1)
 	assert.NoError(t, err)
 
-	msg := WitMsg{aliceAddr, sign}
+	msg := WitMsg{AliceAddr, sign}
 
 	err = msg.Valid(common.HexToHash("123").Bytes())
 	assert.NoError(t, err)
@@ -42,7 +42,7 @@ func TestWitMsg_Valid(t *testing.T) {
 	err = msg.Valid(common.HexToHash("456").Bytes())
 	assert.Equal(t, "signature not valid", err.Error())
 
-	msg = WitMsg{aliceAddr, []byte{123}}
+	msg = WitMsg{AliceAddr, []byte{123}}
 	err = msg.Valid(common.HexToHash("123").Bytes())
 	assert.Equal(t, secp256k1.ErrInvalidSignatureLen, err)
 }
@@ -55,12 +55,12 @@ func TestNewVoteMsg(t *testing.T) {
 func TestNewVoteMsgWithSign(t *testing.T) {
 	_, err := NewVoteMsgWithSign(10, 1, common.HexToHash("100"), 1, func(hash []byte) ([]byte, error) {
 		return nil, nil
-	}, aliceAddr)
+	}, AliceAddr)
 	assert.NoError(t, err)
 
 	_, err = NewVoteMsgWithSign(10, 1, common.HexToHash("100"), 1, func(hash []byte) ([]byte, error) {
 		return nil, ErrInvalidSig
-	}, aliceAddr)
+	}, AliceAddr)
 	assert.Equal(t, ErrInvalidSig, err)
 }
 
@@ -121,38 +121,38 @@ func TestVoteMsg_Valid(t *testing.T) {
 func TestVoteMsg_HaltedVoteValid(t *testing.T) {
 	// RecoverAddressFromSig error
 	voteMsg := NewVoteMsg(10, 1, common.HexToHash("100"), VerBootNodeVoteMessage)
-	voteMsg.Witness = &WitMsg{Address: aliceAddr, Sign: []byte{123}}
-	err := voteMsg.HaltedVoteValid([]common.Address{aliceAddr})
+	voteMsg.Witness = &WitMsg{Address: AliceAddr, Sign: []byte{123}}
+	err := voteMsg.HaltedVoteValid([]common.Address{AliceAddr})
 	assert.Equal(t, secp256k1.ErrInvalidSignatureLen, err)
 
 	// VoteRecoverAddrError
 	voteMsg = CreateSignedVote(10, 1, common.HexToHash("100"), VerBootNodeVoteMessage)
 	voteMsg.Witness.Address = common.HexToAddress("123")
-	err = voteMsg.HaltedVoteValid([]common.Address{aliceAddr})
+	err = voteMsg.HaltedVoteValid([]common.Address{AliceAddr})
 	assert.Equal(t, VoteRecoverAddrError, err)
 
 	// wrong vote type
 	voteMsg = CreateSignedVote(10, 1, common.HexToHash("100"), PreVoteMessage)
-	err = voteMsg.HaltedVoteValid([]common.Address{aliceAddr})
+	err = voteMsg.HaltedVoteValid([]common.Address{AliceAddr})
 	assert.Equal(t, WrongVoteType, err)
 
 	voteMsg = CreateSignedVote(10, 1, common.HexToHash("100"), VoteMessage)
-	err = voteMsg.HaltedVoteValid([]common.Address{aliceAddr})
+	err = voteMsg.HaltedVoteValid([]common.Address{AliceAddr})
 	assert.Equal(t, WrongVoteType, err)
 
 	// CheckAddressIsVerifierBootNode failed
 	voteMsg = CreateSignedVote(10, 1, common.HexToHash("100"), VerBootNodeVoteMessage)
-	err = voteMsg.HaltedVoteValid([]common.Address{aliceAddr})
+	err = voteMsg.HaltedVoteValid([]common.Address{AliceAddr})
 	assert.Equal(t, AddressIsNotVerifierBootNode, err)
 
 	// CheckAddressIsCurrentVerifier failed
-	chain_config.VerBootNodeAddress = []common.Address{aliceAddr}
+	chain_config.VerBootNodeAddress = []common.Address{AliceAddr}
 	voteMsg = CreateSignedVote(10, 1, common.HexToHash("100"), AliveVerifierVoteMessage)
-	err = voteMsg.HaltedVoteValid([]common.Address{bobAddr})
+	err = voteMsg.HaltedVoteValid([]common.Address{BobAddr})
 	assert.Equal(t, AddressIsNotCurrentVerifier, err)
 
 	// no error
-	err = voteMsg.HaltedVoteValid([]common.Address{aliceAddr})
+	err = voteMsg.HaltedVoteValid([]common.Address{AliceAddr})
 	assert.NoError(t, err)
 }
 

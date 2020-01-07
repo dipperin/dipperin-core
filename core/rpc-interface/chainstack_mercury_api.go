@@ -1376,3 +1376,7 @@ func (api *DipperinVenusApi) EstimateGas(from, to common.Address, value, gasPric
 	}
 	return api.service.EstimateGas(signedTx, blockNum)
 }
+
+func (api *DipperinVenusApi) GetSPVProof(txHash common.Hash) ([]byte, error) {
+	return api.service.GetSPVProof(txHash)
+}

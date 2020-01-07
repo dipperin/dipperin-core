@@ -100,7 +100,7 @@ func TestTransaction(t *testing.T) {
 	assert.Equal(t, []byte{}, tx.ExtraData())
 	assert.Equal(t, uint64(0), tx.Nonce())
 	assert.Equal(t, big.NewInt(0), tx.TimeLock())
-	assert.Equal(t, &bobAddr, tx.To())
+	assert.Equal(t, &BobAddr, tx.To())
 	assert.Equal(t, common.TxType(common.AddressTypeNormal), tx.GetType())
 	assert.True(t, tx.IsEqual(*tx))
 	assert.NotNil(t, tx.String())
@@ -122,7 +122,7 @@ func TestTransaction(t *testing.T) {
 
 	sender, err := tx.Sender(signer)
 	assert.NoError(t, err)
-	assert.Equal(t, aliceAddr, sender)
+	assert.Equal(t, AliceAddr, sender)
 
 	tx = &Transaction{}
 	assert.Nil(t, tx.To())
@@ -157,7 +157,7 @@ func TestTransactionsByFeeAndNonce(t *testing.T) {
 	tx1 := CreateSignedTx(0, txAmount)
 	tx2 := CreateSignedTx(1, txAmount)
 
-	txs[aliceAddr] = []AbstractTransaction{tx1, tx2}
+	txs[AliceAddr] = []AbstractTransaction{tx1, tx2}
 	signer := NewSigner(big.NewInt(1))
 
 	tx := NewTransactionsByFeeAndNonce(signer, txs)

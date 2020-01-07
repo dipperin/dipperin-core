@@ -64,7 +64,7 @@ func TestBlock_EncodeToIBLT(t *testing.T) {
 }
 
 func TestBlock_BloomFilter(t *testing.T) {
-	header := NewHeader(1, 100, common.HexToHash("1111"), common.HexToHash("1111"), common.HexToDiff("1fffffff"), big.NewInt(324234), aliceAddr, common.BlockNonceFromInt(432423))
+	header := NewHeader(1, 100, common.HexToHash("1111"), common.HexToHash("1111"), common.HexToDiff("1fffffff"), big.NewInt(324234), AliceAddr, common.BlockNonceFromInt(432423))
 
 	var (
 		aliceTxs  = 50
@@ -201,7 +201,7 @@ func TestHeader_GetStateRoot(t *testing.T) {
 }
 
 func newTestHeader() (h *Header) {
-	h = NewHeader(1, 100, common.HexToHash("001010001010"), common.HexToHash("10111101011"), common.HexToDiff("1111ffff"), big.NewInt(10100), aliceAddr, common.BlockNonceFromInt(100))
+	h = NewHeader(1, 100, common.HexToHash("001010001010"), common.HexToHash("10111101011"), common.HexToDiff("1111ffff"), big.NewInt(10100), AliceAddr, common.BlockNonceFromInt(100))
 	return
 }
 
@@ -754,11 +754,11 @@ func Test_blockSorter_Less(t *testing.T) {
 }
 
 func creatBlockWithAllTx(n int, t *testing.T) *Block {
-	header := NewHeader(1, 0, common.Hash{}, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), aliceAddr, common.BlockNonce{})
+	header := NewHeader(1, 0, common.Hash{}, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), AliceAddr, common.BlockNonce{})
 
 	keyAlice, _ := CreateKey()
 	ms := NewSigner(big.NewInt(1))
-	tempTx := NewTransaction(uint64(0), bobAddr, big.NewInt(1000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
+	tempTx := NewTransaction(uint64(0), BobAddr, big.NewInt(1000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	tempTx.SignTx(keyAlice, ms)
 	var res []*Transaction
 	for i := 0; i < n; i++ {

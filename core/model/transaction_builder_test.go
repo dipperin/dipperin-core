@@ -24,6 +24,6 @@ import (
 
 func TestTransactionBuilder_NewNormalTransaction(t *testing.T) {
 	tb := TransactionBuilder{}
-	result := tb.NewNormalTransaction(aliceAddr, bobAddr, new(big.Int), new(big.Int), []byte{})
+	result := tb.NewNormalTransaction(AliceAddr, BobAddr, new(big.Int), new(big.Int), []byte{})
 	assert.Nil(t, result)
 }

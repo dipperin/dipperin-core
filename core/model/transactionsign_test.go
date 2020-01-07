@@ -31,12 +31,12 @@ func TestMercurySigner_Sender(t *testing.T) {
 	fs := NewSigner(big.NewInt(1))
 	tryAddr, err := fs.GetSender(tx1)
 	assert.NoError(t, err)
-	assert.Equal(t, tryAddr, aliceAddr)
+	assert.Equal(t, tryAddr, AliceAddr)
 
 	fs = NewSigner(big.NewInt(3))
 	tryAddr, err = fs.GetSender(tx2)
 	assert.NoError(t, err)
-	assert.Equal(t, tryAddr, bobAddr)
+	assert.Equal(t, tryAddr, BobAddr)
 	assert.Equal(t, DipperinSigner{chainId: new(big.Int)}, NewSigner(nil))
 }
 
@@ -103,7 +103,7 @@ func TestDeriveChainId(t *testing.T) {
 func TestTransaction_SignTx(t *testing.T) {
 	key1, _ := CreateKey()
 	fs1 := NewSigner(big.NewInt(1))
-	tx := NewTransaction(10, bobAddr, big.NewInt(10000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
+	tx := NewTransaction(10, BobAddr, big.NewInt(10000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 
 	result, err := tx.SignTx(key1, fs1)
 	assert.NoError(t, err)
@@ -120,7 +120,7 @@ func TestMercurySigner_GetSender(t *testing.T) {
 	ms := NewSigner(big.NewInt(1))
 
 	sender, err := ms.GetSender(tx)
-	assert.Equal(t, aliceAddr, sender)
+	assert.Equal(t, AliceAddr, sender)
 	assert.NoError(t, err)
 }
 

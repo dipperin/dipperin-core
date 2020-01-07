@@ -10,9 +10,10 @@ type HexBytes []byte
 
 // SPVHeader is a parsed header
 type SPVHeader struct {
-	Hash   common.Hash `json:"hash"`
-	Height uint64      `json:"height"`
-	TxRoot common.Hash `json:"tx_root"`
+	ChainID uint64      `json:"version"`
+	Hash    common.Hash `json:"hash"`
+	Height  uint64      `json:"height"`
+	TxRoot  common.Hash `json:"tx_root"`
 }
 
 // SPVProof is the base struct for an SPV proof

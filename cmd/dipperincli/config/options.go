@@ -183,6 +183,7 @@ var txMethods = []prompt.Suggest{
 	{Text: "CallContract", Description: ""},
 	{Text: "EstimateGas", Description: ""},
 	{Text: "Transaction", Description: ""},
+	{Text: "GetSPVProof", Description: ""},
 }
 
 var chainMethods = []prompt.Suggest{

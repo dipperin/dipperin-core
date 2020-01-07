@@ -723,7 +723,6 @@ func (service *VenusFullChainService) SendTransaction(from, to common.Address, v
 
 	log.DLogger.Info("send transaction", zap.String("txId", signTx.CalTxId().Hex()))
 	txHash := signTx.CalTxId()
-	log.DLogger.Info("the Sendnot enough balance errorTransaction txId is: ", zap.String("txId", txHash.Hex()), zap.Any("txSize", signTx.Size()))
 	return txHash, nil
 }
 
@@ -2130,29 +2129,28 @@ func (service *VenusFullChainService) CheckConstant(to common.Address, data []by
 	return false, funcName, abi, g_error.ErrFuncNameNotFoundInABI
 }
 
-func (service *VenusFullChainService) GetSPVProof(txHash common.Hash) (string, error) {
+func (service *VenusFullChainService) GetSPVProof(txHash common.Hash) ([]byte, error) {
 	tx, _, num, _, err := service.Transaction(txHash)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	block, err := service.GetBlockByNumber(num)
 	if err != nil {
-		return "", err
+		return nil, err
 
 	}
 
 	proof, err := spv.NewSPVProof(*tx, block)
 	if err != nil {
-		return "", err
+		return nil, err
 
 	}
 
-	rlpProof, err := rlp.EncodeToBytes(proof)
-	if err != nil {
-		return "", err
-
-	}
-
-	return string(rlpProof), nil
+	return rlp.EncodeToBytes(proof)
 }
+
+/*
+func (service *VenusFullChainService) ValidateSPVProof(proof []byte) error {
+	proof
+}*/

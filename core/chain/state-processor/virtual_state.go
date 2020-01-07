@@ -108,7 +108,10 @@ func (ms *ManagedState) SetNonce(addr common.Address, nonce uint64) {
 		so.setNonce(nonce)
 		ms.accounts[addr] = newAccount(so)
 	} else {
-		so, _ := ms.GetAccountState(addr)
+		so, err := ms.GetAccountState(addr)
+		if err != nil {
+			panic(err)
+		}
 		so.setNonce(nonce)
 		ms.accounts[addr] = newAccount(so)
 	}

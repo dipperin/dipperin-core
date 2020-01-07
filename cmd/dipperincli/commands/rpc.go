@@ -1690,12 +1690,13 @@ func (caller *rpcCaller) GetSPVProof(c *cli.Context) {
 	var hash common.Hash
 	_ = copy(hash[:], tmpHash)
 
-	var resp string
+	var resp []byte
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), hash); err != nil {
 		l.Error("Call GetSPVProof", zap.Error(err))
 		return
 	}
-	l.Info("SPV Proof", zap.String("resp", resp))
+
+	l.Info("SPV Proof", zap.String("proof", common.Bytes2Hex(resp)))
 }
 
 func getNonceInfo(c *cli.Context) (nonce uint64, err error) {

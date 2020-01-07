@@ -8,13 +8,24 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
+	"math/big"
+	"github.com/dipperin/dipperin-core/core/chain-config"
 )
 
-var invalidProof = errors.New("invalid proof")
+var (
+	invalidChainID = errors.New("invalid chain id")
+	invalidHeight  = errors.New("invalid height")
+	invalidProof   = errors.New("invalid proof")
+	invalidFrom    = errors.New("invalid from")
+	invalidTo      = errors.New("invalid to")
+	invalidAmount  = errors.New("invalid amount")
+)
 
 // newSPVHeader builds a Header from a block
 func newSPVHeader(block model.AbstractBlock) SPVHeader {
+	id := chain_config.GetChainConfig().ChainId
 	return SPVHeader{
+		id.Uint64(),
 		block.Hash(),
 		block.Number(),
 		block.TxRoot(),
@@ -75,18 +86,71 @@ func getRlpProof(tx common.Hash, txs model.Transactions) ([]byte, error) {
 	return rlpByte, nil
 }
 
-// Validate checks validity of SPVProof
-func (p SPVProof) Validate() error {
-	// Decode proof
-	var rlpProof []RlpProof
-	err := rlp.DecodeBytes(p.Proof, &rlpProof)
+func (p SPVProof) validateHeader(id, height uint64) error {
+	if p.Header.ChainID != id {
+		return invalidChainID
+	}
+
+	if p.Header.Height > height {
+		return invalidHeight
+	}
+
+	return nil
+}
+
+func (p SPVProof) validateTx(tx model.Transaction, from, to common.Address, amount *big.Int) error {
+	sender, err := tx.Sender(nil)
 	if err != nil {
 		return err
 	}
 
-	data := ethdb.NewMemDatabase()
+	if sender != from {
+		return invalidFrom
+	}
+
+	if *tx.To() != to {
+		return invalidTo
+	}
+
+	if tx.Amount().Cmp(amount) !=0 {
+		return invalidAmount
+	}
+
+	return nil
+}
+
+func (p SPVProof) validateProof(txHash common.Hash, proof trie.DatabaseReader) error {
+	value, _, err := trie.VerifyProof(p.Header.TxRoot, txHash.Bytes(), proof)
+	if err != nil {
+		return err
+	}
+
+	if !bytes.Equal(value, p.Transaction) {
+		return invalidProof
+	}
+
+	return nil
+}
+
+// Validate checks validity of SPVProof
+func (p SPVProof) Validate(id, height uint64, from, to common.Address, amount *big.Int) error {
+	// Verify block
+	err := p.validateHeader(id, height)
+	if err != nil {
+		return err
+	}
+
+	// Decode proof
+	var rlpProof []RlpProof
+	err = rlp.DecodeBytes(p.Proof, &rlpProof)
+	if err != nil {
+		return err
+	}
+
+	// Create tx trie
+	tree := ethdb.NewMemDatabase()
 	for i := 0; i < len(rlpProof); i++ {
-		err = data.Put(rlpProof[i].Key, rlpProof[i].Value)
+		err = tree.Put(rlpProof[i].Key, rlpProof[i].Value)
 		if err != nil {
 			return err
 		}
@@ -99,14 +163,13 @@ func (p SPVProof) Validate() error {
 		return err
 	}
 
-	value, _, err := trie.VerifyProof(p.Header.TxRoot, tx.CalTxId().Bytes(), data)
+	// Verify proof
+	err = p.validateProof(tx.CalTxId(), tree)
 	if err != nil {
 		return err
 	}
 
-	if !bytes.Equal(value, p.Transaction) {
-		return invalidProof
-	}
-
-	return err
+	// Verify tx
+	return p.validateTx(tx, from, to, amount)
 }
+

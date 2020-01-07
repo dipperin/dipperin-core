@@ -26,10 +26,10 @@ import (
 )
 
 func TestGetLockAddress(t *testing.T) {
-	buf := cs_crypto.GetLockAddress(aliceAddr, bobAddr)
+	buf := cs_crypto.GetLockAddress(AliceAddr, BobAddr)
 	fact1 := buf[2:]
 	fact2 := buf[:2]
-	enc, _ := rlpHash([]interface{}{aliceAddr, bobAddr})
+	enc, _ := rlpHash([]interface{}{AliceAddr, BobAddr})
 	exp1 := enc[12:]
 	var exp2 = []byte{0, 1}
 	assert.Equal(t, exp1, fact1)
@@ -42,7 +42,7 @@ func TestCreateRawLockTx(t *testing.T) {
 
 	hashKey := []byte("123")
 	hashLock := cs_crypto.Keccak256Hash(hashKey)
-	tx := CreateRawLockTx(1, hashLock, big.NewInt(34564), big.NewInt(10000), big.NewInt(1), model.TxGas, aliceAddr, bobAddr)
+	tx := CreateRawLockTx(1, hashLock, big.NewInt(34564), big.NewInt(10000), big.NewInt(1), model.TxGas, AliceAddr, BobAddr)
 	tx.SignTx(key1, fs)
 
 	testAlice, _ := fs.GetSender(tx)
@@ -54,7 +54,7 @@ func TestCreateRawLockTx(t *testing.T) {
 func TestCreateRawRefundTx(t *testing.T) {
 	key1, _ := CreateKey()
 	fs := NewSigner(big.NewInt(1))
-	tx := CreateRawRefundTx(1, big.NewInt(10000), big.NewInt(1), model.TxGas, aliceAddr, bobAddr)
+	tx := CreateRawRefundTx(1, big.NewInt(10000), big.NewInt(1), model.TxGas, AliceAddr, BobAddr)
 	tx.SignTx(key1, fs)
 
 	testAlice, _ := fs.GetSender(tx)
@@ -68,7 +68,7 @@ func TestCreateRawClaimTx(t *testing.T) {
 
 	hashKey := []byte("123")
 	hashLock, _ := rlpHash(hashKey)
-	tx := CreateRawClaimTx(1, hashKey, big.NewInt(10000), big.NewInt(1), model.TxGas, aliceAddr, bobAddr)
+	tx := CreateRawClaimTx(1, hashKey, big.NewInt(10000), big.NewInt(1), model.TxGas, AliceAddr, BobAddr)
 	tx.SignTx(key2, fs)
 
 	testBob, _ := fs.GetSender(tx)

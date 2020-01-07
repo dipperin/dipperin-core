@@ -30,8 +30,8 @@ import (
 var (
 	alicePriv = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232031"
 	bobPriv   = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232032"
-	aliceAddr = common.HexToAddress("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
-	bobAddr   = common.HexToAddress("0x0000970e8128aB834E8EAC17aB8E3812f010678CF791")
+	AliceAddr = common.HexToAddress("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
+	BobAddr   = common.HexToAddress("0x0000970e8128aB834E8EAC17aB8E3812f010678CF791")
 )
 
 func CreateKey() (*ecdsa.PrivateKey, *ecdsa.PrivateKey) {
@@ -44,7 +44,7 @@ func CreateSignedVote(height, round uint64, blockId common.Hash, voteType VoteMs
 	voteA := NewVoteMsg(height, round, blockId, voteType)
 	key, _ := CreateKey()
 	sign, _ := crypto.Sign(voteA.Hash().Bytes(), key)
-	voteA.Witness.Address = aliceAddr
+	voteA.Witness.Address = AliceAddr
 	voteA.Witness.Sign = sign
 	return voteA
 }
@@ -52,7 +52,7 @@ func CreateSignedVote(height, round uint64, blockId common.Hash, voteType VoteMs
 func CreateSignedTx(nonce uint64, amount *big.Int) *Transaction {
 	key1, _ := CreateKey()
 	fs1 := NewSigner(big.NewInt(1))
-	testTx1 := NewTransaction(nonce, bobAddr, amount, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
+	testTx1 := NewTransaction(nonce, BobAddr, amount, g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 	signedTx, _ := testTx1.SignTx(key1, fs1)
 	return signedTx
 }
@@ -63,7 +63,7 @@ func CreateSignedTxList(n int) []*Transaction {
 
 	var res []*Transaction
 	for i := 0; i < n; i++ {
-		tempTx := NewTransaction(uint64(i), bobAddr, big.NewInt(1000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
+		tempTx := NewTransaction(uint64(i), BobAddr, big.NewInt(1000), g_testData.TestGasPrice, g_testData.TestGasLimit, []byte{})
 		gasUsed, _ := IntrinsicGas(tempTx.ExtraData(), false, false)
 		tempTx.PaddingActualTxFee(big.NewInt(0).Mul(big.NewInt(int64(gasUsed)), g_testData.TestGasPrice))
 		tempTx.SignTx(keyAlice, ms)
@@ -73,7 +73,7 @@ func CreateSignedTxList(n int) []*Transaction {
 }
 
 func CreateBlock(num uint64, preHash common.Hash, txsNum int) *Block {
-	header := NewHeader(0, num, preHash, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), aliceAddr, common.BlockNonce{})
+	header := NewHeader(0, num, preHash, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), AliceAddr, common.BlockNonce{})
 
 	// tx list
 	txList := CreateSignedTxList(txsNum)
@@ -93,7 +93,7 @@ func createTestTx() (*Transaction, *Transaction) {
 	fs2 := NewSigner(big.NewInt(3))
 	hashLock := cs_crypto.Keccak256Hash([]byte("123"))
 	tx1 := CreateSignedTx(10, big.NewInt(100))
-	tx2 := CreateRawLockTx(1, hashLock, big.NewInt(34564), big.NewInt(10000), g_testData.TestGasPrice, g_testData.TestGasLimit, aliceAddr, bobAddr)
+	tx2 := CreateRawLockTx(1, hashLock, big.NewInt(34564), big.NewInt(10000), g_testData.TestGasPrice, g_testData.TestGasLimit, AliceAddr, BobAddr)
 	tx2.SignTx(key2, fs2)
 	return tx1, tx2
 }

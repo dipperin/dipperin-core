@@ -782,7 +782,7 @@ func TestVenusFullChainService_SetMineCoinBase(t *testing.T) {
 	}
 	service := MakeFullChainService(config)
 	err := service.SetMineCoinBase(aliceAddr)
-	assert.Equal(t, "the node isn't mineMaster", err.Error())
+	assert.Equal(t, "current node is not mine master", err.Error())
 
 	manager := createWalletManager(t)
 	defer os.RemoveAll(util.HomeDir() + testPath)

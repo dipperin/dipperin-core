@@ -21,8 +21,12 @@ func NewFullState(state *AccountStateDB) *Fullstate {
 }
 
 func (f *Fullstate) CreateAccount(address common.Address) error {
-	_, err := f.state.newContractAccount(address)
-	return err
+	if address.GetAddressType() == common.AddressTypeContractCall {
+		_, err := f.state.newContractAccount(address)
+		return err
+	} else {
+		return f.state.NewAccountState(address)
+	}
 }
 
 func (f *Fullstate) GetBalance(addr common.Address) *big.Int {
