@@ -19,7 +19,7 @@ package vm
 import (
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/tests/factory/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"

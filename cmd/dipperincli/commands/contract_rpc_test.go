@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/tests/factory/g-testData"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

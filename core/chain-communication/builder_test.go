@@ -20,7 +20,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/tests/factory/g-testData"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"math/big"

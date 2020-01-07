@@ -27,7 +27,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/tests/factory/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/stretchr/testify/assert"
 	"math/big"

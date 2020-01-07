@@ -25,7 +25,7 @@ import (
 	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 
 	"github.com/dipperin/dipperin-core/tests/factory"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/tests/factory/g-testData"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"math/big"
 	"time"

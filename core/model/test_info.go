@@ -20,7 +20,7 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/tests/factory/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"math/big"

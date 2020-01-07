@@ -17,7 +17,7 @@
 package model
 
 import (
-	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/tests/factory/g-testData"
 	"testing"
 
 	"errors"

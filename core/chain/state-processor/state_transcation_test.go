@@ -5,7 +5,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/tests/factory/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/stretchr/testify/assert"

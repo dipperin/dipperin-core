@@ -18,7 +18,7 @@ package model
 
 import (
 	"bytes"
-	"github.com/dipperin/dipperin-core/tests/g-testData"
+	"github.com/dipperin/dipperin-core/tests/factory/g-testData"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
