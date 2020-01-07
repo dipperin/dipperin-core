@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
-	"github.com/dipperin/dipperin-core/core/chain-config"
 )
 
 var (
@@ -112,7 +112,7 @@ func (p SPVProof) validateTx(tx model.Transaction, from, to common.Address, amou
 		return invalidTo
 	}
 
-	if tx.Amount().Cmp(amount) !=0 {
+	if tx.Amount().Cmp(amount) != 0 {
 		return invalidAmount
 	}
 
@@ -172,4 +172,3 @@ func (p SPVProof) Validate(id, height uint64, from, to common.Address, amount *b
 	// Verify tx
 	return p.validateTx(tx, from, to, amount)
 }
-
