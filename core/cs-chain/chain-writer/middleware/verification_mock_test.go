@@ -146,6 +146,20 @@ func (mr *MockAbstractVerificationMockRecorder) HaltedVoteValid(arg0 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HaltedVoteValid", reflect.TypeOf((*MockAbstractVerification)(nil).HaltedVoteValid), arg0)
 }
 
+// String mocks base method
+func (m *MockAbstractVerification) String() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "String")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// String indicates an expected call of String
+func (mr *MockAbstractVerificationMockRecorder) String() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "String", reflect.TypeOf((*MockAbstractVerification)(nil).String))
+}
+
 // Valid mocks base method
 func (m *MockAbstractVerification) Valid() error {
 	m.ctrl.T.Helper()
