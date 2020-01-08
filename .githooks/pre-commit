@@ -2,5 +2,4 @@
 
 echo "run go fmt before git commit"
 
-# TODO: close(tmp)
-#go fmt ./...
+go fmt ./...
