@@ -129,7 +129,7 @@ func TestBlockPool_GetProposalBlock(t *testing.T) {
 }
 
 func TestBlockPool_NewHeight(t *testing.T) {
-	t.Log("boots_env",os.Getenv("boots_env"))
+	t.Log("boots_env", os.Getenv("boots_env"))
 	blockPool := NewBlockPool(1, FakePoolEventNotifier{})
 	blockPool.Start()
 
