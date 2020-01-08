@@ -17,6 +17,8 @@
 package rpc_interface
 
 import (
+	"github.com/dipperin/dipperin-core/common"
+	g_error "github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/core/dipperin/service"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/tests/mock/chain-communication-mock"
@@ -96,4 +98,197 @@ func TestDipperinVenusApi_CurrentBlock(t *testing.T) {
 	resp, err := api.CurrentBlock()
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
+}
+
+func TestDipperinVenusApi_GetBlockByNumber(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	testCases := []struct {
+		name   string
+		given  func() *DipperinVenusApi
+		expect error
+	}{
+		{
+			name: "block not found",
+			given: func() *DipperinVenusApi {
+				cr := middleware_mock.NewMockChainInterface(ctrl)
+				cr.EXPECT().GetBlockByNumber(uint64(0)).Return(nil).Times(1)
+				api := DipperinVenusApi{service: &service.VenusFullChainService{
+					DipperinConfig: &service.DipperinConfig{
+						ChainReader: cr,
+					},
+					TxValidator: nil,
+				}}
+				return &api
+			},
+			expect: g_error.ErrBlockNotFound,
+		},
+		{
+			name: "block found",
+			given: func() *DipperinVenusApi {
+				blockMock := model_mock.NewMockAbstractBlock(ctrl)
+				blockMock.EXPECT().Header().Return(&model.Header{}).Times(1)
+				blockMock.EXPECT().Body().Return(&model.Body{}).Times(1)
+
+				cr := middleware_mock.NewMockChainInterface(ctrl)
+				cr.EXPECT().GetBlockByNumber(uint64(0)).Return(blockMock).Times(1)
+				api := DipperinVenusApi{service: &service.VenusFullChainService{
+					DipperinConfig: &service.DipperinConfig{
+						ChainReader: cr,
+					},
+					TxValidator: nil,
+				}}
+				return &api
+			},
+			expect: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		_, err := tc.given().GetBlockByNumber(0)
+		if !assert.Equal(t, tc.expect, err) {
+			t.Errorf("case: %s, expect:%v, got:%v", tc.name, tc.expect, err)
+		}
+	}
+}
+
+func TestDipperinVenusApi_GetBlockByHash(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	testCases := []struct {
+		name   string
+		given  func() *DipperinVenusApi
+		expect bool
+	}{
+		{
+			name: "block not found",
+			given: func() *DipperinVenusApi {
+				cr := middleware_mock.NewMockChainInterface(ctrl)
+				cr.EXPECT().GetBlockByHash(common.Hash{}).Return(nil).Times(1)
+				api := DipperinVenusApi{service: &service.VenusFullChainService{
+					DipperinConfig: &service.DipperinConfig{
+						ChainReader: cr,
+					},
+					TxValidator: nil,
+				}}
+				return &api
+			},
+			expect: false,
+		},
+		{
+			name: "block found",
+			given: func() *DipperinVenusApi {
+				blockMock := model_mock.NewMockAbstractBlock(ctrl)
+				blockMock.EXPECT().Header().Return(&model.Header{}).Times(1)
+				blockMock.EXPECT().Body().Return(&model.Body{}).Times(1)
+
+				cr := middleware_mock.NewMockChainInterface(ctrl)
+				cr.EXPECT().GetBlockByHash(common.Hash{}).Return(blockMock).Times(1)
+				api := DipperinVenusApi{service: &service.VenusFullChainService{
+					DipperinConfig: &service.DipperinConfig{
+						ChainReader: cr,
+					},
+					TxValidator: nil,
+				}}
+				return &api
+			},
+			expect: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		_, err := tc.given().GetBlockByHash(common.Hash{})
+		if !assert.Equal(t, tc.expect, err == nil) {
+			t.Errorf("case: %s, expect:%v, got:%v", tc.name, tc.expect, err)
+		}
+	}
+}
+
+func TestDipperinVenusApi_GetBlockNumber(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	var expect uint64 = 100
+
+	cr := middleware_mock.NewMockChainInterface(ctrl)
+	cr.EXPECT().GetBlockNumber(common.Hash{}).Return(&expect).Times(1)
+	api := DipperinVenusApi{service: &service.VenusFullChainService{
+		DipperinConfig: &service.DipperinConfig{
+			ChainReader: cr,
+		},
+		TxValidator: nil,
+	}}
+
+	assert.Equal(t, expect, *api.GetBlockNumber(common.Hash{}))
+}
+
+func TestDipperinVenusApi_GetGenesis(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	testCases := []struct {
+		name   string
+		given  func() *DipperinVenusApi
+		expect bool
+	}{
+		{
+			name: "genesis not found",
+			given: func() *DipperinVenusApi {
+				cr := middleware_mock.NewMockChainInterface(ctrl)
+				cr.EXPECT().Genesis().Return(nil).Times(1)
+				api := DipperinVenusApi{service: &service.VenusFullChainService{
+					DipperinConfig: &service.DipperinConfig{
+						ChainReader: cr,
+					},
+					TxValidator: nil,
+				}}
+				return &api
+			},
+			expect: false,
+		},
+		{
+			name: "genesis found",
+			given: func() *DipperinVenusApi {
+				blockMock := model_mock.NewMockAbstractBlock(ctrl)
+				blockMock.EXPECT().Header().Return(&model.Header{}).Times(1)
+				blockMock.EXPECT().Body().Return(&model.Body{}).Times(1)
+				cr := middleware_mock.NewMockChainInterface(ctrl)
+				cr.EXPECT().Genesis().Return(blockMock).Times(1)
+				api := DipperinVenusApi{service: &service.VenusFullChainService{
+					DipperinConfig: &service.DipperinConfig{
+						ChainReader: cr,
+					},
+					TxValidator: nil,
+				}}
+				return &api
+			},
+			expect: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		_, err := tc.given().GetGenesis()
+		if !assert.Equal(t, tc.expect, err == nil) {
+			t.Errorf("case: %s, expect:%v, got:%v", tc.name, tc.expect, err)
+		}
+	}
+}
+
+func TestDipperinVenusApi_GetBlockBody(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	cr := middleware_mock.NewMockChainInterface(ctrl)
+	cr.EXPECT().GetBody(common.Hash{}).Return(&model.Body{}).Times(1)
+
+	api := DipperinVenusApi{service: &service.VenusFullChainService{
+		DipperinConfig: &service.DipperinConfig{
+			ChainReader: cr,
+		},
+		TxValidator: nil,
+	}}
+
+	assert.NotNil(t, api.GetBlockBody(common.Hash{}))
 }

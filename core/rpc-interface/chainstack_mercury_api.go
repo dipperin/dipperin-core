@@ -147,10 +147,8 @@ func (api *DipperinVenusApi) GetBlockByHash(hash common.Hash) (*BlockResp, error
 		},
 	}
 
-	curBlock, err := api.service.GetBlockByHash(hash)
-	if err != nil {
-		return nil, err
-	} else if curBlock == nil {
+	curBlock, _ := api.service.GetBlockByHash(hash)
+	if curBlock == nil {
 		return nil, errors.New(fmt.Sprintf("no block hash is %s", hash))
 	}
 
@@ -198,20 +196,16 @@ func (api *DipperinVenusApi) GetGenesis() (*BlockResp, error) {
 		},
 	}
 
-	curBlock, err := api.service.GetGenesis()
-	if err != nil {
-		return nil, err
-	}
+	curBlock, _ := api.service.GetGenesis()
 
-	//	log.DLogger.Debug("the current block is: ","current block",*curBlock.(*model.Block))
+	if curBlock == nil {
+		return nil, errors.New("genesis not found")
+	}
 
 	blockResp.Header = *curBlock.Header().(*model.Header)
 	blockResp.Body = *curBlock.Body().(*model.Body)
 
-	//	log.DLogger.Debug("the blockResp header is: ","header",blockResp.Header)
 	log.DLogger.Debug("the blockResp body is: ", zap.Any("body", blockResp.Body))
-
-	//	log.DLogger.Debug("the blockResp transactions is:","txs",*blockResp.Body.Txs[0])
 
 	return blockResp, nil
 }
