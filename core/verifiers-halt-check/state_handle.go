@@ -21,7 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/accounts"
+	"github.com/dipperin/dipperin-core/core/accounts/base"
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
 	"github.com/dipperin/dipperin-core/core/economy-model"
@@ -57,7 +57,7 @@ type NeedWalletSigner interface {
 	SignHash(hash []byte) ([]byte, error)
 	PublicKey() *ecdsa.PublicKey
 	ValidSign(hash []byte, pubKey []byte, sign []byte) error
-	Evaluate(account accounts.Account, seed []byte) (index [32]byte, proof []byte, err error)
+	Evaluate(account base.Account, seed []byte) (index [32]byte, proof []byte, err error)
 }
 
 type StateHandler struct {
@@ -80,7 +80,7 @@ func MakeHaltCheckStateHandler(needChainReader NeedChainReaderFunction, walletSi
 func (haltCheckStateHandle *StateHandler) GenProposalConfig(voteType model.VoteMsgType) (ProposalGeneratorConfig, error) {
 	curBlock := haltCheckStateHandle.chainReader.CurrentBlock()
 	log.DLogger.Info("GenerateEmptyBlock", zap.Uint64("num", curBlock.Number()))
-	account := accounts.Account{Address: haltCheckStateHandle.walletSigner.GetAddress()}
+	account := base.Account{Address: haltCheckStateHandle.walletSigner.GetAddress()}
 
 	seed, proof, err := haltCheckStateHandle.walletSigner.Evaluate(account, curBlock.Seed().Bytes())
 	if err != nil {

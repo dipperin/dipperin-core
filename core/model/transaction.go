@@ -24,7 +24,6 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/math"
-	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/ethereum/go-ethereum/rlp"
 	"go.uber.org/zap"
 	"io"
@@ -61,9 +60,9 @@ func IntrinsicGas(data []byte, contractCreation, homestead bool) (uint64, error)
 	// Set the starting gas for the raw transaction
 	var gas uint64
 	if contractCreation && homestead {
-		gas = model.TxGasContractCreation
+		gas = TxGasContractCreation
 	} else {
-		gas = model.TxGas
+		gas = TxGas
 	}
 	// Bump the required gas by the amount of transactional data
 	if len(data) > 0 {
@@ -75,16 +74,16 @@ func IntrinsicGas(data []byte, contractCreation, homestead bool) (uint64, error)
 			}
 		}
 		// Make sure we don't exceed uint64 for all data combinations
-		if (math.MaxUint64-gas)/model.TxDataNonZeroGas < nz {
+		if (math.MaxUint64-gas)/TxDataNonZeroGas < nz {
 			return 0, g_error.ErrOutOfGas
 		}
-		gas += nz * model.TxDataNonZeroGas
+		gas += nz * TxDataNonZeroGas
 
 		z := uint64(len(data)) - nz
-		if (math.MaxUint64-gas)/model.TxDataZeroGas < z {
+		if (math.MaxUint64-gas)/TxDataZeroGas < z {
 			return 0, g_error.ErrOutOfGas
 		}
-		gas += z * model.TxDataZeroGas
+		gas += z * TxDataZeroGas
 	}
 	return gas, nil
 }
@@ -425,7 +424,7 @@ type ReceiptPara struct {
 	Root              []byte
 	HandlerResult     bool
 	CumulativeGasUsed uint64
-	Logs              []*model.Log
+	Logs              []*Log
 }
 
 func (tx *Transaction) PaddingActualTxFee(fee *big.Int) {
@@ -442,13 +441,13 @@ func (tx *Transaction) GetActualTxFee() (fee *big.Int) {
 
 func (tx *Transaction) PaddingReceipt(parameters ReceiptPara) {
 	log.DLogger.Info("Call PaddingReceipt", zap.Bool("handlerResult", parameters.HandlerResult))
-	receipt := model.NewReceipt(parameters.Root, parameters.HandlerResult, parameters.CumulativeGasUsed, parameters.Logs)
+	receipt := NewReceipt(parameters.Root, parameters.HandlerResult, parameters.CumulativeGasUsed, parameters.Logs)
 	tx.receipt.Store(receipt)
 }
 
-func (tx *Transaction) GetReceipt() *model.Receipt {
+func (tx *Transaction) GetReceipt() *Receipt {
 	if receiptLoad := tx.receipt.Load(); receiptLoad != nil {
-		return receiptLoad.(*model.Receipt)
+		return receiptLoad.(*Receipt)
 	}
 	log.DLogger.Error("the receipt cache is nil")
 	return nil

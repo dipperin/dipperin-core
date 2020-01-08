@@ -26,7 +26,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/rlp"
 	"go.uber.org/zap"
@@ -55,7 +54,7 @@ type AccountStateDB struct {
 	finalisedContractRoot map[common.Address]common.Hash
 	alreadyFinalised      bool
 	smartContractData     map[common.Address]map[string][]byte
-	logs                  map[common.Hash][]*model2.Log
+	logs                  map[common.Hash][]*model.Log
 
 	stateChangeList *StateChangeList
 	validRevisions  []revision
@@ -183,7 +182,7 @@ func NewAccountStateDB(preStateRoot common.Hash, db StateStorage) (*AccountState
 		smartContractData:     make(map[common.Address]map[string][]byte),
 		finalisedContractRoot: map[common.Address]common.Hash{},
 		stateChangeList:       newStateChangeList(),
-		logs:                  map[common.Hash][]*model2.Log{},
+		logs:                  map[common.Hash][]*model.Log{},
 		alreadyFinalised:      false,
 	}
 	return stateDB, nil
@@ -1230,7 +1229,7 @@ func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *
 	par.CumulativeGasUsed = *blockGasUsed
 	par.HandlerResult = false
 	par.Root = root[:]
-	par.Logs = []*model2.Log{}
+	par.Logs = []*model.Log{}
 	return nil
 }
 
@@ -1441,7 +1440,7 @@ func (state *AccountStateDB) GetData(addr common.Address, key string) (data []by
 	return
 }
 
-func (state *AccountStateDB) AddLog(addedLog *model2.Log) error {
+func (state *AccountStateDB) AddLog(addedLog *model.Log) error {
 	if addedLog == nil {
 		return g_error.ErrAddedLogIsNil
 	}
@@ -1456,7 +1455,7 @@ func (state *AccountStateDB) AddLog(addedLog *model2.Log) error {
 	return nil
 }
 
-func (state *AccountStateDB) GetLogs(txHash common.Hash) []*model2.Log {
+func (state *AccountStateDB) GetLogs(txHash common.Hash) []*model.Log {
 	return state.logs[txHash]
 }
 

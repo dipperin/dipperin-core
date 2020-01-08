@@ -21,7 +21,6 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
@@ -78,7 +77,7 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 	}
 
 	// Fail if we're trying to execute above the call depth limit
-	if vm.depth > int(model2.CallCreateDepth) {
+	if vm.depth > int(model.CallCreateDepth) {
 		return nil, gas, g_error.ErrDepth
 	}
 	// Fail if we're trying to transfer more than the available balanceMap
@@ -148,7 +147,7 @@ func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, inp
 		return nil, gas, nil
 	}
 	// Fail if we're trying to execute above the call depth limit
-	if vm.depth > int(model2.CallCreateDepth) {
+	if vm.depth > int(model.CallCreateDepth) {
 		return nil, gas, g_error.ErrDepth
 	}
 
@@ -194,7 +193,7 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 	}()
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
-	if vm.depth > int(model2.CallCreateDepth) {
+	if vm.depth > int(model.CallCreateDepth) {
 		return nil, common.Address{}, gas, g_error.ErrDepth
 	}
 
@@ -244,14 +243,14 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 
 	ret, err := run(vm, contract, true)
 	// check whether the max data size has been exceeded
-	maxCodeSizeExceeded := len(ret) > model2.MaxCodeSize
+	maxCodeSizeExceeded := len(ret) > model.MaxCodeSize
 	// if the contract creation ran successfully and no errors were returned
 	// calculate the gas required to store the data. If the data could not
 	// be stored due to not enough gas set an error and let it be handled
 	// by the error checking condition below.
 	if err == nil && !maxCodeSizeExceeded {
 		log.DLogger.Info("LifeVm run successful", zap.Uint64("gasLeft", contract.Gas))
-		createDataGas := uint64(len(ret)+len(abi)) * model2.CreateDataGas
+		createDataGas := uint64(len(ret)+len(abi)) * model.CreateDataGas
 		if contract.UseGas(createDataGas) {
 			vm.state.SetCode(address, ret)
 			vm.state.SetAbi(address, abi)

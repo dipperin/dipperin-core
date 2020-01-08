@@ -20,7 +20,7 @@ import (
 	"github.com/dipperin/dipperin-core/cmd/dipperincli/config"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
-	"github.com/dipperin/dipperin-core/core/accounts"
+	"github.com/dipperin/dipperin-core/core/accounts/base"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"go.uber.org/zap"
 	"sync"
@@ -30,7 +30,7 @@ import (
 var (
 	defaultAccountStake     = "0" + consts.CoinDIPName
 	electionMap             sync.Map
-	trackingAccounts        []accounts.Account
+	trackingAccounts        []base.Account
 	logElectionTxTickerTime = 30 * time.Second
 )
 
@@ -103,12 +103,12 @@ func AsyncLogElectionTx() *time.Ticker {
 }
 
 func loadRegistedAccounts() {
-	var resp []accounts.WalletIdentifier
+	var resp []base.WalletIdentifier
 	if err := client.Call(&resp, getDipperinRpcMethodByName("ListWallet")); err != nil {
 		l.Error("Call ListWallet", zap.Error(err))
 		return
 	}
-	var respA []accounts.Account
+	var respA []base.Account
 
 	if err := client.Call(&respA, getDipperinRpcMethodByName("ListWalletAccount"), resp[0]); err != nil {
 		l.Error("Call ListWallet", zap.Error(err))
@@ -202,7 +202,7 @@ func isVerifier(addr common.Address, verifiers []common.Address) bool {
 }
 
 func addTrackingAccount(adds common.Address) {
-	acc := accounts.Account{Address: adds}
+	acc := base.Account{Address: adds}
 	for i := range trackingAccounts {
 		if trackingAccounts[i].Address.IsEqual(acc.Address) {
 			return
@@ -212,8 +212,8 @@ func addTrackingAccount(adds common.Address) {
 }
 
 func removeTrackingAccount(adds common.Address) {
-	acc := accounts.Account{Address: adds}
-	var newTrackingAccounts []accounts.Account
+	acc := base.Account{Address: adds}
+	var newTrackingAccounts []base.Account
 	for i := range trackingAccounts {
 		if !trackingAccounts[i].Address.IsEqual(acc.Address) {
 			newTrackingAccounts = append(newTrackingAccounts, trackingAccounts[i])

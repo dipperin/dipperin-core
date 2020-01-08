@@ -36,9 +36,9 @@ import (
 	"github.com/dipperin/dipperin-core/core/csbft/csbftnode"
 	"github.com/dipperin/dipperin-core/core/csbft/state-machine"
 	"github.com/dipperin/dipperin-core/core/dipperin/service"
+	"github.com/dipperin/dipperin-core/core/mine/block-builder"
 	"github.com/dipperin/dipperin-core/core/mine/minemaster"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/model/builder"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/core/tx-pool"
 	"github.com/dipperin/dipperin-core/core/verifiers-halt-check"
@@ -265,18 +265,18 @@ func (b *BaseComponent) buildCommunicationConfig() {
 	}
 }
 
-func (b *BaseComponent) buildMineConfig(modelConfig builder.ModelConfig) minemaster.MineConfig {
+func (b *BaseComponent) buildMineConfig(modelConfig block_builder.ModelConfig) minemaster.MineConfig {
 	return minemaster.MineConfig{
 		GasFloor:         &atomic.Value{},
 		GasCeil:          &atomic.Value{},
 		CoinbaseAddress:  b.coinbaseAddr,
-		BlockBuilder:     builder.MakeBftBlockBuilder(modelConfig),
+		BlockBuilder:     block_builder.MakeBftBlockBuilder(modelConfig),
 		BlockBroadcaster: b.broadcastDelegate,
 	}
 }
 
-func (b *BaseComponent) builderModelConfig() builder.ModelConfig {
-	return builder.ModelConfig{
+func (b *BaseComponent) builderModelConfig() block_builder.ModelConfig {
+	return block_builder.ModelConfig{
 		ChainReader:        b.fullChain,
 		TxPool:             b.txPool,
 		PriorityCalculator: b.defaultPriorityCalculator,

@@ -20,7 +20,6 @@ import (
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
-	"github.com/dipperin/dipperin-core/core/vm/model"
 	"math/big"
 )
 
@@ -130,7 +129,7 @@ type AbstractTransaction interface {
 	AsMessage(checkNonce bool) (Message, error)
 	PaddingReceipt(parameters ReceiptPara)
 	PaddingActualTxFee(fee *big.Int)
-	GetReceipt() *model.Receipt
+	GetReceipt() *Receipt
 	GetActualTxFee() (fee *big.Int)
 }
 

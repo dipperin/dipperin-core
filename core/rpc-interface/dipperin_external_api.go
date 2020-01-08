@@ -8,7 +8,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"math/big"
 )
@@ -319,7 +318,7 @@ func (api *DipperExternalApi) GetContractAddressByTxHash(txHash common.Hash) (co
 	return api.allApis.GetContractAddressByTxHash(txHash)
 }
 
-func (api *DipperExternalApi) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, Addresses []common.Address, Topics [][]common.Hash) ([]*model2.Log, error) {
+func (api *DipperExternalApi) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, Addresses []common.Address, Topics [][]common.Hash) ([]*model.Log, error) {
 	return api.allApis.GetLogs(blockHash, fromBlock, toBlock, Addresses, Topics)
 }
 
@@ -327,11 +326,11 @@ func (api *DipperExternalApi) GetTxActualFee(txHash common.Hash) (resp *CurBalan
 	return api.allApis.GetTxActualFee(txHash)
 }
 
-func (api *DipperExternalApi) GetReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
+func (api *DipperExternalApi) GetReceiptByTxHash(txHash common.Hash) (*model.Receipt, error) {
 	return api.allApis.GetReceiptByTxHash(txHash)
 }
 
-func (api *DipperExternalApi) GetReceiptsByBlockNum(num uint64) (model2.Receipts, error) {
+func (api *DipperExternalApi) GetReceiptsByBlockNum(num uint64) (model.Receipts, error) {
 	return api.allApis.GetReceiptsByBlockNum(num)
 }
 

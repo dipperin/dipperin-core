@@ -23,7 +23,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/chain/chaindb"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"github.com/dipperin/dipperin-core/core/model"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"time"
 )
@@ -94,7 +93,7 @@ func (b *BloomIndexer) Reset(ctx context.Context, section uint64, lastSectionHea
 
 // Process implements core.ChainIndexerBackend, adding a new header's bloom into
 // the index.
-func (b *BloomIndexer) Process(ctx context.Context, header *model.AbstractHeader, bloom model2.Bloom) error {
+func (b *BloomIndexer) Process(ctx context.Context, header *model.AbstractHeader, bloom model.Bloom) error {
 	b.gen.AddBloom(uint((*header).GetNumber()-b.section*b.size), bloom)
 	b.head = (*header).Hash()
 	return nil
@@ -104,7 +103,7 @@ func (b *BloomIndexer) Process(ctx context.Context, header *model.AbstractHeader
 // writing it out into the database.
 func (b *BloomIndexer) Commit() error {
 	batch := b.db.NewBatch()
-	for i := 0; i < model2.BloomBitLength; i++ {
+	for i := 0; i < model.BloomBitLength; i++ {
 		bits, err := b.gen.Bitset(uint(i))
 		if err != nil {
 			return err

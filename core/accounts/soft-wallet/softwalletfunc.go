@@ -23,7 +23,7 @@ import (
 	"encoding/hex"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/accounts"
+	"github.com/dipperin/dipperin-core/core/accounts/base"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/go-bip39"
@@ -134,12 +134,12 @@ func GenSymKeyFromPassword(password string, kdfPara KDFParameter) (sysKey Encryp
 
 	//currently only supports scrypt derived keys
 	if gj.Get("kdfType").String() != KDF {
-		return EncryptKey{}, accounts.ErrNotSupported
+		return EncryptKey{}, base.ErrNotSupported
 	}
 
 	keyLen := gj.Get("keyLen").Int()
 	if keyLen != symmetricKeyLen {
-		return EncryptKey{}, accounts.ErrInvalidKDFParameter
+		return EncryptKey{}, base.ErrInvalidKDFParameter
 	}
 
 	saltString := gj.Get("salt").String()
@@ -151,7 +151,7 @@ func GenSymKeyFromPassword(password string, kdfPara KDFParameter) (sysKey Encryp
 	//Generate the key used to encrypt the wallet data according to the password entered by the user.
 	deriveKey, result := scrypt.Key(authKey, salt, int(gj.Get("n").Int()), int(gj.Get("r").Int()), int(gj.Get("p").Int()), int(keyLen))
 	if (result != nil) || (len(deriveKey) != symmetricKeyLen) {
-		return EncryptKey{}, accounts.ErrDeriveKey
+		return EncryptKey{}, base.ErrDeriveKey
 	}
 
 	//Mac key and encrypt key first use the same key value encryption and decryption using AES-128-CBC
@@ -162,11 +162,11 @@ func GenSymKeyFromPassword(password string, kdfPara KDFParameter) (sysKey Encryp
 }
 
 //Obtain account information based on the extended key
-func GetAccountFromExtendedKey(keyData *ExtendedKey) (account accounts.Account, err error) {
+func GetAccountFromExtendedKey(keyData *ExtendedKey) (account base.Account, err error) {
 
 	tmpPk, err := keyData.ECPubKey()
 	if err != nil {
-		return accounts.Account{}, err
+		return base.Account{}, err
 	}
 
 	p := ecdsa.PublicKey{
@@ -230,12 +230,12 @@ func DecryptWalletContent(walletCipher WalletCipher, iv []byte, sysKey EncryptKe
 	//Decrypt the wallet data according to the generated derivative key, verify the legality of the wallet file according to the mac value, and open the wallet if legal
 	decryptData, err := AesDecryptCBC(iv, sysKey.encryptKey[:], cipher)
 	if err != nil {
-		return nil, accounts.ErrAESDecryption
+		return nil, base.ErrAESDecryption
 	}
 
 	truePlainLen := binary.BigEndian.Uint32(decryptData[:4])
 	if int(truePlainLen) > (len(decryptData) - 4) {
-		return []byte{}, accounts.ErrMacAuthentication
+		return []byte{}, base.ErrMacAuthentication
 	}
 
 	plainData := WalletPlaintext{
@@ -251,7 +251,7 @@ func DecryptWalletContent(walletCipher WalletCipher, iv []byte, sysKey EncryptKe
 	//decrypt the mac value
 	decryptMac, err := AesDecryptCBC(iv, sysKey.macKey[:], macData)
 	if err != nil {
-		return nil, accounts.ErrAESDecryption
+		return nil, base.ErrAESDecryption
 	}
 
 	//check if the mac value is legal
@@ -259,7 +259,7 @@ func DecryptWalletContent(walletCipher WalletCipher, iv []byte, sysKey EncryptKe
 
 	for index, value := range hashValue {
 		if value != decryptMac[index] {
-			return nil, accounts.ErrMacAuthentication
+			return nil, base.ErrMacAuthentication
 		}
 	}
 
@@ -287,8 +287,8 @@ func CalWalletCipher(walletInfo WalletInfo, iv []byte, sysKey EncryptKey) (walle
 }
 
 //judging the legitimacy of derived paths
-func CheckDerivedPathValid(path accounts.DerivationPath) (bool, error) {
-	defaultPath, err := accounts.ParseDerivationPath(DefaultDerivedPath)
+func CheckDerivedPathValid(path base.DerivationPath) (bool, error) {
+	defaultPath, err := base.ParseDerivationPath(DefaultDerivedPath)
 	if err != nil {
 		return false, err
 	}
@@ -315,11 +315,11 @@ func CheckPassword(password string) (err error) {
 	blankStr := regBlank.FindAllString(password, -1)
 
 	if reg.MatchString(password) && len(strs) <= 0 && len(blankStr) <= 0 {
-		if len(password) >= accounts.PasswordMin && len(password) <= accounts.PassWordMax {
+		if len(password) >= base.PasswordMin && len(password) <= base.PassWordMax {
 			return nil
 		}
 	}
-	return accounts.ErrPasswordOrPassPhraseIllegal
+	return base.ErrPasswordOrPassPhraseIllegal
 }
 
 //judge the incoming wallet path
@@ -328,11 +328,11 @@ func CheckWalletPath(path string) (err error) {
 	log.DLogger.Info("the path is:", zap.String("path", path))
 	log.DLogger.Info("the home dir is", zap.String("homeDir", homeDir))
 	if len(path) < len(homeDir) {
-		return accounts.ErrWalletPathError
+		return base.ErrWalletPathError
 	}
 
 	if path[:len(homeDir)] != homeDir {
-		return accounts.ErrWalletPathError
+		return base.ErrWalletPathError
 	}
 
 	return nil

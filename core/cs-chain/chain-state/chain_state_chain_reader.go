@@ -19,7 +19,6 @@ package chain_state
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
@@ -166,13 +165,13 @@ func (cs *ChainState) GetTransaction(txHash common.Hash) (model.AbstractTransact
 	return cs.ChainDB.GetTransaction(txHash)
 }
 
-func (cs *ChainState) GetReceipts(hash common.Hash, number uint64) model2.Receipts {
+func (cs *ChainState) GetReceipts(hash common.Hash, number uint64) model.Receipts {
 	return cs.ChainDB.GetReceipts(hash, number)
 }
 
-func (cs *ChainState) GetBloomLog(hash common.Hash, number uint64) model2.Bloom {
+func (cs *ChainState) GetBloomLog(hash common.Hash, number uint64) model.Bloom {
 	receipts := cs.ChainDB.GetReceipts(hash, number)
-	return model2.CreateBloom(receipts)
+	return model.CreateBloom(receipts)
 }
 
 func (cs *ChainState) GetBloomBits(head common.Hash, bit uint, section uint64) []byte {

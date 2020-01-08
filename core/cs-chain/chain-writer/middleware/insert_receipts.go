@@ -20,7 +20,6 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"go.uber.org/zap"
 )
 
@@ -33,7 +32,7 @@ func ValidGasUsedAndReceipts(c *BlockContext) Middleware {
 		}
 		curBlock := c.Chain.CurrentBlock()
 		log.DLogger.Info("Insert block receipts", zap.Uint64("cur number", curBlock.Number()), zap.Uint64("new number", c.Block.Number()))
-		receipts := make(model2.Receipts, 0, c.Block.TxCount())
+		receipts := make(model.Receipts, 0, c.Block.TxCount())
 		var accumulatedGas uint64
 		if err := c.Block.TxIterator(func(i int, transaction model.AbstractTransaction) error {
 			receipt := transaction.GetReceipt()

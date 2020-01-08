@@ -18,7 +18,7 @@ package state_processor
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/vm/model"
+	model2 "github.com/dipperin/dipperin-core/core/model"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
 	"math/big"
@@ -382,8 +382,8 @@ type (
 	}
 	logsChange struct {
 		TxHash     *common.Hash
-		Prev       []*model.Log
-		Current    []*model.Log
+		Prev       []*model2.Log
+		Current    []*model2.Log
 		ChangeType uint64
 	}
 )

@@ -23,7 +23,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/accounts"
+	"github.com/dipperin/dipperin-core/core/accounts/base"
 	"go.uber.org/zap"
 	"math/big"
 	"sync"
@@ -52,11 +52,11 @@ const (
 )
 
 type WalletInfo struct {
-	Accounts   []accounts.Account                         // used account included in the wallet
-	Paths      map[common.Address]accounts.DerivationPath // derived path of the account in the wallet
-	ExtendKeys map[common.Address]ExtendedKey             //Key information corresponding to the account address in the wallet
-	Balances   map[common.Address]*big.Int                //The balance corresponding to each account address in the wallet
-	Nonce      map[common.Address]uint64                  //The nonce value corresponding to each account address in the wallet
+	Accounts   []base.Account                         // used account included in the wallet
+	Paths      map[common.Address]base.DerivationPath // derived path of the account in the wallet
+	ExtendKeys map[common.Address]ExtendedKey         //Key information corresponding to the account address in the wallet
+	Balances   map[common.Address]*big.Int            //The balance corresponding to each account address in the wallet
+	Nonce      map[common.Address]uint64              //The nonce value corresponding to each account address in the wallet
 	//the used largest index in wallet derivation path, the key is the changeValue to identify the derived path, and the value is the largest index used.
 	DerivedPathIndex map[uint32]uint32
 	Seed             []byte //Wallet seed
@@ -68,8 +68,8 @@ type WalletInfo struct {
 func NewHdWalletInfo() (info *WalletInfo) {
 
 	walletInfo := WalletInfo{
-		Accounts:         make([]accounts.Account, 0),
-		Paths:            make(map[common.Address]accounts.DerivationPath, 0),
+		Accounts:         make([]base.Account, 0),
+		Paths:            make(map[common.Address]base.DerivationPath, 0),
 		ExtendKeys:       make(map[common.Address]ExtendedKey),
 		Balances:         make(map[common.Address]*big.Int, 0),
 		Nonce:            make(map[common.Address]uint64, 0),
@@ -92,10 +92,10 @@ type ExtendedKeyJson struct {
 }
 
 type WalletInfoJson struct {
-	Accounts         []accounts.Account                 `json:"accounts"`
-	Paths            map[string]accounts.DerivationPath `json:"paths"`
-	ExtendKeys       map[string]ExtendedKeyJson         `json:"extend_keys"`
-	Balances         map[string]*big.Int                `json:"balances"`
+	Accounts         []base.Account                 `json:"accounts"`
+	Paths            map[string]base.DerivationPath `json:"paths"`
+	ExtendKeys       map[string]ExtendedKeyJson     `json:"extend_keys"`
+	Balances         map[string]*big.Int            `json:"balances"`
 	Nonce            map[string]uint64
 	DerivedPathIndex map[uint32]uint32
 	Seed             []byte `json:"seed"`
@@ -103,8 +103,8 @@ type WalletInfoJson struct {
 
 func NewHdWalletInfoJson() (jsonInfo *WalletInfoJson) {
 	w := &WalletInfoJson{
-		Accounts:         make([]accounts.Account, 0),
-		Paths:            make(map[string]accounts.DerivationPath, 0),
+		Accounts:         make([]base.Account, 0),
+		Paths:            make(map[string]base.DerivationPath, 0),
 		ExtendKeys:       make(map[string]ExtendedKeyJson, 0),
 		Balances:         make(map[string]*big.Int, 0),
 		Nonce:            make(map[string]uint64, 0),
@@ -184,7 +184,7 @@ func (w *WalletInfo) HdWalletInfoDecodeJson(decodeData []byte) (err error) {
 }
 
 //Generate a master key according to the seed. Then generate a key corresponding to the index on the specified derived path according to the master key
-func (w *WalletInfo) GenerateKeyFromSeedAndPath(derivedPath string, index uint32) (derivedKey *ExtendedKey, Path accounts.DerivationPath, err error) {
+func (w *WalletInfo) GenerateKeyFromSeedAndPath(derivedPath string, index uint32) (derivedKey *ExtendedKey, Path base.DerivationPath, err error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 
@@ -192,14 +192,14 @@ func (w *WalletInfo) GenerateKeyFromSeedAndPath(derivedPath string, index uint32
 	//generate master key according to seed
 	extKey, err := NewMaster(w.Seed, &DipperinChainCfg)
 	if err != nil {
-		return nil, accounts.DerivationPath{}, err
+		return nil, base.DerivationPath{}, err
 	}
 
 	//Get the first account information on the default derived path based on the master key
-	Path, err = accounts.ParseDerivationPath(derivedPath)
+	Path, err = base.ParseDerivationPath(derivedPath)
 	if err != nil {
 		ClearSensitiveData(extKey)
-		return nil, accounts.DerivationPath{}, err
+		return nil, base.DerivationPath{}, err
 	}
 	Path = append(Path, index)
 
@@ -207,15 +207,15 @@ func (w *WalletInfo) GenerateKeyFromSeedAndPath(derivedPath string, index uint32
 	for _, value := range Path {
 		extKey, err = extKey.Child(value)
 		if err != nil {
-			return nil, accounts.DerivationPath{}, err
+			return nil, base.DerivationPath{}, err
 		}
 	}
 	return extKey, Path, nil
 }
 
 //get the  first 20 account according to the derived path, query whether it is used, and if it is used, join the recovered wallet.
-func (w *WalletInfo) paddingUsedAccount(GetAddressRelatedInfo accounts.AddressInfoReader) (err error) {
-	tmpPath, err := accounts.ParseDerivationPath(DefaultDerivedPath)
+func (w *WalletInfo) paddingUsedAccount(GetAddressRelatedInfo base.AddressInfoReader) (err error) {
+	tmpPath, err := base.ParseDerivationPath(DefaultDerivedPath)
 	if err != nil {
 		return err
 	}
@@ -229,7 +229,7 @@ func (w *WalletInfo) paddingUsedAccount(GetAddressRelatedInfo accounts.AddressIn
 		//determine if the derived path is legal
 		isValid, err := CheckDerivedPathValid(tmpPath)
 		if err != nil || !isValid {
-			return accounts.ErrInvalidDerivedPath
+			return base.ErrInvalidDerivedPath
 		}
 
 		//Generate derived keys based on incoming derived paths and wallet seeds
@@ -282,7 +282,7 @@ func (w *WalletInfo) getSkFromAddress(address common.Address) (sk *ecdsa.Private
 
 	tmpKey, ok := w.ExtendKeys[address]
 	if !ok {
-		return nil, accounts.ErrInvalidAddress
+		return nil, base.ErrInvalidAddress
 	}
 
 	//take out the private key in the extension key
@@ -299,7 +299,7 @@ func (w *WalletInfo) getSkFromAddress(address common.Address) (sk *ecdsa.Private
 	return tmpSk, nil
 }
 
-func (w *WalletInfo) PaddingAddressNonce(GetAddressRelatedInfo accounts.AddressInfoReader) (err error) {
+func (w *WalletInfo) PaddingAddressNonce(GetAddressRelatedInfo base.AddressInfoReader) (err error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 

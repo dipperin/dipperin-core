@@ -26,13 +26,13 @@ import (
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/accounts"
+	"github.com/dipperin/dipperin-core/core/accounts/base"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/dipperin/dipperin-core/core/chain"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/dipperin"
+	model2 "github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
-	"github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
@@ -52,7 +52,7 @@ var (
 	client RpcClient
 
 	defaultAccount common.Address
-	defaultWallet  accounts.WalletIdentifier
+	defaultWallet  base.WalletIdentifier
 	osExit         = os.Exit
 )
 
@@ -714,7 +714,7 @@ func (caller *rpcCaller) GetReceiptByTxHash(c *cli.Context) {
 	var hash common.Hash
 	copy(hash[:], tmpHash)
 
-	var resp model.Receipt
+	var resp model2.Receipt
 	if err = client.Call(&resp, getDipperinRpcMethodByName("GetReceiptByTxHash"), hash); err != nil {
 		l.Error("Call GetReceiptByTxHash", zap.Error(err))
 		return
@@ -806,7 +806,7 @@ func (caller *rpcCaller) GetLogs(c *cli.Context) {
 	l.Debug("the contractAddresses is", zap.Any("addresses", filterParams.Addresses))
 	l.Debug("the topics is", zap.Any("topics", filterParams.Topics))
 
-	var resp []model.Log
+	var resp []model2.Log
 	if err := client.Call(&resp, getDipperinRpcMethodByName("GetLogs"), filterParams.BlockHash, filterParams.FromBlock, filterParams.ToBlock, filterParams.Addresses, filterParams.Topics); err != nil {
 		l.Error("Call GetLogs failed", zap.Error(err))
 		return
@@ -839,7 +839,7 @@ func (caller *rpcCaller) GetReceiptsByBlockNum(c *cli.Context) {
 		return
 	}
 
-	var resp model.Receipts
+	var resp model2.Receipts
 	if err = client.Call(&resp, getDipperinRpcMethodByName("GetReceiptsByBlockNum"), blockNum); err != nil {
 		l.Error("Call GetReceiptsByBlockNum", zap.Error(err))
 		return
@@ -856,7 +856,7 @@ func (caller *rpcCaller) ListWallet(c *cli.Context) {
 		return
 	}
 	l.Debug(getDipperinRpcMethodByName(mName))
-	var resp []accounts.WalletIdentifier
+	var resp []base.WalletIdentifier
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName)); err != nil {
 		l.Error("Call ListWallet", zap.Error(err))
 		return
@@ -875,18 +875,18 @@ func (caller *rpcCaller) ListWalletAccount(c *cli.Context) {
 		l.Error("getRpcMethodAndParam error")
 		return
 	}
-	var identifier accounts.WalletIdentifier
+	var identifier base.WalletIdentifier
 	if len(cParams) == 0 {
 		identifier = defaultWallet
 	} else if len(cParams) == 2 {
 		identifier.Path, identifier.WalletName = ParseWalletPathAndName(cParams[1])
 		l.Debug("ListWalletAccount", zap.String("walletPath", identifier.Path), zap.String("walletName", identifier.WalletName))
 		if cParams[0] == "SoftWallet" {
-			identifier.WalletType = accounts.SoftWallet
+			identifier.WalletType = base.SoftWallet
 		} else if cParams[0] == "LedgerWallet" {
-			identifier.WalletType = accounts.TrezorWallet
+			identifier.WalletType = base.TrezorWallet
 		} else if cParams[0] == "TrezorWallet" {
-			identifier.WalletType = accounts.TrezorWallet
+			identifier.WalletType = base.TrezorWallet
 		} else {
 			l.Error("Wallet Type error")
 			return
@@ -897,7 +897,7 @@ func (caller *rpcCaller) ListWalletAccount(c *cli.Context) {
 	}
 
 	l.Debug(getDipperinRpcMethodByName(mName))
-	var resp []accounts.Account
+	var resp []base.Account
 
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), identifier); err != nil {
 		l.Error("Call ListWallet", zap.Error(err))
@@ -924,15 +924,15 @@ func (caller *rpcCaller) EstablishWallet(c *cli.Context) {
 		return
 	}
 
-	var identifier accounts.WalletIdentifier
+	var identifier base.WalletIdentifier
 	identifier.Path, identifier.WalletName = ParseWalletPathAndName(cParams[1])
 
 	if cParams[0] == "SoftWallet" {
-		identifier.WalletType = accounts.SoftWallet
+		identifier.WalletType = base.SoftWallet
 	} else if cParams[0] == "LedgerWallet" {
-		identifier.WalletType = accounts.TrezorWallet
+		identifier.WalletType = base.TrezorWallet
 	} else if cParams[0] == "TrezorWallet" {
-		identifier.WalletType = accounts.TrezorWallet
+		identifier.WalletType = base.TrezorWallet
 	} else {
 		l.Error("Wallet Type error")
 		return
@@ -973,15 +973,15 @@ func (caller *rpcCaller) RestoreWallet(c *cli.Context) {
 		return
 	}
 
-	var identifier accounts.WalletIdentifier
+	var identifier base.WalletIdentifier
 	identifier.Path, identifier.WalletName = ParseWalletPathAndName(cParams[1])
 
 	if cParams[0] == "SoftWallet" {
-		identifier.WalletType = accounts.SoftWallet
+		identifier.WalletType = base.SoftWallet
 	} else if cParams[0] == "LedgerWallet" {
-		identifier.WalletType = accounts.TrezorWallet
+		identifier.WalletType = base.TrezorWallet
 	} else if cParams[0] == "TrezorWallet" {
-		identifier.WalletType = accounts.TrezorWallet
+		identifier.WalletType = base.TrezorWallet
 	} else {
 		l.Error("Wallet Type error")
 		return
@@ -1019,7 +1019,7 @@ func (caller *rpcCaller) OpenWallet(c *cli.Context) {
 		return
 	}
 
-	var identifier accounts.WalletIdentifier
+	var identifier base.WalletIdentifier
 	var password string
 	if len(cParams) == 1 {
 		identifier = defaultWallet
@@ -1027,11 +1027,11 @@ func (caller *rpcCaller) OpenWallet(c *cli.Context) {
 	} else if len(cParams) == 3 {
 		identifier.Path, identifier.WalletName = ParseWalletPathAndName(cParams[1])
 		if cParams[0] == "SoftWallet" {
-			identifier.WalletType = accounts.SoftWallet
+			identifier.WalletType = base.SoftWallet
 		} else if cParams[0] == "LedgerWallet" {
-			identifier.WalletType = accounts.LedgerWallet
+			identifier.WalletType = base.LedgerWallet
 		} else if cParams[0] == "TrezorWallet" {
-			identifier.WalletType = accounts.TrezorWallet
+			identifier.WalletType = base.TrezorWallet
 		} else {
 			l.Error("Wallet Type error")
 			return
@@ -1062,17 +1062,17 @@ func (caller *rpcCaller) CloseWallet(c *cli.Context) {
 		return
 	}
 
-	var identifier accounts.WalletIdentifier
+	var identifier base.WalletIdentifier
 	if len(cParams) == 0 {
 		identifier = defaultWallet
 	} else if len(cParams) == 2 {
 		identifier.Path, identifier.WalletName = ParseWalletPathAndName(cParams[1])
 		if cParams[0] == "SoftWallet" {
-			identifier.WalletType = accounts.SoftWallet
+			identifier.WalletType = base.SoftWallet
 		} else if cParams[0] == "LedgerWallet" {
-			identifier.WalletType = accounts.TrezorWallet
+			identifier.WalletType = base.TrezorWallet
 		} else if cParams[0] == "TrezorWallet" {
-			identifier.WalletType = accounts.TrezorWallet
+			identifier.WalletType = base.TrezorWallet
 		} else {
 			l.Error("Wallet Type error")
 			return
@@ -1099,17 +1099,17 @@ func (caller *rpcCaller) AddAccount(c *cli.Context) {
 		return
 	}
 
-	var identifier accounts.WalletIdentifier
+	var identifier base.WalletIdentifier
 	if len(cParams) == 0 {
 		identifier = defaultWallet
 	} else if len(cParams) == 2 {
 		identifier.Path, identifier.WalletName = ParseWalletPathAndName(cParams[1])
 		if cParams[0] == "SoftWallet" {
-			identifier.WalletType = accounts.SoftWallet
+			identifier.WalletType = base.SoftWallet
 		} else if cParams[0] == "LedgerWallet" {
-			identifier.WalletType = accounts.TrezorWallet
+			identifier.WalletType = base.TrezorWallet
 		} else if cParams[0] == "TrezorWallet" {
-			identifier.WalletType = accounts.TrezorWallet
+			identifier.WalletType = base.TrezorWallet
 		} else {
 			l.Error("Wallet Type error")
 			return
@@ -1121,7 +1121,7 @@ func (caller *rpcCaller) AddAccount(c *cli.Context) {
 
 	derivationPath := ""
 	l.Debug(getDipperinRpcMethodByName(mName))
-	var resp accounts.Account
+	var resp base.Account
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), derivationPath, identifier); err != nil {
 		l.Error("Call AddAccount", zap.Error(err))
 		return
@@ -1719,8 +1719,8 @@ func (caller *rpcCaller) GetAddressNonceFromWallet(c *cli.Context) {
 }
 
 func initWallet(path, password, passPhrase string) (err error) {
-	var identifier accounts.WalletIdentifier
-	identifier.WalletType = accounts.SoftWallet
+	var identifier base.WalletIdentifier
+	identifier.WalletType = base.SoftWallet
 	identifier.Path, identifier.WalletName = ParseWalletPathAndName(path)
 
 	//open
@@ -1746,7 +1746,7 @@ func initWallet(path, password, passPhrase string) (err error) {
 }
 
 func getDefaultAccount() common.Address {
-	var resp []accounts.WalletIdentifier
+	var resp []base.WalletIdentifier
 	l.Debug("getDefaultAccount")
 
 	if err := client.Call(&resp, getDipperinRpcMethodByName("ListWallet")); err != nil {
@@ -1754,7 +1754,7 @@ func getDefaultAccount() common.Address {
 		return common.Address{}
 	}
 
-	var respA []accounts.Account
+	var respA []base.Account
 	if err := client.Call(&respA, getDipperinRpcMethodByName("ListWalletAccount"), resp[0]); err != nil {
 		l.Error("Call ListWallet", zap.Error(err))
 		return common.Address{}
@@ -1779,11 +1779,11 @@ func getDefaultAccount() common.Address {
 	l.Info("default account set success", "account", defaultAccount.Hex())
 }*/
 
-func getDefaultWallet() accounts.WalletIdentifier {
-	var resp []accounts.WalletIdentifier
+func getDefaultWallet() base.WalletIdentifier {
+	var resp []base.WalletIdentifier
 	if err := client.Call(&resp, getDipperinRpcMethodByName("ListWallet")); err != nil {
 		l.Error("Call ListWallet", zap.Error(err))
-		return accounts.WalletIdentifier{}
+		return base.WalletIdentifier{}
 	}
 	return resp[0]
 }

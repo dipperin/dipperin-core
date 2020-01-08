@@ -19,7 +19,6 @@ package vm_log_search
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 )
 
 // NewTxsEvent is posted when a batch of transactions enter the transaction pool.
@@ -27,19 +26,19 @@ type NewTxsEvent struct{ Txs []*model.Transaction }
 
 // PendingLogsEvent is posted pre mining and notifies of pending logs.
 type PendingLogsEvent struct {
-	Logs []*model2.Log
+	Logs []*model.Log
 }
 
 // NewMinedBlockEvent is posted when a block has been imported.
 type NewMinedBlockEvent struct{ Block *model.Block }
 
 // RemovedLogsEvent is posted when a reorg happens
-type RemovedLogsEvent struct{ Logs []*model2.Log }
+type RemovedLogsEvent struct{ Logs []*model.Log }
 
 type ChainEvent struct {
 	Block *model.Block
 	Hash  common.Hash
-	Logs  []*model2.Log
+	Logs  []*model.Log
 }
 
 type ChainSideEvent struct {

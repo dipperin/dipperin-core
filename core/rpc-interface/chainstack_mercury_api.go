@@ -27,14 +27,13 @@ import (
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/accounts"
+	"github.com/dipperin/dipperin-core/core/accounts/base"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/dipperin/service"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
 	"github.com/ethereum/go-ethereum/rlp"
 	"go.uber.org/zap"
@@ -484,7 +483,7 @@ func (api *DipperinVenusApi) StopMine() error {
 // - name: walletIdentifier
 //   in: body
 //   description: wallet identifier
-//   type: accounts.WalletIdentifier
+//   type: base.WalletIdentifier
 //   required: true
 // - name: password
 //   in: body
@@ -501,7 +500,7 @@ func (api *DipperinVenusApi) StopMine() error {
 // responses:
 //   "200":
 //        description: return mnemonic and the operation result
-func (api *DipperinVenusApi) EstablishWallet(password, passPhrase string, walletIdentifier accounts.WalletIdentifier) (mnemonic string, err error) {
+func (api *DipperinVenusApi) EstablishWallet(password, passPhrase string, walletIdentifier base.WalletIdentifier) (mnemonic string, err error) {
 	return api.service.EstablishWallet(walletIdentifier, password, passPhrase)
 }
 
@@ -514,7 +513,7 @@ func (api *DipperinVenusApi) EstablishWallet(password, passPhrase string, wallet
 // - name: walletIdentifier
 //   in: body
 //   description: wallet identifier
-//   type: accounts.WalletIdentifier
+//   type: base.WalletIdentifier
 //   required: true
 // - name: password
 //   in: body
@@ -526,7 +525,7 @@ func (api *DipperinVenusApi) EstablishWallet(password, passPhrase string, wallet
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinVenusApi) OpenWallet(password string, walletIdentifier accounts.WalletIdentifier) error {
+func (api *DipperinVenusApi) OpenWallet(password string, walletIdentifier base.WalletIdentifier) error {
 	return api.service.OpenWallet(walletIdentifier, password)
 }
 
@@ -539,14 +538,14 @@ func (api *DipperinVenusApi) OpenWallet(password string, walletIdentifier accoun
 // - name: walletIdentifier
 //   in: body
 //   description: wallet identifier
-//   type: accounts.WalletIdentifier
+//   type: base.WalletIdentifier
 //   required: true
 // produces:
 // - application/json
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinVenusApi) CloseWallet(walletIdentifier accounts.WalletIdentifier) error {
+func (api *DipperinVenusApi) CloseWallet(walletIdentifier base.WalletIdentifier) error {
 	return api.service.CloseWallet(walletIdentifier)
 }
 
@@ -559,7 +558,7 @@ func (api *DipperinVenusApi) CloseWallet(walletIdentifier accounts.WalletIdentif
 // - name: walletIdentifier
 //   in: body
 //   description: wallet identifier
-//   type: accounts.WalletIdentifier
+//   type: base.WalletIdentifier
 //   required: true
 // - name: password
 //   in: body
@@ -581,7 +580,7 @@ func (api *DipperinVenusApi) CloseWallet(walletIdentifier accounts.WalletIdentif
 // responses:
 //   "200":
 //        description: return operation result
-func (api *DipperinVenusApi) RestoreWallet(password, mnemonic, passPhrase string, walletIdentifier accounts.WalletIdentifier) error {
+func (api *DipperinVenusApi) RestoreWallet(password, mnemonic, passPhrase string, walletIdentifier base.WalletIdentifier) error {
 	return api.service.RestoreWallet(walletIdentifier, password, passPhrase, mnemonic)
 }
 
@@ -595,11 +594,11 @@ func (api *DipperinVenusApi) RestoreWallet(password, mnemonic, passPhrase string
 // responses:
 //   "200":
 //        description: return wallet identifier list and the operation result
-func (api *DipperinVenusApi) ListWallet() ([]accounts.WalletIdentifier, error) {
+func (api *DipperinVenusApi) ListWallet() ([]base.WalletIdentifier, error) {
 
 	walletIdentifier, err := api.service.ListWallet()
 	if err != nil {
-		return []accounts.WalletIdentifier{}, err
+		return []base.WalletIdentifier{}, err
 	}
 
 	return walletIdentifier, nil
@@ -726,23 +725,23 @@ func (api *DipperinVenusApi) CheckBootNode() ([]string, error) {
 // - name: walletIdentifier
 //   in: body
 //   description: wallet identifier
-//   type: accounts.WalletIdentifier
+//   type: base.WalletIdentifier
 //   required: true
 // produces:
 // - application/json
 // responses:
 //   "200":
 //        description: return account list and the operation result
-func (api *DipperinVenusApi) ListWalletAccount(walletIdentifier accounts.WalletIdentifier) ([]accounts.Account, error) {
+func (api *DipperinVenusApi) ListWalletAccount(walletIdentifier base.WalletIdentifier) ([]base.Account, error) {
 
 	tmpAccounts, err := api.service.ListWalletAccount(walletIdentifier)
 
 	/*	for _,account := range tmpAccounts{
-		log.DLogger.Info("the accounts is: ","accounts.Address",account.Address.Hex())
+		log.DLogger.Info("the accounts is: ","base.Address",account.Address.Hex())
 	}*/
 
 	if err != nil {
-		return []accounts.Account{}, err
+		return []base.Account{}, err
 	}
 
 	return tmpAccounts, nil
@@ -761,7 +760,7 @@ func (api *DipperinVenusApi) StartRemainingService() {
 // - name: walletIdentifier
 //   in: body
 //   description: wallet identifier
-//   type: accounts.WalletIdentifier
+//   type: base.WalletIdentifier
 //   required: true
 // produces:
 // - application/json
@@ -782,7 +781,7 @@ func (api *DipperinVenusApi) SetBftSigner(address common.Address) error {
 // - name: walletIdentifier
 //   in: body
 //   description: wallet identifier
-//   type: accounts.WalletIdentifier
+//   type: base.WalletIdentifier
 //   required: true
 // - name: derivationPath
 //   in: body
@@ -794,7 +793,7 @@ func (api *DipperinVenusApi) SetBftSigner(address common.Address) error {
 // responses:
 //   "200":
 //        description: return the added account and the operation result
-func (api *DipperinVenusApi) AddAccount(derivationPath string, walletIdentifier accounts.WalletIdentifier) (accounts.Account, error) {
+func (api *DipperinVenusApi) AddAccount(derivationPath string, walletIdentifier base.WalletIdentifier) (base.Account, error) {
 	return api.service.AddAccount(walletIdentifier, derivationPath)
 }
 
@@ -1092,7 +1091,7 @@ func (api *DipperinVenusApi) GetCurrentConnectPeers() ([]PeerInfoResp, error) {
 }
 
 /*//SyncUsedAccounts
-func (api *DipperinVenusApi)SyncUsedAccounts(walletIdentifier accounts.WalletIdentifier,MaxChangeValue ,MaxIndex uint32) error{
+func (api *DipperinVenusApi)SyncUsedAccounts(walletIdentifier base.WalletIdentifier,MaxChangeValue ,MaxIndex uint32) error{
 	return api.service.SyncUsedAccounts(walletIdentifier,MaxChangeValue,MaxIndex)
 }*/
 
@@ -1279,7 +1278,7 @@ func (api *DipperinVenusApi) GetContractAddressByTxHash(txHash common.Hash) (com
 	return api.service.GetContractAddressByTxHash(txHash)
 }
 
-func (api *DipperinVenusApi) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, Addresses []common.Address, Topics [][]common.Hash) ([]*model2.Log, error) {
+func (api *DipperinVenusApi) GetLogs(blockHash common.Hash, fromBlock, toBlock uint64, Addresses []common.Address, Topics [][]common.Hash) ([]*model.Log, error) {
 	return api.service.GetLogs(blockHash, fromBlock, toBlock, Addresses, Topics)
 }
 
@@ -1305,11 +1304,11 @@ func (api *DipperinVenusApi) GetTxActualFee(txHash common.Hash) (resp *CurBalanc
 	}, nil
 }
 
-func (api *DipperinVenusApi) GetReceiptByTxHash(txHash common.Hash) (*model2.Receipt, error) {
+func (api *DipperinVenusApi) GetReceiptByTxHash(txHash common.Hash) (*model.Receipt, error) {
 	return api.service.GetReceiptByTxHash(txHash)
 }
 
-func (api *DipperinVenusApi) GetReceiptsByBlockNum(num uint64) (model2.Receipts, error) {
+func (api *DipperinVenusApi) GetReceiptsByBlockNum(num uint64) (model.Receipts, error) {
 	return api.service.GetReceiptsByBlockNum(num)
 }
 
