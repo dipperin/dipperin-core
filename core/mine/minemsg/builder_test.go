@@ -20,10 +20,10 @@ func TestDefaultWorkBuilder_BuildWorks(t *testing.T) {
 	assert.NotNil(t, builder)
 
 	// test situations
-	situations := []struct{
-		name string
-		given func() (block model.AbstractBlock, workLen int)
-		expectCode int
+	situations := []struct {
+		name           string
+		given          func() (block model.AbstractBlock, workLen int)
+		expectCode     int
 		expectWorkLens int
 	}{
 		{
@@ -43,12 +43,12 @@ func TestDefaultWorkBuilder_BuildWorks(t *testing.T) {
 			10,
 		},
 		{
-				"invalid nil block",
-				func() (model.AbstractBlock, int) {
-					return nil, 10
-				},
-				0,
-				0,
+			"invalid nil block",
+			func() (model.AbstractBlock, int) {
+				return nil, 10
+			},
+			0,
+			0,
 		},
 	}
 	// test
