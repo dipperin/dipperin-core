@@ -1651,12 +1651,12 @@ func (service *VenusFullChainService) GetLogs(blockHash common.Hash, fromBlock, 
 		log.DLogger.Info("VenusFullChainService#GetLogs", zap.Any("logs", logs), zap.Error(err))
 		return nil, err
 	}
-	return service.convertLogs(logs)
+	return service.ConvertLogs(logs)
 }
 
-// convertLogs is a helper that will return an empty log array in case the given logs array is nil,
+// ConvertLogs is a helper that will return an empty log array in case the given logs array is nil,
 // otherwise the given logs array is returned.
-func (service *VenusFullChainService) convertLogs(logs []*model2.Log) ([]*model2.Log, error) {
+func (service *VenusFullChainService) ConvertLogs(logs []*model2.Log) ([]*model2.Log, error) {
 	if logs == nil {
 		return []*model2.Log{}, nil
 	}
@@ -1716,7 +1716,7 @@ func (service *VenusFullChainService) GetReceiptsByBlockNum(num uint64) (model2.
 		if len(value.Logs) == 0 {
 			continue
 		}
-		result, innerErr := service.convertLogs(value.Logs)
+		result, innerErr := service.ConvertLogs(value.Logs)
 		if innerErr != nil {
 			log.DLogger.Info("GetReceiptsByBlockNum convertReceipt error", zap.Error(innerErr))
 			return nil, innerErr
@@ -1743,7 +1743,7 @@ func (service *VenusFullChainService) GetReceiptByTxHash(txHash common.Hash) (*m
 			if len(value.Logs) == 0 {
 				return value, nil
 			}
-			result, innerErr := service.convertLogs(value.Logs)
+			result, innerErr := service.ConvertLogs(value.Logs)
 			if innerErr != nil {
 				log.DLogger.Info("GetConvertReceiptByTxHash convertReceipt error", zap.Error(innerErr))
 				return nil, innerErr
