@@ -62,7 +62,7 @@ const (
 	BootEnvVenus   = "venus"
 	BootEnvTest    = "test"
 	BootEnvLocal   = "local"
-	BootEnvTps   = "tps"
+	BootEnvTps     = "tps"
 )
 
 const (
