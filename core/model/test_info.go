@@ -25,6 +25,7 @@ import (
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"math/big"
 	"time"
+	"github.com/dipperin/dipperin-core/core/chain-config"
 )
 
 var (
@@ -59,7 +60,7 @@ func CreateSignedTx(nonce uint64, amount *big.Int) *Transaction {
 
 func CreateSignedTxList(n int) []*Transaction {
 	keyAlice, _ := CreateKey()
-	ms := NewSigner(big.NewInt(1))
+	ms := NewSigner(chain_config.GetChainConfig().ChainId)
 
 	var res []*Transaction
 	for i := 0; i < n; i++ {
