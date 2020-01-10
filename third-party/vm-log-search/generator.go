@@ -18,7 +18,7 @@ package vm_log_search
 
 import (
 	"errors"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/core/model"
 )
 
 var (
@@ -34,9 +34,9 @@ var (
 // Generator takes a number of bloom filters and generates the rotated bloom bits
 // to be used for batched filtering.
 type Generator struct {
-	blooms   [model2.BloomBitLength][]byte // Rotated blooms for per-bit matching
-	sections uint                          // Number of sections to batch together
-	nextSec  uint                          // Next section to set when adding a bloom
+	blooms   [model.BloomBitLength][]byte // Rotated blooms for per-bit matching
+	sections uint                         // Number of sections to batch together
+	nextSec  uint                         // Next section to set when adding a bloom
 }
 
 // NewGenerator creates a rotated bloom generator that can iteratively fill a
@@ -46,7 +46,7 @@ func NewGenerator(sections uint) (*Generator, error) {
 		return nil, errors.New("section count not multiple of 8")
 	}
 	b := &Generator{sections: sections}
-	for i := 0; i < model2.BloomBitLength; i++ {
+	for i := 0; i < model.BloomBitLength; i++ {
 		b.blooms[i] = make([]byte, sections/8)
 	}
 	return b, nil
@@ -55,7 +55,7 @@ func NewGenerator(sections uint) (*Generator, error) {
 // AddBloom takes a single bloom filter and sets the corresponding bit column
 // in memory accordingly.
 // 整个方法的作用是判断bloom中该位是否为0，如果不为0则与generator中blooms中该位在bloom中对应的序号中对应的section上
-func (b *Generator) AddBloom(index uint, bloom model2.Bloom) error {
+func (b *Generator) AddBloom(index uint, bloom model.Bloom) error {
 	// Make sure we're not adding more bloom filters than our capacity
 	if b.nextSec >= b.sections {
 		return errSectionOutOfBounds
@@ -68,8 +68,8 @@ func (b *Generator) AddBloom(index uint, bloom model2.Bloom) error {
 	bitMask := byte(1) << byte(7-b.nextSec%8)
 	//fmt.Println("AddBloom ============", bitMask, byte(1), byte(7-b.nextSec%8))
 
-	for i := 0; i < model2.BloomBitLength; i++ {
-		bloomByteIndex := model2.BloomByteLength - 1 - i/8
+	for i := 0; i < model.BloomBitLength; i++ {
+		bloomByteIndex := model.BloomByteLength - 1 - i/8
 		bloomBitMask := byte(1) << byte(i%8)
 		//fmt.Println("Adoom =====","i", i,",bloomByteIndex",byte(bloomByteIndex),",bloomBitMask",byte(bloomBitMask),
 		//	"bloom[bloomByteIndex]",byte(bloom[bloomByteIndex]),
@@ -91,7 +91,7 @@ func (b *Generator) Bitset(idx uint) ([]byte, error) {
 	if b.nextSec != b.sections {
 		return nil, errors.New("bloom not fully generated yet")
 	}
-	if idx >= model2.BloomBitLength {
+	if idx >= model.BloomBitLength {
 		return nil, errBloomBitOutOfBounds
 	}
 	return b.blooms[idx], nil

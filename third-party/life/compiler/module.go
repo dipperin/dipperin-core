@@ -157,10 +157,10 @@ func (m *Module) CompileWithNGen(gp GasPolicy, numGlobals uint64) (out string, r
 		if gp != nil {
 			compiler.InsertGasCounters(gp)
 		}
-		//fmt.Println(Code)
+		//fmt.Println(code)
 		//fmt.Printf("%+v\n", compiler.NewCFGraph())
 		//numRegs := compiler.RegAlloc()
-		//fmt.Println(compiler.Code)
+		//fmt.Println(compiler.code)
 		numLocals := 0
 		for _, v := range f.Body.Locals {
 			numLocals += int(v.Count)
@@ -233,10 +233,10 @@ func (m *Module) CompileForInterpreter(gp GasPolicy) (_retCode []InterpreterCode
 		if gp != nil {
 			compiler.InsertGasCounters(gp)
 		}
-		//fmt.Println(compiler.Code)
+		//fmt.Println(compiler.code)
 		//fmt.Printf("%+v\n", compiler.NewCFGraph())
 		numRegs := compiler.RegAlloc()
-		//fmt.Println(compiler.Code)
+		//fmt.Println(compiler.code)
 		numLocals := 0
 		for _, v := range f.Body.Locals {
 			numLocals += int(v.Count)

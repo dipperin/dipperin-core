@@ -27,7 +27,7 @@ import (
 	"time"
 )
 
-//go:generate stringer -type=VoteMsgType
+/*//go:generate stringer -type=VoteMsgType*/
 type VoteMsgType byte
 
 const (

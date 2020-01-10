@@ -20,10 +20,10 @@ import (
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/bloom"
-	"github.com/dipperin/dipperin-core/core/vm/model"
 	"math/big"
 )
 
+//go:generate mockgen -destination=./../../tests/mock/model/header_mock.go -package=model_mock github.com/dipperin/dipperin-core/core/model AbstractHeader
 type AbstractHeader interface {
 	GetNumber() uint64
 	Hash() common.Hash
@@ -56,9 +56,8 @@ type AbstractBody interface {
 	//GetReceipts() ([]*model.Receipt, error)
 }
 
-//go:generate mockgen -destination=./../cs-chain/chain-writer/block_mock_test.go -package=chain_writer github.com/dipperin/dipperin-core/core/model AbstractBlock
-//go:generate mockgen -destination=./../economy-model/block_mock_test.go -package=economy_model github.com/dipperin/dipperin-core/core/model AbstractBlock
-//go:generate mockgen -destination=./../rpc-interface/block_mock_test.go -package=rpc_interface github.com/dipperin/dipperin-core/core/model AbstractBlock
+
+//go:generate mockgen -destination=./../../tests/mock/model/block_mock.go -package=model_mock github.com/dipperin/dipperin-core/core/model AbstractBlock
 type AbstractBlock interface {
 	Version() uint64
 	Number() uint64
@@ -110,7 +109,7 @@ type PriofityCalculator interface {
 	GetReputation(uint64, *big.Int, uint64) (uint64, error)
 }
 
-//go:generate mockgen -destination=./../chain-communication/transaction_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/model AbstractTransaction
+//go:generate mockgen -destination=./../../tests/mock/model/transaction_mock.go -package=model_mock github.com/dipperin/dipperin-core/core/model AbstractTransaction
 type AbstractTransaction interface {
 	Size() common.StorageSize
 	Amount() *big.Int
@@ -130,13 +129,11 @@ type AbstractTransaction interface {
 	AsMessage(checkNonce bool) (Message, error)
 	PaddingReceipt(parameters ReceiptPara)
 	PaddingActualTxFee(fee *big.Int)
-	GetReceipt() *model.Receipt
+	GetReceipt() *Receipt
 	GetActualTxFee() (fee *big.Int)
 }
 
-//go:generate mockgen -destination=./../economy-model/verification_mock_test.go -package=economy_model github.com/dipperin/dipperin-core/core/model AbstractVerification
-//go:generate mockgen -destination=./../../cmd/utils/ver-halt-check/verification_mock_test.go -package=ver_halt_check github.com/dipperin/dipperin-core/core/model AbstractVerification
-//go:generate mockgen -destination=./../cs-chain/chain-writer/middleware/verification_mock_test.go -package=middleware github.com/dipperin/dipperin-core/core/model AbstractVerification
+
 type AbstractVerification interface {
 	GetHeight() uint64
 	GetRound() uint64

@@ -21,7 +21,7 @@ import (
 	"encoding/binary"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/vm/model"
+	model2 "github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"go.uber.org/zap"
@@ -199,7 +199,7 @@ func (r *Resolver) envEmitEvent(vm *exec.VirtualMachine) int64 {
 
 	log.DLogger.Info("the blockNumber is:", zap.Any("blockNumber", r.Service.GetBlockNumber()))
 	log.DLogger.Info("envEmitEvent", zap.String("TopicName", string(t)), zap.Int("Len", topicLen))
-	addedLog := &model.Log{
+	addedLog := &model2.Log{
 		Address:   r.Service.Address(),
 		Topics:    []common.Hash{common.BytesToHash(crypto.Keccak256(t))},
 		TopicName: string(t),

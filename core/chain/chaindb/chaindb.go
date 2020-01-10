@@ -23,7 +23,6 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -254,11 +253,11 @@ func (chainDB *ChainDB) DeleteBlock(hash common.Hash, number uint64) {
 }
 
 //add receipts save get and delete
-func (chainDB *ChainDB) SaveReceipts(hash common.Hash, number uint64, receipts model2.Receipts) error {
+func (chainDB *ChainDB) SaveReceipts(hash common.Hash, number uint64, receipts model.Receipts) error {
 	// Convert the receipts into their storage form and serialize them
-	storageReceipts := make([]*model2.ReceiptForStorage, len(receipts))
+	storageReceipts := make([]*model.ReceiptForStorage, len(receipts))
 	for i, receipt := range receipts {
-		storageReceipts[i] = (*model2.ReceiptForStorage)(receipt)
+		storageReceipts[i] = (*model.ReceiptForStorage)(receipt)
 	}
 	bytes, err := rlp.EncodeToBytes(storageReceipts)
 	if err != nil {
@@ -273,7 +272,7 @@ func (chainDB *ChainDB) SaveReceipts(hash common.Hash, number uint64, receipts m
 	return nil
 }
 
-func (chainDB *ChainDB) GetReceipts(hash common.Hash, number uint64) model2.Receipts {
+func (chainDB *ChainDB) GetReceipts(hash common.Hash, number uint64) model.Receipts {
 	// Retrieve the flattened receipt slice
 	data, _ := chainDB.db.Get(blockReceiptsKey(number, hash))
 	if len(data) == 0 {
@@ -281,15 +280,15 @@ func (chainDB *ChainDB) GetReceipts(hash common.Hash, number uint64) model2.Rece
 	}
 
 	// Convert the receipts from their storage form to their internal representation
-	var storageReceipts []*model2.ReceiptForStorage
+	var storageReceipts []*model.ReceiptForStorage
 	if err := rlp.DecodeBytes(data, &storageReceipts); err != nil {
 		log.DLogger.Error("Invalid receipt array RLP", zap.Any("hash", hash), zap.Error(err))
 		return nil
 	}
 
-	receipts := make(model2.Receipts, len(storageReceipts))
+	receipts := make(model.Receipts, len(storageReceipts))
 	for i, receipt := range storageReceipts {
-		receipts[i] = (*model2.Receipt)(receipt)
+		receipts[i] = (*model.Receipt)(receipt)
 	}
 
 	// complement receipts
@@ -304,7 +303,7 @@ func (chainDB *ChainDB) GetReceipts(hash common.Hash, number uint64) model2.Rece
 
 // DeriveFields fills the receipts with their computed fields based on consensus
 // data and contextual infos like containing block and transactions.
-func DeriveFields(r model2.Receipts, block model.AbstractBlock) error {
+func DeriveFields(r model.Receipts, block model.AbstractBlock) error {
 	logIndex := uint(0)
 	txs := block.GetTransactions()
 	number := block.Number()

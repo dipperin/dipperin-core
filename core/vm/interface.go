@@ -18,10 +18,11 @@ package vm
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/vm/model"
+	model2 "github.com/dipperin/dipperin-core/core/model"
 	"math/big"
 )
 
+//go:generate mockgen -destination=./../../tests/mock/vm/state_db_mock.go -package=vm_mock github.com/dipperin/dipperin-core/core/vm StateDB
 type StateDB interface {
 	GetBalance(common.Address) *big.Int
 	CreateAccount(common.Address) error
@@ -43,8 +44,8 @@ type StateDB interface {
 	// todo: hash -> bytes
 	GetState(common.Address, []byte) []byte
 	SetState(common.Address, []byte, []byte)
-	AddLog(addedLog *model.Log)
-	GetLogs(txHash common.Hash) []*model.Log
+	AddLog(addedLog *model2.Log)
+	GetLogs(txHash common.Hash) []*model2.Log
 
 	/*	Suicide(common.Address) bool
 		HasSuicided(common.Address) bool*/

@@ -20,7 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/accounts"
+	"github.com/dipperin/dipperin-core/core/accounts/base"
 	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
 	"github.com/manifoldco/promptui"
 	"path/filepath"
@@ -199,9 +199,9 @@ func passwordValidate(input string) error {
 	blankStr := regBlank.FindAllString(input, -1)
 
 	if reg.MatchString(input) && len(chStr) <= 0 && len(blankStr) <= 0 {
-		if len(input) >= accounts.PasswordMin && len(input) <= accounts.PassWordMax {
+		if len(input) >= base.PasswordMin && len(input) <= base.PassWordMax {
 			return nil
 		}
 	}
-	return accounts.ErrPasswordOrPassPhraseIllegal
+	return base.ErrPasswordOrPassPhraseIllegal
 }

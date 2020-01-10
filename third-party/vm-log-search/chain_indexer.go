@@ -26,7 +26,6 @@ import (
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"github.com/dipperin/dipperin-core/core/model"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"go.uber.org/zap"
 	"sync"
@@ -44,7 +43,7 @@ type ChainIndexerBackend interface {
 
 	// Process crunches through the next header in the chain segment. The caller
 	// will ensure a sequential order of headers.
-	Process(ctx context.Context, header *model.AbstractHeader, bloom model2.Bloom) error
+	Process(ctx context.Context, header *model.AbstractHeader, bloom model.Bloom) error
 
 	// Commit finalizes the section metadata and stores it into the database.
 	Commit() error

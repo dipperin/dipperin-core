@@ -18,7 +18,7 @@ package vm_log_search
 
 import (
 	"bytes"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/core/model"
 	"math/rand"
 	"testing"
 )
@@ -27,18 +27,18 @@ import (
 // filters.
 func TestGenerator(t *testing.T) {
 	// Generate the input and the rotated output
-	var input, output [model2.BloomBitLength][model2.BloomByteLength]byte
+	var input, output [model.BloomBitLength][model.BloomByteLength]byte
 
-	for i := 0; i < model2.BloomBitLength; i++ {
-		for j := 0; j < model2.BloomBitLength; j++ {
+	for i := 0; i < model.BloomBitLength; i++ {
+		for j := 0; j < model.BloomBitLength; j++ {
 			bit := byte(rand.Int() % 2)
 
 			input[i][j/8] |= bit << byte(7-j%8)
-			output[model2.BloomBitLength-1-j][i/8] |= bit << byte(7-i%8)
+			output[model.BloomBitLength-1-j][i/8] |= bit << byte(7-i%8)
 		}
 	}
 	// Crunch the input through the generator and verify the result
-	gen, err := NewGenerator(model2.BloomBitLength)
+	gen, err := NewGenerator(model.BloomBitLength)
 	//fmt.Println("fmt println   ", gen)
 	if err != nil {
 		t.Fatalf("failed to create bloombit generator: %v", err)

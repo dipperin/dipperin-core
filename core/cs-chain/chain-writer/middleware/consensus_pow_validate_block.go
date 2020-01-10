@@ -22,7 +22,6 @@ import (
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"go.uber.org/zap"
@@ -212,8 +211,8 @@ func ValidateGasLimit(c *BlockContext) Middleware {
 		}
 		currentGasLimit := c.Block.Header().GetGasLimit()
 		// Verify that the gas limit is <= 2^63-1
-		if currentGasLimit > chain_config.MaxGasLimit || currentGasLimit < model2.MinGasLimit {
-			log.DLogger.Error("Invalid GasLimit", zap.Uint64("curGasLimit", currentGasLimit), zap.Uint64("maxGasLimit", chain_config.MaxGasLimit), zap.Uint64("minGasLimit", model2.MinGasLimit))
+		if currentGasLimit > chain_config.MaxGasLimit || currentGasLimit < model.MinGasLimit {
+			log.DLogger.Error("Invalid GasLimit", zap.Uint64("curGasLimit", currentGasLimit), zap.Uint64("maxGasLimit", chain_config.MaxGasLimit), zap.Uint64("minGasLimit", model.MinGasLimit))
 			return g_error.ErrInvliadHeaderGasLimit
 		}
 		parentGasLimit := c.Chain.GetLatestNormalBlock().Header().GetGasLimit()
@@ -221,7 +220,7 @@ func ValidateGasLimit(c *BlockContext) Middleware {
 		if diff < 0 {
 			diff *= -1
 		}
-		limit := parentGasLimit / model2.GasLimitBoundDivisor
+		limit := parentGasLimit / model.GasLimitBoundDivisor
 
 		if uint64(diff) >= limit {
 			log.DLogger.Error("Invalid GasLimit with parent block", zap.Uint64("curGasLimit", currentGasLimit), zap.Uint64("parentGasLimit", parentGasLimit), zap.Uint64("limitDiff", limit))

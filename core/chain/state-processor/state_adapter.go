@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/log"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
+	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"go.uber.org/zap"
 	"math/big"
@@ -117,14 +117,14 @@ func (f *Fullstate) SetState(addr common.Address, key []byte, value []byte) {
 	f.state.SetData(addr, string(key), value)
 }
 
-func (f *Fullstate) AddLog(addedLog *model2.Log) {
+func (f *Fullstate) AddLog(addedLog *model.Log) {
 	err := f.state.AddLog(addedLog)
 	if err != nil {
 		panic(fmt.Sprintf("SetAbi failed, err=%v", err))
 	}
 }
 
-func (f *Fullstate) GetLogs(txHash common.Hash) []*model2.Log {
+func (f *Fullstate) GetLogs(txHash common.Hash) []*model.Log {
 	return f.state.GetLogs(txHash)
 }
 

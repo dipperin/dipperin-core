@@ -743,7 +743,7 @@ func (pm *CsProtocolManager) handleMsg(p PmAbstractPeer) error {
 			if err := util.WriteDebugStack(debugStackFile); err != nil {
 				log.DLogger.Error("write debug stack failed", zap.Error(err))
 			}
-			//panic(fmt.Sprintf("handle msg use more than 10s, msg code: 0x%x", msg.Code))
+			//panic(fmt.Sprintf("handle msg use more than 10s, msg code: 0x%x", msg.code))
 			log.DLogger.Error(fmt.Sprintf("handle msg use more than 10s, msg code: 0x%x, remote node: %v. disconnect this peer, and write debug stack to: %v", msg.Code, p.NodeName(), debugStackFile))
 			// not disconnect, the handle may be indeed time-consuming
 			//pm.removePeerFromAllSet(p.ID())

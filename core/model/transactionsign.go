@@ -63,7 +63,7 @@ func (tx *Transaction) SignTx(priKey *ecdsa.PrivateKey, s Signer) (*Transaction,
 func MakeSigner(config *chain_config.ChainConfig, blockNumber uint64) Signer {
 	return DipperinSigner{chainId: config.ChainId}
 }
-
+//go:generate mockgen -destination=./../../tests/mock/model/singer_mock.go -package=model_mock github.com/dipperin/dipperin-core/core/model Signer
 // signer define different kind of method handling signature
 type Signer interface {
 	// Sender returns the sender address of the transaction.

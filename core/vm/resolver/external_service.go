@@ -21,8 +21,8 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/log"
+	model2 "github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	"github.com/dipperin/dipperin-core/core/vm/model"
 	"go.uber.org/zap"
 	"math/big"
 	"strings"
@@ -59,7 +59,7 @@ type ContractService interface {
 //go:generate mockgen -destination=/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/statedb_service_mock_test.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver StateDBService
 type StateDBService interface {
 	GetBalance(addr common.Address) *big.Int
-	AddLog(addedLog *model.Log)
+	AddLog(addedLog *model2.Log)
 	SetState(addr common.Address, key []byte, value []byte)
 	GetState(addr common.Address, key []byte) (data []byte)
 	GetNonce(common.Address) (uint64, error)

@@ -7,7 +7,6 @@ import (
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
 	"github.com/dipperin/dipperin-core/core/model"
-	model2 "github.com/dipperin/dipperin-core/core/vm/model"
 	"go.uber.org/zap"
 	"math/big"
 )
@@ -79,7 +78,7 @@ func newFilter(chainReader middleware.ChainInterface, chainIndex *ChainIndexer, 
 
 // Logs searches the blockchain for matching log entries, returning all from the
 // first block that contains matches, updating the start of the filter accordingly.
-func (f *Filter) Logs(ctx context.Context) ([]*model2.Log, error) {
+func (f *Filter) Logs(ctx context.Context) ([]*model.Log, error) {
 	// If we're doing singleton block filtering, execute and return
 	if f.block != (common.Hash{}) {
 		// header, err := f.backend.HeaderByHash(ctx, f.block)
@@ -107,7 +106,7 @@ func (f *Filter) Logs(ctx context.Context) ([]*model2.Log, error) {
 	}
 	// Gather all indexed logs, and finish with non indexed ones
 	var (
-		logs []*model2.Log
+		logs []*model.Log
 		err  error
 	)
 	size := BloomBitsBlocks
@@ -131,7 +130,7 @@ func (f *Filter) Logs(ctx context.Context) ([]*model2.Log, error) {
 
 // indexedLogs returns the logs matching the filter criteria based on the bloom
 // bits indexed available locally or via the network.
-func (f *Filter) indexedLogs(ctx context.Context, end uint64) ([]*model2.Log, error) {
+func (f *Filter) indexedLogs(ctx context.Context, end uint64) ([]*model.Log, error) {
 	//log.DLogger.Info("indexedLogs start", "end", end)
 	// Create a matcher session and request servicing from the backend
 	matches := make(chan uint64, 64)
@@ -149,7 +148,7 @@ func (f *Filter) indexedLogs(ctx context.Context, end uint64) ([]*model2.Log, er
 	//log.DLogger.Info("indexedLogs start03", "end", end)
 
 	// Iterate over the matches until exhausted or context closed
-	var logs []*model2.Log
+	var logs []*model.Log
 
 	for {
 		select {
@@ -186,8 +185,8 @@ func (f *Filter) indexedLogs(ctx context.Context, end uint64) ([]*model2.Log, er
 
 // indexedLogs returns the logs matching the filter criteria based on raw block
 // iteration and bloom matching.
-func (f *Filter) unindexedLogs(ctx context.Context, end uint64) ([]*model2.Log, error) {
-	var logs []*model2.Log
+func (f *Filter) unindexedLogs(ctx context.Context, end uint64) ([]*model.Log, error) {
+	var logs []*model.Log
 
 	for ; f.begin <= int64(end); f.begin++ {
 		log.DLogger.Info("Filter#unindexedLogs", zap.Int64("begin", f.begin), zap.Int64("end", f.end))
@@ -206,7 +205,7 @@ func (f *Filter) unindexedLogs(ctx context.Context, end uint64) ([]*model2.Log, 
 }
 
 // blockLogs returns the logs matching the filter criteria within a single block.
-func (f *Filter) blockLogs(ctx context.Context, header *model.AbstractHeader, bloom model2.Bloom) (logs []*model2.Log, err error) {
+func (f *Filter) blockLogs(ctx context.Context, header *model.AbstractHeader, bloom model.Bloom) (logs []*model.Log, err error) {
 	log.DLogger.Info("Filter#blockLogs", zap.Any("header bloomLog", bloom))
 	if bloomFilter(bloom, f.addresses, f.topics) {
 		found, err := f.checkMatches(ctx, header)
@@ -219,10 +218,10 @@ func (f *Filter) blockLogs(ctx context.Context, header *model.AbstractHeader, bl
 	return logs, nil
 }
 
-func (f *Filter) GetLogs(header *model.AbstractHeader) [][]*model2.Log {
+func (f *Filter) GetLogs(header *model.AbstractHeader) [][]*model.Log {
 	receipts := f.ChainReader.GetReceipts((*header).Hash(), (*header).GetNumber())
 	if len(receipts) > 0 {
-		logs := make([][]*model2.Log, len(receipts))
+		logs := make([][]*model.Log, len(receipts))
 		for i, receipt := range receipts {
 			logs[i] = receipt.Logs
 		}
@@ -233,7 +232,7 @@ func (f *Filter) GetLogs(header *model.AbstractHeader) [][]*model2.Log {
 
 // checkMatches checks if the receipts belonging to the given header contain any log events that
 // match the filter criteria. This function is called when the bloom filter signals a potential match.
-func (f *Filter) checkMatches(ctx context.Context, header *model.AbstractHeader) (logs []*model2.Log, err error) {
+func (f *Filter) checkMatches(ctx context.Context, header *model.AbstractHeader) (logs []*model.Log, err error) {
 	// Get the logs of the block
 	//logsList, err := f.backend.GetLogs(ctx, header)
 	logsList := f.GetLogs(header)
@@ -241,7 +240,7 @@ func (f *Filter) checkMatches(ctx context.Context, header *model.AbstractHeader)
 	if logsList == nil {
 		return nil, err
 	}
-	var unfiltered []*model2.Log
+	var unfiltered []*model.Log
 	for _, logs := range logsList {
 		unfiltered = append(unfiltered, logs...)
 	}
@@ -276,8 +275,8 @@ func includes(addresses []common.Address, a common.Address) bool {
 }
 
 // filterLogs creates a slice of logs matching the given criteria.
-func filterLogs(logs []*model2.Log, fromBlock, toBlock *big.Int, addresses []common.Address, topics [][]common.Hash) []*model2.Log {
-	var ret []*model2.Log
+func filterLogs(logs []*model.Log, fromBlock, toBlock *big.Int, addresses []common.Address, topics [][]common.Hash) []*model.Log {
+	var ret []*model.Log
 Logs:
 	for _, lg := range logs {
 		//log.DLogger.Info("filterLogs before", "lg", lg)
@@ -321,11 +320,11 @@ Logs:
 	return ret
 }
 
-func bloomFilter(bloom model2.Bloom, addresses []common.Address, topics [][]common.Hash) bool {
+func bloomFilter(bloom model.Bloom, addresses []common.Address, topics [][]common.Hash) bool {
 	if len(addresses) > 0 {
 		var included bool
 		for _, addr := range addresses {
-			if model2.BloomLookup(bloom, addr) {
+			if model.BloomLookup(bloom, addr) {
 				included = true
 				break
 			}
@@ -338,7 +337,7 @@ func bloomFilter(bloom model2.Bloom, addresses []common.Address, topics [][]comm
 	for _, sub := range topics {
 		included := len(sub) == 0 // empty rule set == wildcard
 		for _, topic := range sub {
-			if model2.BloomLookup(bloom, topic) {
+			if model.BloomLookup(bloom, topic) {
 				included = true
 				break
 			}

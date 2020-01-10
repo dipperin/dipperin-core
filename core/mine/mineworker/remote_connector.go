@@ -56,7 +56,7 @@ func (conn *RemoteConnector) SendMsg(code uint64, msg interface{}) error {
 }
 
 func (conn *RemoteConnector) OnNewMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer) error {
-	//log.DLogger.Info("receive new mine msg", "msg code", msg.Code)
+	//log.DLogger.Info("receive new mine msg", "msg code", msg.code)
 	switch msg.Code {
 	case minemsg.StartMineMsg:
 		conn.worker.Start()

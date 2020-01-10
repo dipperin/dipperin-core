@@ -1772,7 +1772,7 @@ func (vm *VirtualMachine) Execute() {
 			}
 
 		case opcodes.InvokeImport:
-			/*			importID := int(LE.Uint32(frame.Code[frame.IP : frame.IP+4]))
+			/*			importID := int(LE.Uint32(frame.code[frame.IP : frame.IP+4]))
 						frame.IP += 4
 						vmcommon.Delegate = func() {
 							defer func() {

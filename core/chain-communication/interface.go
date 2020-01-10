@@ -19,7 +19,7 @@ package chain_communication
 import (
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/accounts"
+	accountBase "github.com/dipperin/dipperin-core/core/accounts/base"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
@@ -155,7 +155,7 @@ type PbftSigner interface {
 	SignHash(hash []byte) ([]byte, error)
 	PublicKey() *ecdsa.PublicKey
 	ValidSign(hash []byte, pubKey []byte, sign []byte) error
-	Evaluate(account accounts.Account, seed []byte) (index [32]byte, proof []byte, err error)
+	Evaluate(account accountBase.Account, seed []byte) (index [32]byte, proof []byte, err error)
 }
 
 //go:generate mockgen -destination=./verifiers_reader_mock_test.go -package=chain_communication github.com/dipperin/dipperin-core/core/chain-communication VerifiersReader

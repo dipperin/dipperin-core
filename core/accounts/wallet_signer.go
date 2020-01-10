@@ -19,19 +19,20 @@ package accounts
 import (
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/accounts/base"
 	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto"
 	"sync"
 )
 
 func MakeWalletSigner(addr common.Address, wm *WalletManager) *WalletSigner {
 	return &WalletSigner{
-		account:       Account{Address: addr},
+		account:       base.Account{Address: addr},
 		walletManager: wm,
 	}
 }
 
 type WalletSigner struct {
-	account       Account
+	account       base.Account
 	walletManager *WalletManager
 	lock          sync.Mutex
 }
@@ -72,16 +73,16 @@ func (signer *WalletSigner) PublicKey() *ecdsa.PublicKey {
 
 func (signer *WalletSigner) ValidSign(hash []byte, pubKey []byte, sign []byte) error {
 	if len(sign) == 0 {
-		return ErrEmptySign
+		return base.ErrEmptySign
 	}
 	if crypto2.VerifySignature(pubKey, hash, sign[:len(sign)-1]) == true {
 		return nil
 	} else {
-		return ErrSignatureInvalid
+		return base.ErrSignatureInvalid
 	}
 }
 
-func (signer *WalletSigner) Evaluate(account Account, seed []byte) (index [32]byte, proof []byte, err error) {
+func (signer *WalletSigner) Evaluate(account base.Account, seed []byte) (index [32]byte, proof []byte, err error) {
 	//find wallet from address
 	wallet, err := signer.walletManager.FindWalletFromAddress(account.Address)
 	if err != nil {

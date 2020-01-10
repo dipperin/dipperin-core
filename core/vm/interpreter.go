@@ -92,7 +92,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 	}()
 
 	if len(contract.Code) == 0 || len(contract.ABI) == 0 {
-		log.DLogger.Debug("Code or ABI Length is 0", zap.Int("code", len(contract.Code)), zap.Int("abi", len(contract.ABI)))
+		log.DLogger.Debug("code or ABI Length is 0", zap.Int("code", len(contract.Code)), zap.Int("abi", len(contract.ABI)))
 		return nil, nil
 	}
 

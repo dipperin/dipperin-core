@@ -44,9 +44,12 @@ var (
 	DefaultBlockBloomConfig = iblt.NewBloomConfig(8, 4)
 	DefaultInvBloomConfig   = iblt.NewInvBloomConfig(1<<12, 4)
 	DefaultTxs              = 100
-	DefaultGasLimit         = uint64(6666666666)
+
 )
 
+const (
+	DefaultGasLimit         = uint64(6666666666)
+)
 type Header struct {
 	// version of this block generated
 	Version uint64 `json:"version"  gencodec:"required"`

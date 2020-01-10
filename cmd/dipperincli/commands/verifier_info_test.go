@@ -18,6 +18,7 @@ package commands
 
 import (
 	"errors"
+	"github.com/dipperin/dipperin-core/core/accounts/base"
 	"math/big"
 	"testing"
 	"time"
@@ -25,7 +26,6 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/hexutil"
-	"github.com/dipperin/dipperin-core/core/accounts"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
@@ -99,7 +99,7 @@ func Test_loadRegistedAccounts(t *testing.T) {
 	loadRegistedAccounts()
 
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-		*result.(*[]accounts.WalletIdentifier) = []accounts.WalletIdentifier{
+		*result.(*[]base.WalletIdentifier) = []base.WalletIdentifier{
 			{},
 		}
 		return nil
@@ -108,13 +108,13 @@ func Test_loadRegistedAccounts(t *testing.T) {
 	loadRegistedAccounts()
 
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-		*result.(*[]accounts.WalletIdentifier) = []accounts.WalletIdentifier{
+		*result.(*[]base.WalletIdentifier) = []base.WalletIdentifier{
 			{},
 		}
 		return nil
 	})
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-		*result.(*[]accounts.Account) = []accounts.Account{
+		*result.(*[]base.Account) = []base.Account{
 			{
 				Address: common.HexToAddress("0x1234"),
 			},
@@ -125,13 +125,13 @@ func Test_loadRegistedAccounts(t *testing.T) {
 	loadRegistedAccounts()
 
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-		*result.(*[]accounts.WalletIdentifier) = []accounts.WalletIdentifier{
+		*result.(*[]base.WalletIdentifier) = []base.WalletIdentifier{
 			{},
 		}
 		return nil
 	})
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-		*result.(*[]accounts.Account) = []accounts.Account{
+		*result.(*[]base.Account) = []base.Account{
 			{
 				Address: common.HexToAddress("0x1234"),
 			},
@@ -154,10 +154,10 @@ func Test_logElection(t *testing.T) {
 	defer ctrl.Finish()
 
 	client = NewMockRpcClient(ctrl)
-	trackingAccounts = []accounts.Account{}
+	trackingAccounts = []base.Account{}
 	logElection()
 
-	trackingAccounts = append(trackingAccounts, accounts.Account{Address: common.HexToAddress("0x1234")})
+	trackingAccounts = append(trackingAccounts, base.Account{Address: common.HexToAddress("0x1234")})
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(errors.New("test"))
 	logElection()
 
@@ -237,7 +237,7 @@ func Test_isVerifier(t *testing.T) {
 }
 
 func Test_addTrackingAccount(t *testing.T) {
-	trackingAccounts = []accounts.Account{}
+	trackingAccounts = []base.Account{}
 	addTrackingAccount(common.HexToAddress("0x1234"))
 	addTrackingAccount(common.HexToAddress("0x1234"))
 
@@ -245,7 +245,7 @@ func Test_addTrackingAccount(t *testing.T) {
 }
 
 func Test_removeTrackingAccount(t *testing.T) {
-	trackingAccounts = []accounts.Account{}
+	trackingAccounts = []base.Account{}
 	addTrackingAccount(common.HexToAddress("0x1234"))
 	addTrackingAccount(common.HexToAddress("0x1233"))
 	removeTrackingAccount(common.HexToAddress("0x1234"))
