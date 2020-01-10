@@ -72,7 +72,7 @@ func main() {
 		},
 	}
 	if err := app.Run(os.Args); err != nil {
-		log.DLogger.Error("miner run failed", zap.Error(err))
+		log.DLogger.Error("miner run failed")
 	}
 }
 

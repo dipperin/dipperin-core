@@ -167,8 +167,11 @@ func (pm *CsProtocolManager) getCsProtocol() p2p.Protocol {
 		log.DLogger.Info("use test cs protocol")
 		protocolName = chain_config.AppName + "_cs_test"
 	case chain_config.BootEnvVenus:
-		log.DLogger.Info("use test cs protocol")
+		log.DLogger.Info("use venus cs protocol")
 		protocolName = chain_config.AppName + "_vs"
+	case chain_config.BootEnvTps:
+		log.DLogger.Info("use tps cs protocol")
+		protocolName = chain_config.AppName + "_tps"
 	default:
 		log.DLogger.Info("use local cs protocol")
 	}

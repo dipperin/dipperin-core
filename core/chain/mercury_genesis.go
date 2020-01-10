@@ -464,6 +464,14 @@ func DefaultGenesisBlock(chainDB chaindb.Database, accountStateProcessor state_p
 	if chain_config.GetCurBootsEnv() == "test" {
 		gTime, _ = time.Parse("2006-01-02 15:04:05", "2019-01-14 08:08:08")
 	}
+	switch chain_config.GetCurBootsEnv() {
+	case chain_config.BootEnvMercury:
+		gTime, _ = time.Parse("2006-01-02 15:04:05", "2020-01-15 08:08:08")
+	case chain_config.BootEnvTps:
+		gTime, _ = time.Parse("2006-01-02 15:04:05", "2020-01-14 08:08:08")
+	case chain_config.BootEnvTest:
+		gTime, _ = time.Parse("2006-01-02 15:04:05", "2020-01-13 08:08:08")
+	}
 	return &Genesis{
 		ChainDB:               chainDB,
 		GasLimit:              chain_config.BlockGasLimit,

@@ -38,6 +38,7 @@ import (
 
 var (
 	listenAddr  = flag.String("addr", ":30301", "listen address")
+	listenAddr2 = flag.String("addr2", ":30401", "listen addres2")
 	genKey      = flag.String("genkey", "", "generate a node key")
 	writeAddr   = flag.Bool("writeaddress", false, "write out the node's public key and quit")
 	nodeKeyFile = flag.String("nodekey", "", "private key filename")
@@ -117,22 +118,25 @@ func main() {
 				utils.Fatalf("-netrestrict: %v", err)
 			}
 		}
-		/*	case chain_config.BootEnvVenus:
-			if *netrestrict != "" {
-				restrictList, err = netutil.ParseNetlist(*netrestrict)
-				if err != nil {
-					utils.Fatalf("-netrestrict: %v", err)
-				}
-			}*/
-	case "test":
+	case chain_config.BootEnvTest:
 		restrictList, _ = netutil.ParseNetlist(chain_config.TestIPWhiteList)
 	}
 
-	addr, err := net.ResolveUDPAddr("udp", *listenAddr)
-	if err != nil {
-		utils.Fatalf("-ResolveUDPAddr: %v", err)
+	var udpAddr *net.UDPAddr
+	switch chain_config.GetCurBootsEnv() {
+	case chain_config.BootEnvTps:
+		udpAddr, err = net.ResolveUDPAddr("udp", *listenAddr2)
+		if err != nil {
+			utils.Fatalf("-ResolveUDPAddr: %v", err)
+		}
+	default:
+		udpAddr, err = net.ResolveUDPAddr("udp", *listenAddr)
+		if err != nil {
+			utils.Fatalf("-ResolveUDPAddr: %v", err)
+		}
 	}
-	conn, err := net.ListenUDP("udp", addr)
+
+	conn, err := net.ListenUDP("udp", udpAddr)
 	if err != nil {
 		utils.Fatalf("-ListenUDP: %v", err)
 	}
@@ -148,7 +152,13 @@ func main() {
 		}
 	}
 
-	udpPort, _ := strconv.ParseInt((*listenAddr)[1:], 10, 64)
+	var udpPort int64
+	switch chain_config.GetCurBootsEnv() {
+	case chain_config.BootEnvTps:
+		udpPort, _ = strconv.ParseInt((*listenAddr2)[1:], 10, 64)
+	default:
+		udpPort, _ = strconv.ParseInt((*listenAddr)[1:], 10, 64)
+	}
 
 	n := enode.NewV4(&nodeKey.PublicKey, net.ParseIP("127.0.0.1"), int(udpPort), int(udpPort))
 	fmt.Println("bootnode conn:", n.String())

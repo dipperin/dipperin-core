@@ -103,8 +103,17 @@ type startConf struct {
 
 func initStartFlag() *startConf {
 	//TODO
-	startConfPath := filepath.Join(util.HomeDir(), ".dipperin", "start_conf.json")
-	//startConfPath := filepath.Join(util.HomeDir(), ".dipperin", "start_conf2.json")
+	var startConfPath string
+	switch chain_config.GetCurBootsEnv() {
+	case chain_config.BootEnvLocal:
+		startConfPath = filepath.Join(util.HomeDir(), ".dipperin", "start_conf_local.json")
+	case chain_config.BootEnvTps:
+		startConfPath = filepath.Join(util.HomeDir(), ".dipperin", "start_conf_tps.json")
+	case chain_config.BootEnvMercury:
+		startConfPath = filepath.Join(util.HomeDir(), ".dipperin", "start_conf_mercury.json")
+	default:
+		startConfPath = filepath.Join(util.HomeDir(), ".dipperin", "start_conf.json")
+	}
 	fb, err := ioutil.ReadFile(startConfPath)
 	var conf startConf
 	if err != nil {
@@ -150,7 +159,7 @@ func appAction(c *cli.Context) {
 
 	switch env := chain_config.GetCurBootsEnv(); env {
 	case chain_config.BootEnvVenus, chain_config.BootEnvMercury,
-		chain_config.BootEnvTest, chain_config.BootEnvLocal:
+		chain_config.BootEnvTest, chain_config.BootEnvLocal, chain_config.BootEnvTps:
 	default:
 		log.DLogger.Error("boots_env set error,please check!", zap.String("bootEnv", env))
 		return

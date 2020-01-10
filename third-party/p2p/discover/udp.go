@@ -77,6 +77,8 @@ func (netType NetType) String() string {
 		return chain_config.BootEnvVenus
 	case test:
 		return chain_config.BootEnvTest
+	case tps:
+		return chain_config.BootEnvTps
 	case mercury:
 		return chain_config.BootEnvMercury
 	default:
@@ -89,6 +91,7 @@ const (
 	test
 	mercury
 	venus
+	tps
 )
 
 func getNetType() NetType {
@@ -100,6 +103,8 @@ func getNetType() NetType {
 		return test
 	case chain_config.BootEnvVenus:
 		return venus
+	case chain_config.BootEnvTps:
+		return tps
 	default:
 		return local
 	}

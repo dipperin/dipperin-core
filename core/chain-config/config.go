@@ -62,6 +62,7 @@ const (
 	BootEnvVenus   = "venus"
 	BootEnvTest    = "test"
 	BootEnvLocal   = "local"
+	BootEnvTps   = "tps"
 )
 
 const (
@@ -123,6 +124,10 @@ func defaultChainConfig() *ChainConfig {
 		c.VerifierNumber = 4
 		c.NetworkID = 1601
 		c.ChainId = big.NewInt(1601)
+	case BootEnvTps:
+		c.VerifierNumber = 4
+		c.NetworkID = 1602
+		c.ChainId = big.NewInt(1602)
 	default:
 		//c.VerifierNumber = 4
 		c.NetworkID = 1601
@@ -234,7 +239,7 @@ func InitBootNodes(dataDir string) {
 	log.DLogger.Info("the boot env is:", zap.String("env", GetCurBootsEnv()))
 	// If the environment variable is set during deploy use, these environment variables are automatically taken when the startup command is used.
 	switch GetCurBootsEnv() {
-	case BootEnvTest:
+	case BootEnvTest, BootEnvTps:
 		//log.Agent("use test boot env", "boot server", TestServer, "v boot port", TestVerifierBootNodePort)
 		initTestBoots(dataDir)
 	case BootEnvMercury:
@@ -258,19 +263,19 @@ func InitBootNodes(dataDir string) {
 func initTestBoots(dataDir string) {
 	// verifier boot node
 	if VerifierBootNodes = LoadVerifierBootNodesFromFile(dataDir); len(VerifierBootNodes) == 0 {
-		n, _ := enode.ParseV4(fmt.Sprintf("enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@%v:%v", TestServer, 10003))
+		n, _ := enode.ParseV4(fmt.Sprintf("enode://b832f4f2fe19dbc5604766bbb268a6d0f7ce9ce381b034b262a92f0ad8283a1b5fa058dea5269b66fbb2014a24fa7198c6dc2d8c9cbac7a348258fc20702561f@%v:%v", TestServer, 30003))
 		VerifierBootNodes = append(VerifierBootNodes, n)
-		n, _ = enode.ParseV4(fmt.Sprintf("enode://199cc6526cb63866dfa5dc81aed9952f2002b677560b6f3dc2a6a34a5576216f0ca25711c5b4268444fdef5fee4a01a669af90fd5b6049b2a5272b39c466b2ac@%v:%v", TestServer, 10006))
+		n, _ = enode.ParseV4(fmt.Sprintf("enode://199cc6526cb63866dfa5dc81aed9952f2002b677560b6f3dc2a6a34a5576216f0ca25711c5b4268444fdef5fee4a01a669af90fd5b6049b2a5272b39c466b2ac@%v:%v", TestServer, 30006))
 		VerifierBootNodes = append(VerifierBootNodes, n)
-		n, _ = enode.ParseV4(fmt.Sprintf("enode://71112a581231af08a63d5a9079ea8dd690efd992f2cfbf98ad43697345de564441406133247d19c754c98051c64909c40db15094770a881a373ca1ff2f20bea2@%v:%v", TestServer, 10009))
+		n, _ = enode.ParseV4(fmt.Sprintf("enode://71112a581231af08a63d5a9079ea8dd690efd992f2cfbf98ad43697345de564441406133247d19c754c98051c64909c40db15094770a881a373ca1ff2f20bea2@%v:%v", TestServer, 30009))
 		VerifierBootNodes = append(VerifierBootNodes, n)
-		n, _ = enode.ParseV4(fmt.Sprintf("enode://07f3fdca9a07b048ea7d0cb642f69004e4fa5dd390888a9bb3e9fc382697c3634280cc8d327703b872d3711462da4aca96ee805069510375e7be2aded3dc5ad6@%v:%v", TestServer, 10012))
+		n, _ = enode.ParseV4(fmt.Sprintf("enode://07f3fdca9a07b048ea7d0cb642f69004e4fa5dd390888a9bb3e9fc382697c3634280cc8d327703b872d3711462da4aca96ee805069510375e7be2aded3dc5ad6@%v:%v", TestServer, 30012))
 		VerifierBootNodes = append(VerifierBootNodes, n)
 	}
 
 	// k bucket boot node. Try to read from file, use default if there isn't the file
 	if KBucketNodes = LoadBootNodesFromFile(dataDir); len(KBucketNodes) == 0 {
-		n, _ := enode.ParseV4(fmt.Sprintf("enode://e53903ee0001e81f9328c8d0929cedbaf9b4f5b65b536df5f5dd65e5aa650cc059976250d6fcc62685e46e035b52e22801e97b06bc84d8fc4848037c128a7b22@%v:30301", TestServer))
+		n, _ := enode.ParseV4(fmt.Sprintf("enode://e53903ee0001e81f9328c8d0929cedbaf9b4f5b65b536df5f5dd65e5aa650cc059976250d6fcc62685e46e035b52e22801e97b06bc84d8fc4848037c128a7b22@%v:30401", TestServer))
 		KBucketNodes = append(KBucketNodes, n)
 	}
 }

@@ -104,6 +104,10 @@ func (p SPVProof) validateTx(tx model.Transaction, from, to common.Address, amou
 		return err
 	}
 
+	if tx.ChainId().Uint64() != p.Header.ChainID {
+		return invalidChainID
+	}
+
 	if sender != from {
 		return invalidFrom
 	}

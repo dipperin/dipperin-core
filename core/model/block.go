@@ -66,12 +66,12 @@ type Header struct {
 	TimeStamp *big.Int `json:"timestamp"  gencodec:"required"`
 	// the address of the miner who mined this block
 	CoinBase common.Address `json:"coinbase"  gencodec:"required"`
-	GasLimit uint64         `json:"gasLimit"         gencodec:"required"`
-	GasUsed  uint64         `json:"gasUsed"          gencodec:"required"`
+	GasLimit uint64         `json:"gas_limit"         gencodec:"required"`
+	GasUsed  uint64         `json:"gas_used"          gencodec:"required"`
 	// nonce needed to be mined by the miner
 	Nonce common.BlockNonce `json:"nonce"  gencodec:"required"`
 	//todo add bloom filter for Logs or txs
-	Bloom *iblt.Bloom `json:"Bloom"        gencodec:"required"`
+	Bloom *iblt.Bloom `json:"bloom"        gencodec:"required"`
 	// txs bloom
 	//BloomLogs model2.Bloom `json:"bloom_log"  gencodec:"required"`
 	// MPT trie Root for transaction
@@ -86,7 +86,7 @@ type Header struct {
 	// MPT trie Root for register
 	RegisterRoot common.Hash `json:"register_root"  gencodec:"required"`
 	//add receipt hash
-	ReceiptHash common.Hash `json:"receiptsRoot"     gencodec:"required"`
+	ReceiptHash common.Hash `json:"receipts_root"     gencodec:"required"`
 }
 
 //func (h *Header) GetBloomLog() model2.Bloom {
