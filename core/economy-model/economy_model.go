@@ -176,7 +176,7 @@ var InitExchangeRate int64
 
 func init() {
 
-	if chain_config.GetCurBootsEnv() != "mercury" {
+	if chain_config.GetCurBootsEnv() != chain_config.BootEnvMercury {
 		DIPProportion = NotMercuryDIPProportion
 	} else {
 		DIPProportion = MercuryDIPProportion

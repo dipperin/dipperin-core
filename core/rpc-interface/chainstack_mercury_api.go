@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/address-util"
-	"github.com/dipperin/dipperin-core/common/config"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/log"
@@ -1350,7 +1349,7 @@ func (api *DipperinVenusApi) EstimateGas(from, to common.Address, value, gasPric
 	}
 
 	if gasPrice == nil {
-		gasPrice = big.NewInt(0).SetInt64(config.DEFAULT_GAS_PRICE)
+		gasPrice = big.NewInt(0).SetInt64(chain_config.DefaultGasPrice)
 	}
 
 	extraData, err := api.service.GetExtraData(to, data)

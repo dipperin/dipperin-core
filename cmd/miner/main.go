@@ -46,7 +46,7 @@ func main() {
 		DisableCaller: true,
 	}
 	switch chain_config.GetCurBootsEnv() {
-	case "venus", "mercury":
+	case chain_config.BootEnvVenus, chain_config.BootEnvMercury:
 		cnf.Lvl = zapcore.InfoLevel
 	}
 	log.InitLogger(cnf)

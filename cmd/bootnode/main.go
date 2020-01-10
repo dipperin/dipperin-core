@@ -33,7 +33,6 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"net"
-	"os"
 	"strconv"
 )
 
@@ -74,7 +73,7 @@ func main() {
 		WithFile:    false,
 	}
 	switch chain_config.GetCurBootsEnv() {
-	case "venus", "mercury":
+	case chain_config.BootEnvVenus, chain_config.BootEnvMercury:
 		cnf.Lvl = zapcore.InfoLevel
 	}
 	log.InitLogger(cnf)
@@ -110,22 +109,22 @@ func main() {
 	}
 
 	var restrictList *netutil.Netlist
-	switch os.Getenv(chain_config.BootEnvTagName) {
-	case "mercury":
+	switch chain_config.GetCurBootsEnv() {
+	case chain_config.BootEnvMercury:
 		if *netrestrict != "" {
 			restrictList, err = netutil.ParseNetlist(*netrestrict)
 			if err != nil {
 				utils.Fatalf("-netrestrict: %v", err)
 			}
 		}
-		/*	case "venus":
+		/*	case chain_config.BootEnvVenus:
 			if *netrestrict != "" {
 				restrictList, err = netutil.ParseNetlist(*netrestrict)
 				if err != nil {
 					utils.Fatalf("-netrestrict: %v", err)
 				}
 			}*/
-	case "test":
+	case chain_config.BootEnvTest:
 		restrictList, _ = netutil.ParseNetlist(chain_config.TestIPWhiteList)
 	}
 

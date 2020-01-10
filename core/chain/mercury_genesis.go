@@ -35,7 +35,6 @@ import (
 	"go.uber.org/zap"
 	"io/ioutil"
 	"math/big"
-	"os"
 	"path/filepath"
 	"reflect"
 	"time"
@@ -46,9 +45,9 @@ var VerifierAddress []common.Address
 
 //delete angle verifier csWallet cipher in the Dipperin-core source code
 func init() {
-	env := os.Getenv("boots_env")
+	env := chain_config.GetCurBootsEnv()
 	log.DLogger.Info("start env: " + env)
-	if env == "mercury" {
+	if env == chain_config.BootEnvMercury {
 		VerifierAddress = chain_config.MercuryVerifierAddress
 		log.DLogger.Debug("default mercury verifier", zap.Int("count", len(VerifierAddress)))
 	} else {
@@ -208,7 +207,7 @@ func (g *Genesis) checkEarlyContractExist() {
 }
 
 /*func (g *Genesis) resetDataDirIfMercury(dataDir string) {
-	if os.Getenv("boots_env") != "mercury" {
+	if chain_config.GetCurBootsEnv() != chain_config.BootEnvMercury {
 		return
 	}
 	if !common.FileExist(dataDir) {
@@ -462,7 +461,7 @@ func DefaultGenesisBlock(chainDB chaindb.Database, accountStateProcessor state_p
 
 	gTime, _ := time.Parse("2006-01-02 15:04:05", "2018-08-08 08:08:08")
 	// use to reset test chain
-	if chain_config.GetCurBootsEnv() == "test" {
+	if chain_config.GetCurBootsEnv() == chain_config.BootEnvTest {
 		gTime, _ = time.Parse("2006-01-02 15:04:05", "2019-01-14 08:08:08")
 	}
 	return &Genesis{

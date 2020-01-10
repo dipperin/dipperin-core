@@ -24,6 +24,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
+	chain_config "github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
 	"github.com/stretchr/testify/assert"
@@ -37,7 +38,7 @@ import (
 )
 
 func TestSetupGenesisBlock(t *testing.T) {
-	err := os.Setenv("boots_env", "test")
+	err := os.Setenv(chain_config.BootEnvTagName, chain_config.BootEnvTest)
 	assert.NoError(t, err)
 
 	gFPath := filepath.Join(util.HomeDir(), "softwares", "dipperin_deploy")
