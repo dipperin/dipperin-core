@@ -23,6 +23,7 @@ import (
 	"math/big"
 )
 
+//go:generate mockgen -destination=../../tests/mock/model-mock/abstract_header_mock.go -package=model_mock github.com/dipperin/dipperin-core/core/model AbstractHeader
 type AbstractHeader interface {
 	GetNumber() uint64
 	Hash() common.Hash

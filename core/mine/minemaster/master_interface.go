@@ -28,6 +28,7 @@ import (
 
 type WorkerId string
 
+//go:generate mockgen -destination=../../../tests/mock/mine/minemaster-mock/master_mock.go -package=minemaster_mock github.com/dipperin/dipperin-core/core/mine/minemaster Master
 type Master interface {
 	Start()
 	Stop()
@@ -62,10 +63,12 @@ type mineMaster interface {
 	getWorker(id WorkerId) WorkerForMaster
 }
 
+//go:generate mockgen -destination=../../../tests/mock/mine/minemaster-mock/spendable_master_mock.go -package=minemaster_mock github.com/dipperin/dipperin-core/core/mine/minemaster SpendableMaster
 type SpendableMaster interface {
 	RetrieveReward(address common.Address)
 }
 
+//go:generate mockgen -destination=../../../tests/mock/mine/minemaster-mock/worker_for_master_mock.go -package=minemaster_mock github.com/dipperin/dipperin-core/core/mine/minemaster WorkerForMaster
 type WorkerForMaster interface {
 	Start()
 	Stop()
@@ -78,6 +81,7 @@ type WorkerForMaster interface {
 	//Nickname() string
 }
 
+//go:generate mockgen -destination=../../../tests/mock/mine/minemaster-mock/master_server_mock.go -package=minemaster_mock github.com/dipperin/dipperin-core/core/mine/minemaster MasterServer
 type MasterServer interface {
 	RegisterWorker(worker WorkerForMaster)
 	UnRegisterWorker(workerId WorkerId)
@@ -145,12 +149,14 @@ type rewardDistributor interface {
 //	ChainReader() state_processor.ChainReader
 //}
 
+//go:generate mockgen -destination=../../../tests/mock/mine/minemaster-mock/block_builder_mock.go -package=minemaster_mock github.com/dipperin/dipperin-core/core/mine/minemaster BlockBuilder
 type BlockBuilder interface {
 	SetMsgSigner(MsgSigner chain_communication.PbftSigner)
 	GetMsgSigner() chain_communication.PbftSigner
 	BuildWaitPackBlock(coinbaseAddr common.Address, gasFloor, gasCeil uint64) model.AbstractBlock
 }
 
+//go:generate mockgen -destination=../../../tests/mock/mine/minemaster-mock/block_broadcaster_mock.go -package=minemaster_mock github.com/dipperin/dipperin-core/core/mine/minemaster BlockBroadcaster
 type BlockBroadcaster interface {
 	BroadcastMinedBlock(block model.AbstractBlock)
 }
