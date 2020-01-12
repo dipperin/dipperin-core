@@ -13,18 +13,15 @@ require (
 	github.com/ethereum/go-ethereum v1.8.21
 	github.com/fjl/memsize v0.0.0-20180929194037-2a09253e352a
 	github.com/go-interpreter/wagon v0.0.0
-	github.com/go-stack/stack v1.8.0
+	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/mock v1.3.1
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db
 	github.com/hashicorp/golang-lru v0.5.0
 	github.com/huin/goupnp v1.0.0
-	github.com/inconshreveable/log15 v0.0.0-20180818164646-67afb5ed74ec
 	github.com/jackpal/go-nat-pmp v1.0.1
 	github.com/json-iterator/go v1.1.5
 	github.com/kardianos/osext v0.0.0-20170510131534-ae77be60afb1
 	github.com/manifoldco/promptui v0.3.2
-	github.com/mattn/go-colorable v0.0.9
-	github.com/mattn/go-isatty v0.0.4
 	github.com/mattn/go-runewidth v0.0.3 // indirect
 	github.com/mattn/go-tty v0.0.0-20181127064339-e4f871175a2f // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
