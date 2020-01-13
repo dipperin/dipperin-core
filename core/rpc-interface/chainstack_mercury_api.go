@@ -45,6 +45,15 @@ type DipperinVenusApi struct {
 	service *service.VenusFullChainService
 }
 
+// swagger:operation POST /url/ConvertLogs convert logs
+// ---
+// summary: convert logs
+// description: // summary: convert logs
+func (api *DipperinVenusApi) ConvertLogs(logs []*model2.Log) ([]*model2.Log, error) {
+	return api.service.ConvertLogs(logs)
+}
+
+
 // verify whether the chain is in sync
 func (api *DipperinVenusApi) GetSyncStatus() bool {
 	return api.service.GetSyncStatus()

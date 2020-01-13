@@ -17,6 +17,14 @@ type DipperExternalApi struct {
 	allApis *DipperinVenusApi
 }
 
+// swagger:operation POST /url/ConvertLogs convert logs
+// ---
+// summary: convert logs
+// description: // summary: convert logs
+func (api *DipperExternalApi) ConvertLogs(logs []*model2.Log) ([]*model2.Log, error) {
+	return api.allApis.ConvertLogs(logs)
+}
+
 // verify whether the chain is in sync
 func (api *DipperExternalApi) GetSyncStatus() bool {
 	return api.allApis.GetSyncStatus()
