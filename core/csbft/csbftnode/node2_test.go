@@ -38,7 +38,7 @@ func TestCsBft_Start(t *testing.T) {
 
 	err = node1.Start()
 	assert.NoError(t, err)
-	t.Error(err)
+	//t.Error(err)
 
 	adderr := node1.AddPeer(nil)
 	assert.NoError(t, adderr)
