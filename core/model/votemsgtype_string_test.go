@@ -14,4 +14,29 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-package rpc_interface
+package model
+
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
+
+func TestVoteMsgType_String(t *testing.T) {
+	result := VoteMsgType(byte(0)).String()
+	assert.Equal(t, PreVoteMessage.String(), result)
+
+	result = VoteMsgType(byte(1)).String()
+	assert.Equal(t, VoteMessage.String(), result)
+
+	result = VoteMsgType(byte(2)).String()
+	assert.Equal(t, VerBootNodeVoteMessage.String(), result)
+
+	result = VoteMsgType(byte(3)).String()
+	assert.Equal(t, AliveVerifierVoteMessage.String(), result)
+
+	result = VoteMsgType(byte(4)).String()
+	assert.NotEqual(t, AliveVerifierVoteMessage.String(), result)
+
+	result = VoteMsgType(byte(5)).String()
+	assert.NotEqual(t, AliveVerifierVoteMessage.String(), result)
+}

@@ -14,4 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-package chain_communication
+package model
+
+import (
+	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
+)
+
+func TestTransactionBuilder_NewNormalTransaction(t *testing.T) {
+	tb := TransactionBuilder{}
+	result := tb.NewNormalTransaction(aliceAddr, bobAddr, new(big.Int), new(big.Int), []byte{})
+	assert.Nil(t, result)
+}
