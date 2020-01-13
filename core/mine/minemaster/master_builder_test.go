@@ -1,7 +1,7 @@
 package minemaster
 
 import (
-	mine_mock "github.com/dipperin/dipperin-core/tests/mock/mine-mock"
+	"github.com/dipperin/dipperin-core/tests/mock/mine/minemaster-mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"sync/atomic"
@@ -11,8 +11,8 @@ import (
 func TestMakeMineMaster(t *testing.T) {
 	// build mock
 	ctrl := gomock.NewController(t)
-	blockBuilderMock := mine_mock.NewMockBlockBuilder(ctrl)
-	blockBroadcasterMock := mine_mock.NewMockBlockBroadcaster(ctrl)
+	blockBuilderMock := minemaster_mock.NewMockBlockBuilder(ctrl)
+	blockBroadcasterMock := minemaster_mock.NewMockBlockBroadcaster(ctrl)
 	// build config
 	mineConfig := MineConfig{
 		GasFloor:         &atomic.Value{},
