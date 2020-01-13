@@ -96,6 +96,11 @@ func (api *DipperExternalApi) GetBlockNumber(hash common.Hash) *uint64 {
 	return api.allApis.GetBlockNumber(hash)
 }
 
+
+func (api *DipperExternalApi) ConvertLogs(logs []*model2.Log) ([]*model2.Log, error)  {
+	return api.allApis.ConvertLogs(logs)
+}
+
 // get genesis block
 // swagger:operation GET /url/GetGenesis block information block
 // ---
