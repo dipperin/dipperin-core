@@ -57,14 +57,14 @@ func Test_main(t *testing.T) {
 	main()
 
 	*writeAddr = false
-	assert.NoError(t, os.Setenv(chain_config.BootEnvTagName, "mercury"))
+	assert.NoError(t, os.Setenv(chain_config.BootEnvTagName, chain_config.BootEnvMercury))
 	*netrestrict = "123"
 	assert.Panics(t, func() {
 		main()
 	})
 
 	*netrestrict = ""
-	assert.NoError(t, os.Setenv(chain_config.BootEnvTagName, "test"))
+	assert.NoError(t, os.Setenv(chain_config.BootEnvTagName, chain_config.BootEnvTest))
 	*listenAddr = "xxx"
 	assert.Panics(t, func() {
 		main()

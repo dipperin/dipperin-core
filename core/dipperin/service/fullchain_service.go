@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/bitutil"
-	"github.com/dipperin/dipperin-core/common/config"
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/g-event"
 	"github.com/dipperin/dipperin-core/common/g-metrics"
@@ -280,7 +279,7 @@ func (service *VenusFullChainService) Start() error {
 			service.MineMaster.Start()
 		}
 	}
-	service.startBloomHandlers(config.BloomBitsBlocks)
+	service.startBloomHandlers(chain_config.BloomBitsBlocks)
 
 	service.startTxsMetrics()
 
@@ -1651,12 +1650,12 @@ func (service *VenusFullChainService) GetLogs(blockHash common.Hash, fromBlock, 
 		log.DLogger.Info("VenusFullChainService#GetLogs", zap.Any("logs", logs), zap.Error(err))
 		return nil, err
 	}
-	return service.convertLogs(logs)
+	return service.ConvertLogs(logs)
 }
 
-// convertLogs is a helper that will return an empty log array in case the given logs array is nil,
+// ConvertLogs is a helper that will return an empty log array in case the given logs array is nil,
 // otherwise the given logs array is returned.
-func (service *VenusFullChainService) convertLogs(logs []*model2.Log) ([]*model2.Log, error) {
+func (service *VenusFullChainService) ConvertLogs(logs []*model2.Log) ([]*model2.Log, error) {
 	if logs == nil {
 		return []*model2.Log{}, nil
 	}
@@ -1716,7 +1715,7 @@ func (service *VenusFullChainService) GetReceiptsByBlockNum(num uint64) (model2.
 		if len(value.Logs) == 0 {
 			continue
 		}
-		result, innerErr := service.convertLogs(value.Logs)
+		result, innerErr := service.ConvertLogs(value.Logs)
 		if innerErr != nil {
 			log.DLogger.Info("GetReceiptsByBlockNum convertReceipt error", zap.Error(innerErr))
 			return nil, innerErr
@@ -1743,7 +1742,7 @@ func (service *VenusFullChainService) GetReceiptByTxHash(txHash common.Hash) (*m
 			if len(value.Logs) == 0 {
 				return value, nil
 			}
-			result, innerErr := service.convertLogs(value.Logs)
+			result, innerErr := service.ConvertLogs(value.Logs)
 			if innerErr != nil {
 				log.DLogger.Info("GetConvertReceiptByTxHash convertReceipt error", zap.Error(innerErr))
 				return nil, innerErr
@@ -2003,7 +2002,7 @@ func (service *VenusFullChainService) MakeTmpSignedTx(args CallArgs, blockNum ui
 		gas = math.MaxUint64 / 2
 	}
 	if gasPrice.Sign() == 0 {
-		gasPrice = new(big.Int).SetUint64(uint64(config.DEFAULT_GAS_PRICE))
+		gasPrice = new(big.Int).SetUint64(uint64(chain_config.DefaultGasPrice))
 	}
 	if value.Sign() == 0 {
 		value = new(big.Int).SetUint64(uint64(0))

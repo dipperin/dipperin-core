@@ -33,10 +33,6 @@ func defaultLogger() *zap.Logger {
 	cnf.DisableCaller = true
 	cnf.OutputPaths = []string{"stdout"}
 	lvl := zapcore.DebugLevel
-	switch os.Getenv("boots_env") {
-	case "venus", "mercury":
-		lvl = zapcore.InfoLevel
-	}
 	cnf.Level = zap.NewAtomicLevelAt(lvl)
 	cnf.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	cnf.DisableStacktrace = true

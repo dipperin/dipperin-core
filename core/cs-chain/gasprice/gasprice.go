@@ -2,9 +2,9 @@ package gasprice
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/config"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/g-error"
+	chain_config "github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
 	"math/big"
 	"sort"
@@ -22,7 +22,7 @@ type GasPriceConfig struct {
 var DefaultGasPriceConfig = GasPriceConfig{
 	Blocks:     20,
 	Percentile: 60,
-	Default:    big.NewInt(config.DEFAULT_GAS_PRICE),
+	Default:    big.NewInt(chain_config.DefaultGasPrice),
 }
 
 // Oracle recommends gas prices based on the content of recent

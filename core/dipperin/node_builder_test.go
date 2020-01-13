@@ -19,6 +19,7 @@ package dipperin
 import (
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
+	chain_config "github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/cs-chain"
 	"github.com/dipperin/dipperin-core/tests/factory"
 	"github.com/stretchr/testify/assert"
@@ -77,7 +78,7 @@ func TestNewBftNode(t *testing.T) {
 	assert.NotNil(t, node)
 	os.RemoveAll(nodeConfig.DataDir)
 
-	os.Setenv("boots_env", "mercury")
+	os.Setenv("boots_env", chain_config.BootEnvMercury)
 	nodeConfig.NodeType = 2
 	node = NewBftNode(*nodeConfig)
 	assert.NotNil(t, node)
