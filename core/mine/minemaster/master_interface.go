@@ -28,7 +28,6 @@ import (
 
 type WorkerId string
 
-//go:generate mockgen -destination=../../../tests/mock/mine/minemaster-mock/master_mock.go -package=minemaster_mock github.com/dipperin/dipperin-core/core/mine/minemaster Master
 type Master interface {
 	Start()
 	Stop()
@@ -68,7 +67,7 @@ type SpendableMaster interface {
 	RetrieveReward(address common.Address)
 }
 
-//go:generate mockgen -destination=../../../tests/mock/mine/minemaster-mock/worker_for_master_mock.go -package=minemaster_mock github.com/dipperin/dipperin-core/core/mine/minemaster WorkerForMaster
+//go:generate mockgen -destination=./worker_for_master_mock.go -package=minemaster github.com/dipperin/dipperin-core/core/mine/minemaster WorkerForMaster
 type WorkerForMaster interface {
 	Start()
 	Stop()
@@ -81,7 +80,6 @@ type WorkerForMaster interface {
 	//Nickname() string
 }
 
-//go:generate mockgen -destination=../../../tests/mock/mine/minemaster-mock/master_server_mock.go -package=minemaster_mock github.com/dipperin/dipperin-core/core/mine/minemaster MasterServer
 type MasterServer interface {
 	RegisterWorker(worker WorkerForMaster)
 	UnRegisterWorker(workerId WorkerId)

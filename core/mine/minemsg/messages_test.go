@@ -28,11 +28,11 @@ func TestDefaultWork_CalBlockRlpWithoutNonce(t *testing.T) {
 
 func TestDefaultWork_CalHash(t *testing.T) {
 	// test cases
-	situations := []struct{
-		name string
-		given func() *DefaultWork
+	situations := []struct {
+		name         string
+		given        func() *DefaultWork
 		expectResult common.Hash
-		expectErr error
+		expectErr    error
 	}{
 		{
 			"error of no rlp to be calculate",
@@ -75,15 +75,15 @@ func TestDefaultWork_FillSealResult(t *testing.T) {
 	// init
 	defaultWork := &DefaultWork{
 		WorkerCoinbaseAddress: common.Address{},
-		BlockHeader:           model.Header{Number:123},
+		BlockHeader:           model.Header{Number: 123},
 		ResultNonce:           common.EncodeNonce(124),
 		RlpPreCal:             nil,
 	}
 
 	// test case
 	situations := []struct {
-		name string
-		given func() model.AbstractBlock
+		name      string
+		given     func() model.AbstractBlock
 		expectErr error
 	}{
 		{
@@ -101,18 +101,18 @@ func TestDefaultWork_FillSealResult(t *testing.T) {
 			errors.New("not nil"),
 		},
 		{
-				"normal situation of fill result to current block",
-				func() model.AbstractBlock {
-					// mock
-					ctrl := gomock.NewController(t)
-					mockBlock := model_mock.NewMockAbstractBlock(ctrl)
-					// reject
-					mockBlock.EXPECT().Number().Return(uint64(123)).AnyTimes()
-					mockBlock.EXPECT().Nonce().Return(common.EncodeNonce(124)).AnyTimes()
-					mockBlock.EXPECT().SetNonce(gomock.Any()).Return().AnyTimes()
-					return mockBlock
-				},
-				nil,
+			"normal situation of fill result to current block",
+			func() model.AbstractBlock {
+				// mock
+				ctrl := gomock.NewController(t)
+				mockBlock := model_mock.NewMockAbstractBlock(ctrl)
+				// reject
+				mockBlock.EXPECT().Number().Return(uint64(123)).AnyTimes()
+				mockBlock.EXPECT().Nonce().Return(common.EncodeNonce(124)).AnyTimes()
+				mockBlock.EXPECT().SetNonce(gomock.Any()).Return().AnyTimes()
+				return mockBlock
+			},
+			nil,
 		},
 	}
 	// test

@@ -45,6 +45,7 @@ func newMaster(config MineConfig) *master {
 	return m
 }
 
+// todo: add test file
 type master struct {
 	MineConfig
 
