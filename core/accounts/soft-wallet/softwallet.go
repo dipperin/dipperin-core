@@ -576,6 +576,7 @@ func (w *SoftWallet) SignHash(account accounts.Account, hash []byte) ([]byte, er
 
 	//Obtain the corresponding private key data according to the address
 	tmpSk, err := w.walletInfo.getSkFromAddress(account.Address)
+	log.DLogger.Debug("SoftWallet#SignHash", zap.String("tmpSk", common.Bytes2Hex(tmpSk.D.Bytes())))
 	if err != nil {
 		return nil, err
 	}
