@@ -47,7 +47,6 @@ type AbstractHeader interface {
 	//IsEqual(header *Header) bool
 }
 
-//go:generate mockgen -destination=../../tests/mock/model-mock/abstract_body_mock.go -package=model_mock github.com/dipperin/dipperin-core/core/model AbstractBody
 type AbstractBody interface {
 	GetTxsSize() int
 	GetTxByIndex(i int) AbstractTransaction
@@ -56,7 +55,6 @@ type AbstractBody interface {
 	//GetReceipts() ([]*model.Receipt, error)
 }
 
-//go:generate mockgen -destination=../../tests/mock/model-mock/abstract_block_mock.go -package=model_mock github.com/dipperin/dipperin-core/core/model AbstractBlock
 type AbstractBlock interface {
 	Version() uint64
 	Number() uint64
