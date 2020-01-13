@@ -64,11 +64,11 @@ func GetCodeAbi(code, abi string) ([]byte, []byte) {
 	if err != nil {
 		panic(fmt.Sprintf("Read code failed, err=%s", err.Error()))
 	}
-	log.Printf("fileCode   %v", fileCode)
+	//log.Printf("fileCode   %v", fileCode)
 	fileABI, err := ioutil.ReadFile(abi)
 	if err != nil {
 		panic(fmt.Sprintf("Read abi failed, err=%s", err.Error()))
 	}
-	log.Printf("fileABI   %v", fileABI)
+	//log.Printf("fileABI   %v", fileABI)
 	return fileCode, fileABI
 }

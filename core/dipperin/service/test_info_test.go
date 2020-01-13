@@ -219,7 +219,7 @@ func createContractTx(nonce uint64, WASMPath, AbiPath, input string, testAccount
 	}
 	extraData, _ := utils.ParseCreateContractData(data)
 	to := common.HexToAddress(common.AddressContractCreate)
-	return createSignedTx(nonce, to, g_testData.TestValue, extraData, testAccounts)
+	return createSignedTx(nonce, to, big.NewInt(0), extraData, testAccounts)
 }
 
 type fakeValidator struct {

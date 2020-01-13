@@ -65,6 +65,7 @@ func Test_Run(t *testing.T) {
 	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
 	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
 	contract := getContract(WASMPath, AbiPath, nil)
+	contract.value = big.NewInt(0)
 	_, err := run(vm, contract, true)
 	assert.NoError(t, err)
 
@@ -82,7 +83,7 @@ func TestVM_CreateAndCall(t *testing.T) {
 	vm := getTestVm()
 	ref := AccountRef(aliceAddr)
 	gasLimit := g_testData.TestGasLimit * 100
-	value := g_testData.TestValue
+	value := big.NewInt(0)
 	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
 	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
 	code, _ := g_testData.GetCodeAbi(WASMPath, AbiPath)
@@ -111,6 +112,7 @@ func TestVM_CreateAndCall(t *testing.T) {
 	// vm.DelegateCall
 	fmt.Println("-----------------------------------------")
 	parentContract := getContract(WASMPath, AbiPath, data)
+	parentContract.value = big.NewInt(0)
 	resp, _, err = vm.DelegateCall(parentContract, addr, data, gasLimit)
 	expectResp = utils.Align32BytesConverter(resp, "string")
 	assert.Equal(t, "param", expectResp)

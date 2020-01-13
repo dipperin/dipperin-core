@@ -24,6 +24,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
+	"math/big"
 	"testing"
 )
 
@@ -48,6 +49,7 @@ func TestWASMInterpreter_Run(t *testing.T) {
 	// create contract
 	code, _ := g_testData.GetCodeAbi(WASMPath, AbiPath)
 	contract := getContract(WASMPath, AbiPath, nil)
+	contract.value = big.NewInt(0)
 	result, err := interpreter.Run(testVm, contract, true)
 	assert.Equal(t, code, result)
 	assert.NoError(t, err)
