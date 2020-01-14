@@ -20,11 +20,11 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-metrics"
-	"github.com/dipperin/dipperin-core/core/accounts/base"
+	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
 	"github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/chain"
-	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"github.com/dipperin/dipperin-core/core/chaincommunication"
 	"go.uber.org/zap"
 
 	"github.com/dipperin/dipperin-core/common/log"
@@ -47,11 +47,11 @@ type BftBlockBuilder struct {
 	ModelConfig
 }
 
-func (builder *BftBlockBuilder) GetMsgSigner() chain_communication.PbftSigner {
+func (builder *BftBlockBuilder) GetMsgSigner() chaincommunication.PbftSigner {
 	return builder.MsgSigner
 }
 
-func (builder *BftBlockBuilder) SetMsgSigner(MsgSigner chain_communication.PbftSigner) {
+func (builder *BftBlockBuilder) SetMsgSigner(MsgSigner chaincommunication.PbftSigner) {
 	builder.MsgSigner = MsgSigner
 }
 
@@ -145,7 +145,7 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 	pubKey := builder.MsgSigner.PublicKey()
 	coinbaseAddr = cs_crypto.GetNormalAddress(*pubKey)
 
-	account := base.Account{Address: coinbaseAddr}
+	account := accountsbase.Account{Address: coinbaseAddr}
 	seed, proof, err := builder.MsgSigner.Evaluate(account, curBlock.Seed().Bytes())
 	if err != nil {
 		log.DLogger.Error("VRF seed failed")

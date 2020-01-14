@@ -21,7 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/core/contract"
-	"github.com/dipperin/dipperin-core/core/rpc-interface"
+	"github.com/dipperin/dipperin-core/core/rpcinterface"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
 	"math/big"
@@ -113,7 +113,7 @@ func (caller *rpcCaller) AnnounceERC20(c *cli.Context) {
 		return
 	}
 
-	var resp rpc_interface.ERC20Resp
+	var resp rpcinterface.ERC20Resp
 	if err = client.Call(&resp, getDipperinRpcMethodByName("CreateERC20"), owner, tokenName, tokenSymbol, tokenTotalSupply, decimal, gasPrice, gasLimit); err != nil {
 		l.Error("AnnounceERC20 failed", zap.Error(err))
 		return

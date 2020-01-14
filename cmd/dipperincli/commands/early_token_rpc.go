@@ -21,7 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/contract"
-	"github.com/dipperin/dipperin-core/core/rpc-interface"
+	"github.com/dipperin/dipperin-core/core/rpcinterface"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
 	"strconv"
@@ -66,7 +66,7 @@ func (caller *rpcCaller) TransferEDIPToDIP(c *cli.Context) {
 	vStr := fmt.Sprintf("0x%x", eDIPValue)
 	params := util.StringifyJson([]interface{}{from.Hex(), vStr})
 	contractAdr := contract.EarlyContractAddress
-	extraData := rpc_interface.BuildContractExtraData("TransferEDIPToDIP", contractAdr, params)
+	extraData := rpcinterface.BuildContractExtraData("TransferEDIPToDIP", contractAdr, params)
 
 	//send transaction
 	var resp common.Hash
@@ -115,7 +115,7 @@ func (caller *rpcCaller) SetExchangeRate(c *cli.Context) {
 	//svStr := fmt.Sprintf("0x%x", value)
 	params := util.StringifyJson([]interface{}{from.Hex(), int64(value)})
 	contractAdr := contract.EarlyContractAddress
-	extraData := rpc_interface.BuildContractExtraData("SetExchangeRate", contractAdr, params)
+	extraData := rpcinterface.BuildContractExtraData("SetExchangeRate", contractAdr, params)
 
 	//send transaction
 	var resp common.Hash
