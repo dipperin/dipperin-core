@@ -16,17 +16,7 @@
 
 package resolver
 
-import (
-	"github.com/dipperin/dipperin-core/common/g-error"
-	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
-	"github.com/vntchain/go-vnt/rlp"
-	"math/big"
-	"testing"
-)
-
-func TestResolverNeedExternalService_Transfer(t *testing.T) {
+/*func TestResolverNeedExternalService_Transfer(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	state := NewMockStateDBService(ctrl)
@@ -73,7 +63,7 @@ func TestResolverNeedExternalService_ResolverCall(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, []byte(nil), resp)
 }
-
+*/
 /*
 func TestResolverNeedExternalService_ResolverDelegateCall(t *testing.T) {
 	vmValue := &fakeVmContextService{}

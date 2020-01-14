@@ -252,8 +252,4 @@ echo "
 #####################################################################################
 
 "
-# setup git hooks
-find .git/hooks -type l -exec rm {} \;
-find .githooks -type f -exec ln -sf ../../{} .git/hooks/ \;
-
 main $1 $2

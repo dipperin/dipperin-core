@@ -8,7 +8,6 @@ import (
 	common "github.com/dipperin/dipperin-core/common"
 	bloom "github.com/dipperin/dipperin-core/core/bloom"
 	model "github.com/dipperin/dipperin-core/core/model"
-	model0 "github.com/dipperin/dipperin-core/core/vm/model"
 	gomock "github.com/golang/mock/gomock"
 	big "math/big"
 	reflect "reflect"
@@ -165,10 +164,10 @@ func (mr *MockAbstractBlockMockRecorder) GetBloom() *gomock.Call {
 }
 
 // GetBloomLog mocks base method
-func (m *MockAbstractBlock) GetBloomLog() model0.Bloom {
+func (m *MockAbstractBlock) GetBloomLog() model.Bloom {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBloomLog")
-	ret0, _ := ret[0].(model0.Bloom)
+	ret0, _ := ret[0].(model.Bloom)
 	return ret0
 }
 
@@ -403,7 +402,7 @@ func (mr *MockAbstractBlockMockRecorder) Seed() *gomock.Call {
 }
 
 // SetBloomLog mocks base method
-func (m *MockAbstractBlock) SetBloomLog(arg0 model0.Bloom) {
+func (m *MockAbstractBlock) SetBloomLog(arg0 model.Bloom) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetBloomLog", arg0)
 }
