@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-package tx_pool
+package txpool
 
 import (
 	"errors"
@@ -37,7 +37,7 @@ import (
 	"sort"
 )
 
-//go:generate mockgen -destination=./block_chain_mock_test.go -package=tx_pool github.com/dipperin/dipperin-core/core/tx-pool BlockChain
+//go:generate mockgen -destination=./block_chain_mock_test.go -package=tx_pool github.com/dipperin/dipperin-core/core/txpool BlockChain
 type BlockChain interface {
 	CurrentBlock() model.AbstractBlock
 	GetBlockByNumber(number uint64) model.AbstractBlock

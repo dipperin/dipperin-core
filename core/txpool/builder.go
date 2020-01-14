@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-package tx_pool
+package txpool
 
 import (
 	"github.com/dipperin/dipperin-core/common"

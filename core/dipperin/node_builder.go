@@ -40,7 +40,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/mine/minemaster"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
-	"github.com/dipperin/dipperin-core/core/tx-pool"
+	"github.com/dipperin/dipperin-core/core/txpool"
 	"github.com/dipperin/dipperin-core/core/verifiers-halt-check"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/nat"
@@ -71,7 +71,7 @@ type BaseComponent struct {
 	prometheusServer *g_metrics.PrometheusMetricsServer
 	//cacheDB                     *cachedb.CacheDB
 	fullChain                   *cs_chain.CsChainService
-	txPool                      *tx_pool.TxPool
+	txPool                      *txpool.TxPool
 	rpcService                  *rpc_interface.Service
 	txSigner                    model.Signer
 	defaultPriorityCalculator   model.PriofityCalculator
@@ -310,10 +310,10 @@ func (b *BaseComponent) initFullChain() {
 }
 
 func (b *BaseComponent) initTxPool() {
-	txPoolConfig := tx_pool.DefaultTxPoolConfig
+	txPoolConfig := txpool.DefaultTxPoolConfig
 	txPoolConfig.Journal = filepath.Join(b.nodeConfig.DataDir, "transaction.rlp")
 	// no need to replace with context
-	b.txPool = tx_pool.NewTxPool(txPoolConfig, *b.chainConfig, b.fullChain)
+	b.txPool = txpool.NewTxPool(txPoolConfig, *b.chainConfig, b.fullChain)
 	b.csChainServiceConfig.TxPool = b.txPool
 
 	if chain_config.GetCurBootsEnv() != chain_config.BootEnvMercury {
