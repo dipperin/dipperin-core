@@ -19,7 +19,7 @@ package resolver
 import (
 	"encoding/hex"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/log"
 	model2 "github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
@@ -93,7 +93,7 @@ func (service *resolverNeedExternalService) ResolverCall(addr, param []byte) ([]
 	// check funcName
 	if strings.EqualFold(funcName, "init") {
 		log.DLogger.Error("ResolverCall can't call init function")
-		return nil, g_error.ErrFunctionInitCanNotCalled
+		return nil, gerror.ErrFunctionInitCanNotCalled
 	}
 
 	contractAddr := common.HexToAddress(hex.EncodeToString(addr))
@@ -112,7 +112,7 @@ func (service *resolverNeedExternalService) ResolverDelegateCall(addr, param []b
 	// check funcName
 	if strings.EqualFold(funcName, "init") {
 		log.DLogger.Error("ResolverDelegateCall can't call init function")
-		return nil, g_error.ErrFunctionInitCanNotCalled
+		return nil, gerror.ErrFunctionInitCanNotCalled
 	}
 
 	contractAddr := common.HexToAddress(hex.EncodeToString(addr))

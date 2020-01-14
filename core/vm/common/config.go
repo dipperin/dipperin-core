@@ -2,10 +2,10 @@ package common
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
-	"github.com/dipperin/dipperin-core/third-party/life/mem-manage"
+	"github.com/dipperin/dipperin-core/third_party/life/exec"
+	"github.com/dipperin/dipperin-core/third_party/life/mem-manage"
 	"math/big"
 )
 
@@ -117,7 +117,7 @@ func Transfer(db StateDB, sender, recipient common.Address, amount *big.Int) err
 	err1 := db.SubBalance(sender, amount)
 	err2 := db.AddBalance(recipient, amount)
 	if err1 != nil || err2 != nil {
-		return g_error.ErrVMTransfer
+		return gerror.ErrVMTransfer
 	}
 	return nil
 }

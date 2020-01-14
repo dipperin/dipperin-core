@@ -18,12 +18,12 @@ package chaincommunication
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-metrics"
+	"github.com/dipperin/dipperin-core/common/gmetrics"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
 	"github.com/hashicorp/golang-lru"
 	"go.uber.org/zap"
 	"sync"
@@ -80,7 +80,7 @@ func (broadcaster *BftOuter) BroadcastVerifiedBlock(vr *model2.VerifyResult) {
 
 // get verify result block hash
 func (broadcaster *BftOuter) onVerifiedResultBlockHash(msg p2p.Msg, p PmAbstractPeer) error {
-	g_metrics.Add(g_metrics.ReceivedHashCount, "", 1)
+	gmetrics.Add(gmetrics.ReceivedHashCount, "", 1)
 
 	var resultHash blockHashMsg
 	if err := msg.Decode(&resultHash); err != nil {
@@ -144,7 +144,7 @@ func (broadcaster *BftOuter) onGetVerifiedResult(msg p2p.Msg, p PmAbstractPeer) 
 
 // real verify result
 func (broadcaster *BftOuter) onVerifiedResultBlock(msg p2p.Msg, p PmAbstractPeer) error {
-	g_metrics.Add(g_metrics.ReceivedBlockCount, "", 1)
+	gmetrics.Add(gmetrics.ReceivedBlockCount, "", 1)
 
 	var result model2.VerifyResultRlp
 	if err := msg.Decode(&result); err != nil {

@@ -18,7 +18,7 @@
 package main
 
 import (
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
@@ -57,14 +57,14 @@ func Test_main(t *testing.T) {
 	main()
 
 	*writeAddr = false
-	assert.NoError(t, os.Setenv(chain_config.BootEnvTagName, chain_config.BootEnvMercury))
+	assert.NoError(t, os.Setenv(chainconfig.BootEnvTagName, chainconfig.BootEnvMercury))
 	*netrestrict = "123"
 	assert.Panics(t, func() {
 		main()
 	})
 
 	*netrestrict = ""
-	assert.NoError(t, os.Setenv(chain_config.BootEnvTagName, chain_config.BootEnvTest))
+	assert.NoError(t, os.Setenv(chainconfig.BootEnvTagName, chainconfig.BootEnvTest))
 	*listenAddr = "xxx"
 	assert.Panics(t, func() {
 		main()

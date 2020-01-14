@@ -19,7 +19,7 @@ package commands
 import (
 	"encoding/json"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third_party/crypto"
 	"github.com/urfave/cli"
 	"os"
 )

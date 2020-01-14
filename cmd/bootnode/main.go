@@ -23,13 +23,13 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/cmd/utils"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/p2p/discover"
-	"github.com/dipperin/dipperin-core/third-party/p2p/discv5"
-	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
-	"github.com/dipperin/dipperin-core/third-party/p2p/nat"
-	"github.com/dipperin/dipperin-core/third-party/p2p/netutil"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
+	"github.com/dipperin/dipperin-core/third_party/crypto"
+	"github.com/dipperin/dipperin-core/third_party/p2p/discover"
+	"github.com/dipperin/dipperin-core/third_party/p2p/discv5"
+	"github.com/dipperin/dipperin-core/third_party/p2p/enode"
+	"github.com/dipperin/dipperin-core/third_party/p2p/nat"
+	"github.com/dipperin/dipperin-core/third_party/p2p/netutil"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"net"
@@ -72,8 +72,8 @@ func main() {
 		WithConsole: true,
 		WithFile:    false,
 	}
-	switch chain_config.GetCurBootsEnv() {
-	case chain_config.BootEnvVenus, chain_config.BootEnvMercury:
+	switch chainconfig.GetCurBootsEnv() {
+	case chainconfig.BootEnvVenus, chainconfig.BootEnvMercury:
 		cnf.Lvl = zapcore.InfoLevel
 	}
 	log.InitLogger(cnf)
@@ -109,8 +109,8 @@ func main() {
 	}
 
 	var restrictList *netutil.Netlist
-	switch chain_config.GetCurBootsEnv() {
-	case chain_config.BootEnvMercury:
+	switch chainconfig.GetCurBootsEnv() {
+	case chainconfig.BootEnvMercury:
 		if *netrestrict != "" {
 			restrictList, err = netutil.ParseNetlist(*netrestrict)
 			if err != nil {
@@ -124,8 +124,8 @@ func main() {
 					utils.Fatalf("-netrestrict: %v", err)
 				}
 			}*/
-	case chain_config.BootEnvTest:
-		restrictList, _ = netutil.ParseNetlist(chain_config.TestIPWhiteList)
+	case chainconfig.BootEnvTest:
+		restrictList, _ = netutil.ParseNetlist(chainconfig.TestIPWhiteList)
 	}
 
 	addr, err := net.ResolveUDPAddr("udp", *listenAddr)

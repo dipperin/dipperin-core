@@ -18,12 +18,12 @@ package chain
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"github.com/dipperin/dipperin-core/core/chain/stateprocessor"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/contract"
-	"github.com/dipperin/dipperin-core/core/economy-model"
+	"github.com/dipperin/dipperin-core/core/economymodel"
 	"github.com/dipperin/dipperin-core/core/model"
 	"go.uber.org/zap"
 	"reflect"
@@ -39,7 +39,7 @@ type AccountDBChainReader interface {
 	CurrentBlock() model.AbstractBlock
 	GetBlockByNumber(number uint64) model.AbstractBlock
 	GetVerifiers(round uint64) []common.Address
-	StateAtByBlockNumber(num uint64) (*state_processor.AccountStateDB, error)
+	StateAtByBlockNumber(num uint64) (*stateprocessor.AccountStateDB, error)
 
 	IsChangePoint(block model.AbstractBlock, isProcessPackageBlock bool) bool
 	GetLastChangePoint(block model.AbstractBlock) *uint64
@@ -49,12 +49,12 @@ type AccountDBChainReader interface {
 // process chain state before insert a block
 type BlockProcessor struct {
 	fullChain AccountDBChainReader
-	*state_processor.AccountStateDB
-	economyModel economy_model.EconomyModel
+	*stateprocessor.AccountStateDB
+	economyModel economymodel.EconomyModel
 }
 
-func NewBlockProcessor(fullChain AccountDBChainReader, preStateRoot common.Hash, db state_processor.StateStorage) (*BlockProcessor, error) {
-	aDB, err := state_processor.NewAccountStateDB(preStateRoot, db)
+func NewBlockProcessor(fullChain AccountDBChainReader, preStateRoot common.Hash, db stateprocessor.StateStorage) (*BlockProcessor, error) {
+	aDB, err := stateprocessor.NewAccountStateDB(preStateRoot, db)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (state *BlockProcessor) GetBlockHashByNumber(number uint64) common.Hash {
 	return state.fullChain.GetBlockByNumber(number).Hash()
 }
 
-func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel economy_model.EconomyModel) (err error) {
+func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel economymodel.EconomyModel) (err error) {
 	log.DLogger.Debug("AccountStateDB Process begin~~~~~~~~~~~~~~", zap.String("pre state", state.PreStateRoot().Hex()), zap.String("blockId", block.Hash().Hex()))
 
 	state.economyModel = economyModel
@@ -82,7 +82,7 @@ func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel eco
 	// special block doesn't process txs
 	if !block.IsSpecial() {
 		if err = block.TxIterator(func(i int, tx model.AbstractTransaction) error {
-			conf := state_processor.TxProcessConfig{
+			conf := stateprocessor.TxProcessConfig{
 				Tx:       tx,
 				Header:   blockHeader,
 				GetHash:  state.GetBlockHashByNumber,
@@ -112,7 +112,7 @@ func (state *BlockProcessor) Process(block model.AbstractBlock, economyModel eco
 	return
 }
 
-func (state *BlockProcessor) ProcessExceptTxs(block model.AbstractBlock, economyModel economy_model.EconomyModel, isProcessPackageBlock bool) (err error) {
+func (state *BlockProcessor) ProcessExceptTxs(block model.AbstractBlock, economyModel economymodel.EconomyModel, isProcessPackageBlock bool) (err error) {
 	log.DLogger.Debug("ProcessExceptTxs begin", zap.String("pre state", state.PreStateRoot().Hex()))
 	state.economyModel = economyModel
 	if block.Number() == 0 {
@@ -138,7 +138,7 @@ func (state *BlockProcessor) processCommitList(block model.AbstractBlock, isProc
 		previous := block.Number() - 1
 		preBlock := state.fullChain.GetBlockByNumber(previous)
 		if preBlock == nil {
-			return g_error.NotHavePreBlockErr
+			return gerror.NotHavePreBlockErr
 		}
 
 		preBlockSlot := state.fullChain.GetSlot(preBlock)
@@ -167,12 +167,12 @@ func (state *BlockProcessor) processCommitList(block model.AbstractBlock, isProc
 
 		// If the current block is at the transition point, penalize the non-working verifier, reward the voter with the vote
 		// Calculated by comparing whether each prover has a change in the commit num in one round
-		config := chain_config.GetChainConfig()
+		config := chainconfig.GetChainConfig()
 		slot := state.fullChain.GetSlot(block)
 		if state.fullChain.IsChangePoint(block, isProcessPackageBlock) && *slot >= config.SlotMargin {
 
 			//　firstStateBySlot is the state of the first block in a round
-			var firstStateBySlot *state_processor.AccountStateDB
+			var firstStateBySlot *stateprocessor.AccountStateDB
 			lastPoint := state.fullChain.GetLastChangePoint(block)
 
 			//If the previous block is also a change point, then there is only one block in this round.
@@ -232,7 +232,7 @@ func (state *BlockProcessor) doRewards(block model.AbstractBlock) (err error) {
 
 		//log.DLogger.Info("the preBlock info is:","blockNumber",preBlock.Number(),"ver",preBlock.GetVerifications())
 		if preBlock == nil {
-			return g_error.NotHavePreBlockErr
+			return gerror.NotHavePreBlockErr
 		}
 
 		err = state.RewardByzantiumVerifier(block, earlyContract)

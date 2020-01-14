@@ -6,7 +6,7 @@ package chaincommunication
 
 import (
 	common "github.com/dipperin/dipperin-core/common"
-	p2p "github.com/dipperin/dipperin-core/third-party/p2p"
+	p2p "github.com/dipperin/dipperin-core/third_party/p2p"
 	gomock "github.com/golang/mock/gomock"
 	net "net"
 	reflect "reflect"

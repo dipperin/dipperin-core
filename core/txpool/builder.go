@@ -19,14 +19,14 @@ package txpool
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/model"
 	"go.uber.org/zap"
 	"runtime"
 	"time"
 )
 
-func NewTxPool(config TxPoolConfig, chainConfig chain_config.ChainConfig, chain BlockChain) *TxPool {
+func NewTxPool(config TxPoolConfig, chainConfig chainconfig.ChainConfig, chain BlockChain) *TxPool {
 	//todo need rethink this new method.
 	pool := &TxPool{
 		config:      config,

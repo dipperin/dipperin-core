@@ -18,9 +18,9 @@ package model
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/crypto/secp256k1"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
+	"github.com/dipperin/dipperin-core/third_party/crypto"
+	"github.com/dipperin/dipperin-core/third_party/crypto/secp256k1"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -146,7 +146,7 @@ func TestVoteMsg_HaltedVoteValid(t *testing.T) {
 	assert.Equal(t, AddressIsNotVerifierBootNode, err)
 
 	// CheckAddressIsCurrentVerifier failed
-	chain_config.VerBootNodeAddress = []common.Address{aliceAddr}
+	chainconfig.VerBootNodeAddress = []common.Address{aliceAddr}
 	voteMsg = CreateSignedVote(10, 1, common.HexToHash("100"), AliveVerifierVoteMessage)
 	err = voteMsg.HaltedVoteValid([]common.Address{bobAddr})
 	assert.Equal(t, AddressIsNotCurrentVerifier, err)
@@ -160,7 +160,7 @@ func TestCheckAddressIsVerifierBootNode(t *testing.T) {
 	result := CheckAddressIsVerifierBootNode(common.HexToAddress("123"))
 	assert.Equal(t, false, result)
 
-	chain_config.VerBootNodeAddress = []common.Address{common.HexToAddress("123")}
+	chainconfig.VerBootNodeAddress = []common.Address{common.HexToAddress("123")}
 	result = CheckAddressIsVerifierBootNode(common.HexToAddress("123"))
 	assert.Equal(t, true, result)
 }

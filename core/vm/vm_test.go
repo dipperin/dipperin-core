@@ -18,14 +18,14 @@ package vm
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/model"
 	common2 "github.com/dipperin/dipperin-core/core/vm/common"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests/mock/model"
 	"github.com/dipperin/dipperin-core/tests/util"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third_party/crypto"
+	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/vntchain/go-vnt/rlp"
@@ -51,7 +51,7 @@ func Test_NewVMContext(t *testing.T) {
 	singer := model_mock.NewMockSigner(ctrl)
 	tx.EXPECT().Sender(singer).Return(model.AliceAddr, nil).AnyTimes()
 	tx.EXPECT().GetSigner().Return(singer).AnyTimes()
-	tx.EXPECT().GetGasLimit().Return(uint64(chain_config.BlockGasLimit)).AnyTimes()
+	tx.EXPECT().GetGasLimit().Return(uint64(chainconfig.BlockGasLimit)).AnyTimes()
 	tx.EXPECT().GetGasPrice().Return(model.TestGasPrice).AnyTimes()
 	tx.EXPECT().CalTxId().Return(common.Hash{}).AnyTimes()
 	header.EXPECT().GetNumber().Return(uint64(1)).AnyTimes()

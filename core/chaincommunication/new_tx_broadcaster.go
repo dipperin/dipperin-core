@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
 	"github.com/hashicorp/golang-lru"
 	"go.uber.org/zap"
 	"math"
@@ -149,7 +149,7 @@ func (broadcaster *NewTxBroadcaster) onNewTx(msg p2p.Msg, p PmAbstractPeer) erro
 // get txs, broadcast txs to miner master
 func (broadcaster *NewTxBroadcaster) send2MinerMaster(txs []model.AbstractTransaction) {
 	// ensure node is the miner master, if it is not broadcast
-	if broadcaster.NodeConf.GetNodeType() == chain_config.NodeTypeOfMineMaster {
+	if broadcaster.NodeConf.GetNodeType() == chainconfig.NodeTypeOfMineMaster {
 		return
 	}
 
@@ -162,7 +162,7 @@ func (broadcaster *NewTxBroadcaster) send2MinerMaster(txs []model.AbstractTransa
 
 		// must broadcast to mine master
 		for _, peer := range originPeers {
-			if peer.NodeType() == chain_config.NodeTypeOfMineMaster {
+			if peer.NodeType() == chainconfig.NodeTypeOfMineMaster {
 				txSet[peer.ID()] = append(txSet[peer.ID()], txs[i])
 			}
 		}

@@ -20,11 +20,11 @@ import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chaincommunication"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/mine/mineworker"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
-	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
+	"github.com/dipperin/dipperin-core/third_party/p2p/enode"
 	"path/filepath"
 )
 
@@ -53,7 +53,7 @@ func NewMinerNode(master string, coinbase string, minerCount int, p2pListenAddr 
 	p2pServer.Protocols = append(p2pServer.Protocols, minePm.GetProtocol())
 
 	// init miner
-	config := NodeConfig{NodeType: chain_config.NodeTypeOfMiner}
+	config := NodeConfig{NodeType: chainconfig.NodeTypeOfMiner}
 	n = NewCsNode(config, &BaseComponent{nodeConfig: config}, []NodeService{p2pServer})
 	return
 }

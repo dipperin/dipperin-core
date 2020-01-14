@@ -21,9 +21,9 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
+	"github.com/dipperin/dipperin-core/third_party/crypto"
+	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
 	"time"
 )
 
@@ -187,7 +187,7 @@ func (v VoteMsg) HaltedVoteValid(verifiers []common.Address) error {
 
 func CheckAddressIsVerifierBootNode(address common.Address) bool {
 
-	for _, addr := range chain_config.VerBootNodeAddress {
+	for _, addr := range chainconfig.VerBootNodeAddress {
 		if address == addr {
 			return true
 		}

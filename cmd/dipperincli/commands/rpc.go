@@ -29,11 +29,11 @@ import (
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
 	"github.com/dipperin/dipperin-core/core/accounts/softwallet"
 	"github.com/dipperin/dipperin-core/core/chain"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/dipperin"
 	model2 "github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/rpcinterface"
-	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"github.com/dipperin/dipperin-core/third_party/rpc"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
 	"io/ioutil"
@@ -80,7 +80,7 @@ func InitRpcClient(info dipperin.NodeInfo) {
 
 func InitAccountInfo(nodeType int, path, password, passPharse string) {
 	// get default account
-	if nodeType == chain_config.NodeTypeOfNormal {
+	if nodeType == chainconfig.NodeTypeOfNormal {
 		err := initWallet(path, password, passPharse)
 		if err != nil {
 			l.Error("init Wallet Error", zap.Error(err))

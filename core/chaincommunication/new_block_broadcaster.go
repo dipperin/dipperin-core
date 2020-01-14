@@ -19,12 +19,12 @@ package chaincommunication
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-metrics"
+	"github.com/dipperin/dipperin-core/common/gmetrics"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/hashicorp/golang-lru"
 	"go.uber.org/zap"
@@ -105,7 +105,7 @@ func (broadcaster *NewBlockBroadcaster) BroadcastBlock(block model.AbstractBlock
 	var rPeers []PmAbstractPeer
 
 	for i := range peers {
-		if peers[i].NodeType() == chain_config.NodeTypeOfVerifier {
+		if peers[i].NodeType() == chainconfig.NodeTypeOfVerifier {
 			vPeers = append(vPeers, peers[i])
 		} else {
 			rPeers = append(rPeers, peers[i])
@@ -140,7 +140,7 @@ func (broadcaster *NewBlockBroadcaster) broadcastBlock(block model.AbstractBlock
 }
 
 func (broadcaster *NewBlockBroadcaster) onNewBlock(msg p2p.Msg, p PmAbstractPeer) error {
-	g_metrics.Add(g_metrics.ReceivedWaitVBlockCount, "", 1)
+	gmetrics.Add(gmetrics.ReceivedWaitVBlockCount, "", 1)
 
 	log.DLogger.Debug("receive new block", zap.String("from", p.NodeName()))
 	var block model.Block

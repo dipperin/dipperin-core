@@ -22,19 +22,19 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/address-util"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/addressutil"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/dipperin/service"
-	"github.com/dipperin/dipperin-core/core/economy-model"
+	"github.com/dipperin/dipperin-core/core/economymodel"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"github.com/dipperin/dipperin-core/third_party/rpc"
 	"github.com/ethereum/go-ethereum/rlp"
 	"go.uber.org/zap"
 	"math/big"
@@ -109,7 +109,7 @@ func (api *DipperinVenusApi) GetBlockByNumber(number uint64) (*BlockResp, error)
 	curBlock, err := api.service.GetBlockByNumber(number)
 	log.DLogger.Info("DipperinVenusApi#GetBlockByNumber", zap.Any("curBlock", curBlock))
 	if err != nil || curBlock == nil {
-		return nil, g_error.ErrBlockNotFound
+		return nil, gerror.ErrBlockNotFound
 	}
 
 	//	log.DLogger.Debug("the current block is: ","current block",*curBlock.(*model.Block))
@@ -689,7 +689,7 @@ func (api *DipperinVenusApi) CreateERC20(from common.Address, tokenName, tokenSy
 	extra := contract.ExtraDataForContract{}
 	extra.Action = "create"
 	extra.Params = es
-	contractAdr, _ := address_util.GenERC20Address()
+	contractAdr, _ := addressutil.GenERC20Address()
 	extra.ContractAddress = contractAdr
 
 	txId, err := api.service.SendTransaction(from, contractAdr, big.NewInt(int64(0)), gasPrice, gasLimit, []byte(util.StringifyJson(extra)), nil)
@@ -703,8 +703,8 @@ func (api *DipperinVenusApi) CreateERC20(from common.Address, tokenName, tokenSy
 }
 
 func (api *DipperinVenusApi) CheckBootNode() ([]string, error) {
-	nodes := make([]string, len(chain_config.KBucketNodes))
-	for i, kn := range chain_config.KBucketNodes {
+	nodes := make([]string, len(chainconfig.KBucketNodes))
+	for i, kn := range chainconfig.KBucketNodes {
 		nodes[i] = fmt.Sprintf("%s", kn.String())
 	}
 	return nodes, nil
@@ -1094,21 +1094,21 @@ func (api *DipperinVenusApi) GetAddressNonceFromWallet(address common.Address) (
 	return api.service.GetAddressNonceFromWallet(address)
 }
 
-func (api *DipperinVenusApi) GetChainConfig() (conf chain_config.ChainConfig, err error) {
+func (api *DipperinVenusApi) GetChainConfig() (conf chainconfig.ChainConfig, err error) {
 	return api.service.GetChainConfig(), nil
 }
 
-func (api *DipperinVenusApi) GetBlockDiffVerifierInfo(blockNumber uint64) (map[economy_model.VerifierType][]common.Address, error) {
+func (api *DipperinVenusApi) GetBlockDiffVerifierInfo(blockNumber uint64) (map[economymodel.VerifierType][]common.Address, error) {
 	return api.service.GetBlockDiffVerifierInfo(blockNumber)
 }
 
-func (api *DipperinVenusApi) GetVerifierDIPReward(blockNumber uint64) (map[economy_model.VerifierType]*hexutil.Big, error) {
+func (api *DipperinVenusApi) GetVerifierDIPReward(blockNumber uint64) (map[economymodel.VerifierType]*hexutil.Big, error) {
 	reward, err := api.service.GetVerifierDIPReward(blockNumber)
 	if err != nil {
-		return map[economy_model.VerifierType]*hexutil.Big{}, err
+		return map[economymodel.VerifierType]*hexutil.Big{}, err
 	}
 
-	result := make(map[economy_model.VerifierType]*hexutil.Big, 0)
+	result := make(map[economymodel.VerifierType]*hexutil.Big, 0)
 	for key, value := range reward {
 		result[key] = (*hexutil.Big)(value)
 	}
@@ -1179,7 +1179,7 @@ func (api *DipperinVenusApi) GetDeveloperLockDIP(address common.Address, blockNu
 	return (*hexutil.Big)(lockValue), nil
 }
 
-func (api *DipperinVenusApi) GetFoundationInfo(usage economy_model.FoundationDIPUsage) map[string]*hexutil.Big {
+func (api *DipperinVenusApi) GetFoundationInfo(usage economymodel.FoundationDIPUsage) map[string]*hexutil.Big {
 	foundationInfo := api.service.GetFoundationInfo(usage)
 
 	result := make(map[string]*hexutil.Big, 0)
@@ -1225,13 +1225,13 @@ func (api *DipperinVenusApi) GetMineMasterEDIPReward(blockNumber uint64, tokenDe
 	return (*hexutil.Big)(reward), nil
 }
 
-func (api *DipperinVenusApi) GetVerifierEDIPReward(blockNumber uint64, tokenDecimals int) (map[economy_model.VerifierType]*hexutil.Big, error) {
+func (api *DipperinVenusApi) GetVerifierEDIPReward(blockNumber uint64, tokenDecimals int) (map[economymodel.VerifierType]*hexutil.Big, error) {
 	reward, err := api.service.GetVerifierEDIPReward(blockNumber, tokenDecimals)
 	if err != nil {
-		return map[economy_model.VerifierType]*hexutil.Big{}, err
+		return map[economymodel.VerifierType]*hexutil.Big{}, err
 	}
 
-	result := make(map[economy_model.VerifierType]*hexutil.Big, 0)
+	result := make(map[economymodel.VerifierType]*hexutil.Big, 0)
 	for key, value := range reward {
 		result[key] = (*hexutil.Big)(value)
 	}
@@ -1342,7 +1342,7 @@ func (api *DipperinVenusApi) EstimateGas(from, to common.Address, value, gasPric
 	}
 
 	if gasPrice == nil {
-		gasPrice = big.NewInt(0).SetInt64(chain_config.DefaultGasPrice)
+		gasPrice = big.NewInt(0).SetInt64(chainconfig.DefaultGasPrice)
 	}
 
 	extraData, err := api.service.GetExtraData(to, data)

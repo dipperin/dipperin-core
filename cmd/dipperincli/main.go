@@ -31,7 +31,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts/softwallet"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/dipperin"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
@@ -64,8 +64,8 @@ func main() {
 		WithFile:      false,
 		DisableCaller: true,
 	}
-	switch chain_config.GetCurBootsEnv() {
-	case chain_config.BootEnvVenus, chain_config.BootEnvMercury:
+	switch chainconfig.GetCurBootsEnv() {
+	case chainconfig.BootEnvVenus, chainconfig.BootEnvMercury:
 		cnf.Lvl = zapcore.InfoLevel
 	}
 	log.InitLogger(cnf)
@@ -76,7 +76,7 @@ func main() {
 func newApp() (nApp *cli.App) {
 	nApp = cli.NewApp()
 	nApp.Name = "DipperinCli"
-	nApp.Version = chain_config.Version
+	nApp.Version = chainconfig.Version
 	nApp.Author = "dipperin"
 	nApp.Copyright = "(c) 2016-2019 dipperin."
 	nApp.Usage = "Dipperin commandline tool for " + runtime.GOOS + "/" + runtime.GOARCH
@@ -148,9 +148,9 @@ func appAction(c *cli.Context) {
 	//cslog.InitLogger(lv, "", true)
 	//commands.InitLog(lv)
 
-	switch env := chain_config.GetCurBootsEnv(); env {
-	case chain_config.BootEnvVenus, chain_config.BootEnvMercury,
-		chain_config.BootEnvTest, chain_config.BootEnvLocal:
+	switch env := chainconfig.GetCurBootsEnv(); env {
+	case chainconfig.BootEnvVenus, chainconfig.BootEnvMercury,
+		chainconfig.BootEnvTest, chainconfig.BootEnvLocal:
 	default:
 		log.DLogger.Error("boots_env set error,please check!", zap.String("bootEnv", env))
 		return
@@ -200,9 +200,9 @@ func appAction(c *cli.Context) {
 		log.DLogger.Error("debug setup failed", zap.Error(err))
 	}
 
-	log.DLogger.Info("network info", zap.String("name", chain_config.GetCurBootsEnv()))
+	log.DLogger.Info("network info", zap.String("name", chainconfig.GetCurBootsEnv()))
 
-	if chain_config.GetCurBootsEnv() == chain_config.BootEnvMercury {
+	if chainconfig.GetCurBootsEnv() == chainconfig.BootEnvMercury {
 		log.DLogger.Error("the Mercury testnet is not stopped forever, please try set boots_env = venus.")
 		// return
 	}

@@ -5,7 +5,7 @@
 package chaincommunication
 
 import (
-	enode "github.com/dipperin/dipperin-core/third-party/p2p/enode"
+	enode "github.com/dipperin/dipperin-core/third_party/p2p/enode"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

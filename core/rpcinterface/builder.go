@@ -18,7 +18,7 @@ package rpcinterface
 
 import (
 	"github.com/dipperin/dipperin-core/core/dipperin/service"
-	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"github.com/dipperin/dipperin-core/third_party/rpc"
 )
 
 func MakeDipperinVenusApi(service *service.VenusFullChainService) *DipperinVenusApi {

@@ -17,7 +17,7 @@
 package chaincommunication
 
 import (
-	chain_config "github.com/dipperin/dipperin-core/core/chain-config"
+	chain_config "github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"

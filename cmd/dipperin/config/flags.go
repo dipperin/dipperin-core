@@ -17,7 +17,7 @@
 package config
 
 import (
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/urfave/cli"
 )
@@ -195,7 +195,7 @@ var (
 	}
 	DataDirFlag = cli.StringFlag{
 		Name:  DataDirFlagName,
-		Value: chain_config.DefaultDataDir(),
+		Value: chainconfig.DefaultDataDir(),
 		Usage: "set node data saving directory",
 	}
 	LogLevelFlag = cli.StringFlag{

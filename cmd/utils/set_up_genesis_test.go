@@ -20,13 +20,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSetupGenesis(t *testing.T) {
 	defer os.RemoveAll("/tmp/test_genesis")
-	SetupGenesis("/tmp/test_genesis", chain_config.GetChainConfig())
+	SetupGenesis("/tmp/test_genesis", chainconfig.GetChainConfig())
 }
 
 func TestFatalf(t *testing.T) {

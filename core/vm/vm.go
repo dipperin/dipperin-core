@@ -18,13 +18,13 @@ package vm
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
 	common2 "github.com/dipperin/dipperin-core/core/vm/common"
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third_party/life/exec"
 	"go.uber.org/zap"
 	"math/big"
 	"sync/atomic"
@@ -73,11 +73,11 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 
 	// Fail if we're trying to execute above the call depth limit
 	if vm.depth > int(model.CallCreateDepth) {
-		return nil, gas, g_error.ErrDepth
+		return nil, gas, gerror.ErrDepth
 	}
 	// Fail if we're trying to transfer more than the available balanceMap
 	if !vm.Context.CanTransfer(vm.state, caller.Address(), value) {
-		return nil, gas, g_error.ErrInsufficientBalance
+		return nil, gas, gerror.ErrInsufficientBalance
 	}
 
 	var (
@@ -129,7 +129,7 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 	// when we're in homestead this also counts for code storage gas errors.
 	if err != nil {
 		vm.state.RevertToSnapshot(snapshot)
-		if err != g_error.ErrExecutionReverted {
+		if err != gerror.ErrExecutionReverted {
 			contract.UseGas(contract.Gas)
 			log.DLogger.Info("callContract Use", zap.Uint64("gasUsed", contract.Gas), zap.Uint64("gasLeft", contract.Gas))
 		}
@@ -143,7 +143,7 @@ func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, inp
 	}
 	// Fail if we're trying to execute above the call depth limit
 	if vm.depth > int(model.CallCreateDepth) {
-		return nil, gas, g_error.ErrDepth
+		return nil, gas, gerror.ErrDepth
 	}
 
 	var (
@@ -162,7 +162,7 @@ func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, inp
 	}
 	if err != nil {
 		vm.GetStateDB().RevertToSnapshot(snapshot)
-		if err != g_error.ErrExecutionReverted {
+		if err != gerror.ErrExecutionReverted {
 			contract.UseGas(contract.Gas)
 		}
 	}
@@ -189,11 +189,11 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 	// Depth check execution. Fail if we're trying to execute above the
 	// limit.
 	if vm.depth > int(model.CallCreateDepth) {
-		return nil, common.Address{}, gas, g_error.ErrDepth
+		return nil, common.Address{}, gas, gerror.ErrDepth
 	}
 
 	if !vm.CanTransfer(vm.state, caller.Address(), value) {
-		return nil, common.Address{}, gas, g_error.ErrInsufficientBalance
+		return nil, common.Address{}, gas, gerror.ErrInsufficientBalance
 	}
 	vm.state.AddNonce(caller.Address(), uint64(1))
 
@@ -201,14 +201,14 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 	contractHash := vm.state.GetCodeHash(address)
 	nonce, _ := vm.state.GetNonce(address)
 	if nonce != uint64(0) || (contractHash != common.Hash{} && contractHash != EmptyCodeHash) {
-		return nil, common.Address{}, 0, g_error.ErrContractAddressCollision
+		return nil, common.Address{}, 0, gerror.ErrContractAddressCollision
 	}
 
 	// Create a new account on the state
 	snapshot := vm.state.Snapshot()
 	err = vm.state.CreateAccount(address)
 	if err != nil {
-		return nil, common.Address{}, 0, g_error.ErrContractAddressCreate
+		return nil, common.Address{}, 0, gerror.ErrContractAddressCreate
 	}
 
 	if err = vm.Transfer(vm.state, caller.Address(), address, value); err != nil {
@@ -251,23 +251,23 @@ func (vm *VM) create(caller resolver.ContractRef, data []byte, gas uint64, value
 			vm.state.SetAbi(address, abi)
 			log.DLogger.Info("CreateDataGas Use", zap.Uint64("gasUsed", createDataGas), zap.Uint64("gasLeft", contract.Gas))
 		} else {
-			err = g_error.ErrCodeStoreOutOfGas
+			err = gerror.ErrCodeStoreOutOfGas
 		}
 	}
 
 	// When an error was returned by the EVM or when setting the creation data
 	// above we revert to the snapshot and consume any gas remaining. Additionally
 	// when we're in homestead this also counts for data storage gas errors.
-	if maxCodeSizeExceeded || (err != nil && err != g_error.ErrCodeStoreOutOfGas) {
+	if maxCodeSizeExceeded || (err != nil && err != gerror.ErrCodeStoreOutOfGas) {
 		log.DLogger.Info("Run lifeVm failed", zap.Error(err))
 		vm.state.RevertToSnapshot(snapshot)
-		if err != g_error.ErrExecutionReverted {
+		if err != gerror.ErrExecutionReverted {
 			contract.UseGas(contract.Gas)
 		}
 	}
 	// Assign err if contract data size exceeds the max while the err is still empty.
 	if maxCodeSizeExceeded && err == nil {
-		err = g_error.ErrMaxCodeSizeExceeded
+		err = gerror.ErrMaxCodeSizeExceeded
 	}
 
 	/*	if api.vmConfig.Debug && api.depth == 0 {
@@ -286,15 +286,4 @@ func run(vm *VM, contract *Contract, create bool) ([]byte, error) {
 }
 */
 
-/*type Caller struct {
-	addr common.Address
-}
-
-func (c *Caller) Address() common.Address {
-	return c.addr
-}
-
-func AccountRef(addr common.Address) resolver.ContractRef {
-	return &Caller{addr}
-}*/
 

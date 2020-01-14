@@ -18,25 +18,25 @@ package utils
 
 import (
 	"github.com/dipperin/dipperin-core/core/chain"
-	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
-	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
-	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
+	"github.com/dipperin/dipperin-core/core/chain/stateprocessor"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
+	"github.com/dipperin/dipperin-core/core/cschain/chainstate"
+	"github.com/dipperin/dipperin-core/core/cschain/chainwriter"
 )
 
-func SetupGenesis(dataDir string, cConfig *chain_config.ChainConfig) {
-	cs := chain_state.NewChainState(&chain_state.ChainStateConfig{
+func SetupGenesis(dataDir string, cConfig *chainconfig.ChainConfig) {
+	cs := chainstate.NewChainState(&chainstate.ChainStateConfig{
 		ChainConfig:   cConfig,
 		DataDir:       dataDir,
-		WriterFactory: chain_writer.NewChainWriterFactory(),
+		WriterFactory: chainwriter.NewChainWriterFactory(),
 	})
 	setupGenesis(cs)
 	cs.ChainDB.DB().Close()
 }
 
-func setupGenesis(cs *chain_state.ChainState) {
-	genesisAccountStateProcessor, err := state_processor.MakeGenesisAccountStateProcessor(cs.StateStorage)
+func setupGenesis(cs *chainstate.ChainState) {
+	genesisAccountStateProcessor, err := stateprocessor.MakeGenesisAccountStateProcessor(cs.StateStorage)
 	if err != nil {
 		panic("open account state processor for genesis failed: " + err.Error())
 	}
