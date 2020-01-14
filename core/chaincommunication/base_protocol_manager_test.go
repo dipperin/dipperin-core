@@ -18,9 +18,9 @@ package chaincommunication
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	cs_crypto "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/dipperin/dipperin-core/third_party/crypto"
+	cs_crypto "github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"

@@ -18,13 +18,13 @@ package chaincommunication
 
 import (
 	"fmt"
-	"github.com/dipperin/dipperin-core/common/g-error"
-	"github.com/dipperin/dipperin-core/common/g-event"
+	"github.com/dipperin/dipperin-core/common/gerror"
+	"github.com/dipperin/dipperin-core/common/gevent"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
-	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
+	"github.com/dipperin/dipperin-core/third_party/p2p/enode"
 	"go.uber.org/zap"
 	"sync/atomic"
 	"time"
@@ -138,7 +138,7 @@ func (f *vfFetcher) getVerifiersFromBoot(req GetVerifiersReq, peer PmAbstractPee
 	}
 }
 
-func NewVFinder(chain Chain, peerManager AbsPeerManager, chainCfg chain_config.ChainConfig) *VFinder {
+func NewVFinder(chain Chain, peerManager AbsPeerManager, chainCfg chainconfig.ChainConfig) *VFinder {
 	return &VFinder{
 		chain:       chain,
 		peerManager: peerManager,
@@ -150,7 +150,7 @@ func NewVFinder(chain Chain, peerManager AbsPeerManager, chainCfg chain_config.C
 type VFinder struct {
 	chain       Chain
 	peerManager AbsPeerManager
-	chainCfg    chain_config.ChainConfig
+	chainCfg    chainconfig.ChainConfig
 	fetcher     *vfFetcher
 
 	findingVerifiers uint32
@@ -165,7 +165,7 @@ func (vf *VFinder) MsgHandlers() map[uint64]func(msg p2p.Msg, p PmAbstractPeer) 
 
 func (vf *VFinder) Start() error {
 	if !atomic.CompareAndSwapUint32(&vf.started, 0, 1) {
-		return g_error.ErrAlreadyStarted
+		return gerror.ErrAlreadyStarted
 	}
 
 	go vf.fetcher.loop()
@@ -208,7 +208,7 @@ func (vf *VFinder) shouldFindVerifiers() error {
 
 	// is cur or next verifiers
 	if !vf.peerManager.SelfIsCurrentVerifier() && !vf.peerManager.SelfIsNextVerifier() {
-		return g_error.ErrNotCurrentOrNextVerifier
+		return gerror.ErrNotCurrentOrNextVerifier
 	}
 
 	// check conn enough outside
@@ -367,7 +367,7 @@ func (vfb *VFinderBoot) OnGetVerifiersReq(msg p2p.Msg, p PmAbstractPeer) error {
 func canFind(pm AbsPeerManager, chain Chain) error {
 	bestPeer := pm.BestPeer()
 	if bestPeer == nil {
-		return g_error.ErrNoBestPeerFound
+		return gerror.ErrNoBestPeerFound
 	}
 	_, rHeight := bestPeer.GetHead()
 	curB := chain.CurrentBlock()
@@ -375,12 +375,12 @@ func canFind(pm AbsPeerManager, chain Chain) error {
 	// valid height
 	if curB.Number()+2 < rHeight {
 		log.DLogger.Info("height too low, do not find verifiers", zap.Uint64("cur h", curB.Number()), zap.Uint64("remote h", rHeight))
-		return g_error.ErrCurHeightTooLow
+		return gerror.ErrCurHeightTooLow
 	}
 
 	// is change point, do not find
 	if chain.IsChangePoint(curB, false) {
-		return g_error.ErrIsChangePointDoNotFind
+		return gerror.ErrIsChangePointDoNotFind
 	}
 
 	return nil
@@ -396,7 +396,7 @@ func (pm *CsProtocolManager) handleInsertEventForBft() error {
 	go func() {
 		newBlockChan := make(chan model.Block, 0)
 		//sub := pm.nodeContext.Chain().SubscribeBlockEvent(newBlockChan)
-		sub := g_event.Subscribe(g_event.NewBlockInsertEvent, newBlockChan)
+		sub := gevent.Subscribe(gevent.NewBlockInsertEvent, newBlockChan)
 		defer sub.Unsubscribe()
 
 		for {

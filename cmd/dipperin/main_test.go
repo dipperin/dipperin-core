@@ -18,7 +18,7 @@ package main
 
 import (
 	"github.com/dipperin/dipperin-core/cmd/utils"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"os"
 	"testing"
 	"time"
@@ -28,7 +28,7 @@ func Test_main(t *testing.T) {
 	dataDir := "/tmp/dipperin_test"
 	os.Args = []string{"xxx", "-data_dir", dataDir, "-no_wallet_start", "true"}
 	defer os.RemoveAll(dataDir)
-	utils.SetupGenesis(dataDir, chain_config.GetChainConfig())
+	utils.SetupGenesis(dataDir, chainconfig.GetChainConfig())
 
 	go main()
 	time.Sleep(500 * time.Millisecond)

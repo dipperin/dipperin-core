@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/rpcinterface"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
 	"strings"

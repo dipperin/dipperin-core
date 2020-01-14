@@ -21,7 +21,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -75,13 +75,13 @@ func IntrinsicGas(data []byte, contractCreation, homestead bool) (uint64, error)
 		}
 		// Make sure we don't exceed uint64 for all data combinations
 		if (math.MaxUint64-gas)/TxDataNonZeroGas < nz {
-			return 0, g_error.ErrOutOfGas
+			return 0, gerror.ErrOutOfGas
 		}
 		gas += nz * TxDataNonZeroGas
 
 		z := uint64(len(data)) - nz
 		if (math.MaxUint64-gas)/TxDataZeroGas < z {
-			return 0, g_error.ErrOutOfGas
+			return 0, gerror.ErrOutOfGas
 		}
 		gas += z * TxDataZeroGas
 	}

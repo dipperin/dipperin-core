@@ -19,7 +19,7 @@ package rpcinterface
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"github.com/dipperin/dipperin-core/third_party/rpc"
 	"go.uber.org/zap"
 	"net"
 	"strings"

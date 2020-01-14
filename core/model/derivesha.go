@@ -19,7 +19,7 @@ package model
 import (
 	"bytes"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/trie"
+	"github.com/dipperin/dipperin-core/third_party/trie"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 

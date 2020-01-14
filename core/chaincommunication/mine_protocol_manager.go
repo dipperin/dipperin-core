@@ -18,8 +18,8 @@ package chaincommunication
 
 import (
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
 	"go.uber.org/zap"
 	"sync"
 )
@@ -71,8 +71,8 @@ func (pm *MineProtocolManager) handleMsg(p PmAbstractPeer) error {
 }
 
 func (pm *MineProtocolManager) GetProtocol() p2p.Protocol {
-	var version uint = chain_config.MineProtocolVersion
-	protocolName := chain_config.AppName + "_mine"
+	var version uint = chainconfig.MineProtocolVersion
+	protocolName := chainconfig.AppName + "_mine"
 	p := p2p.Protocol{Name: protocolName, Version: version, Length: 0x200}
 
 	p.Run = func(peer *p2p.Peer, rw p2p.MsgReadWriter) error {

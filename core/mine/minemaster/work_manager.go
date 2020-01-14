@@ -161,6 +161,7 @@ func (manager *defaultWorkManager) submitBlock(workerAddress common.Address, blo
 	defer manager.submitBlockLock.Unlock()
 	//pbft_log.DLogger.Debug("submitBlock","block id",block.Number(),"block txs",block.TxCount())
 
+	// todo: here should be change a way to judge
 	if manager.performance[workerAddress] == nil {
 		manager.performance[workerAddress] = newDefaultPerformance()
 	}

@@ -17,7 +17,7 @@
 package rpcinterface
 
 import (
-	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"github.com/dipperin/dipperin-core/third_party/rpc"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"

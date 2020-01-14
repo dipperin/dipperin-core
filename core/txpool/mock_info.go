@@ -8,12 +8,12 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
-	"github.com/dipperin/dipperin-core/core/economy-model"
+	"github.com/dipperin/dipperin-core/core/chain/stateprocessor"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
+	"github.com/dipperin/dipperin-core/core/economymodel"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third_party/crypto"
+	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/golang/mock/gomock"
@@ -35,7 +35,7 @@ var path = "./transaction.out"
 
 type transactions []model.AbstractTransaction
 
-var testTxFee = economy_model.GetMinimumTxFee(200)
+var testTxFee = economymodel.GetMinimumTxFee(200)
 var threshold = new(big.Int).Div(new(big.Int).Mul(testTxFee, big.NewInt(100+int64(DefaultTxPoolConfig.FeeBump))), big.NewInt(100))
 var testRoot = "0x54bbe8ffddc42dd501ab37438c2496d1d3be51d9c562531d56b48ea3bea66708"
 var testTxPoolConfig TxPoolConfig
@@ -93,10 +93,10 @@ func (mr *MockBlockChainMockRecorder) GetBlockByNumber(arg0 interface{}) *gomock
 }
 
 // StateAtByStateRoot mocks base method
-func (m *MockBlockChain) StateAtByStateRoot(arg0 common.Hash) (*state_processor.AccountStateDB, error) {
+func (m *MockBlockChain) StateAtByStateRoot(arg0 common.Hash) (*stateprocessor.AccountStateDB, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StateAtByStateRoot", arg0)
-	ret0, _ := ret[0].(*state_processor.AccountStateDB)
+	ret0, _ := ret[0].(*stateprocessor.AccountStateDB)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -252,7 +252,7 @@ func init() {
 }
 
 type testBlockChain struct {
-	statedb *state_processor.AccountStateDB
+	statedb *stateprocessor.AccountStateDB
 }
 
 func (bc *testBlockChain) CurrentBlock() model.AbstractBlock {
@@ -264,7 +264,7 @@ func (bc *testBlockChain) GetBlockByNumber(number uint64) model.AbstractBlock {
 	return bc.CurrentBlock()
 }
 
-func (bc *testBlockChain) StateAtByStateRoot(root common.Hash) (*state_processor.AccountStateDB, error) {
+func (bc *testBlockChain) StateAtByStateRoot(root common.Hash) (*stateprocessor.AccountStateDB, error) {
 	return bc.statedb, nil
 }
 
@@ -277,8 +277,8 @@ func transaction(nonce uint64, to common.Address, amount *big.Int, gasPrice *big
 
 func createTestStateDB() (ethdb.Database, common.Hash) {
 	db := ethdb.NewMemDatabase()
-	tdb := state_processor.NewStateStorageWithCache(db)
-	teststatedb, _ := state_processor.NewAccountStateDB(common.Hash{}, tdb)
+	tdb := stateprocessor.NewStateStorageWithCache(db)
+	teststatedb, _ := stateprocessor.NewAccountStateDB(common.Hash{}, tdb)
 
 	key1, key2, key3 := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
@@ -310,8 +310,8 @@ func createTestAddrs(num int) ([]common.Address, []*ecdsa.PrivateKey) {
 
 func createTestStateDBWithBatch(num int) (ethdb.Database, common.Hash) {
 	db := ethdb.NewMemDatabase()
-	tdb := state_processor.NewStateStorageWithCache(db)
-	teststatedb, _ := state_processor.NewAccountStateDB(common.Hash{}, tdb)
+	tdb := stateprocessor.NewStateStorageWithCache(db)
+	teststatedb, _ := stateprocessor.NewAccountStateDB(common.Hash{}, tdb)
 
 	addrs, _ := createTestAddrs(num)
 	for i := 0; i < num; i++ {
@@ -326,11 +326,11 @@ func createTestStateDBWithBatch(num int) (ethdb.Database, common.Hash) {
 
 func setupTxPoolBatch(num int) *TxPool {
 	db, root := createTestStateDBWithBatch(num)
-	teststatedb, _ := state_processor.NewAccountStateDB(root, state_processor.NewStateStorageWithCache(db))
+	teststatedb, _ := stateprocessor.NewAccountStateDB(root, stateprocessor.NewStateStorageWithCache(db))
 
 	blockchain := &testBlockChain{statedb: teststatedb}
 
-	pool := NewTxPool(testTxPoolConfig, chain_config.ChainConfig{ChainId: big.NewInt(1)}, blockchain)
+	pool := NewTxPool(testTxPoolConfig, chainconfig.ChainConfig{ChainId: big.NewInt(1)}, blockchain)
 
 	pool.signer = ms
 
@@ -339,11 +339,11 @@ func setupTxPoolBatch(num int) *TxPool {
 
 func setupTxPool() *TxPool {
 	db, root := createTestStateDB()
-	teststatedb, _ := state_processor.NewAccountStateDB(root, state_processor.NewStateStorageWithCache(db))
+	teststatedb, _ := stateprocessor.NewAccountStateDB(root, stateprocessor.NewStateStorageWithCache(db))
 	//con := newFakeValidator()
 	blockchain := &testBlockChain{statedb: teststatedb}
 
-	pool := NewTxPool(testTxPoolConfig, chain_config.ChainConfig{ChainId: big.NewInt(1)}, blockchain)
+	pool := NewTxPool(testTxPoolConfig, chainconfig.ChainConfig{ChainId: big.NewInt(1)}, blockchain)
 
 	pool.signer = ms
 

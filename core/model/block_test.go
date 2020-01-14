@@ -24,8 +24,8 @@ import (
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/bloom"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
+	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
@@ -765,7 +765,7 @@ func creatBlockWithAllTx(n int, t *testing.T) *Block {
 
 	var voteList []AbstractVerification
 	voteMsg := CreateSignedVote(0, 0, common.Hash{}, VoteMessage)
-	for i := 0; i < (chain_config.GetChainConfig().VerifierNumber*2/3 + 1); i++ {
+	for i := 0; i < (chainconfig.GetChainConfig().VerifierNumber*2/3 + 1); i++ {
 		voteList = append(voteList, voteMsg)
 	}
 
@@ -774,7 +774,7 @@ func creatBlockWithAllTx(n int, t *testing.T) *Block {
 
 func Test_BlockTxNumber(t *testing.T) {
 	//t.Skip()
-	maxNormalTxNumber := chain_config.BlockGasLimit / TxGas
+	maxNormalTxNumber := chainconfig.BlockGasLimit / TxGas
 	assert.Equal(t, 160000, int(maxNormalTxNumber))
 
 	tmpBlock := creatBlockWithAllTx(int(maxNormalTxNumber), t)

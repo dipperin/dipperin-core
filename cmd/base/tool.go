@@ -17,16 +17,16 @@
 package base
 
 import (
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/urfave/cli"
 )
 
 func NewApp(appName, usage string) *cli.App {
 	app := cli.NewApp()
 	app.Name = appName
-	app.Author = chain_config.AppName
+	app.Author = chainconfig.AppName
 	app.Email = ""
-	app.Version = chain_config.Version
+	app.Version = chainconfig.Version
 	app.Usage = usage
 
 	return app

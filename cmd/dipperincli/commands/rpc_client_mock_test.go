@@ -6,7 +6,7 @@ package commands
 
 import (
 	context "context"
-	rpc "github.com/dipperin/dipperin-core/third-party/rpc"
+	rpc "github.com/dipperin/dipperin-core/third_party/rpc"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

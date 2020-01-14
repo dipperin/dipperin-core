@@ -17,7 +17,7 @@
 package mineworker
 
 import (
-	"github.com/dipperin/dipperin-core/common/g-metrics"
+	"github.com/dipperin/dipperin-core/common/gmetrics"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/prometheus/client_golang/prometheus"
@@ -98,7 +98,7 @@ out:
 		select {
 		case miner.curWork = <-miner.newWorkChan:
 			miner.mineStartAt = time.Now()
-			miner.metricTimer = g_metrics.NewTimer(g_metrics.FindNonceDuration)
+			miner.metricTimer = gmetrics.NewTimer(gmetrics.FindNonceDuration)
 			log.DLogger.Info("miner receive new work1")
 		case <-miner.stopChan:
 			log.DLogger.Info("stop mine")
@@ -131,7 +131,7 @@ func (miner *defaultMiner) waitNewWork() {
 	select {
 	case miner.curWork = <-miner.newWorkChan:
 		miner.mineStartAt = time.Now()
-		miner.metricTimer = g_metrics.NewTimer(g_metrics.FindNonceDuration)
+		miner.metricTimer = gmetrics.NewTimer(gmetrics.FindNonceDuration)
 		//log.DLogger.Info("miner receive new work2")
 	case <-miner.stopChan:
 	}

@@ -23,7 +23,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/economy-model"
+	"github.com/dipperin/dipperin-core/core/economymodel"
 	"go.uber.org/zap"
 	"math/big"
 	"sync"
@@ -41,7 +41,7 @@ var ProhibitFunction = []string{"create", "RewardMineMaster", "RewardVerifier"}
 
 type EarlyRewardContract struct {
 	BuiltInERC20Token
-	Early economy_model.Foundation `json:"-"`
+	Early economymodel.Foundation `json:"-"`
 
 	//remaining token equl to DIP
 	NeedDIP *big.Int `json:"need_coin"`
@@ -67,12 +67,12 @@ type EarlyRewardContractForMarshaling struct {
 var EarlyRewardContractStr string
 
 func init() {
-	foundation := economy_model.MakeDipperinFoundation(economy_model.DIPProportion)
-	owner := economy_model.EarlyTokenAddresses[0]
+	foundation := economymodel.MakeDipperinFoundation(economymodel.DIPProportion)
+	owner := economymodel.EarlyTokenAddresses[0]
 	decimalBase := big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(DecimalUnits)), nil)
-	initAmount := big.NewInt(0).Mul(economy_model.EarlyTokenAmount, decimalBase)
+	initAmount := big.NewInt(0).Mul(economymodel.EarlyTokenAmount, decimalBase)
 
-	contract, err := MakeEarlyRewardContract(foundation, initAmount, economy_model.InitExchangeRate, tokenName, DecimalUnits, tokenSymbol, owner)
+	contract, err := MakeEarlyRewardContract(foundation, initAmount, economymodel.InitExchangeRate, tokenName, DecimalUnits, tokenSymbol, owner)
 	if err != nil {
 		panic("early_token init panic")
 	}
@@ -86,15 +86,15 @@ func calcNeedDIP(eDIP *big.Int, decimalUnits int, exChangeRate int64) *big.Int {
 	actualNeedDIP := big.NewInt(0)
 	actualNeedDIP.Mul(eDIP, big.NewInt(exChangeRate))
 	actualNeedDIP.Mul(actualNeedDIP, big.NewInt(consts.DIP))
-	actualNeedDIP.Div(actualNeedDIP, big.NewInt(economy_model.EarlyTokenExchangeBase))
+	actualNeedDIP.Div(actualNeedDIP, big.NewInt(economymodel.EarlyTokenExchangeBase))
 	actualNeedDIP.Div(actualNeedDIP, decimalBase)
 
 	return actualNeedDIP
 }
 
-func MakeEarlyRewardContract(foundation economy_model.Foundation, initAmount *big.Int, initExchangeRate int64, tokenName string, decimalUnits int, tokenSymbol string, owner common.Address) (*EarlyRewardContract, error) {
+func MakeEarlyRewardContract(foundation economymodel.Foundation, initAmount *big.Int, initExchangeRate int64, tokenName string, decimalUnits int, tokenSymbol string, owner common.Address) (*EarlyRewardContract, error) {
 	actualNeedDIP := calcNeedDIP(initAmount, decimalUnits, initExchangeRate)
-	if actualNeedDIP.Cmp(economy_model.EarlyTokenDIP) == 1 {
+	if actualNeedDIP.Cmp(economymodel.EarlyTokenDIP) == 1 {
 		return nil, errors.New("the DIP isn't enough")
 	}
 	return &EarlyRewardContract{
@@ -135,12 +135,12 @@ func (earlyToken *EarlyRewardContract) IsValid() error {
 	return nil
 }
 
-func (earlyToken *EarlyRewardContract) getDipperinFoundation() economy_model.Foundation {
+func (earlyToken *EarlyRewardContract) getDipperinFoundation() economymodel.Foundation {
 	if earlyToken.Early != nil {
 		return earlyToken.Early
 	}
 
-	earlyToken.Early = economy_model.MakeDipperinFoundation(economy_model.DIPProportion)
+	earlyToken.Early = economymodel.MakeDipperinFoundation(economymodel.DIPProportion)
 	return earlyToken.Early
 }
 
@@ -155,7 +155,7 @@ func (earlyToken *EarlyRewardContract) SetExchangeRate(from common.Address, exch
 	defer earlyToken.Lock.Unlock()
 	//validate address
 	addressType := earlyToken.getDipperinFoundation().GetAddressType(from)
-	if addressType != economy_model.MaintenanceAddress {
+	if addressType != economymodel.MaintenanceAddress {
 		return errors.New("the address isn't foundation maintenance address")
 	}
 	if exchangeRate == earlyToken.ExchangeRate[len(earlyToken.ExchangeRate)-1] {
@@ -165,7 +165,7 @@ func (earlyToken *EarlyRewardContract) SetExchangeRate(from common.Address, exch
 	//calculate DIP needed
 	decimal := earlyToken.Decimals()
 	decimalBase := big.NewInt(0).Exp(big.NewInt(10), big.NewInt(int64(decimal)), nil)
-	tokenAmount := big.NewInt(0).Mul(economy_model.EarlyTokenAmount, decimalBase)
+	tokenAmount := big.NewInt(0).Mul(economymodel.EarlyTokenAmount, decimalBase)
 	notExchangeEDIP := big.NewInt(0).Sub(tokenAmount, earlyToken.ChangeToDIPToken)
 
 	needDIP := calcNeedDIP(notExchangeEDIP, decimal, exchangeRate)
@@ -192,7 +192,7 @@ func (earlyToken *EarlyRewardContract) TransferEDIPToDIP(from common.Address, eD
 
 	//check whether address is normal
 	addressType := earlyToken.getDipperinFoundation().GetAddressType(from)
-	if addressType != economy_model.NotFoundationAddress {
+	if addressType != economymodel.NotFoundationAddress {
 		log.DLogger.Info("the addressType is:", zap.Any("addressType", addressType))
 		return errors.New("the address isn't NotFoundationAddress")
 	}
@@ -213,7 +213,7 @@ func (earlyToken *EarlyRewardContract) TransferEDIPToDIP(from common.Address, eD
 
 	DIP.Mul(eDIPValue.ToInt(), big.NewInt(currentExchangeRate))
 	DIP.Mul(DIP, big.NewInt(consts.DIP))
-	DIP.Div(DIP, big.NewInt(economy_model.EarlyTokenExchangeBase))
+	DIP.Div(DIP, big.NewInt(economymodel.EarlyTokenExchangeBase))
 	DIP.Div(DIP, decimalBase)
 	earlyToken.NeedDIP.Sub(earlyToken.NeedDIP, DIP)
 
@@ -229,7 +229,7 @@ func (earlyToken *EarlyRewardContract) Destroy(from common.Address) error {
 
 func (earlyToken *EarlyRewardContract) Transfer(toAddress common.Address, hValue *hexutil.Big) error {
 	addressType := earlyToken.getDipperinFoundation().GetAddressType(earlyToken.CurSender)
-	if addressType != economy_model.NotFoundationAddress {
+	if addressType != economymodel.NotFoundationAddress {
 		return errors.New("the address should be normalAddress")
 	} else {
 		return earlyToken.BuiltInERC20Token.Transfer(toAddress, hValue)
@@ -238,12 +238,12 @@ func (earlyToken *EarlyRewardContract) Transfer(toAddress common.Address, hValue
 
 func (earlyToken *EarlyRewardContract) TransferFrom(fromAddress, toAddress common.Address, value *hexutil.Big) bool {
 	addressType := earlyToken.getDipperinFoundation().GetAddressType(fromAddress)
-	if addressType != economy_model.NotFoundationAddress {
+	if addressType != economymodel.NotFoundationAddress {
 		return false
 	}
 
 	addressType = earlyToken.getDipperinFoundation().GetAddressType(earlyToken.CurSender)
-	if addressType != economy_model.NotFoundationAddress {
+	if addressType != economymodel.NotFoundationAddress {
 		return false
 	}
 
@@ -252,7 +252,7 @@ func (earlyToken *EarlyRewardContract) TransferFrom(fromAddress, toAddress commo
 
 func (earlyToken *EarlyRewardContract) Approve(spenderAddress common.Address, value *hexutil.Big) bool {
 	addressType := earlyToken.getDipperinFoundation().GetAddressType(earlyToken.CurSender)
-	if addressType != economy_model.NotFoundationAddress {
+	if addressType != economymodel.NotFoundationAddress {
 		return false
 	} else {
 		return earlyToken.BuiltInERC20Token.Approve(spenderAddress, value)
@@ -261,17 +261,17 @@ func (earlyToken *EarlyRewardContract) Approve(spenderAddress common.Address, va
 
 func (earlyToken *EarlyRewardContract) Allowance(ownerAddress, spenderAddress common.Address) *big.Int {
 	addressType := earlyToken.getDipperinFoundation().GetAddressType(ownerAddress)
-	if addressType != economy_model.NotFoundationAddress {
+	if addressType != economymodel.NotFoundationAddress {
 		return big.NewInt(0)
 	}
 
 	addressType = earlyToken.getDipperinFoundation().GetAddressType(spenderAddress)
-	if addressType != economy_model.NotFoundationAddress {
+	if addressType != economymodel.NotFoundationAddress {
 		return big.NewInt(0)
 	}
 
 	addressType = earlyToken.getDipperinFoundation().GetAddressType(earlyToken.CurSender)
-	if addressType != economy_model.NotFoundationAddress {
+	if addressType != economymodel.NotFoundationAddress {
 		return big.NewInt(0)
 	}
 
@@ -305,7 +305,7 @@ func (earlyToken *EarlyRewardContract) RewardMineMaster(DIPReward *big.Int, bloc
 }
 
 //giev Verifier extra bonus every block
-func (earlyToken *EarlyRewardContract) RewardVerifier(DIPReward map[economy_model.VerifierType]*big.Int, blockNumber uint64, verifierAddress map[economy_model.VerifierType][]common.Address) error {
+func (earlyToken *EarlyRewardContract) RewardVerifier(DIPReward map[economymodel.VerifierType]*big.Int, blockNumber uint64, verifierAddress map[economymodel.VerifierType][]common.Address) error {
 	rewardEDIP, err := earlyToken.getDipperinFoundation().GetVerifierEDIPReward(DIPReward, blockNumber, earlyToken.Decimals())
 	if err != nil {
 		return err
@@ -320,8 +320,8 @@ func (earlyToken *EarlyRewardContract) RewardVerifier(DIPReward map[economy_mode
 			return errors.New("RewardVerifier the Early token contract token isn't enough")
 		}
 
-		if verifierType == economy_model.MasterVerifier {
-			masterAddress := verifierAddress[economy_model.MasterVerifier][0].Hex()
+		if verifierType == economymodel.MasterVerifier {
+			masterAddress := verifierAddress[economymodel.MasterVerifier][0].Hex()
 			if _, ok := earlyToken.Balances[masterAddress]; !ok {
 				earlyToken.Balances[masterAddress] = big.NewInt(0)
 			}

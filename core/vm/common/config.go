@@ -1,8 +1,8 @@
 package common
 
 import (
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
-	"github.com/dipperin/dipperin-core/third-party/life/mem-manage"
+	"github.com/dipperin/dipperin-core/third_party/life/exec"
+	"github.com/dipperin/dipperin-core/third_party/life/mem-manage"
 )
 
 var DEFAULT_VM_CONFIG = exec.VMConfig{

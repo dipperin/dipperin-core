@@ -25,12 +25,12 @@ import (
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/bloom"
-	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/chaindb"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"github.com/dipperin/dipperin-core/core/chain/stateprocessor"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/contract"
-	"github.com/dipperin/dipperin-core/core/economy-model"
+	"github.com/dipperin/dipperin-core/core/economymodel"
 	"github.com/dipperin/dipperin-core/core/model"
 	"go.uber.org/zap"
 	"io/ioutil"
@@ -45,16 +45,16 @@ var VerifierAddress []common.Address
 
 //delete angle verifier csWallet cipher in the Dipperin-core source code
 func init() {
-	env := chain_config.GetCurBootsEnv()
+	env := chainconfig.GetCurBootsEnv()
 	log.DLogger.Info("start env: " + env)
-	if env == chain_config.BootEnvMercury {
-		VerifierAddress = chain_config.MercuryVerifierAddress
+	if env == chainconfig.BootEnvMercury {
+		VerifierAddress = chainconfig.MercuryVerifierAddress
 		log.DLogger.Debug("default mercury verifier", zap.Int("count", len(VerifierAddress)))
 	} else {
-		VerifierAddress = chain_config.LocalVerifierAddress
+		VerifierAddress = chainconfig.LocalVerifierAddress
 	}
 
-	chain_config.VerBootNodeAddress = chain_config.VerifierBootNodeAddress
+	chainconfig.VerBootNodeAddress = chainconfig.VerifierBootNodeAddress
 }
 
 var errGenesisNoConfig = errors.New("genesis has no chain configuration")
@@ -72,11 +72,11 @@ func (e *GenesisMismatchError) Error() string {
 // Genesis specifies the header fields, state of a genesis block. It also defines hard
 // fork switch-over blocks through the chain configuration.
 type Genesis struct {
-	Config    *chain_config.ChainConfig `json:"config"`
-	Nonce     uint64                    `json:"nonce"`
-	Timestamp *big.Int                  `json:"timestamp"`
-	ExtraData []byte                    `json:"extraData"`
-	GasLimit  uint64                    `json:"gasLimit"   gencodec:"required"`
+	Config    *chainconfig.ChainConfig `json:"config"`
+	Nonce     uint64                   `json:"nonce"`
+	Timestamp *big.Int                 `json:"timestamp"`
+	ExtraData []byte                   `json:"extraData"`
+	GasLimit  uint64                   `json:"gasLimit"   gencodec:"required"`
 	//Difficulty *big.Int            `json:"difficulty" gencodec:"required"`
 	Difficulty common.Difficulty `json:"difficulty" gencodec:"required"`
 	Mixhash    common.Hash       `json:"mixHash"`
@@ -93,7 +93,7 @@ type Genesis struct {
 	ParentHash common.Hash `json:"parentHash"`
 
 	ChainDB               chaindb.Database
-	AccountStateProcessor state_processor.AccountStateProcessor
+	AccountStateProcessor stateprocessor.AccountStateProcessor
 	RegisterProcessor     registerdb.RegisterProcessor
 
 	merged bool
@@ -107,7 +107,7 @@ func (g *Genesis) SetVerifiers(v []common.Address) {
 	g.Verifiers = v
 }
 
-func (g *Genesis) SetAccountStateProcessor(p state_processor.AccountStateProcessor) {
+func (g *Genesis) SetAccountStateProcessor(p stateprocessor.AccountStateProcessor) {
 	g.AccountStateProcessor = p
 }
 
@@ -127,7 +127,7 @@ type GenesisAlloc map[common.Address]*big.Int
 // error is a *params.ConfigCompatError and the new, unwritten config is returned.
 //
 // The returned chain configuration is never nil.
-func SetupGenesisBlock(genesis *Genesis) (*chain_config.ChainConfig, common.Hash, error) {
+func SetupGenesisBlock(genesis *Genesis) (*chainconfig.ChainConfig, common.Hash, error) {
 	if genesis == nil {
 		log.DLogger.Info("Writing default main-net genesis block")
 		return nil, common.Hash{}, errors.New("genesis can't be nil")
@@ -174,7 +174,7 @@ func SetupGenesisBlock(genesis *Genesis) (*chain_config.ChainConfig, common.Hash
 }
 
 func (g *Genesis) checkEarlyContractExist() {
-	earlyCV, err := g.AccountStateProcessor.(*state_processor.AccountStateDB).Copy().GetContract(contract.EarlyContractAddress, reflect.TypeOf(contract.EarlyRewardContract{}))
+	earlyCV, err := g.AccountStateProcessor.(*stateprocessor.AccountStateDB).Copy().GetContract(contract.EarlyContractAddress, reflect.TypeOf(contract.EarlyRewardContract{}))
 	if err != nil {
 		panic("check early contract failed, storageErr: " + err.Error())
 	}
@@ -267,11 +267,11 @@ func (g *Genesis) ToBlock() *model.Block {
 	}
 
 	if g.Difficulty.Equal(common.Difficulty{}) {
-		head.Diff = chain_config.GenesisDifficulty
+		head.Diff = chainconfig.GenesisDifficulty
 	}
 
 	//padding economy model balance
-	economyModel := economy_model.MakeDipperinEconomyModel(nil, economy_model.DIPProportion)
+	economyModel := economymodel.MakeDipperinEconomyModel(nil, economymodel.DIPProportion)
 	err := g.paddingEconomyInfo(economyModel)
 	if err != nil {
 		panic("padding economy info error: " + err.Error())
@@ -300,7 +300,7 @@ func (g *Genesis) Commit(block model.AbstractBlock) error {
 	return nil
 }
 
-func (g *Genesis) paddingEconomyInfo(economyModel economy_model.EconomyModel) (err error) {
+func (g *Genesis) paddingEconomyInfo(economyModel economymodel.EconomyModel) (err error) {
 	if g.merged {
 		return nil
 	}
@@ -311,29 +311,29 @@ func (g *Genesis) paddingEconomyInfo(economyModel economy_model.EconomyModel) (e
 
 	developerInfo := economyModel.GetDeveloperInitBalance()
 
-	maintenanceInfo := economyModel.GetFoundation().GetFoundationInfo(economy_model.Maintenance)
+	maintenanceInfo := economyModel.GetFoundation().GetFoundationInfo(economymodel.Maintenance)
 
-	remainRewardInfo := economyModel.GetFoundation().GetFoundationInfo(economy_model.RemainReward)
+	remainRewardInfo := economyModel.GetFoundation().GetFoundationInfo(economymodel.RemainReward)
 
-	earlyTokenInfo := economyModel.GetFoundation().GetFoundationInfo(economy_model.EarlyToken)
+	earlyTokenInfo := economyModel.GetFoundation().GetFoundationInfo(economymodel.EarlyToken)
 
-	if err = economy_model.MapMerge(g.Alloc, investorInfo); err != nil {
+	if err = economymodel.MapMerge(g.Alloc, investorInfo); err != nil {
 		return
 	}
 
-	if err = economy_model.MapMerge(g.Alloc, developerInfo); err != nil {
+	if err = economymodel.MapMerge(g.Alloc, developerInfo); err != nil {
 		return
 	}
 
-	if err = economy_model.MapMerge(g.Alloc, maintenanceInfo); err != nil {
+	if err = economymodel.MapMerge(g.Alloc, maintenanceInfo); err != nil {
 		return
 	}
 
-	if err = economy_model.MapMerge(g.Alloc, remainRewardInfo); err != nil {
+	if err = economymodel.MapMerge(g.Alloc, remainRewardInfo); err != nil {
 		return
 	}
 
-	if err = economy_model.MapMerge(g.Alloc, earlyTokenInfo); err != nil {
+	if err = economymodel.MapMerge(g.Alloc, earlyTokenInfo); err != nil {
 		return
 	}
 
@@ -451,7 +451,7 @@ func (g *Genesis) Prepare() (model.AbstractBlock, error) {
 }*/
 
 // DefaultGenesisBlock returns the Ethereum main net genesis block.
-func DefaultGenesisBlock(chainDB chaindb.Database, accountStateProcessor state_processor.AccountStateProcessor, registerProcessor registerdb.RegisterProcessor, chainConf *chain_config.ChainConfig) *Genesis {
+func DefaultGenesisBlock(chainDB chaindb.Database, accountStateProcessor stateprocessor.AccountStateProcessor, registerProcessor registerdb.RegisterProcessor, chainConf *chainconfig.ChainConfig) *Genesis {
 	log.DLogger.Debug("call DefaultGenesisBlock")
 
 	//read config file first
@@ -461,19 +461,19 @@ func DefaultGenesisBlock(chainDB chaindb.Database, accountStateProcessor state_p
 
 	gTime, _ := time.Parse("2006-01-02 15:04:05", "2018-08-08 08:08:08")
 	// use to reset test chain
-	if chain_config.GetCurBootsEnv() == chain_config.BootEnvTest {
+	if chainconfig.GetCurBootsEnv() == chainconfig.BootEnvTest {
 		gTime, _ = time.Parse("2006-01-02 15:04:05", "2019-01-14 08:08:08")
 	}
 	return &Genesis{
 		ChainDB:               chainDB,
-		GasLimit:              chain_config.BlockGasLimit,
+		GasLimit:              chainconfig.BlockGasLimit,
 		AccountStateProcessor: accountStateProcessor,
 		RegisterProcessor:     registerProcessor,
-		Config:                chain_config.GetChainConfig(),
+		Config:                chainconfig.GetChainConfig(),
 		//Nonce:      66,
 		Timestamp:  big.NewInt(gTime.UnixNano()),
 		ExtraData:  []byte("dipperin Genesis"),
-		Difficulty: chain_config.GenesisDifficulty,
+		Difficulty: chainconfig.GenesisDifficulty,
 		Alloc:      map[common.Address]*big.Int{
 			//for test
 			//common.HexToAddress("0x0000062493b705D52E4541e7Daa6343A8eD98d8dc15f"): big.NewInt(0).Mul(big.NewInt(1e8),big.NewInt(consts.DIP)),
@@ -517,7 +517,7 @@ type genesisCfgFile struct {
 	// todo add a foundation configuration
 }
 
-func GenesisBlockFromFile(chainDB chaindb.Database, accountStateProcessor state_processor.AccountStateProcessor) *Genesis {
+func GenesisBlockFromFile(chainDB chaindb.Database, accountStateProcessor stateprocessor.AccountStateProcessor) *Genesis {
 	log.DLogger.Debug("call GenesisBlockFromFile")
 
 	gFPath := filepath.Join(util.HomeDir(), "softwares", "dipperin_deploy", "genesis.json")
@@ -556,7 +556,7 @@ func GenesisBlockFromFile(chainDB chaindb.Database, accountStateProcessor state_
 		ChainDB: chainDB,
 
 		AccountStateProcessor: accountStateProcessor,
-		Config:                chain_config.GetChainConfig(),
+		Config:                chainconfig.GetChainConfig(),
 		Nonce:                 info.Nonce,
 		Timestamp:             big.NewInt(gTime.UnixNano()),
 		//ExtraData:             []byte(info.Note),

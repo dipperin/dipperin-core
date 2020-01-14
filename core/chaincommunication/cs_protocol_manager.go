@@ -20,15 +20,15 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-metrics"
-	"github.com/dipperin/dipperin-core/common/g-timer"
+	"github.com/dipperin/dipperin-core/common/gmetrics"
+	"github.com/dipperin/dipperin-core/common/gtimer"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/csbft/model"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
-	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
+	"github.com/dipperin/dipperin-core/third_party/crypto"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
+	"github.com/dipperin/dipperin-core/third_party/p2p/enode"
 	"go.uber.org/zap"
 	"path/filepath"
 	"sync/atomic"
@@ -45,7 +45,7 @@ const (
 )
 
 type CsProtocolManagerConfig struct {
-	ChainConfig     chain_config.ChainConfig
+	ChainConfig     chainconfig.ChainConfig
 	Chain           Chain
 	P2PServer       P2PServer
 	NodeConf        NodeConf
@@ -156,25 +156,25 @@ func (pm *CsProtocolManager) Protocols() []p2p.Protocol {
 }
 
 func (pm *CsProtocolManager) getCsProtocol() p2p.Protocol {
-	var version uint = chain_config.CsProtocolVersion
+	var version uint = chainconfig.CsProtocolVersion
 	// Use a different protocol to make it unable to connect in the underlying layer
-	protocolName := chain_config.AppName + "_cs_local"
-	switch chain_config.GetCurBootsEnv() {
-	case chain_config.BootEnvMercury:
+	protocolName := chainconfig.AppName + "_cs_local"
+	switch chainconfig.GetCurBootsEnv() {
+	case chainconfig.BootEnvMercury:
 		log.DLogger.Info("use mercury cs protocol")
-		protocolName = chain_config.AppName + "_cs"
-	case chain_config.BootEnvTest:
+		protocolName = chainconfig.AppName + "_cs"
+	case chainconfig.BootEnvTest:
 		log.DLogger.Info("use test cs protocol")
-		protocolName = chain_config.AppName + "_cs_test"
-	case chain_config.BootEnvVenus:
+		protocolName = chainconfig.AppName + "_cs_test"
+	case chainconfig.BootEnvVenus:
 		log.DLogger.Info("use test cs protocol")
-		protocolName = chain_config.AppName + "_vs"
+		protocolName = chainconfig.AppName + "_vs"
 	default:
 		log.DLogger.Info("use local cs protocol")
 	}
 	p := p2p.Protocol{Name: protocolName, Version: version, Length: 0x200}
 	p.Run = func(peer *p2p.Peer, rw p2p.MsgReadWriter) error {
-		g_metrics.Add(g_metrics.TotalHandledPeer, "", 1)
+		gmetrics.Add(gmetrics.TotalHandledPeer, "", 1)
 		log.DLogger.Info("getPbftProtocol new pbft peer in", zap.String("protocol", protocolName))
 		// format with communication peer
 		tmpPmPeer := newPeer(int(version), peer, rw)
@@ -193,7 +193,7 @@ func newCsProtocolManager(config *CsProtocolManagerConfig) *CsProtocolManager {
 		},
 		CsProtocolManagerConfig: config,
 		maxPeers:                P2PMaxPeerCount,
-		verifierBootNodes:       chain_config.VerifierBootNodes,
+		verifierBootNodes:       chainconfig.VerifierBootNodes,
 		stop:                    make(chan struct{}),
 	}
 
@@ -248,8 +248,8 @@ func (pm *CsProtocolManager) logCurPeersInfo() {
 		return
 	}
 
-	tick := g_timer.SetPeriodAndRun(pm.PrintPeerHealthCheck, 15*time.Second)
-	defer g_timer.StopWork(tick)
+	tick := gtimer.SetPeriodAndRun(pm.PrintPeerHealthCheck, 15*time.Second)
+	defer gtimer.StopWork(tick)
 
 	<-pm.stop
 }
@@ -485,17 +485,17 @@ func (pm *CsProtocolManager) selfPmType() int {
 	// check node type
 	nodeType := pm.NodeConf.GetNodeType()
 
-	if nodeType == chain_config.NodeTypeOfNormal || nodeType == chain_config.NodeTypeOfMineMaster {
+	if nodeType == chainconfig.NodeTypeOfNormal || nodeType == chainconfig.NodeTypeOfMineMaster {
 		pm.pmType.Store(base)
 		return base
 	}
 
-	if nodeType == chain_config.NodeTypeOfVerifier {
+	if nodeType == chainconfig.NodeTypeOfVerifier {
 		pm.pmType.Store(verifier)
 		return verifier
 	}
 
-	if nodeType == chain_config.NodeTypeOfVerifierBoot {
+	if nodeType == chainconfig.NodeTypeOfVerifierBoot {
 
 		curNodeID := pm.P2PServer.Self().ID().String()
 		//log.DLogger.Info("the node id is:","curNodeId",curNodeID)
@@ -597,7 +597,7 @@ func (pm *CsProtocolManager) SelfIsCurrentVerifier() bool {
 //determine if you are a verifier boot node
 func (pm *CsProtocolManager) selfIsVerifierBootNode() bool {
 	baseAddr := pm.MsgSigner.GetAddress()
-	if baseAddr.InSlice(chain_config.VerBootNodeAddress) {
+	if baseAddr.InSlice(chainconfig.VerBootNodeAddress) {
 		return true
 	}
 
@@ -647,18 +647,18 @@ func (pm *CsProtocolManager) checkConnCount() bool {
 
 // peer handle msg
 func (pm *CsProtocolManager) handle(p PmAbstractPeer) error {
-	g_metrics.Add(g_metrics.CurHandelPeer, "", 1)
-	defer g_metrics.Sub(g_metrics.CurHandelPeer, "", 1)
+	gmetrics.Add(gmetrics.CurHandelPeer, "", 1)
+	defer gmetrics.Sub(gmetrics.CurHandelPeer, "", 1)
 
 	// check the number of connections
 	if pm.checkConnCount() {
 		log.DLogger.Warn("too many peers, can't add new peer")
-		g_metrics.Add(g_metrics.TotalFailedHandle, "", 1)
+		gmetrics.Add(gmetrics.TotalFailedHandle, "", 1)
 		return p2p.DiscTooManyPeers
 	}
 
 	if err := pm.HandShake(p); err != nil {
-		g_metrics.Add(g_metrics.TotalFailedHandle, "", 1)
+		gmetrics.Add(gmetrics.TotalFailedHandle, "", 1)
 		log.DLogger.Warn("CsProtocolManager hand shake failed", zap.Error(err), zap.Any("remote host", p.RemoteAddress()))
 		return err
 	}
@@ -667,7 +667,7 @@ func (pm *CsProtocolManager) handle(p PmAbstractPeer) error {
 	if pm.isCurrentVerifierNode(p) {
 		for _, peer := range pm.peerSetManager.currentVerifierPeers.GetPeers() {
 			if peer.RemoteVerifierAddress().IsEqual(p.RemoteVerifierAddress()) {
-				g_metrics.Add(g_metrics.TotalFailedHandle, "", 1)
+				gmetrics.Add(gmetrics.TotalFailedHandle, "", 1)
 				return errors.New("current verifier address already in peer set")
 			}
 		}
@@ -677,7 +677,7 @@ func (pm *CsProtocolManager) handle(p PmAbstractPeer) error {
 	if pm.isNextVerifierNode(p) {
 		for _, peer := range pm.peerSetManager.nextVerifierPeers.GetPeers() {
 			if peer.RemoteVerifierAddress().IsEqual(p.RemoteVerifierAddress()) {
-				g_metrics.Add(g_metrics.TotalFailedHandle, "", 1)
+				gmetrics.Add(gmetrics.TotalFailedHandle, "", 1)
 				return errors.New("next verifier address already in peer set")
 			}
 		}
@@ -687,7 +687,7 @@ func (pm *CsProtocolManager) handle(p PmAbstractPeer) error {
 	if err := pm.peerSetManager.AddPeer(p); err != nil {
 		log.DLogger.Warn("add peer to peer set failed", zap.Error(err))
 
-		g_metrics.Add(g_metrics.TotalFailedHandle, "", 1)
+		gmetrics.Add(gmetrics.TotalFailedHandle, "", 1)
 		return err
 	}
 
@@ -700,7 +700,7 @@ func (pm *CsProtocolManager) handle(p PmAbstractPeer) error {
 	// Propagate existing transactions. new transactions appearing
 	//pm.txSync.syncTxs(p)
 
-	g_metrics.Add(g_metrics.TotalSuccessHandle, "", 1)
+	gmetrics.Add(gmetrics.TotalSuccessHandle, "", 1)
 
 	for {
 		if err := pm.handleMsg(p); err != nil {
@@ -815,7 +815,7 @@ func (pm *CsProtocolManager) HandShake(p PmAbstractPeer) error {
 			HandShakeData: HandShakeData{
 				ChainID:            chainConf.ChainId,
 				NetworkId:          chainConf.NetworkID,
-				ProtocolVersion:    chain_config.CsProtocolVersion,
+				ProtocolVersion:    chainconfig.CsProtocolVersion,
 				NodeType:           uint64(nodeConf.GetNodeType()),
 				NodeName:           nodeConf.GetNodeName(),
 				CurrentBlockHeight: curB.Number(),
@@ -826,7 +826,7 @@ func (pm *CsProtocolManager) HandShake(p PmAbstractPeer) error {
 			//NodeType:
 		}
 		log.DLogger.Debug("before sign hand shake msg", zap.String("data hash", sData.DataHash().Hex()))
-		if nodeConf.GetNodeType() != chain_config.NodeTypeOfNormal {
+		if nodeConf.GetNodeType() != chainconfig.NodeTypeOfNormal {
 			// sign
 			if signB, err := pbftSigner.SignHash(sData.DataHash().Bytes()); err != nil {
 				// send even if there is an error
@@ -883,7 +883,7 @@ func (pm *CsProtocolManager) HandShake(p PmAbstractPeer) error {
 			return errors.New("can't read hand shake msg")
 		}
 
-		if remoteStatus.ProtocolVersion != chain_config.CsProtocolVersion {
+		if remoteStatus.ProtocolVersion != chainconfig.CsProtocolVersion {
 			return errors.New("cs protocol version not match")
 		}
 
@@ -942,16 +942,16 @@ func (pm *CsProtocolManager) checkAndHandleVerBootNodes() {
 //}
 
 func (pm *CsProtocolManager) connectVBoots() {
-	chainConfig := chain_config.GetChainConfig()
+	chainConfig := chainconfig.GetChainConfig()
 
 	if pm.peerSetManager.verifierBootNode.Len() == chainConfig.VerifierBootNodeNumber-1 {
 		return
 	}
 
-	log.DLogger.Info("do connectVBoots", zap.Int("chain_config.VerifierBootNodes len", len(chain_config.VerifierBootNodes)))
+	log.DLogger.Info("do connectVBoots", zap.Int("chain_config.VerifierBootNodes len", len(chainconfig.VerifierBootNodes)))
 
 	selfID := pm.P2PServer.Self().ID().String()
-	for _, vbNode := range chain_config.VerifierBootNodes {
+	for _, vbNode := range chainconfig.VerifierBootNodes {
 		vbID := vbNode.ID().String()
 		if vbID == selfID {
 			log.DLogger.Info("v boot is cur node", zap.String("id", selfID))
@@ -983,13 +983,13 @@ func (pm *CsProtocolManager) chainHeightTooLow() bool {
 
 // check the connection boot node periodically
 func (pm *CsProtocolManager) bootVerifierConnCheck() {
-	if pm.NodeConf.GetNodeType() != chain_config.NodeTypeOfVerifier && pm.NodeConf.GetNodeType() != chain_config.NodeTypeOfVerifierBoot {
+	if pm.NodeConf.GetNodeType() != chainconfig.NodeTypeOfVerifier && pm.NodeConf.GetNodeType() != chainconfig.NodeTypeOfVerifierBoot {
 		log.DLogger.Info("cur node isn't verifier or verifier boot node, do not check v boot conn")
 		return
 	}
 
-	tw := g_timer.SetPeriodAndRun(pm.checkAndHandleVerBootNodes, 8*time.Second)
-	defer g_timer.StopWork(tw)
+	tw := gtimer.SetPeriodAndRun(pm.checkAndHandleVerBootNodes, 8*time.Second)
+	defer gtimer.StopWork(tw)
 
 	<-pm.stop
 }
@@ -1036,7 +1036,7 @@ func (pm *CsProtocolManager) PrintPeerHealthCheck() {
 	nextPeers := pm.peerSetManager.nextVerifierPeers.GetPeers()
 	vBootPeers := pm.peerSetManager.verifierBootNode.GetPeers()
 
-	if chain_config.GetCurBootsEnv() == chain_config.BootEnvVenus {
+	if chainconfig.GetCurBootsEnv() == chainconfig.BootEnvVenus {
 		printPeerInfo("base", basePeers)
 		printPeerInfo("cur", curPeers)
 		printPeerInfo("next", nextPeers)
@@ -1050,10 +1050,10 @@ func (pm *CsProtocolManager) PrintPeerHealthCheck() {
 	vBootLen := len(vBootPeers)
 	log.DLogger.Info("pm print cur peers info", zap.Int("normal", norLen), zap.Int("cur vers", curLen), zap.Int("next vers", nextLen), zap.Int("v boots", vBootLen))
 
-	g_metrics.Set(g_metrics.NorPeerSetGauge, "", float64(norLen))
-	g_metrics.Set(g_metrics.CurPeerSetGauge, "", float64(curLen))
-	g_metrics.Set(g_metrics.NextPeerSetGauge, "", float64(nextLen))
-	g_metrics.Set(g_metrics.VBootPeerSetGauge, "", float64(vBootLen))
+	gmetrics.Set(gmetrics.NorPeerSetGauge, "", float64(norLen))
+	gmetrics.Set(gmetrics.CurPeerSetGauge, "", float64(curLen))
+	gmetrics.Set(gmetrics.NextPeerSetGauge, "", float64(nextLen))
+	gmetrics.Set(gmetrics.VBootPeerSetGauge, "", float64(vBootLen))
 }
 
 func printPeerInfo(pSet string, ps map[string]PmAbstractPeer) {

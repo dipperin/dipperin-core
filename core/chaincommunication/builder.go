@@ -19,7 +19,7 @@ package chaincommunication
 import (
 	"github.com/dipperin/dipperin-core/cmd/utils/debug"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"go.uber.org/zap"
@@ -151,15 +151,15 @@ func MakeCsProtocolManager(pmConfig *CsProtocolManagerConfig, txBConf *NewTxBroa
 	}
 
 	switch pmConfig.NodeConf.GetNodeType() {
-	case chain_config.NodeTypeOfVerifier:
+	case chainconfig.NodeTypeOfVerifier:
 		pm.vf = NewVFinder(pmConfig.Chain, pm, pmConfig.ChainConfig)
 		pm.registerCommunicationService(pm.vf, pm.vf)
-	case chain_config.NodeTypeOfVerifierBoot:
+	case chainconfig.NodeTypeOfVerifierBoot:
 		pm.registerCommunicationService(NewVFinderBoot(pm, pmConfig.Chain), nil)
 	}
 
 	// add mem size info
-	if chain_config.GetCurBootsEnv() != chain_config.BootEnvMercury {
+	if chainconfig.GetCurBootsEnv() != chainconfig.BootEnvMercury {
 		debug.Memsize.Add("cs_protocol", pm)
 		debug.Memsize.Add("newTxBroadcaster", newTxBroadcaster)
 		debug.Memsize.Add("blockBroadcaster", blockBroadcaster)

@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
@@ -42,17 +42,17 @@ func CheckAndChangeHexToAddress(address string) (common.Address, error) {
 	// Ignore 0x
 	if len(address)-2 != common.AddressLength*2 {
 		log.DLogger.Error("the address is:", zap.Int("len", len(address)), zap.String("addr", address))
-		return common.Address{}, g_error.ErrInvalidAddressLen
+		return common.Address{}, gerror.ErrInvalidAddressLen
 	}
 
 	if address[:2] != "0x" && address[:2] != "0X" {
-		return common.Address{}, g_error.ErrInvalidAddressPrefix
+		return common.Address{}, gerror.ErrInvalidAddressPrefix
 	}
 
 	commonAddress := common.HexToAddress(address)
 	addressType := commonAddress.GetAddressTypeStr()
 	if addressType == "UnKnown" {
-		return common.Address{}, g_error.ErrUnknownTxType
+		return common.Address{}, gerror.ErrUnknownTxType
 	}
 
 	return commonAddress, nil
@@ -65,13 +65,13 @@ func ParseWalletPathAndName(inputPath string) (path, name string) {
 func DecimalToInter(src string, unitBit int) (*big.Int, error) {
 	length := len(src)
 	if length == 0 {
-		return nil, g_error.ErrMissNumber
+		return nil, gerror.ErrMissNumber
 	}
 
 	//check the decimal point pos
 	pointPos := 0
 	if (src[0] < '0' && src[0] > '9') || (src[length-1] < '0' && src[length-1] > '9') {
-		return nil, g_error.ErrCharacterIsNotDigit
+		return nil, gerror.ErrCharacterIsNotDigit
 	}
 
 	for i := 1; i < length-1; i++ {
@@ -97,12 +97,12 @@ func DecimalToInter(src string, unitBit int) (*big.Int, error) {
 
 	integerValue, result := big.NewInt(0).SetString(interString, 10)
 	if !result {
-		return nil, g_error.ErrParseBigIntFromString
+		return nil, gerror.ErrParseBigIntFromString
 	}
 
 	decimalLen := len(decimalString)
 	if unitBit < decimalLen {
-		return nil, g_error.ErrInvalidDecimalLength
+		return nil, gerror.ErrInvalidDecimalLength
 	}
 	padding := make([]byte, unitBit-decimalLen)
 	for index := range padding {
@@ -116,7 +116,7 @@ func DecimalToInter(src string, unitBit int) (*big.Int, error) {
 	} else {
 		decimalValue, result = big.NewInt(0).SetString(string(tmpValue), 10)
 		if !result {
-			return nil, g_error.ErrParseBigIntFromString
+			return nil, gerror.ErrParseBigIntFromString
 		}
 	}
 

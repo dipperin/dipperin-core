@@ -18,13 +18,13 @@ package chaincommunication
 
 import (
 	"errors"
-	"github.com/dipperin/dipperin-core/common/g-error"
-	"github.com/dipperin/dipperin-core/common/g-timer"
+	"github.com/dipperin/dipperin-core/common/gerror"
+	"github.com/dipperin/dipperin-core/common/gtimer"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
 	"github.com/ethereum/go-ethereum/rlp"
 	"go.uber.org/zap"
 	"io"
@@ -171,8 +171,8 @@ func (fd *NewPbftDownloader) loop() {
 	//	log.DLogger.Info("downloader run sync")
 	//	fd.runSync()
 	//}
-	forceSync := g_timer.SetPeriodAndRun(fd.runSync, pollingInterval)
-	defer g_timer.StopWork(forceSync)
+	forceSync := gtimer.SetPeriodAndRun(fd.runSync, pollingInterval)
+	defer gtimer.StopWork(forceSync)
 
 	<-fd.quitCh
 }
@@ -237,7 +237,7 @@ func (fd *NewPbftDownloader) fetchBlocks(bestPeer PmAbstractPeer) {
 	_, height := bestPeer.GetHead()
 
 	//current block may be reversed by the empty block
-	rollBackNum := chain_config.GetChainConfig().RollBackNum
+	rollBackNum := chainconfig.GetChainConfig().RollBackNum
 	curNumber := fd.Chain.CurrentBlock().Number()
 	var nextNumber uint64
 	if curNumber > rollBackNum {
@@ -330,7 +330,7 @@ func (fd *NewPbftDownloader) importBlockResults(list []*catchupRlp) error {
 
 		log.DLogger.Info("importBlockResults save block number is:", zap.Uint64("blockNumber", b.Block.Number()))
 		if err := fd.Chain.SaveBlock(b.Block, commits); err != nil {
-			if err == g_error.ErrNormalBlockHeightTooLow {
+			if err == gerror.ErrNormalBlockHeightTooLow {
 				log.DLogger.Info("importBlockResults the block height is same as the current block ")
 				continue
 			} else {

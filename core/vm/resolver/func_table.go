@@ -18,7 +18,7 @@ package resolver
 
 import (
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/third_party/life/exec"
 )
 
 // Gas costs

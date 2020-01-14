@@ -18,7 +18,7 @@ package accounts
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-timer"
+	"github.com/dipperin/dipperin-core/common/gtimer"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
 	"github.com/ethereum/go-ethereum/event"
@@ -151,8 +151,8 @@ func (manager *WalletManager) refreshWalletNonce() {
 		}
 		manager.Lock.Unlock()
 	}
-	timer := g_timer.SetPeriodAndRun(timeoutHandler, RefreshWalletInfoDuration)
-	defer g_timer.StopWork(timer)
+	timer := gtimer.SetPeriodAndRun(timeoutHandler, RefreshWalletInfoDuration)
+	defer gtimer.StopWork(timer)
 
 	for {
 		select {

@@ -22,10 +22,10 @@ import (
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/bloom"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"github.com/dipperin/dipperin-core/core/chain/stateprocessor"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -39,16 +39,16 @@ import (
 
 func TestNewTxPool(t *testing.T) {
 	db, root := createTestStateDB()
-	teststatedb, _ := state_processor.NewAccountStateDB(root, state_processor.NewStateStorageWithCache(db))
+	teststatedb, _ := stateprocessor.NewAccountStateDB(root, stateprocessor.NewStateStorageWithCache(db))
 	//con := newFakeValidator()
 	blockchain := &testBlockChain{statedb: teststatedb}
 
 	config := DefaultTxPoolConfig
-	NewTxPool(config, chain_config.ChainConfig{ChainId: big.NewInt(1)}, blockchain)
+	NewTxPool(config, chainconfig.ChainConfig{ChainId: big.NewInt(1)}, blockchain)
 	assert.NoError(t, nil)
 
 	config.NoLocals = true
-	NewTxPool(config, chain_config.ChainConfig{ChainId: big.NewInt(1)}, blockchain)
+	NewTxPool(config, chainconfig.ChainConfig{ChainId: big.NewInt(1)}, blockchain)
 	assert.NoError(t, nil)
 }
 
@@ -909,7 +909,7 @@ func TestTxPool_PoolSetup(t *testing.T) {
 }
 
 func TestTxPool(t *testing.T) {
-	sDB, _ := state_processor.NewAccountStateDB(common.Hash{}, state_processor.NewStateStorageWithCache(ethdb.NewMemDatabase()))
+	sDB, _ := stateprocessor.NewAccountStateDB(common.Hash{}, stateprocessor.NewStateStorageWithCache(ethdb.NewMemDatabase()))
 	//blockchain := &testBlockChain{statedb: teststatedb}
 	c := gomock.NewController(t)
 	defer c.Finish()
@@ -926,7 +926,7 @@ func TestTxPool(t *testing.T) {
 	blockchain.EXPECT().GetBlockByNumber(uint64(2)).Return(nil).AnyTimes()
 	blockchain.EXPECT().GetBlockByNumber(uint64(1)).Return(b1).AnyTimes()
 
-	pool := NewTxPool(testTxPoolConfig, chain_config.ChainConfig{ChainId: big.NewInt(1)}, blockchain)
+	pool := NewTxPool(testTxPoolConfig, chainconfig.ChainConfig{ChainId: big.NewInt(1)}, blockchain)
 	pool.Reset(&model.Header{Number: 3, Bloom: iblt.NewBloom(model.DefaultBlockBloomConfig)}, &model.Header{Number: 1, Bloom: iblt.NewBloom(model.DefaultBlockBloomConfig)})
 	pool.Reset(&model.Header{Number: 1, Bloom: iblt.NewBloom(model.DefaultBlockBloomConfig)}, &model.Header{Number: 3, Bloom: iblt.NewBloom(model.DefaultBlockBloomConfig)})
 

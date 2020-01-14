@@ -18,9 +18,9 @@ package dipperin
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"github.com/dipperin/dipperin-core/core/chain/stateprocessor"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"github.com/dipperin/dipperin-core/third_party/rpc"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
@@ -85,10 +85,10 @@ type Chain interface {
 	GetBlockNumber(hash common.Hash) *uint64
 	GetTransaction(txHash common.Hash) (model.AbstractTransaction, common.Hash, uint64, uint64)
 
-	GetStateStorage() state_processor.StateStorage
-	CurrentState() (*state_processor.AccountStateDB, error)
-	StateAtByBlockNumber(num uint64) (*state_processor.AccountStateDB, error)
-	StateAtByStateRoot(root common.Hash) (*state_processor.AccountStateDB, error)
+	GetStateStorage() stateprocessor.StateStorage
+	CurrentState() (*stateprocessor.AccountStateDB, error)
+	StateAtByBlockNumber(num uint64) (*stateprocessor.AccountStateDB, error)
+	StateAtByStateRoot(root common.Hash) (*stateprocessor.AccountStateDB, error)
 
 	ValidTx(tx model.AbstractTransaction) error
 
