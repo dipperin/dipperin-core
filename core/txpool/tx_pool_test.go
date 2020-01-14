@@ -104,25 +104,25 @@ func TestTxPool_validateTx(t *testing.T) {
 
 	signedTx2 := transaction(1, bobAddr, big.NewInt(5000), testTxFee, model.TestGasLimit, key1)
 	err = pool.validateTx(signedTx2, false)
-	expectErr:="tx nonce is invalid"
+	expectErr := "tx nonce is invalid"
 	assert.EqualError(t, err, expectErr)
 
 	unsignedTx3 := model.NewTransaction(1, bobAddr, big.NewInt(5000), model.TestGasPrice, model.TestGasLimit, nil)
 	signedTx3, err := unsignedTx3.SignTx(key1, model.NewSigner(big.NewInt(2)))
 	assert.NoError(t, err)
 	err = pool.validateTx(signedTx3, false)
-	expectErr="invalid sender"
+	expectErr = "invalid sender"
 	assert.EqualError(t, err, expectErr)
 
 	signedTx4 := transaction(1, bobAddr, big.NewInt(5000), big.NewInt(1), model.TestGasLimit, key1)
 	err = pool.validateTx(signedTx4, true)
-	expectErr="tx nonce is invalid"
+	expectErr = "tx nonce is invalid"
 	assert.EqualError(t, err, expectErr)
 
 	signedTx5 := transaction(40, bobAddr, big.NewInt(1000000), big.NewInt(0).Mul(testTxFee, big.NewInt(10000)), model.TestGasLimit, key1)
 	curBalance, e := pool.currentState.GetBalance(aliceAddr)
 	err = pool.validateTx(signedTx5, false)
-	expectErr=fmt.Sprintf("tx exceed balance limit, from:%v, cur balance:%v, cost:%v, err:%v", aliceAddr.Hex(), curBalance.String(), signedTx5.Cost().String(), e)
+	expectErr = fmt.Sprintf("tx exceed balance limit, from:%v, cur balance:%v, cost:%v, err:%v", aliceAddr.Hex(), curBalance.String(), signedTx5.Cost().String(), e)
 	assert.EqualError(t, err, expectErr)
 }
 
@@ -206,12 +206,12 @@ func TestTxPool_Add(t *testing.T) {
 	pool.AddRemote(bobtx2)
 
 	pendTx, _ := pool.Pending()
-	except:=3
-	assert.Equal(t,except,len(pendTx[aliceAddr])+len(pendTx[bobAddr]))
+	except := 3
+	assert.Equal(t, except, len(pendTx[aliceAddr])+len(pendTx[bobAddr]))
 
 	queueTx, _ := pool.Queueing()
-	except=1
-	assert.Equal(t,except,len(queueTx[aliceAddr])+len(queueTx[bobAddr]))
+	except = 1
+	assert.Equal(t, except, len(queueTx[aliceAddr])+len(queueTx[bobAddr]))
 }
 
 func TestTxPool_removeTx(t *testing.T) {
@@ -238,7 +238,7 @@ func TestTxPool_removeTx(t *testing.T) {
 	pending, _ := pool.Pending()
 	queueing, _ := pool.Queueing()
 
-	assert.Equal(t,0, len(pending[bobAddr]))
+	assert.Equal(t, 0, len(pending[bobAddr]))
 	assert.Equal(t, bobtx2.CalTxId(), queueing[bobAddr][0].CalTxId())
 	assert.Equal(t, bobtx3.CalTxId(), queueing[bobAddr][1].CalTxId())
 }
@@ -319,10 +319,10 @@ func TestTxPoolAdd(t *testing.T) {
 	pool.AddLocal(bobtx3)
 	pool.AddLocal(bobtx2)
 
-	pendingTX,_:=pool.Pending()
-	queueTX,_:=pool.Queueing()
-	assert.Equal(t,3,len(pendingTX[aliceAddr])+len(pendingTX[bobAddr]))
-	assert.Equal(t,1,len(queueTX[aliceAddr])+len(queueTX[bobAddr]))
+	pendingTX, _ := pool.Pending()
+	queueTX, _ := pool.Queueing()
+	assert.Equal(t, 3, len(pendingTX[aliceAddr])+len(pendingTX[bobAddr]))
+	assert.Equal(t, 1, len(queueTX[aliceAddr])+len(queueTX[bobAddr]))
 }
 
 func TestStatus(t *testing.T) {
@@ -408,13 +408,13 @@ func TestTxPool_promptExecutables_2addr(t *testing.T) {
 	}
 
 	pendN, queueN := pool.stats()
-	assert.Equal(t,0,pendN)
-	assert.Equal(t,96,queueN)
+	assert.Equal(t, 0, pendN)
+	assert.Equal(t, 96, queueN)
 
 	pool.promoteExecutables(nil)
 	pendN, queueN = pool.stats()
-	assert.Equal(t,96,pendN)
-	assert.Equal(t,0,queueN)
+	assert.Equal(t, 96, pendN)
+	assert.Equal(t, 0, queueN)
 }
 
 func TestTxPool_promptExecutables(t *testing.T) {
@@ -609,11 +609,11 @@ func TestTxPool_AddTxPerf(t *testing.T) {
 		err := pool.AddRemote(txs[i])
 		assert.NoError(t, err)
 	}
-	assert.Equal(t,true,time.Now().Sub(st).Milliseconds()<1000)
+	assert.Equal(t, true, time.Now().Sub(st).Milliseconds() < 1000)
 
 	st = time.Now()
 	pool.AddRemotes(txs1)
-	assert.Equal(t,true,time.Now().Sub(st).Milliseconds()<1000)
+	assert.Equal(t, true, time.Now().Sub(st).Milliseconds() < 1000)
 }
 
 func TestTxPool_AddRemote(t *testing.T) {
@@ -661,12 +661,12 @@ func TestTxFee_Pop(t *testing.T) {
 	txs[bobAddr] = txlB
 
 	txsFee := model.NewTransactionsByFeeAndNonce(nil, txs)
-	expect1:=txsFee.Peek()
+	expect1 := txsFee.Peek()
 
 	txsFee.Pop()
-	expect2:=txsFee.Peek()
+	expect2 := txsFee.Peek()
 
-	assert.NotEqualf(t,expect1.CalTxId(),expect2.CalTxId(),"not equal")
+	assert.NotEqualf(t, expect1.CalTxId(), expect2.CalTxId(), "not equal")
 }
 
 func TestAddressesByHeartbeat_Len(t *testing.T) {
@@ -681,11 +681,11 @@ func TestAddressesByHeartbeat_Len(t *testing.T) {
 
 	start := time.Now()
 	pool.AddRemotes(txs)
-	assert.Equal(t,true,time.Now().Sub(start).Seconds()<10)
+	assert.Equal(t, true, time.Now().Sub(start).Seconds() < 10)
 
-	pending,queueing:=pool.Stats()
-	assert.Equal(t,4096,pending)
-	assert.Equal(t,0,queueing)
+	pending, queueing := pool.Stats()
+	assert.Equal(t, 4096, pending)
+	assert.Equal(t, 0, queueing)
 }
 
 func TestTxBatch(t *testing.T) {
@@ -702,11 +702,11 @@ func TestTxBatch(t *testing.T) {
 
 	start := time.Now()
 	pool.AddRemotes(txs)
-	assert.Equal(t,true,time.Now().Sub(start).Seconds()<10)
+	assert.Equal(t, true, time.Now().Sub(start).Seconds() < 10)
 
-	pending,queueing:=pool.Stats()
-	assert.Equal(t,0,pending)
-	assert.Equal(t,0,queueing)
+	pending, queueing := pool.Stats()
+	assert.Equal(t, 0, pending)
+	assert.Equal(t, 0, queueing)
 }
 
 func TestTxCalId(t *testing.T) {
@@ -736,7 +736,7 @@ func TestTxCalId(t *testing.T) {
 	}
 
 	wg.Wait()
-	assert.Equal(t,true,time.Now().Sub(st).Seconds()<10)
+	assert.Equal(t, true, time.Now().Sub(st).Seconds() < 10)
 }
 
 func TestTxCacher_TxRecover(t *testing.T) {
@@ -772,8 +772,8 @@ func TestTxCacher_TxRecover(t *testing.T) {
 	cacher.TxRecover(txsCmp)
 	helper.wg.Wait()
 
-	assert.Equal(t,len(txs),len(txsCmp))
-	assert.Equal(t,true,time.Now().Sub(st).Seconds()<10)
+	assert.Equal(t, len(txs), len(txsCmp))
+	assert.Equal(t, true, time.Now().Sub(st).Seconds() < 10)
 }
 
 func TestTxPool_TxsCaching(t *testing.T) {
@@ -789,14 +789,14 @@ func TestTxPool_TxsCaching(t *testing.T) {
 	st := time.Now()
 
 	pool.AbstractTxsCaching(txs)
-	assert.Equal(t,10000,len(txs))
+	assert.Equal(t, 10000, len(txs))
 
 	st = time.Now()
 	for i := 0; i < 10000; i++ {
 		txs[i].Sender(nil)
 	}
 
-	assert.Equal(t,true,time.Now().Sub(st).Seconds()<10)
+	assert.Equal(t, true, time.Now().Sub(st).Seconds() < 10)
 }
 
 func TestTxPool_TxCacheAfterCopy(t *testing.T) {
@@ -810,9 +810,9 @@ func TestTxPool_TxCacheAfterCopy(t *testing.T) {
 	}
 
 	pool.AddRemotes(txs)
-	p,q:=pool.Stats()
-	assert.Equal(t,4096,p)
-	assert.Equal(t,0,q)
+	p, q := pool.Stats()
+	assert.Equal(t, 4096, p)
+	assert.Equal(t, 0, q)
 
 	pending, _ := pool.Pending()
 	st := time.Now()
@@ -840,8 +840,8 @@ func TestTxPool_TxCacheAfterCopy(t *testing.T) {
 		txsCmp[i].Sender(nil)
 	}
 
-	assert.Equal(t,len(txs),len(txsCmp))
-	assert.Equal(t,true,time.Now().Sub(st).Seconds()<10)
+	assert.Equal(t, len(txs), len(txsCmp))
+	assert.Equal(t, true, time.Now().Sub(st).Seconds() < 10)
 }
 
 func TestTxPool_TxsInBlockCache(t *testing.T) {
@@ -862,7 +862,7 @@ func TestTxPool_TxsInBlockCache(t *testing.T) {
 	block := model.NewBlock(header, trans, []model.AbstractVerification{})
 	fmt.Printf("---%v\n", time.Now().Sub(st))
 
-	assert.Equal(t,4096,len(block.GetAbsTransactions()))
+	assert.Equal(t, 4096, len(block.GetAbsTransactions()))
 
 	st = time.Now()
 

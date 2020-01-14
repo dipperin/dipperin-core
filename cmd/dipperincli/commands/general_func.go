@@ -25,7 +25,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
+	"github.com/dipperin/dipperin-core/core/accounts/softwallet"
 	"go.uber.org/zap"
 	"math/big"
 	"path/filepath"
@@ -33,7 +33,7 @@ import (
 
 func CheckRegistration() bool {
 	confPath := filepath.Join(util.HomeDir(), ".dipperin", "registration")
-	exist, _ := soft_wallet.PathExists(confPath)
+	exist, _ := softwallet.PathExists(confPath)
 	return exist
 }
 

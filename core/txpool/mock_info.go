@@ -32,12 +32,15 @@ var testPriv3 = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd523203
 var tx1hash = common.HexToHash("0x528131488f97c6314b2fa0dff404f1037067e787b65cb244d79c7ecea007c0d5")
 var tx2hash = common.HexToHash("0x0aedd7a6779339cc44fe1e51cdf42b4bf3a557d52e646390e6d6bf6d489a5de3")
 var path = "./transaction.out"
+
 type transactions []model.AbstractTransaction
+
 var testTxFee = economy_model.GetMinimumTxFee(200)
 var threshold = new(big.Int).Div(new(big.Int).Mul(testTxFee, big.NewInt(100+int64(DefaultTxPoolConfig.FeeBump))), big.NewInt(100))
 var testRoot = "0x54bbe8ffddc42dd501ab37438c2496d1d3be51d9c562531d56b48ea3bea66708"
 var testTxPoolConfig TxPoolConfig
 var ms = model.NewSigner(big.NewInt(1))
+
 // MockBlockChain is a mock of BlockChain interface
 type MockBlockChain struct {
 	ctrl     *gomock.Controller

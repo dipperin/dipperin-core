@@ -1,5 +1,0 @@
-#!/bin/sh
-
-echo "run go fmt before git commit"
-
-go fmt ./...

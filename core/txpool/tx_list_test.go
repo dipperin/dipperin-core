@@ -303,4 +303,3 @@ func TestTxList_Pop(t *testing.T) {
 		signer:   model.NewSigner(big.NewInt(1)),
 	})
 }
-
