@@ -28,7 +28,7 @@ func Test_defaultWorkManager_subtractPerformance(t *testing.T) {
 	mPerformance[address] = &defaultPerformance{blocksMined}
 	manager.performance = mPerformance
 	// test
-	manager.subtractPerformance(address, blocksMined - 1)
+	manager.subtractPerformance(address, blocksMined-1)
 	assert.Equal(t, uint64(1), manager.performance[address].getPerformance())
 }
 
@@ -167,20 +167,20 @@ func Test_defaultWorkManager_divideReward(t *testing.T) {
 
 func Test_defaultPerformance_getPerformance(t *testing.T) {
 	// init
-	performance := &defaultPerformance{blocksMined:10}
+	performance := &defaultPerformance{blocksMined: 10}
 	assert.Equal(t, uint64(10), performance.getPerformance())
 }
 
 func Test_defaultPerformance_setPerformance(t *testing.T) {
 	// init
-	performance := &defaultPerformance{blocksMined:10}
+	performance := &defaultPerformance{blocksMined: 10}
 	performance.setPerformance(15)
 	assert.Equal(t, uint64(15), performance.blocksMined)
 }
 
 func Test_defaultPerformance_updatePerformance(t *testing.T) {
 	// init
-	performance := &defaultPerformance{blocksMined:10}
+	performance := &defaultPerformance{blocksMined: 10}
 	performance.updatePerformance()
 	assert.Equal(t, uint64(11), performance.blocksMined)
 }
@@ -224,9 +224,9 @@ func Test_defaultWorkManager_submitBlock(t *testing.T) {
 	manager := newDefaultWorkManager(mineConfig)
 
 	// test case
-	situations := []struct{
-		name string
-		given func () map[common.Address]workerPerformance
+	situations := []struct {
+		name              string
+		given             func() map[common.Address]workerPerformance
 		expectPerformance uint64
 	}{
 		{
@@ -238,13 +238,13 @@ func Test_defaultWorkManager_submitBlock(t *testing.T) {
 			1,
 		},
 		{
-				"already has performance map",
-				func() map[common.Address]workerPerformance {
-					wp := make(map[common.Address]workerPerformance)
-					wp[address] = &defaultPerformance{blocksMined:10}
-					return wp
-				},
-				11,
+			"already has performance map",
+			func() map[common.Address]workerPerformance {
+				wp := make(map[common.Address]workerPerformance)
+				wp[address] = &defaultPerformance{blocksMined: 10}
+				return wp
+			},
+			11,
 		},
 	}
 	// test
@@ -280,9 +280,9 @@ func Test_defaultWorkManager_onNewBlock(t *testing.T) {
 	manager.performance = mPerformance
 
 	// test case
-	situations := []struct{
-		name string
-		given func () model.AbstractBlock
+	situations := []struct {
+		name         string
+		given        func() model.AbstractBlock
 		expectReward *big.Int
 	}{
 		{

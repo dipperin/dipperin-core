@@ -18,11 +18,11 @@ func Test_defaultExecutorBuilder_CreateExecutor(t *testing.T) {
 	executor := NewDefaultExecutorBuilder()
 
 	// test case
-	situations := []struct{
-		name string
-		given func() (msg workMsg, workCount int, submitter workSubmitter)
+	situations := []struct {
+		name            string
+		given           func() (msg workMsg, workCount int, submitter workSubmitter)
 		expectResultLen int
-		expectErr error
+		expectErr       error
 	}{
 		{
 			"unknown msg code",
@@ -36,18 +36,18 @@ func Test_defaultExecutorBuilder_CreateExecutor(t *testing.T) {
 			UnknownMsgCodeErr,
 		},
 		{
-				"normal situation",
-				func() (msg workMsg, workCount int, submitter workSubmitter) {
-					msg = &localWorkMsg{
-						code: minemsg.NewDefaultWorkMsg,
-						work: &minemsg.DefaultWork{BlockHeader: model.Header{Bloom: iblt.NewBloom(iblt.NewBloomConfig(1<<12, 4))}},
-					}
-					workCount = 2
-					submitter = &workManager{}
-					return
-				},
-				2,
-				nil,
+			"normal situation",
+			func() (msg workMsg, workCount int, submitter workSubmitter) {
+				msg = &localWorkMsg{
+					code: minemsg.NewDefaultWorkMsg,
+					work: &minemsg.DefaultWork{BlockHeader: model.Header{Bloom: iblt.NewBloom(iblt.NewBloomConfig(1<<12, 4))}},
+				}
+				workCount = 2
+				submitter = &workManager{}
+				return
+			},
+			2,
+			nil,
 		},
 	}
 	// test

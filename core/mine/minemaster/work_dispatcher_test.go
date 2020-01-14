@@ -3,7 +3,7 @@ package minemaster
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/core/model"
-	minemaster_mock "github.com/dipperin/dipperin-core/tests/mock/mine/minemaster-mock"
+	"github.com/dipperin/dipperin-core/tests/mock/mine/minemaster-mock"
 	"github.com/dipperin/dipperin-core/tests/mock/model-mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
