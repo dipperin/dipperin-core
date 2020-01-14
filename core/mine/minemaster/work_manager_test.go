@@ -3,8 +3,7 @@ package minemaster
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/tests/mock/mine/minemaster-mock"
-	"github.com/dipperin/dipperin-core/tests/mock/model-mock"
+	model_mock "github.com/dipperin/dipperin-core/tests/mock/model"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -209,7 +208,7 @@ func Test_defaultWorkManager_submitBlock(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	// mock block broadcaster
-	mockBlockBroadcaster := minemaster_mock.NewMockBlockBroadcaster(ctrl)
+	mockBlockBroadcaster := NewMockBlockBroadcaster(ctrl)
 	mockBlockBroadcaster.EXPECT().BroadcastMinedBlock(gomock.Any()).Return().AnyTimes()
 	// mock block
 	mockBlock := model_mock.NewMockAbstractBlock(ctrl)

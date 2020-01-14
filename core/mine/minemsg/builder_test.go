@@ -3,7 +3,7 @@ package minemsg
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
-	model_mock "github.com/dipperin/dipperin-core/tests/mock/model-mock"
+	model_mock "github.com/dipperin/dipperin-core/tests/mock/model"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"

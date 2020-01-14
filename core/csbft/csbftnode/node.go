@@ -22,7 +22,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-error"
 	"github.com/dipperin/dipperin-core/common/g-metrics"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-communication"
+	"github.com/dipperin/dipperin-core/core/chaincommunication"
 	"github.com/dipperin/dipperin-core/core/csbft/components"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 	"github.com/dipperin/dipperin-core/core/csbft/state-machine"
@@ -131,7 +131,7 @@ func (bft *CsBft) OnNewMsg(msg interface{}) error {
 	return nil
 }
 
-func (bft *CsBft) AddPeer(p chain_communication.PmAbstractPeer) error { return nil }
+func (bft *CsBft) AddPeer(p chaincommunication.PmAbstractPeer) error { return nil }
 
 func (bft *CsBft) ChangePrimary(primary string) {
 	log.DLogger.Debug("Change Primary Called")
@@ -180,7 +180,7 @@ func (bft *CsBft) isNextVerifier() bool {
 }
 
 // The processing here can't be blocked, it must be quickly put into a coroutine and returned after processing, otherwise msg read will be blocked.
-func (bft *CsBft) OnNewP2PMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer) error {
+func (bft *CsBft) OnNewP2PMsg(msg p2p.Msg, p chaincommunication.PmAbstractPeer) error {
 	if !bft.stateHandler.IsRunning() {
 		log.DLogger.Warn("[Node-OnNewMsg]receive bft msg, but state handler not started")
 		return nil

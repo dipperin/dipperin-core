@@ -23,8 +23,8 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-metrics"
 	"github.com/dipperin/dipperin-core/common/g-timer"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chaincommunication"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
@@ -56,13 +56,13 @@ var (
 
 type broadcastEmptyBlock func(block model.AbstractBlock)
 
-//go:generate mockgen -destination=./peer_mock_test.go -package=verifiers_halt_check github.com/dipperin/dipperin-core/core/chain-communication PmAbstractPeer
+//go:generate mockgen -destination=./peer_mock_test.go -package=verifiers_halt_check github.com/dipperin/dipperin-core/core/chaincommunication PmAbstractPeer
 
 //go:generate mockgen -destination=./cs_protocol_mock_test.go -package=verifiers_halt_check github.com/dipperin/dipperin-core/core/verifiers-halt-check CsProtocolFunction
 type CsProtocolFunction interface {
-	GetVerifierBootNode() map[string]chain_communication.PmAbstractPeer
-	GetNextVerifierPeers() map[string]chain_communication.PmAbstractPeer
-	GetCurrentVerifierPeers() map[string]chain_communication.PmAbstractPeer
+	GetVerifierBootNode() map[string]chaincommunication.PmAbstractPeer
+	GetNextVerifierPeers() map[string]chaincommunication.PmAbstractPeer
+	GetCurrentVerifierPeers() map[string]chaincommunication.PmAbstractPeer
 }
 
 type ProposalMsg struct {
@@ -79,7 +79,7 @@ type SystemHaltedCheck struct {
 	nodeType int
 
 	//msg handlers
-	handlers map[uint64]func(msg p2p.Msg, p chain_communication.PmAbstractPeer) error
+	handlers map[uint64]func(msg p2p.Msg, p chaincommunication.PmAbstractPeer) error
 
 	//other verifier boot node current block number
 	otherBootNodeHeight map[string]uint64
@@ -133,7 +133,7 @@ type HaltCheckConf struct {
 
 func MakeSystemHaltedCheck(conf *HaltCheckConf) *SystemHaltedCheck {
 	systemHaltedCheck := &SystemHaltedCheck{
-		handlers:             make(map[uint64]func(msg p2p.Msg, p chain_communication.PmAbstractPeer) error),
+		handlers:             make(map[uint64]func(msg p2p.Msg, p chaincommunication.PmAbstractPeer) error),
 		haltCheckStateHandle: MakeHaltCheckStateHandler(conf.NeedChainReader, conf.WalletSigner, conf.EconomyModel),
 		csProtocol:           conf.CsProtocol,
 		nodeType:             conf.NodeType,
@@ -142,7 +142,7 @@ func MakeSystemHaltedCheck(conf *HaltCheckConf) *SystemHaltedCheck {
 	chainConfig := chain_config.GetChainConfig()
 	//verifier only need onCurrentBlockNumberRequest and onSendMinimalHashBlock
 	//verifier don't need onSendMinimalHashBlock
-	systemHaltedCheck.handlers[chain_communication.CurrentBlockNumberRequest] = systemHaltedCheck.onCurrentBlockNumberRequest
+	systemHaltedCheck.handlers[chaincommunication.CurrentBlockNumberRequest] = systemHaltedCheck.onCurrentBlockNumberRequest
 	if conf.NodeType == chain_config.NodeTypeOfVerifierBoot {
 		atomic.StoreUint32(&systemHaltedCheck.SynStatus, notSynchronized)
 		systemHaltedCheck.otherBootNodeHeight = make(map[string]uint64)
@@ -167,11 +167,11 @@ func MakeSystemHaltedCheck(conf *HaltCheckConf) *SystemHaltedCheck {
 		atomic.StoreUint32(&systemHaltedCheck.startEmptyProcessFlag, notProcessEmptyBlock)
 		systemHaltedCheck.broadcaster = conf.Broadcast
 
-		systemHaltedCheck.handlers[chain_communication.CurrentBlockNumberResponse] = systemHaltedCheck.onCurrentBlockNumberResponse
-		systemHaltedCheck.handlers[chain_communication.ProposeEmptyBlockMsg] = systemHaltedCheck.onProposeEmptyBlockMsg
-		systemHaltedCheck.handlers[chain_communication.SendMinimalHashBlockResponse] = systemHaltedCheck.onSendMinimalHashBlockResponse
+		systemHaltedCheck.handlers[chaincommunication.CurrentBlockNumberResponse] = systemHaltedCheck.onCurrentBlockNumberResponse
+		systemHaltedCheck.handlers[chaincommunication.ProposeEmptyBlockMsg] = systemHaltedCheck.onProposeEmptyBlockMsg
+		systemHaltedCheck.handlers[chaincommunication.SendMinimalHashBlockResponse] = systemHaltedCheck.onSendMinimalHashBlockResponse
 	} else if conf.NodeType == chain_config.NodeTypeOfVerifier {
-		systemHaltedCheck.handlers[chain_communication.SendMinimalHashBlock] = systemHaltedCheck.onSendMinimalHashBlock
+		systemHaltedCheck.handlers[chaincommunication.SendMinimalHashBlock] = systemHaltedCheck.onSendMinimalHashBlock
 	}
 
 	return systemHaltedCheck
@@ -181,26 +181,26 @@ func (systemHaltedCheck *SystemHaltedCheck) SetMsgSigner(walletSigner NeedWallet
 	systemHaltedCheck.haltCheckStateHandle.walletSigner = walletSigner
 }
 
-func (systemHaltedCheck *SystemHaltedCheck) MsgHandlers() map[uint64]func(msg p2p.Msg, p chain_communication.PmAbstractPeer) error {
+func (systemHaltedCheck *SystemHaltedCheck) MsgHandlers() map[uint64]func(msg p2p.Msg, p chaincommunication.PmAbstractPeer) error {
 	return systemHaltedCheck.handlers
 }
 
-func (systemHaltedCheck *SystemHaltedCheck) onCurrentBlockNumberRequest(msg p2p.Msg, p chain_communication.PmAbstractPeer) error {
+func (systemHaltedCheck *SystemHaltedCheck) onCurrentBlockNumberRequest(msg p2p.Msg, p chaincommunication.PmAbstractPeer) error {
 
 	blockNumber := systemHaltedCheck.haltCheckStateHandle.chainReader.CurrentBlock().Number()
 	response := getHeightResponse{
 		Height: blockNumber,
 	}
 
-	err := p.SendMsg(chain_communication.CurrentBlockNumberResponse, &response)
+	err := p.SendMsg(chaincommunication.CurrentBlockNumberResponse, &response)
 	if err != nil {
-		log.DLogger.Warn("send msg error", zap.Int("msgCode", chain_communication.CurrentBlockNumberResponse), zap.Error(err))
+		log.DLogger.Warn("send msg error", zap.Int("msgCode", chaincommunication.CurrentBlockNumberResponse), zap.Error(err))
 	}
 
 	return nil
 }
 
-func (systemHaltedCheck *SystemHaltedCheck) onCurrentBlockNumberResponse(msg p2p.Msg, p chain_communication.PmAbstractPeer) error {
+func (systemHaltedCheck *SystemHaltedCheck) onCurrentBlockNumberResponse(msg p2p.Msg, p chaincommunication.PmAbstractPeer) error {
 
 	var blockNumberResponse getHeightResponse
 	err := msg.Decode(&blockNumberResponse)
@@ -240,14 +240,14 @@ func (systemHaltedCheck *SystemHaltedCheck) checkPeerHeight() error {
 
 	tickHandler := func() {
 		for _, peer := range bootNodes {
-			err := peer.SendMsg(chain_communication.CurrentBlockNumberRequest, "")
+			err := peer.SendMsg(chaincommunication.CurrentBlockNumberRequest, "")
 			if err != nil {
 				log.DLogger.Warn("send CurrentBlockNumberRequest error", zap.Error(err), zap.String("ToNodeName", peer.NodeName()))
 			}
 		}
 
 		for _, peer := range currentVerifier {
-			err := peer.SendMsg(chain_communication.CurrentBlockNumberRequest, "")
+			err := peer.SendMsg(chaincommunication.CurrentBlockNumberRequest, "")
 			if err != nil {
 				log.DLogger.Warn("send CurrentBlockNumberRequest error", zap.Error(err), zap.String("ToNodeName", peer.NodeName()))
 			}
@@ -272,7 +272,7 @@ func (systemHaltedCheck *SystemHaltedCheck) checkPeerHeight() error {
 	}
 }
 
-func (systemHaltedCheck *SystemHaltedCheck) onProposeEmptyBlockMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer) error {
+func (systemHaltedCheck *SystemHaltedCheck) onProposeEmptyBlockMsg(msg p2p.Msg, p chaincommunication.PmAbstractPeer) error {
 	// check msg from verifier boot node
 	address := p.RemoteVerifierAddress()
 	if !model.CheckAddressIsVerifierBootNode(address) {
@@ -299,7 +299,7 @@ func (systemHaltedCheck *SystemHaltedCheck) onProposeEmptyBlockMsg(msg p2p.Msg, 
 }
 
 // alive verifier send the vote of emptyBlock after receiving the minimalHashBlock from boot node verifier
-func (systemHaltedCheck *SystemHaltedCheck) onSendMinimalHashBlock(msg p2p.Msg, p chain_communication.PmAbstractPeer) error {
+func (systemHaltedCheck *SystemHaltedCheck) onSendMinimalHashBlock(msg p2p.Msg, p chaincommunication.PmAbstractPeer) error {
 	var selectedProposal ProposalMsg
 
 	err := msg.Decode(&selectedProposal)
@@ -318,7 +318,7 @@ func (systemHaltedCheck *SystemHaltedCheck) onSendMinimalHashBlock(msg p2p.Msg, 
 	}
 
 	log.DLogger.Info("send the vote for minimal hash empty Block", zap.Any("vote", vote))
-	err = p.SendMsg(chain_communication.SendMinimalHashBlockResponse, &vote)
+	err = p.SendMsg(chaincommunication.SendMinimalHashBlockResponse, &vote)
 	if err != nil {
 		log.DLogger.Warn("SendMinimalHashBlockResponse error ", zap.String("nodeName", p.NodeName()))
 	}
@@ -327,7 +327,7 @@ func (systemHaltedCheck *SystemHaltedCheck) onSendMinimalHashBlock(msg p2p.Msg, 
 }
 
 // verifier bootNode receive the vote from the alive verifiers
-func (systemHaltedCheck *SystemHaltedCheck) onSendMinimalHashBlockResponse(msg p2p.Msg, p chain_communication.PmAbstractPeer) error {
+func (systemHaltedCheck *SystemHaltedCheck) onSendMinimalHashBlockResponse(msg p2p.Msg, p chaincommunication.PmAbstractPeer) error {
 	var vote model.VoteMsg
 	err := msg.Decode(&vote)
 	if err != nil {
@@ -394,7 +394,7 @@ func (systemHaltedCheck *SystemHaltedCheck) proposeEmptyBlock() (err error) {
 			}
 
 			log.DLogger.Info("send empty block propose is:", zap.String("propose", proposal.EmptyBlock.Hash().Hex()), zap.Uint64("height", proposal.EmptyBlock.Number()), zap.String("ToNodeName", node.NodeName()))
-			err := node.SendMsg(chain_communication.ProposeEmptyBlockMsg, &proposal)
+			err := node.SendMsg(chaincommunication.ProposeEmptyBlockMsg, &proposal)
 			if err != nil {
 				log.DLogger.Error("send propose empty block msg error", zap.Error(err), zap.String("nodeName", node.NodeName()))
 				errChan <- err
@@ -448,7 +448,7 @@ func (systemHaltedCheck *SystemHaltedCheck) sendMinimalHashBlock(proposal Propos
 		for _, node := range systemHaltedCheck.csProtocol.GetCurrentVerifierPeers() {
 			//todo: check whether the peer in peerSet is currentVerifier. If the finder ensures the peerSet is normal ,then there is no need to check
 			log.DLogger.Info("sendMinimalHashBlock the block hash is:", zap.Any("hash", proposal.EmptyBlock.Hash()), zap.String("toNodeName", node.NodeName()))
-			err := node.SendMsg(chain_communication.SendMinimalHashBlock, &proposal)
+			err := node.SendMsg(chaincommunication.SendMinimalHashBlock, &proposal)
 			if err != nil {
 				log.DLogger.Error("send propose empty block msg error", zap.Error(err), zap.String("nodeName", node.NodeName()))
 				//treat it as bad node when send error

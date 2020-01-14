@@ -25,7 +25,7 @@ import (
 	"strconv"
 )
 
-//go:generate gencodec -type Receipt -field-override receiptMarshaling -out gen_receipt_json.go
+/*//go:generate gencodec -type Receipt -field-override receiptMarshaling -out gen_receipt_json.go*/
 
 const (
 	// ReceiptStatusFailed is the status code of a transaction if execution failed.

@@ -2,9 +2,10 @@ package minemaster
 
 import (
 	"errors"
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/core/mine/minemsg"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/tests/mock/mine/minemaster-mock"
-	"github.com/dipperin/dipperin-core/tests/mock/model-mock"
+	model_mock "github.com/dipperin/dipperin-core/tests/mock/model"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"sync/atomic"
@@ -77,7 +78,7 @@ func Test_workDispatcher_dispatchNewWork(t *testing.T) {
 	// init
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockBlockBuilder := minemaster_mock.NewMockBlockBuilder(ctrl)
+	mockBlockBuilder := NewMockBlockBuilder(ctrl)
 	mockBlockBuilder.EXPECT().BuildWaitPackBlock(gomock.Any(), gomock.Any(), gomock.Any()).Return(func() model.AbstractBlock {
 		absBlock := model_mock.NewMockAbstractBlock(ctrl)
 		absBlock.EXPECT().Header().Return(&model.Header{})
@@ -141,5 +142,76 @@ func Test_workDispatcher_makeNewWorks(t *testing.T) {
 }
 
 func Test_workDispatcher_onNewBlock(t *testing.T) {
+	// init
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
+	// test case
+	situations := []struct{
+		name string
+		given func() (*workDispatcher, int)
+		expectCode int
+		expectWorkLen int
+	}{
+		{
+			"nil abstract of dispatcher",
+			func() (*workDispatcher, int) {
+				// mock
+				mockBlockBuilder := NewMockBlockBuilder(ctrl)
+				mockBlockBuilder.EXPECT().BuildWaitPackBlock(gomock.Any(),gomock.Any(),gomock.Any()).Return(func() model.AbstractBlock {
+					return nil
+				}()).AnyTimes()
+				// build dispatcher
+				mineConfig := MineConfig{
+					GasFloor:         &atomic.Value{},
+					GasCeil:          &atomic.Value{},
+					CoinbaseAddress:  &atomic.Value{},
+					BlockBuilder:     mockBlockBuilder,
+					BlockBroadcaster: nil,
+				}
+				return newWorkDispatcher(mineConfig, nil), 5
+
+			},
+			0,
+			0,
+		},
+		{
+			"normal build",
+			func() (*workDispatcher, int) {
+				// mock
+				mockBlockBuilder := NewMockBlockBuilder(ctrl)
+				mockBlockBuilder.EXPECT().BuildWaitPackBlock(gomock.Any(),gomock.Any(),gomock.Any()).Return(func() model.AbstractBlock {
+					// mock block
+					mockBlock := model_mock.NewMockAbstractBlock(ctrl)
+					mockBlock.EXPECT().Header().Return(func() *model.Header {
+						nonce := common.EncodeNonce(137)
+						return &model.Header{Nonce: nonce}
+					}())
+					// return block
+					return mockBlock
+				}()).AnyTimes()
+				// build dispatcher
+				mineConfig := MineConfig{
+					GasFloor:         &atomic.Value{},
+					GasCeil:          &atomic.Value{},
+					CoinbaseAddress:  &atomic.Value{},
+					BlockBuilder:     mockBlockBuilder,
+					BlockBroadcaster: nil,
+				}
+				dispatcher := newWorkDispatcher(mineConfig, nil)
+				// return dispatcher
+				return dispatcher, 3
+			},
+			minemsg.NewDefaultWorkMsg,
+			3,
+		},
+	}
+	// test
+	for _, situation := range situations {
+		dispatcher, workerLen := situation.given()
+		resCode, resWork := dispatcher.makeNewWorks(workerLen)
+		// result
+		assert.Equal(t, situation.expectCode, resCode)
+		assert.Equal(t, situation.expectWorkLen, len(resWork))
+	}
 }

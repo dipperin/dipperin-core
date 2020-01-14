@@ -23,7 +23,7 @@
 //
 // Records must be signed before transmitting them to another node.
 //
-// Decoding a record doesn't check its signature. Code working with records from an
+// Decoding a record doesn't check its signature. code working with records from an
 // untrusted source must always verify two things: that the record uses an identity scheme
 // deemed secure, and that the signature is valid according to the declared scheme.
 //

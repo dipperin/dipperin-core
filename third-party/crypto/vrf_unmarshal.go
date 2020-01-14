@@ -15,7 +15,7 @@
 package crypto
 
 // This file implements compressed point unmarshaling.  Preferably this
-// functionality would be in a standard library.  Code borrowed from:
+// functionality would be in a standard library.  code borrowed from:
 // https://go-review.googlesource.com/#/c/1883/2/src/crypto/elliptic/elliptic.go
 
 import (

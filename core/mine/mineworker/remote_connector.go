@@ -18,7 +18,7 @@ package mineworker
 
 import (
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-communication"
+	"github.com/dipperin/dipperin-core/core/chaincommunication"
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 )
@@ -28,14 +28,14 @@ func newRemoteConnector() *RemoteConnector {
 }
 
 type RemoteConnector struct {
-	peer chain_communication.PmAbstractPeer
+	peer chaincommunication.PmAbstractPeer
 
 	// set when build
 	worker   Worker
 	receiver msgReceiver
 }
 
-func (conn *RemoteConnector) SetMineMasterPeer(peer chain_communication.PmAbstractPeer) {
+func (conn *RemoteConnector) SetMineMasterPeer(peer chaincommunication.PmAbstractPeer) {
 	conn.peer = peer
 	log.DLogger.Info("connect master, do register")
 	// peer connected do register
@@ -55,8 +55,7 @@ func (conn *RemoteConnector) SendMsg(code uint64, msg interface{}) error {
 	return conn.peer.SendMsg(code, msg)
 }
 
-func (conn *RemoteConnector) OnNewMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer) error {
-	//log.DLogger.Info("receive new mine msg", "msg code", msg.Code)
+func (conn *RemoteConnector) OnNewMsg(msg p2p.Msg, p chaincommunication.PmAbstractPeer) error {
 	switch msg.Code {
 	case minemsg.StartMineMsg:
 		conn.worker.Start()

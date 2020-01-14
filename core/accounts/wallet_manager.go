@@ -20,7 +20,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-timer"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/accounts/base"
+	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
 	"github.com/ethereum/go-ethereum/event"
 	"go.uber.org/zap"
 	"sync"
@@ -50,16 +50,16 @@ const (
 
 //record wallet backend event
 type WalletEvent struct {
-	Wallet base.Wallet     // Wallet instance arrived or departed
-	Type   WalletEventType // Event type that happened in the system
+	Wallet accountsbase.Wallet // Wallet instance arrived or departed
+	Type   WalletEventType     // Event type that happened in the system
 }
 
 type WalletManager struct {
-	Wallets               []base.Wallet          //wallets
-	GetAddressRelatedInfo base.AddressInfoReader //get nonce and balance of the account
-	Event                 chan WalletEvent       //listen wallet event
-	HandleResult          chan bool              //event handle result
-	ManagerClose          chan bool              //listen the manger close
+	Wallets               []accountsbase.Wallet          //wallets
+	GetAddressRelatedInfo accountsbase.AddressInfoReader //get nonce and balance of the account
+	Event                 chan WalletEvent               //listen wallet event
+	HandleResult          chan bool                      //event handle result
+	ManagerClose          chan bool                      //listen the manger close
 	StartService          chan bool
 
 	serviceStatus    atomic.Value
@@ -69,16 +69,16 @@ type WalletManager struct {
 }
 
 //new wallet manager
-func NewWalletManager(getAddressInfo base.AddressInfoReader, wallets ...base.Wallet) (*WalletManager, error) {
+func NewWalletManager(getAddressInfo accountsbase.AddressInfoReader, wallets ...accountsbase.Wallet) (*WalletManager, error) {
 
-	tmpWallets := make([]base.Wallet, 0)
+	tmpWallets := make([]accountsbase.Wallet, 0)
 	for _, tmpWallet := range wallets {
 		walletIdentifier, err := tmpWallet.GetWalletIdentifier()
 		if err != nil {
 			return nil, err
 		}
-		if walletIdentifier.WalletType != base.SoftWallet {
-			return nil, base.ErrNotSupportUsbWallet
+		if walletIdentifier.WalletType != accountsbase.SoftWallet {
+			return nil, accountsbase.ErrNotSupportUsbWallet
 		} else {
 			tmpWallets = append(tmpWallets, tmpWallet)
 		}
@@ -165,7 +165,7 @@ func (manager *WalletManager) refreshWalletNonce() {
 }
 
 //add wallet to manager
-func (manager *WalletManager) add(wallet base.Wallet) {
+func (manager *WalletManager) add(wallet accountsbase.Wallet) {
 	for _, value := range manager.Wallets {
 		identifier, _ := value.GetWalletIdentifier()
 		tmpIdentifier, _ := wallet.GetWalletIdentifier()
@@ -178,7 +178,7 @@ func (manager *WalletManager) add(wallet base.Wallet) {
 }
 
 //remove wallet
-func (manager *WalletManager) remove(wallet base.Wallet) {
+func (manager *WalletManager) remove(wallet accountsbase.Wallet) {
 	for i, value := range manager.Wallets {
 		identifier, _ := value.GetWalletIdentifier()
 		tmpIdentifier, _ := wallet.GetWalletIdentifier()
@@ -194,11 +194,11 @@ func (manager *WalletManager) remove(wallet base.Wallet) {
 }
 
 //list all wallet identifier in the wallet manager
-func (manager *WalletManager) ListWalletIdentifier() ([]base.WalletIdentifier, error) {
+func (manager *WalletManager) ListWalletIdentifier() ([]accountsbase.WalletIdentifier, error) {
 
 	manager.Lock.Lock()
 	defer manager.Lock.Unlock()
-	identifiers := make([]base.WalletIdentifier, 0)
+	identifiers := make([]accountsbase.WalletIdentifier, 0)
 
 	for _, wallet := range manager.Wallets {
 		walletIdentifier, err := wallet.GetWalletIdentifier()
@@ -212,7 +212,7 @@ func (manager *WalletManager) ListWalletIdentifier() ([]base.WalletIdentifier, e
 }
 
 //get wallet according to he wallet id
-func (manager *WalletManager) FindWalletFromIdentifier(identifier base.WalletIdentifier) (base.Wallet, error) {
+func (manager *WalletManager) FindWalletFromIdentifier(identifier accountsbase.WalletIdentifier) (accountsbase.Wallet, error) {
 	manager.Lock.Lock()
 	defer manager.Lock.Unlock()
 
@@ -226,15 +226,15 @@ func (manager *WalletManager) FindWalletFromIdentifier(identifier base.WalletIde
 			return wallet, nil
 		}
 	}
-	return nil, base.ErrNotFindWallet
+	return nil, accountsbase.ErrNotFindWallet
 }
 
 //get wallet from account address
-func (manager *WalletManager) FindWalletFromAddress(address common.Address) (base.Wallet, error) {
+func (manager *WalletManager) FindWalletFromAddress(address common.Address) (accountsbase.Wallet, error) {
 	manager.Lock.Lock()
 	defer manager.Lock.Unlock()
 
-	tmpAccount := base.Account{Address: address}
+	tmpAccount := accountsbase.Account{Address: address}
 	for _, wallet := range manager.Wallets {
 
 		exist, err := wallet.Contains(tmpAccount)
@@ -245,30 +245,30 @@ func (manager *WalletManager) FindWalletFromAddress(address common.Address) (bas
 			return wallet, nil
 		}
 	}
-	return nil, base.ErrNotFindWallet
+	return nil, accountsbase.ErrNotFindWallet
 }
 
-func (manager *WalletManager) GetMainAccount() (base.Account, error) {
+func (manager *WalletManager) GetMainAccount() (accountsbase.Account, error) {
 	if !manager.ServiceStatus() {
-		return base.Account{}, base.ErrWalletManagerNotRunning
+		return accountsbase.Account{}, accountsbase.ErrWalletManagerNotRunning
 	}
 	identifiers, err := manager.ListWalletIdentifier()
 	if err != nil {
-		return base.Account{}, err
+		return accountsbase.Account{}, err
 	}
 
 	if len(identifiers) == 0 {
-		return base.Account{}, base.ErrWalletManagerIsEmpty
+		return accountsbase.Account{}, accountsbase.ErrWalletManagerIsEmpty
 	}
 
 	wallet, err := manager.FindWalletFromIdentifier(identifiers[0])
 	if err != nil {
-		return base.Account{}, err
+		return accountsbase.Account{}, err
 	}
 
 	account, err := wallet.Accounts()
 	if err != nil {
-		return base.Account{}, err
+		return accountsbase.Account{}, err
 	}
 
 	return account[0], nil
@@ -301,7 +301,7 @@ func (manager *WalletManager) Stop() {
 	}
 
 	//clear all wallet in the manager
-	manager.Wallets = []base.Wallet{}
+	manager.Wallets = []accountsbase.Wallet{}
 
 	close(manager.ManagerClose)
 	close(manager.HandleResult)

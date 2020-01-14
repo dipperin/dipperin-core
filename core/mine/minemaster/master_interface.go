@@ -18,7 +18,7 @@ package minemaster
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/chain-communication"
+	"github.com/dipperin/dipperin-core/core/chaincommunication"
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
@@ -45,9 +45,9 @@ type Master interface {
 	// cur mine block tx count
 	MineTxCount() int
 
-	SetMsgSigner(MsgSigner chain_communication.PbftSigner)
+	SetMsgSigner(MsgSigner chaincommunication.PbftSigner)
 
-	GetMsgSigner() chain_communication.PbftSigner
+	GetMsgSigner() chaincommunication.PbftSigner
 	SpendableMaster
 	// Done: 1. add get worker's work,
 	// Done: 2. worker's coin count method,
@@ -62,12 +62,10 @@ type mineMaster interface {
 	getWorker(id WorkerId) WorkerForMaster
 }
 
-//go:generate mockgen -destination=../../../tests/mock/mine/minemaster-mock/spendable_master_mock.go -package=minemaster_mock github.com/dipperin/dipperin-core/core/mine/minemaster SpendableMaster
 type SpendableMaster interface {
 	RetrieveReward(address common.Address)
 }
 
-//go:generate mockgen -destination=./worker_for_master_mock.go -package=minemaster github.com/dipperin/dipperin-core/core/mine/minemaster WorkerForMaster
 type WorkerForMaster interface {
 	Start()
 	Stop()
@@ -85,9 +83,9 @@ type MasterServer interface {
 	UnRegisterWorker(workerId WorkerId)
 	ReceiveMsg(workerID WorkerId, code uint64, msg interface{})
 	// for p2p msg
-	OnNewMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer) error
+	OnNewMsg(msg p2p.Msg, p chaincommunication.PmAbstractPeer) error
 	// only for worker, do nothing
-	SetMineMasterPeer(peer chain_communication.PmAbstractPeer)
+	SetMineMasterPeer(peer chaincommunication.PmAbstractPeer)
 }
 
 // there is only one workManager to manage all worker's works
@@ -96,7 +94,7 @@ type workManager interface {
 	getPerformance(address common.Address) uint64
 	getReward(address common.Address) *big.Int
 	onNewBlock(block model.AbstractBlock)
-	SetMsgSigner(MsgSigner chain_communication.PbftSigner)
+	SetMsgSigner(MsgSigner chaincommunication.PbftSigner)
 	spendableWorkManager
 	partialSpendableWorkManager
 }
@@ -105,7 +103,7 @@ type dispatcher interface {
 	onNewBlock(block model.AbstractBlock) error
 	dispatchNewWork() error
 	curWorkBlock() model.AbstractBlock
-	SetMsgSigner(MsgSigner chain_communication.PbftSigner)
+	SetMsgSigner(MsgSigner chaincommunication.PbftSigner)
 }
 
 type spendableWorkManager interface {
@@ -147,14 +145,14 @@ type rewardDistributor interface {
 //	ChainReader() state_processor.ChainReader
 //}
 
-//go:generate mockgen -destination=../../../tests/mock/mine/minemaster-mock/block_builder_mock.go -package=minemaster_mock github.com/dipperin/dipperin-core/core/mine/minemaster BlockBuilder
+//go:generate mockgen -destination=./block_builder_mock.go -package=minemaster github.com/dipperin/dipperin-core/core/mine/minemaster BlockBuilder
 type BlockBuilder interface {
-	SetMsgSigner(MsgSigner chain_communication.PbftSigner)
-	GetMsgSigner() chain_communication.PbftSigner
+	SetMsgSigner(MsgSigner chaincommunication.PbftSigner)
+	GetMsgSigner() chaincommunication.PbftSigner
 	BuildWaitPackBlock(coinbaseAddr common.Address, gasFloor, gasCeil uint64) model.AbstractBlock
 }
 
-//go:generate mockgen -destination=../../../tests/mock/mine/minemaster-mock/block_broadcaster_mock.go -package=minemaster_mock github.com/dipperin/dipperin-core/core/mine/minemaster BlockBroadcaster
+//go:generate mockgen -destination=./block_broadcaster_mock.go -package=minemaster github.com/dipperin/dipperin-core/core/mine/minemaster BlockBroadcaster
 type BlockBroadcaster interface {
 	BroadcastMinedBlock(block model.AbstractBlock)
 }
@@ -167,11 +165,11 @@ type MineConfig struct {
 	BlockBroadcaster BlockBroadcaster
 }
 
-func (conf *MineConfig) GetMsgSigner() chain_communication.PbftSigner {
+func (conf *MineConfig) GetMsgSigner() chaincommunication.PbftSigner {
 	return conf.BlockBuilder.GetMsgSigner()
 }
 
-func (conf *MineConfig) SetMsgSigner(MsgSigner chain_communication.PbftSigner) {
+func (conf *MineConfig) SetMsgSigner(MsgSigner chaincommunication.PbftSigner) {
 	conf.BlockBuilder.SetMsgSigner(MsgSigner)
 }
 

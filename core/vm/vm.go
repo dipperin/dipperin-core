@@ -24,18 +24,12 @@ import (
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
-	"github.com/dipperin/dipperin-core/third-party/life/mem-manage"
 	"go.uber.org/zap"
 	"math/big"
 	"sync/atomic"
 )
 
 var EmptyCodeHash = cs_crypto.Keccak256Hash(nil)
-
-var DEFAULT_VM_CONFIG = exec.VMConfig{
-	EnableJIT:          false,
-	DefaultMemoryPages: mem_manage.DefaultPageSize,
-}
 
 type VM struct {
 	Context

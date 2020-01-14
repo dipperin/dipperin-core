@@ -18,66 +18,13 @@ package resolver
 
 import "C"
 import (
-	"encoding/binary"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/log"
 	model2 "github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"go.uber.org/zap"
-	"math"
 )
-
-type uint128 struct {
-	high uint64
-	low  uint64
-}
-
-func (u *uint128) lsh(shift uint) {
-	if shift >= 128 {
-		u.low = 0
-		u.high = 0
-	} else {
-		var halfSize uint = 128 / 2
-
-		if shift >= halfSize {
-			shift -= halfSize
-			u.high = u.low
-			u.low = 0
-		}
-
-		if shift != 0 {
-			u.high <<= shift
-		}
-
-		var mask uint64 = ^(math.MaxUint64 >> shift)
-		u.high |= (u.low & mask) >> (halfSize - shift)
-		u.low <<= shift
-	}
-}
-
-func (u *uint128) rsh(shift uint) {
-	if shift >= 128 {
-		u.high = 0
-		u.low = 0
-	} else {
-		var halfSize uint = 128 / 2
-
-		if shift >= halfSize {
-			shift -= halfSize
-			u.low = u.high
-			u.high = 0
-		}
-
-		if shift != 0 {
-			u.low >>= shift
-		}
-
-		var mask uint64 = ^(math.MaxUint64 << shift)
-		u.low |= (u.high & mask) << (halfSize - shift)
-		u.high >>= shift
-	}
-}
 
 // Sstore
 func (r *Resolver) envSetState(vm *exec.VirtualMachine) int64 {
@@ -129,57 +76,6 @@ func (r *Resolver) envGetStateSize(vm *exec.VirtualMachine) int64 {
 	log.DLogger.Info("Get valueLen", zap.Int("valueLen", len(val)))
 	return int64(len(val))
 }
-
-// arithmetic long double
-func (r *Resolver) env__ashlti3(vm *exec.VirtualMachine) int64 {
-	frame := vm.GetCurrentFrame()
-	pos := int(frame.Locals[0])
-
-	u := &uint128{
-		low:  uint64(frame.Locals[1]),
-		high: uint64(frame.Locals[2]),
-	}
-	shift := uint(frame.Locals[3])
-	u.lsh(shift)
-
-	buf := make([]byte, 16)
-	binary.LittleEndian.PutUint64(buf, u.low)
-	binary.LittleEndian.PutUint64(buf[8:], u.high)
-	copy(vm.Memory.Memory[pos:pos+16], buf)
-	return 0
-}
-
-//func(r *Resolver) env__multi3(vm *exec.VirtualMachine) int64 {
-//	frame := vm.GetCurrentFrame()
-//	pos := int(frame.Locals[0])
-//
-//	ret := C.___multi3(
-//		C.uint64_t(frame.Locals[1]),
-//		C.uint64_t(frame.Locals[2]),
-//		C.uint64_t(frame.Locals[3]),
-//		C.uint64_t(frame.Locals[4]),
-//	)
-//
-//	buf := C.GoBytes(unsafe.Pointer(&ret), C.sizeof___int128)
-//	copy(vm.Memory.Memory[pos:pos+16], buf)
-//	return 0
-//}
-//
-//func (r *Resolver) env__divti3(vm *exec.VirtualMachine) int64  {
-//	frame := vm.GetCurrentFrame()
-//	pos := int(frame.Locals[0])
-//
-//	ret := C.___divti3(
-//		C.uint64_t(frame.Locals[1]),
-//		C.uint64_t(frame.Locals[2]),
-//		C.uint64_t(frame.Locals[3]),
-//		C.uint64_t(frame.Locals[4]),
-//	)
-//
-//	buf := C.GoBytes(unsafe.Pointer(&ret), C.sizeof___int128)
-//	copy(vm.Memory.Memory[pos:pos+16], buf)
-//	return 0
-//}
 
 //void emitEvent(const char *topic, size_t topicLen, const uint8_t *data, size_t dataLen);
 //topic = funcName

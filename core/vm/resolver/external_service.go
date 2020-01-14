@@ -32,7 +32,7 @@ type ContractRef interface {
 	Address() common.Address
 }
 
-//go:generate mockgen -destination=/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/vm_context_service_mock_test.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver VmContextService
+//go:generate mockgen -destination=./vm_context_service_mock.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver VmContextService
 type VmContextService interface {
 	GetGasPrice() *big.Int
 	GetGasLimit() uint64
@@ -47,7 +47,7 @@ type VmContextService interface {
 	GetTxHash() common.Hash
 }
 
-//go:generate mockgen -destination=/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/contract_service_mock_test.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver ContractService
+//go:generate mockgen -destination=./contract_service_mock.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver ContractService
 type ContractService interface {
 	Caller() ContractRef
 	Self() ContractRef
@@ -56,7 +56,7 @@ type ContractService interface {
 	GetGas() uint64
 }
 
-//go:generate mockgen -destination=/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/statedb_service_mock_test.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver StateDBService
+//go:generate mockgen -destination=./statedb_service_mock.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver StateDBService
 type StateDBService interface {
 	GetBalance(addr common.Address) *big.Int
 	AddLog(addedLog *model2.Log)
