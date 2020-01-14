@@ -15,3 +15,24 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package rpc_interface
+
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
+
+type debugApiMock struct{}
+
+func (d debugApiMock) Metrics(raw bool) (map[string]interface{}, error) {
+	return nil, nil
+}
+
+func TestDipperinDebugApi_Metrics(t *testing.T) {
+	ms, err := (&DipperinDebugApi{service: debugApiMock{}}).Metrics(true)
+	assert.Nil(t, ms)
+	assert.Nil(t, err)
+}
+
+func TestDipperinDebugApi_PrintGos(t *testing.T) {
+	(&DipperinDebugApi{service: debugApiMock{}}).PrintGos()
+}

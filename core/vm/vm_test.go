@@ -20,8 +20,11 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests/mock/model"
 	"github.com/dipperin/dipperin-core/tests/util"
+	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/vntchain/go-vnt/rlp"
@@ -184,47 +187,134 @@ func Test_Run(t *testing.T) {
 
 
 
-/*
+
 func TestVM_CreateAndCall(t *testing.T) {
-	vm := getTestVm()
-	ref := AccountRef(aliceAddr)
-	gasLimit := g_testData.TestGasLimit * 100
-	value := g_testData.TestValue
-	WASMPath := g_testData.GetWASMPath("event", g_testData.CoreVmTestData)
-	AbiPath := g_testData.GetAbiPath("event", g_testData.CoreVmTestData)
-	code, _ := g_testData.GetCodeAbi(WASMPath, AbiPath)
-	data, err := g_testData.GetCreateExtraData(WASMPath, AbiPath, "")
+	ctrl, db, vm := GetBaseVmInfo(t)
+	defer ctrl.Finish()
+
+	ref := AccountRef(model.AliceAddr)
+	gasLimit := model.TestGasLimit * 100
+	value := big.NewInt(0)
+	code, abi := test_util.GetTestData("event")
+	rlpParams := []interface{}{
+		code, abi,
+	}
+	data, err := rlp.EncodeToBytes(rlpParams)
 	assert.NoError(t, err)
 
 	// vm.Create
-	vm.GetStateDB().CreateAccount(ref.Address())
-	vm.GetStateDB().AddBalance(ref.Address(), big.NewInt(10000))
-	resp, addr, gasLimit, err := vm.Create(ref, data, gasLimit, value)
-	expectAddr := cs_crypto.CreateContractAddress(ref.Address(), uint64(0))
-	assert.Equal(t, code, resp)
-	assert.Equal(t, expectAddr, addr)
-	assert.NoError(t, err)
+	contractAddr := cs_crypto.CreateContractAddress(ref.Address(), uint64(0))
+	log := model.Log{
+		//Address:common.HexToAddress("0x0014B5Df12F50295469Fe33951403b8f4E63231Ef488"),
+		Address:model.ContractAddr,
+		TopicName:"topic",
+		Topics:[]common.Hash{common.BytesToHash(crypto.Keccak256([]byte("topic")))},
+		Data:[]byte("ƅparam"),
+		BlockNumber:0,
+		TxHash:common.Hash{},
+		TxIndex:0,
+		BlockHash:common.Hash{},
+		Index:0,
+		Removed:false,
+	}
 
-	// vm.Call
-	data, err = g_testData.GetCallExtraData("returnString", "param")
-	assert.NoError(t, err)
+	log2 := log
+	log2.Address = contractAddr
+	t.Log("log", log.Address)
+	t.Log("log2", log2.Address)
 
-	resp, _, err = vm.Call(ref, addr, data, gasLimit, value)
-	expectResp := utils.Align32BytesConverter(resp, "string")
-	assert.Equal(t, "param", expectResp)
-	assert.Equal(t, expectAddr, addr)
-	assert.NoError(t, err)
+	db.EXPECT().GetNonce(ref.Address()).Return(uint64(0),nil).AnyTimes()
+	db.EXPECT().GetBalance(ref.Address()).Return(new(big.Int).Mul(value, big.NewInt(10))).AnyTimes()
+	db.EXPECT().AddNonce(ref.Address(), uint64(1)).Return().AnyTimes()
+	db.EXPECT().GetCodeHash(contractAddr).Return(common.Hash{}).AnyTimes()
+	db.EXPECT().GetAbiHash(contractAddr).Return(common.Hash{}).AnyTimes()
+	db.EXPECT().GetNonce(contractAddr).Return(uint64(0),nil).AnyTimes()
+	db.EXPECT().Snapshot().Return(1).AnyTimes()
+	db.EXPECT().CreateAccount(contractAddr).Return(nil).AnyTimes()
+	db.EXPECT().SubBalance(ref.Address(), value).Return(nil).AnyTimes()
+	db.EXPECT().AddBalance(contractAddr, value).Return(nil).AnyTimes()
+	db.EXPECT().SetCode(contractAddr, code).AnyTimes()
+	db.EXPECT().SetAbi(contractAddr, abi).AnyTimes()
+	db.EXPECT().Exist(contractAddr).Return(true).AnyTimes()
+	db.EXPECT().GetCode(contractAddr).Return(code).AnyTimes()
+	db.EXPECT().GetAbi(contractAddr).Return(abi).AnyTimes()
+	db.EXPECT().AddLog(&log2).Times(1)
+	db.EXPECT().AddLog(&log).Times(1)
 
-	// vm.DelegateCall
-	fmt.Println("-----------------------------------------")
-	parentContract := getContract(WASMPath, AbiPath, data)
-	resp, _, err = vm.DelegateCall(parentContract, addr, data, gasLimit)
-	expectResp = utils.Align32BytesConverter(resp, "string")
-	assert.Equal(t, "param", expectResp)
-	assert.Equal(t, expectAddr, addr)
-	assert.NoError(t, err)
+
+	testCases := []struct{
+		name string
+		given func() error
+		expect error
+	} {
+		{
+			name:"TestContractCreate",
+			given: func() error {
+				resp, addr, _, err := vm.Create(ref, data, gasLimit, value)
+				//expectAddr := cs_crypto.CreateContractAddress(ref.Address(), uint64(0))
+				assert.Equal(t, code, resp)
+				assert.Equal(t, contractAddr, addr)
+				return err
+			},
+			expect:nil,
+		},
+		{
+			name: "TestContractCall",
+			given: func() error {
+				resp, addr, gasLimit, err := vm.Create(ref, data, gasLimit, value)
+				assert.NoError(t, err)
+
+				input := []interface{}{
+					"returnString",
+					"param",
+				}
+
+				inputData, err := rlp.EncodeToBytes(input)
+				assert.NoError(t, err)
+
+				resp, _, err = vm.Call(ref, addr, inputData, gasLimit, big.NewInt(0))
+				expectResp := utils.Align32BytesConverter(resp, "string")
+				assert.Equal(t, "param", expectResp)
+				assert.Equal(t, contractAddr, addr)
+				return err
+			},
+			expect:nil,
+		},
+		{
+			name: "TestContractDelegateCall",
+			given: func() error {
+				resp, addr, gasLimit, err := vm.Create(ref, data, gasLimit, value)
+				assert.NoError(t, err)
+
+				input := []interface{}{
+					"returnString",
+					"param",
+				}
+
+				inputData, err := rlp.EncodeToBytes(input)
+				assert.NoError(t, err)
+
+				parentContract := getContract(code, abi, inputData)
+				parentContract.value = big.NewInt(0)
+				resp, _, err = vm.DelegateCall(parentContract, addr, inputData, gasLimit)
+				expectResp := utils.Align32BytesConverter(resp, "string")
+				assert.Equal(t, "param", expectResp)
+				assert.Equal(t, contractAddr, addr)
+				return err
+			},
+			expect:nil,
+		},
+	}
+
+
+    for _,tc := range testCases{
+    	err := tc.given()
+    	assert.Equal(t, err, tc.expect)
+	}
+
 }
 
+/*
 func TestVM_CreateAndCallWithdraw(t *testing.T) {
 	vm := getTestVm()
 	aliceRef := AccountRef(aliceAddr)

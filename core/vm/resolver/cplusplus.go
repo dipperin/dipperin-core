@@ -420,7 +420,7 @@ func (r *Resolver) envAddress(vm *exec.VirtualMachine) int64 {
 }
 
 // define: void sha3(char *src, size_t srcLen, char *dest, size_t destLen);
-func envSha3(vm *exec.VirtualMachine) int64 {
+func (r *Resolver) envSha3(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
 	size := int(int32(vm.GetCurrentFrame().Locals[1]))
 	destOffset := int(int32(vm.GetCurrentFrame().Locals[2]))
@@ -437,7 +437,7 @@ func envSha3(vm *exec.VirtualMachine) int64 {
 	return 0
 }
 
-func envHexStringSameWithVM(vm *exec.VirtualMachine) int64 {
+func (r *Resolver)envHexStringSameWithVM(vm *exec.VirtualMachine) int64 {
 	log.DLogger.Debug("envHexStringSameWithVM execute")
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
 	size := int(int32(vm.GetCurrentFrame().Locals[1]))

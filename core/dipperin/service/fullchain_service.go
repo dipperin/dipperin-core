@@ -43,11 +43,12 @@ import (
 	"github.com/dipperin/dipperin-core/core/mine/mineworker"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
+	common2 "github.com/dipperin/dipperin-core/core/vm/common"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
-	vm_log_search "github.com/dipperin/dipperin-core/third-party/vm-log-search"
+	"github.com/dipperin/dipperin-core/third-party/vm-log-search"
 	"go.uber.org/zap"
 	"math/big"
 	"os"
@@ -2071,7 +2072,7 @@ func (service *VenusFullChainService) doCall(msg state_processor.Message, txHash
 		GetHash:     service.GetBlockHashByNumber,
 	}
 	fullState := state_processor.NewFullState(state)
-	dvm := vm.NewVM(conText, fullState, vm.DEFAULT_VM_CONFIG)
+	dvm := vm.NewVM(conText, fullState, common2.DEFAULT_VM_CONFIG)
 
 	/*	// Wait for the context to be done and cancel the evm. Even if the
 		// EVM has finished, cancelling may be done (repeatedly)

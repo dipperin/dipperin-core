@@ -36,6 +36,7 @@ var (
 	TestGasPrice = big.NewInt(1)
 
 	TestValue    = big.NewInt(100)
+	TestZeroValue = big.NewInt(0)
 )
 
 const (

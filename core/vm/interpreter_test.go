@@ -1,6 +1,8 @@
 package vm
 
 import (
+	"github.com/dipperin/dipperin-core/core/vm/common"
+	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests/util"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -18,7 +20,7 @@ func Test_findParams(t *testing.T) {
 	defer ctrl.Finish()
 
 	code, abi := test_util.GetTestData(eventContractName)
-	lifeVm, err := exec.NewVirtualMachine(code, DEFAULT_VM_CONFIG, nil, nil)
+	lifeVm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, nil, nil)
 	assert.NoError(t, err)
 	input, err := rlp.EncodeToBytes([]interface{}{"winner"})
 	assert.NoError(t, err)
@@ -157,8 +159,10 @@ func Test_ParseCallExtraDataByABI(t *testing.T)  {
 	defer ctrl.Finish()
 
 	code, abi := test_util.GetTestData(eventContractName)
-	lifeVm, err := exec.NewVirtualMachine(code, DEFAULT_VM_CONFIG, nil, nil)
+	lifeVm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, nil, nil)
 	assert.NoError(t, err)
+	//input, err := rlp.EncodeToBytes([]interface{}{"winner"})
+	//assert.NoError(t, err)
 
 	type result struct{
 		funcName string
@@ -175,13 +179,107 @@ func Test_ParseCallExtraDataByABI(t *testing.T)  {
 		{
 			name:"errInvalidRlpFormat",
 			given: func() *result {
-				input, err := rlp.EncodeToBytes([]interface{}{[]byte(""),})
+				input, err := rlp.EncodeToBytes("result")
 				assert.NoError(t, err)
-				ParseCallExtraDataByABI(lifeVm, input, abi)
-			}
+				funcName, params, returnType, err := ParseCallExtraDataByABI(lifeVm, input, abi)
+				return &result{
+					funcName:funcName,
+					params:params,
+					returnType:returnType,
+					err:err,
+				}
+				},
+			expect: result{"",[]int64{}, "", errInvalidRlpFormat},
+		},
+		{
+			name:"ParseCallExtraDataByABIRight",
+			given: func() *result {
+				input, err := rlp.EncodeToBytes([]interface{}{callFuncName, "winner"})
+				assert.NoError(t, err)
+				funcName, params, returnType, err := ParseCallExtraDataByABI(lifeVm, input, abi)
+				return &result{
+					funcName:funcName,
+					params:params,
+					returnType:returnType,
+					err:err,
+				}
+			},
+			expect: result{callFuncName,[]int64{131072}, "string", errInvalidRlpFormat},
 		},
 	}
 
+	for _,tc := range testCases{
+		res := tc.given()
+		if res.err != nil {
+			assert.Equal(t, tc.expect.err.Error(), res.err.Error())
+		} else {
+			assert.NoError(t, res.err)
+			assert.Equal(t, tc.expect.returnType, res.returnType)
+			assert.Equal(t, tc.expect.params, res.params)
+			assert.Equal(t, tc.expect.funcName, res.funcName)
+		}
+	}
+}
 
-	ParseCallExtraDataByABI()
+func Test_ParseInitFunctionByABI(t *testing.T)  {
+	ctrl, _, _ := GetBaseVmInfo(t)
+	defer ctrl.Finish()
+
+	type result struct{
+		params []int64
+		returnType string
+		err error
+	}
+
+	testCases := []struct{
+		name string
+		given func() *result
+		expect result
+	} {
+		{
+			name:"errInvalidRlpFormat",
+			given: func() *result {
+				input, err := rlp.EncodeToBytes("result")
+				assert.NoError(t, err)
+				code, abi := test_util.GetTestData(eventContractName)
+				lifeVm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, nil, nil)
+				assert.NoError(t, err)
+				params, returnType, err := ParseInitFunctionByABI(lifeVm, input, abi)
+				return &result{
+					params:params,
+					returnType:returnType,
+					err:err,
+				}
+			},
+			expect: result{[]int64{}, "", errInvalidRlpFormat},
+		},
+		{
+			name:"ParseInitFunctionByABIRight",
+			given: func() *result {
+				code, abi := test_util.GetTestData("token-payable")
+				lifeVm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, nil, nil)
+				assert.NoError(t, err)
+				input, err := rlp.EncodeToBytes([]interface{}{"dipc","dipc", utils.Uint64ToBytes(1000)})
+				assert.NoError(t, err)
+				params, returnType, err := ParseInitFunctionByABI(lifeVm, input, abi)
+				return &result{
+					params:params,
+					returnType:returnType,
+					err:err,
+				}
+			},
+			expect: result{[]int64{131072,131080,1000}, "void", nil},
+		},
+	}
+
+	for _,tc := range testCases{
+		res := tc.given()
+		if res.err != nil {
+			assert.Equal(t, tc.expect.err.Error(), res.err.Error())
+		} else {
+			assert.NoError(t, res.err)
+			assert.Equal(t, tc.expect.returnType, res.returnType)
+			assert.Equal(t, tc.expect.params, res.params)
+		}
+	}
 }
