@@ -437,7 +437,7 @@ func (r *Resolver) envSha3(vm *exec.VirtualMachine) int64 {
 	return 0
 }
 
-func (r *Resolver)envHexStringSameWithVM(vm *exec.VirtualMachine) int64 {
+func (r *Resolver) envHexStringSameWithVM(vm *exec.VirtualMachine) int64 {
 	log.DLogger.Debug("envHexStringSameWithVM execute")
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
 	size := int(int32(vm.GetCurrentFrame().Locals[1]))

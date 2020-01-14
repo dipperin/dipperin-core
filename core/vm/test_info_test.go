@@ -302,7 +302,7 @@ func genInput(t *testing.T, funcName string, param [][]byte) []byte {
 	return result
 }
 
-func GetBaseVmInfo(t *testing.T) (*gomock.Controller, *vm_mock.MockStateDB, *VM ) {
+func GetBaseVmInfo(t *testing.T) (*gomock.Controller, *vm_mock.MockStateDB, *VM) {
 	ctrl := gomock.NewController(t)
 
 	db := vm_mock.NewMockStateDB(ctrl)
@@ -313,7 +313,7 @@ func GetBaseVmInfo(t *testing.T) (*gomock.Controller, *vm_mock.MockStateDB, *VM 
 		Transfer:    Transfer,
 		GetHash:     getTestHashFunc(),
 	}, db, common2.DEFAULT_VM_CONFIG)
-	return ctrl,db,vm
+	return ctrl, db, vm
 }
 
 func getContract(code, abi []byte, input []byte) *Contract {
@@ -340,6 +340,6 @@ func getContract(code, abi []byte, input []byte) *Contract {
 
 func getTestHashFunc() func(num uint64) common.Hash {
 	return func(num uint64) common.Hash {
-	return common.Hash{}
+		return common.Hash{}
 	}
 }

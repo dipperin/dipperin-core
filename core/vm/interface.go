@@ -48,4 +48,3 @@ type StateDB interface {
 	RevertToSnapshot(int)
 	Snapshot() int
 }
-

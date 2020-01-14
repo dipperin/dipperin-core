@@ -34,21 +34,21 @@ import (
 )
 
 var (
-	context  Context
+	context Context
 )
 
-func init()  {
+func init() {
 
 }
 
 func Test_NewVMContext(t *testing.T) {
-	ctrl,db, _ := GetBaseVmInfo(t)
+	ctrl, db, _ := GetBaseVmInfo(t)
 	defer ctrl.Finish()
 
 	tx := model_mock.NewMockAbstractTransaction(ctrl)
 	header := model_mock.NewMockAbstractHeader(ctrl)
 	singer := model_mock.NewMockSigner(ctrl)
-	tx.EXPECT().Sender(singer).Return(model.AliceAddr,nil).AnyTimes()
+	tx.EXPECT().Sender(singer).Return(model.AliceAddr, nil).AnyTimes()
 	tx.EXPECT().GetSigner().Return(singer).AnyTimes()
 	tx.EXPECT().GetGasLimit().Return(uint64(chain_config.BlockGasLimit)).AnyTimes()
 	tx.EXPECT().GetGasPrice().Return(model.TestGasPrice).AnyTimes()
@@ -56,7 +56,6 @@ func Test_NewVMContext(t *testing.T) {
 	header.EXPECT().GetNumber().Return(uint64(1)).AnyTimes()
 	header.EXPECT().CoinBaseAddress().Return(model.AliceAddr).AnyTimes()
 	header.EXPECT().GetTimeStamp().Return(big.NewInt(time.Now().UnixNano())).AnyTimes()
-
 
 	context = NewVMContext(tx, header, getTestHashFunc())
 	assert.Equal(t, tx.GetGasLimit(), context.GetGasLimit())
@@ -71,7 +70,7 @@ func Test_NewVMContext(t *testing.T) {
 	db.EXPECT().GetBalance(model.AliceAddr).Return(big.NewInt(400)).Times(2)
 	db.EXPECT().GetBalance(model.ContractAddr).Return(big.NewInt(100)).Times(1)
 	db.EXPECT().SubBalance(model.AliceAddr, big.NewInt(100)).Return(nil).Times(1)
-	db.EXPECT().AddBalance(model.ContractAddr,big.NewInt(100)).Return(nil).Times(1)
+	db.EXPECT().AddBalance(model.ContractAddr, big.NewInt(100)).Return(nil).Times(1)
 
 	result := context.CanTransfer(db, model.AliceAddr, big.NewInt(100))
 	assert.Equal(t, true, result)
@@ -82,23 +81,21 @@ func Test_NewVMContext(t *testing.T) {
 }
 
 func Test_Run(t *testing.T) {
-	ctrl,db, vm := GetBaseVmInfo(t)
+	ctrl, db, vm := GetBaseVmInfo(t)
 	defer ctrl.Finish()
-
-
 
 	type result struct {
 		res []byte
 		err error
 	}
 	code, abi := test_util.GetTestData("event")
-	paramInput,err := rlp.EncodeToBytes([]interface{}{"winner"})
+	paramInput, err := rlp.EncodeToBytes([]interface{}{"winner"})
 	param := "winner"
 	assert.NoError(t, err)
 
-    testCases := []struct{
-		name string
-		given func() ([]byte, error)
+	testCases := []struct {
+		name   string
+		given  func() ([]byte, error)
 		expect result
 	}{
 		{
@@ -109,12 +106,12 @@ func Test_Run(t *testing.T) {
 				return run(vm, contract, true)
 			},
 			expect: result{nil, nil},
-	    },
+		},
 		{
 			name: "newVMErr",
 			given: func() ([]byte, error) {
 				contract := getContract(code, abi, nil)
-				contract.Code = []byte{12,23}
+				contract.Code = []byte{12, 23}
 				return run(vm, contract, true)
 			},
 			expect: result{nil, errors.New("unexpected EOF")},
@@ -132,61 +129,57 @@ func Test_Run(t *testing.T) {
 			name: "runCallRight",
 			given: func() ([]byte, error) {
 
-				input, err := rlp.EncodeToBytes([]interface{}{"returnString","winner"})
+				input, err := rlp.EncodeToBytes([]interface{}{"returnString", "winner"})
 				assert.NoError(t, err)
 
 				contract := getContract(code, abi, input)
 				contract.value = big.NewInt(0)
 				log := model.Log{
-					Address:contract.Address(),
-					Topics:[]common.Hash{common.HexToHash("0x5ef0c22ad5a85e4c701253956114eeac26c27503bd523ad6fbc3ac2d4553e69c"),},
-					TopicName:"topic",
-					BlockNumber:0,
-					Data:paramInput,
-					TxHash:common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
-					TxIndex:uint(0),
-					BlockHash:common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
-					Index:uint(0),
-					Removed:false,
+					Address:     contract.Address(),
+					Topics:      []common.Hash{common.HexToHash("0x5ef0c22ad5a85e4c701253956114eeac26c27503bd523ad6fbc3ac2d4553e69c")},
+					TopicName:   "topic",
+					BlockNumber: 0,
+					Data:        paramInput,
+					TxHash:      common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
+					TxIndex:     uint(0),
+					BlockHash:   common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
+					Index:       uint(0),
+					Removed:     false,
 				}
 				db.EXPECT().AddLog(&log).Return().Times(1)
 
-				ret,err := run(vm, contract, false)
+				ret, err := run(vm, contract, false)
 				if len(ret) > len(param) {
 					ret = ret[:len(param)]
 				}
-				return ret,err
+				return ret, err
 			},
 			expect: result{[]byte(param), nil},
 		},
-
 	}
 
-	for _, tc := range testCases{
-		ret, err  := tc.given()
+	for _, tc := range testCases {
+		ret, err := tc.given()
 		if err != nil {
 			assert.Equal(t, tc.expect.err.Error(), err.Error())
-		}else {
+		} else {
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expect.res, ret)
 		}
 	}
 
-/*	_, err := run(vm, contract, true)
-	assert.NoError(t, err)
+	/*	_, err := run(vm, contract, true)
+		assert.NoError(t, err)
 
-	ch := make(chan int, 1)
-	go func() {
-		vm.Cancel()
-		ch <- 0
-	}()
-	_, err = run(vm, contract, true)
-	assert.NoError(t, err)
-	<-ch*/
+		ch := make(chan int, 1)
+		go func() {
+			vm.Cancel()
+			ch <- 0
+		}()
+		_, err = run(vm, contract, true)
+		assert.NoError(t, err)
+		<-ch*/
 }
-
-
-
 
 func TestVM_CreateAndCall(t *testing.T) {
 	ctrl, db, vm := GetBaseVmInfo(t)
@@ -206,16 +199,16 @@ func TestVM_CreateAndCall(t *testing.T) {
 	contractAddr := cs_crypto.CreateContractAddress(ref.Address(), uint64(0))
 	log := model.Log{
 		//Address:common.HexToAddress("0x0014B5Df12F50295469Fe33951403b8f4E63231Ef488"),
-		Address:model.ContractAddr,
-		TopicName:"topic",
-		Topics:[]common.Hash{common.BytesToHash(crypto.Keccak256([]byte("topic")))},
-		Data:[]byte("ƅparam"),
-		BlockNumber:0,
-		TxHash:common.Hash{},
-		TxIndex:0,
-		BlockHash:common.Hash{},
-		Index:0,
-		Removed:false,
+		Address:     model.ContractAddr,
+		TopicName:   "topic",
+		Topics:      []common.Hash{common.BytesToHash(crypto.Keccak256([]byte("topic")))},
+		Data:        []byte("ƅparam"),
+		BlockNumber: 0,
+		TxHash:      common.Hash{},
+		TxIndex:     0,
+		BlockHash:   common.Hash{},
+		Index:       0,
+		Removed:     false,
 	}
 
 	log2 := log
@@ -223,12 +216,12 @@ func TestVM_CreateAndCall(t *testing.T) {
 	t.Log("log", log.Address)
 	t.Log("log2", log2.Address)
 
-	db.EXPECT().GetNonce(ref.Address()).Return(uint64(0),nil).AnyTimes()
+	db.EXPECT().GetNonce(ref.Address()).Return(uint64(0), nil).AnyTimes()
 	db.EXPECT().GetBalance(ref.Address()).Return(new(big.Int).Mul(value, big.NewInt(10))).AnyTimes()
 	db.EXPECT().AddNonce(ref.Address(), uint64(1)).Return().AnyTimes()
 	db.EXPECT().GetCodeHash(contractAddr).Return(common.Hash{}).AnyTimes()
 	db.EXPECT().GetAbiHash(contractAddr).Return(common.Hash{}).AnyTimes()
-	db.EXPECT().GetNonce(contractAddr).Return(uint64(0),nil).AnyTimes()
+	db.EXPECT().GetNonce(contractAddr).Return(uint64(0), nil).AnyTimes()
 	db.EXPECT().Snapshot().Return(1).AnyTimes()
 	db.EXPECT().CreateAccount(contractAddr).Return(nil).AnyTimes()
 	db.EXPECT().SubBalance(ref.Address(), value).Return(nil).AnyTimes()
@@ -241,14 +234,13 @@ func TestVM_CreateAndCall(t *testing.T) {
 	db.EXPECT().AddLog(&log2).Times(1)
 	db.EXPECT().AddLog(&log).Times(1)
 
-
-	testCases := []struct{
-		name string
-		given func() error
+	testCases := []struct {
+		name   string
+		given  func() error
 		expect error
-	} {
+	}{
 		{
-			name:"TestContractCreate",
+			name: "TestContractCreate",
 			given: func() error {
 				resp, addr, _, err := vm.Create(ref, data, gasLimit, value)
 				//expectAddr := cs_crypto.CreateContractAddress(ref.Address(), uint64(0))
@@ -256,7 +248,7 @@ func TestVM_CreateAndCall(t *testing.T) {
 				assert.Equal(t, contractAddr, addr)
 				return err
 			},
-			expect:nil,
+			expect: nil,
 		},
 		{
 			name: "TestContractCall",
@@ -278,7 +270,7 @@ func TestVM_CreateAndCall(t *testing.T) {
 				assert.Equal(t, contractAddr, addr)
 				return err
 			},
-			expect:nil,
+			expect: nil,
 		},
 		{
 			name: "TestContractDelegateCall",
@@ -302,14 +294,13 @@ func TestVM_CreateAndCall(t *testing.T) {
 				assert.Equal(t, contractAddr, addr)
 				return err
 			},
-			expect:nil,
+			expect: nil,
 		},
 	}
 
-
-    for _,tc := range testCases{
-    	err := tc.given()
-    	assert.Equal(t, err, tc.expect)
+	for _, tc := range testCases {
+		err := tc.given()
+		assert.Equal(t, err, tc.expect)
 	}
 
 }

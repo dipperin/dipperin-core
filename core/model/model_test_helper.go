@@ -35,7 +35,7 @@ var (
 	ContractAddr = common.HexToAddress("0x0014B5Df12F50295469Fe33951403b8f4E63231Ef488")
 	TestGasPrice = big.NewInt(1)
 
-	TestValue    = big.NewInt(100)
+	TestValue     = big.NewInt(100)
 	TestZeroValue = big.NewInt(0)
 )
 

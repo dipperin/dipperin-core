@@ -65,7 +65,6 @@ type StateDBService interface {
 	GetNonce(common.Address) (uint64, error)
 }
 
-
 type resolverNeedExternalService struct {
 	ContractService
 	VmContextService

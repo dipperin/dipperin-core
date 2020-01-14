@@ -9,4 +9,3 @@ var DEFAULT_VM_CONFIG = exec.VMConfig{
 	EnableJIT:          false,
 	DefaultMemoryPages: mem_manage.DefaultPageSize,
 }
-

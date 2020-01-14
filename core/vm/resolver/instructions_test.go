@@ -26,7 +26,7 @@ import (
 	"testing"
 )
 
-func getBaseVirtualMachine(t *testing.T)(*gomock.Controller, *exec.ImportResolver, *exec.VirtualMachine)  {
+func getBaseVirtualMachine(t *testing.T) (*gomock.Controller, *exec.ImportResolver, *exec.VirtualMachine) {
 	ctrl := gomock.NewController(t)
 
 	state := NewMockStateDBService(ctrl)
@@ -37,9 +37,8 @@ func getBaseVirtualMachine(t *testing.T)(*gomock.Controller, *exec.ImportResolve
 	code, _ := test_util.GetTestData("demo")
 	vm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, solver, nil)
 	assert.NoError(t, err)
-	return ctrl, &solver,vm
+	return ctrl, &solver, vm
 }
-
 
 func Test_Instructions(t *testing.T) {
 	ctrl, _, vm := getBaseVirtualMachine(t)
@@ -53,12 +52,11 @@ func Test_Instructions(t *testing.T) {
 	assert.Equal(t, int64(0), res)
 }
 
-
-func Test_envEmitEvent(t *testing.T)  {
+func Test_envEmitEvent(t *testing.T) {
 	ctrl, _, vm := getBaseVirtualMachine(t)
 	defer ctrl.Finish()
 	topic := int64(0)
-	topicLen:= int64(10)
+	topicLen := int64(10)
 	dataSrc := int64(20)
 	dataLen := int64(20)
 
@@ -68,7 +66,7 @@ func Test_envEmitEvent(t *testing.T)  {
 	t.Log("currentFrame", vm.CurrentFrame)
 	vm.CurrentFrame++
 	frame := exec.Frame{
-		Locals:[]int64{topic, topicLen, dataSrc, dataLen},
+		Locals: []int64{topic, topicLen, dataSrc, dataLen},
 	}
 	vm.CallStack[0] = frame
 
@@ -77,8 +75,7 @@ func Test_envEmitEvent(t *testing.T)  {
 	//assert.Equal(t, int64(131072), dest)
 }
 
-
-func Test_envMalloc(t *testing.T)  {
+func Test_envMalloc(t *testing.T) {
 	ctrl, _, vm := getBaseVirtualMachine(t)
 	defer ctrl.Finish()
 	data := []byte("hello")
@@ -87,7 +84,7 @@ func Test_envMalloc(t *testing.T)  {
 	t.Log("currentFrame", vm.CurrentFrame)
 	vm.CurrentFrame++
 	frame := exec.Frame{
-		Locals:[]int64{lenPos},
+		Locals: []int64{lenPos},
 	}
 	vm.CallStack[0] = frame
 
@@ -95,20 +92,18 @@ func Test_envMalloc(t *testing.T)  {
 	assert.Equal(t, int64(131072), dest)
 }
 
-
-
-func Test_envMemcpy(t *testing.T)  {
+func Test_envMemcpy(t *testing.T) {
 	ctrl, _, vm := getBaseVirtualMachine(t)
 	defer ctrl.Finish()
 	destPos := int64(10)
-	srcPos  := int64(0)
+	srcPos := int64(0)
 	data := []byte("hello")
 	lenPos := int64(len(data))
 
 	t.Log("currentFrame", vm.CurrentFrame)
 	vm.CurrentFrame++
 	frame := exec.Frame{
-		Locals:[]int64{destPos,srcPos,lenPos},
+		Locals: []int64{destPos, srcPos, lenPos},
 	}
 	vm.CallStack[0] = frame
 	vm.Memory.Memory = append(data, vm.Memory.Memory[:lenPos]...)
@@ -117,18 +112,18 @@ func Test_envMemcpy(t *testing.T)  {
 	assert.Equal(t, data, vm.Memory.Memory[dest:dest+int64(len(data))])
 }
 
-func Test_envMemmove(t *testing.T)  {
+func Test_envMemmove(t *testing.T) {
 	ctrl, _, vm := getBaseVirtualMachine(t)
 	defer ctrl.Finish()
 	destPos := int64(10)
-	srcPos  := int64(0)
+	srcPos := int64(0)
 	data := []byte("hello")
 	lenPos := int64(len(data))
 
 	t.Log("currentFrame", vm.CurrentFrame)
 	vm.CurrentFrame++
 	frame := exec.Frame{
-		Locals:[]int64{destPos,srcPos,lenPos},
+		Locals: []int64{destPos, srcPos, lenPos},
 	}
 	vm.CallStack[0] = frame
 	vm.Memory.Memory = append(data, vm.Memory.Memory[:lenPos]...)
@@ -141,34 +136,30 @@ func Test_MallocString(t *testing.T) {
 	ctrl, _, vm := getBaseVirtualMachine(t)
 	defer ctrl.Finish()
 
-	testCases := []struct{
-		name string
-		given string
+	testCases := []struct {
+		name   string
+		given  string
 		expect string
 	}{
 		{
-			name:"normalString",
-			given:"DIPP",
-			expect:"DIPP",
+			name:   "normalString",
+			given:  "DIPP",
+			expect: "DIPP",
 		},
 		{
-			name:"emptyString",
-			given:"",
-			expect:"",
+			name:   "emptyString",
+			given:  "",
+			expect: "",
 		},
 		{
-			name:"addrString",
-			given:model.AliceAddr.String(),
-			expect:model.AliceAddr.String(),
+			name:   "addrString",
+			given:  model.AliceAddr.String(),
+			expect: model.AliceAddr.String(),
 		},
 	}
 
-	for _,tc := range testCases{
+	for _, tc := range testCases {
 		pos := MallocString(vm, tc.given)
-		assert.Equal(t, tc.given, string(vm.Memory.Memory[pos:pos+int64(len(tc.expect))]) )
+		assert.Equal(t, tc.given, string(vm.Memory.Memory[pos:pos+int64(len(tc.expect))]))
 	}
 }
-
-
-
-

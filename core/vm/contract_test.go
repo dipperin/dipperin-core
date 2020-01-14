@@ -40,7 +40,7 @@ func TestNewContract(t *testing.T) {
 }
 
 func TestContract_AsDelegate(t *testing.T) {
-	code,abi := test_util.GetTestData(eventContractName)
+	code, abi := test_util.GetTestData(eventContractName)
 
 	inputs := genInput(t, "hello", nil)
 	callerContract := getContract(code, abi, inputs)

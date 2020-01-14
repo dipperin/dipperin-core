@@ -77,7 +77,6 @@ func (r *Resolver) envGetStateSize(vm *exec.VirtualMachine) int64 {
 	return int64(len(val))
 }
 
-
 //void emitEvent(const char *topic, size_t topicLen, const uint8_t *data, size_t dataLen);
 //topic = funcName
 //data = param...

@@ -56,7 +56,6 @@ type AbstractBody interface {
 	//GetReceipts() ([]*model.Receipt, error)
 }
 
-
 //go:generate mockgen -destination=./../../tests/mock/model/block_mock.go -package=model_mock github.com/dipperin/dipperin-core/core/model AbstractBlock
 type AbstractBlock interface {
 	Version() uint64
@@ -132,7 +131,6 @@ type AbstractTransaction interface {
 	GetReceipt() *Receipt
 	GetActualTxFee() (fee *big.Int)
 }
-
 
 type AbstractVerification interface {
 	GetHeight() uint64
