@@ -16,7 +16,18 @@
 
 package resolver
 
-/*func TestResolverNeedExternalService_Transfer(t *testing.T) {
+import (
+	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/dipperin/dipperin-core/core/vm/common"
+	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"math/big"
+	"testing"
+)
+
+func TestResolverNeedExternalService_Transfer(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	state := NewMockStateDBService(ctrl)
@@ -27,8 +38,13 @@ package resolver
 		vmValue,
 		state,
 	}
+	transferValue := big.NewInt(100)
 
-	resp, gasLeft, err := service.Transfer(model.AliceAddr, big.NewInt(100))
+	contract.EXPECT().Self().Return(common.AccountRef(model.AliceAddr)).AnyTimes()
+	vmValue.EXPECT().Call(common.AccountRef(model.AliceAddr),model.AliceAddr,nil, uint64(0), transferValue)
+
+	resp, gasLeft, err := service.Transfer(model.AliceAddr, transferValue)
+
 	assert.NoError(t, err)
 	assert.Equal(t, []byte(nil), resp)
 	assert.Equal(t, uint64(0), gasLeft)
@@ -63,7 +79,7 @@ func TestResolverNeedExternalService_ResolverCall(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, []byte(nil), resp)
 }
-*/
+
 /*
 func TestResolverNeedExternalService_ResolverDelegateCall(t *testing.T) {
 	vmValue := &fakeVmContextService{}

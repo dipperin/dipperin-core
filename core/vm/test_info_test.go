@@ -306,11 +306,11 @@ func GetBaseVmInfo(t *testing.T) (*gomock.Controller, *vm_mock.MockStateDB, *VM)
 	ctrl := gomock.NewController(t)
 
 	db := vm_mock.NewMockStateDB(ctrl)
-	vm := NewVM(Context{
+	vm := NewVM(common2.Context{
 		Origin:      model.AliceAddr,
 		BlockNumber: big.NewInt(1),
-		CanTransfer: CanTransfer,
-		Transfer:    Transfer,
+		CanTransfer: common2.CanTransfer,
+		Transfer:    common2.Transfer,
 		GetHash:     getTestHashFunc(),
 	}, db, common2.DEFAULT_VM_CONFIG)
 	return ctrl, db, vm
@@ -318,8 +318,8 @@ func GetBaseVmInfo(t *testing.T) (*gomock.Controller, *vm_mock.MockStateDB, *VM)
 
 func getContract(code, abi []byte, input []byte) *Contract {
 	//fileCode, fileABI := g_testData.GetCodeAbi(code, abi)
-	caller := AccountRef(model.AliceAddr)
-	self := AccountRef(model.ContractAddr)
+	caller := common2.AccountRef(model.AliceAddr)
+	self := common2.AccountRef(model.ContractAddr)
 	value := model.TestZeroValue
 	gasLimit := model.TestGasLimit
 	contract := NewContract(caller, self, value, gasLimit, input)

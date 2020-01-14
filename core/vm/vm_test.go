@@ -20,6 +20,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
+	common2 "github.com/dipperin/dipperin-core/core/vm/common"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/tests/mock/model"
 	"github.com/dipperin/dipperin-core/tests/util"
@@ -34,7 +35,7 @@ import (
 )
 
 var (
-	context Context
+	context common2.Context
 )
 
 func init() {
@@ -57,7 +58,7 @@ func Test_NewVMContext(t *testing.T) {
 	header.EXPECT().CoinBaseAddress().Return(model.AliceAddr).AnyTimes()
 	header.EXPECT().GetTimeStamp().Return(big.NewInt(time.Now().UnixNano())).AnyTimes()
 
-	context = NewVMContext(tx, header, getTestHashFunc())
+	context = common2.NewVMContext(tx, header, getTestHashFunc())
 	assert.Equal(t, tx.GetGasLimit(), context.GetGasLimit())
 	assert.Equal(t, header.GetNumber(), context.GetBlockNumber().Uint64())
 	assert.Equal(t, tx.GetGasPrice(), context.GetGasPrice())
@@ -185,7 +186,7 @@ func TestVM_CreateAndCall(t *testing.T) {
 	ctrl, db, vm := GetBaseVmInfo(t)
 	defer ctrl.Finish()
 
-	ref := AccountRef(model.AliceAddr)
+	ref := common2.AccountRef(model.AliceAddr)
 	gasLimit := model.TestGasLimit * 100
 	value := big.NewInt(0)
 	code, abi := test_util.GetTestData("event")

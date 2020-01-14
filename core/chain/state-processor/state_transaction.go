@@ -7,6 +7,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
+	common2 "github.com/dipperin/dipperin-core/core/vm/common"
 	"go.uber.org/zap"
 	"math/big"
 )
@@ -19,7 +20,7 @@ type StateTransition struct {
 	initialGas uint64
 	value      *big.Int
 	data       []byte
-	state      vm.StateDB
+	state      common2.StateDB
 	lifeVm     *vm.VM
 }
 
@@ -116,7 +117,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		return
 	}
 	msg := st.msg
-	sender := vm.AccountRef(msg.From())
+	sender := common2.AccountRef(msg.From())
 	contractCreation := msg.To().GetAddressType() == common.AddressTypeContractCreate
 
 	// Pay intrinsic gas

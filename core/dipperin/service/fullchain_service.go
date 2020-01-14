@@ -2059,14 +2059,14 @@ func (service *VenusFullChainService) doCall(msg state_processor.Message, txHash
 
 	// Create NewVM
 	log.DLogger.Info("doCall#gasLimit", zap.Uint64("gasLimit", msg.Gas()))
-	conText := vm.Context{
+	conText := common2.Context{
 		Origin:      msg.From(),
 		GasPrice:    msg.GasPrice(),
 		GasLimit:    msg.Gas(),
 		BlockNumber: new(big.Int).SetUint64(blockNum),
 		TxHash:      txHash,
-		CanTransfer: vm.CanTransfer,
-		Transfer:    vm.Transfer,
+		CanTransfer: common2.CanTransfer,
+		Transfer:    common2.Transfer,
 		Coinbase:    block.Header().CoinBaseAddress(),
 		Time:        block.Header().GetTimeStamp(),
 		GetHash:     service.GetBlockHashByNumber,

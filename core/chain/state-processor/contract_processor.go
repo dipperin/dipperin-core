@@ -14,7 +14,7 @@ type CallCode struct {
 }
 
 func (state *AccountStateDB) ProcessContract(conf *TxProcessConfig, create bool) (model.ReceiptPara, error) {
-	context := vm.NewVMContext(conf.Tx, conf.Header, conf.GetHash)
+	context := common.NewVMContext(conf.Tx, conf.Header, conf.GetHash)
 	fullState := &Fullstate{
 		state: state,
 	}

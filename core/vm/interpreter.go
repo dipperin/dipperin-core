@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/math"
+	"github.com/dipperin/dipperin-core/core/vm/common"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
 	"github.com/dipperin/dipperin-core/third-party/life/exec"
@@ -58,14 +59,14 @@ type Interpreter interface {
 }
 
 type WASMInterpreter struct {
-	state    StateDB
-	context  *Context
+	state    common.StateDB
+	context  *common.Context
 	config   exec.VMConfig
 	resolver exec.ImportResolver
 }
 
 // NewWASMInterpreter returns a new instance of the Interpreter
-func NewWASMInterpreter(state StateDB, context Context, vmConfig exec.VMConfig) *WASMInterpreter {
+func NewWASMInterpreter(state common.StateDB, context common.Context, vmConfig exec.VMConfig) *WASMInterpreter {
 	return &WASMInterpreter{
 		state,
 		&context,

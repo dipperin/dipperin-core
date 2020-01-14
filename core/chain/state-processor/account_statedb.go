@@ -25,7 +25,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/util/json-kv"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/vm"
+	common2 "github.com/dipperin/dipperin-core/core/vm/common"
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/rlp"
 	"go.uber.org/zap"
@@ -1236,7 +1236,7 @@ func (state *AccountStateDB) setTxReceiptPar(tx model.AbstractTransaction, par *
 type TxProcessConfig struct {
 	Tx       model.AbstractTransaction
 	Header   model.AbstractHeader
-	GetHash  vm.GetHashFunc
+	GetHash  common2.GetHashFunc
 	GasLimit *uint64
 	GasUsed  *uint64
 	TxFee    *big.Int
