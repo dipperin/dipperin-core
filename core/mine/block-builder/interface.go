@@ -19,9 +19,9 @@ package block_builder
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/chain"
-	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
+	"github.com/dipperin/dipperin-core/core/chaincommunication"
 	"github.com/dipperin/dipperin-core/core/economy-model"
 	"github.com/dipperin/dipperin-core/core/model"
 )
@@ -59,10 +59,10 @@ type ModelConfig struct {
 	TxPool             TxPool
 	PriorityCalculator model.PriofityCalculator
 	TxSigner           model.Signer
-	MsgSigner          chain_communication.PbftSigner
+	MsgSigner          chaincommunication.PbftSigner
 	ChainConfig        chain_config.ChainConfig
 }
 
 //go:generate mockgen -destination=./signer_mock_test.go -package=builder github.com/dipperin/dipperin-core/core/model Signer
 
-//go:generate mockgen -destination=./pbft_signer_mock_test.go -package=builder github.com/dipperin/dipperin-core/core/chain-communication PbftSigner
+//go:generate mockgen -destination=./pbft_signer_mock_test.go -package=builder github.com/dipperin/dipperin-core/core/chaincommunication PbftSigner

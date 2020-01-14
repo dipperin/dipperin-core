@@ -17,13 +17,8 @@
 package model
 
 import (
-	"crypto/ecdsa"
-	"errors"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
 	"math/big"
-	"time"
 )
 
 var (
@@ -33,127 +28,5 @@ var (
 	BobAddr      = common.HexToAddress("0x0000970e8128aB834E8EAC17aB8E3812f010678CF791")
 	CharlieAddr  = common.HexToAddress("0x00007dbbf084F4a6CcC070568f7674d4c2CE8CD2709E")
 	ContractAddr = common.HexToAddress("0x0014B5Df12F50295469Fe33951403b8f4E63231Ef488")
-	TestGasPrice = big.NewInt(1)
-
-	TestValue     = big.NewInt(100)
 	TestZeroValue = big.NewInt(0)
 )
-
-const (
-	TestGasLimit = 2 * TxGas
-)
-
-func CreateKey() (*ecdsa.PrivateKey, *ecdsa.PrivateKey) {
-	key1, _ := crypto.HexToECDSA(AlicePriv)
-	key2, _ := crypto.HexToECDSA(BobPriv)
-	return key1, key2
-}
-
-func CreateSignedVote(height, round uint64, blockId common.Hash, voteType VoteMsgType) *VoteMsg {
-	voteA := NewVoteMsg(height, round, blockId, voteType)
-	key, _ := CreateKey()
-	sign, _ := crypto.Sign(voteA.Hash().Bytes(), key)
-	voteA.Witness.Address = AliceAddr
-	voteA.Witness.Sign = sign
-	return voteA
-}
-
-func CreateSignedTx(nonce uint64, amount *big.Int) *Transaction {
-	key1, _ := CreateKey()
-	fs1 := NewSigner(big.NewInt(1))
-	testTx1 := NewTransaction(nonce, BobAddr, amount, TestGasPrice, TestGasLimit, []byte{})
-	signedTx, _ := testTx1.SignTx(key1, fs1)
-	return signedTx
-}
-
-func CreateSignedTxList(n int) []*Transaction {
-	keyAlice, _ := CreateKey()
-	ms := NewSigner(big.NewInt(1))
-
-	var res []*Transaction
-	for i := 0; i < n; i++ {
-		tempTx := NewTransaction(uint64(i), BobAddr, big.NewInt(1000), TestGasPrice, TestGasLimit, []byte{})
-		gasUsed, _ := IntrinsicGas(tempTx.ExtraData(), false, false)
-		tempTx.PaddingActualTxFee(big.NewInt(0).Mul(big.NewInt(int64(gasUsed)), TestGasPrice))
-		tempTx.SignTx(keyAlice, ms)
-		res = append(res, tempTx)
-	}
-	return res
-}
-
-func CreateBlock(num uint64, preHash common.Hash, txsNum int) *Block {
-	header := NewHeader(0, num, preHash, common.HexToHash("123456"), common.HexToDiff("1fffffff"), big.NewInt(time.Now().UnixNano()), AliceAddr, common.BlockNonce{})
-
-	// tx list
-	txList := CreateSignedTxList(txsNum)
-
-	// vote
-	var voteList []AbstractVerification
-	block := NewBlock(header, txList, voteList)
-
-	// calculate block nonce
-	CalNonce(block)
-	block.RefreshHashCache()
-	return block
-}
-
-func createTestTx() (*Transaction, *Transaction) {
-	_, key2 := CreateKey()
-	fs2 := NewSigner(big.NewInt(3))
-	hashLock := cs_crypto.Keccak256Hash([]byte("123"))
-	tx1 := CreateSignedTx(10, big.NewInt(100))
-	tx2 := CreateRawLockTx(1, hashLock, big.NewInt(34564), big.NewInt(10000), TestGasPrice, TestGasLimit, AliceAddr, BobAddr)
-	tx2.SignTx(key2, fs2)
-	return tx1, tx2
-}
-
-// calculate block nonce
-func CalNonce(block *Block) {
-
-	preRlp := block.header.RlpBlockWithoutNonce()
-	work := &defaultWork{
-		header: block.header,
-		preRlp: preRlp,
-	}
-	work.changeNonce()
-}
-
-type defaultWork struct {
-	header *Header
-	preRlp []byte
-}
-
-func (work *defaultWork) changeNonce() {
-	nonce := work.header.Nonce
-	for {
-		for index := len(nonce) - 1; index >= 0; {
-			if nonce[index] < 255 {
-				nonce[index]++
-				break
-			} else {
-				nonce[index] = 0
-				index--
-			}
-		}
-		copy(work.header.Nonce[:], nonce[:])
-		bHash, err := work.calHash()
-		if err == nil {
-			if bHash.ValidHashForDifficulty(work.header.GetDifficulty()) {
-				break
-			}
-		}
-	}
-}
-
-func (work *defaultWork) calHash() (common.Hash, error) {
-	if len(work.preRlp) == 0 {
-		return common.Hash{}, errors.New("DefaultWork rlp be not calculated yet")
-	}
-
-	//extract nonce
-	nonce := work.header.Nonce
-	raw := append(work.preRlp, nonce[:]...)
-
-	//calculate hash
-	return cs_crypto.Keccak256Hash(raw), nil
-}

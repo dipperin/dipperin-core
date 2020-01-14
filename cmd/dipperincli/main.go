@@ -30,7 +30,7 @@ import (
 	"github.com/dipperin/dipperin-core/cmd/utils/debug"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
+	"github.com/dipperin/dipperin-core/core/accounts/softwallet"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/dipperin"
 	"github.com/urfave/cli"
@@ -132,7 +132,7 @@ func doPrompts(conf *startConf, saveTo string) {
 		return
 	}
 	// write to file
-	exist, _ := soft_wallet.PathExists(saveTo)
+	exist, _ := softwallet.PathExists(saveTo)
 	if !exist {
 		os.MkdirAll(filepath.Dir(saveTo), 0766)
 	}

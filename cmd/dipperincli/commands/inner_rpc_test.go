@@ -19,7 +19,7 @@ package commands
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/rpc-interface"
+	"github.com/dipperin/dipperin-core/core/rpcinterface"
 	"testing"
 
 	"github.com/dipperin/dipperin-core/common"
@@ -120,7 +120,7 @@ func Test_rpcCaller_CheckVerifierType(t *testing.T) {
 		caller.CheckVerifierType(c)
 
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), getDipperinRpcMethodByName("CurrentBlock")).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			*result.(*rpc_interface.BlockResp) = rpc_interface.BlockResp{
+			*result.(*rpcinterface.BlockResp) = rpcinterface.BlockResp{
 				Header: model.Header{
 					Number: 2,
 				},

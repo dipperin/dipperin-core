@@ -22,7 +22,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/g-event"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/chain-communication"
+	"github.com/dipperin/dipperin-core/core/chaincommunication"
 	"github.com/dipperin/dipperin-core/core/model"
 	"go.uber.org/zap"
 	"math/big"
@@ -66,7 +66,7 @@ type master struct {
 	stopTimerFunc func()
 }
 
-func (ms *master) SetMsgSigner(MsgSigner chain_communication.PbftSigner) {
+func (ms *master) SetMsgSigner(MsgSigner chaincommunication.PbftSigner) {
 	ms.MineConfig.SetMsgSigner(MsgSigner)
 	ms.workManager.SetMsgSigner(MsgSigner)
 	ms.workDispatcher.SetMsgSigner(MsgSigner)

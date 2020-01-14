@@ -23,11 +23,11 @@ import (
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts"
-	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
+	"github.com/dipperin/dipperin-core/core/accounts/softwallet"
 	"github.com/dipperin/dipperin-core/core/chain"
-	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/chain/cachedb"
+	"github.com/dipperin/dipperin-core/core/chaincommunication"
 	"github.com/dipperin/dipperin-core/core/cs-chain"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-state"
 	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer"
@@ -39,8 +39,8 @@ import (
 	"github.com/dipperin/dipperin-core/core/mine/block-builder"
 	"github.com/dipperin/dipperin-core/core/mine/minemaster"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/rpc-interface"
-	"github.com/dipperin/dipperin-core/core/tx-pool"
+	"github.com/dipperin/dipperin-core/core/txpool"
+	"github.com/dipperin/dipperin-core/core/rpcinterface"
 	"github.com/dipperin/dipperin-core/core/verifiers-halt-check"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
 	"github.com/dipperin/dipperin-core/third-party/p2p/nat"
@@ -64,30 +64,30 @@ type BaseComponent struct {
 	DipperinConfig       *service.DipperinConfig
 	csChainServiceConfig *cs_chain.CsChainServiceConfig
 	bftConfig            *state_machine.BftConfig
-	pmConf               *chain_communication.CsProtocolManagerConfig
-	txBConf              *chain_communication.NewTxBroadcasterConfig
+	pmConf               *chaincommunication.CsProtocolManagerConfig
+	txBConf              *chaincommunication.NewTxBroadcasterConfig
 	verHaltCheckConfig   *verifiers_halt_check.HaltCheckConf
 
 	prometheusServer *g_metrics.PrometheusMetricsServer
 	//cacheDB                     *cachedb.CacheDB
 	fullChain                   *cs_chain.CsChainService
-	txPool                      *tx_pool.TxPool
-	rpcService                  *rpc_interface.Service
+	txPool                      *txpool.TxPool
+	rpcService                  *rpcinterface.Service
 	txSigner                    model.Signer
 	defaultPriorityCalculator   model.PriofityCalculator
 	coinbaseAddr                *atomic.Value
 	blockDecoder                model.BlockDecoder
 	consensusBeforeInsertBlocks BlockValidator
-	defaultMsgDecoder           chain_communication.P2PMsgDecoder
+	defaultMsgDecoder           chaincommunication.P2PMsgDecoder
 	verifiersReader             VerifiersReader
 	chainService                *service.VenusFullChainService
 	walletManager               *accounts.WalletManager
 	msgSigner                   *accounts.WalletSigner
 	bftNode                     *csbftnode.CsBft
 	p2pServer                   *p2p.Server
-	broadcastDelegate           *chain_communication.BroadcastDelegate
-	csPm                        *chain_communication.CsProtocolManager
-	minePm                      *chain_communication.MineProtocolManager
+	broadcastDelegate           *chaincommunication.BroadcastDelegate
+	csPm                        *chaincommunication.CsProtocolManager
+	minePm                      *chaincommunication.MineProtocolManager
 	mineMaster                  minemaster.Master
 	mineMasterServer            minemaster.MasterServer
 	defaultAccountAddress       common.Address
@@ -154,7 +154,7 @@ func newBaseComponent(nodeConfig NodeConfig) *BaseComponent {
 		DipperinConfig:            &service.DipperinConfig{},
 		csChainServiceConfig:      &cs_chain.CsChainServiceConfig{},
 		defaultPriorityCalculator: model.DefaultPriorityCalculator,
-		defaultMsgDecoder:         chain_communication.MakeDefaultMsgDecoder(),
+		defaultMsgDecoder:         chaincommunication.MakeDefaultMsgDecoder(),
 		coinbaseAddr:              &atomic.Value{},
 		nodeConfig:                nodeConfig,
 	}
@@ -249,7 +249,7 @@ func (b *BaseComponent) buildHaltCheckConfig() {
 }
 
 func (b *BaseComponent) buildCommunicationConfig() {
-	b.pmConf = &chain_communication.CsProtocolManagerConfig{
+	b.pmConf = &chaincommunication.CsProtocolManagerConfig{
 		ChainConfig:     *b.chainConfig,
 		Chain:           b.fullChain,
 		P2PServer:       b.p2pServer,
@@ -258,7 +258,7 @@ func (b *BaseComponent) buildCommunicationConfig() {
 		PbftNode:        b.bftNode,
 		MsgSigner:       b.msgSigner,
 	}
-	b.txBConf = &chain_communication.NewTxBroadcasterConfig{
+	b.txBConf = &chaincommunication.NewTxBroadcasterConfig{
 		P2PMsgDecoder: b.defaultMsgDecoder,
 		TxPool:        b.txPool,
 		NodeConf:      b.nodeConfig,
@@ -310,10 +310,10 @@ func (b *BaseComponent) initFullChain() {
 }
 
 func (b *BaseComponent) initTxPool() {
-	txPoolConfig := tx_pool.DefaultTxPoolConfig
+	txPoolConfig := txpool.DefaultTxPoolConfig
 	txPoolConfig.Journal = filepath.Join(b.nodeConfig.DataDir, "transaction.rlp")
 	// no need to replace with context
-	b.txPool = tx_pool.NewTxPool(txPoolConfig, *b.chainConfig, b.fullChain)
+	b.txPool = txpool.NewTxPool(txPoolConfig, *b.chainConfig, b.fullChain)
 	b.csChainServiceConfig.TxPool = b.txPool
 
 	if chain_config.GetCurBootsEnv() != chain_config.BootEnvMercury {
@@ -338,13 +338,13 @@ func (b *BaseComponent) initWalletManager() {
 	}
 
 	// load wallet manager
-	defaultWallet, wErr := soft_wallet.NewSoftWallet()
+	defaultWallet, wErr := softwallet.NewSoftWallet()
 	if wErr != nil {
 		panic("new soft wallet failed: " + wErr.Error())
 	}
 
 	var mnemonic string
-	exit, _ := soft_wallet.PathExists(b.nodeConfig.SoftWalletFile())
+	exit, _ := softwallet.PathExists(b.nodeConfig.SoftWalletFile())
 	log.DLogger.Info("initWalletManager the wallet exit", zap.Bool("exit", exit))
 	if exit {
 		err = defaultWallet.Open(b.nodeConfig.SoftWalletFile(), b.nodeConfig.SoftWalletName(), b.nodeConfig.SoftWalletPassword)
@@ -455,7 +455,7 @@ func (b *BaseComponent) initP2PService() {
 	b.p2pServer = p2pServer
 
 	b.buildCommunicationConfig()
-	csPm, broadcastDelegate := chain_communication.MakeCsProtocolManager(b.pmConf, b.txBConf)
+	csPm, broadcastDelegate := chaincommunication.MakeCsProtocolManager(b.pmConf, b.txBConf)
 
 	b.csPm = csPm
 	b.broadcastDelegate = broadcastDelegate
@@ -467,12 +467,12 @@ func (b *BaseComponent) initP2PService() {
 
 func (b *BaseComponent) initRpc() {
 	// load rpc service todo chainService not init
-	rpcApi := rpc_interface.MakeDipperinVenusApi(b.chainService)
-	debugApi := rpc_interface.MakeDipperinDebugApi(b.chainService)
-	p2pApi := rpc_interface.MakeDipperinP2PApi(b.chainService)
-	externalApi := rpc_interface.MakeDipperExternalApi(rpcApi)
+	rpcApi := rpcinterface.MakeDipperinVenusApi(b.chainService)
+	debugApi := rpcinterface.MakeDipperinDebugApi(b.chainService)
+	p2pApi := rpcinterface.MakeDipperinP2PApi(b.chainService)
+	externalApi := rpcinterface.MakeDipperExternalApi(rpcApi)
 
-	b.rpcService = rpc_interface.MakeRpcService(b.nodeConfig, []rpc.API{
+	b.rpcService = rpcinterface.MakeRpcService(b.nodeConfig, []rpc.API{
 		{
 			Namespace: "dipperin",
 			Version:   chain_config.Version,
@@ -522,7 +522,7 @@ func (b *BaseComponent) initMineMaster() {
 	mineConfig.GasCeil.Store(uint64(chain_config.BlockGasLimit))
 	// chain service not init here
 	mineMaster, mineMasterServer := minemaster.MakeMineMaster(mineConfig)
-	minePm := chain_communication.NewMineProtocolManager(mineMasterServer)
+	minePm := chaincommunication.NewMineProtocolManager(mineMasterServer)
 
 	// p2p server not init
 	b.minePm = minePm
@@ -597,8 +597,8 @@ func (b *BaseComponent) addP2PProtocols() {
 }
 
 type MsgSender struct {
-	broadcastDelegate *chain_communication.BroadcastDelegate
-	csPm              *chain_communication.CsProtocolManager
+	broadcastDelegate *chaincommunication.BroadcastDelegate
+	csPm              *chaincommunication.CsProtocolManager
 }
 
 func (m *MsgSender) BroadcastMsg(msgCode uint64, msg interface{}) {

@@ -22,8 +22,8 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/chain-communication"
 	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chaincommunication"
 	"github.com/dipperin/dipperin-core/core/cs-chain"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/p2p"
@@ -68,12 +68,12 @@ func DefaultNodeConf() NodeConfig {
 
 // get the default p2p configuration
 func DefaultP2PConf() p2p.Config {
-	conf := p2p.Config{NoDiscovery: false, MaxPeers: chain_communication.P2PMaxPeerCount, ListenAddr: ":60606"}
+	conf := p2p.Config{NoDiscovery: false, MaxPeers: chaincommunication.P2PMaxPeerCount, ListenAddr: ":60606"}
 	return conf
 }
 
 func DefaultMinerP2PConf() p2p.Config {
-	return p2p.Config{NoDiscovery: true, MaxPeers: chain_communication.P2PMaxPeerCount, ListenAddr: ":68080"}
+	return p2p.Config{NoDiscovery: true, MaxPeers: chaincommunication.P2PMaxPeerCount, ListenAddr: ":68080"}
 }
 
 /*// add nodes to static nodes exclude local ip

@@ -21,7 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/economy-model"
-	"github.com/dipperin/dipperin-core/core/rpc-interface"
+	"github.com/dipperin/dipperin-core/core/rpcinterface"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
 	"strconv"
@@ -107,7 +107,7 @@ func (caller *rpcCaller) CheckVerifierType(c *cli.Context) {
 	numberEnd := numberStart + config.SlotSize - 1
 
 	// get currentBlockNumber
-	var respBlock rpc_interface.BlockResp
+	var respBlock rpcinterface.BlockResp
 	if err = client.Call(&respBlock, getDipperinRpcMethodByName("CurrentBlock")); err != nil {
 		l.Error("look up for current block", zap.Error(err))
 		return
