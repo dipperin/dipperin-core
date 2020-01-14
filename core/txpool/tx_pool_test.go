@@ -853,25 +853,22 @@ func TestTxPool_TxsInBlockCache(t *testing.T) {
 		txs = append(txs, tx)
 	}
 
-	st := time.Now()
-
 	header := model.NewHeader(0, 0, common.Hash{}, common.Hash{}, common.Difficulty{}, big.NewInt(0), common.Address{}, common.BlockNonce{})
 	trans := make([]*model.Transaction, 4096)
 	util.InterfaceSliceCopy(trans, txs)
 
 	block := model.NewBlock(header, trans, []model.AbstractVerification{})
-	fmt.Printf("---%v\n", time.Now().Sub(st))
-
 	assert.Equal(t, 4096, len(block.GetAbsTransactions()))
 
-	st = time.Now()
+	st := time.Now()
 
 	txCmp := block.GetAbsTransactions()
 	st = time.Now()
 	for i := 0; i < 4096; i++ {
 		txCmp[i].Sender(nil)
 	}
-	fmt.Printf("---%v\n", time.Now().Sub(st))
+	assert.Equal(t,true,time.Now().Sub(st).Seconds()<10)
+	assert.Equal(t,len(txs),len(txCmp))
 }
 
 func TestTxPool_PoolSetup(t *testing.T) {
@@ -882,14 +879,15 @@ func TestTxPool_PoolSetup(t *testing.T) {
 		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, model.TestGasLimit, key2)
 		txs = append(txs, tx)
 	}
-	tx_rlps := [][]byte{}
+	txRlps := [][]byte{}
 
 	st := time.Now()
 	for i := 0; i < 10000; i++ {
 		ret, _ := txs[i].EncodeRlpToBytes()
-		tx_rlps = append(tx_rlps, ret)
+		txRlps = append(txRlps, ret)
 	}
 	fmt.Printf("---%v\n", time.Now().Sub(st))
+	assert.Equal(t,len(txs),len(txRlps))
 
 	st = time.Now()
 	for i := 0; i < 10000; i++ {
@@ -904,7 +902,7 @@ func TestTxPool_PoolSetup(t *testing.T) {
 	hw := sha3.NewLegacyKeccak256()
 	st = time.Now()
 	for i := 0; i < 10000; i++ {
-		splice := append(tx_rlps[i], nonce...)
+		splice := append(txRlps[i], nonce...)
 		rlpHashNew(hw, splice)
 	}
 	fmt.Printf("---%v\n", time.Now().Sub(st))
