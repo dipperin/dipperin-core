@@ -16,7 +16,7 @@
 
 package rpcinterface
 
-import "github.com/dipperin/dipperin-core/third-party/p2p"
+import "github.com/dipperin/dipperin-core/third_party/p2p"
 
 //go:generate mockgen -destination=./p2p_api_mock_test.go -package=rpcinterface github.com/dipperin/dipperin-core/core/rpcinterface P2PAPI
 type P2PAPI interface {

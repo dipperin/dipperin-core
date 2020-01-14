@@ -23,7 +23,7 @@ import (
 	"testing"
 
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/economy-model"
+	"github.com/dipperin/dipperin-core/core/economymodel"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
@@ -68,7 +68,7 @@ func Test_rpcCaller_GetBlockDiffVerifierInfo(t *testing.T) {
 		caller.GetBlockDiffVerifierInfo(c)
 
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			*result.(*map[economy_model.VerifierType][]common.Address) = map[economy_model.VerifierType][]common.Address{}
+			*result.(*map[economymodel.VerifierType][]common.Address) = map[economymodel.VerifierType][]common.Address{}
 			return nil
 		})
 		caller.GetBlockDiffVerifierInfo(c)
@@ -137,11 +137,11 @@ func Test_rpcCaller_CheckVerifierType(t *testing.T) {
 		caller.CheckVerifierType(c)
 
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), getDipperinRpcMethodByName("GetBlockDiffVerifierInfo"), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			tmp := map[economy_model.VerifierType][]common.Address{}
-			tmp[economy_model.MasterVerifier] = []common.Address{
+			tmp := map[economymodel.VerifierType][]common.Address{}
+			tmp[economymodel.MasterVerifier] = []common.Address{
 				common.HexToAddress("0x1234"),
 			}
-			*result.(*map[economy_model.VerifierType][]common.Address) = tmp
+			*result.(*map[economymodel.VerifierType][]common.Address) = tmp
 			return nil
 		}).Times(2)
 

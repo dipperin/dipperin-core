@@ -5,10 +5,10 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/core/contract"
-	"github.com/dipperin/dipperin-core/core/economy-model"
+	"github.com/dipperin/dipperin-core/core/economymodel"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	"github.com/dipperin/dipperin-core/third-party/rpc"
+	"github.com/dipperin/dipperin-core/third_party/rpc"
 	"math/big"
 )
 
@@ -238,11 +238,11 @@ func (api *DipperExternalApi) CurrentReputation(address common.Address) (uint64,
 	return api.allApis.CurrentReputation(address)
 }
 
-func (api *DipperExternalApi) GetBlockDiffVerifierInfo(blockNumber uint64) (map[economy_model.VerifierType][]common.Address, error) {
+func (api *DipperExternalApi) GetBlockDiffVerifierInfo(blockNumber uint64) (map[economymodel.VerifierType][]common.Address, error) {
 	return api.allApis.GetBlockDiffVerifierInfo(blockNumber)
 }
 
-func (api *DipperExternalApi) GetVerifierDIPReward(blockNumber uint64) (map[economy_model.VerifierType]*hexutil.Big, error) {
+func (api *DipperExternalApi) GetVerifierDIPReward(blockNumber uint64) (map[economymodel.VerifierType]*hexutil.Big, error) {
 	return api.allApis.GetVerifierDIPReward(blockNumber)
 }
 
@@ -278,7 +278,7 @@ func (api *DipperExternalApi) GetDeveloperLockDIP(address common.Address, blockN
 	return api.allApis.GetDeveloperLockDIP(address, blockNumber)
 }
 
-func (api *DipperExternalApi) GetFoundationInfo(usage economy_model.FoundationDIPUsage) map[string]*hexutil.Big {
+func (api *DipperExternalApi) GetFoundationInfo(usage economymodel.FoundationDIPUsage) map[string]*hexutil.Big {
 	return api.allApis.GetFoundationInfo(usage)
 }
 
@@ -298,7 +298,7 @@ func (api *DipperExternalApi) GetMineMasterEDIPReward(blockNumber uint64, tokenD
 	return api.allApis.GetMineMasterEDIPReward(blockNumber, tokenDecimals)
 }
 
-func (api *DipperExternalApi) GetVerifierEDIPReward(blockNumber uint64, tokenDecimals int) (map[economy_model.VerifierType]*hexutil.Big, error) {
+func (api *DipperExternalApi) GetVerifierEDIPReward(blockNumber uint64, tokenDecimals int) (map[economymodel.VerifierType]*hexutil.Big, error) {
 	return api.allApis.GetVerifierEDIPReward(blockNumber, tokenDecimals)
 }
 

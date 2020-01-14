@@ -18,7 +18,7 @@ package dipperin
 
 import (
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"go.uber.org/zap"
 	"reflect"
 	"runtime"
@@ -155,7 +155,7 @@ func (m *ServiceManager) startRemainingServices() error {
 		return nil
 	}
 	var err error
-	if m.components.nodeConfig.NodeType != chain_config.NodeTypeOfMiner {
+	if m.components.nodeConfig.NodeType != chainconfig.NodeTypeOfMiner {
 		err := m.components.setNodeSignerInfo()
 		if err != nil {
 			panic("serviceManager startRemainingServices err:" + err.Error())
@@ -222,7 +222,7 @@ func (m *ServiceManager) AddService(service NodeService) {
 		m.services[NeedWalletSignerService] = append(m.services[NeedWalletSignerService], service)
 	case "*p2p.Server", "*chain_communication.CsProtocolManager":
 		//not need wallet signer in p2p service when the node is normal
-		if m.components.nodeConfig.NodeType != chain_config.NodeTypeOfNormal {
+		if m.components.nodeConfig.NodeType != chainconfig.NodeTypeOfNormal {
 			m.services[NeedWalletSignerService] = append(m.services[NeedWalletSignerService], service)
 		} else {
 			m.services[NotNeedWalletSignerService] = append(m.services[NotNeedWalletSignerService], service)

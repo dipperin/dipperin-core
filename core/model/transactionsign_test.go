@@ -17,8 +17,8 @@
 package model
 
 import (
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
+	"github.com/dipperin/dipperin-core/third_party/crypto"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
@@ -135,7 +135,7 @@ func TestMercurySigner_GetSenderPublicKey(t *testing.T) {
 }
 
 func TestMakeSigner(t *testing.T) {
-	config := chain_config.GetChainConfig()
+	config := chainconfig.GetChainConfig()
 	result := DipperinSigner{chainId: config.ChainId}
 	signer := MakeSigner(config, 10)
 	assert.Equal(t, result, signer)

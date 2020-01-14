@@ -23,15 +23,15 @@ import (
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/bloom"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"github.com/dipperin/dipperin-core/core/chain/stateprocessor"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/model"
 	"go.uber.org/zap"
 	"math/big"
 	"sync"
 	"time"
 
-	"github.com/dipperin/dipperin-core/common/g-timer"
+	"github.com/dipperin/dipperin-core/common/gtimer"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 	"math"
 	"sort"
@@ -41,7 +41,7 @@ import (
 type BlockChain interface {
 	CurrentBlock() model.AbstractBlock
 	GetBlockByNumber(number uint64) model.AbstractBlock
-	StateAtByStateRoot(root common.Hash) (*state_processor.AccountStateDB, error)
+	StateAtByStateRoot(root common.Hash) (*stateprocessor.AccountStateDB, error)
 }
 
 // TODO：cannot package multiple election transaction in one round
@@ -84,15 +84,15 @@ var DefaultTxPoolConfig = TxPoolConfig{
 type TxPool struct {
 	//PoolConsensus consensus.TransactionValidator
 	config      TxPoolConfig
-	chainConfig chain_config.ChainConfig
+	chainConfig chainconfig.ChainConfig
 	chain       BlockChain
 	signer      model.Signer
 	minFee      *big.Int
 
 	mu sync.RWMutex
 
-	currentState *state_processor.AccountStateDB
-	pendingState *state_processor.ManagedState
+	currentState *stateprocessor.AccountStateDB
+	pendingState *stateprocessor.ManagedState
 
 	locals  *accountSet // Set of local transaction to exempt from eviction rules
 	journal *txJournal  // Journal of local transaction to back up to disk
@@ -179,7 +179,7 @@ func (pool *TxPool) reset(oldHead, newHead *model.Header) {
 	}
 	log.DLogger.Info("TxPool reset stateDb")
 	pool.currentState = statedb
-	pool.pendingState = state_processor.ManageState(statedb)
+	pool.pendingState = stateprocessor.ManageState(statedb)
 
 	// Inject any transactions discarded due to reorgs
 	log.DLogger.Debug("Reinjecting stale transactions", zap.Int("count", len(reinject)))
@@ -249,8 +249,8 @@ func (pool *TxPool) loop() {
 		}
 		pool.mu.Unlock()
 	}
-	evict := g_timer.SetPeriodAndRun(evictHandler, evictionInterval)
-	defer g_timer.StopWork(evict)
+	evict := gtimer.SetPeriodAndRun(evictHandler, evictionInterval)
+	defer gtimer.StopWork(evict)
 
 	journalHandler := func() {
 		// Handle local transaction journal rotation
@@ -262,8 +262,8 @@ func (pool *TxPool) loop() {
 			pool.mu.Unlock()
 		}
 	}
-	journal := g_timer.SetPeriodAndRun(journalHandler, pool.config.Rejournal)
-	defer g_timer.StopWork(journal)
+	journal := gtimer.SetPeriodAndRun(journalHandler, pool.config.Rejournal)
+	defer gtimer.StopWork(journal)
 
 	// Keep waiting for and reacting to the various events
 	for {

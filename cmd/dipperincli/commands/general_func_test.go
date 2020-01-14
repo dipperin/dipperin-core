@@ -19,7 +19,7 @@ package commands
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -144,15 +144,15 @@ func TestParseWalletPathAndName(t *testing.T) {
 
 func TestCheckAndChangeHexToAddress(t *testing.T) {
 	addr, err := CheckAndChangeHexToAddress("1234")
-	assert.Equal(t, g_error.ErrInvalidAddressLen, err)
+	assert.Equal(t, gerror.ErrInvalidAddressLen, err)
 	assert.Equal(t, common.Address{}, addr)
 
 	addr, err = CheckAndChangeHexToAddress("0000005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
-	assert.Equal(t, g_error.ErrInvalidAddressPrefix, err)
+	assert.Equal(t, gerror.ErrInvalidAddressPrefix, err)
 	assert.Equal(t, common.Address{}, addr)
 
 	addr, err = CheckAndChangeHexToAddress("0x12345586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
-	assert.Equal(t, g_error.ErrUnknownTxType, err)
+	assert.Equal(t, gerror.ErrUnknownTxType, err)
 	assert.Equal(t, common.Address{}, addr)
 
 	addr, err = CheckAndChangeHexToAddress(from)

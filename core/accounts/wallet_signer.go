@@ -20,7 +20,7 @@ import (
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
-	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto"
+	crypto2 "github.com/dipperin/dipperin-core/third_party/crypto"
 	"sync"
 )
 

@@ -19,7 +19,7 @@ package chaincommunication
 import (
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
 )
 
 func MakeDefaultMsgDecoder() *defaultMsgDecoder {

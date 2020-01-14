@@ -18,7 +18,7 @@ package chaincommunication
 
 import (
 	"errors"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"strings"
 )
 
@@ -77,7 +77,7 @@ var totalVerifier int
 var PbftMaxPeerCount int
 
 func init() {
-	chinConfig := chain_config.GetChainConfig()
+	chinConfig := chainconfig.GetChainConfig()
 	totalVerifier = chinConfig.VerifierNumber
 	totalVerifierBootNode = chinConfig.VerifierBootNodeNumber
 	PbftMaxPeerCount = totalVerifier*2 + totalVerifierBootNode

@@ -24,12 +24,12 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/address-util"
+	"github.com/dipperin/dipperin-core/common/addressutil"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/third_party/crypto"
+	"github.com/dipperin/dipperin-core/third_party/life/exec"
 	"go.uber.org/zap"
 	"math/big"
 )
@@ -547,9 +547,9 @@ func (r *Resolver) envGetSignerAddress(vm *exec.VirtualMachine) int64 {
 		return 0
 	}
 
-	log.DLogger.Info("Resolver#envVerifySignature addr", zap.Any("address ", address_util.PubKeyToAddress(*pK, common.AddressTypeNormal)), zap.String("self address", r.Service.Self().Address().Hex()))
+	log.DLogger.Info("Resolver#envVerifySignature addr", zap.Any("address ", addressutil.PubKeyToAddress(*pK, common.AddressTypeNormal)), zap.String("self address", r.Service.Self().Address().Hex()))
 
-	addr := address_util.PubKeyToAddress(*pK, common.AddressTypeNormal)
+	addr := addressutil.PubKeyToAddress(*pK, common.AddressTypeNormal)
 	copy(vm.Memory.Memory[returnStart:], addr.Bytes())
 	return 0
 }

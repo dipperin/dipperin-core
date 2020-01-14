@@ -20,8 +20,8 @@ import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
 	"go.uber.org/zap"
 	"reflect"
 	"sort"
@@ -232,16 +232,16 @@ func (ps *CsPmPeerSetManager) baseAddPeer(p PmAbstractPeer) error {
 func (ps *CsPmPeerSetManager) verifierAddPeer(p PmAbstractPeer) error {
 	// check remote peer node type
 	switch p.NodeType() {
-	case chain_config.NodeTypeOfNormal, chain_config.NodeTypeOfMineMaster:
+	case chainconfig.NodeTypeOfNormal, chainconfig.NodeTypeOfMineMaster:
 		// If the remote node type is normal or mine master,
 		// we need to put this node in the base peer set
 		return ps.verifierAddBaseSet(p)
 
-	case chain_config.NodeTypeOfVerifier:
+	case chainconfig.NodeTypeOfVerifier:
 		// If the remote node type is verifier
 		return ps.verifierAddVerifierSet(p)
 
-	case chain_config.NodeTypeOfVerifierBoot:
+	case chainconfig.NodeTypeOfVerifierBoot:
 		// the remote peer is verifier boot node ?
 		if ps.isVerifierBootNode(p) {
 			log.DLogger.Info("verifier add verifier boot node", zap.String("nodeName", p.NodeName()))
@@ -259,12 +259,12 @@ func (ps *CsPmPeerSetManager) verifierAddPeer(p PmAbstractPeer) error {
 // verifier boot add peer
 func (ps *CsPmPeerSetManager) verifierBootAddPeer(p PmAbstractPeer) error {
 	switch p.NodeType() {
-	case chain_config.NodeTypeOfNormal, chain_config.NodeTypeOfMineMaster:
+	case chainconfig.NodeTypeOfNormal, chainconfig.NodeTypeOfMineMaster:
 		// If the remote node type is normal or mine master,
 		// we need to put this node in the base peer set
 		return ps.verifierAddBaseSet(p)
 
-	case chain_config.NodeTypeOfVerifier:
+	case chainconfig.NodeTypeOfVerifier:
 		var needAddBase = true
 
 		if ps.isCurrentVerifier(p) {
@@ -301,7 +301,7 @@ func (ps *CsPmPeerSetManager) verifierBootAddPeer(p PmAbstractPeer) error {
 
 		return nil
 
-	case chain_config.NodeTypeOfVerifierBoot:
+	case chainconfig.NodeTypeOfVerifierBoot:
 		// the remote peer is verifier boot node ?
 		if ps.isVerifierBootNode(p) {
 			log.DLogger.Info("verifier boot node add verifier boot node peer", zap.String("peerName", p.NodeName()))

@@ -19,7 +19,7 @@ package model
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"math/big"
 )
 
@@ -40,7 +40,7 @@ var (
 )
 
 func init() {
-	config := chain_config.GetChainConfig()
+	config := chainconfig.GetChainConfig()
 	mainPowLimit = config.MainPowLimit
 	powTargetTimespan = config.BlockCountOfPeriod * config.BlockGenerate
 	blockgenerate = config.BlockGenerate
@@ -75,7 +75,7 @@ func NewCalNewWorkDiff(preSpanBlock, lastNormalBlock AbstractBlock, currentBlock
 
 	// test for show
 	if currentBlockNumber >= 850893 {
-		return chain_config.ShowDifficulty
+		return chainconfig.ShowDifficulty
 	}
 
 	// If the new block (+1) is not an integer multiple of 4320,

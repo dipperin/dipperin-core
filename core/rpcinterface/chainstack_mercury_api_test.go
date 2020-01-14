@@ -18,7 +18,7 @@ package rpcinterface
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	g_error "github.com/dipperin/dipperin-core/common/g-error"
+	g_error "github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/core/dipperin/service"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/golang/mock/gomock"

@@ -18,7 +18,7 @@ package chain
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/contract"
 	"github.com/dipperin/dipperin-core/core/model"
@@ -92,7 +92,7 @@ func (state *BlockProcessor) rewardCoinBase(block model.AbstractBlock, earlyCont
 
 	coinBaseAddress := block.CoinBaseAddress()
 	if coinBaseAddress.IsEqual(common.Address{}) {
-		return g_error.InvalidCoinBaseAddressErr
+		return gerror.InvalidCoinBaseAddressErr
 	}
 
 	empty := state.IsEmptyAccount(coinBaseAddress)

@@ -21,7 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/rpcinterface"
 	"github.com/golang/mock/gomock"
@@ -40,12 +40,12 @@ func TestInitAccountInfo(t *testing.T) {
 
 	client = NewMockRpcClient(ctrl)
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr).Times(2)
-	InitAccountInfo(chain_config.NodeTypeOfVerifier, "", "", "")
+	InitAccountInfo(chainconfig.NodeTypeOfVerifier, "", "", "")
 	osExit = func(code int) {}
 
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr).Times(2)
-	InitAccountInfo(chain_config.NodeTypeOfNormal, "", "", "")
+	InitAccountInfo(chainconfig.NodeTypeOfNormal, "", "", "")
 }
 
 func TestCheckDownloaderSyncStatus(t *testing.T) {
@@ -1705,7 +1705,7 @@ func Test_inDefaultVs(t *testing.T) {
 	assert.Equal(t, false, result)
 	assert.Equal(t, "", name)
 
-	result, name = inDefaultVs(chain_config.LocalVerifierAddress[0])
+	result, name = inDefaultVs(chainconfig.LocalVerifierAddress[0])
 	assert.Equal(t, true, result)
 	assert.Equal(t, "default_v0", name)
 }

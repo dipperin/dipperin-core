@@ -20,7 +20,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/json"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
@@ -256,7 +256,7 @@ func (w *WalletInfo) paddingUsedAccount(GetAddressRelatedInfo accountsbase.Addre
 		//check if the derived account is used
 		nonce, err := GetAddressRelatedInfo.GetTransactionNonce(account.Address)
 		if err != nil {
-			if err == g_error.ErrAccountNotExist {
+			if err == gerror.ErrAccountNotExist {
 				break
 			} else {
 				return err

@@ -19,7 +19,7 @@ package minemaster
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-event"
+	"github.com/dipperin/dipperin-core/common/gevent"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chaincommunication"
@@ -105,7 +105,7 @@ to handle:
 func (ms *master) loop() {
 	newBlockInsertChan := make(chan model.Block)
 	//sb := ms.nodeContext.ChainReader().SubscribeBlockEvent(newBlockInsertChan)
-	sb := g_event.Subscribe(g_event.NewBlockInsertEvent, newBlockInsertChan)
+	sb := gevent.Subscribe(gevent.NewBlockInsertEvent, newBlockInsertChan)
 	defer sb.Unsubscribe()
 
 	for {
