@@ -247,13 +247,11 @@ func (ps *CsPmPeerSetManager) verifierAddPeer(p PmAbstractPeer) error {
 			log.DLogger.Info("verifier add verifier boot node", zap.String("nodeName", p.NodeName()))
 			return ps.verifierBootNode.AddPeer(p)
 		}
-
+		return nil
 	default:
 		return errors.New("remote peer node type illegal")
 
 	}
-
-	return nil
 }
 
 // verifier boot add peer
@@ -307,13 +305,11 @@ func (ps *CsPmPeerSetManager) verifierBootAddPeer(p PmAbstractPeer) error {
 			log.DLogger.Info("verifier boot node add verifier boot node peer", zap.String("peerName", p.NodeName()))
 			return ps.verifierBootNode.AddPeer(p)
 		}
-
+		return nil
 	default:
 		return errors.New("remote peer node type illegal")
 
 	}
-
-	return nil
 }
 
 // self node type is verifier, remote peer node type is base, add peer to base peer set
