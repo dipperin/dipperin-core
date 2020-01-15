@@ -91,6 +91,8 @@ func Test_defaultChainConfig(t *testing.T) {
 }
 
 func TestGetChainConfig(t *testing.T) {
+	os.Setenv(BootEnvTagName, BootEnvLocal)
+	config = defaultChainConfig()
 	testConfig := GetChainConfig()
 	assert.Equal(t, 4, testConfig.VerifierNumber)
 	assert.Equal(t, uint64(1601), testConfig.NetworkID)
