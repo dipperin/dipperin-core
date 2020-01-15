@@ -9,15 +9,15 @@ import (
 
 func Test_defaultChainConfig(t *testing.T) {
 	// inity
-	type expectStc struct{
+	type expectStc struct {
 		VerifyNumber int
-		NetworkID uint64
-		ChainId *big.Int
+		NetworkID    uint64
+		ChainId      *big.Int
 	}
 	// test case
-	situations := []struct{
-		name string
-		given func() *ChainConfig
+	situations := []struct {
+		name   string
+		given  func() *ChainConfig
 		expect expectStc
 	}{
 		{
@@ -101,4 +101,21 @@ func TestGetCurBootsEnv(t *testing.T) {
 	os.Setenv(BootEnvTagName, "test GetCurBootsEnv")
 	env := GetCurBootsEnv()
 	assert.Equal(t, "test GetCurBootsEnv", env)
+}
+
+func TestInitBootNodes(t *testing.T) {
+	//// test case
+	//situations := []struct{
+	//	name string
+	//	given func() string
+	//	expectVerifierNodesLen int
+	//	expectKBucketNodesLen int
+	//}{
+	//	{
+	//		"default env",
+	//		func() string {
+	//			os.
+	//		}
+	//	}
+	//}
 }
