@@ -57,6 +57,7 @@ type AbstractBody interface {
 }
 
 //go:generate mockgen -destination=./../../tests/mock/model/block_mock.go -package=model_mock github.com/dipperin/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=../verifiershaltcheck/block_mock_test.go -package=verifiershaltcheck github.com/dipperin/dipperin-core/core/model AbstractBlock
 type AbstractBlock interface {
 	Version() uint64
 	Number() uint64
