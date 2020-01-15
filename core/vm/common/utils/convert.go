@@ -19,7 +19,7 @@ package utils
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"math"
 	"strconv"
 )
@@ -239,12 +239,12 @@ func StringConverter(source string, t string) ([]byte, error) {
 		if "true" == source || "false" == source {
 			return BoolToBytes("true" == source), nil
 		} else {
-			return nil, errors.New("invalid boolean param")
+			return nil, gerror.ErrBoolParam
 		}
 	case "string":
 		return []byte(source), nil
 	default:
-		return nil, errors.New("invalid type")
+		return nil, gerror.ErrParamType
 	}
 
 }

@@ -19,7 +19,7 @@ package resolver
 import (
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common"
-	"github.com/dipperin/dipperin-core/tests/util"
+	"github.com/dipperin/dipperin-core/tests/factory/vminfo"
 	"github.com/dipperin/dipperin-core/third_party/life/exec"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -34,7 +34,7 @@ func getBaseVirtualMachine(t *testing.T) (*gomock.Controller, *exec.ImportResolv
 	contract := NewMockContractService(ctrl)
 	solver := NewResolver(vmValue, contract, state)
 
-	code, _ := test_util.GetTestData("demo")
+	code, _ := vminfo.GetTestData("demo")
 	vm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, solver, nil)
 	assert.NoError(t, err)
 	return ctrl, &solver, vm

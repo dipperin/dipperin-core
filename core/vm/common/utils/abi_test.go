@@ -17,36 +17,19 @@
 package utils
 
 import (
-	"encoding/json"
 	"github.com/dipperin/dipperin-core/common/gerror"
+	"github.com/dipperin/dipperin-core/tests/factory/vminfo"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-type WasmAbi struct {
-	AbiArr []AbiStruct `json:"abiArr"`
-}
+func TestWasmAbi_FromJson(t *testing.T) {
+	abiByte := new(WasmAbi)
+	err := abiByte.FromJson(nil)
+	assert.Equal(t, gerror.ErrEmptyInput, err)
 
-type AbiStruct struct {
-	Name     string         `json:"name"`
-	Inputs   []InputParam   `json:"inputs"`
-	Outputs  []OutputsParam `json:"outputs"`
-	Constant string         `json:"constant"`
-	Type     string         `json:"type"`
-}
+	_, abi := vminfo.GetTestData("event")
 
-type InputParam struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
-}
-
-type OutputsParam struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
-}
-
-func (abi *WasmAbi) FromJson(body []byte) error {
-	if body == nil {
-		return gerror.ErrEmptyInput
-	}
-	err := json.Unmarshal(body, &abi.AbiArr)
-	return err
+	err = abiByte.FromJson(abi)
+	assert.NoError(t, err)
 }

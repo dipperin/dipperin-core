@@ -18,13 +18,13 @@ package vm
 
 import (
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/tests/util"
+	"github.com/dipperin/dipperin-core/tests/factory/vminfo"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestNewContract(t *testing.T) {
-	code, abi := test_util.GetTestData(eventContractName)
+	code, abi := vminfo.GetTestData(eventContractName)
 
 	inputs := genInput(t, "hello", nil)
 	contract := getContract(code, abi, inputs)
@@ -40,7 +40,7 @@ func TestNewContract(t *testing.T) {
 }
 
 func TestContract_AsDelegate(t *testing.T) {
-	code, abi := test_util.GetTestData(eventContractName)
+	code, abi := vminfo.GetTestData(eventContractName)
 
 	inputs := genInput(t, "hello", nil)
 	callerContract := getContract(code, abi, inputs)

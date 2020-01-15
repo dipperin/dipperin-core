@@ -18,7 +18,7 @@ package resolver
 
 import (
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/third_party/life/exec"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"

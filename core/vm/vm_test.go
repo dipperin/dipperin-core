@@ -22,8 +22,8 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 	common2 "github.com/dipperin/dipperin-core/core/vm/common"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/tests/factory/vminfo"
 	"github.com/dipperin/dipperin-core/tests/mock/model"
-	"github.com/dipperin/dipperin-core/tests/util"
 	"github.com/dipperin/dipperin-core/third_party/crypto"
 	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
 	"github.com/pkg/errors"
@@ -89,7 +89,7 @@ func Test_Run(t *testing.T) {
 		res []byte
 		err error
 	}
-	code, abi := test_util.GetTestData("event")
+	code, abi := vminfo.GetTestData("event")
 	paramInput, err := rlp.EncodeToBytes([]interface{}{"winner"})
 	param := "winner"
 	assert.NoError(t, err)
@@ -189,7 +189,7 @@ func TestVM_CreateAndCall(t *testing.T) {
 	ref := common2.AccountRef(model.AliceAddr)
 	gasLimit := model.TestGasLimit * 100
 	value := big.NewInt(0)
-	code, abi := test_util.GetTestData("event")
+	code, abi := vminfo.GetTestData("event")
 	rlpParams := []interface{}{
 		code, abi,
 	}

@@ -17,7 +17,7 @@
 package resolver
 
 import (
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -43,6 +43,7 @@ func TestResolverNeedExternalService_Transfer(t *testing.T) {
 	contract.EXPECT().Self().Return(common.AccountRef(model.AliceAddr)).AnyTimes()
 	vmValue.EXPECT().Call(common.AccountRef(model.AliceAddr),model.AliceAddr,nil, uint64(0), transferValue)
 
+
 	resp, gasLeft, err := service.Transfer(model.AliceAddr, transferValue)
 
 	assert.NoError(t, err)
@@ -63,36 +64,98 @@ func TestResolverNeedExternalService_ResolverCall(t *testing.T) {
 		state,
 	}
 
-	resp, err := service.ResolverCall(model.AliceAddr.Bytes(), []byte{123})
-	assert.Error(t, err)
-	assert.Equal(t, []byte(nil), resp)
-
-	params, err := rlp.EncodeToBytes([]interface{}{"init"})
+	contract.EXPECT().Self().Return(common.AccountRef(model.AliceAddr)).AnyTimes()
+	contract.EXPECT().GetGas().Return(uint64(0)).AnyTimes()
+	contract.EXPECT().CallValue().Return(big.NewInt(100)).AnyTimes()
+	paramsInit, err := rlp.EncodeToBytes([]interface{}{"init"})
 	assert.NoError(t, err)
-	resp, err = service.ResolverCall(model.AliceAddr.Bytes(), params)
-	assert.Equal(t, g_error.ErrFunctionInitCanNotCalled, err)
-	assert.Equal(t, []byte(nil), resp)
 
-	params, err = rlp.EncodeToBytes([]interface{}{"name"})
+	params, err := rlp.EncodeToBytes([]interface{}{"name"})
 	assert.NoError(t, err)
-	resp, err = service.ResolverCall(model.AliceAddr.Bytes(), params)
-	assert.NoError(t, err)
-	assert.Equal(t, []byte(nil), resp)
-}
+	vmValue.EXPECT().Call(contract,model.AliceAddr,params,uint64(0), big.NewInt(100) ).Return([]byte(nil),uint64(0),nil).Times(1)
 
-/*
-func TestResolverNeedExternalService_ResolverDelegateCall(t *testing.T) {
-	vmValue := &fakeVmContextService{}
-	contract := &fakeContractService{}
-	state := NewFakeStateDBService()
-	service := &resolverNeedExternalService{
-		contract,
-		vmValue,
-		state,
+
+	testCases := []struct{
+		name string
+		given func() error
+		expect error
+	}{
+		{
+			name:"ErrFunctionInitCanNotCalled",
+			given: func() error {
+				resp, err := service.ResolverCall(model.AliceAddr.Bytes(), paramsInit)
+				assert.Equal(t, []byte(nil), resp)
+				return err
+			},
+			expect:gerror.ErrFunctionInitCanNotCalled,
+		},
+		{
+			name:"ResolverCall",
+			given: func() error {
+				resp, err := service.ResolverCall(model.AliceAddr.Bytes(), params)
+				assert.Equal(t, []byte(nil), resp)
+				return err
+			},
+			expect:nil,
+		},
 	}
 
-	resp, err := service.ResolverDelegateCall(aliceAddr.Bytes(), []byte{1, 2, 3})
-	assert.NoError(t, err)
-	assert.Equal(t, []byte(nil), resp)
+
+	for _,tc := range testCases{
+		err := tc.given()
+		if err != nil {
+			assert.Equal(t, tc.expect,err)
+		} else {
+			assert.NoError(t, err)
+		}
+	}
+
+
+
 }
-*/
+
+
+func TestResolverNeedExternalService_ResolverDelegateCall(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+
+	testCases := []struct{
+		name string
+		given func() []byte
+		expect []byte
+	}{
+		{
+			name: "ResolverDelegateCall",
+			given: func() []byte {
+				state := NewMockStateDBService(ctrl)
+				vmValue := NewMockVmContextService(ctrl)
+				contract := NewMockContractService(ctrl)
+
+				service := &resolverNeedExternalService{
+					contract,
+					vmValue,
+					state,
+				}
+
+				params, err := rlp.EncodeToBytes([]interface{}{"name"})
+				assert.NoError(t, err)
+
+				contract.EXPECT().Self().Return(common.AccountRef(model.AliceAddr)).AnyTimes()
+				contract.EXPECT().GetGas().Return(uint64(0)).AnyTimes()
+				contract.EXPECT().CallValue().Return(big.NewInt(100)).AnyTimes()
+				vmValue.EXPECT().Call(contract,model.AliceAddr,params,uint64(0), big.NewInt(100) ).Return([]byte(nil),uint64(0),nil).AnyTimes()
+				vmValue.EXPECT().DelegateCall(contract, model.AliceAddr,params,uint64(0)).Return([]byte(nil),uint64(0),nil)
+				resp, err := service.ResolverDelegateCall(model.AliceAddr.Bytes(), params)
+				assert.NoError(t, err)
+				return resp
+			},
+			expect:[]byte(nil),
+		},
+	}
+
+	for _,tc := range testCases{
+		assert.Equal(t, tc.expect, tc.given())
+	}
+}
+

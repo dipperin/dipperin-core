@@ -3,7 +3,7 @@ package vm
 import (
 	"github.com/dipperin/dipperin-core/core/vm/common"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	"github.com/dipperin/dipperin-core/tests/util"
+	"github.com/dipperin/dipperin-core/tests/factory/vminfo"
 	"github.com/dipperin/dipperin-core/third_party/life/exec"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +19,7 @@ func Test_findParams(t *testing.T) {
 	ctrl, _, _ := GetBaseVmInfo(t)
 	defer ctrl.Finish()
 
-	code, abi := test_util.GetTestData(eventContractName)
+	code, abi := vminfo.GetTestData(eventContractName)
 	lifeVm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, nil, nil)
 	assert.NoError(t, err)
 	input, err := rlp.EncodeToBytes([]interface{}{"winner"})
@@ -77,7 +77,7 @@ func Test_findParams(t *testing.T) {
 }
 
 func Test_ParseCreateExtraData(t *testing.T) {
-	code, abi := test_util.GetTestData(eventContractName)
+	code, abi := vminfo.GetTestData(eventContractName)
 
 	type result struct {
 		code    []byte
@@ -154,7 +154,7 @@ func Test_ParseCallExtraDataByABI(t *testing.T) {
 	ctrl, _, _ := GetBaseVmInfo(t)
 	defer ctrl.Finish()
 
-	code, abi := test_util.GetTestData(eventContractName)
+	code, abi := vminfo.GetTestData(eventContractName)
 	lifeVm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, nil, nil)
 	assert.NoError(t, err)
 	//input, err := rlp.EncodeToBytes([]interface{}{"winner"})
@@ -237,7 +237,7 @@ func Test_ParseInitFunctionByABI(t *testing.T) {
 			given: func() *result {
 				input, err := rlp.EncodeToBytes("result")
 				assert.NoError(t, err)
-				code, abi := test_util.GetTestData(eventContractName)
+				code, abi := vminfo.GetTestData(eventContractName)
 				lifeVm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, nil, nil)
 				assert.NoError(t, err)
 				params, returnType, err := ParseInitFunctionByABI(lifeVm, input, abi)
@@ -252,7 +252,7 @@ func Test_ParseInitFunctionByABI(t *testing.T) {
 		{
 			name: "ParseInitFunctionByABIRight",
 			given: func() *result {
-				code, abi := test_util.GetTestData("token-payable")
+				code, abi := vminfo.GetTestData("token-payable")
 				lifeVm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, nil, nil)
 				assert.NoError(t, err)
 				input, err := rlp.EncodeToBytes([]interface{}{"dipc", "dipc", utils.Uint64ToBytes(1000)})
