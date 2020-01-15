@@ -328,15 +328,6 @@ func TestParseCreateContractData(t *testing.T) {
 		{
 			name:"ErrFuncNameNotFound",
 			given: func() ([]byte, error) {
-				input, err := rlp.EncodeToBytes([]interface{}{code, []byte(abiStr), "DIPP"})
-				assert.NoError(t, err)
-				return ParseCreateContractData(input)
-			},
-			expect:result{[]byte(nil), gerror.ErrFuncNameNotFound},
-		},
-		{
-			name:"ErrFuncNameNotFound",
-			given: func() ([]byte, error) {
 				input, err := rlp.EncodeToBytes([]interface{}{code, []byte(abi3), "DIPP"})
 				assert.NoError(t, err)
 				return ParseCreateContractData(input)

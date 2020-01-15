@@ -27,6 +27,7 @@ import (
 )
 
 // Sstore
+// todo use mock just has a little meaning
 func (r *Resolver) envSetState(vm *exec.VirtualMachine) int64 {
 	log.DLogger.Info("envSetState Called")
 	key := int(int32(vm.GetCurrentFrame().Locals[0]))
@@ -119,6 +120,8 @@ func envMalloc(vm *exec.VirtualMachine) int64 {
 	return int64(pos)
 }
 
+
+// todo it's hard to verify the result
 func envFree(vm *exec.VirtualMachine) int64 {
 	/*	if vmcommon.Config.DisableFree {
 		return 0
