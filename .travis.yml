@@ -1,16 +1,17 @@
 language: go
 go:
-  - 1.x
+  - 1.11.x
+  - 1.12.x
+  - 1.13.x
 
 dist: xenial
 
-cache: false #不使用cache
-#cache: ccache
+cache: false
 
 notifications:
   email: false
 
-sudo: required # 使用容器进行编译，速度更快
+sudo: required
 
 addons:
   sonarcloud:
@@ -22,18 +23,17 @@ services:
   - docker
 
 git:
-  submodules: false # 不运行 git submodules 命令
+  submodules: false
 
-#耗时,放到编译时的makefile中处理
 before_install:
  # - docker pull karalabe/xgo-latest
  # - docker ps -a
  # - go get github.com/karalabe/xgo
 
-install: true # 跳过 install 阶段，因为我已经定义了 before_install。其实 go 项目是需要安装依赖的，只是我放到了下面的 make mycli 命令中做
+install: true # skip install. see: make mycli
 
 script:
-  #- make travis-test # 运行测试
+  #- make travis-test
   - go test -p 1 ./core/... ./cmd/... ./common/...
 #script: make compile
 
@@ -48,7 +48,7 @@ deploy:
     on:
       repo: dipperin/dipperin-core
       branch: master
-      tags: true   #git tag 时发布
+      tags: true   #git tag
 
 
   - provider: releases
@@ -59,7 +59,7 @@ deploy:
       - "./cmd/dipperin/dipperin-linux-amd64"
       - "./cmd/dipperin/dipperin-windows-4.0-amd64.exe"
       - "./cmd/dipperin/dipperin-darwin-10.6-amd64"
-    skip_cleanup: true # 因为要上传可执行文件到 release，所以不能自动把这个文件清除
+    skip_cleanup: true # need upload
     on:
       repo: dipperin/dipperin-core
       branch: master
