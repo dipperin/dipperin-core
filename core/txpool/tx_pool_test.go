@@ -886,26 +886,29 @@ func TestTxPool_PoolSetup(t *testing.T) {
 		ret, _ := txs[i].EncodeRlpToBytes()
 		txRlps = append(txRlps, ret)
 	}
-	fmt.Printf("---%v\n", time.Now().Sub(st))
+	//fmt.Printf("---%v\n", time.Now().Sub(st))
 	assert.Equal(t,len(txs),len(txRlps))
 
-	st = time.Now()
+	//st = time.Now()
 	for i := 0; i < 10000; i++ {
-		rlpHash(txs[i])
+		_,err:=rlpHash(txs[i])
+		assert.NoError(t,err)
 	}
-	fmt.Printf("---%v\n", time.Now().Sub(st))
+	//fmt.Printf("---%v\n", time.Now().Sub(st))
 
 	nonce := make([]byte, 64)
 	for i := 0; i < 64; i++ {
 		nonce[i] = byte(i)
 	}
 	hw := sha3.NewLegacyKeccak256()
-	st = time.Now()
+	//st = time.Now()
 	for i := 0; i < 10000; i++ {
 		splice := append(txRlps[i], nonce...)
-		rlpHashNew(hw, splice)
+		_,err:=rlpHashNew(hw, splice)
+		assert.NoError(t,err)
 	}
-	fmt.Printf("---%v\n", time.Now().Sub(st))
+	//fmt.Printf("---%v\n", time.Now().Sub(st))
+	assert.Equal(t,true,time.Now().Sub(st).Seconds()<10)
 }
 
 func TestTxPool(t *testing.T) {
@@ -933,9 +936,12 @@ func TestTxPool(t *testing.T) {
 	txs := createTxListWithFee(2)
 	sender0, err := txs[0].Sender(nil)
 	assert.NoError(t, err)
+
 	err = sDB.NewAccountState(sender0)
-	assert.NoError(t, sDB.AddBalance(sender0, big.NewInt(consts.DIP)))
 	assert.NoError(t, err)
+
+	assert.NoError(t, sDB.AddBalance(sender0, big.NewInt(consts.DIP)))
+
 	errs := pool.AddLocals([]model.AbstractTransaction{txs[0]})
 	assert.NoError(t, errs[0])
 
