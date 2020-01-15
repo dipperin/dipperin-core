@@ -92,7 +92,7 @@ func Test_defaultChainConfig(t *testing.T) {
 
 func TestGetChainConfig(t *testing.T) {
 	testConfig := GetChainConfig()
-	assert.Equal(t, 22, testConfig.VerifierNumber)
+	assert.Equal(t, 4, testConfig.VerifierNumber)
 	assert.Equal(t, uint64(1601), testConfig.NetworkID)
 	assert.Equal(t, 0, testConfig.ChainId.Cmp(big.NewInt(1601)))
 }
