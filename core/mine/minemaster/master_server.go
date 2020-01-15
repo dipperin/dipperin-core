@@ -36,6 +36,7 @@ func newServer(mineMaster mineMaster, wManager workManager, getCurWorkBlockFunc 
 
 type getCurWorkBlockFunc func() model.AbstractBlock
 
+// todo: rewrite code for adding test
 type server struct {
 	master              mineMaster
 	getCurWorkBlockFunc getCurWorkBlockFunc
@@ -97,6 +98,7 @@ func (s *server) onSubmitBlock(workerID WorkerId, work minemsg.Work) {
 // only for worker, do nothing
 func (s *server) SetMineMasterPeer(peer chaincommunication.PmAbstractPeer) {}
 
+// todo: rewrite code for adding test
 // receive worker msg
 func (s *server) OnNewMsg(msg p2p.Msg, p chaincommunication.PmAbstractPeer) error {
 	workerId := WorkerId(p.ID())

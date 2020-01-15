@@ -42,6 +42,7 @@ func MakeBftBlockBuilder(config ModelConfig) *BftBlockBuilder {
 	}
 }
 
+// todo: rewrite code for adding test
 type BftBlockBuilder struct {
 	//nodeContext NodeContext
 	ModelConfig
