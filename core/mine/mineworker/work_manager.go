@@ -54,6 +54,7 @@ type executorBuilder interface {
 	CreateExecutor(msg workMsg, workCount int, submitter workSubmitter) (result []workExecutor, err error)
 }
 
+// todo: rewrite code for adding test
 type workManager struct {
 	getMinersFunc          getMinersFunc
 	getCoinbaseAddressFunc getCoinbaseAddressFunc

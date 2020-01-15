@@ -853,25 +853,22 @@ func TestTxPool_TxsInBlockCache(t *testing.T) {
 		txs = append(txs, tx)
 	}
 
-	st := time.Now()
-
 	header := model.NewHeader(0, 0, common.Hash{}, common.Hash{}, common.Difficulty{}, big.NewInt(0), common.Address{}, common.BlockNonce{})
 	trans := make([]*model.Transaction, 4096)
 	util.InterfaceSliceCopy(trans, txs)
 
 	block := model.NewBlock(header, trans, []model.AbstractVerification{})
-	fmt.Printf("---%v\n", time.Now().Sub(st))
-
 	assert.Equal(t, 4096, len(block.GetAbsTransactions()))
 
-	st = time.Now()
+	st := time.Now()
 
 	txCmp := block.GetAbsTransactions()
 	st = time.Now()
 	for i := 0; i < 4096; i++ {
 		txCmp[i].Sender(nil)
 	}
-	fmt.Printf("---%v\n", time.Now().Sub(st))
+	assert.Equal(t,true,time.Now().Sub(st).Seconds()<10)
+	assert.Equal(t,len(txs),len(txCmp))
 }
 
 func TestTxPool_PoolSetup(t *testing.T) {
@@ -882,32 +879,36 @@ func TestTxPool_PoolSetup(t *testing.T) {
 		tx := transaction(uint64(30+i), aliceAddr, big.NewInt(1), testTxFee, model.TestGasLimit, key2)
 		txs = append(txs, tx)
 	}
-	tx_rlps := [][]byte{}
+	txRlps := [][]byte{}
 
 	st := time.Now()
 	for i := 0; i < 10000; i++ {
 		ret, _ := txs[i].EncodeRlpToBytes()
-		tx_rlps = append(tx_rlps, ret)
+		txRlps = append(txRlps, ret)
 	}
-	fmt.Printf("---%v\n", time.Now().Sub(st))
+	//fmt.Printf("---%v\n", time.Now().Sub(st))
+	assert.Equal(t,len(txs),len(txRlps))
 
-	st = time.Now()
+	//st = time.Now()
 	for i := 0; i < 10000; i++ {
-		rlpHash(txs[i])
+		_,err:=rlpHash(txs[i])
+		assert.NoError(t,err)
 	}
-	fmt.Printf("---%v\n", time.Now().Sub(st))
+	//fmt.Printf("---%v\n", time.Now().Sub(st))
 
 	nonce := make([]byte, 64)
 	for i := 0; i < 64; i++ {
 		nonce[i] = byte(i)
 	}
 	hw := sha3.NewLegacyKeccak256()
-	st = time.Now()
+	//st = time.Now()
 	for i := 0; i < 10000; i++ {
-		splice := append(tx_rlps[i], nonce...)
-		rlpHashNew(hw, splice)
+		splice := append(txRlps[i], nonce...)
+		_,err:=rlpHashNew(hw, splice)
+		assert.NoError(t,err)
 	}
-	fmt.Printf("---%v\n", time.Now().Sub(st))
+	//fmt.Printf("---%v\n", time.Now().Sub(st))
+	assert.Equal(t,true,time.Now().Sub(st).Seconds()<10)
 }
 
 func TestTxPool(t *testing.T) {
@@ -935,9 +936,12 @@ func TestTxPool(t *testing.T) {
 	txs := createTxListWithFee(2)
 	sender0, err := txs[0].Sender(nil)
 	assert.NoError(t, err)
+
 	err = sDB.NewAccountState(sender0)
-	assert.NoError(t, sDB.AddBalance(sender0, big.NewInt(consts.DIP)))
 	assert.NoError(t, err)
+
+	assert.NoError(t, sDB.AddBalance(sender0, big.NewInt(consts.DIP)))
+
 	errs := pool.AddLocals([]model.AbstractTransaction{txs[0]})
 	assert.NoError(t, errs[0])
 
