@@ -81,6 +81,7 @@ func (g *ProposalGenerator) GenEmptyBlock() (*model.Block, error) {
 
 	currentHeight := curBlock.Number()
 	header := &model.Header{
+		ChainID:     curBlock.ChainID(),
 		Version:     curBlock.Version(),
 		Number:      currentHeight + 1,
 		Seed:        g.NewBlockSeed,

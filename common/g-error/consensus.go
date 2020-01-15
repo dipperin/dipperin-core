@@ -44,6 +44,7 @@ var (
 	ErrPkIsNil                 = errors.New("header pk is nil")
 	ErrSeedNotMatch            = errors.New("block seed not match")
 	ErrCoinBaseNotMatch        = errors.New("pk doesn't belongs to CoinBase")
+	ErrInvalidChainID          = errors.New("invalid chain id")
 	ErrInvalidBlockVersion     = errors.New("invalid block version")
 	ErrInvalidBlockTimeStamp   = errors.New("invalid block time stamp")
 	ErrInvliadHeaderGasLimit   = errors.New("invalid header gas limit")

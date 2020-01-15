@@ -252,7 +252,8 @@ func (g *Genesis) Valid() bool {
 // to the given database (or discards it if nil).
 func (g *Genesis) ToBlock() *model.Block {
 	head := &model.Header{
-		Version:   0,
+		ChainID:   g.Config.ChainId.Uint64(),
+		Version:   g.Config.Version,
 		Number:    0,
 		Nonce:     common.EncodeNonce(g.Nonce),
 		TimeStamp: g.Timestamp,

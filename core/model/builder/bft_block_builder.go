@@ -158,6 +158,7 @@ func (builder *BftBlockBuilder) BuildWaitPackBlock(coinbaseAddr common.Address, 
 	log.DLogger.Info("build block", zap.Uint64("gasFloor", gasFloor), zap.Uint64("gasCeil", gasCeil), zap.Uint64("newGasLimit", tmpValue), zap.Any("coinBase", coinbaseAddr))
 
 	header := &model.Header{
+		ChainID:     curBlock.ChainID(),
 		Version:     curBlock.Version(),
 		Number:      curHeight + 1,
 		Seed:        seed,

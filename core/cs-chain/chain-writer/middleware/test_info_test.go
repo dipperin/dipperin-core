@@ -472,6 +472,10 @@ type fakeBlock struct {
 	ReceiptHash  common.Hash
 }
 
+func (fb *fakeBlock) ChainID() uint64 {
+	panic("implement me")
+}
+
 func (fb *fakeBlock) GetBloomLog() model2.Bloom {
 	panic("implement me")
 }

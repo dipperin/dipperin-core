@@ -20,7 +20,6 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/tests/g-testData"
 	"github.com/dipperin/dipperin-core/third-party/crypto"
 	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
@@ -60,7 +59,7 @@ func CreateSignedTx(nonce uint64, amount *big.Int) *Transaction {
 
 func CreateSignedTxList(n int) []*Transaction {
 	keyAlice, _ := CreateKey()
-	ms := NewSigner(chain_config.GetChainConfig().ChainId)
+	ms := NewSigner(big.NewInt(0))
 
 	var res []*Transaction
 	for i := 0; i < n; i++ {

@@ -165,6 +165,10 @@ type FakeBlock struct {
 	Headers    model.AbstractHeader
 }
 
+func (fb *FakeBlock) ChainID() uint64 {
+	panic("implement me")
+}
+
 func (fb *FakeBlock) GetBloomLog() model2.Bloom {
 	panic("implement me")
 }

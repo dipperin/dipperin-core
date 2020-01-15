@@ -1,9 +1,11 @@
 package node_cluster
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/g-event"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/rpc-interface"
 	"github.com/dipperin/dipperin-core/third-party/rpc"
@@ -39,6 +41,20 @@ func (cluster NodeCluster) GetAddressBalance(nodeName string, address common.Add
 		return big.NewInt(0), err
 	}
 	return resp.Balance.ToInt(), nil
+}
+
+func (cluster NodeCluster) SubscribeChainBlockEvent(nodeName string, channel interface{}) (g_event.Subscription, error) {
+	client := cluster.NodeClient[nodeName]
+	return client.Subscribe(context.Background(), "dipperin", channel, "subscribeBlock")
+}
+
+func (cluster NodeCluster) SendTx(nodeName string, from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte) (common.Hash, error) {
+	client := cluster.NodeClient[nodeName]
+	var resp common.Hash
+	if err := client.Call(&resp, getRpcTXMethod("SendTransaction"), from, to, value, gasPrice, gasLimit, data, nil); err != nil {
+		return common.Hash{}, err
+	}
+	return resp, nil
 }
 
 type NodeConf struct {

@@ -180,6 +180,17 @@ func ValidateSeed(c *BlockContext) Middleware {
 	}
 }
 
+func ValidateChainID(c *BlockContext) Middleware {
+	return func() error {
+		log.DLogger.Info("ValidateChainID start")
+		if c.Block.ChainID() != c.Chain.GetChainConfig().ChainId.Uint64() {
+			return g_error.ErrInvalidChainID
+		}
+		log.DLogger.Info("ValidateChainID end")
+		return c.Next()
+	}
+}
+
 func ValidateBlockVersion(c *BlockContext) Middleware {
 	return func() error {
 		log.DLogger.Info("ValidateBlockVersion start")

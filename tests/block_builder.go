@@ -142,6 +142,7 @@ func (builder *BlockBuilder) BuildFuture() model.AbstractBlock {
 	seed, proof := crypto.Evaluate(builder.MinerPk, builder.PreBlock.Seed().Bytes())
 
 	header := &model.Header{
+		ChainID:     curBlock.ChainID(),
 		Version:     curBlock.Version(),
 		Number:      curHeight + 1,
 		Seed:        seed,
@@ -237,6 +238,7 @@ func (builder *BlockBuilder) Build() model.AbstractBlock {
 	gasLimit := uint64(chain_config.BlockGasLimit)
 
 	header := &model.Header{
+		ChainID:     curBlock.ChainID(),
 		Version:     curBlock.Version(),
 		Number:      curHeight + 1,
 		Seed:        seed,
@@ -324,6 +326,7 @@ func (builder *BlockBuilder) BuildSpecialBlock() model.AbstractBlock {
 	seed, proof := crypto.Evaluate(builder.MinerPk, builder.PreBlock.Seed().Bytes())
 	coinBaseAddr := cs_crypto.GetNormalAddress(builder.MinerPk.PublicKey)
 	header := &model.Header{
+		ChainID:     preBlock.ChainID(),
 		Version:     preBlock.Version(),
 		Number:      preBlock.Number() + 1,
 		Seed:        seed,

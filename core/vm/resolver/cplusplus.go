@@ -555,6 +555,7 @@ func (r *Resolver) envGetSignerAddress(vm *exec.VirtualMachine) int64 {
 	copy(vm.Memory.Memory[returnStart:], addr.Bytes())
 	return 0
 }
+
 func (r *Resolver) envCallTransferUDIP(vm *exec.VirtualMachine) int64 {
 	key := int(int32(vm.GetCurrentFrame().Locals[0]))
 	keyLen := int(int32(vm.GetCurrentFrame().Locals[1]))
@@ -573,33 +574,60 @@ func (r *Resolver) envCallTransferUDIP(vm *exec.VirtualMachine) int64 {
 	}
 }
 
-func (r *Resolver) envValidateSPVProof(vm *exec.VirtualMachine) int64 {
-	log.DLogger.Info("Call envValidateSPVProof")
+func (r *Resolver) envGetProofHeight(vm *exec.VirtualMachine) int64 {
+	log.DLogger.Info("Call envGetProofHeight")
 	proofStart := int(int32(vm.GetCurrentFrame().Locals[0]))
 	proofLen := int(int32(vm.GetCurrentFrame().Locals[1]))
-	fromStart := int(int32(vm.GetCurrentFrame().Locals[2]))
-	fromLen := int(int32(vm.GetCurrentFrame().Locals[3]))
-	toStart := int(int32(vm.GetCurrentFrame().Locals[4]))
-	toLen := int(int32(vm.GetCurrentFrame().Locals[5]))
-	value := uint64(vm.GetCurrentFrame().Locals[6])
-	chainID := uint64(vm.GetCurrentFrame().Locals[7])
-	height := uint64(vm.GetCurrentFrame().Locals[8])
-	value256 := math.U256(new(big.Int).Mul(new(big.Int).SetUint64(value), math.BigPow(10, 15)))
 
 	proof := vm.Memory.Memory[proofStart : proofStart+proofLen]
-	from := common.BytesToAddress(vm.Memory.Memory[fromStart : fromStart+fromLen])
-	to := common.BytesToAddress(vm.Memory.Memory[toStart : toStart+toLen])
-
-	log.DLogger.Info("envValidateSPVProof", zap.ByteString("proof", proof), zap.Any("from", from), zap.Any("to", to), zap.Uint64("amount", value), zap.Uint64("chainID", chainID), zap.Uint64("height", height))
-
 	var spvProof spv.SPVProof
 	err := rlp.DecodeBytes(common.Hex2Bytes(string(proof)), &spvProof)
 	if err != nil {
 		log.DLogger.Info("Decode byte failed", zap.Error(err))
+		return 0
+	}
+
+	log.DLogger.Info("envGetProofHeight", zap.Uint64("height", spvProof.Header.Height))
+	return int64(spvProof.Header.Height)
+}
+
+func (r *Resolver) envValidateSPVProof(vm *exec.VirtualMachine) int64 {
+	log.DLogger.Info("Call envValidateSPVProof")
+	proofStart := int(int32(vm.GetCurrentFrame().Locals[0]))
+	proofLen := int(int32(vm.GetCurrentFrame().Locals[1]))
+	headerStart := int(int32(vm.GetCurrentFrame().Locals[2]))
+	headerLen := int(int32(vm.GetCurrentFrame().Locals[3]))
+	fromStart := int(int32(vm.GetCurrentFrame().Locals[4]))
+	fromLen := int(int32(vm.GetCurrentFrame().Locals[5]))
+	toStart := int(int32(vm.GetCurrentFrame().Locals[6]))
+	toLen := int(int32(vm.GetCurrentFrame().Locals[7]))
+	value := uint64(vm.GetCurrentFrame().Locals[8])
+	chainID := uint64(vm.GetCurrentFrame().Locals[9])
+	height := uint64(vm.GetCurrentFrame().Locals[10])
+	value256 := math.U256(new(big.Int).Mul(new(big.Int).SetUint64(value), math.BigPow(10, 15)))
+
+	proof := vm.Memory.Memory[proofStart : proofStart+proofLen]
+	header := vm.Memory.Memory[headerStart : headerStart+headerLen]
+	from := common.BytesToAddress(vm.Memory.Memory[fromStart : fromStart+fromLen])
+	to := common.BytesToAddress(vm.Memory.Memory[toStart : toStart+toLen])
+
+	log.DLogger.Info("envValidateSPVProof", zap.Uint8s("proof", proof), zap.Uint8s("header", header), zap.Any("from", from), zap.Any("to", to), zap.Uint64("amount", value), zap.Uint64("chainID", chainID), zap.Uint64("height", height))
+
+	var spvProof spv.SPVProof
+	err := rlp.DecodeBytes(common.Hex2Bytes(string(proof)), &spvProof)
+	if err != nil {
+		log.DLogger.Info("Decode spvProof failed", zap.Error(err))
 		return 1
 	}
 
-	err = spvProof.Validate(chainID, height, from, to, value256)
+	var spvHeader spv.SPVHeader
+	err = rlp.DecodeBytes(common.Hex2Bytes(string(header)), &spvHeader)
+	if err != nil {
+		log.DLogger.Info("Decode spvHeader failed", zap.Error(err))
+		return 1
+	}
+
+	err = spvProof.Validate(spvHeader, chainID, height, from, to, value256)
 	if err != nil {
 		log.DLogger.Info("validate failed", zap.Error(err))
 		return 1

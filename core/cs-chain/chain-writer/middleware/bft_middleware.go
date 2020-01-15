@@ -64,6 +64,7 @@ func (v *BftBlockValidator) Valid(b model.AbstractBlock) error {
 	if !model.IsIgnoreDifficultyValidation() {
 		c.Use(ValidateBlockDifficulty(c))
 	}
+	c.Use(ValidateChainID(c))
 	c.Use(ValidateBlockVersion(c))
 	//c.Use(ValidateBlockSize(c))
 	c.Use(ValidateBlockHash(c))

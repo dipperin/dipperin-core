@@ -32,6 +32,7 @@ func TestNewBftChainWriter(t *testing.T) {
 	mb := NewMockAbstractBlock(controller)
 	mb.EXPECT().IsSpecial().Return(true)
 	mb.EXPECT().Version().Return(uint64(100))
+	mb.EXPECT().ChainID().Return(uint64(1601))
 	mc.EXPECT().GetChainConfig().Return(chain_config.GetChainConfig()).AnyTimes()
 
 	assert.Error(t, NewBftChainWriter(&middleware.BftBlockContext{
@@ -47,6 +48,7 @@ func TestBftChainWriter_SaveBlock(t *testing.T) {
 	mb := NewMockAbstractBlock(controller)
 	mb.EXPECT().IsSpecial().Return(true)
 	mb.EXPECT().Version().Return(uint64(100))
+	mb.EXPECT().ChainID().Return(uint64(1601))
 	mc.EXPECT().GetChainConfig().Return(chain_config.GetChainConfig()).AnyTimes()
 
 	assert.Error(t, NewBftChainWriterWithoutVotes(&middleware.BftBlockContextWithoutVotes{

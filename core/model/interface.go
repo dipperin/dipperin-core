@@ -60,6 +60,7 @@ type AbstractBody interface {
 //go:generate mockgen -destination=./../economy-model/block_mock_test.go -package=economy_model github.com/dipperin/dipperin-core/core/model AbstractBlock
 //go:generate mockgen -destination=./../rpc-interface/block_mock_test.go -package=rpc_interface github.com/dipperin/dipperin-core/core/model AbstractBlock
 type AbstractBlock interface {
+	ChainID() uint64
 	Version() uint64
 	Number() uint64
 	IsSpecial() bool

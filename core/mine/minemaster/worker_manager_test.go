@@ -40,6 +40,10 @@ func TestDefaultPerformance_GetPerformance(t *testing.T) {
 
 type fakeCalculableBlock struct{}
 
+func (fakeCalculableBlock) ChainID() uint64 {
+	panic("implement me")
+}
+
 func (fakeCalculableBlock) GetBloomLog() model2.Bloom {
 	panic("implement me")
 }

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/chain-config"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third-party/trie"
 	"github.com/ethereum/go-ethereum/ethdb"
@@ -14,18 +13,19 @@ import (
 
 var (
 	invalidChainID = errors.New("invalid chain id")
+	invalidHash    = errors.New("invalid header hash")
 	invalidHeight  = errors.New("invalid height")
+	invalidTxRoot  = errors.New("invalid tx root")
 	invalidProof   = errors.New("invalid proof")
 	invalidFrom    = errors.New("invalid from")
 	invalidTo      = errors.New("invalid to")
 	invalidAmount  = errors.New("invalid amount")
 )
 
-// newSPVHeader builds a Header from a block
-func newSPVHeader(block model.AbstractBlock) SPVHeader {
-	id := chain_config.GetChainConfig().ChainId
+// NewSPVHeader builds a Header from a block
+func NewSPVHeader(block model.AbstractBlock) SPVHeader {
 	return SPVHeader{
-		id.Uint64(),
+		block.ChainID(),
 		block.Hash(),
 		block.Number(),
 		block.TxRoot(),
@@ -47,7 +47,7 @@ func NewSPVProof(tx model.Transaction, block model.AbstractBlock) (SPVProof, err
 
 	spvProof := SPVProof{
 		rlpTx,
-		newSPVHeader(block),
+		NewSPVHeader(block),
 		rlpProof,
 	}
 
@@ -86,13 +86,21 @@ func getRlpProof(tx common.Hash, txs model.Transactions) ([]byte, error) {
 	return rlpByte, nil
 }
 
-func (p SPVProof) validateHeader(id, height uint64) error {
-	if p.Header.ChainID != id {
+func (p SPVProof) validateHeader(header SPVHeader, id, height uint64) error {
+	if p.Header.ChainID != id || p.Header.ChainID != header.ChainID {
 		return invalidChainID
 	}
 
-	if p.Header.Height > height {
+	if p.Header.Hash != header.Hash {
+		return invalidHash
+	}
+
+	if p.Header.Height > height || p.Header.Height != header.Height {
 		return invalidHeight
+	}
+
+	if p.Header.TxRoot != header.TxRoot {
+		return invalidTxRoot
 	}
 
 	return nil
@@ -137,9 +145,9 @@ func (p SPVProof) validateProof(txHash common.Hash, proof trie.DatabaseReader) e
 }
 
 // Validate checks validity of SPVProof
-func (p SPVProof) Validate(id, height uint64, from, to common.Address, amount *big.Int) error {
+func (p SPVProof) Validate(header SPVHeader, id, height uint64, from, to common.Address, amount *big.Int) error {
 	// Verify block
-	err := p.validateHeader(id, height)
+	err := p.validateHeader(header, id, height)
 	if err != nil {
 		return err
 	}

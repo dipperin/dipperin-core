@@ -8,7 +8,6 @@ import (
 	common "github.com/dipperin/dipperin-core/common"
 	bloom "github.com/dipperin/dipperin-core/core/bloom"
 	model "github.com/dipperin/dipperin-core/core/model"
-	model0 "github.com/dipperin/dipperin-core/core/vm/model"
 	gomock "github.com/golang/mock/gomock"
 	big "math/big"
 	reflect "reflect"
@@ -49,6 +48,20 @@ func (m *MockAbstractBlock) Body() model.AbstractBody {
 func (mr *MockAbstractBlockMockRecorder) Body() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Body", reflect.TypeOf((*MockAbstractBlock)(nil).Body))
+}
+
+// ChainID mocks base method
+func (m *MockAbstractBlock) ChainID() uint64 {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChainID")
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+// ChainID indicates an expected call of ChainID
+func (mr *MockAbstractBlockMockRecorder) ChainID() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainID", reflect.TypeOf((*MockAbstractBlock)(nil).ChainID))
 }
 
 // CoinBase mocks base method
@@ -162,20 +175,6 @@ func (m *MockAbstractBlock) GetBloom() bloom.Bloom {
 func (mr *MockAbstractBlockMockRecorder) GetBloom() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBloom", reflect.TypeOf((*MockAbstractBlock)(nil).GetBloom))
-}
-
-// GetBloomLog mocks base method
-func (m *MockAbstractBlock) GetBloomLog() model0.Bloom {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBloomLog")
-	ret0, _ := ret[0].(model0.Bloom)
-	return ret0
-}
-
-// GetBloomLog indicates an expected call of GetBloomLog
-func (mr *MockAbstractBlockMockRecorder) GetBloomLog() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBloomLog", reflect.TypeOf((*MockAbstractBlock)(nil).GetBloomLog))
 }
 
 // GetEiBloomBlockData mocks base method
@@ -400,18 +399,6 @@ func (m *MockAbstractBlock) Seed() common.Hash {
 func (mr *MockAbstractBlockMockRecorder) Seed() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Seed", reflect.TypeOf((*MockAbstractBlock)(nil).Seed))
-}
-
-// SetBloomLog mocks base method
-func (m *MockAbstractBlock) SetBloomLog(arg0 model0.Bloom) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetBloomLog", arg0)
-}
-
-// SetBloomLog indicates an expected call of SetBloomLog
-func (mr *MockAbstractBlockMockRecorder) SetBloomLog(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetBloomLog", reflect.TypeOf((*MockAbstractBlock)(nil).SetBloomLog), arg0)
 }
 
 // SetInterLinkRoot mocks base method

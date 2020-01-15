@@ -28,6 +28,7 @@ import (
 
 func (h Header) MarshalJSON() ([]byte, error) {
 	type Header struct {
+		ChainID     hexutil.Uint64    `json:"chain_id"  gencodec:"required"`
 		Version     hexutil.Uint64    `json:"version"  gencodec:"required"`
 		Number      hexutil.Uint64    `json:"number"  gencodec:"required"`
 		Seed        common.Hash       `json:"seed"  gencodec:"required"`
@@ -51,6 +52,7 @@ func (h Header) MarshalJSON() ([]byte, error) {
 	}
 
 	var enc Header
+	enc.ChainID = hexutil.Uint64(h.ChainID)
 	enc.Version = hexutil.Uint64(h.Version)
 	enc.Number = hexutil.Uint64(h.Number)
 	enc.Seed = h.Seed
@@ -77,6 +79,7 @@ func (h Header) MarshalJSON() ([]byte, error) {
 
 func (h *Header) UnmarshalJSON(input []byte) error {
 	type Header struct {
+		ChainID     *hexutil.Uint64    `json:"chain_id"  gencodec:"required"`
 		Version     *hexutil.Uint64    `json:"version"  gencodec:"required"`
 		Number      *hexutil.Uint64    `json:"number"  gencodec:"required"`
 		Seed        *common.Hash       `json:"seed"  gencodec:"required"`
@@ -102,6 +105,10 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
+	if dec.ChainID == nil {
+		return errors.New("missing required field 'chain_id' for Header")
+	}
+	h.ChainID = uint64(*dec.ChainID)
 	if dec.Version == nil {
 		return errors.New("missing required field 'version' for Header")
 	}

@@ -142,7 +142,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 	}
 
 	res, err := lifeVm.Run(entryID, params...)
-	log.DLogger.Info("Run lifeVm", zap.Uint64("gasUsed", lifeVm.GasUsed), zap.Uint64("gasLimit", lifeVm.GasLimit))
+	log.DLogger.Info("Run lifeVm", zap.Uint64("gasUsed", lifeVm.GasUsed), zap.Uint64("gasLimit", lifeVm.GasLimit), zap.Uint64("res", uint64(res)))
 	if err != nil {
 		log.DLogger.Error("throw exception:", zap.Error(err))
 		return nil, err
@@ -177,6 +177,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 		}
 		dataByt := make([]byte, dataRealSize)
 		copy(dataByt[:], returnBytes)
+		//log.DLogger.Info("lifeVM memory", zap.Uint8s("copyData", copyData), zap.Uint8s("returnBytes", returnBytes), zap.Uint8s("dataByt", dataByt))
 		return dataByt, nil
 	}
 	return nil, nil

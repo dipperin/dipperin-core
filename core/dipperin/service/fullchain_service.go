@@ -1884,6 +1884,7 @@ func (service *VenusFullChainService) Call(signedTx model.AbstractTransaction, b
 	}
 
 	// convert result by abi
+	log.DLogger.Info("CallContract test", zap.Any("doCall result", result))
 	var resp string
 	for _, v := range abi.AbiArr {
 		if strings.EqualFold(v.Name, funcName) && strings.EqualFold(v.Type, "function") {

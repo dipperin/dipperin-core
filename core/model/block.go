@@ -48,6 +48,8 @@ var (
 )
 
 type Header struct {
+	// chain id of this block generated
+	ChainID uint64 `json:"chain_id"  gencodec:"required"`
 	// version of this block generated
 	Version uint64 `json:"version"  gencodec:"required"`
 	// the height of the block
@@ -113,7 +115,6 @@ func (h *Header) GetStateRoot() common.Hash {
 }
 
 func NewHeader(version uint64, num uint64, prehash common.Hash, seed common.Hash, diff common.Difficulty, time *big.Int, coinbase common.Address, nonce common.BlockNonce) *Header {
-
 	return &Header{
 		Version:   version,
 		Number:    num,
@@ -240,7 +241,8 @@ func rlpHash(x interface{}) (h common.Hash, err error) {
 
 func (h *Header) String() string {
 	return fmt.Sprintf(`Header(%s):
-[	Version:	        %d
+[	ChainID:            %d
+	Version:	        %d
 	Number:	            %d
 	Seed:				%s
 	PreHash:	        %s
@@ -256,7 +258,7 @@ func (h *Header) String() string {
 	VerificationRoot:   %s
 	InterlinkRoot:      %s
 	RegisterRoot     	%s
-	ReceiptHash      	%s]`, h.Hash().Hex(), h.Version, h.Number, h.Seed.Hex(), h.PreHash.Hex(), h.Diff.Hex(), h.TimeStamp, h.CoinBase.Hex(), h.GasLimit, h.GasUsed, h.Nonce.Hex(), h.Bloom.Hex(), h.TransactionRoot.Hex(), h.StateRoot.Hex(), h.VerificationRoot.Hex(), h.InterlinkRoot.Hex(), h.RegisterRoot.Hex(), h.ReceiptHash.Hex())
+	ReceiptHash      	%s]`, h.Hash().Hex(), h.ChainID, h.Version, h.Number, h.Seed.Hex(), h.PreHash.Hex(), h.Diff.Hex(), h.TimeStamp, h.CoinBase.Hex(), h.GasLimit, h.GasUsed, h.Nonce.Hex(), h.Bloom.Hex(), h.TransactionRoot.Hex(), h.StateRoot.Hex(), h.VerificationRoot.Hex(), h.InterlinkRoot.Hex(), h.RegisterRoot.Hex(), h.ReceiptHash.Hex())
 }
 
 // swagger:response Body
@@ -607,6 +609,7 @@ func (b *Block) EncodeRlpToBytes() ([]byte, error) {
 		Body:   b.body,
 	})
 }
+func (b *Block) ChainID() uint64                 { return b.header.ChainID }
 func (b *Block) Version() uint64                 { return b.header.Version }
 func (b *Block) Number() uint64                  { return b.header.Number }
 func (b *Block) PreHash() common.Hash            { return b.header.PreHash }

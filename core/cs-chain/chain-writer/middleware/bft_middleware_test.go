@@ -88,6 +88,7 @@ func TestBftMiddleware2(t *testing.T) {
 	chain.EXPECT().GetBlockByNumber(gomock.Any()).Return(blockCur).AnyTimes()
 	chain.EXPECT().GetLatestNormalBlock().Return(blockCur).AnyTimes()
 	chain.EXPECT().GetChainConfig().Return(&chain_config.ChainConfig{
+		ChainId:              big.NewInt(0),
 		Version:              1,
 		BlockTimeRestriction: blockCacheLimit,
 	}).AnyTimes()
