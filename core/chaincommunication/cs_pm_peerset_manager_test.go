@@ -544,3 +544,112 @@ func TestCsProtocolManager_removeVerifierBootNodePeers(t *testing.T) {
 
 	psm.removeVerifierBootNodePeers(peerId)
 }
+
+func TestCsPmPeerSetManager_collectAllPeers(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mPs1 := NewMockAbstractPeerSet(ctrl)
+	mPs2 := NewMockAbstractPeerSet(ctrl)
+	mPs3 := NewMockAbstractPeerSet(ctrl)
+
+	psm := &CsPmPeerSetManager{
+		basePeers:            mPs1,
+		currentVerifierPeers: mPs2,
+		nextVerifierPeers:    mPs3,
+	}
+
+	mPs1.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{})
+	mPs2.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{})
+	mPs3.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{})
+
+	assert.Len(t, psm.collectAllPeers(), 0)
+}
+
+func Test_filterPeers(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mPeer1 := NewMockPmAbstractPeer(ctrl)
+	mPeer2 := NewMockPmAbstractPeer(ctrl)
+	mPeer3 := NewMockPmAbstractPeer(ctrl)
+
+	addr1 := common.StringToAddress("aaa")
+	addr2 := common.StringToAddress("bbb")
+	addr3 := common.StringToAddress("ccc")
+
+	from := map[string]PmAbstractPeer{
+		"a": mPeer1,
+		"b": mPeer2,
+		"c": mPeer3,
+	}
+
+	curs := []common.Address{addr1}
+	nexts := []common.Address{addr2}
+
+	mPeer1.EXPECT().RemoteVerifierAddress().Return(addr1).Times(2)
+	mPeer2.EXPECT().RemoteVerifierAddress().Return(addr2).Times(2)
+	mPeer3.EXPECT().RemoteVerifierAddress().Return(addr3).Times(2)
+
+	baseM, curM, nextM := filterPeers(from, curs, nexts)
+
+	assert.Len(t, baseM, 1)
+	assert.Len(t, curM, 1)
+	assert.Len(t, nextM, 1)
+}
+
+func Test_peerInVers(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	testCases := []struct {
+		name   string
+		given  func() (PmAbstractPeer, []common.Address)
+		expect bool //peer in RemoteVerifier
+	}{
+		{
+			name: "peer not in RemoteVerifier",
+			given: func() (abstractPeer PmAbstractPeer, addresses []common.Address) {
+				p := NewMockPmAbstractPeer(ctrl)
+				p.EXPECT().RemoteVerifierAddress().Return(common.StringToAddress("test"))
+				abstractPeer = p
+				addresses = []common.Address{common.StringToAddress("testNN")}
+				return
+			},
+			expect: false,
+		},
+		{
+			name: "peer in RemoteVerifier",
+			given: func() (abstractPeer PmAbstractPeer, addresses []common.Address) {
+				addrStr := "test"
+				p := NewMockPmAbstractPeer(ctrl)
+				p.EXPECT().RemoteVerifierAddress().Return(common.StringToAddress(addrStr))
+				abstractPeer = p
+				addresses = []common.Address{common.StringToAddress(addrStr)}
+				return
+			},
+			expect: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		p, vers := tc.given()
+		if !assert.Equal(t, tc.expect, peerInVers(p, vers)) {
+			t.Errorf("case:%s, expect:%v", tc.name, tc.expect)
+		}
+	}
+}
+
+func Test_mergePeers(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mPeer := NewMockPmAbstractPeer(ctrl)
+
+	from := map[string]PmAbstractPeer{"a": mPeer}
+	to := map[string]PmAbstractPeer{}
+
+	mergePeers(to, from)
+
+	assert.Equal(t, mPeer, to["a"])
+}
