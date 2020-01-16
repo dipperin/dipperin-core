@@ -119,11 +119,7 @@ func (pm *CsProtocolManager) GetPeer(id string) PmAbstractPeer {
 	if p := pm.peerSetManager.nextVerifierPeers.Peer(id); p != nil {
 		return p
 	}
-	if p := pm.peerSetManager.verifierBootNode.Peer(id); p != nil {
-		return p
-	}
-
-	return nil
+	return pm.peerSetManager.verifierBootNode.Peer(id)
 }
 
 func (pm *CsProtocolManager) GetPeers() map[string]PmAbstractPeer {
