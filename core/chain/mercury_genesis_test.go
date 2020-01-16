@@ -18,13 +18,13 @@ package chain
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/chain/registerdb"
 	"github.com/dipperin/dipperin-core/core/chain/stateprocessor"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"math/big"
@@ -47,40 +47,66 @@ func TestSetupGenesisBlock(t *testing.T) {
 	// get genesis
 	defaultGenesis := createGenesis()
 
-	// genesis is nil
-	_, blockHash, err := SetupGenesisBlock(nil)
-	assert.Error(t, err)
-	assert.Equal(t, common.Hash{}, blockHash)
+	type result struct {
+		err error
+	}
+	testCases := []struct {
+		name   string
+		given  func() error
+		expect result
+	}{
+		{
+			name:"genesis is nil",
+			given: func() error {
+				_, _, err := SetupGenesisBlock(nil)
+				return err
+			},
+			expect:result{errors.New("genesis can't be nil")},
+		},
+		{
+			name:"setup genesis successful",
+			given: func() error {
+				defaultGenesis.Difficulty = common.Difficulty{}
+				_, _, err := SetupGenesisBlock(defaultGenesis)
+				return err
+			},
+			expect:result{nil},
+		},
+		{
+			name:"genesis and stored genesis is match",
+			given: func() error {
+				genesisBlock, _ := defaultGenesis.Prepare()
+				defaultGenesis.ChainDB.SaveBlockHash(genesisBlock.Hash(), genesisBlock.Number())
+				_, _, err = SetupGenesisBlock(defaultGenesis)
+				return err
+			},
+			expect:result{nil},
+		},
+		{
+			name:"config is nil",
+			given: func() error {
+				defaultGenesis.Config = nil
+				_, _, err = SetupGenesisBlock(defaultGenesis)
+				return err
+			},
+			expect:result{errGenesisNoConfig},
+		},
+	}
 
-	// setup genesis successful
-	defaultGenesis.Difficulty = common.Difficulty{}
-	_, blockHash, err = SetupGenesisBlock(defaultGenesis)
-	assert.NoError(t, err)
-	assert.NotNil(t, blockHash)
+	for _,tc:=range testCases{
+		err:=tc.given()
+		if err!=nil{
+			assert.Equal(t,tc.expect.err,err)
+		}else {
+			assert.NoError(t,err)
+		}
+	}
 
-	// genesis and stored genesis is match
 	genesisBlock, err := defaultGenesis.Prepare()
-	defaultGenesis.ChainDB.SaveBlockHash(genesisBlock.Hash(), genesisBlock.Number())
-	assert.NoError(t, err)
-	_, blockHash, err = SetupGenesisBlock(defaultGenesis)
-	assert.NoError(t, err)
-	assert.Equal(t, genesisBlock.Hash(), blockHash)
-
-	// genesis and stored genesis not match
 	block := createBlock(0)
 	defaultGenesis.ChainDB.SaveBlockHash(block.Hash(), block.Number())
-	assert.NoError(t, err)
-	_, blockHash, err = SetupGenesisBlock(defaultGenesis)
-	expect := &GenesisMismatchError{block.Hash(), genesisBlock.Hash()}
-	log.Debug("GenesisMismatchError", "err", expect.Error())
-	assert.Equal(t, expect, err)
-	assert.Equal(t, genesisBlock.Hash(), blockHash)
-
-	// config is nil
-	defaultGenesis.Config = nil
-	_, blockHash, err = SetupGenesisBlock(defaultGenesis)
-	assert.Equal(t, errGenesisNoConfig, err)
-	assert.Equal(t, common.Hash{}, blockHash)
+	_, blockHash, err := SetupGenesisBlock(defaultGenesis)
+	assert.NotEqualf(t, genesisBlock.Hash(), blockHash,"not equal")
 }
 
 func TestGenesis_Set(t *testing.T) {
@@ -164,54 +190,108 @@ func TestGenesis_Valid(t *testing.T) {
 func TestGenesis_Commit_Error(t *testing.T) {
 	defaultGenesis := createGenesis()
 
-	rProcessor, err := registerdb.MakeGenesisRegisterProcessor(fakeStateStorage{})
-	assert.NoError(t, err)
-	defaultGenesis.RegisterProcessor = rProcessor
+	type result struct {
+		err error
+	}
+	testCases := []struct {
+		name   string
+		given  func() error
+		expect result
+	}{
+		{
+			name:"Register Processor",
+			given: func() error {
+				rProcessor, err := registerdb.MakeGenesisRegisterProcessor(fakeStateStorage{})
+				defaultGenesis.RegisterProcessor = rProcessor
+				err = defaultGenesis.Commit(createBlock(0))
+				return err
+			},
+			expect:result{TrieError},
+		},
+		{
+			name:"AccountState Processor",
+			given: func() error {
+				sProcessor, err := stateprocessor.MakeGenesisAccountStateProcessor(fakeStateStorage{})
+				defaultGenesis.AccountStateProcessor = sProcessor
+				err = defaultGenesis.Commit(createBlock(0))
+				return err
+			},
+			expect:result{TrieError},
+		},
+	}
 
-	err = defaultGenesis.Commit(createBlock(0))
-	assert.Equal(t, TrieError, err)
-
-	sProcessor, err := stateprocessor.MakeGenesisAccountStateProcessor(fakeStateStorage{})
-	assert.NoError(t, err)
-	defaultGenesis.AccountStateProcessor = sProcessor
-
-	err = defaultGenesis.Commit(createBlock(0))
-	assert.Equal(t, TrieError, err)
+	for _,tc:=range testCases{
+		err:=tc.given()
+		if err!=nil{
+			assert.Equal(t,tc.expect.err,err)
+		}else {
+			assert.NoError(t,err)
+		}
+	}
 }
 
 func TestGenesis_Prepare_Error(t *testing.T) {
 	defaultGenesis := createGenesis()
 
-	// prepare registerDB error
-	rProcessor, err := registerdb.MakeGenesisRegisterProcessor(fakeStateStorage{setErr: TrieError})
-	assert.NoError(t, err)
-	defaultGenesis.RegisterProcessor = rProcessor
-	block, err := defaultGenesis.Prepare()
-	assert.Equal(t, TrieError, err)
+	type result struct {
+		err error
+	}
+	testCases := []struct {
+		name   string
+		given  func() error
+		expect result
+	}{
+		{
+			name:"prepare registerDB error",
+			given: func() error {
+				rProcessor, err := registerdb.MakeGenesisRegisterProcessor(fakeStateStorage{setErr: TrieError})
+				defaultGenesis.RegisterProcessor = rProcessor
+				_, err = defaultGenesis.Prepare()
+				return err
+			},
+			expect:result{TrieError},
+		},
+		{
+			name:"set balance error",
+			given: func() error {
+				sProcessor, err := stateprocessor.MakeGenesisAccountStateProcessor(fakeStateStorage{errKey: "_nonce"})
+				defaultGenesis.AccountStateProcessor = sProcessor
+				_, err = defaultGenesis.Prepare()
+				return err
+			},
+			expect:result{errors.New("account does not exist")},
+		},
+		{
+			name:"the contract owner balance isn't enough",
+			given: func() error {
+				sProcessor, err := stateprocessor.MakeGenesisAccountStateProcessor(fakeStateStorage{})
+				defaultGenesis.AccountStateProcessor = sProcessor
+				_, err = defaultGenesis.Prepare()
+				return err
+			},
+			expect:result{errors.New("the contract owner balance isn't enough")},
+		},
+		{
+			name:"Set TrieError",
+			given: func() error {
+				sProcessor, err := stateprocessor.MakeGenesisAccountStateProcessor(fakeStateStorage{setErr: TrieError})
+				assert.NoError(t, err)
+				defaultGenesis.AccountStateProcessor = sProcessor
+				_, err = defaultGenesis.Prepare()
+				return err
+			},
+			expect:result{TrieError},
+		},
+	}
 
-	// set balance error
-	sProcessor, err := stateprocessor.MakeGenesisAccountStateProcessor(fakeStateStorage{errKey: "_nonce"})
-	assert.NoError(t, err)
-	defaultGenesis.AccountStateProcessor = sProcessor
-	block, err = defaultGenesis.Prepare()
-	assert.Error(t, err)
-	assert.Nil(t, block)
-
-	// the contract owner balance isn't enough
-	sProcessor, err = stateprocessor.MakeGenesisAccountStateProcessor(fakeStateStorage{})
-	assert.NoError(t, err)
-	defaultGenesis.AccountStateProcessor = sProcessor
-	block, err = defaultGenesis.Prepare()
-	assert.Error(t, err)
-	assert.Nil(t, block)
-
-	// set balance error
-	sProcessor, err = stateprocessor.MakeGenesisAccountStateProcessor(fakeStateStorage{setErr: TrieError})
-	assert.NoError(t, err)
-	defaultGenesis.AccountStateProcessor = sProcessor
-	block, err = defaultGenesis.Prepare()
-	assert.Equal(t, TrieError, err)
-	assert.Nil(t, block)
+	for _,tc:=range testCases{
+		err:=tc.given()
+		if err!=nil{
+			assert.Equal(t,tc.expect.err,err)
+		}else {
+			assert.NoError(t,err)
+		}
+	}
 }
 
 func TestSetupGenesisBlock_Error(t *testing.T) {
@@ -229,22 +309,45 @@ func TestSetupGenesisBlock_Error(t *testing.T) {
 func TestGenesis_SetEarlyTokenContract_Error(t *testing.T) {
 	defaultGenesis := createGenesis()
 
-	// get balance error
-	sProcessor, err := stateprocessor.MakeGenesisAccountStateProcessor(fakeStateStorage{getErr: TrieError})
-	assert.NoError(t, err)
-	defaultGenesis.AccountStateProcessor = sProcessor
+	type result struct {
+		err error
+	}
+	testCases := []struct {
+		name   string
+		given  func() error
+		expect result
+	}{
+		{
+			name:"get balance error",
+			given: func() error {
+				sProcessor, err := stateprocessor.MakeGenesisAccountStateProcessor(fakeStateStorage{getErr: TrieError})
+				defaultGenesis.AccountStateProcessor = sProcessor
+				err = defaultGenesis.SetEarlyTokenContract()
+				return err
+			},
+			expect:result{gerror.ErrAccountNotExist},
+		},
+		{
+			name:"set balance error",
+			given: func() error {
+				sProcessor, err := stateprocessor.MakeGenesisAccountStateProcessor(fakeStateStorage{
+					setErr:          TrieError,
+					contractBalance: big.NewInt(0).Mul(big.NewInt(43693128000000000), big.NewInt(consts.DIP)),
+				})
+				defaultGenesis.AccountStateProcessor = sProcessor
+				err = defaultGenesis.SetEarlyTokenContract()
+				return err
+			},
+			expect:result{gerror.ErrAccountNotExist},
+		},
+	}
 
-	err = defaultGenesis.SetEarlyTokenContract()
-	assert.Equal(t, gerror.ErrAccountNotExist, err)
-
-	// set balance error
-	sProcessor, err = stateprocessor.MakeGenesisAccountStateProcessor(fakeStateStorage{
-		setErr:          TrieError,
-		contractBalance: big.NewInt(0).Mul(big.NewInt(43693128000000000), big.NewInt(consts.DIP)),
-	})
-	assert.NoError(t, err)
-	defaultGenesis.AccountStateProcessor = sProcessor
-
-	err = defaultGenesis.SetEarlyTokenContract()
-	assert.Equal(t, gerror.ErrAccountNotExist, err)
+	for _,tc:=range testCases{
+		err:=tc.given()
+		if err!=nil{
+			assert.Equal(t,tc.expect.err,err)
+		}else {
+			assert.NoError(t,err)
+		}
+	}
 }

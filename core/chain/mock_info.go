@@ -30,6 +30,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/economymodel"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third_party/crypto"
+
 	"github.com/dipperin/dipperin-core/third_party/trie"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/log"
@@ -50,6 +51,7 @@ var (
 	testPriv1 = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232031"
 	aliceAddr = common.HexToAddress("0x00005586B883Ec6dd4f8c26063E18eb4Bd228e59c3E9")
 	bobAddr   = common.HexToAddress("0x0000970e8128aB834E8EAC17aB8E3812f010678CF791")
+	testPriv2 = "289c2857d4598e37fb9647507e47a309d6133539bf21a8b9cb6df88fd5232032"
 
     minDiff = common.HexToDiff("0x20ffffff")
 )
