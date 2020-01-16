@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-package common
+package base
 
 import (
 	"github.com/dipperin/dipperin-core/common"
@@ -22,7 +22,7 @@ import (
 	"math/big"
 )
 
-//go:generate mockgen -destination=./../../tests/mock/vm/state_db_mock.go -package=vm_mock github.com/dipperin/dipperin-core/core/vm StateDB
+//go:generate mockgen -destination=./state_db_mock.go -package=base github.com/dipperin/dipperin-core/core/vm/base StateDB
 type StateDB interface {
 	GetBalance(common.Address) *big.Int
 	CreateAccount(common.Address) error

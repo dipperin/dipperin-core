@@ -21,7 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
-	common2 "github.com/dipperin/dipperin-core/core/vm/common"
+	common2 "github.com/dipperin/dipperin-core/core/vm/base"
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
 	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
 	"github.com/dipperin/dipperin-core/third_party/life/exec"

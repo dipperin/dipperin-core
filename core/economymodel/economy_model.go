@@ -19,6 +19,7 @@ package economymodel
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/model"
 	"go.uber.org/zap"
@@ -224,6 +225,7 @@ const (
 	NotEconomyModelAddress
 )
 
+//go:generate mockgen -destination=./economy_need_service_mock.go -package=economymodel github.com/dipperin/dipperin-core/core/economymodel EconomyNeedService
 type EconomyNeedService interface {
 	GetVerifiers(slotNum uint64) (addresses []common.Address)
 	GetSlot(block model.AbstractBlock) *uint64
@@ -257,7 +259,7 @@ func MapMerge(des, src map[common.Address]*big.Int) error {
 	for address, value := range src {
 		if _, ok := des[address]; ok {
 			log.DLogger.Error("address already in des", zap.String("addr", address.Hex()))
-			return ErrAddressExist
+			return gerror.ErrAddressExist
 		}
 		des[address] = value
 	}
@@ -306,7 +308,7 @@ func CalcDIPTotalCirculation(year uint64) (value *big.Int) {
 func (economyModel *DipperinEconomyModel) GetOneBlockTotalDIPReward(blockNumber uint64) (*big.Int, error) {
 	rewardOneBlock := big.NewInt(0)
 	if blockNumber == 0 {
-		return big.NewInt(0), ErrBlockNumberIs0
+		return big.NewInt(0), gerror.ErrBlockNumberIs0
 	} else if blockNumber <= HeightAfterTenYear {
 		rewardOneBlock = TotalReWardDIPOneBlock
 	} else {
@@ -345,12 +347,12 @@ func (economyModel *DipperinEconomyModel) calcLockDIP(unlockType PreMineMainType
 		unlockTotalDIP = economyModel.developerInitBalance
 		unlockInfo = DeveloperUnlockInfo
 	} else {
-		return big.NewInt(0), ErrLockTypeError
+		return big.NewInt(0), gerror.ErrLockTypeError
 	}
 
 	if totalDIP, ok := unlockTotalDIP[address]; ok {
 		if blockNumber == 0 {
-			return big.NewInt(0), ErrBlockNumberIs0
+			return big.NewInt(0), gerror.ErrBlockNumberIs0
 		}
 
 		// locking period is bypassed
@@ -372,7 +374,7 @@ func (economyModel *DipperinEconomyModel) calcLockDIP(unlockType PreMineMainType
 
 		return big.NewInt(0).Sub(totalDIP, unlockMoney), nil
 	} else {
-		return big.NewInt(0), ErrAddress
+		return big.NewInt(0), gerror.ErrAddress
 	}
 }
 
@@ -395,7 +397,7 @@ func (economyModel *DipperinEconomyModel) GetMineMasterDIPReward(block model.Abs
 func (economyModel *DipperinEconomyModel) GetVerifierDIPReward(block model.AbstractBlock) (map[VerifierType]*big.Int, error) {
 	// no reward for genesis
 	if block.Number() == 0 {
-		return map[VerifierType]*big.Int{}, ErrBlockNumberIs0
+		return map[VerifierType]*big.Int{}, gerror.ErrBlockNumberIs0
 	}
 
 	totalReward, err := economyModel.GetOneBlockTotalDIPReward(block.Number())
@@ -412,7 +414,7 @@ func (economyModel *DipperinEconomyModel) GetDiffVerifierAddress(preBlock, block
 
 	// genesis and block 1 has no commit information because the commit information for current block is stored in the subsequent block
 	if block.Number() < 2 {
-		return map[VerifierType][]common.Address{}, ErrBlockNumberIs0Ore1
+		return map[VerifierType][]common.Address{}, gerror.ErrBlockNumberIs0Ore1
 	}
 
 	config := chainconfig.GetChainConfig()
@@ -449,11 +451,11 @@ func (economyModel *DipperinEconomyModel) GetDiffVerifierAddress(preBlock, block
 	return verifierAddress, nil
 }
 
-// get the minimum tracsaction fee according to the size of the transaction
+// get the minimum transaction fee according to the size of the transaction
 // minimumTxFee = txSize * 0.0000001 * const.DIP
-func GetMinimumTxFee(txSize common.StorageSize) *big.Int {
-	return big.NewInt(0).Mul(big.NewInt(int64(txSize)), big.NewInt(100))
-}
+//func GetMinimumTxFee(txSize common.StorageSize) *big.Int {
+//	return big.NewInt(0).Mul(big.NewInt(int64(txSize)), big.NewInt(100))
+//}
 
 // get the pre-mining DIP amount for each address of investors
 func (economyModel *DipperinEconomyModel) GetInvestorInitBalance() map[common.Address]*big.Int {

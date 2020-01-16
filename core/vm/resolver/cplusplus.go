@@ -27,7 +27,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/addressutil"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/math"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/core/vm/base/utils"
 	"github.com/dipperin/dipperin-core/third_party/crypto"
 	"github.com/dipperin/dipperin-core/third_party/life/exec"
 	"go.uber.org/zap"
@@ -570,6 +570,7 @@ func (r *Resolver) envCallTransferUDIP(vm *exec.VirtualMachine) int64 {
 		return 0
 	}
 }
+
 
 func (r *Resolver) envDipperCall(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))

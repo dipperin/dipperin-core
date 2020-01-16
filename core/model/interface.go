@@ -23,7 +23,7 @@ import (
 	"math/big"
 )
 
-//go:generate mockgen -destination=./../../tests/mock/model/header_mock.go -package=model_mock github.com/dipperin/dipperin-core/core/model AbstractHeader
+//go:generate mockgen -destination=./header_mock.go -package=model github.com/dipperin/dipperin-core/core/model AbstractHeader
 type AbstractHeader interface {
 	GetNumber() uint64
 	Hash() common.Hash
@@ -56,7 +56,7 @@ type AbstractBody interface {
 	//GetReceipts() ([]*model.Receipt, error)
 }
 
-//go:generate mockgen -destination=./../../tests/mock/model/block_mock.go -package=model_mock github.com/dipperin/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=./block_mock.go -package=model github.com/dipperin/dipperin-core/core/model AbstractBlock
 type AbstractBlock interface {
 	Version() uint64
 	Number() uint64
@@ -133,6 +133,7 @@ type AbstractTransaction interface {
 	GetActualTxFee() (fee *big.Int)
 }
 
+//go:generate mockgen -destination=./verification_mock.go -package=model github.com/dipperin/dipperin-core/core/model AbstractVerification
 type AbstractVerification interface {
 	GetHeight() uint64
 	GetRound() uint64

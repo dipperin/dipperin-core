@@ -19,7 +19,7 @@ package resolver
 import (
 	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/vm/common"
+	"github.com/dipperin/dipperin-core/core/vm/base"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -40,8 +40,8 @@ func TestResolverNeedExternalService_Transfer(t *testing.T) {
 	}
 	transferValue := big.NewInt(100)
 
-	contract.EXPECT().Self().Return(common.AccountRef(model.AliceAddr)).AnyTimes()
-	vmValue.EXPECT().Call(common.AccountRef(model.AliceAddr),model.AliceAddr,nil, uint64(0), transferValue)
+	contract.EXPECT().Self().Return(base.AccountRef(model.AliceAddr)).AnyTimes()
+	vmValue.EXPECT().Call(base.AccountRef(model.AliceAddr),model.AliceAddr,nil, uint64(0), transferValue)
 
 
 	resp, gasLeft, err := service.Transfer(model.AliceAddr, transferValue)
@@ -64,7 +64,7 @@ func TestResolverNeedExternalService_ResolverCall(t *testing.T) {
 		state,
 	}
 
-	contract.EXPECT().Self().Return(common.AccountRef(model.AliceAddr)).AnyTimes()
+	contract.EXPECT().Self().Return(base.AccountRef(model.AliceAddr)).AnyTimes()
 	contract.EXPECT().GetGas().Return(uint64(0)).AnyTimes()
 	contract.EXPECT().CallValue().Return(big.NewInt(100)).AnyTimes()
 	paramsInit, err := rlp.EncodeToBytes([]interface{}{"init"})
@@ -141,7 +141,7 @@ func TestResolverNeedExternalService_ResolverDelegateCall(t *testing.T) {
 				params, err := rlp.EncodeToBytes([]interface{}{"name"})
 				assert.NoError(t, err)
 
-				contract.EXPECT().Self().Return(common.AccountRef(model.AliceAddr)).AnyTimes()
+				contract.EXPECT().Self().Return(base.AccountRef(model.AliceAddr)).AnyTimes()
 				contract.EXPECT().GetGas().Return(uint64(0)).AnyTimes()
 				contract.EXPECT().CallValue().Return(big.NewInt(100)).AnyTimes()
 				vmValue.EXPECT().Call(contract,model.AliceAddr,params,uint64(0), big.NewInt(100) ).Return([]byte(nil),uint64(0),nil).AnyTimes()

@@ -19,7 +19,7 @@ package stateprocessor
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	common2 "github.com/dipperin/dipperin-core/core/vm/common"
+	common2 "github.com/dipperin/dipperin-core/core/vm/base"
 	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"

@@ -1,8 +1,8 @@
 package vm
 
 import (
-	"github.com/dipperin/dipperin-core/core/vm/common"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/core/vm/base"
+	"github.com/dipperin/dipperin-core/core/vm/base/utils"
 	"github.com/dipperin/dipperin-core/tests/factory/vminfo"
 	"github.com/dipperin/dipperin-core/third_party/life/exec"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -20,7 +20,7 @@ func Test_findParams(t *testing.T) {
 	defer ctrl.Finish()
 
 	code, abi := vminfo.GetTestData(eventContractName)
-	lifeVm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, nil, nil)
+	lifeVm, err := exec.NewVirtualMachine(code, base.DEFAULT_VM_CONFIG, nil, nil)
 	assert.NoError(t, err)
 	input, err := rlp.EncodeToBytes([]interface{}{"winner"})
 	assert.NoError(t, err)
@@ -155,7 +155,7 @@ func Test_ParseCallExtraDataByABI(t *testing.T) {
 	defer ctrl.Finish()
 
 	code, abi := vminfo.GetTestData(eventContractName)
-	lifeVm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, nil, nil)
+	lifeVm, err := exec.NewVirtualMachine(code, base.DEFAULT_VM_CONFIG, nil, nil)
 	assert.NoError(t, err)
 	//input, err := rlp.EncodeToBytes([]interface{}{"winner"})
 	//assert.NoError(t, err)
@@ -238,7 +238,7 @@ func Test_ParseInitFunctionByABI(t *testing.T) {
 				input, err := rlp.EncodeToBytes("result")
 				assert.NoError(t, err)
 				code, abi := vminfo.GetTestData(eventContractName)
-				lifeVm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, nil, nil)
+				lifeVm, err := exec.NewVirtualMachine(code, base.DEFAULT_VM_CONFIG, nil, nil)
 				assert.NoError(t, err)
 				params, returnType, err := ParseInitFunctionByABI(lifeVm, input, abi)
 				return &result{
@@ -253,7 +253,7 @@ func Test_ParseInitFunctionByABI(t *testing.T) {
 			name: "ParseInitFunctionByABIRight",
 			given: func() *result {
 				code, abi := vminfo.GetTestData("token-payable")
-				lifeVm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, nil, nil)
+				lifeVm, err := exec.NewVirtualMachine(code, base.DEFAULT_VM_CONFIG, nil, nil)
 				assert.NoError(t, err)
 				input, err := rlp.EncodeToBytes([]interface{}{"dipc", "dipc", utils.Uint64ToBytes(1000)})
 				assert.NoError(t, err)

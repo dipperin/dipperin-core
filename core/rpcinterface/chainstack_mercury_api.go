@@ -33,7 +33,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/dipperin/service"
 	"github.com/dipperin/dipperin-core/core/economymodel"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/core/vm/base/utils"
 	"github.com/dipperin/dipperin-core/third_party/rpc"
 	"github.com/ethereum/go-ethereum/rlp"
 	"go.uber.org/zap"

@@ -19,8 +19,7 @@ package vm
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
-	common2 "github.com/dipperin/dipperin-core/core/vm/common"
-	"github.com/dipperin/dipperin-core/tests/mock/vm"
+	"github.com/dipperin/dipperin-core/core/vm/base"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -302,24 +301,24 @@ func genInput(t *testing.T, funcName string, param [][]byte) []byte {
 	return result
 }
 
-func GetBaseVmInfo(t *testing.T) (*gomock.Controller, *vm_mock.MockStateDB, *VM) {
+func GetBaseVmInfo(t *testing.T) (*gomock.Controller, *base.MockStateDB, *VM) {
 	ctrl := gomock.NewController(t)
 
-	db := vm_mock.NewMockStateDB(ctrl)
-	vm := NewVM(common2.Context{
+	db := base.NewMockStateDB(ctrl)
+	vm := NewVM(base.Context{
 		Origin:      model.AliceAddr,
 		BlockNumber: big.NewInt(1),
-		CanTransfer: common2.CanTransfer,
-		Transfer:    common2.Transfer,
+		CanTransfer: base.CanTransfer,
+		Transfer:    base.Transfer,
 		GetHash:     getTestHashFunc(),
-	}, db, common2.DEFAULT_VM_CONFIG)
+	}, db, base.DEFAULT_VM_CONFIG)
 	return ctrl, db, vm
 }
 
 func getContract(code, abi []byte, input []byte) *Contract {
 	//fileCode, fileABI := g_testData.GetCodeAbi(code, abi)
-	caller := common2.AccountRef(model.AliceAddr)
-	self := common2.AccountRef(model.ContractAddr)
+	caller := base.AccountRef(model.AliceAddr)
+	self := base.AccountRef(model.ContractAddr)
 	value := model.TestZeroValue
 	gasLimit := model.TestGasLimit
 	contract := NewContract(caller, self, value, gasLimit, input)

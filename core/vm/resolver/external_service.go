@@ -22,7 +22,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/log"
 	model2 "github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/core/vm/base/utils"
 	"go.uber.org/zap"
 	"math/big"
 	"strings"

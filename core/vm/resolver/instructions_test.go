@@ -19,7 +19,7 @@ package resolver
 import (
 	common2 "github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/vm/common"
+	"github.com/dipperin/dipperin-core/core/vm/base"
 	"github.com/dipperin/dipperin-core/tests/factory/vminfo"
 	"github.com/dipperin/dipperin-core/third_party/crypto"
 	"github.com/dipperin/dipperin-core/third_party/life/exec"
@@ -38,7 +38,7 @@ func getBaseVirtualMachine(t *testing.T) (*gomock.Controller, exec.ImportResolve
 	solver := NewResolver(vmValue, contract, state)
 
 	code, _ := vminfo.GetTestData("demo")
-	vm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, solver, nil)
+	vm, err := exec.NewVirtualMachine(code, base.DEFAULT_VM_CONFIG, solver, nil)
 	assert.NoError(t, err)
 	return ctrl, solver, vm
 }
@@ -66,7 +66,7 @@ func Test_envGetState(t *testing.T) {
 	solver := NewResolver(vmValue, contract, state)
 
 	code, _ := vminfo.GetTestData("demo")
-	vm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, solver, nil)
+	vm, err := exec.NewVirtualMachine(code, base.DEFAULT_VM_CONFIG, solver, nil)
 	assert.NoError(t, err)
 
 	key := int64(0)
@@ -102,7 +102,7 @@ func Test_envGetStateSize(t *testing.T) {
 	solver := NewResolver(vmValue, contract, state)
 
 	code, _ := vminfo.GetTestData("demo")
-	vm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, solver, nil)
+	vm, err := exec.NewVirtualMachine(code, base.DEFAULT_VM_CONFIG, solver, nil)
 	assert.NoError(t, err)
 
 	key := int64(0)
@@ -132,7 +132,7 @@ func prepare_envEmitEvent(t *testing.T) (*exec.VirtualMachine, exec.ImportResolv
 	solver := NewResolver(vmValue, contract, state)
 
 	code, _ := vminfo.GetTestData("demo")
-	vm, err := exec.NewVirtualMachine(code, common.DEFAULT_VM_CONFIG, solver, nil)
+	vm, err := exec.NewVirtualMachine(code, base.DEFAULT_VM_CONFIG, solver, nil)
 	assert.NoError(t, err)
 
 	topic := int64(0)

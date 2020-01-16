@@ -7,7 +7,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
-	common2 "github.com/dipperin/dipperin-core/core/vm/common"
+	common2 "github.com/dipperin/dipperin-core/core/vm/base"
 	"go.uber.org/zap"
 	"math/big"
 )

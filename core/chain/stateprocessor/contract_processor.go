@@ -4,7 +4,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
-	"github.com/dipperin/dipperin-core/core/vm/common"
+	"github.com/dipperin/dipperin-core/core/vm/base"
 	"go.uber.org/zap"
 )
 
@@ -14,7 +14,7 @@ type CallCode struct {
 }
 
 func (state *AccountStateDB) ProcessContract(conf *TxProcessConfig, create bool) (model.ReceiptPara, error) {
-	context := common.NewVMContext(conf.Tx, conf.Header, conf.GetHash)
+	context := base.NewVMContext(conf.Tx, conf.Header, conf.GetHash)
 	fullState := &Fullstate{
 		state: state,
 	}
@@ -23,7 +23,7 @@ func (state *AccountStateDB) ProcessContract(conf *TxProcessConfig, create bool)
 		log.DLogger.Error("AccountStateDB#ProcessContract", zap.Error(err))
 		return model.ReceiptPara{}, err
 	}
-	dvm := vm.NewVM(context, fullState, common.DEFAULT_VM_CONFIG)
+	dvm := vm.NewVM(context, fullState, base.DEFAULT_VM_CONFIG)
 	_, usedGas, failed, fee, err := ApplyMessage(dvm, &msg, conf.GasLimit)
 	if err != nil {
 		log.DLogger.Error("AccountStateDB#ProcessContract", zap.Error(err))

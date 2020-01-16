@@ -19,6 +19,7 @@ package economymodel
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"math/big"
 )
 
@@ -96,7 +97,7 @@ func MakeDipperinFoundation(proportion AddressDIPProportion) *DipperinFoundation
 // Reward(n) = 5-0.4*∑(t-1) t in 1~n
 func calcEarlyTokenValue(DIPReward *big.Int, blockNumber uint64, tokenDecimals int) (*big.Int, error) {
 	if blockNumber == 0 {
-		return big.NewInt(0), ErrBlockNumberIs0
+		return big.NewInt(0), gerror.ErrBlockNumberIs0
 	}
 	year := (blockNumber + HeightAfterOneYear - 1) / HeightAfterOneYear
 	if year > EarlyTokenPeriod {

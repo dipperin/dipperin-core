@@ -50,3 +50,4 @@ type EconomyModel interface {
 	GetBlockYear(blockNumber uint64) (uint64, error)
 	GetOneBlockTotalDIPReward(blockNumber uint64) (*big.Int, error)
 }
+
