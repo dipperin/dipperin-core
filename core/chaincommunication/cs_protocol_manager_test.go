@@ -35,11 +35,11 @@ func TestCsProtocolManager_ShowPmInfo(t *testing.T) {
 	defer ctrl.Finish()
 
 	p2pServer := NewMockP2PServer(ctrl)
-	p2pServer.EXPECT().Self().Return(&enode.Node{}).Times(1)
+	p2pServer.EXPECT().Self().Return(&enode.Node{})
 
 	nodeConf := NewMockNodeConf(ctrl)
-	nodeConf.EXPECT().GetNodeName().Return("test").Times(1)
-	nodeConf.EXPECT().GetNodeType().Return(1).Times(1)
+	nodeConf.EXPECT().GetNodeName().Return("test")
+	nodeConf.EXPECT().GetNodeType().Return(1)
 
 	ps := NewMockAbstractPeerSet(ctrl)
 	ps.EXPECT().GetPeersInfo().Return([]*p2p.CsPeerInfo{}).Times(4)
@@ -218,7 +218,7 @@ func TestCsProtocolManager_GetPeer(t *testing.T) {
 				abstractPeer = NewMockPmAbstractPeer(ctrl)
 
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().Peer(peerId).Return(abstractPeer).Times(1)
+				ps.EXPECT().Peer(peerId).Return(abstractPeer)
 
 				psm := &CsPmPeerSetManager{
 					basePeers: ps,
@@ -235,10 +235,10 @@ func TestCsProtocolManager_GetPeer(t *testing.T) {
 				abstractPeer = NewMockPmAbstractPeer(ctrl)
 
 				basePs := NewMockAbstractPeerSet(ctrl)
-				basePs.EXPECT().Peer(peerId).Return(nil).Times(1)
+				basePs.EXPECT().Peer(peerId).Return(nil)
 
 				currPs := NewMockAbstractPeerSet(ctrl)
-				currPs.EXPECT().Peer(peerId).Return(abstractPeer).Times(1)
+				currPs.EXPECT().Peer(peerId).Return(abstractPeer)
 
 				psm := &CsPmPeerSetManager{
 					basePeers:            basePs,
@@ -256,13 +256,13 @@ func TestCsProtocolManager_GetPeer(t *testing.T) {
 				abstractPeer = NewMockPmAbstractPeer(ctrl)
 
 				basePs := NewMockAbstractPeerSet(ctrl)
-				basePs.EXPECT().Peer(peerId).Return(nil).Times(1)
+				basePs.EXPECT().Peer(peerId).Return(nil)
 
 				currPs := NewMockAbstractPeerSet(ctrl)
-				currPs.EXPECT().Peer(peerId).Return(nil).Times(1)
+				currPs.EXPECT().Peer(peerId).Return(nil)
 
 				nextPs := NewMockAbstractPeerSet(ctrl)
-				nextPs.EXPECT().Peer(peerId).Return(abstractPeer).Times(1)
+				nextPs.EXPECT().Peer(peerId).Return(abstractPeer)
 
 				psm := &CsPmPeerSetManager{
 					basePeers:            basePs,
@@ -281,16 +281,16 @@ func TestCsProtocolManager_GetPeer(t *testing.T) {
 				abstractPeer = NewMockPmAbstractPeer(ctrl)
 
 				basePs := NewMockAbstractPeerSet(ctrl)
-				basePs.EXPECT().Peer(peerId).Return(nil).Times(1)
+				basePs.EXPECT().Peer(peerId).Return(nil)
 
 				currPs := NewMockAbstractPeerSet(ctrl)
-				currPs.EXPECT().Peer(peerId).Return(nil).Times(1)
+				currPs.EXPECT().Peer(peerId).Return(nil)
 
 				nextPs := NewMockAbstractPeerSet(ctrl)
-				nextPs.EXPECT().Peer(peerId).Return(nil).Times(1)
+				nextPs.EXPECT().Peer(peerId).Return(nil)
 
 				bootPs := NewMockAbstractPeerSet(ctrl)
-				bootPs.EXPECT().Peer(peerId).Return(abstractPeer).Times(1)
+				bootPs.EXPECT().Peer(peerId).Return(abstractPeer)
 
 				psm := &CsPmPeerSetManager{
 					basePeers:            basePs,
@@ -319,19 +319,19 @@ func TestCsProtocolManager_GetPeers(t *testing.T) {
 
 	baseP := NewMockPmAbstractPeer(ctrl)
 	basePs := NewMockAbstractPeerSet(ctrl)
-	basePs.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"base": baseP}).Times(1)
+	basePs.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"base": baseP})
 
 	currP := NewMockPmAbstractPeer(ctrl)
 	currPs := NewMockAbstractPeerSet(ctrl)
-	currPs.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"curr": currP}).Times(1)
+	currPs.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"curr": currP})
 
 	nextP := NewMockPmAbstractPeer(ctrl)
 	nextPs := NewMockAbstractPeerSet(ctrl)
-	nextPs.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"next": nextP}).Times(1)
+	nextPs.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"next": nextP})
 
 	bootP := NewMockPmAbstractPeer(ctrl)
 	bootPs := NewMockAbstractPeerSet(ctrl)
-	bootPs.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"boot": bootP}).Times(1)
+	bootPs.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"boot": bootP})
 
 	pm := &CsProtocolManager{
 		peerSetManager: &CsPmPeerSetManager{
@@ -455,7 +455,7 @@ func Test_newCsProtocolManager(t *testing.T) {
 	defer ctrl.Finish()
 
 	nodeConf := NewMockNodeConf(ctrl)
-	nodeConf.EXPECT().GetNodeType().Return(chainconfig.NodeTypeOfNormal).Times(1)
+	nodeConf.EXPECT().GetNodeType().Return(chainconfig.NodeTypeOfNormal)
 
 	assert.NotNil(t, newCsProtocolManager(&CsProtocolManagerConfig{
 		NodeConf: nodeConf,
@@ -481,7 +481,7 @@ func TestCsProtocolManager_SendFetchBlockMsg(t *testing.T) {
 			name: "no verifier peer for fetcher",
 			given: func() (*CsProtocolManager, common.Address) {
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{}).Times(1)
+				ps.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{})
 				psm := &CsPmPeerSetManager{
 					currentVerifierPeers: ps,
 				}
@@ -496,14 +496,14 @@ func TestCsProtocolManager_SendFetchBlockMsg(t *testing.T) {
 			given: func() (*CsProtocolManager, common.Address) {
 				addr := common.Address{1, 2, 3}
 				p := NewMockPmAbstractPeer(ctrl)
-				p.EXPECT().RemoteVerifierAddress().Return(addr).Times(1)
-				p.EXPECT().SendMsg(gomock.Any(), gomock.Any()).Return(nil).Times(1)
-				p.EXPECT().NodeName().Return("test peer").Times(1)
+				p.EXPECT().RemoteVerifierAddress().Return(addr)
+				p.EXPECT().SendMsg(gomock.Any(), gomock.Any()).Return(nil)
+				p.EXPECT().NodeName().Return("test peer")
 
 				ps := NewMockAbstractPeerSet(ctrl)
 				ps.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{
 					"test peer": p,
-				}).Times(1)
+				})
 				psm := &CsPmPeerSetManager{
 					currentVerifierPeers: ps,
 				}
@@ -560,10 +560,10 @@ func TestCsProtocolManager_HaveEnoughVerifiers(t *testing.T) {
 	nextLen := 2
 
 	currPs := NewMockAbstractPeerSet(ctrl)
-	currPs.EXPECT().Len().Return(currLen).Times(1)
+	currPs.EXPECT().Len().Return(currLen)
 
 	nextPs := NewMockAbstractPeerSet(ctrl)
-	nextPs.EXPECT().Len().Return(nextLen).Times(1)
+	nextPs.EXPECT().Len().Return(nextLen)
 
 	psm := &CsPmPeerSetManager{
 		currentVerifierPeers: currPs,
@@ -713,7 +713,6 @@ func TestCsProtocolManager_SelfIsBootNode(t *testing.T) {
 }
 
 func TestCsProtocolManager_GetSelfNode(t *testing.T) {
-	// create mock controller
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -737,4 +736,20 @@ func TestCsProtocolManager_GetSelfNode(t *testing.T) {
 	selfNode := pm.GetSelfNode()
 
 	assert.Equal(t, n.ID().String(), selfNode.ID().String())
+}
+
+func TestCsProtocolManager_ConnectPeer(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	node := &enode.Node{}
+
+	p2pServer := NewMockP2PServer(ctrl)
+	p2pServer.EXPECT().AddPeer(node)
+
+	pm := &CsProtocolManager{CsProtocolManagerConfig: &CsProtocolManagerConfig{
+		P2PServer: p2pServer,
+	}}
+
+	pm.ConnectPeer(node)
 }

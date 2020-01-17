@@ -32,7 +32,7 @@ func TestDipperinP2PApi_AddPeer(t *testing.T) {
 	expect := errors.New("AddPeerError")
 
 	p2pAPIMock := NewMockP2PAPI(ctrl)
-	p2pAPIMock.EXPECT().AddPeer(input).Return(expect).Times(1)
+	p2pAPIMock.EXPECT().AddPeer(input).Return(expect)
 
 	api := DipperinP2PApi{service: p2pAPIMock}
 
@@ -47,7 +47,7 @@ func TestDipperinP2PApi_RemovePeer(t *testing.T) {
 	expect := errors.New("RemovePeerError")
 
 	p2pAPIMock := NewMockP2PAPI(ctrl)
-	p2pAPIMock.EXPECT().RemovePeer(input).Return(expect).Times(1)
+	p2pAPIMock.EXPECT().RemovePeer(input).Return(expect)
 
 	api := DipperinP2PApi{service: p2pAPIMock}
 
@@ -62,7 +62,7 @@ func TestDipperinP2PApi_AddTrustedPeer(t *testing.T) {
 	expect := errors.New("AddTrustedPeerError")
 
 	p2pAPIMock := NewMockP2PAPI(ctrl)
-	p2pAPIMock.EXPECT().AddTrustedPeer(input).Return(expect).Times(1)
+	p2pAPIMock.EXPECT().AddTrustedPeer(input).Return(expect)
 
 	api := DipperinP2PApi{service: p2pAPIMock}
 
@@ -77,7 +77,7 @@ func TestDipperinP2PApi_RemoveTrustedPeer(t *testing.T) {
 	expect := errors.New("RemoveTrustedPeerError")
 
 	p2pAPIMock := NewMockP2PAPI(ctrl)
-	p2pAPIMock.EXPECT().RemoveTrustedPeer(input).Return(expect).Times(1)
+	p2pAPIMock.EXPECT().RemoveTrustedPeer(input).Return(expect)
 
 	api := DipperinP2PApi{service: p2pAPIMock}
 
@@ -92,7 +92,7 @@ func TestDipperinP2PApi_Peers(t *testing.T) {
 	expect2 := errors.New("PeersError")
 
 	p2pAPIMock := NewMockP2PAPI(ctrl)
-	p2pAPIMock.EXPECT().Peers().Return(expect1, expect2).Times(1)
+	p2pAPIMock.EXPECT().Peers().Return(expect1, expect2)
 
 	api := DipperinP2PApi{service: p2pAPIMock}
 	pInfos, err := api.Peers()
@@ -109,7 +109,7 @@ func TestDipperinP2PApi_CsPmInfo(t *testing.T) {
 	expect2 := errors.New("CsPmInfoError")
 
 	p2pAPIMock := NewMockP2PAPI(ctrl)
-	p2pAPIMock.EXPECT().CsPmInfo().Return(expect1, expect2).Times(1)
+	p2pAPIMock.EXPECT().CsPmInfo().Return(expect1, expect2)
 
 	api := DipperinP2PApi{service: p2pAPIMock}
 	pInfo, err := api.CsPmInfo()
