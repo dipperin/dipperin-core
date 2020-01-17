@@ -1,6 +1,7 @@
 package chainconfig
 
 import (
+	"github.com/dipperin/dipperin-core/third_party/p2p/enode"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"os"
@@ -106,18 +107,64 @@ func TestGetCurBootsEnv(t *testing.T) {
 }
 
 func TestInitBootNodes(t *testing.T) {
-	//// test case
-	//situations := []struct{
-	//	name string
-	//	given func() string
-	//	expectVerifierNodesLen int
-	//	expectKBucketNodesLen int
-	//}{
-	//	{
-	//		"default env",
-	//		func() string {
-	//			os.
-	//		}
-	//	}
-	//}
+	// test case
+	situations := []struct {
+		name                   string
+		given                  func() string
+		expectVerifierNodesLen int
+		expectKBucketNodesLen  int
+	}{
+		{
+			"default env which boot locally",
+			func() string {
+				os.Unsetenv(BootEnvTagName)
+				VerifierBootNodes = []*enode.Node{}
+				KBucketNodes = []*enode.Node{}
+				return ""
+			},
+			1,
+			1,
+		},
+		{
+			"test env",
+			func() string {
+				os.Setenv(BootEnvTagName, BootEnvTest)
+				VerifierBootNodes = []*enode.Node{}
+				KBucketNodes = []*enode.Node{}
+				return ""
+			},
+			4,
+			1,
+		},
+		{
+			"mercury env",
+			func() string {
+				os.Setenv(BootEnvTagName, BootEnvMercury)
+				VerifierBootNodes = []*enode.Node{}
+				KBucketNodes = []*enode.Node{}
+				return ""
+			},
+			4,
+			1,
+		},
+		{
+			"venus env",
+			func() string {
+				os.Setenv(BootEnvTagName, BootEnvVenus)
+				VerifierBootNodes = []*enode.Node{}
+				KBucketNodes = []*enode.Node{}
+				return ""
+			},
+			4,
+			1,
+		},
+	}
+	// test
+	for _, situation := range situations {
+		dataDir := situation.given()
+		InitBootNodes(dataDir)
+		// check result
+		assert.Equal(t, situation.expectVerifierNodesLen, len(VerifierBootNodes), situation.name)
+		assert.Equal(t, situation.expectKBucketNodesLen, len(KBucketNodes), situation.name)
+	}
 }

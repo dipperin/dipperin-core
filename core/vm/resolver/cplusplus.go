@@ -21,7 +21,6 @@ package resolver
 // #include "print128.h"
 import "C"
 import (
-	"encoding/binary"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/addressutil"
@@ -87,6 +86,7 @@ func envMemsetGasCost(vm *exec.VirtualMachine) (uint64, error) {
 }
 
 //libc prints()
+// todo
 func (r *Resolver) envPrints(vm *exec.VirtualMachine) int64 {
 	start := int(uint32(vm.GetCurrentFrame().Locals[0]))
 	end := 0
@@ -113,6 +113,7 @@ func envPrintsGasCost(vm *exec.VirtualMachine) (uint64, error) {
 }
 
 //libc prints_l
+// todo
 func envPrintsl(vm *exec.VirtualMachine) int64 {
 	ptr := int(uint32(vm.GetCurrentFrame().Locals[0]))
 	msgLen := int(uint32(vm.GetCurrentFrame().Locals[1]))
@@ -122,12 +123,14 @@ func envPrintsl(vm *exec.VirtualMachine) int64 {
 	return 0
 }
 
+
 func envPrintslGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	msgLen := int(uint32(vm.GetCurrentFrame().Locals[1]))
 	return uint64(msgLen), nil
 }
 
 //libc printi()
+// todo
 func envPrinti(vm *exec.VirtualMachine) int64 {
 	num := vm.GetCurrentFrame().Locals[0]
 	log.DLogger.Debug(fmt.Sprintf("%d", num))
@@ -139,6 +142,7 @@ func envPrintiGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
+// todo
 func envPrintui(vm *exec.VirtualMachine) int64 {
 	num := vm.GetCurrentFrame().Locals[0]
 	log.DLogger.Debug(fmt.Sprintf("%d", num))
@@ -150,7 +154,7 @@ func envPrintuiGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func envPrinti128(vm *exec.VirtualMachine) int64 {
+/*func envPrinti128(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
 	buf := vm.Memory.Memory[pos : pos+16]
 	lo := binary.LittleEndian.Uint64(buf[:8])
@@ -182,7 +186,7 @@ func envPrintui128(vm *exec.VirtualMachine) int64 {
 
 func envPrintui128GasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
-}
+}*/
 
 /*func envPrintsf(vm *exec.VirtualMachine) int64 {
 	pos := vm.GetCurrentFrame().Locals[0]
@@ -226,6 +230,7 @@ func envPrintqfGasCost(vm *exec.VirtualMachine) (uint64, error) {
 }
 */
 
+// todo
 func envPrintn(vm *exec.VirtualMachine) int64 {
 	data := fmt.Sprintf("%d", int(uint32(vm.GetCurrentFrame().Locals[0])))
 	log.DLogger.Debug(data)
@@ -237,6 +242,7 @@ func envPrintnGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
+// todo
 func envPrinthex(vm *exec.VirtualMachine) int64 {
 	data := int(uint32(vm.GetCurrentFrame().Locals[0]))
 	dataLen := int(uint32(vm.GetCurrentFrame().Locals[1]))
@@ -259,6 +265,7 @@ func envFreeGasCost(vm *exec.VirtualMachine) (uint64, error) {
 }
 
 //libc calloc()
+// todo  a little troublesome
 func envCalloc(vm *exec.VirtualMachine) int64 {
 	mem := vm.Memory
 	num := int(int32(vm.GetCurrentFrame().Locals[0]))
@@ -276,6 +283,7 @@ func envCallocGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return uint64(total), nil
 }
 
+// todo  a little troublesome
 func envRealloc(vm *exec.VirtualMachine) int64 {
 	mem := vm.Memory
 	size := int(int32(vm.GetCurrentFrame().Locals[1]))
@@ -430,7 +438,7 @@ func (r *Resolver) envSha3(vm *exec.VirtualMachine) int64 {
 	log.DLogger.Info("envSha3 called", zap.Uint8s("hash", hash), zap.String("hasHex", common.Bytes2Hex(hash)))
 	if destSize < len(hash) {
 		// todo
-		return 0
+		return 1
 	}
 	//fmt.Printf("Sha3:%v, 0:%v, 1:%v, (-2):%v, (-1):%v. \n", common.Bytes2Hex(hash), hash[0], fmt.Sprintf("%b", hash[1]), hash[len(hash)-2], hash[len(hash)-1])
 	copy(vm.Memory.Memory[destOffset:], hash)
@@ -506,6 +514,7 @@ func (r *Resolver) envGetCallerNonce(vm *exec.VirtualMachine) int64 {
 	return curTime
 }*/
 
+// todo  is it reasonable to call the VM.Call() method to implement Transfer?
 func (r *Resolver) envCallTransfer(vm *exec.VirtualMachine) int64 {
 	key := int(int32(vm.GetCurrentFrame().Locals[0]))
 	keyLen := int(int32(vm.GetCurrentFrame().Locals[1]))
@@ -539,12 +548,15 @@ func (r *Resolver) envGetSignerAddress(vm *exec.VirtualMachine) int64 {
 
 	//crypto.VerifySignature(r.Service.Self().Address().)
 
-	log.DLogger.Info("Resolver#envVerifySignature", zap.Uint8s("sha3Data", sha3Data), zap.Uint8s("signature", signature), zap.Uint8s("signature byte", common.Hex2Bytes(string(signature))))
+	log.DLogger.Info("Resolver#envVerifySignature", zap.String("sha3Data", string(sha3Data)), zap.String("signature",   string(signature)))
 
-	hashByte := common.Hex2Bytes(string(signature))
-	pK, err := crypto.SigToPub(sha3Data, hashByte)
+	signByte := common.Hex2Bytes(string(signature))
+	sha3Byte := common.Hex2Bytes(string(sha3Data))
+	log.DLogger.Info("signByte len", zap.Int("hash byte len", len(signByte)),zap.Int("sha3 byte len", len(sha3Byte)))
+	pK, err := crypto.SigToPub(sha3Byte, signByte)
 	if err != nil {
-		return 0
+		log.DLogger.Error("Sig To Pub err ", zap.Error( err))
+		return 1
 	}
 
 	log.DLogger.Info("Resolver#envVerifySignature addr", zap.Any("address ", addressutil.PubKeyToAddress(*pK, common.AddressTypeNormal)), zap.String("self address", r.Service.Self().Address().Hex()))
@@ -553,6 +565,8 @@ func (r *Resolver) envGetSignerAddress(vm *exec.VirtualMachine) int64 {
 	copy(vm.Memory.Memory[returnStart:], addr.Bytes())
 	return 0
 }
+
+// todo  is it reasonable to call the VM.Call() method to implement Transfer?
 func (r *Resolver) envCallTransferUDIP(vm *exec.VirtualMachine) int64 {
 	key := int(int32(vm.GetCurrentFrame().Locals[0]))
 	keyLen := int(int32(vm.GetCurrentFrame().Locals[1]))

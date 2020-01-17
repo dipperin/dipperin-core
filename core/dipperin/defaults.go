@@ -137,6 +137,7 @@ func readNodesFromFile(confFile string) (result []*enode.Node) {
 	return
 }*/
 
+// todo: adding test which load file
 func loadNodeKeyFromFile(dataDir string) *ecdsa.PrivateKey {
 	nodeKeyFilePath := filepath.Join(dataDir, "nodekey")
 

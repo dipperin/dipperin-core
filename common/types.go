@@ -344,12 +344,6 @@ func (addr Address) Hex() string {
 }
 
 func HexStringSameWithVM(unchecksummed string) string {
-	//log.DLogger.Debug("HexStringSameWithVM ", "addr", addr)
-	//addrSlice := StringToAddress(addr)
-
-	//log.DLogger.Debug("HexStringSameWithVM addrSlice", "addrSlice", addrSlice)
-	//unchecksummed := hex.EncodeToString(addrSlice[:])
-	//unchecksummed = unchecksummed[:len(unchecksummed)-1]
 	log.DLogger.Debug("HexStringSameWithVM unchecksummed", zap.String("unchecksummed", unchecksummed))
 	hash := crypto.Keccak256([]byte(unchecksummed))
 	log.DLogger.Debug("HexStringSameWithVM hash", zap.Uint8s("hash", hash), zap.String("hashStr", string(hash)))
