@@ -32,33 +32,30 @@ func TestDipperinEconomyModel_MapMerge(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func() error
+		given func() (map[common.Address]*big.Int,map[common.Address]*big.Int)
 		expect error
 	} {
 		{
 			name:"MapMerge",
-			given: func() error {
+			given: func() (map[common.Address]*big.Int,map[common.Address]*big.Int) {
 				src := map[common.Address]*big.Int{}
 				des := map[common.Address]*big.Int{}
 
 				src[common.HexToAddress("1234")] = big.NewInt(1)
-				err := MapMerge(des, src)
-				return err
+				return des,src
 			},
 			expect:nil,
 		},
 		{
 			name:"ErrAddressExist",
-			given: func() error {
+			given: func() (map[common.Address]*big.Int,map[common.Address]*big.Int) {
 				src := map[common.Address]*big.Int{}
 				des := map[common.Address]*big.Int{}
 
 				src[common.HexToAddress("1234")] = big.NewInt(1)
 				err := MapMerge(des, src)
 				assert.NoError(t, err)
-				//existed error
-				err = MapMerge(des, src)
-				return err
+				return des, src
 			},
 			expect:gerror.ErrAddressExist,
 		},
@@ -66,7 +63,9 @@ func TestDipperinEconomyModel_MapMerge(t *testing.T) {
 
 	for _, tc := range testCases{
 		t.Log("TestDipperinEconomyModel_MapMerge", tc.name)
-		assert.Equal(t, tc.expect, tc.given())
+		des,src := tc.given()
+		err := MapMerge(des, src)
+		assert.Equal(t, tc.expect, err)
 	}
 }
 
@@ -84,42 +83,35 @@ func TestDipperinEconomyModel_GetOneBlockTotalDIPReward(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func() (*big.Int, error)
+		given uint64
 		expect result
 	}{
 		{
 			name:"BlockNumberIs0",
-			given: func() (*big.Int, error) {
-				return economyModel.GetOneBlockTotalDIPReward(0)
-			},
+			given: uint64(0),
 			expect:result{big.NewInt(0), gerror.ErrBlockNumberIs0},
 		},
 		{
 			name:"HeightBeforeTenYear",
-			given: func() (*big.Int, error) {
-				return economyModel.GetOneBlockTotalDIPReward(HeightAfterTenYear - 1)
-			},
+			given: uint64(HeightAfterTenYear - 1),
 			expect:result{TotalReWardDIPOneBlock, nil},
 		},
 		{
 			name:"HeightInTenYear",
-			given: func() (*big.Int, error) {
-				return economyModel.GetOneBlockTotalDIPReward(HeightAfterTenYear)
-			},
+			given: uint64(HeightAfterTenYear),
 			expect:result{TotalReWardDIPOneBlock, nil},
 		},
 		{
 			name:"HeightAfterTenYear",
-			given: func() (*big.Int, error) {
-				return economyModel.GetOneBlockTotalDIPReward(HeightAfterTenYear)
-			},
+			given: uint64(HeightAfterTenYear),
 			expect:result{TotalReWardDIPOneBlock, nil},
 		},
 	}
 
 	for _,tc := range testCases{
 		t.Log("TestDipperinEconomyModel_GetOneBlockTotalDIPReward", tc.name)
-		reword, err := tc.given()
+		num := tc.given
+		reword, err := economyModel.GetOneBlockTotalDIPReward(num)
 		assert.Equal(t, tc.expect.reword, reword)
 		assert.Equal(t, tc.expect.err, err)
 	}
@@ -225,41 +217,38 @@ func TestDipperinEconomyModel_GetMineMasterDIPReward(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func() (*big.Int, error)
+		given func() *model.MockAbstractBlock
 		expect result
 	}{
 		{
 			name:"HeightInTenYear",
-			given: func() (*big.Int, error) {
+			given: func() *model.MockAbstractBlock {
 				testBlock.EXPECT().Number().Return(uint64(30))
-
-				return  economyModel.GetMineMasterDIPReward(testBlock)
+				return testBlock
 			},
 			expect:result{big.NewInt(0).Mul(big.NewInt(17400000000), big.NewInt(consts.GDIPUNIT)), nil},
 		},
 		{
 			name:"HeightAfterTenYear",
-			given: func() (*big.Int, error) {
+			given: func() *model.MockAbstractBlock {
 				testBlock.EXPECT().Number().Return(uint64(HeightAfterTenYear + 1))
-
-
-				return  economyModel.GetMineMasterDIPReward(testBlock)
+				return testBlock
 			},
 			expect:result{big.NewInt(0).Mul(big.NewInt(8700000000), big.NewInt(consts.GDIPUNIT)), nil},
 		},
 		{
 			name:"HeightAfterElevenYear",
-			given: func() (*big.Int, error) {
+			given: func() *model.MockAbstractBlock {
 				testBlock.EXPECT().Number().Return(uint64(11*HeightAfterOneYear) + 1)
-				return  economyModel.GetMineMasterDIPReward(testBlock)
+				return testBlock
 			},
 			expect:result{big.NewInt(0).Mul(big.NewInt(12441000000), big.NewInt(consts.GDIPUNIT)), nil},
 		},
 		{
 			name:"genesisBlock",
-			given: func() (*big.Int, error) {
+			given: func() *model.MockAbstractBlock {
 				testBlock.EXPECT().Number().Return(uint64(0))
-				return  economyModel.GetMineMasterDIPReward(testBlock)
+				return testBlock
 			},
 			expect:result{big.NewInt(0), gerror.ErrBlockNumberIs0},
 		},
@@ -267,7 +256,8 @@ func TestDipperinEconomyModel_GetMineMasterDIPReward(t *testing.T) {
 
 	for _,tc := range testCases{
 		t.Log("TestDipperinEconomyModel_GetMineMasterDIPReward", tc.name)
-		reword, err := tc.given()
+		block := tc.given
+		reword, err := economyModel.GetMineMasterDIPReward(block())
 		assert.Equal(t, tc.expect.reword, reword)
 		assert.Equal(t, tc.expect.err, err)
 	}
@@ -283,42 +273,36 @@ func TestDipperinEconomyModel_GetVerifierDIPReward(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func() error
+		given func() *model.MockAbstractBlock
 		expect error
+		expectResult map[VerifierType]*big.Int
 	}{
 		{
 			name:"HeightInTenYear",
-			given: func()  error {
+			given: func()  *model.MockAbstractBlock {
 				mockBlock1 := model.NewMockAbstractBlock(controller)
 				mockBlock1.EXPECT().Number().Return(uint64(30)).AnyTimes()
-				reward, err := economyModel.GetVerifierDIPReward(mockBlock1)
-				assert.EqualValues(t, big.NewInt(75362318840579710), reward[MasterVerifier])
-				assert.EqualValues(t, big.NewInt(150724637681159420), reward[CommitVerifier])
-				assert.EqualValues(t, big.NewInt(37681159420289855), reward[NotCommitVerifier])
-				return err
+				return mockBlock1
 			},
 			expect:nil,
+			expectResult:map[VerifierType]*big.Int{MasterVerifier:big.NewInt(75362318840579710),CommitVerifier:big.NewInt(150724637681159420), NotCommitVerifier:big.NewInt(37681159420289855)},
 		},
 		{
 			name:"HeightInTenYear",
-			given: func()  error {
+			given: func()  *model.MockAbstractBlock {
 				mockBlock1 := model.NewMockAbstractBlock(controller)
 				mockBlock1.EXPECT().Number().Return(uint64(HeightAfterTenYear + 1)).AnyTimes()
-				reward, err := economyModel.GetVerifierDIPReward(mockBlock1)
-				assert.EqualValues(t, big.NewInt(37681159420289855), reward[MasterVerifier])
-				assert.EqualValues(t, big.NewInt(75362318840579710), reward[CommitVerifier])
-				assert.EqualValues(t, big.NewInt(18840579710144927), reward[NotCommitVerifier])
-				return err
+				return mockBlock1
 			},
 			expect:nil,
+			expectResult:map[VerifierType]*big.Int{MasterVerifier:big.NewInt(37681159420289855),CommitVerifier:big.NewInt(75362318840579710), NotCommitVerifier:big.NewInt(18840579710144927)},
 		},
 		{
 			name:"genesisBlock",
-			given: func()  error {
+			given: func()  *model.MockAbstractBlock {
 				mockBlock1 := model.NewMockAbstractBlock(controller)
 				mockBlock1.EXPECT().Number().Return(uint64(0)).AnyTimes()
-				_, err := economyModel.GetVerifierDIPReward(mockBlock1)
-				return err
+				return mockBlock1
 			},
 			expect:gerror.ErrBlockNumberIs0,
 		},
@@ -326,7 +310,15 @@ func TestDipperinEconomyModel_GetVerifierDIPReward(t *testing.T) {
 
 	for _,tc := range testCases{
 		t.Log("TestDipperinEconomyModel_GetVerifierDIPReward", tc.name)
-		err := tc.given()
+		block  := tc.given()
+		result, err := economyModel.GetVerifierDIPReward(block)
+		if err != nil {
+			assert.Equal(t, tc.expect, err)
+		}else {
+			assert.EqualValues(t, tc.expectResult[MasterVerifier], result[MasterVerifier])
+			assert.EqualValues(t, tc.expectResult[CommitVerifier], result[CommitVerifier])
+			assert.EqualValues(t, tc.expectResult[NotCommitVerifier], result[NotCommitVerifier])
+		}
 		assert.Equal(t, tc.expect, err)
 	}
 }
@@ -439,21 +431,20 @@ func TestDipperinEconomyModel_GetDiffVerifierAddress(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func() error
+		given func() (*model.MockAbstractBlock, *model.MockAbstractBlock)
 		expect error
 	}{
 		{
-			name:"",
-			given: func() error {
+			name:"ErrBlockNumberIs0Ore1",
+			given: func() (*model.MockAbstractBlock, *model.MockAbstractBlock) {
 				mockBlock.EXPECT().Number().Return(uint64(1))
-				_, err := economyModel.GetDiffVerifierAddress(mockPreBlock, mockBlock)
-				return err
+				return mockPreBlock, mockBlock
 			},
 			expect:gerror.ErrBlockNumberIs0Ore1,
 		},
 		{
-			name:"",
-			given: func() error {
+			name:"GetDiffVerifierAddressRight",
+			given: func() (*model.MockAbstractBlock, *model.MockAbstractBlock) {
 				mockPreBlock.EXPECT().Number().Return(uint64(2)).AnyTimes()
 				mockBlock.EXPECT().Number().Return(uint64(3)).AnyTimes()
 
@@ -462,10 +453,7 @@ func TestDipperinEconomyModel_GetDiffVerifierAddress(t *testing.T) {
 				mockVerifier.EXPECT().GetAddress().Return(common.HexToAddress("0x000078b33598Be2b405206F44B018557e6F851FD230C")).AnyTimes()
 
 				mockBlock.EXPECT().GetVerifications().Return(model.Verifications{mockVerifier})
-
-				_, err := economyModel.GetDiffVerifierAddress(mockPreBlock, mockBlock)
-
-				return err
+				return mockPreBlock,mockBlock
 			},
 			expect:nil,
 		},
@@ -473,7 +461,8 @@ func TestDipperinEconomyModel_GetDiffVerifierAddress(t *testing.T) {
 	}
 	for _,tc := range testCases{
 		t.Log("TestDipperinEconomyModel_GetDiffVerifierAddress", tc.name)
-		err := tc.given()
+		mockPreBlock, mockBlock := tc.given()
+		_, err := economyModel.GetDiffVerifierAddress(mockPreBlock, mockBlock)
 		assert.Equal(t, tc.expect, err)
 	}
 

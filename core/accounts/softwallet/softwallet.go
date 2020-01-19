@@ -21,6 +21,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
@@ -125,7 +126,7 @@ func (w *SoftWallet) paddingWalletInfo(mnemonic, password, passPhrase string, kd
 	w.walletInfo.Paths[account.Address] = tmpPath
 	w.walletInfo.DerivedPathIndex[DefaultAccountValue] = AddressIndexStartValue
 
-	//log.DLogger.Debug("the extKey is: ","extKey",*extKey)
+	//log.DLogger.Debug("the given is: ","given",*given)
 
 	w.walletInfo.ExtendKeys[account.Address] = *extKey
 
@@ -163,12 +164,12 @@ func (w *SoftWallet) encryptWalletAndWriteFile(operation int) (err error) {
 	if operation == CloseWallet {
 		if exist == false {
 			//wallet file does not exist
-			return accountsbase.ErrWalletFileNotExist
+			return gerror.ErrWalletFileNotExist
 		}
 	} else {
 		if exist == true {
 			//file already exists when creating a new wallet
-			return accountsbase.ErrWalletFileExist
+			return gerror.ErrWalletFileExist
 		} else {
 			path := filepath.Dir(walletPath)
 			os.MkdirAll(path, 0766)
@@ -192,7 +193,7 @@ func (w *SoftWallet) decryptWallet(password string) (passwordValid bool, walletP
 	//Read wallet cipher and encryption parameter data according to wallet path
 	walletJsonData, err := ioutil.ReadFile(walletPath)
 	if err != nil {
-		log.DLogger.Info("the err is:", zap.Error(err))
+		log.DLogger.Info("the expect is:", zap.Error(err))
 		return
 	}
 
@@ -219,7 +220,7 @@ func (w *SoftWallet) decryptWallet(password string) (passwordValid bool, walletP
 	WalletPlain, err1 := DecryptWalletContent(w.walletFileInfo.WalletCipher, w.walletFileInfo.IV[:], keyData)
 	if err1 != nil {
 		log.DLogger.Warn("decrypt wallet failed", zap.Error(err1))
-		err = accountsbase.ErrWalletPasswordNotValid
+		err = gerror.ErrWalletPasswordNotValid
 		return
 	}
 
@@ -250,7 +251,7 @@ func (w *SoftWallet) decryptWalletFromJsonData(JsonData []byte, password string)
 	WalletPlain, err1 := DecryptWalletContent(w.walletFileInfo.WalletCipher, w.walletFileInfo.IV[:], keyData)
 	if err1 != nil {
 		log.DLogger.Warn("decrypt wallet failed", zap.Error(err1))
-		err = accountsbase.ErrWalletPasswordNotValid
+		err = gerror.ErrWalletPasswordNotValid
 		return
 	}
 
@@ -263,7 +264,7 @@ func (w *SoftWallet) GetWalletIdentifier() (accountsbase.WalletIdentifier, error
 	defer w.mu.Unlock()
 
 	if w.status != accountsbase.Opened {
-		return accountsbase.WalletIdentifier{}, accountsbase.ErrWalletNotOpen
+		return accountsbase.WalletIdentifier{}, gerror.ErrWalletNotOpen
 	}
 
 	return w.Identifier, nil
@@ -293,9 +294,9 @@ func (w *SoftWallet) Establish(path, name, password, passPhrase string) (string,
 		return "", err
 	}
 
-	//err = CheckPassword(passPhrase)
-	//if err != nil {
-	//	return "", err
+	//expect = CheckPassword(passPhrase)
+	//if expect != nil {
+	//	return "", expect
 	//}
 	w.Identifier.WalletName = name
 	w.Identifier.Path = path
@@ -341,9 +342,9 @@ func (w *SoftWallet) RestoreWallet(path, name, password, passPhrase, mnemonic st
 	if err != nil {
 		return err
 	}
-	//err = CheckPassword(passPhrase)
-	//if err != nil {
-	//	return err
+	//expect = CheckPassword(passPhrase)
+	//if expect != nil {
+	//	return expect
 	//}
 
 	w.Identifier.WalletName = name
@@ -418,7 +419,7 @@ func (w *SoftWallet) Close() error {
 	defer w.mu.Unlock()
 
 	if w.status != accountsbase.Opened {
-		return accountsbase.ErrWalletNotOpen
+		return gerror.ErrWalletNotOpen
 	}
 
 	//Calculate wallet data cipher and mac value using wallet internal derivative key
@@ -444,7 +445,7 @@ func (w *SoftWallet) Accounts() ([]accountsbase.Account, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if w.status != accountsbase.Opened {
-		return []accountsbase.Account{}, accountsbase.ErrWalletNotOpen
+		return []accountsbase.Account{}, gerror.ErrWalletNotOpen
 	}
 	return w.walletInfo.Accounts, nil
 }
@@ -454,7 +455,7 @@ func (w *SoftWallet) Contains(account accountsbase.Account) (bool, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if w.status != accountsbase.Opened {
-		return false, accountsbase.ErrWalletNotOpen
+		return false, gerror.ErrWalletNotOpen
 	}
 	for _, tmpAccount := range w.walletInfo.Accounts {
 		if tmpAccount == account {
@@ -470,7 +471,7 @@ func (w *SoftWallet) Derive(path accountsbase.DerivationPath, save bool) (accoun
 	defer w.mu.Unlock()
 
 	if w.status != accountsbase.Opened {
-		return accountsbase.Account{}, accountsbase.ErrWalletNotOpen
+		return accountsbase.Account{}, gerror.ErrWalletNotOpen
 	}
 
 	//use default path when no derived path is provided
@@ -502,7 +503,7 @@ func (w *SoftWallet) Derive(path accountsbase.DerivationPath, save bool) (accoun
 	//determine if the derived path is legal
 	isValid, err := CheckDerivedPathValid(tmpPath)
 	if err != nil || !isValid {
-		return accountsbase.Account{}, accountsbase.ErrInvalidDerivedPath
+		return accountsbase.Account{}, gerror.ErrInvalidDerivedPath
 	}
 
 	//Generate derived keys based on incoming derived paths and wallet seeds
@@ -571,7 +572,7 @@ func (w *SoftWallet) SignHash(account accountsbase.Account, hash []byte) ([]byte
 	defer w.mu.RUnlock()
 
 	if w.status != accountsbase.Opened {
-		return []byte{}, accountsbase.ErrWalletNotOpen
+		return []byte{}, gerror.ErrWalletNotOpen
 	}
 
 	//Obtain the corresponding private key data according to the address
@@ -596,7 +597,7 @@ func (w *SoftWallet) SignTx(account accountsbase.Account, tx *model.Transaction,
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	if w.status != accountsbase.Opened {
-		return nil, accountsbase.ErrWalletNotOpen
+		return nil, gerror.ErrWalletNotOpen
 	}
 
 	//Obtain the corresponding private key data according to the address
@@ -621,7 +622,7 @@ func (w *SoftWallet) Evaluate(account accountsbase.Account, seed []byte) (index 
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	if w.status != accountsbase.Opened {
-		return [32]byte{}, []byte{}, accountsbase.ErrWalletNotOpen
+		return [32]byte{}, []byte{}, gerror.ErrWalletNotOpen
 	}
 
 	//Obtain the corresponding private key data according to the address
@@ -640,7 +641,7 @@ func (w *SoftWallet) GetPKFromAddress(account accountsbase.Account) (*ecdsa.Publ
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	if w.status != accountsbase.Opened {
-		return nil, accountsbase.ErrWalletNotOpen
+		return nil, gerror.ErrWalletNotOpen
 	}
 
 	if sk, ok := w.walletInfo.ExtendKeys[account.Address]; ok {
@@ -648,7 +649,7 @@ func (w *SoftWallet) GetPKFromAddress(account accountsbase.Account) (*ecdsa.Publ
 		skByte := sk.pubKeyBytes()
 		return crypto.DecompressPubkey(skByte)
 	} else {
-		return nil, accountsbase.ErrInvalidAddress
+		return nil, gerror.ErrInvalidAddress
 	}
 }
 
@@ -657,7 +658,7 @@ func (w *SoftWallet) GetSKFromAddress(address common.Address) (*ecdsa.PrivateKey
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	if w.status != accountsbase.Opened {
-		return nil, accountsbase.ErrWalletNotOpen
+		return nil, gerror.ErrWalletNotOpen
 	}
 
 	if sk, ok := w.walletInfo.ExtendKeys[address]; ok {
@@ -673,7 +674,7 @@ func (w *SoftWallet) GetSKFromAddress(address common.Address) (*ecdsa.PrivateKey
 		}
 		return &result, nil
 	} else {
-		return nil, accountsbase.ErrInvalidAddress
+		return nil, gerror.ErrInvalidAddress
 	}
 }
 

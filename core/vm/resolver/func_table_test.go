@@ -37,54 +37,49 @@ func TestNewResolver(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func() error
+		given func() (string,string,bool)
 		expect error
 	}{
 		{
 			name:"wrongModule",
-			given: func() error {
-				// test resolve function
-				resolverFunc := solver.ResolveFunc("module", "field")
-				assert.Panics(t, func() {
-					resolverFunc.Execute(&exec.VirtualMachine{})
-				})
-				assert.Panics(t, func() {
-					resolverFunc.GasCost(&exec.VirtualMachine{})
-				})
-				return nil
+			given: func() (string,string,bool) {
+				return "module", "field",false
 			},
 			expect: nil,
 		},
 		{
 			name:"wrongField",
-			given: func() error {
-				resolverFunc := solver.ResolveFunc("env", "field")
-				assert.Panics(t, func() {
-					resolverFunc.Execute(&exec.VirtualMachine{})
-				})
-				assert.Panics(t, func() {
-					resolverFunc.GasCost(&exec.VirtualMachine{})
-				})
-				return nil
+			given: func() (string,string,bool) {
+				return "env", "field",false
 			},
 			expect:nil,
 		},
 		{
 		    name:"ResolveFuncRight",
-			given: func() error {
-				resolverFunc := solver.ResolveFunc("env", "gasPrice")
-				gasPrice := resolverFunc.Execute(&exec.VirtualMachine{})
-				cost, err := resolverFunc.GasCost(&exec.VirtualMachine{})
-				assert.Equal(t, model.TestGasPrice.Int64(), gasPrice)
-				assert.Equal(t, GasQuickStep, cost)
-				return err
+			given: func() (string,string,bool) {
+				return "env", "gasPrice",true
 			},
 		    expect:nil,
 		},
 	}
 
 	for _,tc := range testCases{
-		assert.Equal(t,tc.expect, tc.given())
+		module, field, canExecute := tc.given()
+		resolverFunc := solver.ResolveFunc(module, field)
+		if(canExecute){
+			gasPrice := resolverFunc.Execute(&exec.VirtualMachine{})
+			cost, err := resolverFunc.GasCost(&exec.VirtualMachine{})
+			assert.Equal(t, model.TestGasPrice.Int64(), gasPrice)
+			assert.Equal(t, GasQuickStep, cost)
+			assert.NoError(t, err)
+		}else {
+			assert.Panics(t, func() {
+				resolverFunc.Execute(&exec.VirtualMachine{})
+			})
+			assert.Panics(t, func() {
+				resolverFunc.GasCost(&exec.VirtualMachine{})
+			})
+		}
 	}
 
 

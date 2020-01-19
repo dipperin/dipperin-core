@@ -19,6 +19,7 @@ package accounts
 import (
 	"crypto/ecdsa"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
 	crypto2 "github.com/dipperin/dipperin-core/third_party/crypto"
 	"sync"
@@ -73,12 +74,12 @@ func (signer *WalletSigner) PublicKey() *ecdsa.PublicKey {
 
 func (signer *WalletSigner) ValidSign(hash []byte, pubKey []byte, sign []byte) error {
 	if len(sign) == 0 {
-		return accountsbase.ErrEmptySign
+		return gerror.ErrEmptySign
 	}
 	if crypto2.VerifySignature(pubKey, hash, sign[:len(sign)-1]) == true {
 		return nil
 	} else {
-		return accountsbase.ErrSignatureInvalid
+		return gerror.ErrSignatureInvalid
 	}
 }
 

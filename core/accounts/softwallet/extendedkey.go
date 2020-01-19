@@ -33,9 +33,9 @@ import (
 	"crypto/rand"
 	"crypto/sha512"
 	"encoding/binary"
-	"errors"
-	"fmt"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/dipperin/dipperin-core/common/consts"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"math/big"
 
 	"crypto/sha256"
@@ -44,79 +44,6 @@ import (
 	"github.com/btcsuite/btcutil/base58"
 	"golang.org/x/crypto/ripemd160"
 	"hash"
-)
-
-const (
-	// RecommendedSeedLen is the recommended length in bytes for a seed
-	// to a master node.
-	RecommendedSeedLen = 32 // 256 bits
-
-	// HardenedKeyStart is the index at which a hardended key starts.  Each
-	// extended key has 2^31 normal child keys and 2^31 hardned child keys.
-	// Thus the range for normal child keys is [0, 2^31 - 1] and the range
-	// for hardened child keys is [2^31, 2^32 - 1].
-	HardenedKeyStart = 0x80000000 // 2^31
-
-	// MinSeedBytes is the minimum number of bytes allowed for a seed to
-	// a master node.
-	MinSeedBytes = 16 // 128 bits
-
-	// MaxSeedBytes is the maximum number of bytes allowed for a seed to
-	// a master node.
-	MaxSeedBytes = 64 // 512 bits
-
-	// serializedKeyLen is the length of a serialized public or private
-	// extended key.  It consists of 4 bytes version, 1 byte depth, 4 bytes
-	// fingerprint, 4 bytes child number, 32 bytes chain code, and 33 bytes
-	// public/private key data.
-	serializedKeyLen = 4 + 1 + 4 + 4 + 32 + 33 // 78 bytes
-
-	// maxUint8 is the max positive integer which can be serialized in a uint8
-	maxUint8 = 1<<8 - 1
-)
-
-var (
-	// ErrDeriveHardFromPublic describes an error in which the caller
-	// attempted to derive a hardened extended key from a public key.
-	ErrDeriveHardFromPublic = errors.New("cannot derive a hardened key " +
-		"from a public key")
-
-	// ErrDeriveBeyondMaxDepth describes an error in which the caller
-	// has attempted to derive more than 255 keys from a root key.
-	ErrDeriveBeyondMaxDepth = errors.New("cannot derive a key with more than " +
-		"255 indices in its path")
-
-	// ErrNotPrivExtKey describes an error in which the caller attempted
-	// to extract a private key from a public extended key.
-	ErrNotPrivExtKey = errors.New("unable to create private keys from a " +
-		"public extended key")
-
-	// ErrInvalidChild describes an error in which the child at a specific
-	// index is invalid due to the derived key falling outside of the valid
-	// range for secp256k1 private keys.  This error indicates the caller
-	// should simply ignore the invalid child extended key at this index and
-	// increment to the next index.
-	ErrInvalidChild = errors.New("the extended key at this index is invalid")
-
-	// ErrUnusableSeed describes an error in which the provided seed is not
-	// usable due to the derived key falling outside of the valid range for
-	// secp256k1 private keys.  This error indicates the caller must choose
-	// another seed.
-	ErrUnusableSeed = errors.New("unusable seed")
-
-	// ErrInvalidSeedLen describes an error in which the provided seed or
-	// seed length is not in the allowed range.
-	ErrInvalidSeedLen = fmt.Errorf("seed length must be between %d and %d "+
-		"bits", MinSeedBytes*8, MaxSeedBytes*8)
-
-	// ErrBadChecksum describes an error in which the checksum encoded with
-	// a serialized extended key does not match the calculated value.
-	ErrBadChecksum = errors.New("bad extended key checksum")
-
-	// ErrInvalidKeyLen describes an error in which the provided serialized
-	// key is not the expected length.
-	ErrInvalidKeyLen = errors.New("the provided serialized extended key " +
-		"length is invalid")
 )
 
 //define dipperin s own chain configuration
@@ -151,7 +78,7 @@ type ExtendedKey struct {
 	isPrivate bool
 }
 
-// NewExtendedKey returns a new instance of an extended key with the given
+// NewExtendedKey returns a new instance of an extended key with the givenStruct
 // fields.  No error checking is performed here as it's only intended to be a
 // convenience method used to create a populated struct. This function should
 // only by used by applications that need to create custom ExtendedKeys. All
@@ -231,7 +158,7 @@ func Hash160(buf []byte) []byte {
 	return calcHash(calcHash(buf, sha256.New()), ripemd160.New())
 }
 
-// Child returns a derived child extended key at the given index.  When this
+// Child returns a derived child extended key at the givenStruct index.  When this
 // extended key is a private extended key (as determined by the IsPrivate
 // function), a private extended key will be derived.  Otherwise, the derived
 // extended key will be also be a public extended key.
@@ -254,8 +181,8 @@ func Hash160(buf []byte) []byte {
 // invalid child and simply increment to the next index.
 func (k *ExtendedKey) Child(i uint32) (*ExtendedKey, error) {
 	// Prevent derivation of children beyond the max allowed depth.
-	if k.depth == maxUint8 {
-		return nil, ErrDeriveBeyondMaxDepth
+	if k.depth == consts.MaxUint8 {
+		return nil, gerror.ErrDeriveBeyondMaxDepth
 	}
 
 	// There are four scenarios that could happen here:
@@ -267,9 +194,9 @@ func (k *ExtendedKey) Child(i uint32) (*ExtendedKey, error) {
 	// Case #4 is invalid, so error out early.
 	// A hardened child extended key may not be created from a public
 	// extended key.
-	isChildHardened := i >= HardenedKeyStart
+	isChildHardened := i >= consts.HardenedKeyStart
 	if !k.isPrivate && isChildHardened {
-		return nil, ErrDeriveHardFromPublic
+		return nil, gerror.ErrDeriveHardFromPublic
 	}
 
 	// The data used to derive the child key depends on whether or not the
@@ -318,7 +245,7 @@ func (k *ExtendedKey) Child(i uint32) (*ExtendedKey, error) {
 	// should simply increment to the next index.
 	ilNum := new(big.Int).SetBytes(il)
 	if ilNum.Cmp(btcec.S256().N) >= 0 || ilNum.Sign() == 0 {
-		return nil, ErrInvalidChild
+		return nil, gerror.ErrInvalidChild
 	}
 
 	// The algorithm used to derive the child key depends on whether or not
@@ -348,7 +275,7 @@ func (k *ExtendedKey) Child(i uint32) (*ExtendedKey, error) {
 		// intermediate private key.
 		ilx, ily := btcec.S256().ScalarBaseMult(il)
 		if ilx.Sign() == 0 || ily.Sign() == 0 {
-			return nil, ErrInvalidChild
+			return nil, gerror.ErrInvalidChild
 		}
 
 		// Convert the serialized compressed parent public key into X
@@ -414,7 +341,7 @@ func (k *ExtendedKey) ECPubKey() (*btcec.PublicKey, error) {
 // error will be returned if this function is called on a public extended key.
 func (k *ExtendedKey) ECPrivKey() (*btcec.PrivateKey, error) {
 	if !k.isPrivate {
-		return nil, ErrNotPrivExtKey
+		return nil, gerror.ErrNotPrivExtKey
 	}
 
 	privKey, _ := btcec.PrivKeyFromBytes(btcec.S256(), k.key)
@@ -422,7 +349,7 @@ func (k *ExtendedKey) ECPrivKey() (*btcec.PrivateKey, error) {
 }
 
 // paddedAppend appends the src byte slice to dst, returning the new slice.
-// If the length of the source is smaller than the passed size, leading zero
+// If the expect of the source is smaller than the passed size, leading zero
 // bytes are appended to the dst slice before appending src.
 func paddedAppend(size uint, dst, src []byte) []byte {
 	for i := 0; i < int(size)-len(src); i++ {
@@ -434,7 +361,7 @@ func paddedAppend(size uint, dst, src []byte) []byte {
 // String returns the extended key as a human-readable base58-encoded string.
 func (k *ExtendedKey) String() string {
 	if len(k.key) == 0 {
-		return "zeroed extended key"
+		return consts.ZerodExtendedKey
 	}
 
 	var childNumBytes [4]byte
@@ -443,7 +370,7 @@ func (k *ExtendedKey) String() string {
 	// The serialized format is:
 	//   version (4) || depth (1) || parent fingerprint (4)) ||
 	//   child num (4) || chain code (32) || key data (33) || checksum (4)
-	serializedBytes := make([]byte, 0, serializedKeyLen+4)
+	serializedBytes := make([]byte, 0, consts.SerializedKeyLen+4)
 	serializedBytes = append(serializedBytes, k.version...)
 	serializedBytes = append(serializedBytes, k.depth)
 	serializedBytes = append(serializedBytes, k.parentFP...)
@@ -496,8 +423,8 @@ func (k *ExtendedKey) Zero() {
 // new seed accordingly.
 func NewMaster(seed []byte, net *DPChainCfg) (*ExtendedKey, error) {
 	// Per [BIP32], the seed must be in range [MinSeedBytes, MaxSeedBytes].
-	if len(seed) < MinSeedBytes || len(seed) > MaxSeedBytes {
-		return nil, ErrInvalidSeedLen
+	if len(seed) < consts.MinSeedBytes || len(seed) > consts.MaxSeedBytes {
+		return nil, gerror.ErrInvalidSeedLen
 	}
 
 	// First take the HMAC-SHA512 of the master key and the seed data:
@@ -515,7 +442,7 @@ func NewMaster(seed []byte, net *DPChainCfg) (*ExtendedKey, error) {
 	// Ensure the key in usable.
 	secretKeyNum := new(big.Int).SetBytes(secretKey)
 	if secretKeyNum.Cmp(btcec.S256().N) >= 0 || secretKeyNum.Sign() == 0 {
-		return nil, ErrUnusableSeed
+		return nil, gerror.ErrUnusableSeed
 	}
 
 	parentFP := []byte{0x00, 0x00, 0x00, 0x00}
@@ -529,8 +456,8 @@ func NewKeyFromString(key string) (*ExtendedKey, error) {
 	// The base58-decoded extended key must consist of a serialized payload
 	// plus an additional 4 bytes for the checksum.
 	decoded := base58.Decode(key)
-	if len(decoded) != serializedKeyLen+4 {
-		return nil, ErrInvalidKeyLen
+	if len(decoded) != consts.SerializedKeyLen+4 {
+		return nil, gerror.ErrInvalidKeyLen
 	}
 
 	// The serialized format is:
@@ -542,7 +469,7 @@ func NewKeyFromString(key string) (*ExtendedKey, error) {
 	checkSum := decoded[len(decoded)-4:]
 	expectedCheckSum := chainhash.DoubleHashB(payload)[:4]
 	if !bytes.Equal(checkSum, expectedCheckSum) {
-		return nil, ErrBadChecksum
+		return nil, gerror.ErrBadChecksum
 	}
 
 	// Deserialize each of the payload fields.
@@ -562,7 +489,7 @@ func NewKeyFromString(key string) (*ExtendedKey, error) {
 		keyData = keyData[1:]
 		keyNum := new(big.Int).SetBytes(keyData)
 		if keyNum.Cmp(btcec.S256().N) >= 0 || keyNum.Sign() == 0 {
-			return nil, ErrUnusableSeed
+			return nil, gerror.ErrUnusableSeed
 		}
 	} else {
 		// Ensure the public key parses correctly and is actually on the
@@ -580,13 +507,13 @@ func NewKeyFromString(key string) (*ExtendedKey, error) {
 // GenerateSeed returns a cryptographically secure random seed that can be used
 // as the input for the NewMaster function to generate a new master node.
 //
-// The length is in bytes and it must be between 16 and 64 (128 to 512 bits).
-// The recommended length is 32 (256 bits) as defined by the RecommendedSeedLen
+// The expect is in bytes and it must be between 16 and 64 (128 to 512 bits).
+// The recommended expect is 32 (256 bits) as defined by the RecommendedSeedLen
 // constant.
 func GenerateSeed(length uint8) ([]byte, error) {
 	// Per [BIP32], the seed must be in range [MinSeedBytes, MaxSeedBytes].
-	if length < MinSeedBytes || length > MaxSeedBytes {
-		return nil, ErrInvalidSeedLen
+	if length < consts.MinSeedBytes || length > consts.MaxSeedBytes {
+		return nil, gerror.ErrInvalidSeedLen
 	}
 
 	buf := make([]byte, length)

@@ -19,7 +19,7 @@ package softwallet
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
+	"github.com/dipperin/dipperin-core/common/gerror"
 )
 
 //AES CBC encryption
@@ -45,7 +45,7 @@ func AesEncryptCBC(iv []byte, key []byte, plaintext []byte) (cipherText []byte, 
 func AesDecryptCBC(iv []byte, key []byte, cipherText []byte) (plaintext []byte, err error) {
 
 	if len(cipherText)%16 != 0 {
-		return nil, accountsbase.ErrAESInvalidParameter
+		return nil, gerror.ErrAESInvalidParameter
 	}
 
 	tmpPlaintext := make([]byte, len(cipherText))

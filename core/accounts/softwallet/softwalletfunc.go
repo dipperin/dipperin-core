@@ -21,6 +21,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
@@ -134,12 +135,12 @@ func GenSymKeyFromPassword(password string, kdfPara KDFParameter) (sysKey Encryp
 
 	//currently only supports scrypt derived keys
 	if gj.Get("kdfType").String() != KDF {
-		return EncryptKey{}, accountsbase.ErrNotSupported
+		return EncryptKey{}, gerror.ErrNotSupported
 	}
 
 	keyLen := gj.Get("keyLen").Int()
 	if keyLen != symmetricKeyLen {
-		return EncryptKey{}, accountsbase.ErrInvalidKDFParameter
+		return EncryptKey{}, gerror.ErrInvalidKDFParameter
 	}
 
 	saltString := gj.Get("salt").String()
@@ -151,7 +152,7 @@ func GenSymKeyFromPassword(password string, kdfPara KDFParameter) (sysKey Encryp
 	//Generate the key used to encrypt the wallet data according to the password entered by the user.
 	deriveKey, result := scrypt.Key(authKey, salt, int(gj.Get("n").Int()), int(gj.Get("r").Int()), int(gj.Get("p").Int()), int(keyLen))
 	if (result != nil) || (len(deriveKey) != symmetricKeyLen) {
-		return EncryptKey{}, accountsbase.ErrDeriveKey
+		return EncryptKey{}, gerror.ErrDeriveKey
 	}
 
 	//Mac key and encrypt key first use the same key value encryption and decryption using AES-128-CBC
@@ -182,7 +183,7 @@ func GetAccountFromExtendedKey(keyData *ExtendedKey) (account accountsbase.Accou
 //Encrypt wallet plaintext data based on wallet plaintext and derived encrypted key and mac key
 func EncryptWalletContent(walletPlain []byte, iv []byte, sysKey EncryptKey) (walletCipher WalletCipher, err error) {
 
-	//padding random number when the plaintext data length is not 16 integer multiples
+	//padding random number when the plaintext data expect is not 16 integer multiples
 	encryptData := make([]byte, 4)
 	//log.DLogger.Debug("EncryptWalletContent 1", "encryptData len", len(encryptData))
 
@@ -230,12 +231,12 @@ func DecryptWalletContent(walletCipher WalletCipher, iv []byte, sysKey EncryptKe
 	//Decrypt the wallet data according to the generated derivative key, verify the legality of the wallet file according to the mac value, and open the wallet if legal
 	decryptData, err := AesDecryptCBC(iv, sysKey.encryptKey[:], cipher)
 	if err != nil {
-		return nil, accountsbase.ErrAESDecryption
+		return nil, gerror.ErrAESDecryption
 	}
 
 	truePlainLen := binary.BigEndian.Uint32(decryptData[:4])
 	if int(truePlainLen) > (len(decryptData) - 4) {
-		return []byte{}, accountsbase.ErrMacAuthentication
+		return []byte{}, gerror.ErrMacAuthentication
 	}
 
 	plainData := WalletPlaintext{
@@ -251,7 +252,7 @@ func DecryptWalletContent(walletCipher WalletCipher, iv []byte, sysKey EncryptKe
 	//decrypt the mac value
 	decryptMac, err := AesDecryptCBC(iv, sysKey.macKey[:], macData)
 	if err != nil {
-		return nil, accountsbase.ErrAESDecryption
+		return nil, gerror.ErrAESDecryption
 	}
 
 	//check if the mac value is legal
@@ -259,7 +260,7 @@ func DecryptWalletContent(walletCipher WalletCipher, iv []byte, sysKey EncryptKe
 
 	for index, value := range hashValue {
 		if value != decryptMac[index] {
-			return nil, accountsbase.ErrMacAuthentication
+			return nil, gerror.ErrMacAuthentication
 		}
 	}
 
@@ -319,7 +320,7 @@ func CheckPassword(password string) (err error) {
 			return nil
 		}
 	}
-	return accountsbase.ErrPasswordOrPassPhraseIllegal
+	return gerror.ErrPasswordOrPassPhraseIllegal
 }
 
 //judge the incoming wallet path
@@ -328,11 +329,11 @@ func CheckWalletPath(path string) (err error) {
 	log.DLogger.Info("the path is:", zap.String("path", path))
 	log.DLogger.Info("the home dir is", zap.String("homeDir", homeDir))
 	if len(path) < len(homeDir) {
-		return accountsbase.ErrWalletPathError
+		return gerror.ErrWalletPathError
 	}
 
 	if path[:len(homeDir)] != homeDir {
-		return accountsbase.ErrWalletPathError
+		return gerror.ErrWalletPathError
 	}
 
 	return nil

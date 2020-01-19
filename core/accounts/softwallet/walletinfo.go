@@ -229,7 +229,7 @@ func (w *WalletInfo) paddingUsedAccount(GetAddressRelatedInfo accountsbase.Addre
 		//determine if the derived path is legal
 		isValid, err := CheckDerivedPathValid(tmpPath)
 		if err != nil || !isValid {
-			return accountsbase.ErrInvalidDerivedPath
+			return gerror.ErrInvalidDerivedPath
 		}
 
 		//Generate derived keys based on incoming derived paths and wallet seeds
@@ -282,7 +282,7 @@ func (w *WalletInfo) getSkFromAddress(address common.Address) (sk *ecdsa.Private
 
 	tmpKey, ok := w.ExtendKeys[address]
 	if !ok {
-		return nil, accountsbase.ErrInvalidAddress
+		return nil, gerror.ErrInvalidAddress
 	}
 
 	//take out the private key in the extension key

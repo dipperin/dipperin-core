@@ -356,6 +356,7 @@ func (r *Resolver) envCoinbase(vm *exec.VirtualMachine) int64 {
 }
 
 // define: u256 balance();
+// todo
 func (r *Resolver) envBalance(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	log.DLogger.Info("the currentFrame is:", zap.Any("frame", vm.GetCurrentFrame()), zap.Int64s("local", vm.GetCurrentFrame().Locals))
@@ -396,6 +397,7 @@ func (r *Resolver) envCaller(vm *exec.VirtualMachine) int64 {
 }
 
 // define: int64_t callValue();
+// todo
 func (r *Resolver) envCallValue(vm *exec.VirtualMachine) int64 {
 	value := r.Service.CallValue()
 	ptr := int(int32(vm.GetCurrentFrame().Locals[0]))

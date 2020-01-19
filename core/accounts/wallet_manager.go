@@ -18,6 +18,7 @@ package accounts
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/gtimer"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
@@ -78,7 +79,7 @@ func NewWalletManager(getAddressInfo accountsbase.AddressInfoReader, wallets ...
 			return nil, err
 		}
 		if walletIdentifier.WalletType != accountsbase.SoftWallet {
-			return nil, accountsbase.ErrNotSupportUsbWallet
+			return nil, gerror.ErrNotSupportUsbWallet
 		} else {
 			tmpWallets = append(tmpWallets, tmpWallet)
 		}
@@ -226,7 +227,7 @@ func (manager *WalletManager) FindWalletFromIdentifier(identifier accountsbase.W
 			return wallet, nil
 		}
 	}
-	return nil, accountsbase.ErrNotFindWallet
+	return nil, gerror.ErrNotFindWallet
 }
 
 //get wallet from account address
@@ -245,12 +246,12 @@ func (manager *WalletManager) FindWalletFromAddress(address common.Address) (acc
 			return wallet, nil
 		}
 	}
-	return nil, accountsbase.ErrNotFindWallet
+	return nil, gerror.ErrNotFindWallet
 }
 
 func (manager *WalletManager) GetMainAccount() (accountsbase.Account, error) {
 	if !manager.ServiceStatus() {
-		return accountsbase.Account{}, accountsbase.ErrWalletManagerNotRunning
+		return accountsbase.Account{}, gerror.ErrWalletManagerNotRunning
 	}
 	identifiers, err := manager.ListWalletIdentifier()
 	if err != nil {
@@ -258,7 +259,7 @@ func (manager *WalletManager) GetMainAccount() (accountsbase.Account, error) {
 	}
 
 	if len(identifiers) == 0 {
-		return accountsbase.Account{}, accountsbase.ErrWalletManagerIsEmpty
+		return accountsbase.Account{}, gerror.ErrWalletManagerIsEmpty
 	}
 
 	wallet, err := manager.FindWalletFromIdentifier(identifiers[0])

@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"bytes"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/base"
@@ -42,14 +43,15 @@ func Test_envMemset(t *testing.T)  {
 		Locals: []int64{dataStart, value, num},
 	}
 	vm.CallStack[0] = frame
-	data := make([]byte, num)
-	for i := range data{
-		data[i] = byte(value)
-	}
+	data := bytes.Repeat([]byte{byte(value)}, int(num))
 
 	result  := envMemset(vm)
 	assert.Equal(t, int64(dataStart), result)
 	assert.Equal(t, data, vm.Memory.Memory[dataStart:dataStart+num])
+
+	gasCost, _ := envMemsetGasCost(vm)
+	assert.Equal(t, uint64(num), gasCost)
+
 }
 
 func Test_envPrintsGasCost(t *testing.T)  {
@@ -430,17 +432,17 @@ func Test_envDipperCallAndDelegateCall(t *testing.T) {
 			expect:int64(0),
 		},
 		{
-			name:"test_envDipperDelegateCall",
+			name:"test_envDipperDelegateCallInt64",
 			given: func() int64 {
 				vmValue.(*MockVmContextService).EXPECT().DelegateCall(contractService, common.BytesToAddress(address),params,uint64(0)).Return([]byte(nil),uint64(0),nil).AnyTimes()
 
-				result := solver.(*Resolver).envDipperCallInt64(vm)
+				result := solver.(*Resolver).envDipperDelegateCallInt64(vm)
 				return result
 			},
 			expect:int64(0),
 		},
 		{
-			name:"test_envDipperCall",
+			name:"test_envDipperCallInt64",
 			given: func() int64 {
 				vmValue.(*MockVmContextService).EXPECT().Call(contractService, common.BytesToAddress(address),params,uint64(0), transferValue).Return([]byte(nil),uint64(0),nil).AnyTimes()
 

@@ -28,6 +28,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/nicksnyder/go-i18n v1.10.0 // indirect
+	github.com/onsi/ginkgo v1.7.0
 	github.com/pelletier/go-toml v1.2.0 // indirect
 	github.com/perlin-network/life v0.0.0-20190723115110-3091ed0c1be8
 	github.com/pkg/errors v0.8.1

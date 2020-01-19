@@ -17,6 +17,7 @@
 package vm
 
 import (
+	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/model"
@@ -26,7 +27,6 @@ import (
 	"github.com/dipperin/dipperin-core/tests/mock/model"
 	"github.com/dipperin/dipperin-core/third_party/crypto"
 	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/vntchain/go-vnt/rlp"
 	"math/big"
@@ -38,9 +38,6 @@ var (
 	context common2.Context
 )
 
-func init() {
-
-}
 
 func Test_NewVMContext(t *testing.T) {
 	ctrl, db, _ := GetBaseVmInfo(t)
@@ -96,39 +93,42 @@ func Test_Run(t *testing.T) {
 
 	testCases := []struct {
 		name   string
-		given  func() ([]byte, error)
+		given  func() (*Contract,bool)
 		expect result
 	}{
 		{
 			name: "abiOrCodeErr",
-			given: func() ([]byte, error) {
+			given: func() (*Contract,bool) {
 				contract := getContract(code, abi, nil)
 				contract.ABI = []byte{}
-				return run(vm, contract, true)
+				return contract, true
+				//return run(vm, contract, true)
 			},
 			expect: result{nil, nil},
 		},
 		{
 			name: "newVMErr",
-			given: func() ([]byte, error) {
+			given: func() (*Contract,bool) {
 				contract := getContract(code, abi, nil)
 				contract.Code = []byte{12, 23}
-				return run(vm, contract, true)
+				return contract,true
+				//return run(vm, contract, true)
 			},
 			expect: result{nil, errors.New("unexpected EOF")},
 		},
 		{
 			name: "runCreateRight",
-			given: func() ([]byte, error) {
+			given: func() (*Contract,bool) {
 				contract := getContract(code, abi, nil)
 				contract.value = big.NewInt(0)
-				return run(vm, contract, true)
+				return contract, true
+				//return run(vm, contract, true)
 			},
 			expect: result{code, nil},
 		},
 		{
 			name: "runCallRight",
-			given: func() ([]byte, error) {
+			given: func() (*Contract,bool) {
 
 				input, err := rlp.EncodeToBytes([]interface{}{"returnString", "winner"})
 				assert.NoError(t, err)
@@ -148,22 +148,26 @@ func Test_Run(t *testing.T) {
 					Removed:     false,
 				}
 				db.EXPECT().AddLog(&log).Return()
-
-				ret, err := run(vm, contract, false)
-				if len(ret) > len(param) {
-					ret = ret[:len(param)]
-				}
-				return ret, err
+				return contract,false
+				//ret, err := run(vm, contract, false)
+				//if len(ret) > len(param) {
+				//	ret = ret[:len(param)]
+				//}
+				//return ret, err
 			},
 			expect: result{[]byte(param), nil},
 		},
 	}
 
 	for _, tc := range testCases {
-		ret, err := tc.given()
+		contract, create := tc.given()
+		ret, err := run(vm,contract,create)
 		if err != nil {
 			assert.Equal(t, tc.expect.err.Error(), err.Error())
 		} else {
+			if !create && len(ret) > len(param) {
+					ret = ret[:len(param)]
+			}
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expect.res, ret)
 		}

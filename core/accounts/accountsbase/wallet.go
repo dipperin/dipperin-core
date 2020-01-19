@@ -66,6 +66,7 @@ type Account struct {
 	Address common.Address
 }
 
+//go:generate mockgen -destination=./address_info_reader_mock.go -package=accountsbase github.com/dipperin/dipperin-core/core/accounts/accountsbase AddressInfoReader
 type AddressInfoReader interface {
 	CurrentBalance(address common.Address) *big.Int
 	GetTransactionNonce(addr common.Address) (nonce uint64, err error)

@@ -19,6 +19,7 @@ package dipperin_prompts
 import (
 	"errors"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
 	"github.com/dipperin/dipperin-core/core/accounts/softwallet"
@@ -203,5 +204,5 @@ func passwordValidate(input string) error {
 			return nil
 		}
 	}
-	return accountsbase.ErrPasswordOrPassPhraseIllegal
+	return gerror.ErrPasswordOrPassPhraseIllegal
 }

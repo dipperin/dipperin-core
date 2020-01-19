@@ -26,124 +26,101 @@ func TestAlign32BytesConverter(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func() error
-		expect error
+		given func() ([]byte,string)
+		expectResult interface{}
 	}{
 		{
 			name:"errInput",
-			given: func() error {
-				result := Align32BytesConverter(nil, "test")
-				assert.Equal(t, []byte(nil), result)
-				return nil
+			given: func() ([]byte,string) {
+				return nil,"test"
 			},
-			expect:nil,
+			expectResult:[]byte(nil),
 		},
 		{
 			name:"test_uint64",
-			given: func() error {
+			given: func() ([]byte,string) {
 				num1 := uint64(1000000)
-				result := Align32BytesConverter(Uint64ToBytes(num1), "uint64")
-				assert.Equal(t, num1, result)
-				return nil
+				return Uint64ToBytes(num1), "uint64"
 			},
-			expect:nil,
+			expectResult:uint64(1000000),
 		},
 		{
 			name: "test_int64",
-			given: func() error {
+			given: func() ([]byte,string) {
 				num2 := int64(-1000000)
-				result := Align32BytesConverter(Int64ToBytes(num2), "int64")
-				assert.Equal(t, num2, result)
-				return nil
+				return Int64ToBytes(num2), "int64"
 			},
-			expect:nil,
+			expectResult:int64(-1000000),
 		},
 		{
 			name:"test_uint32",
-			given: func() error {
+			given: func() ([]byte,string) {
 				num3 := uint32(10000)
-				result := Align32BytesConverter(Uint32ToBytes(num3), "uint32")
-				assert.Equal(t, num3, result)
-				return nil
+				return Uint32ToBytes(num3), "uint32"
 			},
-			expect:nil,
+			expectResult:uint32(10000),
 		},
 		{
 			name:"test_int32",
-			given: func() error {
+			given: func() ([]byte,string) {
 				num4 := int32(-10000)
-				result := Align32BytesConverter(Int32ToBytes(num4), "int32")
-				assert.Equal(t, num4, result)
-				return nil
+				return Int32ToBytes(num4), "int32"
 			},
-			expect:nil,
+			expectResult:int32(-10000),
 		},
 		{
 			name:"test_uint16",
-			given: func() error {
+			given: func() ([]byte,string) {
 				num5 := uint16(10000)
-				result := Align32BytesConverter(Uint16ToBytes(num5), "uint16")
-				assert.Equal(t, num5, result)
-				return nil
+				return Uint16ToBytes(num5), "uint16"
 			},
-			expect:nil,
+			expectResult:uint16(10000),
 		},
 		{
 			name:"test_int16",
-			given: func() error {
+			given: func() ([]byte,string) {
 				num6 := int16(-10000)
-				result := Align32BytesConverter(Int16ToBytes(num6), "int16")
-				assert.Equal(t, num6, result)
-				return nil
+				return Int16ToBytes(num6), "int16"
 			},
-			expect:nil,
+			expectResult:int16(-10000),
 		},
 		{
 			name:"test_float32",
-			given: func() error {
+			given: func() ([]byte,string) {
 				f1 := float32(1.11)
-				result := Align32BytesConverter(Float32ToBytes(f1), "float32")
-				assert.Equal(t, f1, result)
-				return nil
+				return Float32ToBytes(f1), "float32"
 			},
-			expect:nil,
+			expectResult:float32(1.11),
 		},
 		{
 			name:"test_float64",
-			given: func() error {
+			given: func() ([]byte,string) {
 				f2 := float64(1.23)
-				result := Align32BytesConverter(Float64ToBytes(f2), "float64")
-				assert.Equal(t, f2, result)
-				return nil
+				return Float64ToBytes(f2), "float64"
 			},
-			expect:nil,
+			expectResult:float64(1.23),
 		},
 		{
 			name:"test_string",
-			given: func() error {
+			given: func() ([]byte,string) {
 				str := "hello world, I'm the best programmer who code dipperin-core"
-				result := Align32BytesConverter([]byte(str), "string")
-				assert.Equal(t, str, result)
-				result = Align32BytesConverter([]byte(result.(string)), "string")
-				assert.Equal(t, str, result)
-				return nil
+				return []byte(str), "string"
 			},
-			expect:nil,
+			expectResult:"hello world, I'm the best programmer who code dipperin-core",
 		},
 		{
 			name:"test_bool",
-			given: func() error {
+			given: func() ([]byte,string) {
 				b := true
-				result := Align32BytesConverter(BoolToBytes(b), "bool")
-				assert.Equal(t, b, result)
-				return nil
+				return BoolToBytes(b), "bool"
 			},
-			expect:nil,
+			expectResult:true,
 		},
 	}
 
 	for _,tc := range testCases{
-		assert.Equal(t, tc.expect,tc.given())
+		input,fieldType := tc.given()
+		assert.Equal(t, tc.expectResult,Align32BytesConverter(input, fieldType) )
 	}
 
 }
@@ -152,130 +129,123 @@ func TestStringConverter(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func() error
+		given func() (string, string)
 		expect error
+		expectResult []byte
 	}{
 		{
 			name:"test_uint64",
-			given: func() error {
-				num, err := StringConverter("1000", "uint64")
-				assert.Equal(t, Uint64ToBytes(1000), num)
-				return err
+			given: func() (string, string) {
+				return "1000", "uint64"
 			},
 			expect:nil,
+			expectResult:Uint64ToBytes(1000),
 		},
 		{
 			name:"test_int64",
-			given: func() error {
-				num, err := StringConverter("-1000", "int64")
-				assert.Equal(t, Int64ToBytes(-1000), num)
-				return err
+			given: func() (string, string) {
+				return "-1000", "int64"
 			},
 			expect:nil,
+			expectResult:Int64ToBytes(-1000),
 		},
 		{
 			name:"test_uint32",
-			given: func() error {
-				num, err := StringConverter("1000", "uint32")
-				assert.Equal(t, Uint32ToBytes(1000), num)
-				return err
+			given: func() (string, string) {
+				return "1000", "uint32"
 			},
 			expect:nil,
+			expectResult:Uint32ToBytes(1000),
 		},
 		{
 			name:"test_int32",
-			given: func() error {
-				num, err := StringConverter("-1000", "int32")
-				assert.Equal(t, Int32ToBytes(-1000), num)
-				return err
+			given: func() (string, string) {
+				return "-1000", "int32"
 			},
 			expect:nil,
+			expectResult:Int32ToBytes(-1000),
 		},
 		{
 			name:"test_uint16",
-			given: func() error {
-				num, err := StringConverter("1000", "uint16")
-				assert.Equal(t, Uint16ToBytes(1000), num)
-				return err
+			given: func() (string, string) {
+				return "1000", "uint16"
 			},
 			expect:nil,
+			expectResult:Uint16ToBytes(1000),
 		},
 		{
 			name:"test_uint16",
-			given: func() error {
-				num, err := StringConverter("1000", "uint16")
-				assert.Equal(t, Uint16ToBytes(1000), num)
-				return err
+			given: func() (string, string) {
+				return "1000", "uint16"
 			},
 			expect:nil,
+			expectResult:Uint16ToBytes(1000),
 		},
 		{
 			name:"test_int16",
-			given: func() error {
-				num, err := StringConverter("-1000", "int16")
-				assert.Equal(t, Int16ToBytes(-1000), num)
-				return err
+			given: func() (string, string) {
+				return "-1000", "int16"
 			},
 			expect:nil,
+			expectResult:Int16ToBytes(-1000),
 		},
 		{
 			name:"test_float32",
-			given: func() error {
-				num, err := StringConverter("1.11", "float32")
-				assert.Equal(t, Float32ToBytes(1.11), num)
-				return err
+			given: func() (string, string) {
+				return "1.11", "float32"
 			},
 			expect:nil,
+			expectResult:Float32ToBytes(1.11),
 		},
 		{
 			name:"test_float64",
-			given: func() error {
-				num, err := StringConverter("1.23", "float64")
-				assert.Equal(t, Float64ToBytes(1.23), num)
-				return err
+			given: func() (string, string) {
+				return "1.23", "float64"
 			},
 			expect:nil,
+			expectResult:Float64ToBytes(1.23),
 		},
 		{
 			name:"test_bool",
-			given: func() error {
-				num, err := StringConverter("true", "bool")
-				assert.Equal(t, BoolToBytes(true), num)
-				return err
+			given: func() (string, string) {
+				return "true", "bool"
 			},
 			expect:nil,
+			expectResult:BoolToBytes(true),
 		},
 		{
 			name:"test_bool_err",
-			given: func() error {
-				_, err := StringConverter("test", "bool")
-				assert.Error(t, err)
-				return err
+			given: func() (string, string) {
+				return "test", "bool"
 			},
 			expect:gerror.ErrBoolParam,
 		},
 		{
 			name:"test_string",
-			given: func() error {
-				num, err := StringConverter("test", "string")
-				assert.Equal(t, []byte("test"), num)
-				return err
+			given: func() (string, string) {
+				return "test", "string"
 			},
 			expect:nil,
+			expectResult:[]byte("test"),
 		},
 		{
 			name:"test_string",
-			given: func() error {
-				_, err := StringConverter("test", "test")
-				assert.Error(t, err)
-				return err
+			given: func() (string, string) {
+				return "test", "test"
 			},
 			expect:gerror.ErrParamType,
 		},
 	}
 
 	for _, tc := range testCases{
-		assert.Equal(t, tc.expect, tc.given())
+		t.Log(tc.name)
+		input, fieldType := tc.given()
+		result, err := StringConverter(input, fieldType)
+		if err != nil {
+			assert.Equal(t, tc.expect, err)
+		} else {
+			assert.Equal(t, tc.expectResult, result)
+		}
 	}
 
 

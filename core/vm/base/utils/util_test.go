@@ -97,47 +97,49 @@ func TestConvertInputs(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func() ([]byte, error)
+		given func() []byte
 		expect result
 	}{
 		{
 			name:"ErrEmptyInput",
-			given: func() ([]byte, error) {
-				return ConvertInputs(nil, args)
+			given: func() []byte {
+				return nil
 			},
 			expect:result{[]byte(nil),gerror.ErrEmptyInput},
 		},
 		{
 			name:"ErrInvalidRlpFormat",
-			given: func() ([]byte, error) {
-				return ConvertInputs([]byte{123}, args)
+			given: func() []byte {
+				return []byte{123}
 			},
 			expect:result{[]byte(nil),gerror.ErrInvalidRlpFormat},
 		},
 		{
 			name:"ErrLengthInputAbiNotMatch",
-			given: func() ([]byte, error) {
+			given: func() []byte {
 				data, err := rlp.EncodeToBytes([]interface{}{"DIPP", "WU"})
 				assert.NoError(t, err)
-				return ConvertInputs(data, args)
+				return data
 			},
 			expect:result{[]byte(nil),gerror.ErrLengthInputAbiNotMatch},
 		},
 		{
 			name:"ConvertInputsRight",
-			given: func() ([]byte, error) {
+			given: func() []byte {
 				data, err := rlp.EncodeToBytes([]interface{}{"DIPP", "WU", uint64(100)})
 				assert.NoError(t, err)
-				return ConvertInputs(data, args)
+				return  data
+				//return ConvertInputs(data, args)
 			},
 			expect:result{[]byte("DIPP,WU,100,"),nil},
 		},
 	}
 
 	for _, tc := range testCases{
-		data, err := tc.given()
 		t.Log("test case name ", tc.name)
-		assert.Equal(t, tc.expect.data, data)
+		data:= tc.given()
+		result, err := ConvertInputs(data, args)
+		assert.Equal(t, tc.expect.data, result)
 		assert.Equal(t, tc.expect.err, err)
 	}
 
@@ -159,90 +161,91 @@ func TestParseCallContractData(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func() ([]byte, error)
+		given func() ([]byte, []byte)
 		expect result
 	}{
 		{
 			name: "ErrEmptyInput",
-			given: func() ([]byte, error) {
-				return ParseCallContractData(abi,nil)
+			given: func() ([]byte, []byte) {
+				return abi,nil
 			},
 			expect: result{[]byte(nil), gerror.ErrEmptyInput},
 		},
 		{
 			name: "ErrInvalidRlpFormat",
-			given: func() ([]byte, error) {
-				return ParseCallContractData(abi,[]byte{123})
+			given: func() ([]byte, []byte) {
+				return abi,[]byte{123}
 			},
 			expect: result{[]byte(nil), gerror.ErrInvalidRlpFormat},
 		},
 		{
 			name: "ErrInsufficientParams",
-			given: func() ([]byte, error) {
+			given: func() ([]byte, []byte) {
 				input, err := rlp.EncodeToBytes([]interface{}{})
 				assert.NoError(t, err)
-				return ParseCallContractData(abi,input)
+				return abi,input
 			},
 			expect: result{[]byte(nil), gerror.ErrInsufficientParams},
 		},
 		{
 			name: "ErrLengthInputAbiNotMatch",
-			given: func() ([]byte, error) {
+			given: func() ([]byte, []byte) {
 				input, err := rlp.EncodeToBytes([]interface{}{"init"})
 				assert.NoError(t, err)
-				return ParseCallContractData(abi,input)
+				return abi,input
 			},
 			expect: result{[]byte(nil), gerror.ErrLengthInputAbiNotMatch},
 		},
 		{
 			name: "ParseCallContractDataRight",
-			given: func() ([]byte, error) {
-				return ParseCallContractData(abi,startInput)
+			given: func() ([]byte, []byte) {
+				return abi,startInput
 			},
 			expect: result{startInput, nil},
 		},
 		{
 			name: "ErrFuncNameNotFound",
-			given: func() ([]byte, error) {
+			given: func() ([]byte, []byte) {
 				input, err := rlp.EncodeToBytes([]interface{}{"test", ""})
 				assert.NoError(t, err)
-				return ParseCallContractData(abi,input)
+				return abi,input
 			},
 			expect: result{[]byte(nil), gerror.ErrFuncNameNotFound},
 		},
 		{
 			name: "ErrLengthInputAbiNotMatch",
-			given: func() ([]byte, error) {
+			given: func() ([]byte, []byte) {
 				input, err := rlp.EncodeToBytes([]interface{}{"init", "DIPP,dipc"})
 				assert.NoError(t, err)
-				return ParseCallContractData([]byte(abiStr),input)
+				return []byte(abiStr),input
 			},
 			expect: result{[]byte(nil), gerror.ErrLengthInputAbiNotMatch},
 		},
 		{
 			name: "ParseCallContractDataRight2",
-			given: func() ([]byte, error) {
+			given: func() ([]byte, []byte) {
 				input, err := rlp.EncodeToBytes([]interface{}{"init", "DIPP"})
 				assert.NoError(t, err)
-				return ParseCallContractData([]byte(abiStr),input)
+				return []byte(abiStr),input
 			},
 			expect: result{right2Input, nil},
 		},
 		{
 			name: "ParseCallContractDataRight3",
-			given: func() ([]byte, error) {
+			given: func() ([]byte, []byte) {
 				input, err := rlp.EncodeToBytes([]interface{}{"init", "DIPP,WU,100"})
 				assert.NoError(t, err)
-				return ParseCallContractData(abi,input)
+				return abi,input
 			},
 			expect: result{expectData, nil},
 		},
 	}
 
 	for _, tc := range testCases{
-		data, err := tc.given()
 		t.Log("test case name ", tc.name)
-		assert.Equal(t, tc.expect.data, data)
+		abiData, data := tc.given()
+		result, err := ParseCallContractData(abiData,data)
+		assert.Equal(t, tc.expect.data, result)
 		assert.Equal(t, tc.expect.err, err)
 	}
 
@@ -263,92 +266,94 @@ func TestParseCreateContractData(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func() ([]byte, error)
+		given func() []byte
 		expect result
 	}{
 		{
 			name:"ErrEmptyInput",
-			given: func() ([]byte, error) {
-				return ParseCreateContractData(nil)
+			given: func() []byte {
+				return nil
 			},
 			expect:result{[]byte(nil), gerror.ErrEmptyInput},
 		},
 		{
 			name:"ErrInvalidRlpFormat",
-			given: func() ([]byte, error) {
-				return ParseCreateContractData([]byte{123})
+			given: func() []byte {
+				return []byte{123}
 			},
 			expect:result{[]byte(nil), gerror.ErrInvalidRlpFormat},
 		},
 		{
 			name:"ErrInsufficientParams",
-			given: func() ([]byte, error) {
+			given: func() []byte {
 				input, err := rlp.EncodeToBytes([]interface{}{code})
 				assert.NoError(t, err)
-				return ParseCreateContractData(input)
+				return input
 			},
 			expect:result{[]byte(nil), gerror.ErrInsufficientParams},
 		},
 		{
 			name:"ErrLengthInputAbiNotMatch",
-			given: func() ([]byte, error) {
+			given: func() []byte {
 				input, err := rlp.EncodeToBytes([]interface{}{code, abi})
 				assert.NoError(t, err)
-				return ParseCreateContractData(input)
+				return input
 			},
 			expect:result{[]byte(nil), gerror.ErrLengthInputAbiNotMatch},
 		},
 		{
 			name:"ErrInvalidOutputLength",
-			given: func() ([]byte, error) {
+			given: func() []byte {
 				input, err := rlp.EncodeToBytes([]interface{}{code, []byte(abi1)})
 				assert.NoError(t, err)
-				return ParseCreateContractData(input)
+				return input
 			},
 			expect:result{[]byte(nil), gerror.ErrInvalidOutputLength},
 		},
 		{
 			name:"ParseCreateContractDataRight",
-			given: func() ([]byte, error) {
+			given: func() []byte {
 				input, err := rlp.EncodeToBytes([]interface{}{code, []byte(abi2)})
 				assert.NoError(t, err)
-				return ParseCreateContractData(input)
+				return input
 			},
 			expect:result{expectData2, nil},
 		},
 		{
 			name:"ErrLengthInputAbiNotMatch",
-			given: func() ([]byte, error) {
+			given: func() []byte {
 				input, err := rlp.EncodeToBytes([]interface{}{code, abi, "DIPP"})
 				assert.NoError(t, err)
-				return ParseCreateContractData(input)
+				return input
 			},
 			expect:result{[]byte(nil), gerror.ErrLengthInputAbiNotMatch},
 		},
 		{
 			name:"ErrFuncNameNotFound",
-			given: func() ([]byte, error) {
+			given: func() []byte {
 				input, err := rlp.EncodeToBytes([]interface{}{code, []byte(abi3), "DIPP"})
 				assert.NoError(t, err)
-				return ParseCreateContractData(input)
+				return input
 			},
 			expect:result{[]byte(nil), gerror.ErrFuncNameNotFound},
 		},
 		{
 			name:"ParseCreateContractData",
-			given: func() ([]byte, error) {
+			given: func() []byte {
 				input, err := rlp.EncodeToBytes([]interface{}{code, abi, "DIPP,WU,100"})
 				assert.NoError(t, err)
-				return  ParseCreateContractData(input)
+				//return  ParseCreateContractData(input)
+				return input
 			},
 			expect:result{expectData, nil},
 		},
 	}
 
 	for _, tc := range testCases{
-		data, err := tc.given()
 		t.Log("test case name ", tc.name)
-		assert.Equal(t, tc.expect.data, data)
+		data := tc.given()
+		result, err := ParseCreateContractData(data)
+		assert.Equal(t, tc.expect.data, result)
 		assert.Equal(t, tc.expect.err, err)
 	}
 }
@@ -360,65 +365,66 @@ func TestParseInputForFuncName(t *testing.T) {
 	}
 	testCases := []struct{
 		name string
-		given func()  (string, error)
+		given func()  []byte
 		expect result
 	}{
 		{
 			name:"ErrEmptyInput",
-			given: func() (string, error) {
-				return ParseInputForFuncName(nil)
+			given: func() []byte {
+				return nil
 			},
 			expect:result{"", gerror.ErrEmptyInput},
 		},
 		{
 			name:"ErrEmptyInput",
-			given: func() (string, error) {
-				return 	ParseInputForFuncName([]byte{})
+			given: func() []byte {
+				return 	[]byte{}
 
 			},
 			expect:result{"", gerror.ErrEmptyInput},
 		},
 		{
 			name:"ErrInvalidRlpFormat",
-			given: func() (string, error) {
-				return 	ParseInputForFuncName([]byte{1, 2, 3})
+			given: func() []byte {
+				return []byte{1, 2, 3}
 
 			},
 			expect:result{"", gerror.ErrInvalidRlpFormat},
 		},
 		{
 			name:"ErrInsufficientParams",
-			given: func() (string, error) {
+			given: func() []byte {
 				input, err := rlp.EncodeToBytes([]interface{}{})
 				assert.NoError(t, err)
-				return ParseInputForFuncName(input)
+				return input
 			},
 			expect:result{"", gerror.ErrInsufficientParams},
 		},
 		{
 			name:"ParseInputForFuncNameRight",
-			given: func() (string, error) {
+			given: func() []byte {
 				input, err := rlp.EncodeToBytes([]interface{}{""})
 				assert.NoError(t, err)
-				return ParseInputForFuncName(input)
+				return input
 			},
 			expect:result{"", nil},
 		},
 		{
 			name:"ParseInputForFuncNameRight",
-			given: func() (string, error) {
+			given: func() []byte {
 				input, err := rlp.EncodeToBytes([]interface{}{"funcName"})
 				assert.NoError(t, err)
-				return ParseInputForFuncName(input)
+				return input
 			},
 			expect:result{"funcName", nil},
 		},
 		{
 			name:"ParseInputForFuncNameRight",
-			given: func() (string, error) {
+			given: func() []byte {
 				input, err := rlp.EncodeToBytes([]interface{}{"funcName",""})
 				assert.NoError(t, err)
-				return ParseInputForFuncName(input)
+				return input
+				//return ParseInputForFuncName(input)
 			},
 			expect:result{"funcName", nil},
 		},
@@ -426,9 +432,9 @@ func TestParseInputForFuncName(t *testing.T) {
 
 
 	for _, tc := range testCases {
-		funcName, err := tc.given()
+		input := tc.given()
+		funcName, err := ParseInputForFuncName(input)
 		assert.Equal(t, tc.expect.err, err)
 		assert.Equal(t, tc.expect.funcName, funcName)
-
 	}
 }
