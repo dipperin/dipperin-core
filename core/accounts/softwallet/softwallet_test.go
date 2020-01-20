@@ -84,40 +84,28 @@ func TestSoftWallet_paddingWalletInfo(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func() error
+		given func() (string, string, string, *KDFParameter)
 		expect error
 	}{
 		{
 			name:"paddingWalletInfoRight",
-			given:func() error{
-				testWallet, err := NewSoftWallet()
-				assert.NoError(t, err)
-
-				err = testWallet.paddingWalletInfo(testMnemonic, password, passPhrase, testKdfPara)
-				return  err
+			given:func() (string, string, string, *KDFParameter){
+				return testMnemonic, password, passPhrase, testKdfPara
 			},
 			expect:nil,
 		},
 		{
 			name:"errTestMnemonic",
-			given:func() error{
-				testWallet, err := NewSoftWallet()
-				assert.NoError(t, err)
-
-				err = testWallet.paddingWalletInfo(errTestMnemonic, password, passPhrase, testKdfPara)
-				return  err
+			given:func() (string, string, string, *KDFParameter){
+				return errTestMnemonic, password, passPhrase, testKdfPara
 			},
 			expect:bip39.ErrInvalidMnemonic,
 		},
 		{
 			name:"errKDFParamsType",
-			given:func() error{
-				testWallet, err := NewSoftWallet()
-				assert.NoError(t, err)
+			given:func() (string, string, string, *KDFParameter){
 				testKdfPara.KDFParams["kdfType"] = "bcrypt"
-
-				err = testWallet.paddingWalletInfo(testMnemonic, password, passPhrase, testKdfPara)
-				return  err
+				return testMnemonic, password, passPhrase, testKdfPara
 			},
 			expect:gerror.ErrNotSupported,
 		},
@@ -126,7 +114,12 @@ func TestSoftWallet_paddingWalletInfo(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Log(tc.name)
-		assert.Equal(t, tc.expect, tc.given())
+		testMnemonic, password, passPhrase, testKdfPara := tc.given()
+		testWallet, err := NewSoftWallet()
+		assert.NoError(t, err)
+
+		err = testWallet.paddingWalletInfo(testMnemonic, password, passPhrase, testKdfPara)
+		assert.Equal(t, tc.expect, err)
 	}
 
 }
@@ -165,31 +158,28 @@ func TestSoftWallet_Establish(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func() error
+		given func() (string,string,string,string)
 		expect error
 	}{
 		{
 			name:"ErrWalletPath",
-			given: func() error {
+			given: func() (string,string,string,string) {
 				TestErrWalletPath := "/tmp/testSoftWallet"
-				_, _, err := establishSoftWallet(TestErrWalletPath, walletName, password, passPhrase)
-				return err
+				return TestErrWalletPath, walletName, password, passPhrase
 			},
 			expect:gerror.ErrWalletPathError,
 		},
 		{
 			name:"establishSoftWalletRight",
-			given: func() error {
-				_, _, err := establishSoftWallet(path, walletName, password, passPhrase)
-				return err
+			given: func() (string,string,string,string) {
+				return path, walletName, password, passPhrase
 			},
 			expect:nil,
 		},
 		{
 			name:"ErrPasswordOrPassPhraseIllegal",
-			given: func() error {
-				_, _, err := establishSoftWallet(path, walletName, "", passPhrase)
-				return err
+			given: func() (string,string,string,string) {
+				return path, walletName, "", passPhrase
 			},
 			expect:gerror.ErrPasswordOrPassPhraseIllegal,
 		},
@@ -197,7 +187,9 @@ func TestSoftWallet_Establish(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Log(tc.name)
-		assert.Equal(t, tc.expect, tc.given())
+		walletPath, walletName, password, passPhrase := tc.given()
+		_, _, err := establishSoftWallet(walletPath, walletName, password, passPhrase)
+		assert.Equal(t, tc.expect, err)
 	}
 
 }
@@ -208,35 +200,36 @@ func TestSoftWallet_Open(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func() error
+		given func() (string,string,string)
 		expect error
 	}{
 		{
 			name:"ErrWalletPathError",
-			given: func() error {
-				return testWallet.Open("/tmp", walletName, password)
+			given: func() (string,string,string) {
+				return "/tmp", walletName, password
 			},
 			expect:gerror.ErrWalletPathError,
 		},
 		{
 			name:"ErrPasswordOrPassPhraseIllegal",
-			given: func() error {
-				return testWallet.Open(path, walletName, "")
+			given: func() (string,string,string) {
+				return path, walletName, ""
 			},
 			expect:gerror.ErrPasswordOrPassPhraseIllegal,
 		},
 		{
 			name:"OpenWalletRight",
-			given: func() error {
-				return testWallet.Open(path, walletName, password)
+			given: func() (string,string,string) {
+				return path, walletName, password
 			},
 			expect:nil,
 		},
 		{
 			name:"ErrWalletPasswordNotValid",
-			given: func() error {
+			given: func() (string,string,string) {
 				errPassword := "343543564"
-				return  testWallet.Open(path, walletName, errPassword)
+				//return  testWallet.Open(path, walletName, errPassword)
+				return  path, walletName, errPassword
 			},
 			expect:gerror.ErrWalletPasswordNotValid,
 		},
@@ -245,10 +238,12 @@ func TestSoftWallet_Open(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Log(tc.name)
-		assert.Equal(t, tc.expect, tc.given())
+		path, walletName, password := tc.given()
+		err := testWallet.Open(path, walletName, password)
+		assert.Equal(t, tc.expect, err)
 	}
-
 	os.Remove(path)
+
 }
 
 
@@ -316,41 +311,38 @@ func TestSoftWallet_SignHash(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func() error
+		given func() (*SoftWallet, accountsbase.Account, []byte)
 		expect error
 	}{
 		{
 			name:"ErrWalletNotOpen",
-			given: func() error {
+			given: func() (*SoftWallet, accountsbase.Account, []byte) {
 				testWallet, err := GetTestWallet()
 				assert.NoError(t, err)
 				testWallet.Close()
-				_, err = testWallet.SignHash(testWallet.walletInfo.Accounts[0], testHashData[:])
-				return err
+				return testWallet,testWallet.walletInfo.Accounts[0], testHashData[:]
 			},
 			expect:gerror.ErrWalletNotOpen,
 		},
 		{
 			name:"ErrInvalidAddress",
-			given: func() error {
+			given: func() (*SoftWallet, accountsbase.Account, []byte) {
 				testWallet, err := GetTestWallet()
 				assert.NoError(t, err)
 				err = testWallet.Open(path, walletName, password)
 				assert.NoError(t, err)
-				_, err = testWallet.SignHash(errAccount, testHashData[:])
-				return err
+				return testWallet,errAccount, testHashData[:]
 			},
 			expect:gerror.ErrInvalidAddress,
 		},
 		{
 			name:"SignHashRight",
-			given: func() error {
+			given: func() (*SoftWallet, accountsbase.Account, []byte) {
 				testWallet, err := GetTestWallet()
 				assert.NoError(t, err)
 				err = testWallet.Open(path, walletName, password)
 				assert.NoError(t, err)
-				_, err = testWallet.SignHash(testWallet.walletInfo.Accounts[0], testHashData[:])
-				return err
+				return testWallet,testWallet.walletInfo.Accounts[0], testHashData[:]
 			},
 			expect:nil,
 		},
@@ -358,7 +350,9 @@ func TestSoftWallet_SignHash(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Log(tc.name)
-		assert.Equal(t, tc.expect, tc.given())
+		wallet,account, hash := tc.given()
+		_, err := wallet.SignHash(account, hash)
+		assert.Equal(t, tc.expect, err)
 	}
 
 	os.Remove(path)
@@ -370,41 +364,38 @@ func TestSoftWallet_SignTx(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func() error
+		given func() (*SoftWallet, accountsbase.Account, *model.Transaction, *big.Int)
 		expect error
 	}{
 		{
 			name:"ErrWalletNotOpen",
-			given: func() error {
+			given: func() (*SoftWallet, accountsbase.Account, *model.Transaction, *big.Int) {
 				testWallet, err := GetTestWallet()
 				assert.NoError(t, err)
 				testWallet.Close()
-				_, err = testWallet.SignTx(testWallet.walletInfo.Accounts[0], testTx, nil)
-				return err
+				return testWallet, testWallet.walletInfo.Accounts[0], testTx, nil
 			},
 			expect:gerror.ErrWalletNotOpen,
 		},
 		{
 			name:"ErrInvalidAddress",
-			given: func() error {
+			given: func() (*SoftWallet, accountsbase.Account, *model.Transaction, *big.Int) {
 				testWallet, err := GetTestWallet()
 				assert.NoError(t, err)
 				err = testWallet.Open(path, walletName, password)
 				assert.NoError(t, err)
-				_, err = testWallet.SignTx(errAccount, testTx, nil)
-				return err
+				return testWallet,errAccount, testTx, nil
 			},
 			expect:gerror.ErrInvalidAddress,
 		},
 		{
 			name:"SignHashRight",
-			given: func() error {
+			given: func() (*SoftWallet, accountsbase.Account, *model.Transaction, *big.Int) {
 				testWallet, err := GetTestWallet()
 				assert.NoError(t, err)
 				err = testWallet.Open(path, walletName, password)
 				assert.NoError(t, err)
-				_, err = testWallet.SignTx(testWallet.walletInfo.Accounts[0], testTx, nil)
-				return err
+				return testWallet,testWallet.walletInfo.Accounts[0], testTx, nil
 			},
 			expect:nil,
 		},
@@ -412,7 +403,9 @@ func TestSoftWallet_SignTx(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Log(tc.name)
-		assert.Equal(t, tc.expect, tc.given())
+		wallet, account, tx, chainID := tc.given()
+		_, err := wallet.SignTx(account, tx, chainID)
+		assert.Equal(t, tc.expect, err)
 	}
 
 	os.Remove(path)
@@ -421,41 +414,38 @@ func TestSoftWallet_SignTx(t *testing.T) {
 func TestSoftWallet_Evaluate(t *testing.T) {
 	testCases := []struct{
 		name string
-		given func() error
+		given func() (*SoftWallet, accountsbase.Account, []byte)
 		expect error
 	}{
 		{
 			name:"ErrWalletNotOpen",
-			given: func() error {
+			given: func() (*SoftWallet, accountsbase.Account, []byte) {
 				testWallet, err := GetTestWallet()
 				assert.NoError(t, err)
 				testWallet.Close()
-				_, _, err = testWallet.Evaluate(testWallet.walletInfo.Accounts[0], testSeed)
-				return err
+				return testWallet,testWallet.walletInfo.Accounts[0], testSeed
 			},
 			expect:gerror.ErrWalletNotOpen,
 		},
 		{
 			name:"ErrInvalidAddress",
-			given: func() error {
+			given: func() (*SoftWallet, accountsbase.Account, []byte) {
 				testWallet, err := GetTestWallet()
 				assert.NoError(t, err)
 				err = testWallet.Open(path, walletName, password)
 				assert.NoError(t, err)
-				_, _, err = testWallet.Evaluate(errAccount, testSeed)
-				return err
+				return testWallet,errAccount, testSeed
 			},
 			expect:gerror.ErrInvalidAddress,
 		},
 		{
 			name:"SignHashRight",
-			given: func() error {
+			given: func() (*SoftWallet, accountsbase.Account, []byte) {
 				testWallet, err := GetTestWallet()
 				assert.NoError(t, err)
 				err = testWallet.Open(path, walletName, password)
 				assert.NoError(t, err)
-				_, _, err = testWallet.Evaluate(testWallet.walletInfo.Accounts[0], testSeed)
-				return err
+				return testWallet,testWallet.walletInfo.Accounts[0], testSeed
 			},
 			expect:nil,
 		},
@@ -463,7 +453,9 @@ func TestSoftWallet_Evaluate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Log(tc.name)
-		assert.Equal(t, tc.expect, tc.given())
+		wallet, account, seed := tc.given()
+		_,_, err := wallet.Evaluate(account, seed)
+		assert.Equal(t, tc.expect, err)
 	}
 
 	os.Remove(path)
@@ -473,12 +465,12 @@ func TestSoftWallet_Evaluate(t *testing.T) {
 func TestSoftWallet_Derive(t *testing.T) {
 	testCases := []struct{
 		name string
-		given func() error
+		given func() (*SoftWallet, accountsbase.DerivationPath, bool)
 		expect error
 	}{
 		{
 			name:"ErrInvalidDerivedPath",
-			given: func() error {
+			given: func() (*SoftWallet, accountsbase.DerivationPath, bool) {
 				testWallet, err := GetTestWallet()
 				assert.NoError(t, err)
 
@@ -486,14 +478,13 @@ func TestSoftWallet_Derive(t *testing.T) {
 				assert.NoError(t, err)
 
 				var testDrivePath = accountsbase.DerivationPath{0, 1, 1, 0}
-				_, err = testWallet.Derive(testDrivePath, true)
-				return err
+				return testWallet,testDrivePath, true
 			},
 			expect:gerror.ErrInvalidDerivedPath,
 		},
 		{
 			name:"DeriveRight",
-			given: func() error {
+			given: func() (*SoftWallet, accountsbase.DerivationPath, bool) {
 				testWallet, err := GetTestWallet()
 				assert.NoError(t, err)
 
@@ -501,11 +492,7 @@ func TestSoftWallet_Derive(t *testing.T) {
 				assert.NoError(t, err)
 
 				testDrivePath := accountsbase.DerivationPath{0x80000000 + 44, 0x80000000 + 709394, 0x80000000 + 0, 0}
-				derivedAccount, err := testWallet.Derive(testDrivePath, true)
-				assert.NoError(t, err)
-				contain, err := testWallet.Contains(derivedAccount)
-				assert.Equal(t, true, contain)
-				return err
+				return testWallet,testDrivePath,true
 			},
 			expect:nil,
 		},
@@ -513,7 +500,15 @@ func TestSoftWallet_Derive(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Log(tc.name)
-		assert.Equal(t, tc.expect, tc.given())
+		wallet, drivePath, save := tc.given()
+		derivedAccount, err := wallet.Derive(drivePath, save)
+		if err != nil {
+			assert.Equal(t, tc.expect, err)
+		}else {
+			contain, err := wallet.Contains(derivedAccount)
+			assert.NoError(t, err)
+			assert.Equal(t, true, contain)
+		}
 	}
 
 	os.Remove(path)
@@ -522,6 +517,7 @@ func TestSoftWallet_Derive(t *testing.T) {
 
 // todo   has a little problem
 func TestSoftWallet_RestoreWallet(t *testing.T) {
+	t.Skip()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -609,29 +605,26 @@ func TestSoftWallet_decryptWallet(t *testing.T) {
 func TestSoftWallet_GetWalletIdentifier(t *testing.T) {
 	testCases := []struct{
 		name string
-		given func() error
+		given func() *SoftWallet
 		expect error
 	}{
 		{
 			name:"ErrWalletNotOpen",
-			given: func() error {
+			given: func() *SoftWallet {
 				testWallet, err := NewSoftWallet()
 				assert.NoError(t, err)
-				_, err = testWallet.GetWalletIdentifier()
-				return err
+				return testWallet
 			},
 			expect:gerror.ErrWalletNotOpen,
 		},
 		{
 			name:"GetWalletIdentifierRight",
-			given: func() error {
+			given: func() *SoftWallet {
 				testWallet, err := NewSoftWallet()
 				assert.NoError(t, err)
 				testWallet.Identifier = testIdentifier
 				testWallet.status = accountsbase.Opened
-				id, err := testWallet.GetWalletIdentifier()
-				assert.Equal(t, testIdentifier, id)
-				return err
+				return testWallet
 			},
 			expect:nil,
 		},
@@ -639,13 +632,20 @@ func TestSoftWallet_GetWalletIdentifier(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Log(tc.name)
-		assert.Equal(t, tc.expect, tc.given())
+		wallet := tc.given()
+		id ,err := wallet.GetWalletIdentifier()
+		if err != nil {
+			assert.Equal(t, tc.expect, err)
+		}else {
+			assert.Equal(t, wallet.Identifier, id)
+		}
 		os.Remove(path)
 	}
 }
 
 // todo
 func TestSoftWallet_PaddingAddressNonce(t *testing.T) {
+	t.Skip()
 	ctrl := gomock.NewController(t)
 	accountStatus := accountsbase.NewMockAddressInfoReader(ctrl)
 	testWallet, err := GetTestWallet()
@@ -661,40 +661,18 @@ func TestSoftWallet_PaddingAddressNonce(t *testing.T) {
 func TestSoftWallet_SetAddressNonce(t *testing.T) {
 	testCases := []struct{
 		name string
-		given func() error
+		given func() (*SoftWallet, common.Address, uint64)
 		expect error
 	}{
 		{
 			name:"SetAddressNonceRight",
-			given: func() error {
+			given: func() (*SoftWallet, common.Address, uint64) {
 				testWallet, err := GetTestWallet()
 				assert.NoError(t, err)
 
 				testAccounts, err := testWallet.Accounts()
 				assert.NoError(t, err)
-
-				err = testWallet.SetAddressNonce(testAccounts[0].Address, 1)
-				assert.NoError(t, err)
-
-				return err
-			},
-			expect:nil,
-		},
-		{
-			name:"SetAndGetAddressNonceRight",
-			given: func() error {
-				testWallet, err := GetTestWallet()
-				assert.NoError(t, err)
-
-				testAccounts, err := testWallet.Accounts()
-				assert.NoError(t, err)
-
-				err = testWallet.SetAddressNonce(testAccounts[0].Address, 1)
-				assert.NoError(t, err)
-
-				nonce, err := testWallet.GetAddressNonce(testAccounts[0].Address)
-				assert.Equal(t, uint64(1), nonce)
-				return err
+				return testWallet, testAccounts[0].Address, 1
 			},
 			expect:nil,
 		},
@@ -702,7 +680,12 @@ func TestSoftWallet_SetAddressNonce(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Log(tc.name)
-		assert.Equal(t, tc.expect, tc.given())
+		wallet, address, nonce := tc.given()
+		err := wallet.SetAddressNonce(address, nonce)
+		assert.Equal(t, tc.expect, err)
+		nonce, err = wallet.GetAddressNonce(address)
+		assert.Equal(t, uint64(1), nonce)
+		assert.NoError(t, err)
 	}
 
 	os.Remove(path)
@@ -711,39 +694,35 @@ func TestSoftWallet_SetAddressNonce(t *testing.T) {
 func TestSoftWallet_GetPKFromAddress(t *testing.T) {
 	testCases := []struct{
 		name string
-		given func() error
+		given func() (*SoftWallet, accountsbase.Account)
 		expect error
 	}{
 		{
 			name:"ErrInvalidAddress",
-			given: func() error {
+			given: func() (*SoftWallet, accountsbase.Account) {
 
 				testWallet, err := GetTestWallet()
 				assert.NoError(t, err)
-
-				_, err = testWallet.GetPKFromAddress(errAccount)
-				return err
+				return testWallet, errAccount
 			},
 			expect:gerror.ErrInvalidAddress,
 		},
 		{
 			name:"GetPKFromAddressRight",
-			given: func() error {
+			given: func() (*SoftWallet, accountsbase.Account) {
 
 				testWallet, err := GetTestWallet()
 				assert.NoError(t, err)
 
 				testAccounts, err := testWallet.Accounts()
 				assert.NoError(t, err)
-
-				_, err = testWallet.GetPKFromAddress(testAccounts[0])
-				return err
+				return testWallet,testAccounts[0]
 			},
 			expect:nil,
 		},
 		{
 			name:"ErrWalletNotOpen",
-			given: func() error {
+			given: func() (*SoftWallet, accountsbase.Account) {
 
 				testWallet, err := GetTestWallet()
 				assert.NoError(t, err)
@@ -751,8 +730,7 @@ func TestSoftWallet_GetPKFromAddress(t *testing.T) {
 				assert.NoError(t, err)
 
 				testWallet.Close()
-				_, err = testWallet.GetPKFromAddress(testAccounts[0])
-				return err
+				return testWallet,testAccounts[0]
 			},
 			expect:gerror.ErrWalletNotOpen,
 		},
@@ -760,7 +738,9 @@ func TestSoftWallet_GetPKFromAddress(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Log(tc.name)
-		assert.Equal(t, tc.expect, tc.given())
+		wallet, account := tc.given()
+		_, err := wallet.GetPKFromAddress(account)
+		assert.Equal(t, tc.expect, err)
 		os.Remove(path)
 	}
 }

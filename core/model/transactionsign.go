@@ -64,7 +64,7 @@ func MakeSigner(config *chainconfig.ChainConfig, blockNumber uint64) Signer {
 	return DipperinSigner{chainId: config.ChainId}
 }
 
-//go:generate mockgen -destination=./../../tests/mock/model/singer_mock.go -package=model_mock github.com/dipperin/dipperin-core/core/model Signer
+//go:generate mockgen -destination=../vm/singer_mock_test.go -package=vm github.com/dipperin/dipperin-core/core/model Signer
 // signer define different kind of method handling signature
 type Signer interface {
 	// Sender returns the sender address of the transaction.

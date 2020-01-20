@@ -29,27 +29,7 @@ import (
 
 var testJsonData = `{"accounts":[{"Address":"0x01010101020202020101010102020202030303030303"}],"paths":{"0x01010101020202020101010102020202030303030303":[]},"extend_keys":{"0x01010101020202020101010102020202030303030303":{"Key":"d6L9PvGFt2A/27IeIsVJnqf2+S9eR3u6vWqpZU9vXQ0=","PubKey":null,"ChainCode":"5204jONIM90o0r6810AQsM1WINcnKQEBzZK57t3ldZI=","Depth":0,"ParentFP":"AAAAAA==","ChildNum":0,"Version":"BIit5A==","IsPrivate":true}},"balances":{"0x01010101020202020101010102020202030303030303":0},"Nonce":{"0x01010101020202020101010102020202030303030303":0},"DerivedPathIndex":{},"seed":"AQEBAQICAgIBAQEBAgICAgEBAQECAgICAQEBAQICAgIBAQEBAgICAgEBAQECAgIC"}`
 
-type fakeAccountStatus struct {
-}
 
-func (*fakeAccountStatus) CurrentBalance(address common.Address) *big.Int {
-	return big.NewInt(0)
-}
-
-func (*fakeAccountStatus) GetTransactionNonce(addr common.Address) (nonce uint64, err error) {
-	return 0, gerror.ErrAccountNotExist
-}
-
-type errAccountStatus struct {
-}
-
-func (*errAccountStatus) CurrentBalance(address common.Address) *big.Int {
-	return big.NewInt(0)
-}
-
-func (*errAccountStatus) GetTransactionNonce(addr common.Address) (nonce uint64, err error) {
-	return 0, errors.New("get nonce other errors")
-}
 
 func TestWalletInfo_HdWalletInfoEncodeJson(t *testing.T) {
 
@@ -83,85 +63,243 @@ func TestWalletInfo_HdWalletInfoEncodeJson(t *testing.T) {
 }
 
 func TestWalletInfo_HdWalletInfoDecodeJson(t *testing.T) {
+	testCases := []struct{
+		name string
+		given []byte
+		expect error
+	}{
+		{
+			name:"HdWalletInfoDecodeJsonRight",
+			given:[]byte(testJsonData),
+			expect:nil,
+		},
+		{
+			name:"HdWalletInfoDecodeJsonErr",
+			given:[]byte(testJsonData)[:10],
+			expect:errors.New("unexpected end of JSON input"),
+		},
+	}
 
-	//decoding
-	decodeData := NewHdWalletInfo()
+	for _,tc := range testCases{
+		input := tc.given
 
-	err := decodeData.HdWalletInfoDecodeJson([]byte(testJsonData))
+		//decoding
+		decodeData := NewHdWalletInfo()
 
-	assert.NoError(t, err)
-
-	err = decodeData.HdWalletInfoDecodeJson([]byte(testJsonData)[:10])
-	assert.Error(t, err)
+		err := decodeData.HdWalletInfoDecodeJson([]byte(input))
+		if err != nil {
+			assert.Equal(t, tc.expect.Error(), err.Error())
+		}
+	}
 }
 
 func TestWalletInfo_GenerateKeyFromSeedAndPath(t *testing.T) {
 	errDrivePath := ""
-	testWalletInfo := NewHdWalletInfo()
-	testWalletInfo.Seed = errSeed
 
-	_, _, err := testWalletInfo.GenerateKeyFromSeedAndPath(DefaultDerivedPath, AddressIndexStartValue)
-	assert.Error(t, err)
+	testCases := []struct{
+		name string
+		given func() (*WalletInfo, string, uint32)
+		expect error
+	}{
+		{
+			name:"ErrInvalidSeedLen",
+			given: func() (*WalletInfo, string, uint32) {
+				testWalletInfo := NewHdWalletInfo()
+				testWalletInfo.Seed = errSeed
+				return testWalletInfo, DefaultDerivedPath, AddressIndexStartValue
+			},
+			expect:gerror.ErrInvalidSeedLen,
+		},
+		{
+			name:"ErrDerivedPath",
+			given: func() (*WalletInfo, string, uint32) {
+				testWalletInfo := NewHdWalletInfo()
+				testWalletInfo.Seed = testSeed
+				return testWalletInfo, errDrivePath, AccountValueIndex
+			},
+			expect:gerror.ErrDerivedPath,
+		},
+		{
+			name:"GenerateKeyFromSeedAndPathRight",
+			given: func() (*WalletInfo, string, uint32) {
+				testWalletInfo := NewHdWalletInfo()
+				testWalletInfo.Seed = testSeed
+				return testWalletInfo, DefaultDerivedPath, AddressIndexStartValue
+			},
+			expect:nil,
+		},
+	}
 
-	testWalletInfo.Seed = testSeed
-	_, _, err = testWalletInfo.GenerateKeyFromSeedAndPath(errDrivePath, AccountValueIndex)
-	assert.Error(t, err)
-
-	testWalletInfo.Seed = testSeed
-	_, _, err = testWalletInfo.GenerateKeyFromSeedAndPath(DefaultDerivedPath, AddressIndexStartValue)
-	assert.NoError(t, err)
-
+	for _, tc := range testCases {
+		wallet, derivedPath, index := tc.given()
+		_,_, err := wallet.GenerateKeyFromSeedAndPath(derivedPath, index)
+		assert.Equal(t, tc.expect, err)
+	}
 }
 
+
+// todo need to think
 func TestWalletInfo_paddingUsedAccount(t *testing.T) {
+	t.Skip()
 	ctrl := gomock.NewController(t)
 	accountStatus := accountsbase.NewMockAddressInfoReader(ctrl)
 	errSeed := []byte{0x01, 0x02, 0x01}
-	testWalletInfo := NewHdWalletInfo()
-	testWalletInfo.Seed = errSeed
 
-	err := testWalletInfo.paddingUsedAccount(accountStatus)
-	assert.Error(t, err)
+	testCases := []struct{
+		name string
+		given func() (*WalletInfo, *accountsbase.MockAddressInfoReader)
+		expect error
+	}{
+		{
+			name:"err",
+			given: func() (*WalletInfo, *accountsbase.MockAddressInfoReader) {
+				testWalletInfo := NewHdWalletInfo()
+				testWalletInfo.Seed = errSeed
+				return testWalletInfo,accountStatus
+			},
+			expect:gerror.ErrInvalidSeedLen,
+		},
+		{
+			name:"err",
+			given: func()(*WalletInfo, *accountsbase.MockAddressInfoReader) {
+				testWalletInfo := NewHdWalletInfo()
+				testWalletInfo.Seed = testSeed
+				return testWalletInfo,accountStatus
+			},
+			expect:nil,
+		},
+		{
+			name:"err",
+			given: func() (*WalletInfo, *accountsbase.MockAddressInfoReader) {
+				testWalletInfo := NewHdWalletInfo()
+				testWalletInfo.Seed = testSeed
+				//accountStatus.EXPECT().GetTransactionNonce()
+				return testWalletInfo,accountStatus
+			},
+			expect:nil,
+		},
+		{
+			name:"err",
+			given: func() (*WalletInfo, *accountsbase.MockAddressInfoReader) {
+				testWalletInfo := NewHdWalletInfo()
+				testWalletInfo.Seed = testSeed
+				return testWalletInfo,accountStatus
+			},
+			expect:nil,
+		},
+	}
 
-	testWalletInfo.Seed = testSeed
-	err = testWalletInfo.paddingUsedAccount(&fakeAccountStatus{})
-	assert.NoError(t, err)
+	for _,tc := range testCases {
+		t.Log(tc.name)
+		wallet,acc := tc.given()
+		err := wallet.paddingUsedAccount(acc)
+		assert.Equal(t, tc.expect, err)
+	}
 
-	err = testWalletInfo.paddingUsedAccount(&errAccountStatus{})
-	assert.Error(t, err)
+	//testWalletInfo := NewHdWalletInfo()
+	//testWalletInfo.Seed = errSeed
+	//
+	//err := testWalletInfo.paddingUsedAccount(accountStatus)
+	//assert.Error(t, err)
 
-	testWalletInfo.Seed = testSeed
-	err = testWalletInfo.paddingUsedAccount(accountStatus)
-	assert.NoError(t, err)
+	//testWalletInfo.Seed = testSeed
+	//err = testWalletInfo.paddingUsedAccount(accountStatus)
+	//assert.NoError(t, err)
+
+	//err = testWalletInfo.paddingUsedAccount(accountStatus)
+	//assert.Error(t, err)
+	//
+	//testWalletInfo.Seed = testSeed
+	//err = testWalletInfo.paddingUsedAccount(accountStatus)
+	//assert.NoError(t, err)
 }
 
 func TestWalletInfo_getSkFromAddress(t *testing.T) {
-	testWalletInfo := NewHdWalletInfo()
 
-	_, err := testWalletInfo.getSkFromAddress(common.Address{})
-	assert.Equal(t, gerror.ErrInvalidAddress, err)
-
-	testWalletInfo.ExtendKeys[testAddress] = ExtendedKey{
-		isPrivate: false,
+	testCases := []struct{
+		name string
+		given  func()( *WalletInfo, common.Address)
+		expect error
+	}{
+		{
+			name:"ErrInvalidAddress",
+			given: func() (*WalletInfo, common.Address) {
+				testWalletInfo := NewHdWalletInfo()
+				return testWalletInfo,  common.Address{}
+			},
+			expect:gerror.ErrInvalidAddress,
+		},
+		{
+			name:"ErrNotPrivExtKey",
+			given: func() (*WalletInfo, common.Address) {
+				testWalletInfo := NewHdWalletInfo()
+				testWalletInfo.ExtendKeys[testAddress] = ExtendedKey{
+					isPrivate: false,
+				}
+				return testWalletInfo, testAddress
+			},
+			expect:gerror.ErrNotPrivExtKey,
+		},
+		{
+			name:"getSkFromAddressRight",
+			given: func() (*WalletInfo, common.Address) {
+				testWalletInfo := NewHdWalletInfo()
+				testWalletInfo.ExtendKeys[testAddress] = ExtendedKey{
+					isPrivate: true,
+				}
+				return testWalletInfo, testAddress
+			},
+			expect:nil,
+		},
 	}
 
-	_, err = testWalletInfo.getSkFromAddress(testAddress)
-	assert.Equal(t, gerror.ErrNotPrivExtKey, err)
+	for _, tc := range testCases {
+		t.Log(tc.name)
+		wallet, addr := tc.given()
+		_, err := wallet.getSkFromAddress(addr)
+		assert.Equal(t, tc.expect, err)
+	}
 }
 
+
+// todo
 func TestWalletInfo_PaddingAddressNonce(t *testing.T) {
+	t.Skip()
 	ctrl := gomock.NewController(t)
 	accountStatus := accountsbase.NewMockAddressInfoReader(ctrl)
 
 	testWalletInfo := NewHdWalletInfo()
-
 	testWalletInfo.Accounts = append(testWalletInfo.Accounts, accountsbase.Account{Address: testAddress})
 
-	err := testWalletInfo.PaddingAddressNonce(accountStatus)
-	assert.NoError(t, err)
+	testCases := []struct{
+		name string
+		given func() *accountsbase.MockAddressInfoReader
+		expect error
+	}{
+		{
+			name :"PaddingAddressNonce",
+			given: func()  *accountsbase.MockAddressInfoReader {
+				accountStatus.EXPECT().GetTransactionNonce(testAddress).Return(uint64(10), nil)
+				return accountStatus
+			},
+			expect:nil,
+		},
+		{
+			name :"PaddingAddressNonce two",
+			given: func()  *accountsbase.MockAddressInfoReader {
+				accountStatus.EXPECT().GetTransactionNonce(testAddress).Return(uint64(10),errors.New("error"))
+				return accountStatus
+			},
+			expect:nil,
+		},
+	}
 
-	err = testWalletInfo.PaddingAddressNonce(&fakeAccountStatus{})
-	assert.NoError(t, err)
+	for _, tc := range testCases {
+		t.Log(tc.name)
+		as := tc.given()
+		err := testWalletInfo.PaddingAddressNonce(as)
+		assert.Equal(t, tc.expect, err)
+	}
 }
 
 func TestWalletInfo_SetAndGetAddressNonce(t *testing.T) {

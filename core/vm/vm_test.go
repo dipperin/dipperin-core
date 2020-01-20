@@ -24,7 +24,6 @@ import (
 	common2 "github.com/dipperin/dipperin-core/core/vm/base"
 	"github.com/dipperin/dipperin-core/core/vm/base/utils"
 	"github.com/dipperin/dipperin-core/tests/factory/vminfo"
-	"github.com/dipperin/dipperin-core/tests/mock/model"
 	"github.com/dipperin/dipperin-core/third_party/crypto"
 	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
 	"github.com/stretchr/testify/assert"
@@ -43,9 +42,9 @@ func Test_NewVMContext(t *testing.T) {
 	ctrl, db, _ := GetBaseVmInfo(t)
 	defer ctrl.Finish()
 
-	tx := model_mock.NewMockAbstractTransaction(ctrl)
-	header := model_mock.NewMockAbstractHeader(ctrl)
-	singer := model_mock.NewMockSigner(ctrl)
+	tx := NewMockAbstractTransaction(ctrl)
+	header := NewMockAbstractHeader(ctrl)
+	singer := NewMockSigner(ctrl)
 	tx.EXPECT().Sender(singer).Return(model.AliceAddr, nil).AnyTimes()
 	tx.EXPECT().GetSigner().Return(singer).AnyTimes()
 	tx.EXPECT().GetGasLimit().Return(uint64(chainconfig.BlockGasLimit)).AnyTimes()

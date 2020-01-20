@@ -72,6 +72,7 @@ type AddressInfoReader interface {
 	GetTransactionNonce(addr common.Address) (nonce uint64, err error)
 }
 
+//go:generate mockgen -destination=./wallet_mock.go -package=accountsbase github.com/dipperin/dipperin-core/core/accounts/accountsbase Wallet
 type Wallet interface {
 
 	//get wallet identifier include type and file path

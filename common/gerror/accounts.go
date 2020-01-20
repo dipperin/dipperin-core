@@ -113,5 +113,9 @@ var (
 	// key is not the expected length.
 	ErrInvalidKeyLen = errors.New("the provided serialized extended key " +
 		"length is invalid")
+
+	ErrOddLenghtHexString  = errors.New("encoding/hex: odd length hex string")
+
+	ErrDerivedPath = errors.New("ambiguous path: use 'm/' prefix for absolute paths, or no leading '/' for relative ones")
 )
 

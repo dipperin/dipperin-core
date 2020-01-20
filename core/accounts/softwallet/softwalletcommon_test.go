@@ -21,7 +21,41 @@ import (
 	"testing"
 )
 
+
+// todo
 func TestClearSensitiveData(t *testing.T) {
+	//testCases := []struct{
+	//	name string
+	//	given func() interface{}
+	//	expect interface{}
+	//}{
+	//	{
+	//		name:"clearExtendedKey",
+	//		given: func() interface{} {
+	//			testKey, err := NewMaster(testSeed, &DipperinChainCfg)
+	//			assert.NoError(t, err)
+	//			return testKey
+	//		},
+	//		expect:ExtendedKey{},
+	//	},
+	//	{
+	//		name:"clearWalletInfo",
+	//		given: func() interface{} {
+	//			testWalletInfo := NewHdWalletInfo()
+	//
+	//			testWalletInfo.Seed = []byte{0x00, 0x01, 0x02, 0x03}
+	//			return &testWalletInfo
+	//		},
+	//		expect:(*WalletInfo)(nil),
+	//	},
+	//}
+	//
+	//for _,tc := range testCases {
+	//	input := tc.given()
+	//	ClearSensitiveData(input)
+	//	assert.Equal(t, tc.expect, input)
+	//}
+
 	testKey, err := NewMaster(testSeed, &DipperinChainCfg)
 	assert.NoError(t, err)
 

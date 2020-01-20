@@ -19,6 +19,7 @@ package accountsbase
 import (
 	"errors"
 	"fmt"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"math"
 	"math/big"
 	"strings"
@@ -76,7 +77,7 @@ func ParseDerivationPath(path string) (DerivationPath, error) {
 		return nil, errors.New("empty derivation path")
 
 	case strings.TrimSpace(components[0]) == "":
-		return nil, errors.New("ambiguous path: use 'm/' prefix for absolute paths, or no leading '/' for relative ones")
+		return nil, gerror.ErrDerivedPath
 
 	case strings.TrimSpace(components[0]) == "m":
 		components = components[1:]

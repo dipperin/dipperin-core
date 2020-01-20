@@ -68,27 +68,28 @@ func TestAesEncryptCBC(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func()([]byte, error)
+		given func()([]byte, []byte, []byte)
 		expect result
 	}{
 		{
 			name:"errorKey",
-			given: func() ([]byte, error) {
-				return AesEncryptCBC(cbcAESTests.iv, errorKey, cbcAESTests.in)
+			given: func() ([]byte, []byte, []byte) {
+				return cbcAESTests.iv, errorKey, cbcAESTests.in
 			},
 			expect:result{[]byte(nil), aes.KeySizeError(4)},
 		},
 		{
 			name:"AesEncryptCBCRight",
-			given: func() ([]byte, error) {
-				return AesEncryptCBC(cbcAESTests.iv, cbcAESTests.key, cbcAESTests.in)
+			given: func() ([]byte, []byte, []byte) {
+				return cbcAESTests.iv, cbcAESTests.key, cbcAESTests.in
 			},
 			expect:result{cbcAESTests.out, nil},
 		},
 	}
 	for _,tc := range testCases{
 		t.Log("TestAesDecryptCBC", tc.name)
-		data, err := tc.given()
+		iv, key, in := tc.given()
+		data, err := AesEncryptCBC(iv, key, in)
 		assert.Equal(t , tc.expect.err, err)
 		assert.Equal(t, tc.expect.data, data)
 	}
@@ -103,27 +104,27 @@ func TestAesDecryptCBC(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func()([]byte, error)
+		given func()([]byte, []byte, []byte)
 		expect result
 	}{
 		{
 			name:"errCipherText",
-			given: func() ([]byte, error) {
-				return AesDecryptCBC(cbcAESTests.iv, cbcAESTests.key, cbcAESTests.out[:12])
+			given: func() ([]byte, []byte, []byte) {
+				return cbcAESTests.iv, cbcAESTests.key, cbcAESTests.out[:12]
 			},
 			expect:result{[]byte(nil), gerror.ErrAESInvalidParameter},
 		},
 		{
 			name:"errKey",
-			given: func() ([]byte, error) {
-				return AesDecryptCBC(cbcAESTests.iv, errorKey, cbcAESTests.out)
+			given: func() ([]byte, []byte, []byte) {
+				return cbcAESTests.iv, errorKey, cbcAESTests.out
 			},
 			expect:result{[]byte(nil), aes.KeySizeError(4)},
 		},
 		{
 			name:"AesDecryptCBCRight",
-			given: func() ([]byte, error) {
-				return AesDecryptCBC(cbcAESTests.iv, cbcAESTests.key, cbcAESTests.out)
+			given: func() ([]byte, []byte, []byte) {
+				return cbcAESTests.iv, cbcAESTests.key, cbcAESTests.out
 			},
 			expect:result{cbcAESTests.in, nil},
 		},
@@ -132,7 +133,8 @@ func TestAesDecryptCBC(t *testing.T) {
 
 	for _,tc := range testCases{
 		t.Log("TestAesDecryptCBC", tc.name)
-		data, err := tc.given()
+		iv,key, out := tc.given()
+		data, err := AesDecryptCBC(iv, key, out)
 		assert.Equal(t , tc.expect.err, err)
 		assert.Equal(t, tc.expect.data, data)
 	}

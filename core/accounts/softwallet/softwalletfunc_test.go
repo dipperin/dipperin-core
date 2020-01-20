@@ -17,9 +17,11 @@
 package softwallet
 
 import (
+	"encoding/hex"
 	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
+	"github.com/dipperin/dipperin-core/third_party/go-bip39"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zapcore"
 	"testing"
@@ -42,13 +44,28 @@ var testWalletCipher = WalletCipher{
 }
 
 func TestGenerateMnemonic(t *testing.T) {
-	errBitSize := 33
-	_, err := GenerateMnemonic(errBitSize)
-	assert.Error(t, err)
+	testCases := []struct{
+		name string
+		given int
+		expect error
+	}{
+		{
+			name:"err",
+			given:33,
+			expect:bip39.ErrEntropyLengthInvalid,
+		},
+		{
+			name:"GenerateMnemonicRight",
+			given:128,
+			expect:nil,
+		},
+	}
 
-	testBitSize := 128
-	_, err = GenerateMnemonic(testBitSize)
-	assert.NoError(t, err)
+	for _,tc := range testCases{
+		bitSize := tc.given
+		_, err := GenerateMnemonic(bitSize)
+		assert.Equal(t,tc.expect, err )
+	}
 }
 
 func TestGenSymKeyFromPassword(t *testing.T) {
@@ -61,28 +78,67 @@ func TestGenSymKeyFromPassword(t *testing.T) {
 			"keyLen":  WalletscryptDKLen,
 		},
 	}
-	testPassword := "123"
-	_, err := GenSymKeyFromPassword(testPassword, testKdfPara)
-	assert.NoError(t, err)
 
-	testKdfPara.KDFParams["kdfType"] = "PBKDF2"
-	_, err = GenSymKeyFromPassword(testPassword, testKdfPara)
-	assert.Equal(t, gerror.ErrNotSupported, err)
+	testCases := []struct{
+		name string
+		given func() (string, KDFParameter)
+		expect error
+	}{
+		{
+			name:"GenSymKeyFromPasswordRight",
+			given: func() (string, KDFParameter) {
+				testPassword := "123"
+				return testPassword,testKdfPara
+			},
+			expect:nil,
+		},
+		{
+			name:"ErrNotSupported",
+			given: func() (string, KDFParameter) {
+				testPassword := "123"
+				testKdfPara.KDFParams["kdfType"] = "PBKDF2"
+				return testPassword,testKdfPara
+			},
+			expect:gerror.ErrNotSupported,
+		},
+		{
+			name:"ErrInvalidKDFParameter",
+			given: func() (string, KDFParameter) {
+				testPassword := "123"
+				testKdfPara.KDFParams["kdfType"] = KDF
+				testKdfPara.KDFParams["keyLen"] = 12
+				return testPassword,testKdfPara
+			},
+			expect:gerror.ErrInvalidKDFParameter,
+		},
+		{
+			name:"err",
+			given: func() (string, KDFParameter) {
+				testPassword := "123"
+				testKdfPara.KDFParams["keyLen"] = WalletscryptDKLen
+				testKdfPara.KDFParams["salt"] = "123"
+				return testPassword,testKdfPara
+			},
+			expect:gerror.ErrOddLenghtHexString,
+		},
+		{
+			name:"ErrDeriveKey",
+			given: func() (string, KDFParameter) {
+				testPassword := "123"
+				testKdfPara.KDFParams["salt"] = ""
+				testKdfPara.KDFParams["n"] = 1
+				return testPassword,testKdfPara
+			},
+			expect:gerror.ErrDeriveKey,
+		},
+	}
 
-	testKdfPara.KDFParams["kdfType"] = KDF
-	testKdfPara.KDFParams["keyLen"] = 12
-	_, err = GenSymKeyFromPassword(testPassword, testKdfPara)
-	assert.Equal(t, gerror.ErrInvalidKDFParameter, err)
+	for _,tc := range testCases{
+		passwd, kdfPara := tc.given()
+		_, err := GenSymKeyFromPassword(passwd, kdfPara)
+		assert.Equal(t, tc.expect, err)
+	}
 
-	testKdfPara.KDFParams["keyLen"] = WalletscryptDKLen
-	testKdfPara.KDFParams["salt"] = "123"
-	_, err = GenSymKeyFromPassword(testPassword, testKdfPara)
-	assert.Error(t, err)
-
-	testKdfPara.KDFParams["salt"] = ""
-	testKdfPara.KDFParams["n"] = 1
-	_, err = GenSymKeyFromPassword(testPassword, testKdfPara)
-	assert.Equal(t, gerror.ErrDeriveKey, err)
 }
 
 func TestGetAccountFromExtendedKey(t *testing.T) {
@@ -94,6 +150,7 @@ func TestGetAccountFromExtendedKey(t *testing.T) {
 	assert.Error(t, err)
 }
 
+// todo
 func TestEncryptWalletContent(t *testing.T) {
 	log.InitLogger(log.LoggerConfig{
 		Lvl:         zapcore.DebugLevel,
@@ -112,48 +169,113 @@ func TestEncryptWalletContent(t *testing.T) {
 }
 
 func TestDecryptWalletContent(t *testing.T) {
-	plain, err := DecryptWalletContent(testWalletCipher, testIv[:], encKey)
-	assert.NoError(t, err)
-	assert.Equal(t, testWalletPlain[:], plain)
 
-	errWalletCipher := WalletCipher{
-		Cipher:    "12324",
-		MacCipher: "qerwqer",
+	testCases := []struct{
+		name string
+		given func() (walletCipher WalletCipher, iv []byte, sysKey EncryptKey)
+		expect error
+		expectPlain []byte
+	}{
+		{
+			name:"DecryptWalletContentRight",
+			given: func() (walletCipher WalletCipher, iv []byte, sysKey EncryptKey) {
+				return testWalletCipher, testIv[:], encKey
+			},
+			expect:nil,
+			expectPlain:testWalletPlain[:],
+		},
+		{
+			name:"err",
+			given: func() (walletCipher WalletCipher, iv []byte, sysKey EncryptKey) {
+				errWalletCipher := WalletCipher{
+					Cipher:    "12324",
+					MacCipher: "qerwqer",
+				}
+				return errWalletCipher, testIv[:], encKey
+			},
+			expect:gerror.ErrOddLenghtHexString,
+		},
+		{
+			name:"ErrAESDecryption",
+			given: func() (walletCipher WalletCipher, iv []byte, sysKey EncryptKey) {
+				errWalletCipher := WalletCipher{
+					Cipher:    "123244",
+					MacCipher: "qerwqer",
+				}
+				return errWalletCipher, testIv[:], encKey
+			},
+			expect:gerror.ErrAESDecryption,
+		},
+		{
+			name:"err",
+			given: func() (walletCipher WalletCipher, iv []byte, sysKey EncryptKey) {
+				errWalletCipher := WalletCipher{
+					Cipher:    testWalletCipher.Cipher,
+					MacCipher: "qerwqer",
+				}
+				return errWalletCipher, testIv[:], encKey
+			},
+			expect:hex.InvalidByteError(0x71),
+		},
+		{
+			name:"ErrAESDecryption",
+			given: func() (walletCipher WalletCipher, iv []byte, sysKey EncryptKey) {
+				errWalletCipher := WalletCipher{
+					Cipher:    testWalletCipher.Cipher,
+					MacCipher: "123244",
+				}
+				return errWalletCipher, testIv[:], encKey
+			},
+			expect:gerror.ErrAESDecryption,
+		},
 	}
-	_, err = DecryptWalletContent(errWalletCipher, testIv[:], encKey)
-	assert.Error(t, err)
 
-	errWalletCipher.Cipher = "123244"
-	_, err = DecryptWalletContent(errWalletCipher, testIv[:], encKey)
-	assert.Equal(t, gerror.ErrAESDecryption, err)
+	for _, tc := range testCases{
+		walletCipher, iv, encKey := tc.given()
+		plain, err := DecryptWalletContent(walletCipher, iv, encKey)
+		assert.Equal(t, tc.expect, err)
+		assert.Equal(t, tc.expectPlain, plain)
+	}
 
-	errWalletCipher.Cipher = testWalletCipher.Cipher
-	_, err = DecryptWalletContent(errWalletCipher, testIv[:], encKey)
-	assert.Error(t, err)
-
-	errWalletCipher.MacCipher = "123244"
-	_, err = DecryptWalletContent(errWalletCipher, testIv[:], encKey)
-	assert.Equal(t, gerror.ErrAESDecryption, err)
 }
 
 func TestCheckPassword(t *testing.T) {
-	//expect := CheckPassword("")
-	//assert.Equal(t, errors.New("password is nil"), expect)
+	testCases := []struct{
+		name string
+		given string
+		expect error
+	}{
+		{
+			name:"right one",
+			given:"19abc```",
+			expect:nil,
+		},
+		{
+			name:"",
+			given:"1234567",
+			expect:gerror.ErrPasswordOrPassPhraseIllegal,
+		},
+		{
+			name:"can not have chinese ",
+			given:"国1234567",
+			expect:gerror.ErrPasswordOrPassPhraseIllegal,
+		},
+		{
+			name:"too long",
+			given:"1234567890asertyuiopasdfh",
+			expect:gerror.ErrPasswordOrPassPhraseIllegal,
+		},
+		{
+			name:"right two",
+			given:"234567890~!@#$%^&*()_+<",
+			expect:nil,
+		},
+	}
 
-	err := CheckPassword("19abc```")
-	assert.NoError(t, err)
-
-	err = CheckPassword("国1234567")
-	assert.Error(t, err)
-
-	err = CheckPassword("1234567")
-	assert.Error(t, err)
-
-	err = CheckPassword("1234567890asertyuiopasdfh")
-	assert.Error(t, err)
-
-	err = CheckPassword("234567890~!@#$%^&*()_+<")
-	assert.NoError(t, err)
+	for _,tc := range testCases{
+		err := CheckPassword(tc.given)
+		assert.Equal(t, tc.expect, err)
+	}
 }
 
 func TestCheckDerivedPathValid(t *testing.T) {

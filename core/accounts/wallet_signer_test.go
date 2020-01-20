@@ -14,40 +14,60 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-package accounts_test
+package accounts
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/accounts"
-	"github.com/dipperin/dipperin-core/third_party/crypto"
-	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/common/gerror"
+	"github.com/dipperin/dipperin-core/common/util"
+	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
-func TestMakeWalletSigner(t *testing.T) {
-	testWallet, testWalletManager, err := wallet.GetTestWalletManager()
-	assert.NoError(t, err)
+var TestSeed = []byte{0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02,
+	0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02}
+var TestAddress = common.Address{0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12,
+	0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12}
+var Path = filepath.Join(util.HomeDir(), "/tmp/testSoftWallet1")
 
-	testAccounts, err := testWallet.Accounts()
+func getWalletSigner(t *testing.T)(*gomock.Controller, *accountsbase.MockWallet, *WalletManager, *WalletSigner)  {
+	ctrl, wallet, walletManager := getWalletAndWalletManager(t)
+
+	wallet.EXPECT().Accounts().Return([]accountsbase.Account{accountsbase.Account{Address:TestAddress},},nil)
+	testAccounts, err := wallet.Accounts()
 	assert.NoError(t, err)
-	testSigner := accounts.MakeWalletSigner(testAccounts[0].Address, testWalletManager)
-	assert.NotEqual(t, &accounts.WalletSigner{}, testSigner)
+	testSigner := MakeWalletSigner(testAccounts[0].Address, walletManager)
+	return ctrl,wallet,walletManager,testSigner
 }
+
+func TestMakeWalletSigner(t *testing.T) {
+	ctrl, _, _ , walletSigner := getWalletSigner(t)
+	ctrl.Finish()
+
+	assert.NotEqual(t, &WalletSigner{}, walletSigner)
+}
+
 
 func TestWalletSigner_Evaluate(t *testing.T) {
-	testSigner, err := wallet.GetTestWalletSigner()
-	assert.NoError(t, err)
-	_, _, err = testSigner.Evaluate(accounts.Account{Address: testSigner.GetAddress()}, wallet.TestSeed)
+	ctrl, wallet, _ , walletSigner := getWalletSigner(t)
+	defer ctrl.Finish()
+	wallet.EXPECT().Contains(accountsbase.Account{Address:TestAddress}).Return(true, nil)
+	wallet.EXPECT().Contains(accountsbase.Account{Address:TestAddress}).Return(true, gerror.ErrNotFindWallet)
+	wallet.EXPECT().Evaluate(accountsbase.Account{TestAddress},TestSeed).Return([32]byte{},[]byte{},nil)
+
+	_, _, err := walletSigner.Evaluate(accountsbase.Account{Address: walletSigner.GetAddress()}, TestSeed)
 	assert.NoError(t, err)
 
-	_, _, err = testSigner.Evaluate(accounts.Account{Address: wallet.TestAddress}, wallet.TestSeed)
-	assert.Equal(t, accounts.ErrNotFindWallet, err)
+	_, _, err = walletSigner.Evaluate(accountsbase.Account{Address: TestAddress}, TestSeed)
+	assert.Equal(t, gerror.ErrNotFindWallet, err)
 
-	os.Remove(wallet.Path)
+	os.Remove(Path)
 }
-
+/*
 func TestWalletSigner_GetAddress(t *testing.T) {
 	testSigner, err := wallet.GetTestWalletSigner()
 	assert.NoError(t, err)
@@ -110,4 +130,4 @@ func TestWalletSigner_ValidSign(t *testing.T) {
 	err = testSigner.ValidSign(wallet.TestHashData[:], pk, signature)
 	assert.NoError(t, err)
 	os.Remove(wallet.Path)
-}
+}*/

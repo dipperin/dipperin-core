@@ -22,6 +22,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 )
 
+//go:generate mockgen -destination=./fetcher_mock_test.go -package=components github.com/dipperin/dipperin-core/core/csbft/components Fetcher
 type Fetcher interface {
 	FetchBlock(from common.Address, blockHash common.Hash) model.AbstractBlock
 }

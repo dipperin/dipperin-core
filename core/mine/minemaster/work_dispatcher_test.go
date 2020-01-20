@@ -5,7 +5,6 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
 	"github.com/dipperin/dipperin-core/core/model"
-	model_mock "github.com/dipperin/dipperin-core/tests/mock/model"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"sync/atomic"
@@ -55,7 +54,7 @@ func Test_workDispatcher_curWorkBlock(t *testing.T) {
 		{
 			"normal case which has block",
 			func() model.AbstractBlock {
-				absBlock := model_mock.NewMockAbstractBlock(ctrl)
+				absBlock := NewMockAbstractBlock(ctrl)
 				return absBlock
 			},
 			false,
@@ -80,7 +79,7 @@ func Test_workDispatcher_dispatchNewWork(t *testing.T) {
 	defer ctrl.Finish()
 	mockBlockBuilder := NewMockBlockBuilder(ctrl)
 	mockBlockBuilder.EXPECT().BuildWaitPackBlock(gomock.Any(), gomock.Any(), gomock.Any()).Return(func() model.AbstractBlock {
-		absBlock := model_mock.NewMockAbstractBlock(ctrl)
+		absBlock := NewMockAbstractBlock(ctrl)
 		absBlock.EXPECT().Header().Return(&model.Header{})
 		return absBlock
 	}()).AnyTimes()
@@ -147,10 +146,10 @@ func Test_workDispatcher_onNewBlock(t *testing.T) {
 	defer ctrl.Finish()
 
 	// test case
-	situations := []struct{
-		name string
-		given func() (*workDispatcher, int)
-		expectCode int
+	situations := []struct {
+		name          string
+		given         func() (*workDispatcher, int)
+		expectCode    int
 		expectWorkLen int
 	}{
 		{
@@ -158,7 +157,7 @@ func Test_workDispatcher_onNewBlock(t *testing.T) {
 			func() (*workDispatcher, int) {
 				// mock
 				mockBlockBuilder := NewMockBlockBuilder(ctrl)
-				mockBlockBuilder.EXPECT().BuildWaitPackBlock(gomock.Any(),gomock.Any(),gomock.Any()).Return(func() model.AbstractBlock {
+				mockBlockBuilder.EXPECT().BuildWaitPackBlock(gomock.Any(), gomock.Any(), gomock.Any()).Return(func() model.AbstractBlock {
 					return nil
 				}()).AnyTimes()
 				// build dispatcher
@@ -180,9 +179,9 @@ func Test_workDispatcher_onNewBlock(t *testing.T) {
 			func() (*workDispatcher, int) {
 				// mock
 				mockBlockBuilder := NewMockBlockBuilder(ctrl)
-				mockBlockBuilder.EXPECT().BuildWaitPackBlock(gomock.Any(),gomock.Any(),gomock.Any()).Return(func() model.AbstractBlock {
+				mockBlockBuilder.EXPECT().BuildWaitPackBlock(gomock.Any(), gomock.Any(), gomock.Any()).Return(func() model.AbstractBlock {
 					// mock block
-					mockBlock := model_mock.NewMockAbstractBlock(ctrl)
+					mockBlock := NewMockAbstractBlock(ctrl)
 					mockBlock.EXPECT().Header().Return(func() *model.Header {
 						nonce := common.EncodeNonce(137)
 						return &model.Header{Nonce: nonce}
