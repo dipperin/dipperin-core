@@ -27,7 +27,7 @@ import (
 	"go.uber.org/zap"
 )
 
-//go:generate mockgen -destination=./work_mock.go -package=minemsg github.com/dipperin/dipperin-core/core/mine/minemsg Work
+//go:generate mockgen -destination=./work_mock_test.go -package=minemsg github.com/dipperin/dipperin-core/core/mine/minemsg Work
 // mine work
 type Work interface {
 	GetWorkerCoinbaseAddress() common.Address
