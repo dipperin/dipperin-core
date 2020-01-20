@@ -3,6 +3,7 @@ package components
 import (
 	"testing"
 	"github.com/issue9/assert"
+	"github.com/dipperin/dipperin-core/common"
 )
 
 func TestNewBlockPool(t *testing.T) {
@@ -10,7 +11,7 @@ func TestNewBlockPool(t *testing.T) {
 	t.Log("www:", rsp)
 }
 
-func TestBlockPool_AddBlock(t *testing.T) {
+func TestBlockPool_SetNodeConfig(t *testing.T) {
 	NewBlockPool(0, nil).SetNodeConfig(nil)
 }
 
@@ -35,4 +36,32 @@ func TestBlockPool_IsEmpty(t *testing.T) {
 func TestBlockPool_IsRunning(t *testing.T) {
 	sign := NewBlockPool(0, nil).IsRunning()
 	assert.Equal(t, sign, false)
+}
+
+func TestBlockPool_RemoveBlock(t *testing.T) {
+	NewBlockPool(0, nil).RemoveBlock(common.Hash{})
+}
+
+func TestBlockPool_NewHeight(t *testing.T) {
+	NewBlockPool(0, nil).NewHeight(0)
+}
+
+func TestBlockPool_AddBlock(t *testing.T) {
+	NewBlockPool(0, nil).SetNodeConfig(nil)
+}
+
+func TestBlockPool_GetBlockByHash(t *testing.T) {
+	//pool := NewBlockPool(0,nil)
+	//rsp := pool.GetBlockByHash(common.Hash{})
+	//resultC := make(chan model.AbstractBlock)
+	//defer close(resultC)
+	//assert.Equal(t, rsp, resultC)
+}
+
+func TestBlockPool_GetProposalBlock(t *testing.T) {
+	//pool := NewBlockPool(0,nil)
+	//rsp := pool.GetProposalBlock()
+	//resultC := make(chan model.AbstractBlock)
+	//defer close(resultC)
+	//assert.Equal(t, rsp, resultC)
 }
