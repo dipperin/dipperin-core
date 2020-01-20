@@ -20,7 +20,6 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
 	common2 "github.com/dipperin/dipperin-core/core/vm/common"
-	"github.com/dipperin/dipperin-core/tests/mock/vm"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -302,10 +301,10 @@ func genInput(t *testing.T, funcName string, param [][]byte) []byte {
 	return result
 }
 
-func GetBaseVmInfo(t *testing.T) (*gomock.Controller, *vm_mock.MockStateDB, *VM) {
+func GetBaseVmInfo(t *testing.T) (*gomock.Controller, *MockStateDB, *VM) {
 	ctrl := gomock.NewController(t)
 
-	db := vm_mock.NewMockStateDB(ctrl)
+	db := NewMockStateDB(ctrl)
 	vm := NewVM(Context{
 		Origin:      model.AliceAddr,
 		BlockNumber: big.NewInt(1),

@@ -22,7 +22,7 @@ import (
 	"math/big"
 )
 
-//go:generate mockgen -destination=./../../tests/mock/vm/state_db_mock.go -package=vm_mock github.com/dipperin/dipperin-core/core/vm StateDB
+//go:generate mockgen -destination=./state_db_mock_test.go -package=vm github.com/dipperin/dipperin-core/core/vm StateDB
 type StateDB interface {
 	GetBalance(common.Address) *big.Int
 	CreateAccount(common.Address) error
