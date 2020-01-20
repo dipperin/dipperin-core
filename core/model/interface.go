@@ -23,7 +23,7 @@ import (
 	"math/big"
 )
 
-//go:generate mockgen -destination=./../../tests/mock/model/header_mock.go -package=model_mock github.com/dipperin/dipperin-core/core/model AbstractHeader
+//go:generate mockgen -destination=../vm/header_mock_test.go -package=vm github.com/dipperin/dipperin-core/core/model AbstractHeader
 type AbstractHeader interface {
 	GetNumber() uint64
 	Hash() common.Hash
@@ -56,8 +56,10 @@ type AbstractBody interface {
 	//GetReceipts() ([]*model.Receipt, error)
 }
 
-//go:generate mockgen -destination=./../../tests/mock/model/block_mock.go -package=model_mock github.com/dipperin/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=../mine/minemaster/block_mock_test.go -package=minemaster github.com/dipperin/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=../mine/minemsg/block_mock_test.go -package=minemsg github.com/dipperin/dipperin-core/core/model AbstractBlock
 //go:generate mockgen -destination=../verifiershaltcheck/block_mock_test.go -package=verifiershaltcheck github.com/dipperin/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=../chaincommunication/block_mock_test.go -package=chaincommunication github.com/dipperin/dipperin-core/core/model AbstractBlock
 type AbstractBlock interface {
 	Version() uint64
 	Number() uint64
@@ -109,8 +111,8 @@ type PriofityCalculator interface {
 	GetReputation(uint64, *big.Int, uint64) (uint64, error)
 }
 
-
-//go:generate mockgen -destination=./../chaincommunication/transaction_mock_test.go -package=chaincommunication github.com/dipperin/dipperin-core/core/model AbstractTransaction
+//go:generate mockgen -destination=../chaincommunication/transaction_mock_test.go -package=chaincommunication github.com/dipperin/dipperin-core/core/model AbstractTransaction
+//go:generate mockgen -destination=../vm/transaction_mock_test.go -package=vm github.com/dipperin/dipperin-core/core/model AbstractTransaction
 type AbstractTransaction interface {
 	Size() common.StorageSize
 	Amount() *big.Int

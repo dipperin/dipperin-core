@@ -88,11 +88,13 @@ type AbstractProtocolManager interface {
 	Protocols() []p2p.Protocol
 }
 
+//go:generate mockgen -destination=./communication_service_mock_test.go -package=chaincommunication github.com/dipperin/dipperin-core/core/chaincommunication CommunicationService
 // specific function
 type CommunicationService interface {
 	MsgHandlers() map[uint64]func(msg p2p.Msg, p PmAbstractPeer) error
 }
 
+//go:generate mockgen -destination=./communication_executable_mock_test.go -package=chaincommunication github.com/dipperin/dipperin-core/core/chaincommunication CommunicationExecutable
 type CommunicationExecutable interface {
 	Start() error
 	Stop()

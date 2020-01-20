@@ -510,7 +510,7 @@ func (pm *CsProtocolManager) selfPmType() int {
 // determine whether the peer is a verifier boot node
 func (pm *CsProtocolManager) isVerifierBootNode(p PmAbstractPeer) bool {
 	for _, bn := range pm.verifierBootNodes {
-		//log.DLogger.Info("-----------------check remote peer is boot node", "saved b", bn.ID.String(), "p id", p.ID())
+		//log.DLogger.Debug("-----------------check remote peer is boot node", zap.String("saved b", bn.ID().String()), zap.String("p id", p.ID()))
 		if p.ID() == bn.ID().String() {
 			return true
 		}
@@ -568,14 +568,14 @@ func (pm *CsProtocolManager) SelfIsCurrentVerifier() bool {
 
 	shouldChange := vReader.ShouldChangeVerifier()
 
-	curs := vReader.CurrentVerifiers()
-	ns := vReader.NextVerifiers()
+	var curs []common.Address
 
 	//If it is a change block, the fetched next is actually the real current.
 	if shouldChange {
-		curs = ns
-		ns = []common.Address{}
+		curs = vReader.NextVerifiers()
 		log.DLogger.Info("check self is cur verifier, cur block should change verifier, so next trans to cur")
+	} else {
+		curs = vReader.CurrentVerifiers()
 	}
 
 	baseAddr := pbftSigner.GetAddress()

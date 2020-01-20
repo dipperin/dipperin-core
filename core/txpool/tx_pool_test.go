@@ -17,7 +17,7 @@
 package txpool
 
 import (
-	"fmt"
+	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/util"
@@ -32,6 +32,7 @@ import (
 	"golang.org/x/crypto/sha3"
 	"math/big"
 	"runtime"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -42,14 +43,40 @@ func TestNewTxPool(t *testing.T) {
 	teststatedb, _ := stateprocessor.NewAccountStateDB(root, stateprocessor.NewStateStorageWithCache(db))
 	//con := newFakeValidator()
 	blockchain := &testBlockChain{statedb: teststatedb}
-
 	config := DefaultTxPoolConfig
-	NewTxPool(config, chainconfig.ChainConfig{ChainId: big.NewInt(1)}, blockchain)
-	assert.NoError(t, nil)
 
-	config.NoLocals = true
-	NewTxPool(config, chainconfig.ChainConfig{ChainId: big.NewInt(1)}, blockchain)
-	assert.NoError(t, nil)
+	type result struct {
+		isNot bool
+	}
+
+	testCases := []struct {
+		name   string
+		given  func() bool
+		expect result
+	}{
+		{
+			name:"DefaultTxPoolConfig",
+			given: func() bool {
+				txPool:=NewTxPool(config, chainconfig.ChainConfig{ChainId: big.NewInt(1)}, blockchain)
+				return txPool!=nil
+			},
+			expect:result{true},
+		},
+		{
+			name:"No local",
+			given: func() bool {
+				config.NoLocals = true
+				txPool:=NewTxPool(config, chainconfig.ChainConfig{ChainId: big.NewInt(1)}, blockchain)
+				return txPool!=nil
+			},
+			expect:result{true},
+		},
+	}
+
+	for _,tc:=range testCases{
+		ret:=tc.given()
+		assert.Equal(t,tc.expect.isNot,ret)
+	}
 }
 
 func TestEnqueueTx(t *testing.T) {
@@ -57,73 +84,144 @@ func TestEnqueueTx(t *testing.T) {
 	pool := setupTxPool()
 	key1, key2, _ := createKey()
 	bobAddr := cs_crypto.GetNormalAddress(key2.PublicKey)
-
-	//enqueueTx add tx1 in pool queue list
 	tx1 := transaction(1, bobAddr, big.NewInt(5000), testTxFee, model.TestGasLimit, key1)
-	pool.enqueueTx(tx1.CalTxId(), tx1)
-	expect1 := pool.Get(tx1.CalTxId())
-	assert.Equal(t, expect1.CalTxId(), tx1.CalTxId())
-
-	//enqueueTx try add tx2 in pool queue list but the fee does not exceed the feeBump ,so enqueueTx failed
 	tx2 := transaction(1, bobAddr, big.NewInt(4000), big.NewInt(0).Add(testTxFee, big.NewInt(9)), model.TestGasLimit, key1)
-	expectOK, err := pool.enqueueTx(tx1.CalTxId(), tx2)
-	assert.Equal(t, expectOK, false)
-	assert.Error(t, err)
-	expect2 := pool.Get(tx1.CalTxId())
-	assert.Equal(t, expect2.CalTxId(), tx1.CalTxId())
-	expect2Get := pool.Get(tx2.CalTxId())
-	assert.Equal(t, expect2Get, nil)
-
-	//enqueueTx try add tx3 in pool queue list and the fee exceeds the feeBump, so the enqueueTx success.
 	tx3 := transaction(1, bobAddr, big.NewInt(4000), big.NewInt(0).Add(testTxFee, testTxFee), model.TestGasLimit, key1)
-	expectOK, err = pool.enqueueTx(tx1.CalTxId(), tx3)
-	assert.Equal(t, expectOK, true)
-	assert.NoError(t, err)
-	expect3 := pool.Get(tx1.CalTxId())
-	assert.Equal(t, expect3, nil)
-	expect3Get := pool.Get(tx3.CalTxId())
-	assert.Equal(t, expect3Get.CalTxId(), tx3.CalTxId())
 
+	type result struct {
+		isNot bool
+	}
+
+	testCases := []struct {
+		name   string
+		given  func() bool
+		expect result
+	}{
+		{
+			name:"enqueueTx add tx1 in pool queue list",
+			given: func() bool {
+				pool.enqueueTx(tx1.CalTxId(), tx1)
+				expect1 := pool.Get(tx1.CalTxId())
+				return expect1.CalTxId() == tx1.CalTxId()
+			},
+			expect:result{true},
+		},
+		{
+			name:"enqueueTx try add tx2 in pool queue list but the fee does not exceed the feeBump ,so enqueueTx failed",
+			given: func() bool {
+				expectOK, _ := pool.enqueueTx(tx1.CalTxId(), tx2)
+				assert.Equal(t, expectOK, false)
+				expect2 := pool.Get(tx1.CalTxId())
+				assert.Equal(t, expect2.CalTxId(), tx1.CalTxId())
+				expect2Get := pool.Get(tx2.CalTxId())
+				return expect2Get == nil
+			},
+			expect:result{true},
+		},
+		{
+			name:"enqueueTx try add tx3 in pool queue list and the fee exceeds the feeBump, so the enqueueTx success",
+			given: func() bool {
+				expectOK, _ := pool.enqueueTx(tx1.CalTxId(), tx3)
+				assert.Equal(t, expectOK, true)
+				expect3 := pool.Get(tx1.CalTxId())
+				assert.Equal(t, expect3, nil)
+				expect3Get := pool.Get(tx3.CalTxId())
+				return expect3Get.CalTxId() == tx3.CalTxId()
+			},
+			expect:result{true},
+		},
+	}
+
+	for _,tc:=range testCases{
+		ret:=tc.given()
+		assert.Equal(t,tc.expect.isNot,ret)
+	}
 }
 
 func TestTxPool_validateTx(t *testing.T) {
 	pool := setupTxPool()
 	key1, key2, _ := createKey()
-	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)
 	bobAddr := cs_crypto.GetNormalAddress(key2.PublicKey)
 
 	overLoad := make([]byte, 512*1024*2)
 	for i := 0; i < 512*1024*2; i++ {
 		overLoad[i] = byte(i)
 	}
-	unsignedTx1 := model.NewTransaction(1, bobAddr, big.NewInt(5000), model.TestGasPrice, model.TestGasLimit, overLoad)
-	signedTx1, err := unsignedTx1.SignTx(key1, ms)
-	assert.NoError(t, err)
-	err = pool.validateTx(signedTx1, false)
-	assert.Error(t, err)
 
-	signedTx2 := transaction(1, bobAddr, big.NewInt(5000), testTxFee, model.TestGasLimit, key1)
-	err = pool.validateTx(signedTx2, false)
-	expectErr := "tx nonce is invalid"
-	assert.EqualError(t, err, expectErr)
+	type result struct {
+		err error
+	}
 
-	unsignedTx3 := model.NewTransaction(1, bobAddr, big.NewInt(5000), model.TestGasPrice, model.TestGasLimit, nil)
-	signedTx3, err := unsignedTx3.SignTx(key1, model.NewSigner(big.NewInt(2)))
-	assert.NoError(t, err)
-	err = pool.validateTx(signedTx3, false)
-	expectErr = "invalid sender"
-	assert.EqualError(t, err, expectErr)
+	testCases := []struct {
+		name   string
+		given  func() error
+		expect result
+	}{
+		{
+			name:"gas limit is to low",
+			given: func() error {
+				unsignedTx1 := model.NewTransaction(1, bobAddr, big.NewInt(5000), model.TestGasPrice, model.TestGasLimit, overLoad)
+				signedTx1, err := unsignedTx1.SignTx(key1, ms)
+				assert.NoError(t, err)
+				err = pool.validateTx(signedTx1, false)
+				if strings.Contains(err.Error(),"gas limit is to low"){
+					return errors.New("gas limit is to low")
+				}
+				return nil
+			},
+			expect:result{errors.New("gas limit is to low")},
+		},
+		{
+			name:"tx nonce is invalid",
+			given: func() error {
+				signedTx2 := transaction(1, bobAddr, big.NewInt(5000), testTxFee, model.TestGasLimit, key1)
+				err := pool.validateTx(signedTx2, false)
+				return err
+			},
+			expect:result{errors.New("tx nonce is invalid")},
+		},
+		{
+			name:"invalid sender",
+			given: func() error {
+				unsignedTx3 := model.NewTransaction(1, bobAddr, big.NewInt(5000), model.TestGasPrice, model.TestGasLimit, nil)
+				signedTx3, err := unsignedTx3.SignTx(key1, model.NewSigner(big.NewInt(2)))
+				assert.NoError(t, err)
+				err = pool.validateTx(signedTx3, false)
+				return err
+			},
+			expect:result{errors.New("invalid sender")},
+		},
+		{
+			name:"",
+			given: func() error {
+				signedTx4 := transaction(1, bobAddr, big.NewInt(5000), big.NewInt(1), model.TestGasLimit, key1)
+				err := pool.validateTx(signedTx4, true)
+				return err
+			},
+			expect:result{errors.New("tx nonce is invalid")},
+		},
+		{
+			name:"tx exceed balance limit",
+			given: func() error {
+				signedTx5 := transaction(40, bobAddr, big.NewInt(1000000), big.NewInt(0).Mul(testTxFee, big.NewInt(10000)), model.TestGasLimit, key1)
+				err := pool.validateTx(signedTx5, false)
+				if strings.Contains(err.Error(),"tx exceed balance limit"){
+					return errors.New("tx exceed balance limit")
+				}
+				return nil
+			},
+			expect:result{errors.New("tx exceed balance limit")},
+		},
+	}
 
-	signedTx4 := transaction(1, bobAddr, big.NewInt(5000), big.NewInt(1), model.TestGasLimit, key1)
-	err = pool.validateTx(signedTx4, true)
-	expectErr = "tx nonce is invalid"
-	assert.EqualError(t, err, expectErr)
-
-	signedTx5 := transaction(40, bobAddr, big.NewInt(1000000), big.NewInt(0).Mul(testTxFee, big.NewInt(10000)), model.TestGasLimit, key1)
-	curBalance, e := pool.currentState.GetBalance(aliceAddr)
-	err = pool.validateTx(signedTx5, false)
-	expectErr = fmt.Sprintf("tx exceed balance limit, from:%v, cur balance:%v, cost:%v, err:%v", aliceAddr.Hex(), curBalance.String(), signedTx5.Cost().String(), e)
-	assert.EqualError(t, err, expectErr)
+	for _,tc:=range testCases{
+		err:=tc.given()
+		if err!=nil{
+			assert.Equal(t,tc.expect.err,err)
+		}else {
+			assert.NoError(t,err)
+		}
+	}
 }
 
 func TestTxPool_Pending(t *testing.T) {
@@ -243,7 +341,7 @@ func TestTxPool_removeTx(t *testing.T) {
 	assert.Equal(t, bobtx3.CalTxId(), queueing[bobAddr][1].CalTxId())
 }
 
-func TestTxPool_RemoveTx(t *testing.T) {
+func TestTxPool_RemoveTxs(t *testing.T) {
 	pool := setupTxPool()
 	key1, key2, _ := createKey()
 	aliceAddr := cs_crypto.GetNormalAddress(key1.PublicKey)

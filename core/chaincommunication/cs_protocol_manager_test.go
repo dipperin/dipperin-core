@@ -35,11 +35,11 @@ func TestCsProtocolManager_ShowPmInfo(t *testing.T) {
 	defer ctrl.Finish()
 
 	p2pServer := NewMockP2PServer(ctrl)
-	p2pServer.EXPECT().Self().Return(&enode.Node{}).Times(1)
+	p2pServer.EXPECT().Self().Return(&enode.Node{})
 
 	nodeConf := NewMockNodeConf(ctrl)
-	nodeConf.EXPECT().GetNodeName().Return("test").Times(1)
-	nodeConf.EXPECT().GetNodeType().Return(1).Times(1)
+	nodeConf.EXPECT().GetNodeName().Return("test")
+	nodeConf.EXPECT().GetNodeType().Return(1)
 
 	ps := NewMockAbstractPeerSet(ctrl)
 	ps.EXPECT().GetPeersInfo().Return([]*p2p.CsPeerInfo{}).Times(4)
@@ -218,7 +218,7 @@ func TestCsProtocolManager_GetPeer(t *testing.T) {
 				abstractPeer = NewMockPmAbstractPeer(ctrl)
 
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().Peer(peerId).Return(abstractPeer).Times(1)
+				ps.EXPECT().Peer(peerId).Return(abstractPeer)
 
 				psm := &CsPmPeerSetManager{
 					basePeers: ps,
@@ -235,10 +235,10 @@ func TestCsProtocolManager_GetPeer(t *testing.T) {
 				abstractPeer = NewMockPmAbstractPeer(ctrl)
 
 				basePs := NewMockAbstractPeerSet(ctrl)
-				basePs.EXPECT().Peer(peerId).Return(nil).Times(1)
+				basePs.EXPECT().Peer(peerId).Return(nil)
 
 				currPs := NewMockAbstractPeerSet(ctrl)
-				currPs.EXPECT().Peer(peerId).Return(abstractPeer).Times(1)
+				currPs.EXPECT().Peer(peerId).Return(abstractPeer)
 
 				psm := &CsPmPeerSetManager{
 					basePeers:            basePs,
@@ -256,13 +256,13 @@ func TestCsProtocolManager_GetPeer(t *testing.T) {
 				abstractPeer = NewMockPmAbstractPeer(ctrl)
 
 				basePs := NewMockAbstractPeerSet(ctrl)
-				basePs.EXPECT().Peer(peerId).Return(nil).Times(1)
+				basePs.EXPECT().Peer(peerId).Return(nil)
 
 				currPs := NewMockAbstractPeerSet(ctrl)
-				currPs.EXPECT().Peer(peerId).Return(nil).Times(1)
+				currPs.EXPECT().Peer(peerId).Return(nil)
 
 				nextPs := NewMockAbstractPeerSet(ctrl)
-				nextPs.EXPECT().Peer(peerId).Return(abstractPeer).Times(1)
+				nextPs.EXPECT().Peer(peerId).Return(abstractPeer)
 
 				psm := &CsPmPeerSetManager{
 					basePeers:            basePs,
@@ -281,16 +281,16 @@ func TestCsProtocolManager_GetPeer(t *testing.T) {
 				abstractPeer = NewMockPmAbstractPeer(ctrl)
 
 				basePs := NewMockAbstractPeerSet(ctrl)
-				basePs.EXPECT().Peer(peerId).Return(nil).Times(1)
+				basePs.EXPECT().Peer(peerId).Return(nil)
 
 				currPs := NewMockAbstractPeerSet(ctrl)
-				currPs.EXPECT().Peer(peerId).Return(nil).Times(1)
+				currPs.EXPECT().Peer(peerId).Return(nil)
 
 				nextPs := NewMockAbstractPeerSet(ctrl)
-				nextPs.EXPECT().Peer(peerId).Return(nil).Times(1)
+				nextPs.EXPECT().Peer(peerId).Return(nil)
 
 				bootPs := NewMockAbstractPeerSet(ctrl)
-				bootPs.EXPECT().Peer(peerId).Return(abstractPeer).Times(1)
+				bootPs.EXPECT().Peer(peerId).Return(abstractPeer)
 
 				psm := &CsPmPeerSetManager{
 					basePeers:            basePs,
@@ -319,19 +319,19 @@ func TestCsProtocolManager_GetPeers(t *testing.T) {
 
 	baseP := NewMockPmAbstractPeer(ctrl)
 	basePs := NewMockAbstractPeerSet(ctrl)
-	basePs.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"base": baseP}).Times(1)
+	basePs.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"base": baseP})
 
 	currP := NewMockPmAbstractPeer(ctrl)
 	currPs := NewMockAbstractPeerSet(ctrl)
-	currPs.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"curr": currP}).Times(1)
+	currPs.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"curr": currP})
 
 	nextP := NewMockPmAbstractPeer(ctrl)
 	nextPs := NewMockAbstractPeerSet(ctrl)
-	nextPs.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"next": nextP}).Times(1)
+	nextPs.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"next": nextP})
 
 	bootP := NewMockPmAbstractPeer(ctrl)
 	bootPs := NewMockAbstractPeerSet(ctrl)
-	bootPs.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"boot": bootP}).Times(1)
+	bootPs.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"boot": bootP})
 
 	pm := &CsProtocolManager{
 		peerSetManager: &CsPmPeerSetManager{
@@ -455,7 +455,7 @@ func Test_newCsProtocolManager(t *testing.T) {
 	defer ctrl.Finish()
 
 	nodeConf := NewMockNodeConf(ctrl)
-	nodeConf.EXPECT().GetNodeType().Return(chainconfig.NodeTypeOfNormal).Times(1)
+	nodeConf.EXPECT().GetNodeType().Return(chainconfig.NodeTypeOfNormal)
 
 	assert.NotNil(t, newCsProtocolManager(&CsProtocolManagerConfig{
 		NodeConf: nodeConf,
@@ -481,7 +481,7 @@ func TestCsProtocolManager_SendFetchBlockMsg(t *testing.T) {
 			name: "no verifier peer for fetcher",
 			given: func() (*CsProtocolManager, common.Address) {
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{}).Times(1)
+				ps.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{})
 				psm := &CsPmPeerSetManager{
 					currentVerifierPeers: ps,
 				}
@@ -496,14 +496,14 @@ func TestCsProtocolManager_SendFetchBlockMsg(t *testing.T) {
 			given: func() (*CsProtocolManager, common.Address) {
 				addr := common.Address{1, 2, 3}
 				p := NewMockPmAbstractPeer(ctrl)
-				p.EXPECT().RemoteVerifierAddress().Return(addr).Times(1)
-				p.EXPECT().SendMsg(gomock.Any(), gomock.Any()).Return(nil).Times(1)
-				p.EXPECT().NodeName().Return("test peer").Times(1)
+				p.EXPECT().RemoteVerifierAddress().Return(addr)
+				p.EXPECT().SendMsg(gomock.Any(), gomock.Any()).Return(nil)
+				p.EXPECT().NodeName().Return("test peer")
 
 				ps := NewMockAbstractPeerSet(ctrl)
 				ps.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{
 					"test peer": p,
-				}).Times(1)
+				})
 				psm := &CsPmPeerSetManager{
 					currentVerifierPeers: ps,
 				}
@@ -532,19 +532,20 @@ func TestCsProtocolManager_ChangeVerifiers(t *testing.T) {
 	address := common.HexToAddress("aaa")
 
 	mVR := NewMockVerifiersReader(ctrl)
-	mPbftS := NewMockPbftSigner(ctrl)
-	mNodeConf := NewMockNodeConf(ctrl)
-	mPn := NewMockPbftNode(ctrl)
-
-	pm := &CsProtocolManager{CsProtocolManagerConfig: &CsProtocolManagerConfig{VerifiersReader: mVR, MsgSigner: mPbftS, NodeConf: mNodeConf, PbftNode: mPn}}
-
 	mVR.EXPECT().CurrentVerifiers().Return([]common.Address{address})
 	mVR.EXPECT().NextVerifiers().Return([]common.Address{address})
 	mVR.EXPECT().ShouldChangeVerifier().Return(false)
+
+	mPbftS := NewMockPbftSigner(ctrl)
 	mPbftS.EXPECT().GetAddress().Return(address)
-	mVR.EXPECT().NextVerifiers().Return([]common.Address{address})
+
+	mNodeConf := NewMockNodeConf(ctrl)
 	mNodeConf.EXPECT().GetNodeType().Return(verifier)
+
+	mPn := NewMockPbftNode(ctrl)
 	mPn.EXPECT().ChangePrimary(gomock.Any())
+
+	pm := &CsProtocolManager{CsProtocolManagerConfig: &CsProtocolManagerConfig{VerifiersReader: mVR, MsgSigner: mPbftS, NodeConf: mNodeConf, PbftNode: mPn}}
 
 	assert.Panics(t, func() {
 		pm.ChangeVerifiers()
@@ -560,10 +561,10 @@ func TestCsProtocolManager_HaveEnoughVerifiers(t *testing.T) {
 	nextLen := 2
 
 	currPs := NewMockAbstractPeerSet(ctrl)
-	currPs.EXPECT().Len().Return(currLen).Times(1)
+	currPs.EXPECT().Len().Return(currLen)
 
 	nextPs := NewMockAbstractPeerSet(ctrl)
-	nextPs.EXPECT().Len().Return(nextLen).Times(1)
+	nextPs.EXPECT().Len().Return(nextLen)
 
 	psm := &CsPmPeerSetManager{
 		currentVerifierPeers: currPs,
@@ -713,7 +714,6 @@ func TestCsProtocolManager_SelfIsBootNode(t *testing.T) {
 }
 
 func TestCsProtocolManager_GetSelfNode(t *testing.T) {
-	// create mock controller
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -737,4 +737,802 @@ func TestCsProtocolManager_GetSelfNode(t *testing.T) {
 	selfNode := pm.GetSelfNode()
 
 	assert.Equal(t, n.ID().String(), selfNode.ID().String())
+}
+
+func TestCsProtocolManager_ConnectPeer(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	node := &enode.Node{}
+
+	p2pServer := NewMockP2PServer(ctrl)
+	p2pServer.EXPECT().AddPeer(node)
+
+	pm := &CsProtocolManager{CsProtocolManagerConfig: &CsProtocolManagerConfig{
+		P2PServer: p2pServer,
+	}}
+
+	pm.ConnectPeer(node)
+}
+
+func TestCsProtocolManager_MatchCurrentVerifiersToNext(t *testing.T) {
+	// TODO
+}
+
+func TestCsProtocolManager_pickNextVerifierFromPs(t *testing.T) {
+	// TODO
+}
+
+func TestCsProtocolManager_pickNextVerifierFromCps(t *testing.T) {
+	// TODO
+}
+
+func TestCsProtocolManager_selfPmType(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	testCases := []struct {
+		name   string
+		given  func() *CsProtocolManager
+		expect int
+	}{
+		{
+			name: "get type by cache",
+			given: func() *CsProtocolManager {
+				pm := &CsProtocolManager{}
+				pm.pmType.Store(15)
+				return pm
+			},
+			expect: 15,
+		},
+		{
+			name: "get base",
+			given: func() *CsProtocolManager {
+				nodeConf := NewMockNodeConf(ctrl)
+				nodeConf.EXPECT().GetNodeType().Return(chainconfig.NodeTypeOfNormal)
+
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						NodeConf: nodeConf,
+					},
+				}
+			},
+			expect: base,
+		},
+		{
+			name: "get verifier",
+			given: func() *CsProtocolManager {
+				nodeConf := NewMockNodeConf(ctrl)
+				nodeConf.EXPECT().GetNodeType().Return(chainconfig.NodeTypeOfVerifier)
+
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						NodeConf: nodeConf,
+					},
+				}
+			},
+			expect: verifier,
+		},
+		{
+			name: "get boot",
+			given: func() *CsProtocolManager {
+				node := &enode.Node{}
+
+				p2pServer := NewMockP2PServer(ctrl)
+				p2pServer.EXPECT().Self().Return(node)
+
+				nodeConf := NewMockNodeConf(ctrl)
+				nodeConf.EXPECT().GetNodeType().Return(chainconfig.NodeTypeOfVerifierBoot)
+
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						NodeConf:  nodeConf,
+						P2PServer: p2pServer,
+					},
+					verifierBootNodes: []*enode.Node{node},
+				}
+			},
+			expect: boot,
+		},
+	}
+
+	for _, tc := range testCases {
+		spt := tc.given().selfPmType()
+		if !assert.Equal(t, tc.expect, spt) {
+			t.Errorf("case: %s, expect:%d, got:%d", tc.name, tc.expect, spt)
+		}
+	}
+}
+
+func TestCsProtocolManager_isVerifierBootNode(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	testCases := []struct {
+		name   string
+		given  func() (*CsProtocolManager, PmAbstractPeer)
+		expect bool
+	}{
+		{
+			name: "peer is a verifier boot node",
+			given: func() (*CsProtocolManager, PmAbstractPeer) {
+				node := &enode.Node{}
+
+				p := NewMockPmAbstractPeer(ctrl)
+				p.EXPECT().ID().Return(node.ID().String())
+
+				return &CsProtocolManager{
+					verifierBootNodes: []*enode.Node{node},
+				}, p
+			},
+			expect: true,
+		},
+		{
+			name: "peer isn't a verifier boot node",
+			given: func() (*CsProtocolManager, PmAbstractPeer) {
+				node := &enode.Node{}
+
+				p := NewMockPmAbstractPeer(ctrl)
+				p.EXPECT().ID().Return("test id")
+
+				return &CsProtocolManager{
+					verifierBootNodes: []*enode.Node{node},
+				}, p
+			},
+			expect: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		pm, p := tc.given()
+		if !assert.Equal(t, tc.expect, pm.isVerifierBootNode(p)) {
+			t.Errorf("case:%s, expect:%v", tc.name, tc.expect)
+		}
+	}
+}
+
+func TestCsProtocolManager_isCurrentVerifierNode(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	testCases := []struct {
+		name   string
+		given  func() (*CsProtocolManager, PmAbstractPeer)
+		expect bool
+	}{
+		{
+			name: "peer is the current round verifier",
+			given: func() (*CsProtocolManager, PmAbstractPeer) {
+				addr := common.Address{1, 2, 3}
+
+				vr := NewMockVerifiersReader(ctrl)
+				vr.EXPECT().ShouldChangeVerifier().Return(false)
+				vr.EXPECT().CurrentVerifiers().Return([]common.Address{addr})
+
+				p := NewMockPmAbstractPeer(ctrl)
+				p.EXPECT().RemoteVerifierAddress().Return(addr)
+
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						VerifiersReader: vr,
+					},
+				}, p
+			},
+			expect: true,
+		},
+		{
+			name: "peer isn't the current round verifier",
+			given: func() (*CsProtocolManager, PmAbstractPeer) {
+				addr := common.Address{1, 2, 3}
+
+				vr := NewMockVerifiersReader(ctrl)
+				vr.EXPECT().ShouldChangeVerifier().Return(true)
+				vr.EXPECT().NextVerifiers().Return([]common.Address{addr})
+
+				p := NewMockPmAbstractPeer(ctrl)
+				p.EXPECT().RemoteVerifierAddress().Return(common.Address{})
+
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						VerifiersReader: vr,
+					},
+				}, p
+			},
+			expect: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		pm, p := tc.given()
+		if !assert.Equal(t, tc.expect, pm.isCurrentVerifierNode(p)) {
+			t.Errorf("case:%s, expect:%v", tc.name, tc.expect)
+		}
+	}
+}
+
+func TestCsProtocolManager_SelfIsCurrentVerifier(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	testCases := []struct {
+		name   string
+		given  func() *CsProtocolManager
+		expect bool
+	}{
+		{
+			name: "self is current verifier",
+			given: func() *CsProtocolManager {
+				addr := common.Address{1, 2, 3}
+
+				vr := NewMockVerifiersReader(ctrl)
+				vr.EXPECT().ShouldChangeVerifier().Return(false)
+				vr.EXPECT().CurrentVerifiers().Return([]common.Address{addr})
+
+				s := NewMockPbftSigner(ctrl)
+				s.EXPECT().GetAddress().Return(addr)
+
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						VerifiersReader: vr,
+						MsgSigner:       s,
+					},
+				}
+			},
+			expect: true,
+		},
+		{
+			name: "self isn't current verifier",
+			given: func() *CsProtocolManager {
+
+				vr := NewMockVerifiersReader(ctrl)
+				vr.EXPECT().ShouldChangeVerifier().Return(true)
+				vr.EXPECT().NextVerifiers().Return([]common.Address{{1, 2, 3}})
+
+				s := NewMockPbftSigner(ctrl)
+				s.EXPECT().GetAddress().Return(common.Address{2, 9, 3})
+
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						VerifiersReader: vr,
+						MsgSigner:       s,
+					},
+				}
+			},
+			expect: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		if !assert.Equal(t, tc.expect, tc.given().SelfIsCurrentVerifier()) {
+			t.Errorf("case:%s, expect:%v", tc.name, tc.expect)
+		}
+	}
+}
+
+func TestCsProtocolManager_selfIsVerifierBootNode(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	testCases := []struct {
+		name   string
+		given  func() *CsProtocolManager
+		expect bool
+	}{
+		{
+			name: "self is verifier boot node",
+			given: func() *CsProtocolManager {
+				addr := common.Address{1, 2, 3}
+
+				s := NewMockPbftSigner(ctrl)
+				s.EXPECT().GetAddress().Return(addr)
+
+				chainconfig.VerBootNodeAddress = []common.Address{addr}
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						MsgSigner: s,
+					},
+				}
+			},
+			expect: true,
+		},
+		{
+			name: "self isn't verifier boot node",
+			given: func() *CsProtocolManager {
+				addr := common.Address{1, 2, 3}
+
+				s := NewMockPbftSigner(ctrl)
+				s.EXPECT().GetAddress().Return(addr)
+
+				chainconfig.VerBootNodeAddress = []common.Address{{6, 9, 3}}
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						MsgSigner: s,
+					},
+				}
+			},
+			expect: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		if !assert.Equal(t, tc.expect, tc.given().selfIsVerifierBootNode()) {
+			t.Errorf("case:%s, expect:%v", tc.name, tc.expect)
+		}
+	}
+}
+
+func TestCsProtocolManager_SelfIsNextVerifier(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	testCases := []struct {
+		name   string
+		given  func() *CsProtocolManager
+		expect bool
+	}{
+		{
+			name: "self is next verifier",
+			given: func() *CsProtocolManager {
+				addr := common.Address{1, 2, 3}
+
+				vr := NewMockVerifiersReader(ctrl)
+				vr.EXPECT().ShouldChangeVerifier().Return(false)
+				vr.EXPECT().NextVerifiers().Return([]common.Address{addr})
+
+				s := NewMockPbftSigner(ctrl)
+				s.EXPECT().GetAddress().Return(addr)
+
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						VerifiersReader: vr,
+						MsgSigner:       s,
+					},
+				}
+			},
+			expect: true,
+		},
+		{
+			name: "self isn't next verifier",
+			given: func() *CsProtocolManager {
+
+				vr := NewMockVerifiersReader(ctrl)
+				vr.EXPECT().ShouldChangeVerifier().Return(true)
+				vr.EXPECT().NextVerifiers().Return([]common.Address{{1, 2, 3}})
+
+				s := NewMockPbftSigner(ctrl)
+				s.EXPECT().GetAddress().Return(common.Address{1, 2, 3})
+
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						VerifiersReader: vr,
+						MsgSigner:       s,
+					},
+				}
+			},
+			expect: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		if !assert.Equal(t, tc.expect, tc.given().SelfIsNextVerifier()) {
+			t.Errorf("case:%s, expect:%v", tc.name, tc.expect)
+		}
+	}
+}
+
+func TestCsProtocolManager_checkConnCount(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	testCases := []struct {
+		name   string
+		given  func() *CsProtocolManager
+		expect bool // is max
+	}{
+		{
+			name: "check the number of connections(default)",
+			given: func() *CsProtocolManager {
+				pm := &CsProtocolManager{}
+				pm.pmType.Store(15)
+				return pm
+			},
+			expect: false,
+		},
+		{
+			name: "check base",
+			given: func() *CsProtocolManager {
+				nodeConf := NewMockNodeConf(ctrl)
+				nodeConf.EXPECT().GetNodeType().Return(chainconfig.NodeTypeOfNormal)
+
+				ps := NewMockAbstractPeerSet(ctrl)
+				ps.EXPECT().Len().Return(maxPeers)
+
+				psm := &CsPmPeerSetManager{
+					basePeers: ps,
+					maxPeers:  maxPeers,
+				}
+
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						NodeConf: nodeConf,
+					},
+					peerSetManager: psm,
+				}
+			},
+			expect: true,
+		},
+		{
+			name: "check verifier",
+			given: func() *CsProtocolManager {
+				nodeConf := NewMockNodeConf(ctrl)
+				nodeConf.EXPECT().GetNodeType().Return(chainconfig.NodeTypeOfVerifier)
+
+				basePs := NewMockAbstractPeerSet(ctrl)
+				basePs.EXPECT().Len().Return(maxPeers)
+
+				currPs := NewMockAbstractPeerSet(ctrl)
+				currPs.EXPECT().Len().Return(PbftMaxPeerCount)
+
+				psm := &CsPmPeerSetManager{
+					basePeers:            basePs,
+					currentVerifierPeers: currPs,
+					maxPeers:             maxPeers,
+				}
+
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						NodeConf: nodeConf,
+					},
+					peerSetManager: psm,
+				}
+			},
+			expect: true,
+		},
+		{
+			name: "check boot",
+			given: func() *CsProtocolManager {
+				node := &enode.Node{}
+
+				p2pServer := NewMockP2PServer(ctrl)
+				p2pServer.EXPECT().Self().Return(node)
+
+				nodeConf := NewMockNodeConf(ctrl)
+				nodeConf.EXPECT().GetNodeType().Return(chainconfig.NodeTypeOfVerifierBoot)
+
+				basePs := NewMockAbstractPeerSet(ctrl)
+				basePs.EXPECT().Len().Return(maxPeers)
+
+				currPs := NewMockAbstractPeerSet(ctrl)
+				currPs.EXPECT().Len().Return(PbftMaxPeerCount)
+
+				psm := &CsPmPeerSetManager{
+					basePeers:            basePs,
+					currentVerifierPeers: currPs,
+					maxPeers:             maxPeers,
+				}
+
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						NodeConf:  nodeConf,
+						P2PServer: p2pServer,
+					},
+					verifierBootNodes: []*enode.Node{node},
+					peerSetManager:    psm,
+				}
+			},
+			expect: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		if !assert.Equal(t, tc.expect, tc.given().checkConnCount()) {
+			t.Errorf("case: %s, expect:%v", tc.name, tc.expect)
+		}
+	}
+}
+
+func TestCsProtocolManager_handle(t *testing.T) {
+	// TODO
+}
+
+func TestCsProtocolManager_handleMsg(t *testing.T) {
+	// TODO
+}
+
+func TestCsProtocolManager_HandShake(t *testing.T) {
+	// TODO
+}
+
+func TestCsProtocolManager_checkAndHandleVerBootNodes(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	testCases := []struct {
+		name  string
+		given func() *CsProtocolManager
+		// expect
+	}{
+		{
+			name: "protocol type is base",
+			given: func() *CsProtocolManager {
+				nodeConf := NewMockNodeConf(ctrl)
+				nodeConf.EXPECT().GetNodeType().Return(chainconfig.NodeTypeOfMineMaster)
+
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						NodeConf: nodeConf,
+					},
+				}
+			},
+		},
+		{
+			name: "chain height too low",
+			given: func() *CsProtocolManager {
+				nodeConf := NewMockNodeConf(ctrl)
+				nodeConf.EXPECT().GetNodeType().Return(chainconfig.NodeTypeOfVerifier)
+
+				basePs := NewMockAbstractPeerSet(ctrl)
+				basePs.EXPECT().BestPeer().Return(nil)
+				currPs := NewMockAbstractPeerSet(ctrl)
+				currPs.EXPECT().BestPeer().Return(nil)
+				nextPs := NewMockAbstractPeerSet(ctrl)
+				nextPs.EXPECT().BestPeer().Return(nil)
+				bootPs := NewMockAbstractPeerSet(ctrl)
+				bootPs.EXPECT().BestPeer().Return(nil)
+
+				psm := &CsPmPeerSetManager{
+					basePeers:            basePs,
+					currentVerifierPeers: currPs,
+					nextVerifierPeers:    nextPs,
+					verifierBootNode:     bootPs,
+				}
+
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						NodeConf: nodeConf,
+					},
+					peerSetManager: psm,
+				}
+			},
+		},
+		{
+			name: "self is current verifier",
+			given: func() *CsProtocolManager {
+				nodeConf := NewMockNodeConf(ctrl)
+				nodeConf.EXPECT().GetNodeType().Return(chainconfig.NodeTypeOfVerifier)
+
+				pNum := uint64(15)
+
+				p := NewMockPmAbstractPeer(ctrl)
+				p.EXPECT().GetHead().Return(common.Hash{}, pNum)
+
+				basePs := NewMockAbstractPeerSet(ctrl)
+				basePs.EXPECT().BestPeer().Return(nil)
+				currPs := NewMockAbstractPeerSet(ctrl)
+				currPs.EXPECT().BestPeer().Return(nil)
+				nextPs := NewMockAbstractPeerSet(ctrl)
+				nextPs.EXPECT().BestPeer().Return(nil)
+				bootPs := NewMockAbstractPeerSet(ctrl)
+				bootPs.EXPECT().BestPeer().Return(p)
+				bootPs.EXPECT().Len().Return(chainconfig.GetChainConfig().VerifierBootNodeNumber - 1)
+
+				psm := &CsPmPeerSetManager{
+					basePeers:            basePs,
+					currentVerifierPeers: currPs,
+					nextVerifierPeers:    nextPs,
+					verifierBootNode:     bootPs,
+				}
+
+				addr := common.Address{1, 2, 3}
+
+				vr := NewMockVerifiersReader(ctrl)
+				vr.EXPECT().ShouldChangeVerifier().Return(false)
+				vr.EXPECT().CurrentVerifiers().Return([]common.Address{addr})
+
+				s := NewMockPbftSigner(ctrl)
+				s.EXPECT().GetAddress().Return(addr)
+
+				block := NewMockAbstractBlock(ctrl)
+				block.EXPECT().Number().Return(pNum)
+
+				c := NewMockChain(ctrl)
+				c.EXPECT().CurrentBlock().Return(block)
+
+				return &CsProtocolManager{
+					CsProtocolManagerConfig: &CsProtocolManagerConfig{
+						NodeConf:        nodeConf,
+						VerifiersReader: vr,
+						MsgSigner:       s,
+						Chain:           c,
+					},
+					peerSetManager: psm,
+				}
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		if !assert.NotPanics(t, tc.given().checkAndHandleVerBootNodes) {
+			t.Errorf("case: %s", tc.name)
+		}
+	}
+}
+
+func TestCsProtocolManager_bootVerifierConnCheck(t *testing.T) {
+	// TODO
+}
+
+func TestCsProtocolManager_RegisterCommunicationService(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	cs := NewMockCommunicationService(ctrl)
+	cs.EXPECT().MsgHandlers().Return(map[uint64]func(msg p2p.Msg, p PmAbstractPeer) error{
+		33: func(msg p2p.Msg, p PmAbstractPeer) error {
+			return nil
+		},
+	})
+
+	ce := NewMockCommunicationExecutable(ctrl)
+
+	pm := &CsProtocolManager{BaseProtocolManager: BaseProtocolManager{
+		msgHandlers: make(map[uint64]func(msg p2p.Msg, p PmAbstractPeer) error),
+	}}
+
+	pm.RegisterCommunicationService(cs, ce)
+}
+
+func TestCsProtocolManager_GetCurrentVerifierPeers(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	key := "test peer"
+	p := NewMockPmAbstractPeer(ctrl)
+
+	ps := NewMockAbstractPeerSet(ctrl)
+	ps.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{key: p})
+
+	pm := &CsProtocolManager{peerSetManager: &CsPmPeerSetManager{
+		currentVerifierPeers: ps,
+	}}
+
+	assert.Equal(t, p, pm.GetCurrentVerifierPeers()[key])
+}
+
+func TestCsProtocolManager_IsSync(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	testCases := []struct {
+		name   string
+		given  func() *CsProtocolManager
+		expect bool
+	}{
+		{
+			name: "current block is nil",
+			given: func() *CsProtocolManager {
+				c := NewMockChain(ctrl)
+				c.EXPECT().CurrentBlock().Return(nil)
+
+				return &CsProtocolManager{CsProtocolManagerConfig: &CsProtocolManagerConfig{
+					Chain: c,
+				}}
+			},
+			expect: true,
+		},
+		{
+			name: "best peer is nil",
+			given: func() *CsProtocolManager {
+				block := NewMockAbstractBlock(ctrl)
+
+				c := NewMockChain(ctrl)
+				c.EXPECT().CurrentBlock().Return(block)
+
+				basePs := NewMockAbstractPeerSet(ctrl)
+				basePs.EXPECT().BestPeer().Return(nil)
+
+				currPs := NewMockAbstractPeerSet(ctrl)
+				currPs.EXPECT().BestPeer().Return(nil)
+
+				nextPs := NewMockAbstractPeerSet(ctrl)
+				nextPs.EXPECT().BestPeer().Return(nil)
+
+				bootPs := NewMockAbstractPeerSet(ctrl)
+				bootPs.EXPECT().BestPeer().Return(nil)
+
+				return &CsProtocolManager{CsProtocolManagerConfig: &CsProtocolManagerConfig{
+					Chain: c,
+				},
+					peerSetManager: &CsPmPeerSetManager{
+						basePeers:            basePs,
+						currentVerifierPeers: currPs,
+						nextVerifierPeers:    nextPs,
+						verifierBootNode:     bootPs,
+					}}
+			},
+			expect: false,
+		},
+		{
+			name: "peer current block number + 10 > best peer height",
+			given: func() *CsProtocolManager {
+				height := uint64(33)
+
+				block := NewMockAbstractBlock(ctrl)
+				block.EXPECT().Number().Return(height)
+
+				c := NewMockChain(ctrl)
+				c.EXPECT().CurrentBlock().Return(block)
+
+				p := NewMockPmAbstractPeer(ctrl)
+				p.EXPECT().GetHead().Return(common.Hash{}, height)
+
+				basePs := NewMockAbstractPeerSet(ctrl)
+				basePs.EXPECT().BestPeer().Return(nil)
+
+				currPs := NewMockAbstractPeerSet(ctrl)
+				currPs.EXPECT().BestPeer().Return(nil)
+
+				nextPs := NewMockAbstractPeerSet(ctrl)
+				nextPs.EXPECT().BestPeer().Return(nil)
+
+				bootPs := NewMockAbstractPeerSet(ctrl)
+				bootPs.EXPECT().BestPeer().Return(p)
+
+				return &CsProtocolManager{CsProtocolManagerConfig: &CsProtocolManagerConfig{
+					Chain: c,
+				},
+					peerSetManager: &CsPmPeerSetManager{
+						basePeers:            basePs,
+						currentVerifierPeers: currPs,
+						nextVerifierPeers:    nextPs,
+						verifierBootNode:     bootPs,
+					}}
+			},
+			expect: false,
+		},
+		{
+			name: "peer current block number + 10 < best peer height",
+			given: func() *CsProtocolManager {
+				height := uint64(33)
+
+				block := NewMockAbstractBlock(ctrl)
+				block.EXPECT().Number().Return(height)
+
+				c := NewMockChain(ctrl)
+				c.EXPECT().CurrentBlock().Return(block)
+
+				p := NewMockPmAbstractPeer(ctrl)
+				p.EXPECT().GetHead().Return(common.Hash{}, height+11)
+
+				basePs := NewMockAbstractPeerSet(ctrl)
+				basePs.EXPECT().BestPeer().Return(nil)
+
+				currPs := NewMockAbstractPeerSet(ctrl)
+				currPs.EXPECT().BestPeer().Return(nil)
+
+				nextPs := NewMockAbstractPeerSet(ctrl)
+				nextPs.EXPECT().BestPeer().Return(nil)
+
+				bootPs := NewMockAbstractPeerSet(ctrl)
+				bootPs.EXPECT().BestPeer().Return(p)
+
+				return &CsProtocolManager{CsProtocolManagerConfig: &CsProtocolManagerConfig{
+					Chain: c,
+				},
+					peerSetManager: &CsPmPeerSetManager{
+						basePeers:            basePs,
+						currentVerifierPeers: currPs,
+						nextVerifierPeers:    nextPs,
+						verifierBootNode:     bootPs,
+					}}
+			},
+			expect: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		if !assert.Equal(t, tc.expect, tc.given().IsSync()) {
+			t.Errorf("case:%s expect:%v", tc.name, tc.expect)
+		}
+	}
 }

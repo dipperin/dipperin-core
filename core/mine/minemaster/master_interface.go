@@ -145,14 +145,14 @@ type rewardDistributor interface {
 //	ChainReader() state_processor.ChainReader
 //}
 
-//go:generate mockgen -destination=./block_builder_mock.go -package=minemaster github.com/dipperin/dipperin-core/core/mine/minemaster BlockBuilder
+//go:generate mockgen -destination=./block_builder_mock_test.go -package=minemaster github.com/dipperin/dipperin-core/core/mine/minemaster BlockBuilder
 type BlockBuilder interface {
 	SetMsgSigner(MsgSigner chaincommunication.PbftSigner)
 	GetMsgSigner() chaincommunication.PbftSigner
 	BuildWaitPackBlock(coinbaseAddr common.Address, gasFloor, gasCeil uint64) model.AbstractBlock
 }
 
-//go:generate mockgen -destination=./block_broadcaster_mock.go -package=minemaster github.com/dipperin/dipperin-core/core/mine/minemaster BlockBroadcaster
+//go:generate mockgen -destination=./block_broadcaster_mock_test.go -package=minemaster github.com/dipperin/dipperin-core/core/mine/minemaster BlockBroadcaster
 type BlockBroadcaster interface {
 	BroadcastMinedBlock(block model.AbstractBlock)
 }

@@ -53,7 +53,7 @@ func TestCsPmPeerSetManager_AddPeer(t *testing.T) {
 			name: "base - too many peers",
 			given: func() (*CsPmPeerSetManager, PmAbstractPeer) {
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().Len().Return(maxPeers + 1).Times(1)
+				ps.EXPECT().Len().Return(maxPeers + 1)
 				return &CsPmPeerSetManager{
 					pmType:    base,
 					maxPeers:  maxPeers,
@@ -66,11 +66,11 @@ func TestCsPmPeerSetManager_AddPeer(t *testing.T) {
 			name: "base - add peer error",
 			given: func() (*CsPmPeerSetManager, PmAbstractPeer) {
 				p := NewMockPmAbstractPeer(ctrl)
-				p.EXPECT().ID().Return("test").Times(1)
+				p.EXPECT().ID().Return("test")
 
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().Len().Return(maxPeers - 1).Times(1)
-				ps.EXPECT().AddPeer(p).Return(errors.New("mock error")).Times(1)
+				ps.EXPECT().Len().Return(maxPeers - 1)
+				ps.EXPECT().AddPeer(p).Return(errors.New("mock error"))
 
 				return &CsPmPeerSetManager{
 					pmType:    base,
@@ -84,10 +84,10 @@ func TestCsPmPeerSetManager_AddPeer(t *testing.T) {
 			name: "verifier - NodeTypeOfNormal - too many peers",
 			given: func() (manager *CsPmPeerSetManager, abstractPeer PmAbstractPeer) {
 				p := NewMockPmAbstractPeer(ctrl)
-				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfNormal)).Times(1)
+				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfNormal))
 
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().Len().Return(maxPeers).Times(1)
+				ps.EXPECT().Len().Return(maxPeers)
 
 				return &CsPmPeerSetManager{
 					pmType:    verifier,
@@ -101,11 +101,11 @@ func TestCsPmPeerSetManager_AddPeer(t *testing.T) {
 			name: "verifier - NodeTypeOfNormal - add peer error",
 			given: func() (manager *CsPmPeerSetManager, abstractPeer PmAbstractPeer) {
 				p := NewMockPmAbstractPeer(ctrl)
-				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfNormal)).Times(1)
+				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfNormal))
 
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().Len().Return(maxPeers - PbftMaxPeerCount - 1).Times(1)
-				ps.EXPECT().AddPeer(p).Return(errors.New("mock error")).Times(1)
+				ps.EXPECT().Len().Return(maxPeers - PbftMaxPeerCount - 1)
+				ps.EXPECT().AddPeer(p).Return(errors.New("mock error"))
 
 				return &CsPmPeerSetManager{
 					pmType:    verifier,
@@ -119,10 +119,10 @@ func TestCsPmPeerSetManager_AddPeer(t *testing.T) {
 			name: "verifier - NodeTypeOfMineMaster - too many peers",
 			given: func() (manager *CsPmPeerSetManager, abstractPeer PmAbstractPeer) {
 				p := NewMockPmAbstractPeer(ctrl)
-				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfMineMaster)).Times(1)
+				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfMineMaster))
 
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().Len().Return(maxPeers).Times(1)
+				ps.EXPECT().Len().Return(maxPeers)
 
 				return &CsPmPeerSetManager{
 					pmType:    verifier,
@@ -136,11 +136,11 @@ func TestCsPmPeerSetManager_AddPeer(t *testing.T) {
 			name: "verifier - NodeTypeOfMineMaster - add peer error",
 			given: func() (manager *CsPmPeerSetManager, abstractPeer PmAbstractPeer) {
 				p := NewMockPmAbstractPeer(ctrl)
-				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfMineMaster)).Times(1)
+				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfMineMaster))
 
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().Len().Return(maxPeers - PbftMaxPeerCount - 1).Times(1)
-				ps.EXPECT().AddPeer(p).Return(errors.New("mock error")).Times(1)
+				ps.EXPECT().Len().Return(maxPeers - PbftMaxPeerCount - 1)
+				ps.EXPECT().AddPeer(p).Return(errors.New("mock error"))
 
 				return &CsPmPeerSetManager{
 					pmType:    verifier,
@@ -154,11 +154,11 @@ func TestCsPmPeerSetManager_AddPeer(t *testing.T) {
 			name: "verifier - NodeTypeOfVerifier - add peer to base set",
 			given: func() (manager *CsPmPeerSetManager, abstractPeer PmAbstractPeer) {
 				p := NewMockPmAbstractPeer(ctrl)
-				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfVerifier)).Times(1)
+				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfVerifier))
 
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().Len().Return(maxPeers - PbftMaxPeerCount - 1).Times(1)
-				ps.EXPECT().AddPeer(p).Return(nil).Times(1)
+				ps.EXPECT().Len().Return(maxPeers - PbftMaxPeerCount - 1)
+				ps.EXPECT().AddPeer(p).Return(nil)
 
 				return &CsPmPeerSetManager{
 					pmType:    verifier,
@@ -178,12 +178,12 @@ func TestCsPmPeerSetManager_AddPeer(t *testing.T) {
 			name: "verifier - NodeTypeOfVerifier - add peer to currentVerifier set",
 			given: func() (manager *CsPmPeerSetManager, abstractPeer PmAbstractPeer) {
 				p := NewMockPmAbstractPeer(ctrl)
-				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfVerifier)).Times(1)
-				p.EXPECT().NodeName().Return("test").Times(1)
+				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfVerifier))
+				p.EXPECT().NodeName().Return("test")
 
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().Len().Return(PbftMaxPeerCount - 2).Times(1)
-				ps.EXPECT().AddPeer(p).Return(nil).Times(1)
+				ps.EXPECT().Len().Return(PbftMaxPeerCount - 2)
+				ps.EXPECT().AddPeer(p).Return(nil)
 
 				return &CsPmPeerSetManager{
 					pmType:               verifier,
@@ -209,12 +209,12 @@ func TestCsPmPeerSetManager_AddPeer(t *testing.T) {
 			name: "verifier - NodeTypeOfVerifier - add peer to nextVerifier set",
 			given: func() (manager *CsPmPeerSetManager, abstractPeer PmAbstractPeer) {
 				p := NewMockPmAbstractPeer(ctrl)
-				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfVerifier)).Times(1)
-				p.EXPECT().NodeName().Return("test").Times(1)
+				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfVerifier))
+				p.EXPECT().NodeName().Return("test")
 
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().Len().Return(PbftMaxPeerCount - 2).Times(1)
-				ps.EXPECT().AddPeer(p).Return(nil).Times(1)
+				ps.EXPECT().Len().Return(PbftMaxPeerCount - 2)
+				ps.EXPECT().AddPeer(p).Return(nil)
 
 				return &CsPmPeerSetManager{
 					pmType:            verifier,
@@ -240,7 +240,7 @@ func TestCsPmPeerSetManager_AddPeer(t *testing.T) {
 			name: "verifier - NodeTypeOfVerifierBoot - the remote peer isn't verifier boot node",
 			given: func() (manager *CsPmPeerSetManager, abstractPeer PmAbstractPeer) {
 				p := NewMockPmAbstractPeer(ctrl)
-				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfVerifierBoot)).Times(1)
+				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfVerifierBoot))
 
 				return &CsPmPeerSetManager{
 					pmType:   verifier,
@@ -256,11 +256,11 @@ func TestCsPmPeerSetManager_AddPeer(t *testing.T) {
 			name: "verifier - NodeTypeOfVerifierBoot - the remote peer is verifier boot node",
 			given: func() (manager *CsPmPeerSetManager, abstractPeer PmAbstractPeer) {
 				p := NewMockPmAbstractPeer(ctrl)
-				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfVerifierBoot)).Times(1)
-				p.EXPECT().NodeName().Return("test").Times(1)
+				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfVerifierBoot))
+				p.EXPECT().NodeName().Return("test")
 
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().AddPeer(p).Return(nil).Times(1)
+				ps.EXPECT().AddPeer(p).Return(nil)
 
 				return &CsPmPeerSetManager{
 					pmType:           verifier,
@@ -277,11 +277,11 @@ func TestCsPmPeerSetManager_AddPeer(t *testing.T) {
 			name: "boot - NodeTypeOfNormal - add peer to base set",
 			given: func() (manager *CsPmPeerSetManager, abstractPeer PmAbstractPeer) {
 				p := NewMockPmAbstractPeer(ctrl)
-				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfNormal)).Times(1)
+				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfNormal))
 
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().Len().Return(maxPeers - PbftMaxPeerCount - 1).Times(1)
-				ps.EXPECT().AddPeer(p).Return(nil).Times(1)
+				ps.EXPECT().Len().Return(maxPeers - PbftMaxPeerCount - 1)
+				ps.EXPECT().AddPeer(p).Return(nil)
 
 				return &CsPmPeerSetManager{
 					pmType:    boot,
@@ -298,12 +298,12 @@ func TestCsPmPeerSetManager_AddPeer(t *testing.T) {
 			name: "boot - NodeTypeOfVerifier - add peer to currentVerifier set",
 			given: func() (manager *CsPmPeerSetManager, abstractPeer PmAbstractPeer) {
 				p := NewMockPmAbstractPeer(ctrl)
-				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfVerifier)).Times(1)
-				p.EXPECT().NodeName().Return("test").Times(1)
+				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfVerifier))
+				p.EXPECT().NodeName().Return("test")
 
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().Len().Return(PbftMaxPeerCount - 1).Times(1)
-				ps.EXPECT().AddPeer(p).Return(nil).Times(1)
+				ps.EXPECT().Len().Return(PbftMaxPeerCount - 1)
+				ps.EXPECT().AddPeer(p).Return(nil)
 
 				return &CsPmPeerSetManager{
 					pmType:               boot,
@@ -323,12 +323,12 @@ func TestCsPmPeerSetManager_AddPeer(t *testing.T) {
 			name: "boot - NodeTypeOfVerifier - add peer to nextVerifier set",
 			given: func() (manager *CsPmPeerSetManager, abstractPeer PmAbstractPeer) {
 				p := NewMockPmAbstractPeer(ctrl)
-				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfVerifier)).Times(1)
-				p.EXPECT().NodeName().Return("test").Times(1)
+				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfVerifier))
+				p.EXPECT().NodeName().Return("test")
 
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().Len().Return(PbftMaxPeerCount - 1).Times(1)
-				ps.EXPECT().AddPeer(p).Return(nil).Times(1)
+				ps.EXPECT().Len().Return(PbftMaxPeerCount - 1)
+				ps.EXPECT().AddPeer(p).Return(nil)
 
 				return &CsPmPeerSetManager{
 					pmType:            boot,
@@ -348,11 +348,11 @@ func TestCsPmPeerSetManager_AddPeer(t *testing.T) {
 			name: "boot - NodeTypeOfVerifierBoot - add peer",
 			given: func() (manager *CsPmPeerSetManager, abstractPeer PmAbstractPeer) {
 				p := NewMockPmAbstractPeer(ctrl)
-				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfVerifierBoot)).Times(1)
-				p.EXPECT().NodeName().Return("test").Times(1)
+				p.EXPECT().NodeType().Return(uint64(chainconfig.NodeTypeOfVerifierBoot))
+				p.EXPECT().NodeName().Return("test")
 
 				ps := NewMockAbstractPeerSet(ctrl)
-				ps.EXPECT().AddPeer(p).Return(nil).Times(1)
+				ps.EXPECT().AddPeer(p).Return(nil)
 
 				return &CsPmPeerSetManager{
 					pmType:           boot,
@@ -434,10 +434,10 @@ func TestCsPmPeerSetManager_RemovePeer(t *testing.T) {
 	mockPeerSetVerifierBootNode := NewMockAbstractPeerSet(ctrl)
 
 	// mock peer
-	mockPeerSetBasePeers.EXPECT().Peer(gomock.Any()).Return(nil).Times(1)
-	mockPeerSetCurrentVerifierPeers.EXPECT().Peer(gomock.Any()).Return(nil).Times(1)
-	mockPeerSetnNextVerifierPeers.EXPECT().Peer(gomock.Any()).Return(nil).Times(1)
-	mockPeerSetVerifierBootNode.EXPECT().Peer(gomock.Any()).Return(nil).Times(1)
+	mockPeerSetBasePeers.EXPECT().Peer(gomock.Any()).Return(nil)
+	mockPeerSetCurrentVerifierPeers.EXPECT().Peer(gomock.Any()).Return(nil)
+	mockPeerSetnNextVerifierPeers.EXPECT().Peer(gomock.Any()).Return(nil)
+	mockPeerSetVerifierBootNode.EXPECT().Peer(gomock.Any()).Return(nil)
 
 	psm := &CsPmPeerSetManager{
 		basePeers:            mockPeerSetBasePeers,
@@ -458,13 +458,13 @@ func TestCsProtocolManager_removePeer(t *testing.T) {
 
 	// mock peer
 	p := NewMockPmAbstractPeer(ctrl)
-	p.EXPECT().NodeName().Return(peerId).Times(1)
-	p.EXPECT().DisconnectPeer().Times(1)
+	p.EXPECT().NodeName().Return(peerId)
+	p.EXPECT().DisconnectPeer()
 
 	// mock peer set
 	ps := NewMockAbstractPeerSet(ctrl)
-	ps.EXPECT().Peer(peerId).Return(p).Times(1)
-	ps.EXPECT().RemovePeer(peerId).Return(nil).Times(1)
+	ps.EXPECT().Peer(peerId).Return(p)
+	ps.EXPECT().RemovePeer(peerId).Return(nil)
 
 	psm := &CsPmPeerSetManager{
 		basePeers: ps,
@@ -482,13 +482,13 @@ func TestCsProtocolManager_removeCurrentVerifierPeers(t *testing.T) {
 
 	// mock peer
 	p := NewMockPmAbstractPeer(ctrl)
-	p.EXPECT().NodeName().Return(peerId).Times(1)
-	p.EXPECT().DisconnectPeer().Times(1)
+	p.EXPECT().NodeName().Return(peerId)
+	p.EXPECT().DisconnectPeer()
 
 	// mock peer set
 	ps := NewMockAbstractPeerSet(ctrl)
-	ps.EXPECT().Peer(peerId).Return(p).Times(1)
-	ps.EXPECT().RemovePeer(peerId).Return(nil).Times(1)
+	ps.EXPECT().Peer(peerId).Return(p)
+	ps.EXPECT().RemovePeer(peerId).Return(nil)
 
 	psm := &CsPmPeerSetManager{
 		currentVerifierPeers: ps,
@@ -506,13 +506,13 @@ func TestCsProtocolManager_removeNextVerifierPeers(t *testing.T) {
 
 	// mock peer
 	p := NewMockPmAbstractPeer(ctrl)
-	p.EXPECT().NodeName().Return(peerId).Times(1)
-	p.EXPECT().DisconnectPeer().Times(1)
+	p.EXPECT().NodeName().Return(peerId)
+	p.EXPECT().DisconnectPeer()
 
 	// mock peer set
 	ps := NewMockAbstractPeerSet(ctrl)
-	ps.EXPECT().Peer(peerId).Return(p).Times(1)
-	ps.EXPECT().RemovePeer(peerId).Return(nil).Times(1)
+	ps.EXPECT().Peer(peerId).Return(p)
+	ps.EXPECT().RemovePeer(peerId).Return(nil)
 
 	psm := &CsPmPeerSetManager{
 		nextVerifierPeers: ps,
@@ -530,13 +530,13 @@ func TestCsProtocolManager_removeVerifierBootNodePeers(t *testing.T) {
 
 	// mock peer
 	p := NewMockPmAbstractPeer(ctrl)
-	p.EXPECT().NodeName().Return(peerId).Times(1)
-	p.EXPECT().DisconnectPeer().Times(1)
+	p.EXPECT().NodeName().Return(peerId)
+	p.EXPECT().DisconnectPeer()
 
 	// mock peer set
 	ps := NewMockAbstractPeerSet(ctrl)
-	ps.EXPECT().Peer(peerId).Return(p).Times(1)
-	ps.EXPECT().RemovePeer(peerId).Return(nil).Times(1)
+	ps.EXPECT().Peer(peerId).Return(p)
+	ps.EXPECT().RemovePeer(peerId).Return(nil)
 
 	psm := &CsPmPeerSetManager{
 		verifierBootNode: ps,

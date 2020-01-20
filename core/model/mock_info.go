@@ -26,7 +26,6 @@ import (
 	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io/ioutil"
-	"log"
 	"math/big"
 	"os/exec"
 	"path/filepath"
@@ -209,11 +208,9 @@ func GetWASMPath(fileName string, pathType ContractPathType) string {
 	var tmpPath string
 	if pathType == CoreVmTestData {
 		tmpPath = getGoPath()
-		log.Println("get WASM path", tmpPath)
 	} else {
 		tmpPath = util.HomeDir()
 	}
-	log.Println("the tmpPath is:", tmpPath)
 	path := filepath.Join(tmpPath, contractPath[pathType])
 	return filepath.Join(path, fmt.Sprintf("%s/%s.wasm", fileName, fileName))
 }

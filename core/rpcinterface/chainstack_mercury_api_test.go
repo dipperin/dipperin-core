@@ -39,7 +39,7 @@ func TestDipperinVenusApi_GetSyncStatus(t *testing.T) {
 			name: "sync status is false",
 			given: func() *DipperinVenusApi {
 				pm := NewMockPeerManager(ctrl)
-				pm.EXPECT().IsSync().Return(false).Times(1)
+				pm.EXPECT().IsSync().Return(false)
 				api := DipperinVenusApi{service: &service.VenusFullChainService{
 					DipperinConfig: &service.DipperinConfig{
 						NormalPm: pm,
@@ -54,7 +54,7 @@ func TestDipperinVenusApi_GetSyncStatus(t *testing.T) {
 			name: "sync status is true",
 			given: func() *DipperinVenusApi {
 				pm := NewMockPeerManager(ctrl)
-				pm.EXPECT().IsSync().Return(true).Times(1)
+				pm.EXPECT().IsSync().Return(true)
 				api := DipperinVenusApi{service: &service.VenusFullChainService{
 					DipperinConfig: &service.DipperinConfig{
 						NormalPm: pm,
@@ -79,11 +79,11 @@ func TestDipperinVenusApi_CurrentBlock(t *testing.T) {
 	defer ctrl.Finish()
 
 	blockMock := NewMockAbstractBlock(ctrl)
-	blockMock.EXPECT().Header().Return(&model.Header{}).Times(1)
-	blockMock.EXPECT().Body().Return(&model.Body{}).Times(1)
+	blockMock.EXPECT().Header().Return(&model.Header{})
+	blockMock.EXPECT().Body().Return(&model.Body{})
 
 	cr := NewMockChainInterface(ctrl)
-	cr.EXPECT().CurrentBlock().Return(blockMock).Times(1)
+	cr.EXPECT().CurrentBlock().Return(blockMock)
 
 	api := DipperinVenusApi{service: &service.VenusFullChainService{
 		DipperinConfig: &service.DipperinConfig{
@@ -110,7 +110,7 @@ func TestDipperinVenusApi_GetBlockByNumber(t *testing.T) {
 			name: "block not found",
 			given: func() *DipperinVenusApi {
 				cr := NewMockChainInterface(ctrl)
-				cr.EXPECT().GetBlockByNumber(uint64(0)).Return(nil).Times(1)
+				cr.EXPECT().GetBlockByNumber(uint64(0)).Return(nil)
 				api := DipperinVenusApi{service: &service.VenusFullChainService{
 					DipperinConfig: &service.DipperinConfig{
 						ChainReader: cr,
@@ -125,11 +125,11 @@ func TestDipperinVenusApi_GetBlockByNumber(t *testing.T) {
 			name: "block found",
 			given: func() *DipperinVenusApi {
 				blockMock := NewMockAbstractBlock(ctrl)
-				blockMock.EXPECT().Header().Return(&model.Header{}).Times(1)
-				blockMock.EXPECT().Body().Return(&model.Body{}).Times(1)
+				blockMock.EXPECT().Header().Return(&model.Header{})
+				blockMock.EXPECT().Body().Return(&model.Body{})
 
 				cr := NewMockChainInterface(ctrl)
-				cr.EXPECT().GetBlockByNumber(uint64(0)).Return(blockMock).Times(1)
+				cr.EXPECT().GetBlockByNumber(uint64(0)).Return(blockMock)
 				api := DipperinVenusApi{service: &service.VenusFullChainService{
 					DipperinConfig: &service.DipperinConfig{
 						ChainReader: cr,
@@ -163,7 +163,7 @@ func TestDipperinVenusApi_GetBlockByHash(t *testing.T) {
 			name: "block not found",
 			given: func() *DipperinVenusApi {
 				cr := NewMockChainInterface(ctrl)
-				cr.EXPECT().GetBlockByHash(common.Hash{}).Return(nil).Times(1)
+				cr.EXPECT().GetBlockByHash(common.Hash{}).Return(nil)
 				api := DipperinVenusApi{service: &service.VenusFullChainService{
 					DipperinConfig: &service.DipperinConfig{
 						ChainReader: cr,
@@ -178,11 +178,11 @@ func TestDipperinVenusApi_GetBlockByHash(t *testing.T) {
 			name: "block found",
 			given: func() *DipperinVenusApi {
 				blockMock := NewMockAbstractBlock(ctrl)
-				blockMock.EXPECT().Header().Return(&model.Header{}).Times(1)
-				blockMock.EXPECT().Body().Return(&model.Body{}).Times(1)
+				blockMock.EXPECT().Header().Return(&model.Header{})
+				blockMock.EXPECT().Body().Return(&model.Body{})
 
 				cr := NewMockChainInterface(ctrl)
-				cr.EXPECT().GetBlockByHash(common.Hash{}).Return(blockMock).Times(1)
+				cr.EXPECT().GetBlockByHash(common.Hash{}).Return(blockMock)
 				api := DipperinVenusApi{service: &service.VenusFullChainService{
 					DipperinConfig: &service.DipperinConfig{
 						ChainReader: cr,
@@ -210,7 +210,7 @@ func TestDipperinVenusApi_GetBlockNumber(t *testing.T) {
 	var expect uint64 = 100
 
 	cr := NewMockChainInterface(ctrl)
-	cr.EXPECT().GetBlockNumber(common.Hash{}).Return(&expect).Times(1)
+	cr.EXPECT().GetBlockNumber(common.Hash{}).Return(&expect)
 	api := DipperinVenusApi{service: &service.VenusFullChainService{
 		DipperinConfig: &service.DipperinConfig{
 			ChainReader: cr,
@@ -234,7 +234,7 @@ func TestDipperinVenusApi_GetGenesis(t *testing.T) {
 			name: "genesis not found",
 			given: func() *DipperinVenusApi {
 				cr := NewMockChainInterface(ctrl)
-				cr.EXPECT().Genesis().Return(nil).Times(1)
+				cr.EXPECT().Genesis().Return(nil)
 				api := DipperinVenusApi{service: &service.VenusFullChainService{
 					DipperinConfig: &service.DipperinConfig{
 						ChainReader: cr,
@@ -249,10 +249,10 @@ func TestDipperinVenusApi_GetGenesis(t *testing.T) {
 			name: "genesis found",
 			given: func() *DipperinVenusApi {
 				blockMock := NewMockAbstractBlock(ctrl)
-				blockMock.EXPECT().Header().Return(&model.Header{}).Times(1)
-				blockMock.EXPECT().Body().Return(&model.Body{}).Times(1)
+				blockMock.EXPECT().Header().Return(&model.Header{})
+				blockMock.EXPECT().Body().Return(&model.Body{})
 				cr := NewMockChainInterface(ctrl)
-				cr.EXPECT().Genesis().Return(blockMock).Times(1)
+				cr.EXPECT().Genesis().Return(blockMock)
 				api := DipperinVenusApi{service: &service.VenusFullChainService{
 					DipperinConfig: &service.DipperinConfig{
 						ChainReader: cr,
@@ -278,7 +278,7 @@ func TestDipperinVenusApi_GetBlockBody(t *testing.T) {
 	defer ctrl.Finish()
 
 	cr := NewMockChainInterface(ctrl)
-	cr.EXPECT().GetBody(common.Hash{}).Return(&model.Body{}).Times(1)
+	cr.EXPECT().GetBody(common.Hash{}).Return(&model.Body{})
 
 	api := DipperinVenusApi{service: &service.VenusFullChainService{
 		DipperinConfig: &service.DipperinConfig{

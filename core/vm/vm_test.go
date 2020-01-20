@@ -21,7 +21,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	"github.com/dipperin/dipperin-core/tests/mock/model"
 	"github.com/dipperin/dipperin-core/tests/util"
 	"github.com/dipperin/dipperin-core/third_party/crypto"
 	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
@@ -45,9 +44,9 @@ func Test_NewVMContext(t *testing.T) {
 	ctrl, db, _ := GetBaseVmInfo(t)
 	defer ctrl.Finish()
 
-	tx := model_mock.NewMockAbstractTransaction(ctrl)
-	header := model_mock.NewMockAbstractHeader(ctrl)
-	singer := model_mock.NewMockSigner(ctrl)
+	tx := NewMockAbstractTransaction(ctrl)
+	header := NewMockAbstractHeader(ctrl)
+	singer := NewMockSigner(ctrl)
 	tx.EXPECT().Sender(singer).Return(model.AliceAddr, nil).AnyTimes()
 	tx.EXPECT().GetSigner().Return(singer).AnyTimes()
 	tx.EXPECT().GetGasLimit().Return(uint64(chainconfig.BlockGasLimit)).AnyTimes()
@@ -68,9 +67,9 @@ func Test_NewVMContext(t *testing.T) {
 	assert.Equal(t, header.GetTimeStamp(), context.GetTime())
 
 	db.EXPECT().GetBalance(model.AliceAddr).Return(big.NewInt(400)).Times(2)
-	db.EXPECT().GetBalance(model.ContractAddr).Return(big.NewInt(100)).Times(1)
-	db.EXPECT().SubBalance(model.AliceAddr, big.NewInt(100)).Return(nil).Times(1)
-	db.EXPECT().AddBalance(model.ContractAddr, big.NewInt(100)).Return(nil).Times(1)
+	db.EXPECT().GetBalance(model.ContractAddr).Return(big.NewInt(100))
+	db.EXPECT().SubBalance(model.AliceAddr, big.NewInt(100)).Return(nil)
+	db.EXPECT().AddBalance(model.ContractAddr, big.NewInt(100)).Return(nil)
 
 	result := context.CanTransfer(db, model.AliceAddr, big.NewInt(100))
 	assert.Equal(t, true, result)
@@ -146,7 +145,7 @@ func Test_Run(t *testing.T) {
 					Index:       uint(0),
 					Removed:     false,
 				}
-				db.EXPECT().AddLog(&log).Return().Times(1)
+				db.EXPECT().AddLog(&log).Return()
 
 				ret, err := run(vm, contract, false)
 				if len(ret) > len(param) {
@@ -231,8 +230,8 @@ func TestVM_CreateAndCall(t *testing.T) {
 	db.EXPECT().Exist(contractAddr).Return(true).AnyTimes()
 	db.EXPECT().GetCode(contractAddr).Return(code).AnyTimes()
 	db.EXPECT().GetAbi(contractAddr).Return(abi).AnyTimes()
-	db.EXPECT().AddLog(&log2).Times(1)
-	db.EXPECT().AddLog(&log).Times(1)
+	db.EXPECT().AddLog(&log2)
+	db.EXPECT().AddLog(&log)
 
 	testCases := []struct {
 		name   string

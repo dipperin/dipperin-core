@@ -54,7 +54,7 @@ func TestBftOuter_BroadcastVerifiedBlock(t *testing.T) {
 	mockPeer := NewMockPmAbstractPeer(ctrl)
 	mockPeer.EXPECT().ID().Return("testID").AnyTimes()
 	mockPeer.EXPECT().NodeName().Return("testPeer").AnyTimes()
-	mockPeer.EXPECT().SendMsg(gomock.Any(), gomock.Any()).Times(1)
+	mockPeer.EXPECT().SendMsg(gomock.Any(), gomock.Any())
 
 	mockPm := NewMockPeerManager(ctrl)
 	mockPm.EXPECT().GetPeers().Return(map[string]PmAbstractPeer{"testID": mockPeer}).AnyTimes()

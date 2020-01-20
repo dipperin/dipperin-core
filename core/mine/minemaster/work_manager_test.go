@@ -3,7 +3,6 @@ package minemaster
 import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
-	model_mock "github.com/dipperin/dipperin-core/tests/mock/model"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"math/big"
@@ -211,7 +210,7 @@ func Test_defaultWorkManager_submitBlock(t *testing.T) {
 	mockBlockBroadcaster := NewMockBlockBroadcaster(ctrl)
 	mockBlockBroadcaster.EXPECT().BroadcastMinedBlock(gomock.Any()).Return().AnyTimes()
 	// mock block
-	mockBlock := model_mock.NewMockAbstractBlock(ctrl)
+	mockBlock := NewMockAbstractBlock(ctrl)
 	// build
 	mineConfig := MineConfig{
 		GasFloor:         nil,
@@ -288,7 +287,7 @@ func Test_defaultWorkManager_onNewBlock(t *testing.T) {
 			"empty performance map",
 			func() model.AbstractBlock {
 				// mock block
-				mockBlock := model_mock.NewMockAbstractBlock(ctrl)
+				mockBlock := NewMockAbstractBlock(ctrl)
 				mockBlock.EXPECT().CoinBase().Return(big.NewInt(10)).AnyTimes()
 				mockBlock.EXPECT().GetTransactionFees().Return(big.NewInt(1)).AnyTimes()
 				return mockBlock

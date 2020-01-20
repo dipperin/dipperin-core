@@ -6,7 +6,6 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	iblt "github.com/dipperin/dipperin-core/core/bloom"
 	"github.com/dipperin/dipperin-core/core/model"
-	model_mock "github.com/dipperin/dipperin-core/tests/mock/model"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -91,7 +90,7 @@ func TestDefaultWork_FillSealResult(t *testing.T) {
 			func() model.AbstractBlock {
 				// mock
 				ctrl := gomock.NewController(t)
-				mockBlock := model_mock.NewMockAbstractBlock(ctrl)
+				mockBlock := NewMockAbstractBlock(ctrl)
 				// reject
 				mockBlock.EXPECT().Number().Return(uint64(137)).AnyTimes()
 				mockBlock.EXPECT().Nonce().Return(common.EncodeNonce(124)).AnyTimes()
@@ -105,7 +104,7 @@ func TestDefaultWork_FillSealResult(t *testing.T) {
 			func() model.AbstractBlock {
 				// mock
 				ctrl := gomock.NewController(t)
-				mockBlock := model_mock.NewMockAbstractBlock(ctrl)
+				mockBlock := NewMockAbstractBlock(ctrl)
 				// reject
 				mockBlock.EXPECT().Number().Return(uint64(123)).AnyTimes()
 				mockBlock.EXPECT().Nonce().Return(common.EncodeNonce(124)).AnyTimes()

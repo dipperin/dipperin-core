@@ -70,17 +70,17 @@ func TestCheckDownloaderSyncStatus(t *testing.T) {
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, args ...interface{}) error {
 		*result.(*bool) = true
 		return nil
-	}).Times(1)
+	})
 
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, args ...interface{}) error {
 		*result.(*bool) = true
 		return testErr
-	}).Times(1)
+	})
 
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, args ...interface{}) error {
 		*result.(*bool) = false
 		return nil
-	}).Times(1)
+	})
 
 	CheckSyncStatusDuration = 1 * time.Millisecond
 	assert.NotPanics(t, func() {
@@ -1162,7 +1162,7 @@ func TestRpcCaller_SendRegisterTx(t *testing.T) {
 		client = NewMockRpcClient(ctrl)
 		caller := &rpcCaller{}
 		SyncStatus.Store(false)
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr).Times(1)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr)
 		caller.SendRegisterTx(c)
 
 		SyncStatus.Store(true)
@@ -1206,7 +1206,7 @@ func TestRpcCaller_SendRegisterTransaction(t *testing.T) {
 		client = NewMockRpcClient(ctrl)
 		caller := &rpcCaller{}
 		SyncStatus.Store(false)
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr).Times(1)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr)
 		caller.SendRegisterTransaction(c)
 
 		SyncStatus.Store(true)
@@ -1294,7 +1294,7 @@ func TestRpcCaller_SendUnStakeTransaction(t *testing.T) {
 		client = NewMockRpcClient(ctrl)
 		caller := &rpcCaller{}
 		SyncStatus.Store(false)
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr).Times(1)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr)
 		caller.SendUnStakeTransaction(c)
 
 		SyncStatus.Store(true)
@@ -1338,7 +1338,7 @@ func TestRpcCaller_SendCancelTx(t *testing.T) {
 		client = NewMockRpcClient(ctrl)
 		caller := &rpcCaller{}
 		SyncStatus.Store(false)
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr).Times(1)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr)
 		caller.SendCancelTx(c)
 
 		SyncStatus.Store(true)
@@ -1379,7 +1379,7 @@ func TestRpcCaller_SendCancelTransaction(t *testing.T) {
 		client = NewMockRpcClient(ctrl)
 		caller := &rpcCaller{}
 		SyncStatus.Store(false)
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr).Times(1)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr)
 		caller.SendCancelTransaction(c)
 
 		SyncStatus.Store(true)
@@ -1423,7 +1423,7 @@ func TestRpcCaller_GetVerifiersBySlot(t *testing.T) {
 		client = NewMockRpcClient(ctrl)
 		caller := &rpcCaller{}
 		SyncStatus.Store(false)
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr).Times(1)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr)
 		caller.GetVerifiersBySlot(c)
 
 		SyncStatus.Store(true)
