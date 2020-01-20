@@ -56,13 +56,8 @@ type AbstractBody interface {
 	//GetReceipts() ([]*model.Receipt, error)
 }
 
-<<<<<<< HEAD
 
 //go:generate mockgen -destination=./block_mock.go -package=model github.com/dipperin/dipperin-core/core/model AbstractBlock
-=======
-//go:generate mockgen -destination=../mine/minemaster/block_mock_test.go -package=minemaster github.com/dipperin/dipperin-core/core/model AbstractBlock
-//go:generate mockgen -destination=../mine/minemsg/block_mock_test.go -package=minemsg github.com/dipperin/dipperin-core/core/model AbstractBlock
->>>>>>> 2a84fe60e8b6f4ca70e05f93392952e566e5ec22
 //go:generate mockgen -destination=../verifiershaltcheck/block_mock_test.go -package=verifiershaltcheck github.com/dipperin/dipperin-core/core/model AbstractBlock
 //go:generate mockgen -destination=../chaincommunication/block_mock_test.go -package=chaincommunication github.com/dipperin/dipperin-core/core/model AbstractBlock
 type AbstractBlock interface {
