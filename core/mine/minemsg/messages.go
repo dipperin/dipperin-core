@@ -23,10 +23,11 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
 	"go.uber.org/zap"
 )
 
+//go:generate mockgen -destination=./work_mock_test.go -package=minemsg github.com/dipperin/dipperin-core/core/mine/minemsg Work
 // mine work
 type Work interface {
 	GetWorkerCoinbaseAddress() common.Address

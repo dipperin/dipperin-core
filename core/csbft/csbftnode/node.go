@@ -19,25 +19,25 @@ package csbftnode
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-error"
-	"github.com/dipperin/dipperin-core/common/g-metrics"
+	"github.com/dipperin/dipperin-core/common/gerror"
+	"github.com/dipperin/dipperin-core/common/gmetrics"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-communication"
+	"github.com/dipperin/dipperin-core/core/chaincommunication"
 	"github.com/dipperin/dipperin-core/core/csbft/components"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
-	"github.com/dipperin/dipperin-core/core/csbft/state-machine"
+	"github.com/dipperin/dipperin-core/core/csbft/statemachine"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
 	"go.uber.org/zap"
 	"time"
 )
 
 // new bft node
-func NewCsBft(config *state_machine.BftConfig) *CsBft {
+func NewCsBft(config *statemachine.BftConfig) *CsBft {
 	bft := &CsBft{BftConfig: config}
 	bp := components.NewBlockPool(0, nil)
 	bp.SetNodeConfig(config.ChainReader)
-	stateHandler := state_machine.NewStateHandler(config, state_machine.DefaultConfig, bp)
+	stateHandler := statemachine.NewStateHandler(config, statemachine.DefaultConfig, bp)
 	bp.SetPoolEventNotifier(stateHandler)
 	bft.blockPool = bp
 	bft.stateHandler = stateHandler
@@ -45,10 +45,10 @@ func NewCsBft(config *state_machine.BftConfig) *CsBft {
 }
 
 type CsBft struct {
-	*state_machine.BftConfig
+	*statemachine.BftConfig
 
 	blockPool    *components.BlockPool
-	stateHandler *state_machine.StateHandler
+	stateHandler *statemachine.StateHandler
 	fetcher      *components.CsBftFetcher
 }
 
@@ -70,7 +70,7 @@ func (bft *CsBft) SetFetcher(fetcher *components.CsBftFetcher) {
 func (bft *CsBft) Start() error {
 	log.DLogger.Info("start CsBft", zap.Uint64("cur height", bft.ChainReader.CurrentBlock().Number()))
 	if !bft.canStart() {
-		log.DLogger.Info("isn't cur verifier, can't start CsBft", zap.Error(g_error.ErrIsNotCurVerifierCannotStartBft))
+		log.DLogger.Info("isn't cur verifier, can't start CsBft", zap.Error(gerror.ErrIsNotCurVerifierCannotStartBft))
 		return nil
 	}
 
@@ -131,7 +131,7 @@ func (bft *CsBft) OnNewMsg(msg interface{}) error {
 	return nil
 }
 
-func (bft *CsBft) AddPeer(p chain_communication.PmAbstractPeer) error { return nil }
+func (bft *CsBft) AddPeer(p chaincommunication.PmAbstractPeer) error { return nil }
 
 func (bft *CsBft) ChangePrimary(primary string) {
 	log.DLogger.Debug("Change Primary Called")
@@ -180,7 +180,7 @@ func (bft *CsBft) isNextVerifier() bool {
 }
 
 // The processing here can't be blocked, it must be quickly put into a coroutine and returned after processing, otherwise msg read will be blocked.
-func (bft *CsBft) OnNewP2PMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer) error {
+func (bft *CsBft) OnNewP2PMsg(msg p2p.Msg, p chaincommunication.PmAbstractPeer) error {
 	if !bft.stateHandler.IsRunning() {
 		log.DLogger.Warn("[Node-OnNewMsg]receive bft msg, but state handler not started")
 		return nil
@@ -301,8 +301,8 @@ func (bft *CsBft) OnNewP2PMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer)
 }
 
 func (bft *CsBft) onSyncBlockMsg(from common.Address, h common.Hash) {
-	g_metrics.Add(g_metrics.FetchBlockGoCount, "", 1)
-	defer g_metrics.Sub(g_metrics.FetchBlockGoCount, "", 1)
+	gmetrics.Add(gmetrics.FetchBlockGoCount, "", 1)
+	defer gmetrics.Sub(gmetrics.FetchBlockGoCount, "", 1)
 
 	if from.IsEmpty() {
 		log.DLogger.Warn("from is empty, do nothing for sync msg")

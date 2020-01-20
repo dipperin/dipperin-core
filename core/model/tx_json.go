@@ -21,7 +21,7 @@ import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
 	"math/big"
 )
 

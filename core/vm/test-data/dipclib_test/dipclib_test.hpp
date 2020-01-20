@@ -27,9 +27,7 @@ public testtoken,
 public storagetest
 {
 public:
-    void init();
-    void libTest();
+    PAYABLE void init();
+    EXPORT void libTest();
 };
 
-DIPC_ABI(dipcLibTest, init);
-DIPC_ABI(dipcLibTest, libTest);

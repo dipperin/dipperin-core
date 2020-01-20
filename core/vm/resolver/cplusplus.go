@@ -24,12 +24,12 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/address-util"
+	"github.com/dipperin/dipperin-core/common/addressutil"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/third_party/crypto"
+	"github.com/dipperin/dipperin-core/third_party/life/exec"
 	"go.uber.org/zap"
 	"math/big"
 )
@@ -420,7 +420,7 @@ func (r *Resolver) envAddress(vm *exec.VirtualMachine) int64 {
 }
 
 // define: void sha3(char *src, size_t srcLen, char *dest, size_t destLen);
-func envSha3(vm *exec.VirtualMachine) int64 {
+func (r *Resolver) envSha3(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
 	size := int(int32(vm.GetCurrentFrame().Locals[1]))
 	destOffset := int(int32(vm.GetCurrentFrame().Locals[2]))
@@ -437,7 +437,7 @@ func envSha3(vm *exec.VirtualMachine) int64 {
 	return 0
 }
 
-func envHexStringSameWithVM(vm *exec.VirtualMachine) int64 {
+func (r *Resolver) envHexStringSameWithVM(vm *exec.VirtualMachine) int64 {
 	log.DLogger.Debug("envHexStringSameWithVM execute")
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
 	size := int(int32(vm.GetCurrentFrame().Locals[1]))
@@ -547,9 +547,9 @@ func (r *Resolver) envGetSignerAddress(vm *exec.VirtualMachine) int64 {
 		return 0
 	}
 
-	log.DLogger.Info("Resolver#envVerifySignature addr", zap.Any("address ", address_util.PubKeyToAddress(*pK, common.AddressTypeNormal)), zap.String("self address", r.Service.Self().Address().Hex()))
+	log.DLogger.Info("Resolver#envVerifySignature addr", zap.Any("address ", addressutil.PubKeyToAddress(*pK, common.AddressTypeNormal)), zap.String("self address", r.Service.Self().Address().Hex()))
 
-	addr := address_util.PubKeyToAddress(*pK, common.AddressTypeNormal)
+	addr := addressutil.PubKeyToAddress(*pK, common.AddressTypeNormal)
 	copy(vm.Memory.Memory[returnStart:], addr.Bytes())
 	return 0
 }

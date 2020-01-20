@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/hexutil"
-	"github.com/dipperin/dipperin-core/core/accounts/base"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/rpc-interface"
+	"github.com/dipperin/dipperin-core/core/rpcinterface"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
@@ -40,12 +40,12 @@ func TestInitAccountInfo(t *testing.T) {
 
 	client = NewMockRpcClient(ctrl)
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr).Times(2)
-	InitAccountInfo(chain_config.NodeTypeOfVerifier, "", "", "")
+	InitAccountInfo(chainconfig.NodeTypeOfVerifier, "", "", "")
 	osExit = func(code int) {}
 
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(testErr)
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr).Times(2)
-	InitAccountInfo(chain_config.NodeTypeOfNormal, "", "", "")
+	InitAccountInfo(chainconfig.NodeTypeOfNormal, "", "", "")
 }
 
 func TestCheckDownloaderSyncStatus(t *testing.T) {
@@ -70,17 +70,17 @@ func TestCheckDownloaderSyncStatus(t *testing.T) {
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, args ...interface{}) error {
 		*result.(*bool) = true
 		return nil
-	}).Times(1)
+	})
 
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, args ...interface{}) error {
 		*result.(*bool) = true
 		return testErr
-	}).Times(1)
+	})
 
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, args ...interface{}) error {
 		*result.(*bool) = false
 		return nil
-	}).Times(1)
+	})
 
 	CheckSyncStatusDuration = 1 * time.Millisecond
 	assert.NotPanics(t, func() {
@@ -170,7 +170,7 @@ func TestRpcCaller_GetDefaultAccountBalance(t *testing.T) {
 		caller.GetDefaultAccountBalance(c)
 
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, args ...interface{}) error {
-			*result.(*rpc_interface.CurBalanceResp) = rpc_interface.CurBalanceResp{
+			*result.(*rpcinterface.CurBalanceResp) = rpcinterface.CurBalanceResp{
 				Balance: (*hexutil.Big)(big.NewInt(1)),
 			}
 			return nil
@@ -211,7 +211,7 @@ func TestRpcCaller_CurrentBalance(t *testing.T) {
 
 		c.Set("p", "")
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), getDipperinRpcMethodByName("ListWallet")).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			*result.(*[]base.WalletIdentifier) = []base.WalletIdentifier{
+			*result.(*[]accountsbase.WalletIdentifier) = []accountsbase.WalletIdentifier{
 				{
 					WalletType: 1,
 					Path:       "",
@@ -221,7 +221,7 @@ func TestRpcCaller_CurrentBalance(t *testing.T) {
 			return nil
 		})
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), getDipperinRpcMethodByName("ListWalletAccount"), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			*result.(*[]base.Account) = []base.Account{
+			*result.(*[]accountsbase.Account) = []accountsbase.Account{
 				{
 					Address: fromAddr,
 				},
@@ -233,7 +233,7 @@ func TestRpcCaller_CurrentBalance(t *testing.T) {
 
 		c.Set("p", from)
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			*result.(*rpc_interface.CurBalanceResp) = rpc_interface.CurBalanceResp{
+			*result.(*rpcinterface.CurBalanceResp) = rpcinterface.CurBalanceResp{
 				Balance: (*hexutil.Big)(big.NewInt(1)),
 			}
 			return nil
@@ -766,7 +766,7 @@ func TestRpcCaller_SuggestGasPrice(t *testing.T) {
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 		caller.SuggestGasPrice(c)
 
-		gas := rpc_interface.CurBalanceResp{Balance: (*hexutil.Big)(big.NewInt(100))}
+		gas := rpcinterface.CurBalanceResp{Balance: (*hexutil.Big)(big.NewInt(100))}
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(0, gas)
 		caller.SuggestGasPrice(c)
 	}
@@ -870,7 +870,7 @@ func TestRpcCaller_ListWallet(t *testing.T) {
 		caller.ListWallet(c)
 
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, args ...interface{}) error {
-			*result.(*[]base.WalletIdentifier) = []base.WalletIdentifier{
+			*result.(*[]accountsbase.WalletIdentifier) = []accountsbase.WalletIdentifier{
 				{
 					WalletType: 1,
 					WalletName: "test",
@@ -920,7 +920,7 @@ func TestRpcCaller_ListWalletAccount(t *testing.T) {
 
 		c.Set("p", "TrezorWallet, test")
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, args ...interface{}) error {
-			*result.(*[]base.Account) = []base.Account{
+			*result.(*[]accountsbase.Account) = []accountsbase.Account{
 				{
 					Address: fromAddr,
 				},
@@ -1134,7 +1134,7 @@ func TestRpcCaller_AddAccount(t *testing.T) {
 
 		c.Set("p", "TrezorWallet,test")
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, args ...interface{}) error {
-			*result.(*base.Account) = base.Account{
+			*result.(*accountsbase.Account) = accountsbase.Account{
 				Address: fromAddr,
 			}
 			return nil
@@ -1162,7 +1162,7 @@ func TestRpcCaller_SendRegisterTx(t *testing.T) {
 		client = NewMockRpcClient(ctrl)
 		caller := &rpcCaller{}
 		SyncStatus.Store(false)
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr).Times(1)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr)
 		caller.SendRegisterTx(c)
 
 		SyncStatus.Store(true)
@@ -1206,7 +1206,7 @@ func TestRpcCaller_SendRegisterTransaction(t *testing.T) {
 		client = NewMockRpcClient(ctrl)
 		caller := &rpcCaller{}
 		SyncStatus.Store(false)
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr).Times(1)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr)
 		caller.SendRegisterTransaction(c)
 
 		SyncStatus.Store(true)
@@ -1294,7 +1294,7 @@ func TestRpcCaller_SendUnStakeTransaction(t *testing.T) {
 		client = NewMockRpcClient(ctrl)
 		caller := &rpcCaller{}
 		SyncStatus.Store(false)
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr).Times(1)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr)
 		caller.SendUnStakeTransaction(c)
 
 		SyncStatus.Store(true)
@@ -1338,7 +1338,7 @@ func TestRpcCaller_SendCancelTx(t *testing.T) {
 		client = NewMockRpcClient(ctrl)
 		caller := &rpcCaller{}
 		SyncStatus.Store(false)
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr).Times(1)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr)
 		caller.SendCancelTx(c)
 
 		SyncStatus.Store(true)
@@ -1379,7 +1379,7 @@ func TestRpcCaller_SendCancelTransaction(t *testing.T) {
 		client = NewMockRpcClient(ctrl)
 		caller := &rpcCaller{}
 		SyncStatus.Store(false)
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr).Times(1)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr)
 		caller.SendCancelTransaction(c)
 
 		SyncStatus.Store(true)
@@ -1423,7 +1423,7 @@ func TestRpcCaller_GetVerifiersBySlot(t *testing.T) {
 		client = NewMockRpcClient(ctrl)
 		caller := &rpcCaller{}
 		SyncStatus.Store(false)
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr).Times(1)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).Return(testErr)
 		caller.GetVerifiersBySlot(c)
 
 		SyncStatus.Store(true)
@@ -1476,13 +1476,13 @@ func TestRpcCaller_VerifierStatus(t *testing.T) {
 
 		c.Set("p", from)
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			*result.(*rpc_interface.VerifierStatus) = rpc_interface.VerifierStatus{}
+			*result.(*rpcinterface.VerifierStatus) = rpcinterface.VerifierStatus{}
 			return nil
 		})
 		caller.VerifierStatus(c)
 
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			*result.(*rpc_interface.VerifierStatus) = rpc_interface.VerifierStatus{
+			*result.(*rpcinterface.VerifierStatus) = rpcinterface.VerifierStatus{
 				Balance: (*hexutil.Big)(big.NewInt(1)),
 				Status:  VerifierStatusNoRegistered,
 			}
@@ -1491,7 +1491,7 @@ func TestRpcCaller_VerifierStatus(t *testing.T) {
 		caller.VerifierStatus(c)
 
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			*result.(*rpc_interface.VerifierStatus) = rpc_interface.VerifierStatus{
+			*result.(*rpcinterface.VerifierStatus) = rpcinterface.VerifierStatus{
 				Balance: (*hexutil.Big)(big.NewInt(1)),
 				Status:  VerifiedStatusUnstaked,
 			}
@@ -1500,7 +1500,7 @@ func TestRpcCaller_VerifierStatus(t *testing.T) {
 		caller.VerifierStatus(c)
 
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			*result.(*rpc_interface.VerifierStatus) = rpc_interface.VerifierStatus{
+			*result.(*rpcinterface.VerifierStatus) = rpcinterface.VerifierStatus{
 				Balance: (*hexutil.Big)(big.NewInt(1)),
 				Status:  VerifierStatusRegistered,
 			}
@@ -1509,7 +1509,7 @@ func TestRpcCaller_VerifierStatus(t *testing.T) {
 		caller.VerifierStatus(c)
 
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			*result.(*rpc_interface.VerifierStatus) = rpc_interface.VerifierStatus{
+			*result.(*rpcinterface.VerifierStatus) = rpcinterface.VerifierStatus{
 				Balance: (*hexutil.Big)(big.NewInt(1)),
 				Stake:   (*hexutil.Big)(big.NewInt(1)),
 				Status:  VerifierStatusRegistered,
@@ -1519,7 +1519,7 @@ func TestRpcCaller_VerifierStatus(t *testing.T) {
 		caller.VerifierStatus(c)
 
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			*result.(*rpc_interface.VerifierStatus) = rpc_interface.VerifierStatus{
+			*result.(*rpcinterface.VerifierStatus) = rpcinterface.VerifierStatus{
 				Balance: (*hexutil.Big)(big.NewInt(1)),
 				Stake:   (*hexutil.Big)(big.NewInt(1)),
 				Status:  VerifiedStatusCanceled,
@@ -1577,7 +1577,7 @@ func TestRpcCaller_GetDefaultAccountStake(t *testing.T) {
 		caller.GetDefaultAccountStake(c)
 
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, args ...interface{}) error {
-			*result.(*rpc_interface.CurBalanceResp) = rpc_interface.CurBalanceResp{
+			*result.(*rpcinterface.CurBalanceResp) = rpcinterface.CurBalanceResp{
 				Balance: (*hexutil.Big)(big.NewInt(1)),
 			}
 			return nil
@@ -1615,13 +1615,13 @@ func TestRpcCaller_CurrentStake(t *testing.T) {
 
 		c.Set("p", from)
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			*result.(*rpc_interface.CurBalanceResp) = rpc_interface.CurBalanceResp{}
+			*result.(*rpcinterface.CurBalanceResp) = rpcinterface.CurBalanceResp{}
 			return nil
 		})
 		caller.CurrentStake(c)
 
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			*result.(*rpc_interface.CurBalanceResp) = rpc_interface.CurBalanceResp{
+			*result.(*rpcinterface.CurBalanceResp) = rpcinterface.CurBalanceResp{
 				Balance: (*hexutil.Big)(big.NewInt(1)),
 			}
 			return nil
@@ -1705,7 +1705,7 @@ func Test_inDefaultVs(t *testing.T) {
 	assert.Equal(t, false, result)
 	assert.Equal(t, "", name)
 
-	result, name = inDefaultVs(chain_config.LocalVerifierAddress[0])
+	result, name = inDefaultVs(chainconfig.LocalVerifierAddress[0])
 	assert.Equal(t, true, result)
 	assert.Equal(t, "default_v0", name)
 }
@@ -1864,7 +1864,7 @@ func Test_getDefaultAccount(t *testing.T) {
 
 	client = NewMockRpcClient(ctrl)
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-		*result.(*[]base.WalletIdentifier) = []base.WalletIdentifier{{}}
+		*result.(*[]accountsbase.WalletIdentifier) = []accountsbase.WalletIdentifier{{}}
 		return nil
 	})
 
@@ -1879,10 +1879,10 @@ func Test_getDefaultWallet(t *testing.T) {
 
 	client = NewMockRpcClient(ctrl)
 	client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-		*result.(*[]base.WalletIdentifier) = []base.WalletIdentifier{{}}
+		*result.(*[]accountsbase.WalletIdentifier) = []accountsbase.WalletIdentifier{{}}
 		return nil
 	})
 
 	wallet := getDefaultWallet()
-	assert.Equal(t, wallet, base.WalletIdentifier{})
+	assert.Equal(t, wallet, accountsbase.WalletIdentifier{})
 }

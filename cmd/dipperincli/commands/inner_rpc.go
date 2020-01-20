@@ -19,9 +19,9 @@ package commands
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/core/economy-model"
-	"github.com/dipperin/dipperin-core/core/rpc-interface"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
+	"github.com/dipperin/dipperin-core/core/economymodel"
+	"github.com/dipperin/dipperin-core/core/rpcinterface"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
 	"strconv"
@@ -56,18 +56,18 @@ func (caller *rpcCaller) GetBlockDiffVerifierInfo(c *cli.Context) {
 		return
 	}
 
-	var resp map[economy_model.VerifierType][]common.Address
+	var resp map[economymodel.VerifierType][]common.Address
 	if err = client.Call(&resp, getDipperinRpcMethodByName(mName), blockNumber); err != nil {
 		l.Error("call failed", zap.Error(err))
 		return
 	}
 
 	fmt.Println("", "the MasterVerifier address is:")
-	printAddress(resp[economy_model.MasterVerifier])
+	printAddress(resp[economymodel.MasterVerifier])
 	fmt.Println("", "the CommitVerifier address is:")
-	printAddress(resp[economy_model.CommitVerifier])
+	printAddress(resp[economymodel.CommitVerifier])
 	fmt.Println("", "the NotCommitVerifier address is:")
-	printAddress(resp[economy_model.NotCommitVerifier])
+	printAddress(resp[economymodel.NotCommitVerifier])
 }
 
 func printAddress(addresses []common.Address) {
@@ -86,7 +86,7 @@ func (caller *rpcCaller) CheckVerifierType(c *cli.Context) {
 		return
 	}
 
-	config := chain_config.GetChainConfig()
+	config := chainconfig.GetChainConfig()
 	_, cParams, err := getRpcMethodAndParam(c)
 	if err != nil {
 		l.Error("getRpcMethodAndParam error", zap.Error(err))
@@ -107,7 +107,7 @@ func (caller *rpcCaller) CheckVerifierType(c *cli.Context) {
 	numberEnd := numberStart + config.SlotSize - 1
 
 	// get currentBlockNumber
-	var respBlock rpc_interface.BlockResp
+	var respBlock rpcinterface.BlockResp
 	if err = client.Call(&respBlock, getDipperinRpcMethodByName("CurrentBlock")); err != nil {
 		l.Error("look up for current block", zap.Error(err))
 		return
@@ -130,7 +130,7 @@ func (caller *rpcCaller) CheckVerifierType(c *cli.Context) {
 
 	for i := numberStart; i <= numberEnd; i++ {
 		findType := false
-		var resp map[economy_model.VerifierType][]common.Address
+		var resp map[economymodel.VerifierType][]common.Address
 		if err = client.Call(&resp, getDipperinRpcMethodByName("GetBlockDiffVerifierInfo"), i); err != nil {
 			l.Error("call failed", zap.Error(err))
 			return

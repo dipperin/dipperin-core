@@ -22,6 +22,7 @@ import (
 	"math/big"
 )
 
+//go:generate mockgen -destination=./state_db_mock_test.go -package=vm github.com/dipperin/dipperin-core/core/vm StateDB
 type StateDB interface {
 	GetBalance(common.Address) *big.Int
 	CreateAccount(common.Address) error
@@ -35,42 +36,15 @@ type StateDB interface {
 	SetAbi(common.Address, []byte)
 	AddBalance(addr common.Address, amount *big.Int) error
 	SubBalance(addr common.Address, amount *big.Int) error
-
-	/*AddRefund(uint64)
-	SubRefund(uint64)
-	GetRefund() uint64*/
-
 	// todo: hash -> bytes
 	GetState(common.Address, []byte) []byte
 	SetState(common.Address, []byte, []byte)
 	AddLog(addedLog *model2.Log)
 	GetLogs(txHash common.Hash) []*model2.Log
 
-	/*	Suicide(common.Address) bool
-		HasSuicided(common.Address) bool*/
-
 	// Exist reports whether the given account exists in state.
 	// Notably this should also return true for suicided accounts.
 	Exist(common.Address) bool
 	RevertToSnapshot(int)
 	Snapshot() int
-	/*AddPreimage(common.Hash, []byte)
-	ForEachStorage(common.Address, func(common.Hash, common.Hash) bool)*/
-
-	//ppos add
-	/*	TxHash() common.Hash
-		TxIdx() uint32*/
 }
-
-/*type AccountDB interface {
-	GetBalance(addr common.Address) (*big.Int, error)
-	AddBalance(addr common.Address, amount *big.Int) error
-	SubBalance(addr common.Address, amount *big.Int) error
-}
-
-type ContractDB interface {
-	ContractExist(addr common.Address) bool
-	GetContract(addr common.Address, vType reflect.Type) (v reflect.Value, err error)
-	FinalizeContract(addr common.Address, data reflect.Value) error
-}
-*/

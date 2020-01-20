@@ -20,8 +20,8 @@ import (
 	"github.com/dipperin/dipperin-core/cmd/dipperincli/config"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
-	"github.com/dipperin/dipperin-core/core/accounts/base"
-	"github.com/dipperin/dipperin-core/core/rpc-interface"
+	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
+	"github.com/dipperin/dipperin-core/core/rpcinterface"
 	"go.uber.org/zap"
 	"sync"
 	"time"
@@ -30,12 +30,12 @@ import (
 var (
 	defaultAccountStake     = "0" + consts.CoinDIPName
 	electionMap             sync.Map
-	trackingAccounts        []base.Account
+	trackingAccounts        []accountsbase.Account
 	logElectionTxTickerTime = 30 * time.Second
 )
 
 func loadDefaultAccountStake() {
-	var resp rpc_interface.CurBalanceResp
+	var resp rpcinterface.CurBalanceResp
 	if err := client.Call(&resp, getDipperinRpcMethodByName("CurrentStake"), defaultAccount); err != nil {
 		l.Error("call get current deposit error", zap.Error(err))
 		return
@@ -103,12 +103,12 @@ func AsyncLogElectionTx() *time.Ticker {
 }
 
 func loadRegistedAccounts() {
-	var resp []base.WalletIdentifier
+	var resp []accountsbase.WalletIdentifier
 	if err := client.Call(&resp, getDipperinRpcMethodByName("ListWallet")); err != nil {
 		l.Error("Call ListWallet", zap.Error(err))
 		return
 	}
-	var respA []base.Account
+	var respA []accountsbase.Account
 
 	if err := client.Call(&respA, getDipperinRpcMethodByName("ListWalletAccount"), resp[0]); err != nil {
 		l.Error("Call ListWallet", zap.Error(err))
@@ -116,7 +116,7 @@ func loadRegistedAccounts() {
 	}
 
 	for i := range respA {
-		var resp rpc_interface.VerifierStatus
+		var resp rpcinterface.VerifierStatus
 
 		if err := client.Call(&resp, getDipperinRpcMethodByName("VerifierStatus"), respA[i].Address.Hex()); err != nil {
 			l.Error("call verifier status error", zap.Error(err))
@@ -141,7 +141,7 @@ func logElection() {
 	//	return
 	//}
 
-	var respBlock rpc_interface.BlockResp
+	var respBlock rpcinterface.BlockResp
 	if err := client.Call(&respBlock, getDipperinRpcMethodByName("CurrentBlock")); err != nil {
 		l.Error("get current Block error", zap.Error(err))
 		return
@@ -160,7 +160,7 @@ func logElection() {
 
 	for i := range trackingAccounts {
 		isV := isVerifier(trackingAccounts[i].Address, resp)
-		var resp rpc_interface.VerifierStatus
+		var resp rpcinterface.VerifierStatus
 		if err := client.Call(&resp, getDipperinRpcMethodByName("VerifierStatus"), trackingAccounts[i].Address.Hex()); err != nil {
 			l.Error("call verifier status error", zap.Error(err))
 			continue
@@ -202,7 +202,7 @@ func isVerifier(addr common.Address, verifiers []common.Address) bool {
 }
 
 func addTrackingAccount(adds common.Address) {
-	acc := base.Account{Address: adds}
+	acc := accountsbase.Account{Address: adds}
 	for i := range trackingAccounts {
 		if trackingAccounts[i].Address.IsEqual(acc.Address) {
 			return
@@ -212,8 +212,8 @@ func addTrackingAccount(adds common.Address) {
 }
 
 func removeTrackingAccount(adds common.Address) {
-	acc := base.Account{Address: adds}
-	var newTrackingAccounts []base.Account
+	acc := accountsbase.Account{Address: adds}
+	var newTrackingAccounts []accountsbase.Account
 	for i := range trackingAccounts {
 		if !trackingAccounts[i].Address.IsEqual(acc.Address) {
 			newTrackingAccounts = append(newTrackingAccounts, trackingAccounts[i])

@@ -20,8 +20,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/accounts/base"
-	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
+	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
+	"github.com/dipperin/dipperin-core/core/accounts/softwallet"
 	"github.com/manifoldco/promptui"
 	"path/filepath"
 	"regexp"
@@ -135,7 +135,7 @@ func WalletPath(nodePath string) (string, error) {
 	}
 
 	if path == "" {
-		path = filepath.Join(nodePath, soft_wallet.WalletDefaultName)
+		path = filepath.Join(nodePath, softwallet.WalletDefaultName)
 	}
 
 	return path, nil
@@ -199,9 +199,9 @@ func passwordValidate(input string) error {
 	blankStr := regBlank.FindAllString(input, -1)
 
 	if reg.MatchString(input) && len(chStr) <= 0 && len(blankStr) <= 0 {
-		if len(input) >= base.PasswordMin && len(input) <= base.PassWordMax {
+		if len(input) >= accountsbase.PasswordMin && len(input) <= accountsbase.PassWordMax {
 			return nil
 		}
 	}
-	return base.ErrPasswordOrPassPhraseIllegal
+	return accountsbase.ErrPasswordOrPassPhraseIllegal
 }

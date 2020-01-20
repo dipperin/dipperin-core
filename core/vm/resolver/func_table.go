@@ -18,7 +18,7 @@ package resolver
 
 import (
 	"fmt"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/third_party/life/exec"
 )
 
 // Gas costs
@@ -129,15 +129,12 @@ func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
 			"callValue":           &exec.FunctionImport{Execute: r.envCallValue, GasCost: constGasFunc(GasQuickStep)},
 			"callValueUDIP":       &exec.FunctionImport{Execute: r.envCallValueUDIP, GasCost: constGasFunc(GasQuickStep)},
 			"address":             &exec.FunctionImport{Execute: r.envAddress, GasCost: constGasFunc(GasQuickStep)},
-			"sha3":                &exec.FunctionImport{Execute: envSha3, GasCost: envSha3GasCost},
-			"hexStringSameWithVM": &exec.FunctionImport{Execute: envHexStringSameWithVM, GasCost: envHexStringSameWithVMGasCost},
+			"sha3":                &exec.FunctionImport{Execute: r.envSha3, GasCost: envSha3GasCost},
+			"hexStringSameWithVM": &exec.FunctionImport{Execute: r.envHexStringSameWithVM, GasCost: envHexStringSameWithVMGasCost},
 			"emitEvent":           &exec.FunctionImport{Execute: r.envEmitEvent, GasCost: envEmitEventGasCost},
 			"setState":            &exec.FunctionImport{Execute: r.envSetState, GasCost: envSetStateGasCost},
 			"getState":            &exec.FunctionImport{Execute: r.envGetState, GasCost: envGetStateGasCost},
 			"getStateSize":        &exec.FunctionImport{Execute: r.envGetStateSize, GasCost: envGetStateSizeGasCost},
-			"__ashlti3":           &exec.FunctionImport{Execute: r.env__ashlti3, GasCost: env__ashlti3GasCost},
-			//"__multi3":            &exec.FunctionImport{Execute: r.env__multi3, GasCost: env__multi3GasCost},
-			//"__divti3":            &exec.FunctionImport{Execute: r.env__divti3, GasCost: env__divti3GasCost},
 			// supplement
 			"getCallerNonce": &exec.FunctionImport{Execute: r.envGetCallerNonce, GasCost: constGasFunc(GasQuickStep)},
 			// "currentTime": &exec.FunctionImport{Execute: r.envCurrentTime, GasCost: constGasFunc(GasQuickStep)},

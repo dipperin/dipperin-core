@@ -1,8 +1,8 @@
 #include "dipclib_test.hpp"
 
-void dipcLibTest::init() {}
+PAYABLE void dipcLibTest::init() {}
 
-void dipcLibTest::libTest()
+EXPORT void dipcLibTest::libTest()
 {
     //test common function 
     arithmeticTest();
@@ -10,15 +10,15 @@ void dipcLibTest::libTest()
     fixedHashTest();
     rlpTest();
 
-    // test db function
+    // // test db function
     arrayTest();
     listTest();
     mapTest();
 
-    // test state function 
+    // // test state function 
     stateTests();  
     TestTokens();
 
-    // test storage
+    // // test storage
     StorageTests();
 }

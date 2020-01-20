@@ -19,8 +19,8 @@ package commands
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/rpc-interface"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/dipperin/dipperin-core/core/rpcinterface"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
 	"strings"
@@ -77,7 +77,7 @@ func (caller *rpcCaller) Peers(c *cli.Context) {
 }
 
 func (caller *rpcCaller) Debug(c *cli.Context) {
-	var respBlock rpc_interface.BlockResp
+	var respBlock rpcinterface.BlockResp
 	if err := client.Call(&respBlock, getDipperinRpcMethodByName("CurrentBlock")); err != nil {
 		l.Error("look up for current block", zap.Error(err))
 		return

@@ -25,7 +25,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
 	"github.com/dipperin/dipperin-core/core/vm/resolver"
-	"github.com/dipperin/dipperin-core/third-party/life/exec"
+	"github.com/dipperin/dipperin-core/third_party/life/exec"
 	"github.com/ethereum/go-ethereum/rlp"
 	"go.uber.org/zap"
 	"math/big"
@@ -92,7 +92,7 @@ func (in *WASMInterpreter) Run(vm *VM, contract *Contract, create bool) (ret []b
 	}()
 
 	if len(contract.Code) == 0 || len(contract.ABI) == 0 {
-		log.DLogger.Debug("Code or ABI Length is 0", zap.Int("code", len(contract.Code)), zap.Int("abi", len(contract.ABI)))
+		log.DLogger.Debug("code or ABI Length is 0", zap.Int("code", len(contract.Code)), zap.Int("abi", len(contract.ABI)))
 		return nil, nil
 	}
 
@@ -291,7 +291,7 @@ func findParams(vm *exec.VirtualMachine, abi []byte, funcName string, inputList 
 		return
 	}
 
-	// uint64 uint32  uint16 uint8 int64 int32  int16 int8 string void
+	// uint64 uint32  uint16 uint8 int64 int32  int16 int8 string void bool
 	for i, v := range abiParam {
 		input := inputList[i].([]byte)
 		switch v.Type {

@@ -25,7 +25,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
+	"github.com/dipperin/dipperin-core/third_party/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 	"go.uber.org/zap"
 	"math/big"

@@ -4,7 +4,7 @@
         "inputs": [],
         "outputs": [],
         "constant": "false",
-        "payable": "false",
+        "payable": "true",
         "type": "function"
     },
     {

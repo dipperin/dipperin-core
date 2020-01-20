@@ -22,9 +22,9 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
+	"github.com/dipperin/dipperin-core/third_party/crypto"
+	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
 	"go.uber.org/zap"
 	"math/big"
 )
@@ -60,10 +60,11 @@ func (tx *Transaction) SignTx(priKey *ecdsa.PrivateKey, s Signer) (*Transaction,
 }
 
 //todo set signer config
-func MakeSigner(config *chain_config.ChainConfig, blockNumber uint64) Signer {
+func MakeSigner(config *chainconfig.ChainConfig, blockNumber uint64) Signer {
 	return DipperinSigner{chainId: config.ChainId}
 }
 
+//go:generate mockgen -destination=../vm/singer_mock_test.go -package=vm github.com/dipperin/dipperin-core/core/model Signer
 // signer define different kind of method handling signature
 type Signer interface {
 	// Sender returns the sender address of the transaction.

@@ -19,10 +19,10 @@ package minemaster
 import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-event"
+	"github.com/dipperin/dipperin-core/common/gevent"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/chain-communication"
+	"github.com/dipperin/dipperin-core/core/chaincommunication"
 	"github.com/dipperin/dipperin-core/core/model"
 	"go.uber.org/zap"
 	"math/big"
@@ -45,6 +45,7 @@ func newMaster(config MineConfig) *master {
 	return m
 }
 
+// todo: rewrite code for adding test
 type master struct {
 	MineConfig
 
@@ -66,7 +67,7 @@ type master struct {
 	stopTimerFunc func()
 }
 
-func (ms *master) SetMsgSigner(MsgSigner chain_communication.PbftSigner) {
+func (ms *master) SetMsgSigner(MsgSigner chaincommunication.PbftSigner) {
 	ms.MineConfig.SetMsgSigner(MsgSigner)
 	ms.workManager.SetMsgSigner(MsgSigner)
 	ms.workDispatcher.SetMsgSigner(MsgSigner)
@@ -104,7 +105,7 @@ to handle:
 func (ms *master) loop() {
 	newBlockInsertChan := make(chan model.Block)
 	//sb := ms.nodeContext.ChainReader().SubscribeBlockEvent(newBlockInsertChan)
-	sb := g_event.Subscribe(g_event.NewBlockInsertEvent, newBlockInsertChan)
+	sb := gevent.Subscribe(gevent.NewBlockInsertEvent, newBlockInsertChan)
 	defer sb.Unsubscribe()
 
 	for {

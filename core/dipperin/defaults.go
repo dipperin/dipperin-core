@@ -22,12 +22,12 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/chain-communication"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/core/cs-chain"
-	"github.com/dipperin/dipperin-core/third-party/crypto"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
-	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
+	"github.com/dipperin/dipperin-core/core/chaincommunication"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
+	"github.com/dipperin/dipperin-core/core/cschain"
+	"github.com/dipperin/dipperin-core/third_party/crypto"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
+	"github.com/dipperin/dipperin-core/third_party/p2p/enode"
 	"go.uber.org/zap"
 	"os"
 	"path/filepath"
@@ -49,11 +49,11 @@ func DefaultDataDir() string {
 	home := util.HomeDir()
 	if home != "" {
 		if runtime.GOOS == "darwin" {
-			return filepath.Join(home, "Library", chain_config.AppName)
+			return filepath.Join(home, "Library", chainconfig.AppName)
 		} else if runtime.GOOS == "windows" {
-			return filepath.Join(home, "AppData", "Roaming", chain_config.AppName)
+			return filepath.Join(home, "AppData", "Roaming", chainconfig.AppName)
 		} else {
-			return filepath.Join(home, "."+chain_config.AppName)
+			return filepath.Join(home, "."+chainconfig.AppName)
 		}
 	}
 	// As we cannot guess a stable location, return empty and handle later
@@ -62,18 +62,18 @@ func DefaultDataDir() string {
 
 // get the default node config
 func DefaultNodeConf() NodeConfig {
-	c := NodeConfig{Name: chain_config.AppName, DataDir: DefaultDataDir(), IPCPath: "/tmp/dipperin.ipc", HTTPHost: "127.0.0.1", HTTPPort: 7777, WSHost: "127.0.0.1", WSPort: 8888, IsUploadNodeData: 0, UploadURL: ""}
+	c := NodeConfig{Name: chainconfig.AppName, DataDir: DefaultDataDir(), IPCPath: "/tmp/dipperin.ipc", HTTPHost: "127.0.0.1", HTTPPort: 7777, WSHost: "127.0.0.1", WSPort: 8888, IsUploadNodeData: 0, UploadURL: ""}
 	return c
 }
 
 // get the default p2p configuration
 func DefaultP2PConf() p2p.Config {
-	conf := p2p.Config{NoDiscovery: false, MaxPeers: chain_communication.P2PMaxPeerCount, ListenAddr: ":60606"}
+	conf := p2p.Config{NoDiscovery: false, MaxPeers: chaincommunication.P2PMaxPeerCount, ListenAddr: ":60606"}
 	return conf
 }
 
 func DefaultMinerP2PConf() p2p.Config {
-	return p2p.Config{NoDiscovery: true, MaxPeers: chain_communication.P2PMaxPeerCount, ListenAddr: ":68080"}
+	return p2p.Config{NoDiscovery: true, MaxPeers: chaincommunication.P2PMaxPeerCount, ListenAddr: ":68080"}
 }
 
 /*// add nodes to static nodes exclude local ip
@@ -137,6 +137,7 @@ func readNodesFromFile(confFile string) (result []*enode.Node) {
 	return
 }*/
 
+// todo: adding test which load file
 func loadNodeKeyFromFile(dataDir string) *ecdsa.PrivateKey {
 	nodeKeyFilePath := filepath.Join(dataDir, "nodekey")
 
@@ -188,14 +189,14 @@ func getNodeList(path string) []*enode.Node {
 
 //TODO: change back to the permission
 // just for test
-func MakeVerifiersReader(fullChain cs_chain.Chain) *ChainVerifiersReader {
+func MakeVerifiersReader(fullChain cschain.Chain) *ChainVerifiersReader {
 	return &ChainVerifiersReader{
 		fullChain: fullChain,
 	}
 }
 
 type ChainVerifiersReader struct {
-	fullChain cs_chain.Chain
+	fullChain cschain.Chain
 	lock      sync.Mutex
 }
 

@@ -21,7 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/cmd/utils"
 	"github.com/dipperin/dipperin-core/cmd/utils/debug"
 	"github.com/dipperin/dipperin-core/common/util"
-	"github.com/dipperin/dipperin-core/core/chain-config"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 	"os"
@@ -44,7 +44,7 @@ func TestStartNode(t *testing.T) {
 		dataDir := c.String(config.DataDirFlagName)
 		assert.Equal(t, path, dataDir)
 		defer os.RemoveAll(dataDir)
-		utils.SetupGenesis(dataDir, chain_config.GetChainConfig())
+		utils.SetupGenesis(dataDir, chainconfig.GetChainConfig())
 
 		n, err := StartNode(c, true, true, false)
 		assert.NoError(t, err)

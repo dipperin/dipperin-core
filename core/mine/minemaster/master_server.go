@@ -19,10 +19,10 @@ package minemaster
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-communication"
+	"github.com/dipperin/dipperin-core/core/chaincommunication"
 	"github.com/dipperin/dipperin-core/core/mine/minemsg"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
 	"go.uber.org/zap"
 )
 
@@ -36,6 +36,7 @@ func newServer(mineMaster mineMaster, wManager workManager, getCurWorkBlockFunc 
 
 type getCurWorkBlockFunc func() model.AbstractBlock
 
+// todo: rewrite code for adding test
 type server struct {
 	master              mineMaster
 	getCurWorkBlockFunc getCurWorkBlockFunc
@@ -95,10 +96,11 @@ func (s *server) onSubmitBlock(workerID WorkerId, work minemsg.Work) {
 }
 
 // only for worker, do nothing
-func (s *server) SetMineMasterPeer(peer chain_communication.PmAbstractPeer) {}
+func (s *server) SetMineMasterPeer(peer chaincommunication.PmAbstractPeer) {}
 
+// todo: rewrite code for adding test
 // receive worker msg
-func (s *server) OnNewMsg(msg p2p.Msg, p chain_communication.PmAbstractPeer) error {
+func (s *server) OnNewMsg(msg p2p.Msg, p chaincommunication.PmAbstractPeer) error {
 	workerId := WorkerId(p.ID())
 	switch msg.Code {
 	case minemsg.RegisterMsg:

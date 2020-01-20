@@ -22,7 +22,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/bloom"
-	crypto2 "github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	crypto2 "github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 	"go.uber.org/zap"
 	"math/big"
@@ -44,7 +44,10 @@ var (
 	DefaultBlockBloomConfig = iblt.NewBloomConfig(8, 4)
 	DefaultInvBloomConfig   = iblt.NewInvBloomConfig(1<<12, 4)
 	DefaultTxs              = 100
-	DefaultGasLimit         = uint64(6666666666)
+)
+
+const (
+	DefaultGasLimit = uint64(6666666666)
 )
 
 type Header struct {

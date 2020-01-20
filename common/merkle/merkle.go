@@ -18,7 +18,7 @@ package merkle
 
 import (
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/third-party/crypto/cs-crypto"
+	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
 )
 
 //	   Merkel tree vulnerability description, copy from BitCoin

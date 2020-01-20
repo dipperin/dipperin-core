@@ -1,0 +1,92 @@
+[
+    {
+        "name": "init",
+        "inputs": [],
+        "outputs": [],
+        "constant": "false",
+        "payable": "true",
+        "type": "function"
+    },
+    {
+        "name": "registerPassword",
+        "inputs": [
+            {
+                "name": "passwordName",
+                "type": "string"
+            }
+        ],
+        "outputs": [],
+        "constant": "false",
+        "payable": "false",
+        "type": "function"
+    },
+    {
+        "name": "queryPasswordByAddr",
+        "inputs": [
+            {
+                "name": "_addr",
+                "type": "string"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "constant": "true",
+        "payable": "false",
+        "type": "function"
+    },
+    {
+        "name": "queryAddrByPassword",
+        "inputs": [
+            {
+                "name": "_password",
+                "type": "string"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "constant": "true",
+        "payable": "false",
+        "type": "function"
+    },
+    {
+        "name": "depositingValue",
+        "inputs": [
+            {
+                "type": "uint64"
+            }
+        ],
+        "type": "event"
+    },
+    {
+        "name": "ErrEvent",
+        "inputs": [
+            {
+                "type": "string"
+            },
+            {
+                "type": "string"
+            }
+        ],
+        "type": "event"
+    },
+    {
+        "name": "registerPasswordEvent",
+        "inputs": [
+            {
+                "type": "string"
+            },
+            {
+                "type": "string"
+            }
+        ],
+        "type": "event"
+    }
+]

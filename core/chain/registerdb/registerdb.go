@@ -21,10 +21,10 @@ import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/log"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"github.com/dipperin/dipperin-core/core/chain/stateprocessor"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/third-party/trie"
+	"github.com/dipperin/dipperin-core/third_party/trie"
 	"github.com/ethereum/go-ethereum/rlp"
 	"go.uber.org/zap"
 )
@@ -39,19 +39,19 @@ const (
 )
 
 type RegisterDB struct {
-	trie state_processor.StateTrie
+	trie stateprocessor.StateTrie
 	// nodeContext NodeContext
-	storage state_processor.StateStorage
+	storage stateprocessor.StateStorage
 	//chainReader state_processor.ChainReader
 	chainReader ChainReader
 }
 
-func MakeGenesisRegisterProcessor(storage state_processor.StateStorage) (RegisterProcessor, error) {
+func MakeGenesisRegisterProcessor(storage stateprocessor.StateStorage) (RegisterProcessor, error) {
 	preStateRoot := common.Hash{}
 	return NewRegisterDB(preStateRoot, storage, nil)
 }
 
-func NewRegisterDB(preRoot common.Hash, storage state_processor.StateStorage, chainReader ChainReader) (*RegisterDB, error) {
+func NewRegisterDB(preRoot common.Hash, storage stateprocessor.StateStorage, chainReader ChainReader) (*RegisterDB, error) {
 	if t, err := storage.OpenTrie(preRoot); err != nil {
 		return nil, err
 	} else {
@@ -207,7 +207,7 @@ func (register RegisterDB) IsChangePoint(block model.AbstractBlock, isProcessPac
 		diff += 1
 	}
 
-	slotSize := chain_config.GetChainConfig().SlotSize
+	slotSize := chainconfig.GetChainConfig().SlotSize
 
 	//the mineMaster packaged Block diff and nonce is 0
 	if isProcessPackageBlock {

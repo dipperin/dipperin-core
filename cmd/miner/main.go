@@ -20,7 +20,7 @@ import (
 	"github.com/dipperin/dipperin-core/cmd/base"
 	"github.com/dipperin/dipperin-core/cmd/dipperin/config"
 	"github.com/dipperin/dipperin-core/common/log"
-	chain_config "github.com/dipperin/dipperin-core/core/chain-config"
+	chain_config "github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/dipperin"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"

@@ -19,11 +19,11 @@ package commands
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/dipperin/dipperin-core/core/rpc-interface"
+	"github.com/dipperin/dipperin-core/core/rpcinterface"
 	"testing"
 
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/economy-model"
+	"github.com/dipperin/dipperin-core/core/economymodel"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
@@ -68,7 +68,7 @@ func Test_rpcCaller_GetBlockDiffVerifierInfo(t *testing.T) {
 		caller.GetBlockDiffVerifierInfo(c)
 
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			*result.(*map[economy_model.VerifierType][]common.Address) = map[economy_model.VerifierType][]common.Address{}
+			*result.(*map[economymodel.VerifierType][]common.Address) = map[economymodel.VerifierType][]common.Address{}
 			return nil
 		})
 		caller.GetBlockDiffVerifierInfo(c)
@@ -120,7 +120,7 @@ func Test_rpcCaller_CheckVerifierType(t *testing.T) {
 		caller.CheckVerifierType(c)
 
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), getDipperinRpcMethodByName("CurrentBlock")).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			*result.(*rpc_interface.BlockResp) = rpc_interface.BlockResp{
+			*result.(*rpcinterface.BlockResp) = rpcinterface.BlockResp{
 				Header: model.Header{
 					Number: 2,
 				},
@@ -137,15 +137,15 @@ func Test_rpcCaller_CheckVerifierType(t *testing.T) {
 		caller.CheckVerifierType(c)
 
 		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), getDipperinRpcMethodByName("GetBlockDiffVerifierInfo"), gomock.Any()).DoAndReturn(func(result interface{}, method string, args ...interface{}) error {
-			tmp := map[economy_model.VerifierType][]common.Address{}
-			tmp[economy_model.MasterVerifier] = []common.Address{
+			tmp := map[economymodel.VerifierType][]common.Address{}
+			tmp[economymodel.MasterVerifier] = []common.Address{
 				common.HexToAddress("0x1234"),
 			}
-			*result.(*map[economy_model.VerifierType][]common.Address) = tmp
+			*result.(*map[economymodel.VerifierType][]common.Address) = tmp
 			return nil
 		}).Times(2)
 
-		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), getDipperinRpcMethodByName("GetBlockDiffVerifierInfo"), gomock.Any()).Return(nil).Times(1)
+		client.(*MockRpcClient).EXPECT().Call(gomock.Any(), getDipperinRpcMethodByName("GetBlockDiffVerifierInfo"), gomock.Any()).Return(nil)
 		caller.CheckVerifierType(c)
 	}
 	assert.NoError(t, app.Run([]string{os.Args[0], "CheckVerifierType"}))

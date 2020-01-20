@@ -19,7 +19,7 @@ package resolver
 import (
 	"encoding/hex"
 	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/common/g-error"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/log"
 	model2 "github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
@@ -32,7 +32,7 @@ type ContractRef interface {
 	Address() common.Address
 }
 
-//go:generate mockgen -destination=/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/vm_context_service_mock_test.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver VmContextService
+//go:generate mockgen -destination=./vm_context_service_mock.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver VmContextService
 type VmContextService interface {
 	GetGasPrice() *big.Int
 	GetGasLimit() uint64
@@ -47,7 +47,7 @@ type VmContextService interface {
 	GetTxHash() common.Hash
 }
 
-//go:generate mockgen -destination=/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/contract_service_mock_test.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver ContractService
+//go:generate mockgen -destination=./contract_service_mock.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver ContractService
 type ContractService interface {
 	Caller() ContractRef
 	Self() ContractRef
@@ -56,7 +56,7 @@ type ContractService interface {
 	GetGas() uint64
 }
 
-//go:generate mockgen -destination=/home/qydev/go/src/github.com/dipperin/dipperin-core/core/vm/resolver/statedb_service_mock_test.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver StateDBService
+//go:generate mockgen -destination=./statedb_service_mock.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver StateDBService
 type StateDBService interface {
 	GetBalance(addr common.Address) *big.Int
 	AddLog(addedLog *model2.Log)
@@ -93,7 +93,7 @@ func (service *resolverNeedExternalService) ResolverCall(addr, param []byte) ([]
 	// check funcName
 	if strings.EqualFold(funcName, "init") {
 		log.DLogger.Error("ResolverCall can't call init function")
-		return nil, g_error.ErrFunctionInitCanNotCalled
+		return nil, gerror.ErrFunctionInitCanNotCalled
 	}
 
 	contractAddr := common.HexToAddress(hex.EncodeToString(addr))
@@ -112,7 +112,7 @@ func (service *resolverNeedExternalService) ResolverDelegateCall(addr, param []b
 	// check funcName
 	if strings.EqualFold(funcName, "init") {
 		log.DLogger.Error("ResolverDelegateCall can't call init function")
-		return nil, g_error.ErrFunctionInitCanNotCalled
+		return nil, gerror.ErrFunctionInitCanNotCalled
 	}
 
 	contractAddr := common.HexToAddress(hex.EncodeToString(addr))

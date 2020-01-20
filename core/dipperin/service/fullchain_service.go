@@ -22,32 +22,33 @@ import (
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/bitutil"
-	"github.com/dipperin/dipperin-core/common/g-error"
-	"github.com/dipperin/dipperin-core/common/g-event"
-	"github.com/dipperin/dipperin-core/common/g-metrics"
-	"github.com/dipperin/dipperin-core/common/g-timer"
+	"github.com/dipperin/dipperin-core/common/gerror"
+	"github.com/dipperin/dipperin-core/common/gevent"
+	"github.com/dipperin/dipperin-core/common/gmetrics"
+	"github.com/dipperin/dipperin-core/common/gtimer"
 	"github.com/dipperin/dipperin-core/common/hexutil"
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/common/math"
 	"github.com/dipperin/dipperin-core/core/accounts"
-	"github.com/dipperin/dipperin-core/core/accounts/base"
-	"github.com/dipperin/dipperin-core/core/accounts/soft-wallet"
-	"github.com/dipperin/dipperin-core/core/chain-communication"
-	"github.com/dipperin/dipperin-core/core/chain-config"
-	"github.com/dipperin/dipperin-core/core/chain/state-processor"
+	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
+	"github.com/dipperin/dipperin-core/core/accounts/softwallet"
+	"github.com/dipperin/dipperin-core/core/chain/stateprocessor"
+	"github.com/dipperin/dipperin-core/core/chaincommunication"
+	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/contract"
-	"github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware"
-	"github.com/dipperin/dipperin-core/core/cs-chain/gasprice"
-	"github.com/dipperin/dipperin-core/core/economy-model"
+	"github.com/dipperin/dipperin-core/core/cschain/chainwriter/middleware"
+	"github.com/dipperin/dipperin-core/core/cschain/gasprice"
+	"github.com/dipperin/dipperin-core/core/economymodel"
 	"github.com/dipperin/dipperin-core/core/mine/minemaster"
 	"github.com/dipperin/dipperin-core/core/mine/mineworker"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
+	common2 "github.com/dipperin/dipperin-core/core/vm/common"
 	"github.com/dipperin/dipperin-core/core/vm/common/utils"
-	"github.com/dipperin/dipperin-core/third-party/p2p"
-	"github.com/dipperin/dipperin-core/third-party/p2p/enode"
-	"github.com/dipperin/dipperin-core/third-party/rpc"
-	vm_log_search "github.com/dipperin/dipperin-core/third-party/vm-log-search"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
+	"github.com/dipperin/dipperin-core/third_party/p2p/enode"
+	"github.com/dipperin/dipperin-core/third_party/rpc"
+	"github.com/dipperin/dipperin-core/third_party/vm-log-search"
 	"go.uber.org/zap"
 	"math/big"
 	"os"
@@ -73,11 +74,11 @@ type Chain interface {
 	Genesis() model.AbstractBlock
 	GetBody(hash common.Hash) model.AbstractBody
 	GetBlockNumber(hash common.Hash) *uint64
-	CurrentState() (*state_processor.AccountStateDB, error)
+	CurrentState() (*stateprocessor.AccountStateDB, error)
 
 	CurrentSeed() (common.Hash, uint64)
 	NumBeforeLastBySlot(slot uint64) *uint64
-	StateAtByBlockNumber(num uint64) (*state_processor.AccountStateDB, error)
+	StateAtByBlockNumber(num uint64) (*stateprocessor.AccountStateDB, error)
 	GetTransaction(txHash common.Hash) (model.AbstractTransaction, common.Hash, uint64, uint64)
 	GetVerifiers(round uint64) []common.Address
 	GetSlot(block model.AbstractBlock) *uint64
@@ -85,7 +86,7 @@ type Chain interface {
 	GetNextVerifiers() []common.Address
 	CurrentHeader() model.AbstractHeader
 
-	GetEconomyModel() economy_model.EconomyModel
+	GetEconomyModel() economymodel.EconomyModel
 
 	GetReceipts(hash common.Hash, number uint64) model.Receipts
 }
@@ -124,7 +125,7 @@ func MakeFullChainService(config *DipperinConfig) *VenusFullChainService {
 }
 
 type DipperinConfig struct {
-	PbftPm chain_communication.AbstractPbftProtocolManager
+	PbftPm chaincommunication.AbstractPbftProtocolManager
 
 	Broadcaster    Broadcaster
 	ChainReader    middleware.ChainInterface
@@ -137,11 +138,11 @@ type DipperinConfig struct {
 	NodeConf           NodeConf
 	GetMineCoinBase    common.Address
 	MsgSigner          MsgSigner
-	ChainConfig        chain_config.ChainConfig
+	ChainConfig        chainconfig.ChainConfig
 	PriorityCalculator model.PriofityCalculator
 	MineMasterServer   minemaster.MasterServer
 	P2PServer          *p2p.Server
-	NormalPm           chain_communication.PeerManager
+	NormalPm           chaincommunication.PeerManager
 
 	Node Node
 }
@@ -181,7 +182,7 @@ func (service *VenusFullChainService) startBloomHandlers(sectionSize uint64) {
 								task.Error = err
 							}
 						} else {
-							task.Error = g_error.ErrBloombitsNotFound
+							task.Error = gerror.ErrBloombitsNotFound
 						}
 					}
 					//log.DLogger.Info("VenusFullChainService#startBloomHandlers", "request task final", task)
@@ -279,7 +280,7 @@ func (service *VenusFullChainService) Start() error {
 			service.MineMaster.Start()
 		}
 	}
-	service.startBloomHandlers(chain_config.BloomBitsBlocks)
+	service.startBloomHandlers(chainconfig.BloomBitsBlocks)
 
 	service.startTxsMetrics()
 
@@ -288,10 +289,10 @@ func (service *VenusFullChainService) Start() error {
 }
 
 func (service *VenusFullChainService) startTxsMetrics() {
-	g_timer.SetPeriodAndRun(func() {
+	gtimer.SetPeriodAndRun(func() {
 		pending, queued := service.TxPool.Stats()
-		g_metrics.Set(g_metrics.PendingTxCountInPool, "", float64(pending))
-		g_metrics.Set(g_metrics.QueuedTxCountInPool, "", float64(queued))
+		gmetrics.Set(gmetrics.PendingTxCountInPool, "", float64(pending))
+		gmetrics.Set(gmetrics.QueuedTxCountInPool, "", float64(queued))
 	}, 5*time.Second)
 }
 
@@ -301,8 +302,8 @@ func (service *VenusFullChainService) Stop() {
 	}
 }
 
-func (service *VenusFullChainService) checkWalletIdentifier(walletIdentifier *base.WalletIdentifier) error {
-	if walletIdentifier.WalletType != base.SoftWallet {
+func (service *VenusFullChainService) checkWalletIdentifier(walletIdentifier *accountsbase.WalletIdentifier) error {
+	if walletIdentifier.WalletType != accountsbase.SoftWallet {
 		return errors.New("wallet type error")
 	}
 
@@ -319,7 +320,7 @@ func (service *VenusFullChainService) checkWalletIdentifier(walletIdentifier *ba
 
 //set CoinBase Address
 func (service *VenusFullChainService) SetMineCoinBase(addr common.Address) error {
-	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfMineMaster {
+	if service.NodeConf.GetNodeType() != chainconfig.NodeTypeOfMineMaster {
 		return errors.New("current node is not mine master")
 	}
 	tmpWallet, err := service.WalletManager.FindWalletFromAddress(addr)
@@ -337,7 +338,7 @@ func (service *VenusFullChainService) SetMineCoinBase(addr common.Address) error
 }
 
 func (service *VenusFullChainService) SetMineGasConfig(gasFloor, gasCeil uint64) error {
-	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfMineMaster {
+	if service.NodeConf.GetNodeType() != chainconfig.NodeTypeOfMineMaster {
 		return errors.New("current node is not mine master")
 	}
 
@@ -348,7 +349,7 @@ func (service *VenusFullChainService) SetMineGasConfig(gasFloor, gasCeil uint64)
 	return nil
 }
 
-func (service *VenusFullChainService) EstablishWallet(walletIdentifier base.WalletIdentifier, password, passPhrase string) (string, error) {
+func (service *VenusFullChainService) EstablishWallet(walletIdentifier accountsbase.WalletIdentifier, password, passPhrase string) (string, error) {
 	err := service.checkWalletIdentifier(&walletIdentifier)
 	if err != nil {
 		log.DLogger.Info("the err1 is :", zap.Error(err))
@@ -356,7 +357,7 @@ func (service *VenusFullChainService) EstablishWallet(walletIdentifier base.Wall
 	}
 
 	//establish softWallet
-	wallet, _ := soft_wallet.NewSoftWallet()
+	wallet, _ := softwallet.NewSoftWallet()
 	mnemonic, err := wallet.Establish(walletIdentifier.Path, walletIdentifier.WalletName, password, passPhrase)
 	if err != nil {
 		log.DLogger.Info("the err3 is :", zap.Error(err))
@@ -380,7 +381,7 @@ func (service *VenusFullChainService) EstablishWallet(walletIdentifier base.Wall
 	return mnemonic, nil
 }
 
-func (service *VenusFullChainService) OpenWallet(walletIdentifier base.WalletIdentifier, password string) error {
+func (service *VenusFullChainService) OpenWallet(walletIdentifier accountsbase.WalletIdentifier, password string) error {
 	err := service.checkWalletIdentifier(&walletIdentifier)
 	if err != nil {
 		return err
@@ -388,7 +389,7 @@ func (service *VenusFullChainService) OpenWallet(walletIdentifier base.WalletIde
 
 	//Open according to the path
 	//establish softWallet
-	wallet, _ := soft_wallet.NewSoftWallet()
+	wallet, _ := softwallet.NewSoftWallet()
 	err = wallet.Open(walletIdentifier.Path, walletIdentifier.WalletName, password)
 	if err != nil {
 		return err
@@ -408,7 +409,7 @@ func (service *VenusFullChainService) OpenWallet(walletIdentifier base.WalletIde
 	return nil
 }
 
-func (service *VenusFullChainService) CloseWallet(walletIdentifier base.WalletIdentifier) error {
+func (service *VenusFullChainService) CloseWallet(walletIdentifier accountsbase.WalletIdentifier) error {
 	err := service.checkWalletIdentifier(&walletIdentifier)
 	if err != nil {
 		return err
@@ -420,9 +421,9 @@ func (service *VenusFullChainService) CloseWallet(walletIdentifier base.WalletId
 		return err
 	}
 
-	if service.NodeConf.GetNodeType() == chain_config.NodeTypeOfMineMaster {
+	if service.NodeConf.GetNodeType() == chainconfig.NodeTypeOfMineMaster {
 		addr := service.MsgSigner.GetAddress()
-		isInclude, err := tmpWallet.Contains(base.Account{Address: addr})
+		isInclude, err := tmpWallet.Contains(accountsbase.Account{Address: addr})
 		if err != nil {
 			return err
 		}
@@ -448,7 +449,7 @@ func (service *VenusFullChainService) CloseWallet(walletIdentifier base.WalletId
 	return nil
 }
 
-func (service *VenusFullChainService) RestoreWallet(walletIdentifier base.WalletIdentifier, password, passPhrase, mnemonic string) error {
+func (service *VenusFullChainService) RestoreWallet(walletIdentifier accountsbase.WalletIdentifier, password, passPhrase, mnemonic string) error {
 	err := service.checkWalletIdentifier(&walletIdentifier)
 	if err != nil {
 		return err
@@ -468,7 +469,7 @@ func (service *VenusFullChainService) RestoreWallet(walletIdentifier base.Wallet
 	}
 
 	//establish softWallet
-	wallet, _ := soft_wallet.NewSoftWallet()
+	wallet, _ := softwallet.NewSoftWallet()
 	err = wallet.RestoreWallet(walletIdentifier.Path, walletIdentifier.WalletName, password, passPhrase, mnemonic, service)
 	if err != nil {
 		return err
@@ -488,25 +489,25 @@ func (service *VenusFullChainService) RestoreWallet(walletIdentifier base.Wallet
 	return nil
 }
 
-func (service *VenusFullChainService) ListWallet() ([]base.WalletIdentifier, error) {
+func (service *VenusFullChainService) ListWallet() ([]accountsbase.WalletIdentifier, error) {
 	walletIdentifiers, err := service.WalletManager.ListWalletIdentifier()
 	if err != nil {
 		log.DLogger.Info("the listWallet err is:", zap.Error(err))
-		return []base.WalletIdentifier{}, err
+		return []accountsbase.WalletIdentifier{}, err
 	}
 	return walletIdentifiers, nil
 }
 
-func (service *VenusFullChainService) ListWalletAccount(walletIdentifier base.WalletIdentifier) ([]base.Account, error) {
+func (service *VenusFullChainService) ListWalletAccount(walletIdentifier accountsbase.WalletIdentifier) ([]accountsbase.Account, error) {
 	err := service.checkWalletIdentifier(&walletIdentifier)
 	if err != nil {
-		return []base.Account{}, err
+		return []accountsbase.Account{}, err
 	}
 
 	//find wallet according to walletIdentifier
 	tmpWallet, err := service.WalletManager.FindWalletFromIdentifier(walletIdentifier)
 	if err != nil {
-		return []base.Account{}, err
+		return []accountsbase.Account{}, err
 	}
 	return tmpWallet.Accounts()
 }
@@ -528,32 +529,32 @@ func (service *VenusFullChainService) SetBftSigner(address common.Address) error
 	return nil
 }
 
-func (service *VenusFullChainService) AddAccount(walletIdentifier base.WalletIdentifier, derivationPath string) (base.Account, error) {
+func (service *VenusFullChainService) AddAccount(walletIdentifier accountsbase.WalletIdentifier, derivationPath string) (accountsbase.Account, error) {
 	err := service.checkWalletIdentifier(&walletIdentifier)
 	if err != nil {
-		return base.Account{}, err
+		return accountsbase.Account{}, err
 	}
 	//find wallet according to walletIdentifier
 	tmpWallet, err := service.WalletManager.FindWalletFromIdentifier(walletIdentifier)
 	if err != nil {
-		return base.Account{}, err
+		return accountsbase.Account{}, err
 	}
 
 	log.DLogger.Info("AddAccount the path is:", zap.String("derivationPath", derivationPath))
 
-	var path base.DerivationPath
+	var path accountsbase.DerivationPath
 	if derivationPath == "" {
 		path = nil
 	} else {
-		path, err = base.ParseDerivationPath(derivationPath)
+		path, err = accountsbase.ParseDerivationPath(derivationPath)
 		if err != nil {
-			return base.Account{}, err
+			return accountsbase.Account{}, err
 		}
 	}
 	//derive new account and save
 	account, err := tmpWallet.Derive(path, true)
 	if err != nil {
-		return base.Account{}, err
+		return accountsbase.Account{}, err
 	}
 	return account, nil
 }
@@ -566,7 +567,7 @@ func (service *VenusFullChainService) AddAccount(walletIdentifier base.WalletIde
 	return nil
 }*/
 
-func (service *VenusFullChainService) getSendTxInfo(from common.Address, nonce *uint64) (base.Wallet, uint64, error) {
+func (service *VenusFullChainService) getSendTxInfo(from common.Address, nonce *uint64) (accountsbase.Wallet, uint64, error) {
 	//find wallet according to address
 	tmpWallet, err := service.WalletManager.FindWalletFromAddress(from)
 	if err != nil {
@@ -609,8 +610,8 @@ func (service *VenusFullChainService) getSendTxInfo(from common.Address, nonce *
 
 //send single tx
 
-func (service *VenusFullChainService) signTxAndSend(tmpWallet base.Wallet, from common.Address, tx *model.Transaction, usedNonce uint64) (*model.Transaction, error) {
-	fromAccount := base.Account{Address: from}
+func (service *VenusFullChainService) signTxAndSend(tmpWallet accountsbase.Wallet, from common.Address, tx *model.Transaction, usedNonce uint64) (*model.Transaction, error) {
+	fromAccount := accountsbase.Account{Address: from}
 	//get chainId
 	signedTx, err := tmpWallet.SignTx(fromAccount, tx, service.ChainConfig.ChainId)
 	if err != nil {
@@ -648,7 +649,7 @@ func (service *VenusFullChainService) SendTransactions(from common.Address, rpcT
 	if err != nil {
 		return 0, err
 	}
-	fromAccount := base.Account{Address: from}
+	fromAccount := accountsbase.Account{Address: from}
 
 	txs := make([]model.AbstractTransaction, 0)
 	for _, item := range rpcTxs {
@@ -726,7 +727,7 @@ func (service *VenusFullChainService) SendTransaction(from, to common.Address, v
 
 //send a register transaction
 func (service *VenusFullChainService) SendRegisterTransaction(from common.Address, stake, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
-	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfVerifier {
+	if service.NodeConf.GetNodeType() != chainconfig.NodeTypeOfVerifier {
 		return common.Hash{}, errors.New("the node isn't verifier")
 	}
 
@@ -754,7 +755,7 @@ func (service *VenusFullChainService) getLuckProof(addr common.Address) (common.
 
 	//current seed is last block num by slot's seed
 	seed, blockNumber := service.ChainReader.CurrentSeed()
-	fromAccount := base.Account{Address: addr}
+	fromAccount := accountsbase.Account{Address: addr}
 
 	log.DLogger.Info("the seed is:", zap.String("seed", seed.String()))
 	luck, proof, err := tmpWallet.Evaluate(fromAccount, seed.Bytes())
@@ -828,7 +829,7 @@ func (service *VenusFullChainService) MineTxCount() int {
 
 //send a evidence transaction
 func (service *VenusFullChainService) SendEvidenceTransaction(from, target common.Address, gasPrice *big.Int, gasLimit uint64, voteA *model.VoteMsg, voteB *model.VoteMsg, nonce *uint64) (common.Hash, error) {
-	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfVerifier {
+	if service.NodeConf.GetNodeType() != chainconfig.NodeTypeOfVerifier {
 		return common.Hash{}, errors.New("the node isn't verifier")
 	}
 
@@ -851,7 +852,7 @@ func (service *VenusFullChainService) SendEvidenceTransaction(from, target commo
 
 //Send redemption transaction
 func (service *VenusFullChainService) SendUnStakeTransaction(from common.Address, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
-	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfVerifier {
+	if service.NodeConf.GetNodeType() != chainconfig.NodeTypeOfVerifier {
 		return common.Hash{}, errors.New("the node isn't verifier")
 	}
 
@@ -873,7 +874,7 @@ func (service *VenusFullChainService) SendUnStakeTransaction(from common.Address
 
 //send a cancellation transaction
 func (service *VenusFullChainService) SendCancelTransaction(from common.Address, gasPrice *big.Int, gasLimit uint64, nonce *uint64) (common.Hash, error) {
-	if service.NodeConf.GetNodeType() != chain_config.NodeTypeOfVerifier {
+	if service.NodeConf.GetNodeType() != chainconfig.NodeTypeOfVerifier {
 		return common.Hash{}, errors.New("the node isn't verifier")
 	}
 
@@ -1255,7 +1256,7 @@ func (service *VenusFullChainService) RemovePeer(url string) error {
 }
 
 func (service *VenusFullChainService) CsPmInfo() (*p2p.CsPmPeerInfo, error) {
-	pm := service.NormalPm.(*chain_communication.CsProtocolManager)
+	pm := service.NormalPm.(*chaincommunication.CsProtocolManager)
 	return pm.ShowPmInfo(), nil
 }
 
@@ -1300,7 +1301,7 @@ func (service *VenusFullChainService) Peers() ([]*p2p.PeerInfo, error) {
 	return server.PeersInfo(), nil
 }
 
-func (service *VenusFullChainService) GetChainConfig() chain_config.ChainConfig {
+func (service *VenusFullChainService) GetChainConfig() chainconfig.ChainConfig {
 	return service.ChainConfig
 }
 
@@ -1338,20 +1339,20 @@ func (service *VenusFullChainService) GetContract(contractAddr common.Address) (
 	return nContractV.Interface(), nil
 }
 
-func (service *VenusFullChainService) GetBlockDiffVerifierInfo(blockNumber uint64) (map[economy_model.VerifierType][]common.Address, error) {
+func (service *VenusFullChainService) GetBlockDiffVerifierInfo(blockNumber uint64) (map[economymodel.VerifierType][]common.Address, error) {
 	if blockNumber < 2 {
-		return map[economy_model.VerifierType][]common.Address{}, g_error.BlockNumberError
+		return map[economymodel.VerifierType][]common.Address{}, gerror.BlockNumberError
 	}
 
 	block, _ := service.GetBlockByNumber(blockNumber)
 	if block == nil {
-		return nil, g_error.ErrBlockNotFound
+		return nil, gerror.ErrBlockNotFound
 	}
 	preBlock, _ := service.GetBlockByNumber(blockNumber - 1)
 	return service.ChainReader.GetEconomyModel().GetDiffVerifierAddress(preBlock, block)
 }
 
-func (service *VenusFullChainService) GetVerifierDIPReward(blockNumber uint64) (map[economy_model.VerifierType]*big.Int, error) {
+func (service *VenusFullChainService) GetVerifierDIPReward(blockNumber uint64) (map[economymodel.VerifierType]*big.Int, error) {
 	block, _ := service.GetBlockByNumber(blockNumber)
 	return service.ChainReader.GetEconomyModel().GetVerifierDIPReward(block)
 }
@@ -1383,7 +1384,7 @@ func (service *VenusFullChainService) GetDeveloperInfo() map[common.Address]*big
 func (service *VenusFullChainService) GetAddressLockMoney(address common.Address) (*big.Int, error) {
 	currentBlock := service.CurrentBlock()
 	if currentBlock == nil {
-		return big.NewInt(0), g_error.BlockIsNilError
+		return big.NewInt(0), gerror.BlockIsNilError
 	}
 
 	return service.ChainReader.GetEconomyModel().GetAddressLockMoney(address, currentBlock.Number())
@@ -1397,7 +1398,7 @@ func (service *VenusFullChainService) GetDeveloperLockDIP(address common.Address
 	return service.ChainReader.GetEconomyModel().GetDeveloperLockDIP(address, blockNumber)
 }
 
-func (service *VenusFullChainService) GetFoundationInfo(usage economy_model.FoundationDIPUsage) map[common.Address]*big.Int {
+func (service *VenusFullChainService) GetFoundationInfo(usage economymodel.FoundationDIPUsage) map[common.Address]*big.Int {
 	return service.ChainReader.GetEconomyModel().GetFoundation().GetFoundationInfo(usage)
 }
 
@@ -1422,11 +1423,11 @@ func (service *VenusFullChainService) GetMineMasterEDIPReward(blockNumber uint64
 	return service.ChainReader.GetEconomyModel().GetFoundation().GetMineMasterEDIPReward(DIPReward, blockNumber, tokenDecimals)
 }
 
-func (service *VenusFullChainService) GetVerifierEDIPReward(blockNumber uint64, tokenDecimals int) (map[economy_model.VerifierType]*big.Int, error) {
+func (service *VenusFullChainService) GetVerifierEDIPReward(blockNumber uint64, tokenDecimals int) (map[economymodel.VerifierType]*big.Int, error) {
 	block, _ := service.GetBlockByNumber(blockNumber)
 	DIPReward, err := service.ChainReader.GetEconomyModel().GetVerifierDIPReward(block)
 	if err != nil {
-		return map[economy_model.VerifierType]*big.Int{}, err
+		return map[economymodel.VerifierType]*big.Int{}, err
 	}
 	return service.ChainReader.GetEconomyModel().GetFoundation().GetVerifierEDIPReward(DIPReward, blockNumber, tokenDecimals)
 }
@@ -1443,7 +1444,7 @@ func (service *VenusFullChainService) NewBlock(ctx context.Context) (*rpc.Subscr
 	go func() {
 		blockCh := make(chan model.Block)
 		//blockSub := service.nodeContext.ChainReader().SubscribeBlockEvent(blockCh)
-		blockSub := g_event.Subscribe(g_event.NewBlockInsertEvent, blockCh)
+		blockSub := gevent.Subscribe(gevent.NewBlockInsertEvent, blockCh)
 
 		for {
 			select {
@@ -1510,7 +1511,7 @@ func (service *VenusFullChainService) SubscribeBlock(ctx context.Context) (*rpc.
 	go func() {
 		blockCh := make(chan model.Block)
 		//blockSub := service.nodeContext.ChainReader().SubscribeBlockEvent(blockCh)
-		blockSub := g_event.Subscribe(g_event.NewBlockInsertEvent, blockCh)
+		blockSub := gevent.Subscribe(gevent.NewBlockInsertEvent, blockCh)
 
 		for {
 			select {
@@ -1570,14 +1571,14 @@ func (service *VenusFullChainService) GetContractAddressByTxHash(txHash common.H
 
 	receipts := service.ChainReader.GetReceipts(blockHash, blockNumber)
 	if receipts == nil {
-		return common.Address{}, g_error.ErrReceiptIsNil
+		return common.Address{}, gerror.ErrReceiptIsNil
 	}
 	for _, value := range receipts {
 		if txHash.IsEqual(value.TxHash) {
 			return value.ContractAddress, nil
 		}
 	}
-	return common.Address{}, g_error.ErrReceiptNotFound
+	return common.Address{}, gerror.ErrReceiptNotFound
 }
 
 func (service *VenusFullChainService) GetABI(contractAddr common.Address) (*utils.WasmAbi, error) {
@@ -1587,7 +1588,7 @@ func (service *VenusFullChainService) GetABI(contractAddr common.Address) (*util
 		return nil, err
 	}
 
-	fullState := state_processor.NewFullState(stateDB)
+	fullState := stateprocessor.NewFullState(stateDB)
 	dataAbi := fullState.GetAbi(contractAddr)
 
 	var abi utils.WasmAbi
@@ -1605,7 +1606,7 @@ func (service *VenusFullChainService) GetCode(contractAddr common.Address) ([]by
 		return nil, err
 	}
 
-	fullState := state_processor.NewFullState(stateDB)
+	fullState := stateprocessor.NewFullState(stateDB)
 	dataCode := fullState.GetCode(contractAddr)
 	if dataCode == nil {
 		return nil, errors.New("empty code")
@@ -1625,7 +1626,7 @@ func (service *VenusFullChainService) GetLogs(blockHash common.Hash, fromBlock, 
 	if !blockHash.IsEmpty() {
 		// Block filter requested, construct a single-shot filter
 		if num := service.GetBlockNumber(blockHash); num == nil {
-			return nil, g_error.BlockHashNotFound
+			return nil, gerror.BlockHashNotFound
 		}
 		filter = vm_log_search.NewBlockFilter(service.ChainIndex, service.ChainReader, blockHash, addresses, topics)
 	} else {
@@ -1636,7 +1637,7 @@ func (service *VenusFullChainService) GetLogs(blockHash common.Hash, fromBlock, 
 			end = toBlock
 		}
 		if begin > end {
-			return nil, g_error.BeginNumLargerError
+			return nil, gerror.BeginNumLargerError
 		}
 		// Construct the range filter
 		filter = vm_log_search.NewRangeFilter(service.ChainReader, service.ChainIndex, int64(begin), int64(end), addresses, topics)
@@ -1702,12 +1703,12 @@ func (service *VenusFullChainService) GetTxActualFee(txHash common.Hash) (*big.I
 func (service *VenusFullChainService) GetReceiptsByBlockNum(num uint64) (model.Receipts, error) {
 	block, err := service.GetBlockByNumber(num)
 	if err != nil || block == nil {
-		return nil, g_error.ErrReceiptIsNil
+		return nil, gerror.ErrReceiptIsNil
 	}
 
 	receipts := service.ChainReader.GetReceipts(block.Hash(), block.Number())
 	if receipts == nil {
-		return nil, g_error.ErrReceiptIsNil
+		return nil, gerror.ErrReceiptIsNil
 	}
 
 	// convert logs
@@ -1733,7 +1734,7 @@ func (service *VenusFullChainService) GetReceiptByTxHash(txHash common.Hash) (*m
 
 	receipts := service.ChainReader.GetReceipts(blockHash, blockNumber)
 	if receipts == nil {
-		return nil, g_error.ErrReceiptIsNil
+		return nil, gerror.ErrReceiptIsNil
 	}
 
 	// convert logs
@@ -1751,13 +1752,13 @@ func (service *VenusFullChainService) GetReceiptByTxHash(txHash common.Hash) (*m
 			return value, nil
 		}
 	}
-	return nil, g_error.ErrReceiptNotFound
+	return nil, gerror.ErrReceiptNotFound
 }
 
 func (service *VenusFullChainService) SendTransactionContract(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (common.Hash, error) {
 	// check Tx type
 	if to.GetAddressType() != common.AddressTypeContractCall && to.GetAddressType() != common.AddressTypeContractCreate {
-		return common.Hash{}, g_error.ErrInvalidContractType
+		return common.Hash{}, gerror.ErrInvalidContractType
 	}
 
 	extraData, err := service.GetExtraData(to, data)
@@ -1773,7 +1774,7 @@ func (service *VenusFullChainService) SendTransactionContract(from, to common.Ad
 		}
 
 		if constant {
-			return common.Hash{}, g_error.ErrFunctionCalledConstant
+			return common.Hash{}, gerror.ErrFunctionCalledConstant
 		}
 	}
 
@@ -1810,7 +1811,7 @@ func (service *VenusFullChainService) SendTransactionContract(from, to common.Ad
 
 func (service *VenusFullChainService) GetExtraData(to common.Address, data []byte) ([]byte, error) {
 	if data == nil || len(data) == 0 {
-		return []byte{}, g_error.ErrEmptyTxData
+		return []byte{}, gerror.ErrEmptyTxData
 	}
 
 	var extraData []byte
@@ -1859,7 +1860,7 @@ type CallArgs struct {
 func (service *VenusFullChainService) Call(signedTx model.AbstractTransaction, blockNum uint64) (string, error) {
 	// check Tx type
 	if signedTx.To().GetAddressType() != common.AddressTypeContractCall {
-		return "", g_error.ErrInvalidContractType
+		return "", gerror.ErrInvalidContractType
 	}
 
 	constant, funcName, abi, err := service.CheckConstant(*signedTx.To(), signedTx.ExtraData())
@@ -1868,7 +1869,7 @@ func (service *VenusFullChainService) Call(signedTx model.AbstractTransaction, b
 	}
 
 	if !constant {
-		return "", g_error.ErrFunctionCalledNotConstant
+		return "", gerror.ErrFunctionCalledNotConstant
 	}
 
 	msg, err := signedTx.AsMessage(false)
@@ -2002,7 +2003,7 @@ func (service *VenusFullChainService) MakeTmpSignedTx(args CallArgs, blockNum ui
 		gas = math.MaxUint64 / 2
 	}
 	if gasPrice.Sign() == 0 {
-		gasPrice = new(big.Int).SetUint64(uint64(chain_config.DefaultGasPrice))
+		gasPrice = new(big.Int).SetUint64(uint64(chainconfig.DefaultGasPrice))
 	}
 	if value.Sign() == 0 {
 		value = new(big.Int).SetUint64(uint64(0))
@@ -2017,7 +2018,7 @@ func (service *VenusFullChainService) MakeTmpSignedTx(args CallArgs, blockNum ui
 	}
 
 	tmpTx := model.NewTransaction(uint64(0), *to, value, gasPrice, gas, args.Data)
-	fromAccount := base.Account{Address: from}
+	fromAccount := accountsbase.Account{Address: from}
 	signedTx, err := tmpWallet.SignTx(fromAccount, tmpTx, service.ChainConfig.ChainId)
 	if err != nil {
 		log.DLogger.Error("MakeTmpSignedTx#SignTx failed", zap.Error(err))
@@ -2026,7 +2027,7 @@ func (service *VenusFullChainService) MakeTmpSignedTx(args CallArgs, blockNum ui
 	return signedTx, nil
 }
 
-func (service *VenusFullChainService) doCall(msg state_processor.Message, txHash common.Hash, blockNum uint64, timeout time.Duration) ([]byte, bool, error) {
+func (service *VenusFullChainService) doCall(msg stateprocessor.Message, txHash common.Hash, blockNum uint64, timeout time.Duration) ([]byte, bool, error) {
 	defer func(start time.Time) {
 		log.DLogger.Debug("Executing EVM call finished", zap.Duration("runtime", time.Since(start)))
 	}(time.Now())
@@ -2070,8 +2071,8 @@ func (service *VenusFullChainService) doCall(msg state_processor.Message, txHash
 		Time:        block.Header().GetTimeStamp(),
 		GetHash:     service.GetBlockHashByNumber,
 	}
-	fullState := state_processor.NewFullState(state)
-	dvm := vm.NewVM(conText, fullState, vm.DEFAULT_VM_CONFIG)
+	fullState := stateprocessor.NewFullState(state)
+	dvm := vm.NewVM(conText, fullState, common2.DEFAULT_VM_CONFIG)
 
 	/*	// Wait for the context to be done and cancel the evm. Even if the
 		// EVM has finished, cancelling may be done (repeatedly)
@@ -2083,7 +2084,7 @@ func (service *VenusFullChainService) doCall(msg state_processor.Message, txHash
 	// Setup the gas pool (also for unmetered requests)
 	// and apply the message.
 	gp := uint64(math.MaxUint64)
-	result, _, failed, _, err := state_processor.ApplyMessage(dvm, msg, &gp)
+	result, _, failed, _, err := stateprocessor.ApplyMessage(dvm, msg, &gp)
 	if err != nil {
 		log.DLogger.Error("doCall#ApplyMessage failed", zap.Error(err))
 		return result, failed, err
@@ -2105,7 +2106,7 @@ func (service *VenusFullChainService) CheckConstant(to common.Address, data []by
 	// check funcName
 	if strings.EqualFold(funcName, "init") {
 		log.DLogger.Debug("CheckConstant failed, can't call init function")
-		return false, "", nil, g_error.ErrFunctionInitCanNotCalled
+		return false, "", nil, gerror.ErrFunctionInitCanNotCalled
 	}
 
 	abi, err := service.GetABI(to)
@@ -2124,5 +2125,5 @@ func (service *VenusFullChainService) CheckConstant(to common.Address, data []by
 			break
 		}
 	}
-	return false, funcName, abi, g_error.ErrFuncNameNotFoundInABI
+	return false, funcName, abi, gerror.ErrFuncNameNotFoundInABI
 }
