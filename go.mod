@@ -18,7 +18,6 @@ require (
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db
 	github.com/hashicorp/golang-lru v0.5.0
 	github.com/huin/goupnp v1.0.0
-	github.com/issue9/assert v1.3.4
 	github.com/jackpal/go-nat-pmp v1.0.1
 	github.com/json-iterator/go v1.1.5
 	github.com/kardianos/osext v0.0.0-20170510131534-ae77be60afb1
