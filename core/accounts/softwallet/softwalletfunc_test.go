@@ -19,11 +19,10 @@ package softwallet
 import (
 	"encoding/hex"
 	"github.com/dipperin/dipperin-core/common/gerror"
-	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
 	"github.com/dipperin/dipperin-core/third_party/go-bip39"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap/zapcore"
 	"testing"
 )
 
@@ -150,22 +149,37 @@ func TestGetAccountFromExtendedKey(t *testing.T) {
 	assert.Error(t, err)
 }
 
-// todo
 func TestEncryptWalletContent(t *testing.T) {
-	log.InitLogger(log.LoggerConfig{
-		Lvl:         zapcore.DebugLevel,
-		WithConsole: true,
-	})
-
-	cipher, err := EncryptWalletContent(testWalletPlain[:], testIv[:], encKey)
-	assert.NoError(t, err)
-	assert.Equal(t, testWalletCipher, cipher)
-
-	assert.Panics(t,
-		func() {
-			EncryptWalletContent(testWalletPlain[:], errIv, encKey)
+	testCases := []struct{
+		name string
+		given []byte
+		expect error
+	}{
+		{
+			name:"ErrIvPanic",
+			given: errIv[:],
+			expect:errors.New("panic"),
 		},
-	)
+		{
+			name:"EncryptWalletContentRight",
+			given: testIv[:],
+			expect:nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		iv := tc.given
+		if tc.expect != nil {
+			assert.Panics(t, func() {
+				EncryptWalletContent(testWalletPlain[:], iv, encKey)
+			})
+		} else {
+			cipher, err := EncryptWalletContent(testWalletPlain[:], iv, encKey)
+			assert.NoError(t, err)
+			assert.Equal(t, testWalletCipher, cipher)
+		}
+	}
+
 }
 
 func TestDecryptWalletContent(t *testing.T) {
@@ -185,7 +199,7 @@ func TestDecryptWalletContent(t *testing.T) {
 			expectPlain:testWalletPlain[:],
 		},
 		{
-			name:"err",
+			name:"ErrOddLenghtHexString",
 			given: func() (walletCipher WalletCipher, iv []byte, sysKey EncryptKey) {
 				errWalletCipher := WalletCipher{
 					Cipher:    "12324",
@@ -207,7 +221,7 @@ func TestDecryptWalletContent(t *testing.T) {
 			expect:gerror.ErrAESDecryption,
 		},
 		{
-			name:"err",
+			name:"InvalidByteError",
 			given: func() (walletCipher WalletCipher, iv []byte, sysKey EncryptKey) {
 				errWalletCipher := WalletCipher{
 					Cipher:    testWalletCipher.Cipher,
@@ -246,27 +260,27 @@ func TestCheckPassword(t *testing.T) {
 		expect error
 	}{
 		{
-			name:"right one",
+			name:"rightOne",
 			given:"19abc```",
 			expect:nil,
 		},
 		{
-			name:"",
+			name:"toShort",
 			given:"1234567",
 			expect:gerror.ErrPasswordOrPassPhraseIllegal,
 		},
 		{
-			name:"can not have chinese ",
+			name:"canNotHaveChinese ",
 			given:"国1234567",
 			expect:gerror.ErrPasswordOrPassPhraseIllegal,
 		},
 		{
-			name:"too long",
+			name:"tooLong",
 			given:"1234567890asertyuiopasdfh",
 			expect:gerror.ErrPasswordOrPassPhraseIllegal,
 		},
 		{
-			name:"right two",
+			name:"rightTwo",
 			given:"234567890~!@#$%^&*()_+<",
 			expect:nil,
 		},

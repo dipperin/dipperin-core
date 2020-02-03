@@ -10,7 +10,6 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/chain/stateprocessor"
 	"github.com/dipperin/dipperin-core/core/chainconfig"
-	"github.com/dipperin/dipperin-core/core/economymodel"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/third_party/crypto"
 	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
@@ -35,7 +34,7 @@ var path = "./transaction.out"
 
 type transactions []model.AbstractTransaction
 
-var testTxFee = economymodel.GetMinimumTxFee(200)
+var testTxFee = consts.GetMinimumTxFee(200)
 var threshold = new(big.Int).Div(new(big.Int).Mul(testTxFee, big.NewInt(100+int64(DefaultTxPoolConfig.FeeBump))), big.NewInt(100))
 var testRoot = "0x54bbe8ffddc42dd501ab37438c2496d1d3be51d9c562531d56b48ea3bea66708"
 var testTxPoolConfig TxPoolConfig

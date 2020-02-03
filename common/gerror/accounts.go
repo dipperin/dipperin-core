@@ -117,5 +117,7 @@ var (
 	ErrOddLenghtHexString  = errors.New("encoding/hex: odd length hex string")
 
 	ErrDerivedPath = errors.New("ambiguous path: use 'm/' prefix for absolute paths, or no leading '/' for relative ones")
+
+	ErrEmptyDerivedPath = errors.New("empty derivation path")
 )
 

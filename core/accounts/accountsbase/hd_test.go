@@ -17,63 +17,49 @@
 package accountsbase
 
 import (
-	"reflect"
+	"fmt"
+	"github.com/dipperin/dipperin-core/common/gerror"
+	"github.com/issue9/assert"
+	"math"
 	"testing"
 )
 
 // Tests that HD derivation paths can be correctly parsed into our internal binary
 // representation.
 func TestHDPathParsing(t *testing.T) {
-	tests := []struct {
-		input  string
+	testCases := []struct {
+		name   string
+		given  string
 		output DerivationPath
+		err    error
 	}{
-		// Plain absolute derivation paths
-		{"m/44'/60'/0'/0", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0}},
-		{"m/44'/60'/0'/128", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 128}},
-		{"m/44'/60'/0'/0'", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0x80000000 + 0}},
-		{"m/44'/60'/0'/128'", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0x80000000 + 128}},
-		{"m/2147483692/2147483708/2147483648/0", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0}},
-		{"m/2147483692/2147483708/2147483648/2147483648", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0x80000000 + 0}},
-
-		// Plain relative derivation paths
-		{"0", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0, 0}},
-		{"128", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0, 128}},
-		{"0'", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0, 0x80000000 + 0}},
-		{"128'", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0, 0x80000000 + 128}},
-		{"2147483648", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0, 0x80000000 + 0}},
-
-		// Hexadecimal absolute derivation paths
-		{"m/0x2C'/0x3c'/0x00'/0x00", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0}},
-		{"m/0x2C'/0x3c'/0x00'/0x80", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 128}},
-		{"m/0x2C'/0x3c'/0x00'/0x00'", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0x80000000 + 0}},
-		{"m/0x2C'/0x3c'/0x00'/0x80'", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0x80000000 + 128}},
-		{"m/0x8000002C/0x8000003c/0x80000000/0x00", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0}},
-		{"m/0x8000002C/0x8000003c/0x80000000/0x80000000", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0x80000000 + 0}},
-
-		// Hexadecimal relative derivation paths
-		{"0x00", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0, 0}},
-		{"0x80", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0, 128}},
-		{"0x00'", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0, 0x80000000 + 0}},
-		{"0x80'", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0, 0x80000000 + 128}},
-		{"0x80000000", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0, 0x80000000 + 0}},
-
-		// Weird inputs just to ensure they work
-		{"	m  /   44			'\n/\n   60	\n\n\t'   /\n0 ' /\t\t	0", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0}},
-
-		// Invaid derivation paths
-		{"", nil},              // Empty relative derivation path
-		{"m", nil},             // Empty absolute derivation path
-		{"m/", nil},            // Missing last derivation component
-		{"/44'/60'/0'/0", nil}, // Absolute path without m prefix, might be user error
-		{"m/2147483648'", nil}, // Overflows 32 bit integer
-		{"m/-1'", nil},         // Cannot contain negative number
+		{"ErrEmptyDerivedPath","", nil, gerror.ErrDerivedPath},
+		{"ErrDerivedPath", "m", nil, gerror.ErrEmptyDerivedPath},
+		{"ErrInvalidcomponent", "m/xyzc", nil, fmt.Errorf("invalid component: %s", "xyzc")},
+		{"ErrOverflowsHardenedRange", "m/2147483648'", nil, fmt.Errorf("component %v out of allowed hardened range [0, %d]", 2147483648, math.MaxUint32-0x80000000)},
+		{"ErrOverflowsAllowedRange", "m/214748364811", nil, fmt.Errorf("component %v out of allowed range [0, %d]", 214748364811, math.MaxUint32)}, // Overflows 32 bit integer
+		{"ParseDerivationPathRight","m/44'/60'/0'/0", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0}, nil},
 	}
-	for i, tt := range tests {
-		if path, err := ParseDerivationPath(tt.input); !reflect.DeepEqual(path, tt.output) {
-			t.Errorf("test %d: parse mismatch: have %v (%v), want %v", i, path, err, tt.output)
-		} else if path == nil && err == nil {
-			t.Errorf("test %d: nil path and error: %v", i, err)
+	for _, tt := range testCases {
+		path, err := ParseDerivationPath(tt.given)
+		if err == nil {
+			assert.Equal(t, tt.output, path)
+		} else {
+			assert.Equal(t, tt.err, err)
 		}
+	}
+}
+
+func TestDerivationPath_String(t *testing.T) {
+	testCases := []struct {
+		name   string
+		given  DerivationPath
+		output string
+	}{
+		{"StringRight", DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0}, "m/44'/60'/0'/0"},
+	}
+
+	for _, tt := range testCases{
+		assert.Equal(t, tt.output, tt.given.String())
 	}
 }

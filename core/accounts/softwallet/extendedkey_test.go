@@ -9,7 +9,6 @@ package softwallet
 //   https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
 
 import (
-	"bytes"
 	"encoding/hex"
 	"errors"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -32,6 +31,8 @@ type result struct {
 
 // TestBIP0032Vectors tests the vectors provided by [BIP32] to ensure the
 // derivation works as intended.
+
+// todo  left to Integration Test
 func TestBIP0032Vectors(t *testing.T) {
 	// The master seeds for each of the two test vectors in [BIP32].
 	testVec1MasterHex := "000102030405060708090a0b0c0d0e0f"
@@ -415,7 +416,7 @@ func TestExtendedKeyAPI(t *testing.T) {
 		{
 			name:  "test vector 1 master node private",
 			given: "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi",
-			expect:result{isPrivate: true,
+			expect: result{isPrivate: true,
 				parentFP: 0,
 				privKey:  "e8f32e723decf4051aefac8e2c93c9c5b214313817cdb01a1494b917c8436b35",
 				pubKey:   "0339a36013301597daef41fbe593a02cc513d0b55527ec2df1050e2e8ff49c85c2",
@@ -424,11 +425,10 @@ func TestExtendedKeyAPI(t *testing.T) {
 		{
 			name:  "test vector 1 chain m/0H/1/2H public",
 			given: "xpub6D4BDPcP2GT577Vvch3R8wDkScZWzQzMMUm3PWbmWvVJrZwQY4VUNgqFJPMM3No2dFDFGTsxxpG5uJh7n7epu4trkrX7x7DogT5Uv6fcLW5",
-			expect:result{isPrivate: false,
-			parentFP:   3203769081,
-			privKeyErr: gerror.ErrNotPrivExtKey,
-			pubKey:     "0357bfe1e341d01c69fe5654309956cbea516822fba8a601743a012a7896ee8dc2",},
-
+			expect: result{isPrivate: false,
+				parentFP:   3203769081,
+				privKeyErr: gerror.ErrNotPrivExtKey,
+				pubKey:     "0357bfe1e341d01c69fe5654309956cbea516822fba8a601743a012a7896ee8dc2"},
 		},
 	}
 
@@ -452,105 +452,52 @@ func TestExtendedKeyAPI(t *testing.T) {
 		}
 
 		pubKey, err := key.ECPubKey()
-		assert.NoError(t,err)
+		assert.NoError(t, err)
 
 		pubKeyStr := hex.EncodeToString(pubKey.SerializeCompressed())
 		assert.Equal(t, test.expect.pubKey, pubKeyStr)
 	}
 }
 
-// TestErrors performs some negative tests for various invalid cases to ensure
-// the errors are handled properly.
-func TestErrorCases(t *testing.T) {
-	testCases := []struct{
-		name string
-		given func() error
-		expect error
-	}{
-		{
-			name: "ErrInvalidSeedLenTooFewBytes",
-			given: func() error {
-				_, err := NewMaster(bytes.Repeat([]byte{0x00}, 15), &DipperinChainCfg)
-				return err
-			},
-			expect:gerror.ErrInvalidSeedLen,
-		},
-		{
-			name: "ErrInvalidSeedLenTooManyBytes",
-			given: func() error {
-				_, err := NewMaster(bytes.Repeat([]byte{0x00}, 15), &DipperinChainCfg)
-				return err
-			},
-			expect:gerror.ErrInvalidSeedLen,
-		},
-		{
-			name: "ErrDeriveHardFromPublic",
-			given: func() error {
-				// Generate a new key and neuter it to a public extended key.
-				seed, err := GenerateSeed(consts.RecommendedSeedLen)
-				assert.NoError(t, err)
-
-				extKey, err := NewMaster(seed, &DipperinChainCfg)
-				assert.NoError(t, err)
-
-				pubKey, err := extKey.Neuter()
-				assert.NoError(t,err)
-
-				// Deriving a hardened child extended key should fail from a public key.
-				_, err = pubKey.Child(consts.HardenedKeyStart)
-
-				return err
-			},
-			expect:gerror.ErrDeriveHardFromPublic,
-		},
-	}
-
-    for _, tc := range testCases{
-    	assert.Equal(t, tc.expect, tc.given())
-	}
-
-}
-
-func Test_NewKeyFromString(t *testing.T)  {
+func Test_NewKeyFromString(t *testing.T) {
 
 	type given struct {
-		key string
+		key    string
 		neuter bool
 	}
 
 	type result struct {
-		err error
+		err       error
 		neuterErr error
 	}
 
-
 	// NewKeyFromString failure tests.
 	tests := []struct {
-		name      string
-		given given
+		name   string
+		given  given
 		expect result
 	}{
 		{
-			name: "invalid key expect",
-			given:given{key:  "xpub1234",},
-			expect:  result{err :gerror.ErrInvalidKeyLen,},
+			name:   "invalid key expect",
+			given:  given{key: "xpub1234"},
+			expect: result{err: gerror.ErrInvalidKeyLen},
 		},
 		{
-			name: "bad checksum",
-			given:given{key:  "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EBygr15",},
-			expect: result{err:gerror.ErrBadChecksum,},
+			name:   "bad checksum",
+			given:  given{key: "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EBygr15"},
+			expect: result{err: gerror.ErrBadChecksum},
 		},
 		{
-			name: "pubkey not on curve",
-			given:given{key:  "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ1hr9Rwbk95YadvBkQXxzHBSngB8ndpW6QH7zhhsXZ2jHyZqPjk",},
-			expect:result{err:  errors.New("invalid square root"),},
+			name:   "pubkey not on curve",
+			given:  given{key: "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ1hr9Rwbk95YadvBkQXxzHBSngB8ndpW6QH7zhhsXZ2jHyZqPjk"},
+			expect: result{err: errors.New("invalid square root")},
 		},
 		{
-			name:      "unsupported version",
-			given:given{key:       "xbad4LfUL9eKmA66w2GJdVMqhvDmYGJpTGjWRAtjHqoUY17sGaymoMV9Cm3ocn9Ud6Hh2vLFVC7KSKCRVVrqc6dsEdsTjRV1WUmkK85YEUujAPX",
-			neuter:    true,},
-			expect:result{err:       nil,
-			neuterErr: chaincfg.ErrUnknownHDKeyID,},
+			name: "unsupported version",
+			given: given{key: "xbad4LfUL9eKmA66w2GJdVMqhvDmYGJpTGjWRAtjHqoUY17sGaymoMV9Cm3ocn9Ud6Hh2vLFVC7KSKCRVVrqc6dsEdsTjRV1WUmkK85YEUujAPX",
+				neuter: true},
+			expect: result{err: nil,
+				neuterErr: chaincfg.ErrUnknownHDKeyID},
 		},
 	}
 
@@ -561,6 +508,139 @@ func Test_NewKeyFromString(t *testing.T)  {
 		if test.given.neuter {
 			_, err := extKey.Neuter()
 			assert.True(t, reflect.DeepEqual(err, test.expect.neuterErr))
+		}
+	}
+}
+
+func TestNewMaster(t *testing.T) {
+
+	tests := []struct {
+		name   string
+		given  string
+		expect error
+	}{
+		{
+			name: "NewMasterRight",
+			given:  "000102030405060708090a0b0c0d0e0f",
+			expect: nil,
+		},
+
+		{
+			name: "ErrInvalidSeedLen",
+			given: "abfffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542",
+			expect: gerror.ErrInvalidSeedLen,
+		},
+	}
+
+	for _, test := range tests {
+		t.Log(test.name)
+		// Create new key from seed and get the neutered version.
+		masterSeed, err := hex.DecodeString(test.given)
+		assert.NoError(t, err)
+
+		_, err = NewMaster(masterSeed, &DipperinChainCfg)
+		if err != nil {
+			assert.Equal(t, test.expect, err)
+		}
+	}
+}
+
+func TestExtendedKey_Child(t *testing.T) {
+	testCases := []struct {
+		name   string
+		given  func() (*ExtendedKey, uint32)
+		expect error
+	}{
+		{
+			name: "ErrDeriveBeyondMaxDepth",
+			given: func() (*ExtendedKey, uint32) {
+				extKey, err := NewMaster([]byte(`abcd1234abcd1234abcd1234abcd1234`), &DipperinChainCfg)
+				assert.NoError(t, err)
+				extKey.depth = math.MaxUint8
+				return extKey,1
+			},
+			expect: gerror.ErrDeriveBeyondMaxDepth,
+		},
+
+		{
+			name: "ErrDeriveHardFromPublic",
+			given: func() (*ExtendedKey, uint32) {
+				extKey, err := NewMaster([]byte(`abcd1234abcd1234abcd1234abcd1234`), &DipperinChainCfg)
+				assert.NoError(t, err)
+				extKey.isPrivate = false
+				return extKey,consts.HardenedKeyStart
+			},
+			expect: gerror.ErrDeriveHardFromPublic,
+		},
+		{
+			name: "ChildRight",
+			given: func() (*ExtendedKey, uint32) {
+				extKey, err := NewMaster([]byte(`abcd1234abcd1234abcd1234abcd1234`), &DipperinChainCfg)
+				assert.NoError(t, err)
+				return extKey,1
+			},
+			expect: nil,
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Log(tt.name)
+		key, i := tt.given()
+		_, err := key.Child(i)
+
+		if err != nil {
+			assert.Equal(t, tt.expect, err)
+		}
+	}
+}
+
+func TestExtendedKey_Neuter(t *testing.T) {
+	testCases := []struct {
+		name   string
+		given  func() (*ExtendedKey)
+		expect error
+	}{
+		{
+			name: "ErrUnknownHDKeyID",
+			given: func() (*ExtendedKey) {
+				extKey, err := NewMaster([]byte(`abcd1234abcd1234abcd1234abcd1234`), &DipperinChainCfg)
+				assert.NoError(t, err)
+				extKey.version = []byte{12,23,34}
+				return extKey
+			},
+			expect: chaincfg.ErrUnknownHDKeyID,
+		},
+
+		{
+			name: "IsPublic",
+			given: func() (*ExtendedKey) {
+				extKey, err := NewMaster([]byte(`abcd1234abcd1234abcd1234abcd1234`), &DipperinChainCfg)
+				assert.NoError(t, err)
+				extKey.isPrivate = false
+				return extKey
+			},
+			expect: nil,
+		},
+		{
+			name: "NeuterRight",
+			given: func() (*ExtendedKey) {
+				extKey, err := NewMaster([]byte(`abcd1234abcd1234abcd1234abcd1234`), &DipperinChainCfg)
+				assert.NoError(t, err)
+				return extKey
+			},
+			expect: nil,
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Log(tt.name)
+		key := tt.given()
+		neuterKey, err := key.Neuter()
+
+		if err != nil {
+			assert.Equal(t, tt.expect, err)
+		} else if !key.IsPrivate() {
+			assert.Equal(t, neuterKey, key)
 		}
 	}
 }
@@ -580,18 +660,18 @@ func TestZeroExtendedKey(t *testing.T) {
 	}{
 		// Test vector 1
 		{
-			name:   "test vector 1 chain m",
-			given:given{master: "000102030405060708090a0b0c0d0e0f",
-			extKey: "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi",},
-			expect:true,
+			name: "TestZeroRight",
+			given: given{master: "000102030405060708090a0b0c0d0e0f",
+				extKey: "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi"},
+			expect: true,
 		},
 
 		// Test vector 2
 		{
-			name:   "test vector 2 chain m",
-			given:given{master: "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542",
-			extKey: "xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssrdK4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U",},
-			expect:true,
+			name: "TestZeroRightTwo",
+			given: given{master: "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542",
+				extKey: "xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssrdK4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U"},
+			expect: true,
 		},
 	}
 
@@ -600,7 +680,7 @@ func TestZeroExtendedKey(t *testing.T) {
 	// times.
 	testZeroed := func(testName string, key *ExtendedKey) bool {
 		// Zeroing a key should result in it no longer being private
-		assert.True(t,!key.IsPrivate())
+		assert.True(t, !key.IsPrivate())
 
 		parentFP := key.ParentFingerprint()
 		assert.Equal(t, uint32(0), parentFP)
@@ -611,14 +691,11 @@ func TestZeroExtendedKey(t *testing.T) {
 		_, err := key.ECPrivKey()
 		assert.True(t, reflect.DeepEqual(err, gerror.ErrNotPrivExtKey))
 
-
 		wantErr := errors.New("pubkey string is empty")
 		_, err = key.ECPubKey()
 		assert.Equal(t, wantErr, err)
 		return true
 	}
-
-
 
 	for _, test := range tests {
 		// Create new key from seed and get the neutered version.
@@ -634,22 +711,9 @@ func TestZeroExtendedKey(t *testing.T) {
 		// Ensure both non-neutered and neutered keys are zeroed
 		// properly.
 		key.Zero()
-		assert.Equal(t,test.expect,  testZeroed(test.name+" from seed not neutered", key) )
+		assert.Equal(t, test.expect, testZeroed(test.name+" from seed not neutered", key))
 		neuteredKey.Zero()
-		assert.Equal(t,test.expect,  testZeroed( test.name+" from seed neutered", key))
-
-		// Deserialize key and get the neutered version.
-		key, err = NewKeyFromString(test.given.extKey)
-		assert.NoError(t, err)
-		neuteredKey, err = key.Neuter()
-		assert.NoError(t, err)
-
-		// Ensure both non-neutered and neutered keys are zeroed
-		// properly.
-		key.Zero()
-		assert.Equal(t, test.expect, testZeroed( test.name+" deserialized not neutered", key))
-		neuteredKey.Zero()
-		assert.Equal(t, test.expect, testZeroed(test.name+" deserialized neutered", key))
+		assert.Equal(t, test.expect, testZeroed(test.name+" from seed neutered", key))
 	}
 }
 
@@ -674,7 +738,7 @@ func TestMaximumDepth(t *testing.T) {
 
 }
 
-func TestExtendedKey(t *testing.T) {
+func TestNewExtendedKey(t *testing.T) {
 	testSk := "xprv9wTYmMFdV23N2TdNG573QoEsfRrWKQgWeibmLntzniatZvR9BmLnvSxqu53Kw1UmYPxLgboyZQaXwTCg8MSY3H2EU4pWcQDnRnrVA1xe8fs"
 	key, err := NewKeyFromString(testSk)
 

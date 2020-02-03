@@ -138,11 +138,10 @@ func TestWalletInfo_GenerateKeyFromSeedAndPath(t *testing.T) {
 }
 
 
-// todo need to think
 func TestWalletInfo_paddingUsedAccount(t *testing.T) {
-	t.Skip()
 	ctrl := gomock.NewController(t)
 	accountStatus := accountsbase.NewMockAddressInfoReader(ctrl)
+
 	errSeed := []byte{0x01, 0x02, 0x01}
 
 	testCases := []struct{
@@ -151,7 +150,7 @@ func TestWalletInfo_paddingUsedAccount(t *testing.T) {
 		expect error
 	}{
 		{
-			name:"err",
+			name:"ErrInvalidSeedLen",
 			given: func() (*WalletInfo, *accountsbase.MockAddressInfoReader) {
 				testWalletInfo := NewHdWalletInfo()
 				testWalletInfo.Seed = errSeed
@@ -160,29 +159,14 @@ func TestWalletInfo_paddingUsedAccount(t *testing.T) {
 			expect:gerror.ErrInvalidSeedLen,
 		},
 		{
-			name:"err",
-			given: func()(*WalletInfo, *accountsbase.MockAddressInfoReader) {
-				testWalletInfo := NewHdWalletInfo()
-				testWalletInfo.Seed = testSeed
-				return testWalletInfo,accountStatus
-			},
-			expect:nil,
-		},
-		{
-			name:"err",
+			name:"paddingUsedAccountRight",
 			given: func() (*WalletInfo, *accountsbase.MockAddressInfoReader) {
 				testWalletInfo := NewHdWalletInfo()
 				testWalletInfo.Seed = testSeed
-				//accountStatus.EXPECT().GetTransactionNonce()
-				return testWalletInfo,accountStatus
-			},
-			expect:nil,
-		},
-		{
-			name:"err",
-			given: func() (*WalletInfo, *accountsbase.MockAddressInfoReader) {
-				testWalletInfo := NewHdWalletInfo()
-				testWalletInfo.Seed = testSeed
+				accountStatus.EXPECT().GetTransactionNonce(common.HexToAddress("0x00003e406C9dE46907A53A0C39b683747874fb6e9EDC")).Return(uint64(0), nil).AnyTimes()
+				accountStatus.EXPECT().GetTransactionNonce(common.HexToAddress("0x0000C3FE396BEc36673626A8dA154161044CfD289A41")).Return(uint64(0), gerror.ErrAccountNotExist).AnyTimes()
+				accountStatus.EXPECT().CurrentBalance(common.HexToAddress("0x00003e406C9dE46907A53A0C39b683747874fb6e9EDC")).Return(big.NewInt(100)).AnyTimes()
+				accountStatus.EXPECT().CurrentBalance(common.HexToAddress("0x0000C3FE396BEc36673626A8dA154161044CfD289A41")).Return(big.NewInt(100)).AnyTimes()
 				return testWalletInfo,accountStatus
 			},
 			expect:nil,
@@ -195,23 +179,6 @@ func TestWalletInfo_paddingUsedAccount(t *testing.T) {
 		err := wallet.paddingUsedAccount(acc)
 		assert.Equal(t, tc.expect, err)
 	}
-
-	//testWalletInfo := NewHdWalletInfo()
-	//testWalletInfo.Seed = errSeed
-	//
-	//err := testWalletInfo.paddingUsedAccount(accountStatus)
-	//assert.Error(t, err)
-
-	//testWalletInfo.Seed = testSeed
-	//err = testWalletInfo.paddingUsedAccount(accountStatus)
-	//assert.NoError(t, err)
-
-	//err = testWalletInfo.paddingUsedAccount(accountStatus)
-	//assert.Error(t, err)
-	//
-	//testWalletInfo.Seed = testSeed
-	//err = testWalletInfo.paddingUsedAccount(accountStatus)
-	//assert.NoError(t, err)
 }
 
 func TestWalletInfo_getSkFromAddress(t *testing.T) {
@@ -264,7 +231,6 @@ func TestWalletInfo_getSkFromAddress(t *testing.T) {
 
 // todo
 func TestWalletInfo_PaddingAddressNonce(t *testing.T) {
-	t.Skip()
 	ctrl := gomock.NewController(t)
 	accountStatus := accountsbase.NewMockAddressInfoReader(ctrl)
 

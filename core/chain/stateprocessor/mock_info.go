@@ -24,8 +24,8 @@ import (
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm"
-	common2 "github.com/dipperin/dipperin-core/core/vm/common"
-	"github.com/dipperin/dipperin-core/core/vm/common/utils"
+	"github.com/dipperin/dipperin-core/core/vm/base"
+	"github.com/dipperin/dipperin-core/core/vm/base/utils"
 	"github.com/dipperin/dipperin-core/third_party/crypto"
 	"github.com/dipperin/dipperin-core/third_party/trie"
 	"github.com/ethereum/go-ethereum/ethdb"
@@ -153,13 +153,13 @@ func createSignedVote(num uint64, blockId common.Hash, voteType model.VoteMsgTyp
 func getTestVm(db ethdb.Database, root common.Hash) *vm.VM {
 	processor, _ := NewAccountStateDB(root, NewStateStorageWithCache(db))
 	state := NewFullState(processor)
-	return vm.NewVM(vm.Context{
+	return vm.NewVM(base.Context{
 		BlockNumber: big.NewInt(1),
-		CanTransfer: vm.CanTransfer,
-		Transfer:    vm.Transfer,
+		CanTransfer: base.CanTransfer,
+		Transfer:    base.Transfer,
 		GasLimit:    model.TxGas,
 		GetHash:     getTestHashFunc(),
-	}, state, common2.DEFAULT_VM_CONFIG)
+	}, state, base.DEFAULT_VM_CONFIG)
 }
 
 func getTestHashFunc() func(num uint64) common.Hash {

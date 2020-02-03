@@ -305,7 +305,9 @@ func (w *WalletInfo) PaddingAddressNonce(GetAddressRelatedInfo accountsbase.Addr
 
 	for _, account := range w.Accounts {
 		currentNonce, err := GetAddressRelatedInfo.GetTransactionNonce(account.Address)
-		log.DLogger.Error("PaddingAddressNonce GetTransactionNonce error", zap.Error(err))
+		if err != nil {
+			log.DLogger.Error("PaddingAddressNonce GetTransactionNonce error", zap.Error(err))
+		}
 		log.DLogger.Info("the padding address is:", zap.String("address", account.Address.Hex()))
 		log.DLogger.Info("PaddingAddressNonce is: ", zap.Uint64("currentNonce", currentNonce))
 		w.Nonce[account.Address] = currentNonce

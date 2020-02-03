@@ -17,7 +17,6 @@
 package accountsbase
 
 import (
-	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common/gerror"
 	"math"
@@ -74,7 +73,7 @@ func ParseDerivationPath(path string) (DerivationPath, error) {
 	components := strings.Split(path, "/")
 	switch {
 	case len(components) == 0:
-		return nil, errors.New("empty derivation path")
+		return nil, gerror.ErrEmptyDerivedPath
 
 	case strings.TrimSpace(components[0]) == "":
 		return nil, gerror.ErrDerivedPath
@@ -87,7 +86,7 @@ func ParseDerivationPath(path string) (DerivationPath, error) {
 	}
 	// All remaining components are relative, append one by one
 	if len(components) == 0 {
-		return nil, errors.New("empty derivation path") // Empty relative paths
+		return nil, gerror.ErrEmptyDerivedPath// Empty relative paths
 	}
 	for _, component := range components {
 		// Ignore any user added whitespace
