@@ -2,7 +2,7 @@ package components
 
 import (
 	"testing"
-	"github.com/issue9/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/dipperin/dipperin-core/common"
 )
 
