@@ -20,6 +20,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/log"
+	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/ethereum/go-ethereum/event"
@@ -36,7 +37,7 @@ func getWalletAndWalletManager(t *testing.T) (*gomock.Controller, *accountsbase.
 	ctrl := gomock.NewController(t)
 	infoReader := accountsbase.NewMockAddressInfoReader(ctrl)
 	wallet := accountsbase.NewMockWallet(ctrl)
-	wallet.EXPECT().GetWalletIdentifier().Return(accountsbase.WalletIdentifier{WalletType:accountsbase.SoftWallet}, nil)
+	wallet.EXPECT().GetWalletIdentifier().Return(accountsbase.WalletIdentifier{WalletType:accountsbase.SoftWallet}, nil).AnyTimes()
 	wallet.EXPECT().Close().Return(nil).AnyTimes()
 	walletManager,err := NewWalletManager(infoReader, wallet)
 	assert.NoError(t, err)
@@ -59,6 +60,154 @@ func Test_NewWalletManager(t *testing.T) {
 	//log.DLogger.Info("Test_NewWalletManager end")
 }
 
+func TestWalletManager_SubScribeStartService(t *testing.T) {
+	ctrl, _, walletManager := getWalletAndWalletManager(t)
+	ctrl.Finish()
+
+	event := walletManager.SubScribeStartService()
+	go func() {
+		select {
+		case result := <-event:
+			assert.Equal(t, true, result)
+		}
+	}()
+
+	walletManager.StartOtherServices()
+}
+
+
+func TestWalletManager_backend(t *testing.T)  {
+	ctrl, wallet, walletManager := getWalletAndWalletManager(t)
+	ctrl.Finish()
+
+	go func() {
+		walletManager.backend()
+	}()
+
+	testCases := []struct{
+		name string
+		given func() WalletEvent
+		expect bool
+	} {
+		{
+			name:"WalletArrived",
+			given: func() WalletEvent {
+				testEvent := WalletEvent{
+					Wallet: wallet,
+					Type:   WalletArrived,
+				}
+				return testEvent
+			},
+			expect:true,
+		},
+		{
+			name:"WalletDropped",
+			given: func() WalletEvent {
+				testEvent := WalletEvent{
+					Wallet: wallet,
+					Type:   WalletDropped,
+				}
+				return testEvent
+			},
+			expect:true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Log(tc.name)
+		testEvent := tc.given()
+		wallet.EXPECT().GetWalletIdentifier().Return(accountsbase.WalletIdentifier{WalletType:accountsbase.SoftWallet}, nil).AnyTimes()
+		walletManager.Event <- testEvent
+		result := <- walletManager.HandleResult
+		assert.Equal(t, true, result)
+	}
+	walletManager.ManagerClose <- true
+
+}
+
+func TestWalletManager_refreshWalletNonce(t *testing.T) {
+	ctrl, wallet, walletManager := getWalletAndWalletManager(t)
+	ctrl.Finish()
+
+	go func() {
+		walletManager.refreshWalletNonce()
+	}()
+
+	wallet.EXPECT().PaddingAddressNonce(walletManager.GetAddressRelatedInfo).Return(nil).AnyTimes()
+
+	walletManager.ManagerClose <- true
+}
+
+func TestWalletManager_add(t *testing.T) {
+	ctrl, wallet, walletManager := getWalletAndWalletManager(t)
+	ctrl.Finish()
+
+	testCases := []struct{
+		name string
+		given func () *accountsbase.MockWallet
+		expect int
+	}{
+		{
+			name:"theSameWallet",
+			given: func() *accountsbase.MockWallet {
+				return wallet
+			},
+			expect:len(walletManager.Wallets),
+		},
+		{
+			name:"diffWallet",
+			given: func() *accountsbase.MockWallet {
+				wallet := accountsbase.NewMockWallet(ctrl)
+				wallet.EXPECT().GetWalletIdentifier().Return(accountsbase.WalletIdentifier{WalletType:accountsbase.SoftWallet, Path:util.HomeDir()}, nil).AnyTimes()
+				return wallet
+			},
+			expect:len(walletManager.Wallets) + 1,
+		},
+	}
+
+	for _, tc := range testCases {
+		tempWallet := tc.given()
+		walletManager.add(tempWallet)
+		assert.Equal(t, tc.expect, len(walletManager.Wallets))
+	}
+
+}
+
+func TestWalletManager_remove(t *testing.T) {
+	ctrl, wallet, walletManager := getWalletAndWalletManager(t)
+	ctrl.Finish()
+
+	testCases := []struct{
+		name string
+		given func () *accountsbase.MockWallet
+		expect int
+	}{
+		{
+			name:"diffWallet",
+			given: func() *accountsbase.MockWallet {
+				wallet := accountsbase.NewMockWallet(ctrl)
+				wallet.EXPECT().GetWalletIdentifier().Return(accountsbase.WalletIdentifier{WalletType:accountsbase.SoftWallet, Path:util.HomeDir()}, nil).AnyTimes()
+				return wallet
+			},
+			expect:len(walletManager.Wallets),
+		},
+		{
+			name:"theSameWallet",
+			given: func() *accountsbase.MockWallet {
+				return wallet
+			},
+			expect:len(walletManager.Wallets) -1 ,
+		},
+
+	}
+
+	for _, tc := range testCases {
+		tempWallet := tc.given()
+		walletManager.remove(tempWallet)
+		assert.Equal(t, tc.expect, len(walletManager.Wallets))
+	}
+}
+
 func Test_ListWalletIdentifier(t *testing.T) {
 	ctrl, wallet, walletManager := getWalletAndWalletManager(t)
 	ctrl.Finish()
@@ -75,30 +224,46 @@ func Test_ListWalletIdentifier(t *testing.T) {
 	assert.NoError(t, err)
 
 	os.Remove(walletIndentifier.Path)
-	log.DLogger.Info("Test_ListWalletIdentifier end")
 }
 
 
-// todo
-func Test_FindWalletFromName(t *testing.T) {
-	t.Skip()
+func TestWalletManager_FindWalletFromIdentifier(t *testing.T) {
 	ctrl, wallet, walletManager := getWalletAndWalletManager(t)
 	ctrl.Finish()
-	wallet.EXPECT().GetWalletIdentifier().Return(accountsbase.WalletIdentifier{WalletType:accountsbase.SoftWallet}, nil).AnyTimes()
-	walletIdentifier, err := wallet.GetWalletIdentifier()
-	assert.NoError(t, err)
-	wt, err := walletManager.FindWalletFromIdentifier(walletIdentifier)
-	assert.NoError(t, err)
 
-	assert.EqualValues(t, wallet, wt)
+	testCases := []struct{
+		name string
+		given func () accountsbase.WalletIdentifier
+		expect error
+	}{
+		{
+			name:"diffWallet",
+			given: func() accountsbase.WalletIdentifier {
+				wallet := accountsbase.NewMockWallet(ctrl)
+				wallet.EXPECT().GetWalletIdentifier().Return(accountsbase.WalletIdentifier{WalletType:accountsbase.SoftWallet, Path:util.HomeDir()}, nil).AnyTimes()
+				return accountsbase.WalletIdentifier{WalletType:accountsbase.SoftWallet, Path:util.HomeDir()}
+			},
+			expect:gerror.ErrNotFindWallet,
+		},
+		{
+			name:"theSameWallet",
+			given: func() accountsbase.WalletIdentifier {
+				return accountsbase.WalletIdentifier{WalletType:accountsbase.SoftWallet}
+			},
+			expect:nil,
+		},
 
-	err = wallet.Close()
-	assert.NoError(t, err)
-	_, err = walletManager.FindWalletFromIdentifier(walletIdentifier)
-	assert.Equal(t, gerror.ErrWalletNotOpen, err)
+	}
 
-	//os.Remove(testWallet.Identifier.Path)
-	log.DLogger.Info("Test_FindWalletFromName end")
+	for _, tc := range testCases {
+		identifier := tc.given()
+		walletTemp, err := walletManager.FindWalletFromIdentifier(identifier)
+		if err != nil {
+			assert.Equal(t, tc.expect, err)
+		} else {
+			assert.Equal(t, wallet, walletTemp)
+		}
+	}
 }
 
 func TestWalletManager_FindWalletFromAddress(t *testing.T) {
@@ -153,54 +318,58 @@ func TestWalletManager_FindWalletFromAddress(t *testing.T) {
 
 }
 
-// todo
-func Test_WalletManagerBackend(t *testing.T) {
-	t.Skip()
-	ctrl, wallet, walletManager := getWalletAndWalletManager(t)
-	ctrl.Finish()
+func TestWalletManager_GetMainAccount(t *testing.T) {
 
-	walletManager.Start()
-
-	testEvent := WalletEvent{
-		Wallet: wallet,
-		Type:   WalletArrived,
+	testCases := []struct{
+		name string
+		given func() (*WalletManager, accountsbase.Account)
+		expect error
+	}{
+		{
+			name:"ErrWalletManagerNotRunning",
+			given: func() (*WalletManager, accountsbase.Account) {
+				_, _, walletManager := getWalletAndWalletManager(t)
+				walletManager.serviceStatus.Store(false)
+				return walletManager,accountsbase.Account{}
+			},
+			expect:gerror.ErrWalletManagerNotRunning,
+		},
+		{
+			name:"ErrWalletManagerIsEmpty",
+			given: func() (*WalletManager, accountsbase.Account) {
+				_, _, walletManager := getWalletAndWalletManager(t)
+				walletManager.Wallets = []accountsbase.Wallet{}
+				walletManager.serviceStatus.Store(true)
+				return walletManager,accountsbase.Account{}
+			},
+			expect:gerror.ErrWalletManagerIsEmpty,
+		},
+		{
+			name:"GetMainAccountRight",
+			given: func() (*WalletManager, accountsbase.Account) {
+				_, wallet, walletManager := getWalletAndWalletManager(t)
+				walletManager.serviceStatus.Store(true)
+				wallet.EXPECT().Accounts().Return([]accountsbase.Account{accountsbase.Account{Address:common.HexToAddress("0x000")}},nil).AnyTimes()
+				accounts ,err := walletManager.Wallets[0].Accounts()
+				assert.NoError(t, err)
+				return walletManager,accounts[0]
+			},
+			expect:nil,
+		},
 	}
 
-	walletManager.Event <- testEvent
-
-	go func() {walletManager.HandleResult <- true}()
-
-	select {
-	case result := <-walletManager.HandleResult:
-		assert.EqualValues(t, true, result)
+	for _, tc := range testCases {
+		manager, account := tc.given()
+		tempAccount, err := manager.GetMainAccount()
+		if err != nil {
+			assert.Equal(t, tc.expect, err)
+		} else {
+			assert.Equal(t, account, tempAccount)
+		}
 	}
 
-
-
-	assert.EqualValues(t, 2, len(walletManager.Wallets))
-
-	testEvent.Type = WalletDropped
-	walletManager.Event <- testEvent
-
-	go func() {walletManager.HandleResult <- true}()
-
-	select {
-	case result := <-walletManager.HandleResult:
-		assert.EqualValues(t, true, result)
-	}
-
-	assert.EqualValues(t, 1, len(walletManager.Wallets))
-
-	err := wallet.Close()
-	assert.NoError(t, err)
-
-	//err = testWallet2.Close()
-	//assert.NoError(t, err)
-	//os.Remove(testWallet.Identifier.Path)
-	//os.Remove(testWallet2.Identifier.Path)
-	//
-	//log.DLogger.Info("Test_WalletManagerBackend end")
 }
+
 
 func Test_ChannelTransport(t *testing.T) {
 	type testAtomic struct {

@@ -23,7 +23,6 @@ import (
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"os"
 	"path/filepath"
 	"testing"
 )
@@ -33,6 +32,12 @@ var TestSeed = []byte{0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02
 var TestAddress = common.Address{0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12,
 	0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12}
 var Path = filepath.Join(util.HomeDir(), "/tmp/testSoftWallet1")
+
+//签名hash值
+var TestHashData = [32]byte{0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04,
+	0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04,
+	0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04,
+	0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04}
 
 func getWalletSigner(t *testing.T)(*gomock.Controller, *accountsbase.MockWallet, *WalletManager, *WalletSigner)  {
 	ctrl, wallet, walletManager := getWalletAndWalletManager(t)
@@ -53,81 +58,127 @@ func TestMakeWalletSigner(t *testing.T) {
 
 
 func TestWalletSigner_Evaluate(t *testing.T) {
-	ctrl, wallet, _ , walletSigner := getWalletSigner(t)
-	defer ctrl.Finish()
-	wallet.EXPECT().Contains(accountsbase.Account{Address:TestAddress}).Return(true, nil)
-	wallet.EXPECT().Contains(accountsbase.Account{Address:TestAddress}).Return(true, gerror.ErrNotFindWallet)
-	wallet.EXPECT().Evaluate(accountsbase.Account{TestAddress},TestSeed).Return([32]byte{},[]byte{},nil)
 
-	_, _, err := walletSigner.Evaluate(accountsbase.Account{Address: walletSigner.GetAddress()}, TestSeed)
-	assert.NoError(t, err)
+	testCases := []struct{
+		name string
+		given func() (*WalletSigner, common.Address)
+		expect error
+	} {
+		{
+			name:"ErrNotFindWallet",
+			given: func() (*WalletSigner, common.Address) {
+				ctrl, wallet, _ , walletSigner := getWalletSigner(t)
+				defer ctrl.Finish()
+				wallet.EXPECT().Evaluate(accountsbase.Account{TestAddress},TestSeed).Return([32]byte{},[]byte{},nil).AnyTimes()
+				wallet.EXPECT().Contains(accountsbase.Account{Address:TestAddress}).Return(true, gerror.ErrNotFindWallet).AnyTimes()
+				return walletSigner,TestAddress
+			},
+			expect:gerror.ErrNotFindWallet,
+		},
+		{
+			name:"EvaluateRight",
+			given: func() (*WalletSigner, common.Address){
+				ctrl, wallet, _ , walletSigner := getWalletSigner(t)
+				defer ctrl.Finish()
+				wallet.EXPECT().Evaluate(accountsbase.Account{TestAddress},TestSeed).Return([32]byte{},[]byte{},nil).AnyTimes()
+				wallet.EXPECT().Contains(accountsbase.Account{Address:TestAddress}).Return(true, nil).AnyTimes()
+				return walletSigner,walletSigner.GetAddress()
+			},
+			expect:nil,
+		},
+	}
 
-	_, _, err = walletSigner.Evaluate(accountsbase.Account{Address: TestAddress}, TestSeed)
-	assert.Equal(t, gerror.ErrNotFindWallet, err)
 
-	os.Remove(Path)
+	for _,tc := range testCases{
+		walletSigner, addr := tc.given()
+		_,_, err := walletSigner.Evaluate(accountsbase.Account{Address:addr},TestSeed)
+		assert.Equal(t, tc.expect, err)
+	}
 }
-/*
+
 func TestWalletSigner_GetAddress(t *testing.T) {
-	testSigner, err := wallet.GetTestWalletSigner()
-	assert.NoError(t, err)
-	addr := testSigner.GetAddress()
-	assert.NotEqual(t, common.Address{}, addr)
+	ctrl, _, _ , walletSigner := getWalletSigner(t)
+	ctrl.Finish()
 
-	testSigner = &accounts.WalletSigner{}
-	addr = testSigner.GetAddress()
-	assert.Equal(t, common.Address{}, addr)
+	testCases := []struct{
+		name string
+		given func() *WalletSigner
+		expect common.Address
+	}{
+		{
+			name:"GetAddressRight",
+			given: func() *WalletSigner {
+				return walletSigner
+			},
+			expect:TestAddress,
+		},
+		{
+			name:"WalletSignerIsNil",
+			given: func() *WalletSigner {
+				return &WalletSigner{}
+			},
+			expect:common.Address{},
+		},
+	}
 
-	os.Remove(wallet.Path)
+	for _, tc := range testCases{
+		ws := tc.given()
+		addr := ws.GetAddress()
+		assert.Equal(t, tc.expect, addr)
+	}
 }
 
-func TestWalletSigner_PublicKey(t *testing.T) {
-	testSigner, err := wallet.GetTestWalletSigner()
-	assert.NoError(t, err)
 
-	pk := testSigner.PublicKey()
-	addr := cs_crypto.GetNormalAddress(*pk)
-	assert.Equal(t, testSigner.GetAddress(), addr)
-	os.Remove(wallet.Path)
+// todo
+func TestWalletSigner_PublicKey(t *testing.T) {
+	ctrl, wallet, _ , walletSigner := getWalletSigner(t)
+	ctrl.Finish()
+
+	wallet.EXPECT().GetPKFromAddress(accountsbase.Account{TestAddress}).Return(nil, nil)
+	wallet.EXPECT().Contains(accountsbase.Account{TestAddress}).Return(true, nil).AnyTimes()
+
+	_ = walletSigner.PublicKey()
+	//addr := cs_crypto.GetNormalAddress(*pk)
+	//assert.Equal(t, walletSigner.GetAddress(), addr)
 }
 
 func TestWalletSigner_SetBaseAddress(t *testing.T) {
-	testSigner, err := wallet.GetTestWalletSigner()
-	assert.NoError(t, err)
+	ctrl, _, _ , walletSigner := getWalletSigner(t)
+	ctrl.Finish()
 
-	testSigner.SetBaseAddress(wallet.TestAddress)
-	assert.Equal(t, wallet.TestAddress, testSigner.GetAddress())
-	os.Remove(wallet.Path)
+	walletSigner.SetBaseAddress(TestAddress)
+	assert.Equal(t, TestAddress, walletSigner.GetAddress())
 }
 
 func TestWalletSigner_SignHash(t *testing.T) {
-	testSigner, err := wallet.GetTestWalletSigner()
-	assert.NoError(t, err)
+	ctrl, wallet, _ , walletSigner := getWalletSigner(t)
+	ctrl.Finish()
+	wallet.EXPECT().Contains(accountsbase.Account{TestAddress}).Return(true, nil)
+	wallet.EXPECT().SignHash(accountsbase.Account{TestAddress}, TestHashData[:]).Return([]byte{}, nil)
 
-	_, err = testSigner.SignHash(wallet.TestHashData[:])
+	_, err := walletSigner.SignHash(TestHashData[:])
 	assert.NoError(t, err)
-	os.Remove(wallet.Path)
 }
 
-func TestWalletSigner_ValidSign(t *testing.T) {
-	testSigner, err := wallet.GetTestWalletSigner()
-	assert.NoError(t, err)
+/*func TestWalletSigner_ValidSign(t *testing.T) {
+	ctrl, _, _ , walletSigner := getWalletSigner(t)
+	ctrl.Finish()
 
 	//test travis
 	//assert.Error(t,err)
 
-	signature, err := testSigner.SignHash(wallet.TestHashData[:])
+	signature, err := walletSigner.SignHash(wallet.TestHashData[:])
 	assert.NoError(t, err)
 
-	pk := crypto.FromECDSAPub(testSigner.PublicKey())
+	pk := crypto.FromECDSAPub(walletSigner.PublicKey())
 
-	err = testSigner.ValidSign(wallet.TestHashData[:], pk, []byte{})
-	assert.Equal(t, accounts.ErrEmptySign, err)
+	err = walletSigner.ValidSign(wallet.TestHashData[:], pk, []byte{})
+	assert.Equal(t, gerror.ErrEmptySign, err)
 
-	err = testSigner.ValidSign(wallet.TestHashData[:], pk, signature[:10])
-	assert.Equal(t, accounts.ErrSignatureInvalid, err)
+	err = walletSigner.ValidSign(wallet.TestHashData[:], pk, signature[:10])
+	assert.Equal(t, gerror.ErrSignatureInvalid, err)
 
-	err = testSigner.ValidSign(wallet.TestHashData[:], pk, signature)
+	err = walletSigner.ValidSign(wallet.TestHashData[:], pk, signature)
 	assert.NoError(t, err)
 	os.Remove(wallet.Path)
 }*/

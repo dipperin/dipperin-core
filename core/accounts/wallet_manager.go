@@ -120,10 +120,13 @@ func (manager *WalletManager) backend() {
 			//new wallet event
 			manager.Lock.Lock()
 			if walletEvent.Type == WalletArrived {
+
 				//add wallet to manager
 				manager.add(walletEvent.Wallet)
+
 				//handle end
 				manager.HandleResult <- true
+
 			} else if walletEvent.Type == WalletDropped {
 				//remove wallet from manager
 				manager.remove(walletEvent.Wallet)
@@ -131,6 +134,7 @@ func (manager *WalletManager) backend() {
 				manager.HandleResult <- true
 			}
 			manager.Lock.Unlock()
+
 		case <-manager.ManagerClose:
 			sub.Unsubscribe()
 			log.DLogger.Info("Wallet manager backend return")
@@ -167,6 +171,7 @@ func (manager *WalletManager) refreshWalletNonce() {
 
 //add wallet to manager
 func (manager *WalletManager) add(wallet accountsbase.Wallet) {
+	log.DLogger.Info("WalletManager add start")
 	for _, value := range manager.Wallets {
 		identifier, _ := value.GetWalletIdentifier()
 		tmpIdentifier, _ := wallet.GetWalletIdentifier()
