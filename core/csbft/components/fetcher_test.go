@@ -9,16 +9,6 @@ import (
 
 func TestNewFetcher(t *testing.T) {
 	rsp := NewFetcher(nil)
-	//c := &CsBftFetcher{
-	//	fc:             nil,
-	//	requests:       make(map[uint64]*FetchBlockReqMsg),
-	//	fetchReqQueue:  make(chan *FetchBlockReqMsg, 1),
-	//	fetchRespChan:  make(chan *FetchBlockRespMsg, 1),
-	//	isFetchingChan: make(chan *IsFetchingMsg),
-	//	rmReqChan:      make(chan uint64),
-	//}
-	//c.BaseService = *util.NewBaseService(log.DLogger, "cs_bft_fetcher", c)
-	//assert.IsEqual(rsp, c)
 	assert.NotEmpty(t, rsp)
 }
 
@@ -31,5 +21,31 @@ func TestCsBftFetcher_FetchBlock(t *testing.T) {
 	gomock.InOrder(
 		fetcher.EXPECT().FetchBlock(ww, common.HexToHash(hashTmp)).Return(nil).AnyTimes(),
 	)
-	NewFetcher(nil).FetchBlock(ww, common.HexToHash(hashTmp))
+	//NewFetcher(nil).FetchBlock(ww, common.HexToHash(hashTmp))
+}
+
+func TestCsBftFetcher_FetchBlockResp(t *testing.T) {
+	rsp := NewFetcher(nil)
+	rsp.FetchBlockResp(nil)
+}
+
+func TestCsBftFetcher_OnStart(t *testing.T) {
+	rsp := NewFetcher(nil)
+	assert.NoError(t, rsp.OnStart())
+}
+
+func TestCsBftFetcher_OnStop(t *testing.T) {
+	rsp := NewFetcher(nil)
+	rsp.OnStop()
+}
+
+func TestCsBftFetcher_OnReset(t *testing.T) {
+	rsp := NewFetcher(nil)
+	assert.NoError(t, rsp.OnReset())
+}
+
+func TestCsBftFetcher_IsFetching(t *testing.T) {
+	rsp := NewFetcher(nil)
+	var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
+	assert.Equal(t, false, rsp.isFetching(common.HexToHash(hashTmp)))
 }
