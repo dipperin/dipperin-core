@@ -246,13 +246,47 @@ func TestTxPool_TxDifference(t *testing.T) {
 	txListA := []model.AbstractTransaction{alicetx1, alicetx2, alicetx3, bobtx1, bobtx2}
 	txListB := []model.AbstractTransaction{alicetx2, alicetx3, bobtx1, bobtx2, bobtx3}
 
-	difference := model.TxDifference(txListA, txListB)
-	assert.Equal(t, 1, len(difference))
-	assert.Equal(t, alicetx1, difference[0])
+	type result struct {
+		len int
+		isNot bool
+	}
 
-	difference = model.TxDifference(txListB, txListA)
-	assert.Equal(t, 1, len(difference))
-	assert.Equal(t, bobtx3, difference[0])
+	testCases := []struct {
+		name   string
+		given  func() (int,bool)
+		expect result
+	}{
+		{
+			name:"txListA diff txListB",
+			given: func() (int,bool) {
+				difference := model.TxDifference(txListA, txListB)
+				return len(difference),alicetx1==difference[0]
+			},
+			expect: result{1,true},
+		},
+		{
+			name:"txListB diff txListA",
+			given: func() (int, bool) {
+				difference := model.TxDifference(txListB, txListA)
+				return len(difference),bobtx3==difference[0]
+			},
+			expect: result{1,true},
+		},
+	}
+
+	for _,tc:=range testCases{
+		len,isnot:=tc.given()
+		assert.Equal(t,len,tc.expect.len)
+		assert.Equal(t,isnot,tc.expect.isNot)
+	}
+
+	//difference := model.TxDifference(txListA, txListB)
+	//assert.Equal(t, 1, len(difference))
+	//assert.Equal(t, alicetx1, difference[0])
+	//
+	//difference = model.TxDifference(txListB, txListA)
+	//assert.Equal(t, 1, len(difference))
+	//assert.Equal(t, bobtx3, difference[0])
 }
 
 func TestPromoteTx(t *testing.T) {
