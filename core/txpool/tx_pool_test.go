@@ -279,14 +279,6 @@ func TestTxPool_TxDifference(t *testing.T) {
 		assert.Equal(t,len,tc.expect.len)
 		assert.Equal(t,isnot,tc.expect.isNot)
 	}
-
-	//difference := model.TxDifference(txListA, txListB)
-	//assert.Equal(t, 1, len(difference))
-	//assert.Equal(t, alicetx1, difference[0])
-	//
-	//difference = model.TxDifference(txListB, txListA)
-	//assert.Equal(t, 1, len(difference))
-	//assert.Equal(t, bobtx3, difference[0])
 }
 
 func TestPromoteTx(t *testing.T) {
