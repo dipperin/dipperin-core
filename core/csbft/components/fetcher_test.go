@@ -29,6 +29,11 @@ func TestCsBftFetcher_FetchBlockResp(t *testing.T) {
 	rsp.FetchBlockResp(nil)
 }
 
+func TestCsBftFetcher_rmReq(t *testing.T)  {
+	rsp := NewFetcher(nil)
+	rsp.rmReq(1)
+}
+
 func TestCsBftFetcher_OnStart(t *testing.T) {
 	rsp := NewFetcher(nil)
 	assert.NoError(t, rsp.OnStart())
