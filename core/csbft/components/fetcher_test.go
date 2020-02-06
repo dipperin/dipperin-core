@@ -49,9 +49,7 @@ func TestCsBftFetcher_OnStart(t *testing.T) {
 func TestCsBftFetcher_OnStop(t *testing.T) {
 	rsp := NewFetcher(nil)
 	assert.NotEmpty(t, rsp)
-	assert.NotPanics(t, func() {
-		rsp.OnStop()
-	})
+	assert.NotPanics(t, rsp.OnStop)
 }
 
 func TestCsBftFetcher_OnReset(t *testing.T) {
@@ -122,5 +120,18 @@ func TestCsBftFetcher_onFetchResp(t *testing.T) {
 	assert.NotEmpty(t, rsp1)
 	assert.NotPanics(t, func() {
 		rsp1.onFetchResp(&req)
+	})
+}
+
+func TestCsBftFetcher_onResult(t *testing.T) {
+	var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
+	r := FetchBlockReqMsg{
+		MsgId:      0,
+		From:       common.HexToAddress(hashTmp),
+		BlockHash:  common.HexToHash(hashTmp),
+		ResultChan: make(chan model.AbstractBlock),
+	}
+	assert.NotPanics(t, func() {
+		r.onResult(nil)
 	})
 }

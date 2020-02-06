@@ -18,3 +18,54 @@ func TestTimeoutTicker_OnStart(t *testing.T) {
 	}
 	assert.NoError(t, tt.OnStart())
 }
+
+func TestTimeoutTicker_OnStop(t *testing.T) {
+	tt := &timeoutTicker{
+		timer:    time.NewTimer(0),
+		tickChan: make(chan TimeoutInfo, tickTockBufferSize),
+		tockChan: make(chan TimeoutInfo, tickTockBufferSize),
+	}
+	assert.NotPanics(t, tt.OnStop)
+}
+
+func TestTimeoutTicker_Chan(t *testing.T) {
+	tt := NewTimeoutTicker()
+	assert.NotEmpty(t, tt)
+	assert.NotPanics(t, func() {
+		tt.Chan()
+	})
+}
+
+func TestTimeoutTicker_ScheduleTimeout(t *testing.T) {
+	tt := NewTimeoutTicker()
+	assert.NotEmpty(t, tt)
+	assert.NotPanics(t, func() {
+		var w = TimeoutInfo{
+			Duration: 500 * time.Millisecond,
+			Height:   1,
+			Round:    1,
+			Step:     1,
+		}
+		tt.ScheduleTimeout(w)
+	})
+}
+
+func TestTimeoutTicker_stopTimer(t *testing.T) {
+	tt := &timeoutTicker{
+		timer:    time.NewTimer(0),
+		tickChan: make(chan TimeoutInfo, tickTockBufferSize),
+		tockChan: make(chan TimeoutInfo, tickTockBufferSize),
+	}
+	assert.NotPanics(t, tt.stopTimer)
+}
+
+func TestTimeoutTicker_timeoutRoutine(t *testing.T) {
+	tt := &timeoutTicker{
+		timer:    time.NewTimer(0),
+		tickChan: make(chan TimeoutInfo, tickTockBufferSize),
+		tockChan: make(chan TimeoutInfo, tickTockBufferSize),
+	}
+	assert.NotPanics(t, func() {
+		go tt.timeoutRoutine()
+	})
+}
