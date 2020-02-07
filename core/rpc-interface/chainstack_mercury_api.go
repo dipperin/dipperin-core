@@ -180,9 +180,10 @@ func (api *DipperinVenusApi) GetBlockNumber(hash common.Hash) *uint64 {
 	return api.service.GetBlockNumber(hash)
 }
 
-func (api *DipperinVenusApi) ConvertLogs(logs []*model2.Log) ([]*model2.Log, error)  {
+func (api *DipperinVenusApi) ConvertLogs(logs []*model2.Log) ([]*model2.Log, error) {
 	return api.service.ConvertLogs(logs)
 }
+
 // get genesis block
 // swagger:operation GET /url/GetGenesis block information block
 // ---

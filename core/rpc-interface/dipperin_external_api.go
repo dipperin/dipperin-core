@@ -17,6 +17,10 @@ type DipperExternalApi struct {
 	allApis *DipperinVenusApi
 }
 
+func (api *DipperExternalApi) SendTransaction(from, to common.Address, value, gasPrice *big.Int, gasLimit uint64, data []byte, nonce *uint64) (common.Hash, error) {
+	return api.allApis.SendTransaction(from, to, value, gasPrice, gasLimit, data, nonce)
+}
+
 // verify whether the chain is in sync
 func (api *DipperExternalApi) GetSyncStatus() bool {
 	return api.allApis.GetSyncStatus()
@@ -96,8 +100,7 @@ func (api *DipperExternalApi) GetBlockNumber(hash common.Hash) *uint64 {
 	return api.allApis.GetBlockNumber(hash)
 }
 
-
-func (api *DipperExternalApi) ConvertLogs(logs []*model2.Log) ([]*model2.Log, error)  {
+func (api *DipperExternalApi) ConvertLogs(logs []*model2.Log) ([]*model2.Log, error) {
 	return api.allApis.ConvertLogs(logs)
 }
 
