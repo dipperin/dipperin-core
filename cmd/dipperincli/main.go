@@ -152,7 +152,7 @@ func appAction(c *cli.Context) {
 	case chain_config.BootEnvVenus, chain_config.BootEnvMercury,
 		chain_config.BootEnvTest, chain_config.BootEnvLocal:
 	default:
-		log.DLogger.Error("boots_env set error,please check!", zap.String("bootEnv", env))
+		log.DLogger.Warn("boots_env set error,please check!", zap.String("bootEnv", env))
 		return
 	}
 
