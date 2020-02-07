@@ -18,9 +18,9 @@ func TestNewDefaultWorkExecutor(t *testing.T) {
 
 func Test_defaultWorkExecutor_ChangeNonce(t *testing.T) {
 	// test case
-	situations := []struct{
-		name string
-		given func() *defaultWorkExecutor
+	situations := []struct {
+		name      string
+		given     func() *defaultWorkExecutor
 		expectRes bool
 	}{
 		{
@@ -28,14 +28,25 @@ func Test_defaultWorkExecutor_ChangeNonce(t *testing.T) {
 			func() *defaultWorkExecutor {
 				// init
 				blockHeader := model.Header{
-					Number:   100,
-					PreHash:  common.HexToHash("0x000004e9937f5754db7e3953189befb1938fa11f57afbbc995a0c44beb08adfe"),
-					Diff:     common.HexToDiff("0x1e17f011"),
-					CoinBase: common.HexToAddress("0x00004f011d62285f527ce47D189EBA821601dAf8A16B"),
-					GasLimit: 1000000,
-					GasUsed:  1000,
-					Nonce:    common.EncodeNonce(563001),
-					Bloom:    iblt.NewBloom(iblt.NewBloomConfig(1<<12, 4)),
+					Version:          0,
+					Number:           2127323,
+					Seed:             common.Hash{},
+					Proof:            nil,
+					MinerPubKey:      nil,
+					PreHash:          common.HexToHash("0x000004fe6ca6650ed64dd4850d67a92bd38375d6cc8512fcb2fd647222c8c767"),
+					Diff:             common.HexToDiff("0x1e17f011"),
+					TimeStamp:        nil,
+					CoinBase:         common.HexToAddress("0x00004f011d62285f527ce47D189EBA821601dAf8A16B"),
+					GasLimit:         1000000,
+					GasUsed:          1000,
+					Nonce:            common.EncodeNonce(2465),
+					Bloom:            iblt.NewBloom(iblt.NewBloomConfig(1<<12, 4)),
+					TransactionRoot:  common.Hash{},
+					StateRoot:        common.Hash{},
+					VerificationRoot: common.Hash{},
+					InterlinkRoot:    common.Hash{},
+					RegisterRoot:     common.Hash{},
+					ReceiptHash:      common.Hash{},
 				}
 				work := minemsg.DefaultWork{
 					WorkerCoinbaseAddress: common.HexToAddress("0x00004f011d62285f527ce47D189EBA821601dAf8A16B"),
@@ -43,12 +54,12 @@ func Test_defaultWorkExecutor_ChangeNonce(t *testing.T) {
 					ResultNonce:           common.BlockNonce{},
 					RlpPreCal:             nil,
 				}
-				work.RlpPreCal = work.BlockHeader.RlpBlockWithoutNonce()
+				work.RlpPreCal = work.BlockHeader.RlpBlockWithoutNonce() // equal work.CalBlockRlpWithoutNonce()
 				workExecutor := NewDefaultWorkExecutor(&work, nil)
 				// return
 				return workExecutor
 			},
-			false,		// todo: set the condition which meet the requirement
+			false, // todo: set the condition which meet the requirement
 		},
 		{
 			"not meet the requirement",
