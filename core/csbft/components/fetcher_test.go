@@ -6,6 +6,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
+	"time"
 )
 
 func TestNewFetcher(t *testing.T) {
@@ -49,7 +50,10 @@ func TestCsBftFetcher_OnStart(t *testing.T) {
 func TestCsBftFetcher_OnStop(t *testing.T) {
 	rsp := NewFetcher(nil)
 	assert.NotEmpty(t, rsp)
-	assert.NotPanics(t, rsp.OnStop)
+	if assert.NoError(t, rsp.OnStart()) {
+		time.Sleep(500 * time.Millisecond)
+		assert.NotPanics(t,rsp.OnStop)
+	}
 }
 
 func TestCsBftFetcher_OnReset(t *testing.T) {
