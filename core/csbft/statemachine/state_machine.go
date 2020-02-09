@@ -88,7 +88,7 @@ func (bs *BftState) OnNewRound(r *model2.NewRoundMsg) {
 func (bs *BftState) OnNewProposal(p *model2.Proposal, block model.AbstractBlock) {
 	log.DLogger.Info("[BftState-OnNewProposal]", zap.Uint64("pRound", p.Round), zap.Uint64("pHeight", p.Height), zap.String("pBlockId", p.BlockID.Hex()), zap.Uint64("ownRound", bs.Round), zap.Uint64("ownRound", bs.Round))
 	if !bs.validProposal(p) {
-		log.DLogger.Error("validProposal err")
+		log.DLogger.Warn("validProposal err")
 		return
 	}
 
