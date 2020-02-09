@@ -290,6 +290,7 @@ func TestStateHandler_onEnterPropose(t *testing.T) {
 	assert.NotPanics(t, s.state.onEnterPropose)
 }
 
+//New functions
 func TestStateHandler_finalBlock(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -298,4 +299,27 @@ func TestStateHandler_finalBlock(t *testing.T) {
 	if s.state == nil {
 		t.Error("fail to NewStateHandler")
 	}
+	s.signer.EXPECT().SignHash(gomock.Any()).Return([]byte("2222"), nil).AnyTimes()
+	s.signer.EXPECT().GetAddress().Return(common.Address{2, 3, 4}).AnyTimes()
+	s.sender.EXPECT().BroadcastMsg(gomock.Any(), gomock.Any()).AnyTimes()
+	assert.NotPanics(t, func() {
+		s.state.onEnterPrevote()
+		s.state.onNewRoundTimeout()
+		s.state.isCurProposer()
+		s.state.onEnterPrecommit()
+		s.state.onProposeTimeout()
+		s.state.onPreVoteTimeout()
+		s.state.onPreCommitTimeout()
+		s.state.signAndPrevote(&model.VoteMsg{})
+		s.state.bs.Height = 2
+		s.state.bs.Votes.verifiers = append(s.state.bs.Votes.verifiers, common.Address{2, 3, 4})
+		s.state.signAndVote(&model.VoteMsg{
+			Height: 2,
+			Witness: &model.WitMsg{
+				Address: common.Address{2, 3, 4},
+				Sign:    make([]byte, 65),
+			},
+		})
+		s.state.addTimeoutCount("3232432")
+	})
 }
