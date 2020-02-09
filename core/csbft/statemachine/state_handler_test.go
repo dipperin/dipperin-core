@@ -323,3 +323,74 @@ func TestStateHandler_finalBlock(t *testing.T) {
 		s.state.addTimeoutCount("3232432")
 	})
 }
+
+//Receive msgs
+func TestStateHandler_NewHeight(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	s.signer.EXPECT().GetAddress().Return(common.Address{2, 3, 4}).AnyTimes()
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+
+	assert.NotPanics(t, func() {
+		s.state.NewHeight(3)
+	})
+	assert.NotPanics(t, func() {
+		s.state.NewRound(&model2.NewRoundMsg{})
+	})
+	assert.NotPanics(t, func() {
+		s.state.BlockPoolNotEmpty()
+	})
+
+	assert.NotPanics(t, func() {
+		s.state.NewProposal(&model2.Proposal{})
+	})
+
+	assert.NotPanics(t, func() {
+		s.state.NewHeight(3)
+	})
+
+	assert.NotPanics(t, func() {
+		s.state.PreVote(&model.VoteMsg{})
+	})
+	assert.NotPanics(t, func() {
+		s.state.Vote(&model.VoteMsg{})
+	})
+
+}
+
+func TestStateHandler_GetProposalBlock(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	s.signer.EXPECT().GetAddress().Return(common.Address{2, 3, 4}).AnyTimes()
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+
+	assert.NotPanics(t, func() {
+		go s.state.GetProposalBlock(common.Hash{})
+	})
+	assert.NotPanics(t, func() {
+		go s.state.onGetProposalBlock(getProposalBlockMsg{})
+	})
+}
+
+func TestStateHandler_GetRoundMsg(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	s.signer.EXPECT().GetAddress().Return(common.Address{2, 3, 4}).AnyTimes()
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	assert.Nil(t, s.state.GetRoundMsg(1, 1))
+	assert.NotPanics(t, func() {
+		s.state.SetFetcher(nil)
+	})
+	if a, b, c := s.state.RecordCurState(); a == 0 && b == 0 && c == 0 {
+		t.Log("success")
+	}
+}
