@@ -176,7 +176,7 @@ func (bs *BftState) OnVote(v *model.VoteMsg) (common.Hash, []model.AbstractVerif
 
 	// Add a valid vote
 	if err := bs.Votes.AddVote(v); err != nil {
-		log.DLogger.Error("add vote err", zap.Error(err))
+		log.DLogger.Warn("add vote err", zap.Error(err))
 		return common.Hash{}, nil
 	}
 

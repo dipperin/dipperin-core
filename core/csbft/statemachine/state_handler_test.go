@@ -155,7 +155,6 @@ func TestStateHandler_OnBlockPoolNotEmpty(t *testing.T) {
 	//}
 	s.signer.EXPECT().SignHash(gomock.Any()).Return([]byte("2222"), nil).AnyTimes()
 	s.signer.EXPECT().GetAddress().Return(common.Address{2, 3, 4}).AnyTimes()
-
 	s.sender.EXPECT().BroadcastMsg(uint64(model2.TypeOfNewRoundMsg), gomock.Any()).AnyTimes()
 	assert.NotPanics(t, s.state.OnBlockPoolNotEmpty)
 }
@@ -183,4 +182,120 @@ func TestStateHandler_OnPreVote(t *testing.T) {
 	assert.NotPanics(t, func() {
 		s.state.OnPreVote(&model.VoteMsg{})
 	})
+}
+
+func TestStateHandler_OnVote(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	assert.NotPanics(t, func() {
+		s.state.bs.Height = 2
+		s.state.bs.Votes.verifiers = append(s.state.bs.Votes.verifiers, common.Address{2, 3, 4})
+		s.state.OnVote(&model.VoteMsg{
+			Height: 2,
+			Witness: &model.WitMsg{
+				Address: common.Address{2, 3, 4},
+				Sign:    make([]byte, 65),
+			},
+		})
+	})
+}
+
+func TestStateHandler_OnTimeout(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	assert.NotPanics(t, func() {
+		s.state.OnTimeout(components.TimeoutInfo{})
+	})
+}
+
+func TestStateHandler_broadcastNewRoundMsg(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	s.signer.EXPECT().SignHash(gomock.Any()).Return([]byte("2222"), nil).AnyTimes()
+	s.signer.EXPECT().GetAddress().Return(common.Address{2, 3, 4}).AnyTimes()
+	s.sender.EXPECT().BroadcastMsg(uint64(model2.TypeOfNewRoundMsg), gomock.Any()).AnyTimes()
+	assert.NotPanics(t, s.state.broadcastNewRoundMsg)
+}
+
+func TestStateHandler_curProposer(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	assert.NotNil(t, s.state.curProposer())
+}
+
+func TestStateHandler_broadcastReqRoundMsg(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	s.sender.EXPECT().SendReqRoundMsg(uint64(model2.TypeOfReqNewRoundMsg), []common.Address{}, gomock.Any()).AnyTimes()
+	assert.NotPanics(t, func() {
+		s.state.broadcastReqRoundMsg([]common.Address{})
+	})
+}
+
+func TestStateHandler_fetchProposalBlock(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	assert.NotPanics(t, func() {
+		go s.state.fetchProposalBlock(common.Hash{}, common.Address{})
+	})
+}
+
+func TestStateHandler_onEnterNewRound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	s.signer.EXPECT().SignHash(gomock.Any()).Return([]byte("2222"), nil).AnyTimes()
+	s.signer.EXPECT().GetAddress().Return(common.Address{2, 3, 4}).AnyTimes()
+	s.sender.EXPECT().BroadcastMsg(uint64(model2.TypeOfNewRoundMsg), gomock.Any()).AnyTimes()
+	assert.NotPanics(t, func() {
+		s.state.onEnterNewRound()
+	})
+}
+
+func TestStateHandler_onEnterPropose(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	s.signer.EXPECT().GetAddress().Return(common.Address{2, 3, 4}).AnyTimes()
+	assert.NotPanics(t, s.state.onEnterPropose)
+}
+
+func TestStateHandler_finalBlock(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	s.signer.EXPECT().GetAddress().Return(common.Address{2, 3, 4}).AnyTimes()
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
 }
