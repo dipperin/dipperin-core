@@ -21,6 +21,9 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 )
 
+//go:generate mockgen -destination=./verification_mock_test.go -package=statemachine github.com/dipperin/dipperin-core/core/model AbstractVerification
+//go:generate mockgen -destination=./block_mock_test.go -package=statemachine github.com/dipperin/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=./state_mock_test.go -package=statemachine github.com/dipperin/dipperin-core/core/csbft/statemachine ChainReader,MsgSigner,MsgSender,Validator,Fetcher
 type ChainReader interface {
 	GetSeenCommit(height uint64) []model.AbstractVerification
 	SaveBlock(block model.AbstractBlock, seenCommits []model.AbstractVerification) error

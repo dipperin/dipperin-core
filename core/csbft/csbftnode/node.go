@@ -32,6 +32,9 @@ import (
 	"time"
 )
 
+//go:generate mockgen -destination=./verification_mock_test.go -package=csbftnode github.com/dipperin/dipperin-core/core/model AbstractVerification
+//go:generate mockgen -destination=./block_mock_test.go -package=csbftnode github.com/dipperin/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=./node_mock_test.go -package=csbftnode github.com/dipperin/dipperin-core/core/csbft/statemachine ChainReader,MsgSigner,MsgSender,Validator,Fetcher
 // new bft node
 func NewCsBft(config *statemachine.BftConfig) *CsBft {
 	bft := &CsBft{BftConfig: config}
