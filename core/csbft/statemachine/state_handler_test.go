@@ -6,11 +6,22 @@ import (
 	"github.com/dipperin/dipperin-core/core/csbft/components"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/stretchr/testify/assert"
+	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
 )
 
-func testState(t *testing.T) *StateHandler {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+type myStr struct {
+	state        *StateHandler
+	chain        *MockChainReader
+	fetcher      *MockFetcher
+	signer       *MockMsgSigner
+	sender       *MockMsgSender
+	validator    *MockValidator
+	block        *MockAbstractBlock
+	verification *MockAbstractVerification
+}
+
+func testState(ctrl *gomock.Controller) (my myStr) {
 	bp := components.NewBlockPool(0, nil)
 	chain := NewMockChainReader(ctrl)
 	bp.SetNodeConfig(chain)
@@ -35,11 +46,141 @@ func testState(t *testing.T) *StateHandler {
 	verification.EXPECT().GetRound().Return(uint64(2333)).AnyTimes()
 	chain.EXPECT().IsChangePoint(gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 	chain.EXPECT().GetNextVerifiers().Return([]common.Address{}).AnyTimes()
-	return NewStateHandler(config, DefaultConfig, bp)
+	NewStateHandler(config, DefaultConfig, bp)
+	my.state = NewStateHandler(config, DefaultConfig, bp)
+	my.fetcher = fetcher
+	my.signer = signer
+	my.sender = sender
+	my.validator = validator
+	my.block = block
+	my.verification = verification
+	return
 }
 
 func TestNewStateHandler(t *testing.T) {
-	if state := testState(t); state == nil {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	if s := testState(ctrl); s.state == nil {
 		t.Error("fail to NewStateHandler")
 	}
+}
+
+func TestStateHandler_OnStart(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	assert.NoError(t, s.state.OnStart())
+}
+
+func TestStateHandler_OnStop(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	assert.NotPanics(t, s.state.OnStop)
+}
+
+func TestStateHandler_OnReset(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	assert.NoError(t, s.state.OnReset())
+}
+
+func TestStateHandler_loop(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	assert.NotPanics(t, func() {
+		go s.state.loop()
+	})
+}
+
+func TestStateHandler_OnNewHeight(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	assert.NotPanics(t, func() {
+		s.state.OnNewHeight(2)
+	})
+}
+
+func TestStateHandler_OnNewRound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	assert.NotPanics(t, func() {
+		s.state.OnNewRound(&model2.NewRoundMsg{
+			Height: 2,
+			Round:  2,
+			Witness: &model.WitMsg{
+				Address: common.Address{2, 3, 4},
+				Sign:    []byte("2314"),
+			},
+		})
+	})
+}
+
+func TestStateHandler_OnBlockPoolNotEmpty(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	//var msg = &model2.NewRoundMsg{
+	//	Height: 2,
+	//	Round:  2,
+	//	Witness: &model.WitMsg{
+	//		Address: common.Address{2, 3, 4},
+	//		Sign:    []byte("2222"),
+	//	},
+	//}
+	s.signer.EXPECT().SignHash(gomock.Any()).Return([]byte("2222"), nil).AnyTimes()
+	s.signer.EXPECT().GetAddress().Return(common.Address{2, 3, 4}).AnyTimes()
+
+	s.sender.EXPECT().BroadcastMsg(uint64(model2.TypeOfNewRoundMsg), gomock.Any()).AnyTimes()
+	assert.NotPanics(t, s.state.OnBlockPoolNotEmpty)
+}
+
+func TestStateHandler_OnNewProposal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	assert.NotPanics(t, func() {
+		s.state.OnNewProposal(&model2.Proposal{})
+	})
+	//s.state.OnNewProposal(&model2.Proposal{})
+}
+
+func TestStateHandler_OnPreVote(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	s := testState(ctrl)
+	if s.state == nil {
+		t.Error("fail to NewStateHandler")
+	}
+	assert.NotPanics(t, func() {
+		s.state.OnPreVote(&model.VoteMsg{})
+	})
 }

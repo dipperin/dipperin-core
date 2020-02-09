@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/dipperin/dipperin-core/core/csbft/components"
 	model2 "github.com/dipperin/dipperin-core/core/csbft/model"
+	"github.com/dipperin/dipperin-core/third_party/p2p"
 )
 
 type myStr struct {
@@ -198,12 +199,6 @@ func TestCsBft_canStart(t *testing.T) {
 }
 
 func testForIsCurrentVerifier(ctrl *gomock.Controller, a1, a2 common.Address) bool {
-	//testCases := []struct {
-	//		name   string
-	//		given  func() error
-	//		expect result
-	//	}{}
-
 	chain := NewMockChainReader(ctrl)
 	fetcher := NewMockFetcher(ctrl)
 	signer := NewMockMsgSigner(ctrl)
@@ -269,4 +264,29 @@ func TestCsBft_isCurrentVerifier(t *testing.T) {
 			t.Log("failure")
 		}
 	}
+}
+
+func TestCsBft_OnNewP2PMsg(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	c := testReady(ctrl)
+	if c.csbft == nil {
+		t.Error("fail to NewCsBft")
+		return
+	}
+	assert.NoError(t, c.csbft.OnNewP2PMsg(p2p.Msg{}, nil))
+}
+
+func TestCsBft_onSyncBlockMsg(t *testing.T)  {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	c := testReady(ctrl)
+	if c.csbft == nil {
+		t.Error("fail to NewCsBft")
+		return
+	}
+
+	assert.NotPanics(t, func() {
+		c.csbft.onSyncBlockMsg(common.Address{},common.Hash{})
+	})
 }
