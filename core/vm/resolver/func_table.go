@@ -100,7 +100,7 @@ func newSystemFuncSet(r *Resolver) map[string]map[string]*exec.FunctionImport {
 
 			"memcpy":  &exec.FunctionImport{Execute: envMemcpy, GasCost: envMemcpyGasCost},
 			"memmove": &exec.FunctionImport{Execute: envMemmove, GasCost: envMemmoveGasCost},
-			"memcmp":  &exec.FunctionImport{Execute: envMemcpy, GasCost: envMemmoveGasCost},
+			//"memcmp":  &exec.FunctionImport{Execute: envMemcpy, GasCost: envMemmoveGasCost},
 			"memset":  &exec.FunctionImport{Execute: envMemset, GasCost: envMemsetGasCost},
 
 			"prints":     &exec.FunctionImport{Execute: r.envPrints, GasCost: envPrintsGasCost},

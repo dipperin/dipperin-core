@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/core/vm/base"
 	"github.com/dipperin/dipperin-core/core/vm/base/utils"
 	"github.com/dipperin/dipperin-core/tests/factory/vminfo"
@@ -43,7 +44,7 @@ func Test_findParams(t *testing.T) {
 				_, _, err = findParams(lifeVm, []byte{}, callFuncName, []interface{}{[]byte{}})
 				return result{err, []int64{}, ""}
 			},
-			expect: result{errInvalidAbi, []int64{}, ""},
+			expect: result{gerror.ErrInvalidAbi, []int64{}, ""},
 		},
 		{
 			name: "errInputParam",
@@ -51,7 +52,7 @@ func Test_findParams(t *testing.T) {
 				_, _, err = findParams(lifeVm, abi, callFuncName, []interface{}{})
 				return result{err, []int64{}, ""}
 			},
-			expect: result{errInputAbiNotMatch, []int64{}, ""},
+			expect: result{gerror.ErrInputAbiNotMatch, []int64{}, ""},
 		},
 		{
 			name: "CallFindParamsRight",
@@ -92,7 +93,7 @@ func Test_ParseCreateExtraData(t *testing.T) {
 		expect result
 	}{
 		{
-			name: "errEmptyInput",
+			name: "ErrEmptyInput",
 			given: func() result {
 				rlpDataErr := "errData"
 				code, abi, rlpInit, err := ParseCreateExtraData([]byte(rlpDataErr))
@@ -103,10 +104,10 @@ func Test_ParseCreateExtraData(t *testing.T) {
 					err:     err,
 				}
 			},
-			expect: result{nil, nil, nil, errInvalidRlpFormat},
+			expect: result{nil, nil, nil, gerror.ErrInvalidRlpFormat},
 		},
 		{
-			name: "errInsufficientParams",
+			name: "ErrInsufficientParams",
 			given: func() result {
 				rlpData, err := rlp.EncodeToBytes([]interface{}{code})
 				code, abi, rlpInit, err := ParseCreateExtraData([]byte(rlpData))
@@ -117,7 +118,7 @@ func Test_ParseCreateExtraData(t *testing.T) {
 					err:     err,
 				}
 			},
-			expect: result{nil, nil, nil, errInsufficientParams},
+			expect: result{nil, nil, nil, gerror.ErrInsufficientParams},
 		},
 		{
 			name: "RightParseCreateExtraData",
@@ -173,7 +174,7 @@ func Test_ParseCallExtraDataByABI(t *testing.T) {
 		expect result
 	}{
 		{
-			name: "errInvalidRlpFormat",
+			name: "ErrInvalidRlpFormat",
 			given: func() *result {
 				input, err := rlp.EncodeToBytes("result")
 				assert.NoError(t, err)
@@ -185,7 +186,7 @@ func Test_ParseCallExtraDataByABI(t *testing.T) {
 					err:        err,
 				}
 			},
-			expect: result{"", []int64{}, "", errInvalidRlpFormat},
+			expect: result{"", []int64{}, "", gerror.ErrInvalidRlpFormat},
 		},
 		{
 			name: "ParseCallExtraDataByABIRight",
@@ -200,7 +201,7 @@ func Test_ParseCallExtraDataByABI(t *testing.T) {
 					err:        err,
 				}
 			},
-			expect: result{callFuncName, []int64{131072}, "string", errInvalidRlpFormat},
+			expect: result{callFuncName, []int64{131072}, "string", gerror.ErrInvalidRlpFormat},
 		},
 	}
 
@@ -233,7 +234,7 @@ func Test_ParseInitFunctionByABI(t *testing.T) {
 		expect result
 	}{
 		{
-			name: "errInvalidRlpFormat",
+			name: "ErrInvalidRlpFormat",
 			given: func() *result {
 				input, err := rlp.EncodeToBytes("result")
 				assert.NoError(t, err)
@@ -247,7 +248,7 @@ func Test_ParseInitFunctionByABI(t *testing.T) {
 					err:        err,
 				}
 			},
-			expect: result{[]int64{}, "", errInvalidRlpFormat},
+			expect: result{[]int64{}, "", gerror.ErrInvalidRlpFormat},
 		},
 		{
 			name: "ParseInitFunctionByABIRight",

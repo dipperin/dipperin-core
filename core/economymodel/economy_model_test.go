@@ -288,7 +288,7 @@ func TestDipperinEconomyModel_GetVerifierDIPReward(t *testing.T) {
 			expectResult:map[VerifierType]*big.Int{MasterVerifier:big.NewInt(75362318840579710),CommitVerifier:big.NewInt(150724637681159420), NotCommitVerifier:big.NewInt(37681159420289855)},
 		},
 		{
-			name:"HeightInTenYear",
+			name:"HeightInElevenYear",
 			given: func()  *model.MockAbstractBlock {
 				mockBlock1 := model.NewMockAbstractBlock(controller)
 				mockBlock1.EXPECT().Number().Return(uint64(HeightAfterTenYear + 1)).AnyTimes()
@@ -349,22 +349,59 @@ func TestDipperinEconomyModel_GetInvestorLockDIP(t *testing.T) {
 	economyModel := MakeDipperinEconomyModel(service, DIPProportion)
 	investorTotalDIP := big.NewInt(0).Mul(big.NewInt(262800000000000000), big.NewInt(consts.GDIPUNIT))
 
-	// unlocking by quarters each year
-	for i := 1; i <= 4; i++ {
-		blockNumber := HeightAfterOneYear / 4 * uint64(i)
-		lockDIP, err := economyModel.GetInvestorLockDIP(InvestorAddresses[0], blockNumber)
-		assert.NoError(t, err)
-
-		unlockDIP := big.NewInt(0).Div(investorTotalDIP, big.NewInt(10))
-		unlockDIP.Mul(unlockDIP, big.NewInt(int64(i)))
-		unlockDIP.Div(unlockDIP, big.NewInt(4))
-		lockValue := big.NewInt(0).Sub(investorTotalDIP, unlockDIP)
-
-		assert.EqualValues(t, lockValue, lockDIP)
+	testCases := []struct{
+		name string
+		given func()(common.Address, uint64, *big.Int)
+		expect error
+	}{
+		{
+			name:"blockNumberIs0",
+			given: func() (common.Address, uint64, *big.Int){
+				blockNumber := uint64(0)
+				return InvestorAddresses[0],blockNumber, big.NewInt(0)
+			},
+			expect:gerror.ErrBlockNumberIs0,
+		},
+		{
+			name:"ErrAddress",
+			given: func() (common.Address, uint64, *big.Int) {
+				blockNumber := uint64(0)
+				return common.Address{}, blockNumber, big.NewInt(0)
+			},
+			expect:gerror.ErrAddress,
+		},
+		{
+			name:"firstYearQuarterOne",
+			given: func() (common.Address, uint64, *big.Int) {
+				blockNumber := HeightAfterOneYear / 4 * uint64(1)
+				unlockDIP := big.NewInt(0).Div(investorTotalDIP, big.NewInt(10))
+				unlockDIP.Mul(unlockDIP, big.NewInt(int64(1)))
+				unlockDIP.Div(unlockDIP, big.NewInt(4))
+				lockValue := big.NewInt(0).Sub(investorTotalDIP, unlockDIP)
+				return InvestorAddresses[0], blockNumber, lockValue
+			},
+			expect:nil,
+		},
+		{
+			name:"AfterFiveYear",
+			given: func() (common.Address, uint64, *big.Int) {
+				blockNumber := 5 * HeightAfterOneYear + HeightAfterOneYear / 4 * uint64(1)
+				return InvestorAddresses[0],blockNumber, big.NewInt(0)
+			},
+			expect:nil,
+		},
 	}
 
-	_, err := economyModel.GetInvestorLockDIP(common.Address{}, 2)
-	assert.Equal(t, gerror.ErrAddress, err)
+	for _, tc := range testCases{
+		addr, blockNum, lockValue := tc.given()
+		lockDip, err := economyModel.GetInvestorLockDIP(addr, blockNum)
+		if err != nil {
+			assert.Equal(t, tc.expect, err)
+		}else {
+			assert.Equal(t, lockValue, lockDip)
+		}
+
+	}
 }
 
 // test developer unlocking mechanism
@@ -404,17 +441,38 @@ func TestDipperinEconomyModel_GetDeveloperLockDIP(t *testing.T) {
 //}
 
 func TestCalcDIPTotalCirculation(t *testing.T) {
-	value := CalcDIPTotalCirculation(0)
-	assert.Equal(t, big.NewInt(0), value)
+	testCases := []struct{
+		name string
+		given uint64
+		expect *big.Int
+	}{
+		{
+			name:"zeroYear",
+			given:0,
+			expect:big.NewInt(0),
+		},
+		{
+			name:"oneYear",
+			given:1,
+			expect:big.NewInt(0).Mul(big.NewInt(78840000), big.NewInt(consts.DIP)),
+		},
+		{
+			name:"fiveYear",
+			given:5,
+			expect:big.NewInt(0).Mul(big.NewInt(394200000), big.NewInt(consts.DIP)),
+		},
+		{
+			name:"fifteenYear",
+			given:15,
+			expect:big.NewInt(0).Mul(big.NewInt(3788167915366200000), big.NewInt(consts.GDIPUNIT)),
+		},
+	}
 
-	value = CalcDIPTotalCirculation(1)
-	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(78840000), big.NewInt(consts.DIP)), value)
+	for _,tc := range testCases{
+		input := tc.given
+		assert.Equal(t, tc.expect, CalcDIPTotalCirculation(input))
+	}
 
-	value = CalcDIPTotalCirculation(5)
-	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(394200000), big.NewInt(consts.DIP)), value)
-
-	value = CalcDIPTotalCirculation(15)
-	assert.Equal(t, big.NewInt(0).Mul(big.NewInt(3788167915366200000), big.NewInt(consts.GDIPUNIT)), value)
 }
 
 func TestDipperinEconomyModel_GetDiffVerifierAddress(t *testing.T) {

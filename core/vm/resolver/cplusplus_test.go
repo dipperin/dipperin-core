@@ -338,8 +338,10 @@ func Test_envGetSignerAddress(t *testing.T)  {
 	sha3Data := "f2abd116754ce66ff83fb14f3d7f8b104ab0201a74398cafc3f4719e90ca114e"
 	signatureData := "8759548f229a2cebdc608a1496105906993850891b9e6e406e391d7442da2aef3330d5cb379188ad56e656c6aa3ea7c42968ca63a07527d3dbaae9932c218b8f00"
 
+	sha3DataBytes := common.Hex2Bytes(sha3Data)
+
 	sha3DataStart := int64(0)
-	sha3DataLen := int64(len(sha3Data))
+	sha3DataLen := int64(len(sha3DataBytes))
 	signatureStart := sha3DataLen
 	signatureLen := int64(len(signatureData))
 	returnStart := int64(len(sha3Data)+len(signatureData))
@@ -355,7 +357,7 @@ func Test_envGetSignerAddress(t *testing.T)  {
 
 	//address := vm.Memory.Memory[addr:addr+common.AddressLength]
 	backend := vm.Memory.Memory[sha3DataStart+sha3DataLen:]
-	vm.Memory.Memory = append(append(vm.Memory.Memory[:sha3DataStart],  sha3Data...), backend...)
+	vm.Memory.Memory = append(append(vm.Memory.Memory[:sha3DataStart],  sha3DataBytes...), backend...)
 	backendSign := vm.Memory.Memory[signatureStart+signatureLen:]
 	vm.Memory.Memory = append(append(vm.Memory.Memory[:signatureStart],  signatureData...), backendSign...)
 

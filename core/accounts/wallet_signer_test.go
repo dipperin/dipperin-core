@@ -21,6 +21,7 @@ import (
 	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/common/util"
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
+	"github.com/dipperin/dipperin-core/third_party/crypto"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"path/filepath"
@@ -29,9 +30,15 @@ import (
 
 var TestSeed = []byte{0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02,
 	0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02}
-var TestAddress = common.Address{0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12,
-	0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12}
+var TestAddress = common.Address{0,0,242,20,126,130,14,11,206,229,189,115,83,59,176,241,164,201,156,211,232,164,}
 var Path = filepath.Join(util.HomeDir(), "/tmp/testSoftWallet1")
+var sign = []byte{
+	17,21,169,122,83,118,144,135,206,154,17,118,109,93,227,215,151,170,7,116,68,134,239,239,102,209,137,157,96,211,212,78,17,174,183,108,154,76,150,70,134,88,31,217,118,154,107,145,22,210,206,193,112,115,8,133,153,227,164,249,63,27,44,40,1,
+}
+
+
+
+
 
 //签名hash值
 var TestHashData = [32]byte{0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04,
@@ -160,25 +167,48 @@ func TestWalletSigner_SignHash(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-/*func TestWalletSigner_ValidSign(t *testing.T) {
-	ctrl, _, _ , walletSigner := getWalletSigner(t)
+func TestWalletSigner_ValidSign(t *testing.T) {
+	ctrl, wallet, _ , walletSigner := getWalletSigner(t)
 	ctrl.Finish()
 
-	//test travis
-	//assert.Error(t,err)
+	var pk = []byte{
+		4,247,158,61,109,132,5,231,184,173,19,231,66,132,176,212,161,94,87,186,194,111,134,150,214,35,173,96,61,192,230,207,37,184,111,138,162,5,161,129,52,52,154,135,74,134,72,128,249,43,84,99,97,131,216,232,247,212,17,125,167,17,112,187,50,
+	}
 
-	signature, err := walletSigner.SignHash(wallet.TestHashData[:])
+	wallet.EXPECT().Contains(accountsbase.Account{TestAddress}).Return(true, nil).AnyTimes()
+	wallet.EXPECT().SignHash(accountsbase.Account{TestAddress}, TestHashData[:]).Return(sign, nil)
+	pkTemp, err  := crypto.UnmarshalPubkey(pk)
+	assert.NoError(t, err)
+	wallet.EXPECT().GetPKFromAddress(accountsbase.Account{TestAddress}).Return(pkTemp,nil)
+	signature, err := walletSigner.SignHash(TestHashData[:])
 	assert.NoError(t, err)
 
-	pk := crypto.FromECDSAPub(walletSigner.PublicKey())
 
-	err = walletSigner.ValidSign(wallet.TestHashData[:], pk, []byte{})
-	assert.Equal(t, gerror.ErrEmptySign, err)
+	testCases := []struct{
+		name string
+		given []byte
+		expect error
+	}{
+		{
+			name:"ErrEmptySign",
+			given:[]byte{},
+			expect:gerror.ErrEmptySign,
+		},
+		{
+			name:"ErrSignatureInvalid",
+			given:signature[:10],
+			expect:gerror.ErrSignatureInvalid,
+		},
+		{
+			name:"ErrEmptySign",
+			given:signature,
+			expect:nil,
+		},
+	}
 
-	err = walletSigner.ValidSign(wallet.TestHashData[:], pk, signature[:10])
-	assert.Equal(t, gerror.ErrSignatureInvalid, err)
-
-	err = walletSigner.ValidSign(wallet.TestHashData[:], pk, signature)
-	assert.NoError(t, err)
-	os.Remove(wallet.Path)
-}*/
+	for _,tc := range testCases{
+		input := tc.given
+		err := walletSigner.ValidSign(TestHashData[:],pk, input)
+		assert.Equal(t, tc.expect, err)
+	}
+}

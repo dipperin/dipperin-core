@@ -255,6 +255,37 @@ func getCreateExtraData(wasmPath, abiPath string, params []string) (extraData []
 	return rlp.EncodeToBytes(rlpParams)
 }
 
+
+func getCreateExtraDataFromConfig(code, abi []byte, params []string) (extraData []byte, err error) {
+
+	var wasmAbi utils.WasmAbi
+	err = wasmAbi.FromJson(abi)
+	if err != nil {
+		return
+	}
+	var args []utils.InputParam
+	for _, v := range wasmAbi.AbiArr {
+		if strings.EqualFold("init", v.Name) && strings.EqualFold(v.Type, "function") {
+			args = v.Inputs
+		}
+	}
+	rlpParams := []interface{}{
+		code, abi,
+	}
+	if len(params) != len(args) {
+		return nil, errors.New("vm_utils: length of input and abi not match")
+	}
+	for i, v := range args {
+		bts := params[i]
+		re, innerErr := utils.StringConverter(bts, v.Type)
+		if innerErr != nil {
+			return nil, innerErr
+		}
+		rlpParams = append(rlpParams, re)
+	}
+	return rlp.EncodeToBytes(rlpParams)
+}
+
 //Get a test transaction
 func getTestRegisterTransaction(nonce uint64, key *ecdsa.PrivateKey, amount *big.Int) *model.Transaction {
 	trans := model.NewRegisterTransaction(nonce, amount, model.TestGasPrice, model.TestGasLimit)

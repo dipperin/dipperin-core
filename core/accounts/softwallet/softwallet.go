@@ -423,16 +423,17 @@ func (w *SoftWallet) Close() error {
 	}
 
 	//Calculate wallet data cipher and mac value using wallet internal derivative key
-	var err error
-	w.walletFileInfo.WalletCipher, err = CalWalletCipher(w.walletInfo, w.walletFileInfo.SymmetricAlgorithm.IV[:], w.symmetricKey)
-	if err != nil {
-		return err
-	}
+	// todo  rm this  to  verifier is it right
+	//var err error
+	//w.walletFileInfo.WalletCipher, err = CalWalletCipher(w.walletInfo, w.walletFileInfo.SymmetricAlgorithm.IV[:], w.symmetricKey)
+	//if err != nil {
+	//	return err
+	//}
 
 	//Set the wallet status to "close". Encrypt the wallet data and write to a local file.
 	w.status = accountsbase.Closed
 
-	err = w.encryptWalletAndWriteFile(CloseWallet)
+	err := w.encryptWalletAndWriteFile(CloseWallet)
 	if err != nil {
 		return err
 	}
@@ -549,10 +550,11 @@ func (w *SoftWallet) Derive(path accountsbase.DerivationPath, save bool) (accoun
 	}
 
 	//update wallet file
-	w.walletFileInfo.WalletCipher, err = CalWalletCipher(w.walletInfo, w.walletFileInfo.SymmetricAlgorithm.IV[:], w.symmetricKey)
-	if err != nil {
-		return accountsbase.Account{}, err
-	}
+	// todo  rm this  to  verifier is it right
+	//w.walletFileInfo.WalletCipher, err = CalWalletCipher(w.walletInfo, w.walletFileInfo.SymmetricAlgorithm.IV[:], w.symmetricKey)
+	//if err != nil {
+	//	return accountsbase.Account{}, err
+	//}
 	err = w.encryptWalletAndWriteFile(CloseWallet)
 	if err != nil {
 		return accountsbase.Account{}, err

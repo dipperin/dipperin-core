@@ -25,6 +25,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/accounts/accountsbase"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/dipperin/dipperin-core/core/vm/base/utils"
+	"github.com/dipperin/dipperin-core/tests/factory/vminfo"
 	"github.com/dipperin/dipperin-core/third_party/crypto"
 	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -270,11 +271,12 @@ func TestContractNewFeature(t *testing.T) {
 		aliceAddress,
 	}
 
-	WASMPath := model.GetWASMPath("demo", model.CoreVmTestData)
-	abiPath := model.GetAbiPath("demo", model.CoreVmTestData)
+	code, abi := vminfo.GetTestData("demo")
+	//WASMPath := model.GetWASMPath("demo", model.CoreVmTestData)
+	//abiPath := model.GetAbiPath("demo", model.CoreVmTestData)
 	input := []string{"0x0000D36F282D8925B16Ed24CB637475e6a03B01E1056"}
 	//0x0000D36F282D8925B16Ed24CB637475e6a03B01E1056
-	data, err := getCreateExtraData(WASMPath, abiPath, input)
+	data, err := getCreateExtraDataFromConfig(code, abi, input)
 	assert.NoError(t, err)
 
 	addr := common.HexToAddress(common.AddressContractCreate)
@@ -298,85 +300,6 @@ func TestContractNewFeature(t *testing.T) {
 
 	err = processor.ProcessTxNew(config)
 	assert.NoError(t, err)
-}
-
-func TestContractWithNewFeature(t *testing.T) {
-	singer := model.NewSigner(new(big.Int).SetInt64(int64(1)))
-
-	ownSK, _ := crypto.GenerateKey()
-	ownPk := ownSK.PublicKey
-	ownAddress := cs_crypto.GetNormalAddress(ownPk)
-
-	aliceSK, _ := crypto.GenerateKey()
-	alicePk := aliceSK.PublicKey
-	aliceAddress := cs_crypto.GetNormalAddress(alicePk)
-
-	brotherSK, _ := crypto.GenerateKey()
-	brotherPk := brotherSK.PublicKey
-	brotherAddress := cs_crypto.GetNormalAddress(brotherPk)
-
-	addressSlice := []common.Address{
-		ownAddress,
-		aliceAddress,
-		brotherAddress,
-	}
-
-	//WASMPath := g_testData.GetWASMPath("token", g_testData.CoreVmTestData)
-	//abiPath := g_testData.GetAbiPath("token", g_testData.CoreVmTestData)
-	WASMPath := model.GetWASMPath("token-param", model.CoreVmTestData)
-	abiPath := model.GetAbiPath("token-param", model.CoreVmTestData)
-	input := []string{"dipp", "DIPP", "1000000"}
-	data, err := getCreateExtraData(WASMPath, abiPath, input)
-	assert.NoError(t, err)
-
-	addr := common.HexToAddress(common.AddressContractCreate)
-	tx := model.NewTransaction(0, addr, big.NewInt(0), big.NewInt(1), 26427000, data)
-	signCreateTx := getSignedTx(t, ownSK, tx, singer)
-
-	gasLimit := testGasLimit * 10000000000
-	block := CreateBlock(1, common.Hash{}, []*model.Transaction{signCreateTx}, gasLimit)
-	processor, err := CreateProcessorAndInitAccount(t, addressSlice)
-
-	tmpGasLimit := block.GasLimit()
-	gasUsed := block.GasUsed()
-	config := &TxProcessConfig{
-		Tx:       tx,
-		Header:   block.Header(),
-		GetHash:  getTestHashFunc(),
-		GasLimit: &tmpGasLimit,
-		GasUsed:  &gasUsed,
-		TxFee:    big.NewInt(0),
-	}
-
-	err = processor.ProcessTxNew(config)
-	assert.NoError(t, err)
-
-	contractAddr := cs_crypto.CreateContractAddress(ownAddress, uint64(0))
-	_, err = processor.GetNonce(contractAddr)
-	_, err = processor.GetCode(contractAddr)
-	abi, err := processor.GetAbi(contractAddr)
-	assert.NoError(t, err)
-	//assert.Equal(t, code, tx.ExtraData())
-	processor.Commit()
-
-	accountOwn := accountsbase.Account{ownAddress}
-	//  合约调用getBalance方法  获取合约原始账户balance
-	ownTransferNonce, err := processor.GetNonce(ownAddress)
-	assert.NoError(t, err)
-	err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", ownAddress.Hex(), 2, singer)
-	assert.NoError(t, err)
-
-	//gasUsed2 := uint64(0)
-	//  合约调用  transfer方法 转账给alice
-	ownTransferNonce++
-	err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "transfer", aliceAddress.Hex()+",20", 3, singer)
-	assert.NoError(t, err)
-
-	//  合约调用getBalance方法  获取alice账户balance
-	ownTransferNonce++
-	err = processContractCall(t, contractAddr, abi, ownSK, processor, accountOwn, ownTransferNonce, "getBalance", aliceAddress.Hex(), 4, singer)
-	assert.NoError(t, err)
-
 }
 
 func TestContractPaymentChannel(t *testing.T) {

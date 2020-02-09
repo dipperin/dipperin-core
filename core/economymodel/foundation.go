@@ -94,7 +94,7 @@ func MakeDipperinFoundation(proportion AddressDIPProportion) *DipperinFoundation
 }*/
 
 // calculate early token reward
-// Reward(n) = 5-0.4*∑(t-1) t in 1~n
+// Reward(n) = 5-0.4*∑(t-1)    t in 1~n
 func calcEarlyTokenValue(DIPReward *big.Int, blockNumber uint64, tokenDecimals int) (*big.Int, error) {
 	if blockNumber == 0 {
 		return big.NewInt(0), gerror.ErrBlockNumberIs0

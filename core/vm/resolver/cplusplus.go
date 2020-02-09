@@ -379,6 +379,8 @@ func (r *Resolver) envBalance(vm *exec.VirtualMachine) int64 {
 	return 0
 }
 
+
+//  todo  it seems duplicate with envCaller
 // define: void origin(char addr[22]);
 func (r *Resolver) envOrigin(vm *exec.VirtualMachine) int64 {
 	offset := int(int32(vm.GetCurrentFrame().Locals[0]))
@@ -437,7 +439,7 @@ func (r *Resolver) envSha3(vm *exec.VirtualMachine) int64 {
 	destSize := int(int32(vm.GetCurrentFrame().Locals[3]))
 	data := vm.Memory.Memory[offset : offset+size]
 	hash := crypto.Keccak256(data)
-	log.DLogger.Info("envSha3 called", zap.Uint8s("hash", hash), zap.String("hasHex", common.Bytes2Hex(hash)))
+	log.DLogger.Info("envSha3 called", zap.Uint8s("hash", hash), zap.String("hasHex", common.Bytes2Hex(hash)), zap.Int("destSize", destSize), zap.Int("hash len", len(hash)))
 	if destSize < len(hash) {
 		// todo
 		return 1
@@ -550,12 +552,12 @@ func (r *Resolver) envGetSignerAddress(vm *exec.VirtualMachine) int64 {
 
 	//crypto.VerifySignature(r.Service.Self().Address().)
 
-	log.DLogger.Info("Resolver#envVerifySignature", zap.String("sha3Data", string(sha3Data)), zap.String("signature",   string(signature)))
+	log.DLogger.Info("Resolver#envVerifySignature", zap.String("sha3Data hex", common.Bytes2Hex(sha3Data)), zap.String("signature",   string(signature)))
 
+	//sha3Byte := common.Hex2Bytes(sha3Data)
 	signByte := common.Hex2Bytes(string(signature))
-	sha3Byte := common.Hex2Bytes(string(sha3Data))
-	log.DLogger.Info("signByte len", zap.Int("hash byte len", len(signByte)),zap.Int("sha3 byte len", len(sha3Byte)))
-	pK, err := crypto.SigToPub(sha3Byte, signByte)
+	log.DLogger.Info("signByte len",zap.Int("sha3 byte len", len(sha3Data)), zap.Int("hash byte len", len(signByte)))
+	pK, err := crypto.SigToPub(sha3Data, signByte)
 	if err != nil {
 		log.DLogger.Error("Sig To Pub err ", zap.Error( err))
 		return 1
@@ -587,7 +589,7 @@ func (r *Resolver) envCallTransferUDIP(vm *exec.VirtualMachine) int64 {
 	}
 }
 
-
+// todo
 func (r *Resolver) envDipperCall(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
@@ -604,6 +606,7 @@ func (r *Resolver) envDipperCall(vm *exec.VirtualMachine) int64 {
 	return 0
 }
 
+// todo
 func (r *Resolver) envDipperDelegateCall(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
@@ -620,6 +623,7 @@ func (r *Resolver) envDipperDelegateCall(vm *exec.VirtualMachine) int64 {
 	return 0
 }
 
+// todo
 func (r *Resolver) envDipperCallInt64(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
@@ -638,6 +642,7 @@ func (r *Resolver) envDipperCallInt64(vm *exec.VirtualMachine) int64 {
 	return res.(int64)
 }
 
+// todo
 func (r *Resolver) envDipperDelegateCallInt64(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
@@ -656,6 +661,8 @@ func (r *Resolver) envDipperDelegateCallInt64(vm *exec.VirtualMachine) int64 {
 	return res.(int64)
 }
 
+
+// todo
 func (r *Resolver) envDipperCallString(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))
@@ -674,6 +681,7 @@ func (r *Resolver) envDipperCallString(vm *exec.VirtualMachine) int64 {
 	return MallocString(vm, string(ret))
 }
 
+// todo
 func (r *Resolver) envDipperDelegateCallString(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	params := int(int32(vm.GetCurrentFrame().Locals[1]))

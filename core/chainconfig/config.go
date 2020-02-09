@@ -65,6 +65,7 @@ const (
 
 	NormalTransactionGas = int64(2100)
 	DefaultGasPrice      = int64(1)
+	DefaultBlockGenerateInterval = uint64(13)
 
 	// BloomBitsBlocks is the number of blocks a single bloom bit section vector
 	// contains on the server side.
@@ -107,7 +108,8 @@ func defaultChainConfig() *ChainConfig {
 		//mining maximum difficulty value
 		MainPowLimit: new(big.Int).Sub(new(big.Int).Lsh(bigOne, 253), bigOne),
 		//average block generation duration
-		BlockGenerate: uint64(13),
+		//BlockGenerate: uint64(13),
+		BlockGenerate: DefaultBlockGenerateInterval,
 		//the block number in a difficulty adjust cycle
 		BlockCountOfPeriod: uint64(4096),
 

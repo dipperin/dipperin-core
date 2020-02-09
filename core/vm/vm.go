@@ -101,7 +101,12 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 
 		vm.state.CreateAccount(addr)
 	}
-	vm.Transfer(vm.state, caller.Address(), to.Address(), value)
+	if value != big.NewInt(0){
+		err = vm.Transfer(vm.state, caller.Address(), to.Address(), value)
+		if err != nil {
+			return ret, gas, err
+		}
+	}
 
 	// Initialise a new contract and set the code that is to be used by the EVM.
 	// The contract is a scoped environment for this execution context only.

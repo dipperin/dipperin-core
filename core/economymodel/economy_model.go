@@ -20,11 +20,10 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/consts"
 	"github.com/dipperin/dipperin-core/common/gerror"
+	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/model"
 	"go.uber.org/zap"
-
-	"github.com/dipperin/dipperin-core/common/log"
 	"math/big"
 )
 
@@ -90,6 +89,7 @@ var (
 	IssuingRate = 3
 
 	// block interval is 8s, namely 8 seconds one block
+	// todo  there is a problem that the block generate interval is not equal the chainconfig.DefaultBlockGenerateInterval, should use the chainconfig.DefaultBlockGenerateInterval
 	GenerateBlockDuration = 8
 
 	// set the minimal deposit to register as a verifier
@@ -336,7 +336,9 @@ func (economyModel *DipperinEconomyModel) calcDifferentVerifierReward(totalRewar
 	return verifierReward
 }
 
-// calculate the amount of unlocked DIP for investors and developers for different height
+
+// todo  this method seems to be wrong
+// calculate the amount of locked DIP for investors and developers for different height
 func (economyModel *DipperinEconomyModel) calcLockDIP(unlockType PreMineMainType, address common.Address, blockNumber uint64) (*big.Int, error) {
 	unlockTotalDIP := make(map[common.Address]*big.Int, 0)
 	unlockInfo := make(map[int]int64, 0)
@@ -358,7 +360,7 @@ func (economyModel *DipperinEconomyModel) calcLockDIP(unlockType PreMineMainType
 		// locking period is bypassed
 		year := (blockNumber + HeightAfterOneYear - 1) / HeightAfterOneYear
 		if _, ok = unlockInfo[int(year)]; !ok {
-			return totalDIP, nil
+			return big.NewInt(0), nil
 		}
 		unlockMoney := big.NewInt(0)
 		for i := 1; i <= int(year); i++ {

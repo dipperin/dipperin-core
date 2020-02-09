@@ -648,7 +648,7 @@ func TestVM_Create_Error(t *testing.T) {
 
 	vm.GetStateDB().AddBalance(caller.Address(), big.NewInt(10000))
 	_, _, _, err = vm.Create(caller, nil, gasLimit, value)
-	assert.Equal(t, errEmptyInput, err)
+	assert.Equal(t, ErrEmptyInput, err)
 
 	input, _ := rlp.EncodeToBytes([]interface{}{"code", "abi"})
 	_, _, _, err = vm.Create(caller, input, gasLimit, value)

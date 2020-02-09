@@ -113,7 +113,7 @@ func envMalloc(vm *exec.VirtualMachine) int64 {
 
 	pos := vm.Memory.Malloc(size)
 	if pos == -1 {
-		panic("melloc error...")
+		panic("malloc error...")
 	}
 
 	//log.DLogger.Info("Malloc Memory", "pos", pos, "size", size)
