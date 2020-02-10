@@ -28,6 +28,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
+//go:generate mockgen -destination=./chain_interface_mock_test.go -package=middleware github.com/dipperin/dipperin-core/core/cschain/chainwriter/middleware ChainInterface
 type ChainInterface interface {
 	StateReader
 	StateWriter

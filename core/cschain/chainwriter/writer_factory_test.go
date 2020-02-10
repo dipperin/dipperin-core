@@ -16,17 +16,21 @@
 
 package chainwriter
 
-import "github.com/dipperin/dipperin-core/core/cschain/chainwriter/middleware"
+import (
+	"github.com/dipperin/dipperin-core/core/model"
+	"github.com/stretchr/testify/assert"
+	"testing"
+	
+	"github.com/dipperin/dipperin-core/core/cschain/chainwriter/middleware"
+)
 
-type ChainWriter interface {
-	SaveBlock() error
+func TestNewChainWriterFactory(t *testing.T) {
+	f := NewChainWriterFactory()
+	f.SetChain(nil)
+	f.NewWriter(&middleware.BlockContext{})
+	f.NewWriter(&middleware.BftBlockContext{})
+	f.NewWriter(&middleware.BftBlockContextWithoutVotes{})
+	assert.Panics(t, func() {
+		f.NewWriter(&model.Block{})
+	})
 }
-
-type AbstractChainWriterFactory interface {
-	NewWriter(context interface{}) ChainWriter
-	SetChain(chain middleware.ChainInterface)
-}
-
-//go:generate mockgen -destination=./chain_interface_mock_test.go -package=chainwriter github.com/dipperin/dipperin-core/core/cschain/chainwriter/middleware ChainInterface
-
-//go:generate mockgen -destination=./block_mock_test.go -package=chainwriter github.com/dipperin/dipperin-core/core/model AbstractBlock
