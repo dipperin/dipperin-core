@@ -28,6 +28,7 @@ import (
 )
 
 //go:generate mockgen -destination=./peer_mock_test.go -package=chaincommunication github.com/dipperin/dipperin-core/core/chaincommunication PmAbstractPeer
+//go:generate mockgen -destination=../mine/mineworker/peer_mock_test.go -package=mineworker github.com/dipperin/dipperin-core/core/chaincommunication PmAbstractPeer
 // is responsible for sending and receiving messages
 type PmAbstractPeer interface {
 	// add node name
