@@ -136,6 +136,7 @@ type AbstractTransaction interface {
 	GetActualTxFee() (fee *big.Int)
 }
 
+//go:generate mockgen -destination=./../cschain/chainwriter/middleware/verification_mock_test.go -package=middleware github.com/dipperin/dipperin-core/core/model AbstractVerification
 type AbstractVerification interface {
 	GetHeight() uint64
 	GetRound() uint64

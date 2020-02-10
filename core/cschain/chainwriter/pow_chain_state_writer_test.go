@@ -16,17 +16,23 @@
 
 package chainwriter
 
-import "github.com/dipperin/dipperin-core/core/cschain/chainwriter/middleware"
+import (
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"testing"
+	
+	"github.com/dipperin/dipperin-core/core/cschain/chainwriter/middleware"
+)
 
-type ChainWriter interface {
-	SaveBlock() error
+func TestNewPowChainWriter(t *testing.T) {
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+	mc := NewMockChainInterface(controller)
+	mb := NewMockAbstractBlock(controller)
+	mb.EXPECT().IsSpecial().Return(true)
+	//mb.EXPECT().Version().Return(uint64(100))
+	mb.EXPECT().Number().Return(uint64(1))
+	mc.EXPECT().GetBlockByNumber(gomock.Any()).Return(nil).AnyTimes()
+	
+	assert.Error(t, NewPowChainWriter(&middleware.BlockContext{Block: mb, Chain: mc}, mc).SaveBlock())
 }
-
-type AbstractChainWriterFactory interface {
-	NewWriter(context interface{}) ChainWriter
-	SetChain(chain middleware.ChainInterface)
-}
-
-//go:generate mockgen -destination=./chain_interface_mock_test.go -package=chainwriter github.com/dipperin/dipperin-core/core/cschain/chainwriter/middleware ChainInterface
-
-//go:generate mockgen -destination=./block_mock_test.go -package=chainwriter github.com/dipperin/dipperin-core/core/model AbstractBlock

@@ -14,19 +14,25 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-package chainwriter
+package middleware
 
-import "github.com/dipperin/dipperin-core/core/cschain/chainwriter/middleware"
+import (
+	"github.com/dipperin/dipperin-core/common"
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
-type ChainWriter interface {
-	SaveBlock() error
+func TestValidStateRoot(t *testing.T) {
+	_, _, _, passChain := getTxTestEnv(t)
+	assert.Error(t, ValidStateRoot(&BlockContext{
+		Block: &fakeBlock{},
+		Chain: passChain,
+	})())
 }
 
-type AbstractChainWriterFactory interface {
-	NewWriter(context interface{}) ChainWriter
-	SetChain(chain middleware.ChainInterface)
+func TestValidSateRootForTest(t *testing.T) {
+	_, _, _, passChain := getTxTestEnv(t)
+	assert.Error(t, ValidSateRootForTest(common.Hash{}, passChain.GetEconomyModel(), passChain.BlockProcessor, &fakeBlock{}))
+	passChain.state = nil
+	assert.Error(t, ValidSateRootForTest(common.Hash{}, passChain.GetEconomyModel(), passChain.BlockProcessor, &fakeBlock{}))
 }
-
-//go:generate mockgen -destination=./chain_interface_mock_test.go -package=chainwriter github.com/dipperin/dipperin-core/core/cschain/chainwriter/middleware ChainInterface
-
-//go:generate mockgen -destination=./block_mock_test.go -package=chainwriter github.com/dipperin/dipperin-core/core/model AbstractBlock

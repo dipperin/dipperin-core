@@ -90,17 +90,17 @@ type StateWriter interface {
 //	GetChainDB() chaindb.Database
 //}
 
-//go:generate mockgen -destination=./cachedb_mock_test.go -package=cs_chain github.com/dipperin/dipperin-core/core/cs-chain CacheDB
+//go:generate mockgen -destination=./cachedb_mock_test.go -package=cschain github.com/dipperin/dipperin-core/core/cschain CacheDB
 type CacheDB interface {
 	GetSeenCommits(blockHeight uint64, blockHash common.Hash) (result []model.AbstractVerification, err error)
 	SaveSeenCommits(blockHeight uint64, blockHash common.Hash, commits []model.AbstractVerification) error
 	DeleteSeenCommits(blockHeight uint64, blockHash common.Hash) error
 }
 
-//go:generate mockgen -destination=./txpool_mock_test.go -package=cs_chain github.com/dipperin/dipperin-core/core/cs-chain TxPool
+//go:generate mockgen -destination=./txpool_mock_test.go -package=cschain github.com/dipperin/dipperin-core/core/cschain TxPool
 type TxPool interface {
 	Reset(oldHead, newHead *model.Header)
 	AddRemotes(txs []model.AbstractTransaction) []error
 }
 
-//go:generate mockgen -destination=./state_storage_mock_test.go -package=cs_chain github.com/dipperin/dipperin-core/core/chain/state-processor StateStorage
+//go:generate mockgen -destination=./state_storage_mock_test.go -package=cschain github.com/dipperin/dipperin-core/core/chain/stateprocessor StateStorage
