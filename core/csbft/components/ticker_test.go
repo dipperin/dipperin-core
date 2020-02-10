@@ -12,7 +12,7 @@ func TestNewTimeoutTicker(t *testing.T) {
 
 func TestTimeoutTicker_OnStart(t *testing.T) {
 	tt := &timeoutTicker{
-		timer:    time.NewTimer(0),
+		timer:    time.NewTimer(time.Second),
 		tickChan: make(chan TimeoutInfo, tickTockBufferSize),
 		tockChan: make(chan TimeoutInfo, tickTockBufferSize),
 	}
@@ -21,11 +21,14 @@ func TestTimeoutTicker_OnStart(t *testing.T) {
 
 func TestTimeoutTicker_OnStop(t *testing.T) {
 	tt := &timeoutTicker{
-		timer:    time.NewTimer(0),
+		timer:    time.NewTimer(time.Second),
 		tickChan: make(chan TimeoutInfo, tickTockBufferSize),
 		tockChan: make(chan TimeoutInfo, tickTockBufferSize),
 	}
-	assert.NotPanics(t, tt.OnStop)
+	if assert.NoError(t, tt.OnStart()) {
+		time.Sleep(500 * time.Millisecond)
+		assert.NotPanics(t, tt.OnStop)
+	}
 }
 
 func TestTimeoutTicker_Chan(t *testing.T) {
@@ -52,7 +55,7 @@ func TestTimeoutTicker_ScheduleTimeout(t *testing.T) {
 
 func TestTimeoutTicker_stopTimer(t *testing.T) {
 	tt := &timeoutTicker{
-		timer:    time.NewTimer(0),
+		timer:    time.NewTimer(time.Second),
 		tickChan: make(chan TimeoutInfo, tickTockBufferSize),
 		tockChan: make(chan TimeoutInfo, tickTockBufferSize),
 	}
@@ -61,7 +64,7 @@ func TestTimeoutTicker_stopTimer(t *testing.T) {
 
 func TestTimeoutTicker_timeoutRoutine(t *testing.T) {
 	tt := &timeoutTicker{
-		timer:    time.NewTimer(0),
+		timer:    time.NewTimer(time.Second),
 		tickChan: make(chan TimeoutInfo, tickTockBufferSize),
 		tockChan: make(chan TimeoutInfo, tickTockBufferSize),
 	}

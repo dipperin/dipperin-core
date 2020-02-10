@@ -14,7 +14,7 @@ require (
 	github.com/fjl/memsize v0.0.0-20180929194037-2a09253e352a
 	github.com/go-interpreter/wagon v0.0.0
 	github.com/go-stack/stack v1.8.0 // indirect
-	github.com/golang/mock v1.3.1
+	github.com/golang/mock v1.4.0
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db
 	github.com/hashicorp/golang-lru v0.5.0
 	github.com/huin/goupnp v1.0.0
