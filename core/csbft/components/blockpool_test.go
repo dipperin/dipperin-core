@@ -7,6 +7,7 @@ import (
 	"time"
 	"github.com/dipperin/dipperin-core/core/model"
 	"errors"
+	"github.com/golang/mock/gomock"
 )
 
 func TestNewBlockPool(t *testing.T) {
@@ -16,23 +17,136 @@ func TestNewBlockPool(t *testing.T) {
 }
 
 func TestBlockPool_SetNodeConfig(t *testing.T) {
-	rsp := NewBlockPool(0, nil)
-	assert.NotEmpty(t, rsp)
-	rsp.SetNodeConfig(nil)
-	assert.Equal(t, nil, rsp.Blockpoolconfig)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	testCases := []struct {
+		name   string
+		given  func() bool
+		expect bool
+	}{
+		{
+			name: "SetNodeConfig true",
+			given: func() bool {
+				rsp := NewBlockPool(0, nil)
+				assert.NotEmpty(t, rsp)
+				rsp.SetNodeConfig(nil)
+				return nil == rsp.Blockpoolconfig
+			},
+			expect: true,
+		},
+		{
+			name: "SetNodeConfig false",
+			given: func() bool {
+				rsp := NewBlockPool(0, nil)
+				assert.NotEmpty(t, rsp)
+				rsp.SetNodeConfig(NewMockBlockpoolconfig(ctrl))
+				return nil == rsp.Blockpoolconfig
+			},
+			expect: false,
+		},
+	}
+
+	for i, tc := range testCases {
+		sign := tc.given()
+		if testCases[i].expect == sign {
+			t.Log("success")
+		} else {
+			t.Log("failure")
+		}
+	}
+}
+
+type myTestNotifier struct {
+}
+
+func (myTestNotifier) BlockPoolNotEmpty() {
+	panic("implement me")
 }
 
 func TestBlockPool_SetPoolEventNotifier(t *testing.T) {
-	rsp := NewBlockPool(0, nil)
-	assert.NotEmpty(t, rsp)
-	rsp.SetPoolEventNotifier(nil)
-	assert.Equal(t, nil, rsp.poolEventNotifier)
+	testCases := []struct {
+		name   string
+		given  func() bool
+		expect bool
+	}{
+		{
+			name: "SetNodeConfig true",
+			given: func() bool {
+				rsp := NewBlockPool(0, nil)
+				assert.NotEmpty(t, rsp)
+				rsp.SetPoolEventNotifier(nil)
+				return nil == rsp.Blockpoolconfig
+			},
+			expect: true,
+		},
+		{
+			name: "SetNodeConfig false",
+			given: func() bool {
+				rsp := NewBlockPool(0, nil)
+				rsp.SetPoolEventNotifier(myTestNotifier{})
+				return nil == rsp.Blockpoolconfig
+			},
+			expect: true,
+		},
+	}
+
+	for i, tc := range testCases {
+		sign := tc.given()
+		if testCases[i].expect == sign {
+			t.Log("success")
+		} else {
+			t.Logf("expect:%v,actual:%v", testCases[i].expect, sign)
+		}
+	}
 }
 
 func TestBlockPool_Start(t *testing.T) {
-	rsp := NewBlockPool(0, nil)
-	assert.NotEmpty(t, rsp)
-	assert.NoError(t, rsp.Start())
+	testCases := []struct {
+		name   string
+		given  func() string
+		expect string
+	}{
+		{
+			name: "SetNodeConfig false",
+			given: func() string {
+				rsp := &BlockPool{
+					height:            0,
+					blocks:            []model.AbstractBlock{},
+					poolEventNotifier: myTestNotifier{},
+					Blockpoolconfig:   nil,
+
+					newHeightChan: make(chan uint64, 5),
+					newBlockChan:  make(chan newBlockWithResultErr, 5),
+					getterChan:    make(chan *blockPoolGetter, 5),
+					rmBlockChan:   make(chan common.Hash),
+					stopChan:      make(chan struct{}),
+				}
+				return rsp.Start().Error()
+			},
+			expect: "block pool already started",
+		},
+
+		{
+			name: "SetNodeConfig true",
+			given: func() string {
+				rsp := NewBlockPool(0, nil)
+				assert.NotEmpty(t, rsp)
+				if rsp.Start() == nil {
+					return ""
+				}
+				return ""
+			},
+			expect: "",
+		},
+	}
+	for i, tc := range testCases {
+		sign := tc.given()
+		if testCases[i].expect == sign {
+			t.Log("success")
+		} else {
+			t.Logf("expect:%v,actual:%v", testCases[i].expect, sign)
+		}
+	}
 }
 
 func TestBlockPool_Stop(t *testing.T) {

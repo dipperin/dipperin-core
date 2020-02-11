@@ -32,6 +32,7 @@ type poolEventNotifier interface {
 //	ChainReader() state_processor.ChainReader
 //}
 
+//go:generate mockgen -destination=./pool_mock_test.go -package=components github.com/dipperin/dipperin-core/core/csbft/components Blockpoolconfig
 type Blockpoolconfig interface {
 	CurrentBlock() model.AbstractBlock
 }

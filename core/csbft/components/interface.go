@@ -22,7 +22,9 @@ import (
 	"github.com/dipperin/dipperin-core/core/model"
 )
 
-//go:generate mockgen -destination=./fetcher_mock_test.go -package=components github.com/dipperin/dipperin-core/core/csbft/components Fetcher
+//go:generate mockgen -destination=./verification_mock_test.go -package=components github.com/dipperin/dipperin-core/core/model AbstractVerification
+//go:generate mockgen -destination=./block_mock_test.go -package=components github.com/dipperin/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=./node_mock_test.go -package=components github.com/dipperin/dipperin-core/core/csbft/statemachine ChainReader,MsgSigner,MsgSender,Validator,Fetcher
 type Fetcher interface {
 	FetchBlock(from common.Address, blockHash common.Hash) model.AbstractBlock
 }
