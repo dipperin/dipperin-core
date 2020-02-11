@@ -56,6 +56,7 @@ import (
 	"time"
 )
 
+//go:generate mockgen -destination=../../rpcinterface/node_conf_mock_test.go -package=rpcinterface github.com/dipperin/dipperin-core/core/dipperin/service NodeConf
 type NodeConf interface {
 	GetNodeType() int
 	GetIsStartMine() bool

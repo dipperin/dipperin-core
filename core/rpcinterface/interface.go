@@ -15,15 +15,3 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package rpcinterface
-
-//go:generate mockgen -destination=./peer_manager_mock_test.go -package=rpcinterface github.com/dipperin/dipperin-core/core/chaincommunication PeerManager
-
-//go:generate mockgen -destination=./chain_interface_mock_test.go -package=rpcinterface github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware ChainInterface
-
-//go:generate mockgen -destination=./block_mock_test.go -package=rpcinterface github.com/dipperin/dipperin-core/core/model AbstractBlock
-
-//go:generate mockgen -destination=./node_conf_mock_test.go -package=rpcinterface github.com/dipperin/dipperin-core/core/dipperin/service NodeConf
-
-//go:generate mockgen -destination=./peer_mock_test.go -package=rpcinterface github.com/dipperin/dipperin-core/core/chaincommunication PmAbstractPeer
-
-//go:generate mockgen -destination=./protocol_manager_mock_test.go -package=rpcinterface github.com/dipperin/dipperin-core/core/chaincommunication AbstractPbftProtocolManager
