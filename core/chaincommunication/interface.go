@@ -153,6 +153,7 @@ type Chain interface {
 }
 
 //go:generate mockgen -destination=./pbft_signer_mock_test.go -package=chaincommunication github.com/dipperin/dipperin-core/core/chaincommunication PbftSigner
+//go:generate mockgen -destination=../mine/minemaster/pbft_signer_mock_test.go -package=minemaster github.com/dipperin/dipperin-core/core/chaincommunication PbftSigner
 type PbftSigner interface {
 	GetAddress() common.Address
 	SetBaseAddress(address common.Address)
