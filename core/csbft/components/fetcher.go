@@ -59,7 +59,7 @@ type CsBftFetcher struct {
 
 func (f *CsBftFetcher) FetchBlock(from common.Address, blockHash common.Hash) model.AbstractBlock {
 	if !f.IsRunning() {
-		log.DLogger.Error("call fetch block, but fetcher not started")
+		log.DLogger.Warn("call fetch block, but fetcher not started")
 		return nil
 	}
 	log.DLogger.Info("CsBftFetcher#FetchBlock  call fetch block", zap.String("block hash", blockHash.Hex()), zap.String("from", from.Hex()))

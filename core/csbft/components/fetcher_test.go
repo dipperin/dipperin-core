@@ -3,29 +3,77 @@ package components
 import (
 	"testing"
 	"github.com/stretchr/testify/assert"
-	"github.com/golang/mock/gomock"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
 	"time"
+	csModel "github.com/dipperin/dipperin-core/core/csbft/model"
+	"github.com/golang/mock/gomock"
 )
 
+type myFetcherConn struct {
+}
+
+func (myFetcherConn) SendFetchBlockMsg(msgCode uint64, from common.Address, msg *csModel.FetchBlockReqDecodeMsg) error {
+	return nil
+}
+
 func TestNewFetcher(t *testing.T) {
-	rsp := NewFetcher(nil)
+	rsp := NewFetcher(myFetcherConn{})
 	assert.NotEmpty(t, rsp)
 }
 
 func TestCsBftFetcher_FetchBlock(t *testing.T) {
+	//ctrl := gomock.NewController(t)
+	//defer ctrl.Finish()
+	//var hashTmp = `0xd50866a60b4f7e494400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
+	//ww := common.Address{1, 2, 3}
+	//fetcher := NewMockFetcher(ctrl)
+	//var w model.AbstractBlock
+	//gomock.InOrder(
+	//	fetcher.EXPECT().FetchBlock(ww, common.HexToHash(hashTmp)).Return(w),
+	//)
+	//if f := fetcher.FetchBlock(ww, common.HexToHash(hashTmp)); f != w {
+	//	t.Errorf("FetchBlock: got %v, want %v", f, w)
+	//}
+
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	var hashTmp = `0xd50866a60b4f7e494400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
-	ww := common.Address{1, 2, 3}
-	fetcher := NewMockFetcher(ctrl)
-	var w model.AbstractBlock
-	gomock.InOrder(
-		fetcher.EXPECT().FetchBlock(ww, common.HexToHash(hashTmp)).Return(w),
-	)
-	if f := fetcher.FetchBlock(ww, common.HexToHash(hashTmp)); f != w {
-		t.Errorf("FetchBlock: got %v, want %v", f, w)
+	testCases := []struct {
+		name   string
+		given  func() bool
+		expect bool
+	}{
+		{
+			name: "FetchBlock fail to start",
+			given: func() bool {
+				rsp := NewFetcher(myFetcherConn{})
+				assert.NotEmpty(t, rsp)
+				//rsp.BaseService.Start()
+				//rsp.FetchBlock(common.Address{0x01},common.Hash{})
+				return rsp.FetchBlock(common.Address{0x01}, common.Hash{}) == nil
+			},
+			expect: true,
+		},
+		{
+			name: "FetchBlock true",
+			given: func() bool {
+				rsp := NewFetcher(myFetcherConn{})
+				assert.NotEmpty(t, rsp)
+				rsp.BaseService.Start()
+				//rsp.FetchBlock(common.Address{0x01},common.Hash{})
+				return rsp.FetchBlock(common.Address{0x01}, common.Hash{}) == nil
+			},
+			expect: true,
+		},
+	}
+
+	for i, tc := range testCases {
+		sign := tc.given()
+		if testCases[i].expect == sign {
+			t.Log("success")
+		} else {
+			t.Log("failure")
+		}
 	}
 }
 
