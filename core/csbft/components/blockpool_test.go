@@ -655,7 +655,6 @@ func TestBlockPool_GetBlockByHash(t *testing.T) {
 }
 
 func TestBlockPool_doAddBlock(t *testing.T) {
-	//doAddBlock
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	testCases := []struct {
@@ -905,38 +904,190 @@ func TestBlockPool_GetProposalBlock(t *testing.T) {
 }
 
 func TestBlockPool_getBlock(t *testing.T) {
-	rsp := NewBlockPool(0, nil)
-	assert.NotEmpty(t, rsp)
-	resultC := make(chan model.AbstractBlock)
-	var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
-	h := common.HexToHash(hashTmp)
-	assert.NotPanics(t, func() {
-		rsp.getBlock(
-			&blockPoolGetter{
-				blockHash:  h,
-				resultChan: resultC,
+	testCases := []struct {
+		name   string
+		given  func() bool
+		expect bool
+	}{
+		{
+			name: "getBlock getterChan is not empty",
+			given: func() bool {
+				rsp := &BlockPool{
+					height:            0,
+					blocks:            []model.AbstractBlock{},
+					poolEventNotifier: myTestNotifier{},
+					Blockpoolconfig:   nil,
+
+					newHeightChan: make(chan uint64, 5),
+					newBlockChan:  make(chan newBlockWithResultErr, 5),
+					getterChan:    make(chan *blockPoolGetter, 5),
+					rmBlockChan:   make(chan common.Hash),
+					stopChan:      make(chan struct{}),
+				}
+				var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
+
+				resultC := make(chan model.AbstractBlock)
+				rsp.getBlock(&blockPoolGetter{
+					blockHash:  common.HexToHash(hashTmp),
+					resultChan: resultC,
+				})
+				g := <-rsp.getterChan
+				close(rsp.getterChan)
+				return g.blockHash.IsEmpty()
 			},
-		)
-	})
+			expect: false,
+		},
+		{
+			name: "getBlock getterChan is empty",
+			given: func() bool {
+				rsp := NewBlockPool(0, nil)
+				assert.NotEmpty(t, rsp)
+				var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
+				resultC := make(chan model.AbstractBlock)
+				rsp.getBlock(&blockPoolGetter{
+					blockHash:  common.HexToHash(hashTmp),
+					resultChan: resultC,
+				})
+				if !rsp.IsRunning() {
+					return true
+				}
+				return false
+			},
+			expect: true,
+		},
+	}
+	for i, tc := range testCases {
+		sign := tc.given()
+		if testCases[i].expect == sign {
+			t.Log("success")
+		} else {
+			t.Logf("expect:%v,actual:%v", testCases[i].expect, sign)
+		}
+	}
 }
 
 func TestBlockPool_doGetBlock(t *testing.T) {
-	rsp := NewBlockPool(0, nil)
-	assert.NotEmpty(t, rsp)
-	resultC := make(chan model.AbstractBlock)
-	var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
-	h := common.HexToHash(hashTmp)
-	var getter = blockPoolGetter{
-		blockHash:  h,
-		resultChan: resultC,
-	}
-	go func(g *blockPoolGetter) {
-		rsp.doGetBlock(
-			&blockPoolGetter{
-				blockHash:  h,
-				resultChan: resultC,
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	testCases := []struct {
+		name   string
+		given  func() bool
+		expect bool
+	}{
+		{
+			name: "doGetBlock getter is equal blank and BlockPool blocks is empty",
+			given: func() bool {
+				rsp := &BlockPool{
+					height:            0,
+					blocks:            []model.AbstractBlock{},
+					poolEventNotifier: myTestNotifier{},
+					Blockpoolconfig:   nil,
+
+					newHeightChan: make(chan uint64, 5),
+					newBlockChan:  make(chan newBlockWithResultErr, 5),
+					getterChan:    make(chan *blockPoolGetter, 5),
+					rmBlockChan:   make(chan common.Hash),
+					stopChan:      make(chan struct{}),
+				}
+				rc1 := make(chan model.AbstractBlock)
+				var g1 = &blockPoolGetter{
+					blockHash:  common.Hash{},
+					resultChan: rc1,
+				}
+				go func(*BlockPool, *blockPoolGetter) {
+					rsp.doGetBlock(g1)
+				}(rsp, g1)
+				time.Sleep(500 * time.Millisecond)
+				r1 := <-g1.resultChan
+				close(g1.resultChan)
+				return r1 == nil
 			},
-		)
-	}(&getter)
-	assert.Equal(t, 0, len(getter.resultChan))
+			expect: true,
+		},
+		{
+			name: "doGetBlock getter is equal blank and BlockPool blocks is not empty",
+			given: func() bool {
+				rsp := &BlockPool{
+					height:            0,
+					blocks:            []model.AbstractBlock{},
+					poolEventNotifier: myTestNotifier{},
+					Blockpoolconfig:   nil,
+
+					newHeightChan: make(chan uint64, 5),
+					newBlockChan:  make(chan newBlockWithResultErr, 5),
+					getterChan:    make(chan *blockPoolGetter, 5),
+					rmBlockChan:   make(chan common.Hash),
+					stopChan:      make(chan struct{}),
+				}
+				rsp.blocks = append(rsp.blocks, NewMockAbstractBlock(ctrl))
+				rc1 := make(chan model.AbstractBlock)
+				var g1 = &blockPoolGetter{
+					blockHash:  common.Hash{},
+					resultChan: rc1,
+				}
+				go func(*BlockPool, *blockPoolGetter) {
+					rsp.doGetBlock(g1)
+				}(rsp, g1)
+				time.Sleep(500 * time.Millisecond)
+				r1 := <-g1.resultChan
+				close(g1.resultChan)
+				return r1 != nil
+			},
+			expect: true,
+		},
+		{
+			name: "doGetBlock getter is not equal blank",
+			given: func() bool {
+				rsp := &BlockPool{
+					height:            0,
+					blocks:            []model.AbstractBlock{},
+					poolEventNotifier: myTestNotifier{},
+					Blockpoolconfig:   nil,
+
+					newHeightChan: make(chan uint64, 5),
+					newBlockChan:  make(chan newBlockWithResultErr, 5),
+					getterChan:    make(chan *blockPoolGetter, 5),
+					rmBlockChan:   make(chan common.Hash),
+					stopChan:      make(chan struct{}),
+				}
+				assert.NotEmpty(t, rsp)
+				//go rsp.loop()
+				//var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
+				////resultC := make(chan model.AbstractBlock)
+				//var gb = &blockPoolGetter{
+				//	blockHash:  common.HexToHash(hashTmp),
+				//	resultChan: make(chan model.AbstractBlock),
+				//}
+				//rsp.getBlock(gb)
+
+				//time.Sleep(2 * time.Second)
+				//rsp.stopChan <- struct{}{}
+				var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
+				b := NewMockAbstractBlock(ctrl)
+				b.EXPECT().Hash().Return(common.HexToHash(hashTmp)).AnyTimes()
+				rsp.blocks = append(rsp.blocks, b)
+				rc1 := make(chan model.AbstractBlock)
+				var g1 = &blockPoolGetter{
+					blockHash:  common.HexToHash(hashTmp),
+					resultChan: rc1,
+				}
+				go func(*BlockPool, *blockPoolGetter) {
+					rsp.doGetBlock(g1)
+				}(rsp, g1)
+				time.Sleep(500 * time.Millisecond)
+				r1 := <-g1.resultChan
+				close(g1.resultChan)
+				return r1.Hash().IsEqual(common.HexToHash(hashTmp))
+			},
+			expect: true,
+		},
+	}
+	for i, tc := range testCases {
+		sign := tc.given()
+		if testCases[i].expect == sign {
+			t.Log("success")
+		} else {
+			t.Logf("expect:%v,actual:%v", testCases[i].expect, sign)
+		}
+	}
 }
