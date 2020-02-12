@@ -26,5 +26,7 @@ var (
 	ErrInputAbiNotMatch   = errors.New("interpreter_life: length of input and abi not match")
 	ErrInvalidReturnType  = errors.New("interpreter_life: return type not void")
 	ErrFuncNameNotFound   = errors.New("interpreter_life: function name not found")
+	ErrCallContractAddrIsWrong   = errors.New("call contract addr is wrong")
+
 )
 

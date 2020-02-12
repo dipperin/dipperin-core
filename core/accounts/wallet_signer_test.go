@@ -46,7 +46,7 @@ var TestHashData = [32]byte{0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04,
 	0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04,
 	0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04}
 
-func getWalletSigner(t *testing.T)(*gomock.Controller, *accountsbase.MockWallet, *WalletManager, *WalletSigner)  {
+func getWalletSigner(t *testing.T)(*gomock.Controller, *MockWallet, *WalletManager, *WalletSigner)  {
 	ctrl, wallet, walletManager := getWalletAndWalletManager(t)
 
 	wallet.EXPECT().Accounts().Return([]accountsbase.Account{accountsbase.Account{Address:TestAddress},},nil)

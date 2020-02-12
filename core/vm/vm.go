@@ -145,6 +145,8 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 	}*/
 	if to.Address().GetAddressType() == common.AddressTypeContractCall {
 		 ret, err = run(vm, contract, false)
+	} else {
+		 return ret, contract.Gas, gerror.ErrCallContractAddrIsWrong
 	}
 
 	// When an error was returned by the EVM or when setting the creation code
@@ -182,6 +184,8 @@ func (vm *VM) DelegateCall(caller resolver.ContractRef, addr common.Address, inp
 
 	if to.Address().GetAddressType() == common.AddressTypeContractCall {
 		ret, err = run(vm, contract, false)
+	} else {
+		return ret, contract.Gas, gerror.ErrCallContractAddrIsWrong
 	}
 	if err != nil {
 		vm.GetStateDB().RevertToSnapshot(snapshot)

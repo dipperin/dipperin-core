@@ -45,11 +45,9 @@ func TestResolverNeedExternalService_Transfer(t *testing.T) {
 	vmValue.EXPECT().TransferValue(base.AccountRef(model.AliceAddr),model.AliceAddr, transferValue).Return(nil)
 
 
-	resp, gasLeft, err := service.Transfer(model.AliceAddr, transferValue)
+	 err := service.Transfer(model.AliceAddr, transferValue)
 
 	assert.NoError(t, err)
-	assert.Equal(t, []byte{}, resp)
-	assert.Equal(t, uint64(0), gasLeft)
 }
 
 func TestResolverNeedExternalService_ResolverCall(t *testing.T) {

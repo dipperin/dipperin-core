@@ -66,13 +66,15 @@ type Account struct {
 	Address common.Address
 }
 
-//go:generate mockgen -destination=./address_info_reader_mock.go -package=accountsbase github.com/dipperin/dipperin-core/core/accounts/accountsbase AddressInfoReader
+//go:generate mockgen -destination=../address_info_reader_mock_test.go -package=accounts github.com/dipperin/dipperin-core/core/accounts/accountsbase AddressInfoReader
+//go:generate mockgen -destination=../softwallet/address_info_reader_mock_test.go -package=softwallet github.com/dipperin/dipperin-core/core/accounts/accountsbase AddressInfoReader
 type AddressInfoReader interface {
 	CurrentBalance(address common.Address) *big.Int
 	GetTransactionNonce(addr common.Address) (nonce uint64, err error)
 }
 
-//go:generate mockgen -destination=./wallet_mock.go -package=accountsbase github.com/dipperin/dipperin-core/core/accounts/accountsbase Wallet
+//go:generate mockgen -destination=../wallet_mock_test.go -package=accounts github.com/dipperin/dipperin-core/core/accounts/accountsbase Wallet
+//go:generate mockgen -destination=../softwallet/wallet_mock_test.go -package=softwallet github.com/dipperin/dipperin-core/core/accounts/accountsbase Wallet
 type Wallet interface {
 
 	//get wallet identifier include type and file path

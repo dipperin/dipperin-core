@@ -356,7 +356,6 @@ func (r *Resolver) envCoinbase(vm *exec.VirtualMachine) int64 {
 }
 
 // define: u256 balance();
-// todo
 func (r *Resolver) envBalance(vm *exec.VirtualMachine) int64 {
 	addr := int(int32(vm.GetCurrentFrame().Locals[0]))
 	log.DLogger.Info("the currentFrame is:", zap.Any("frame", vm.GetCurrentFrame()), zap.Int64s("local", vm.GetCurrentFrame().Locals))
@@ -399,7 +398,6 @@ func (r *Resolver) envCaller(vm *exec.VirtualMachine) int64 {
 }
 
 // define: int64_t callValue();
-// todo
 func (r *Resolver) envCallValue(vm *exec.VirtualMachine) int64 {
 	value := r.Service.CallValue()
 	ptr := int(int32(vm.GetCurrentFrame().Locals[0]))
@@ -488,8 +486,12 @@ func envGetStateGasCost(vm *exec.VirtualMachine) (uint64, error) {
 	return 1, nil
 }
 
-func envGetStateSizeGasCost(vm *exec.VirtualMachine) (uint64, error) {
-	return 1, nil
+func envCallTransferGasCost(vm *exec.VirtualMachine) (uint64, error) {
+	return 21000, nil
+}
+
+func envGetStateSizeGasCost(vm *exec.VirtualMachine) (uint64, error)  {
+	return 2,nil
 }
 
 func env__ashlti3GasCost(vm *exec.VirtualMachine) (uint64, error) {
@@ -518,7 +520,6 @@ func (r *Resolver) envGetCallerNonce(vm *exec.VirtualMachine) int64 {
 	return curTime
 }*/
 
-// todo  is it reasonable to call the VM.Call() method to implement Transfer?
 func (r *Resolver) envCallTransfer(vm *exec.VirtualMachine) int64 {
 	key := int(int32(vm.GetCurrentFrame().Locals[0]))
 	keyLen := int(int32(vm.GetCurrentFrame().Locals[1]))
@@ -528,12 +529,12 @@ func (r *Resolver) envCallTransfer(vm *exec.VirtualMachine) int64 {
 	bValue.SetBytes(vm.Memory.Memory[value : value+32])
 	value256 := math.U256(bValue)
 	addr := common.BytesToAddress(vm.Memory.Memory[key : key+keyLen])
-	_, returnGas, err := r.Service.Transfer(addr, value256)
+	err := r.Service.Transfer(addr, value256)
 
 	//先使用在life　vm中添加的字段，待后续看是否可以使用life自带gas机制
-	log.DLogger.Info("envCallTransfer", zap.Uint64("GasUsed", vm.GasUsed), zap.Uint64("returnGas", returnGas), zap.Error(err))
-	vm.GasUsed -= returnGas
+	log.DLogger.Info("envCallTransfer", zap.Uint64("GasUsed", vm.GasUsed),zap.Error(err))
 	if err != nil {
+		log.DLogger.Error("envCallTransfer", zap.Error(err))
 		return 1
 	} else {
 		return 0
@@ -570,19 +571,19 @@ func (r *Resolver) envGetSignerAddress(vm *exec.VirtualMachine) int64 {
 	return 0
 }
 
-// todo  is it reasonable to call the VM.Call() method to implement Transfer?
+// todo
 func (r *Resolver) envCallTransferUDIP(vm *exec.VirtualMachine) int64 {
 	key := int(int32(vm.GetCurrentFrame().Locals[0]))
 	keyLen := int(int32(vm.GetCurrentFrame().Locals[1]))
 	value := int64(vm.GetCurrentFrame().Locals[2])
 	value256 := math.U256(new(big.Int).Mul(new(big.Int).SetInt64(value), math.BigPow(10, 15)))
 	addr := common.BytesToAddress(vm.Memory.Memory[key : key+keyLen])
-	_, returnGas, err := r.Service.Transfer(addr, value256)
+	err := r.Service.Transfer(addr, value256)
 
 	//先使用在life　vm中添加的字段，待后续看是否可以使用life自带gas机制
-	log.DLogger.Info("envCallTransferUDIP", zap.Uint64("GasUsed", vm.GasUsed), zap.Uint64("returnGas", returnGas), zap.Error(err), zap.Any("transfer value", value256))
-	vm.GasUsed -= returnGas
+	log.DLogger.Info("envCallTransferUDIP", zap.Uint64("GasUsed", vm.GasUsed), zap.Error(err), zap.Any("transfer value", value256))
 	if err != nil {
+		log.DLogger.Error("envCallTransferUDIP  err ", zap.Error(err))
 		return 1
 	} else {
 		return 0

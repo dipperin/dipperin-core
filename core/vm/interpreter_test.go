@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"encoding/json"
 	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/core/vm/base"
 	"github.com/dipperin/dipperin-core/core/vm/base/utils"
@@ -89,63 +90,69 @@ func Test_ParseCreateExtraData(t *testing.T) {
 
 	testCases := []struct {
 		name   string
-		given  func() result
+		given  func() []byte
 		expect result
 	}{
 		{
 			name: "ErrEmptyInput",
-			given: func() result {
+			given: func() []byte {
+				return []byte{}
+			},
+			expect: result{nil, nil, nil, gerror.ErrEmptyInput},
+		},
+		{
+			name: "ErrInvalidRlpFormat",
+			given: func() []byte {
 				rlpDataErr := "errData"
-				code, abi, rlpInit, err := ParseCreateExtraData([]byte(rlpDataErr))
-				return result{
-					code:    code,
-					abi:     abi,
-					rlpInit: rlpInit,
-					err:     err,
-				}
+				return []byte(rlpDataErr)
 			},
 			expect: result{nil, nil, nil, gerror.ErrInvalidRlpFormat},
 		},
 		{
 			name: "ErrInsufficientParams",
-			given: func() result {
+			given: func() []byte {
 				rlpData, err := rlp.EncodeToBytes([]interface{}{code})
-				code, abi, rlpInit, err := ParseCreateExtraData([]byte(rlpData))
-				return result{
-					code:    code,
-					abi:     abi,
-					rlpInit: rlpInit,
-					err:     err,
-				}
+				assert.NoError(t, err)
+				return []byte(rlpData)
 			},
 			expect: result{nil, nil, nil, gerror.ErrInsufficientParams},
 		},
 		{
-			name: "RightParseCreateExtraData",
-			given: func() result {
+			name: "ParseCreateExtraDataRight",
+			given: func() []byte {
 				rlpData, err := rlp.EncodeToBytes([]interface{}{code, abi})
 				assert.NoError(t, err)
-				code, abi, rlpInit, err := ParseCreateExtraData([]byte(rlpData))
-				return result{
-					code:    code,
-					abi:     abi,
-					rlpInit: rlpInit,
-					err:     err,
-				}
+				return []byte(rlpData)
 			},
 			expect: result{code, abi, nil, nil},
+		},
+		{
+			name: "ParseCreateExtraDataRightMoreParams",
+			given: func() []byte {
+				rlpData, err := rlp.EncodeToBytes([]interface{}{code, abi,"params"})
+				assert.NoError(t, err)
+				return []byte(rlpData)
+			},
+			expect: result{code, abi, []byte("params"), nil},
 		},
 	}
 
 	for _, tc := range testCases {
-		result := tc.given()
-		if result.err != nil {
-			assert.Equal(t, tc.expect.err.Error(), result.err.Error())
+		input := tc.given()
+
+		code, abi, rlpInit, err := ParseCreateExtraData(input)
+
+		if err != nil {
+			assert.Equal(t, tc.expect.err.Error(), err.Error())
 		} else {
-			assert.NoError(t, result.err)
-			assert.Equal(t, tc.expect.code, result.code)
-			assert.Equal(t, tc.expect.abi, result.abi)
-			assert.Equal(t, tc.expect.rlpInit, result.rlpInit)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expect.code, code)
+			assert.Equal(t, tc.expect.abi, abi)
+			if tc.expect.rlpInit != nil {
+				result, err := rlp.EncodeToBytes([]interface{}{string(tc.expect.rlpInit)})
+				assert.NoError(t, err)
+				assert.Equal(t, result, rlpInit)
+			}
 		}
 	}
 
@@ -170,50 +177,65 @@ func Test_ParseCallExtraDataByABI(t *testing.T) {
 
 	testCases := []struct {
 		name   string
-		given  func() *result
+		given  func() ([]byte, []byte)
 		expect result
 	}{
 		{
-			name: "ErrInvalidRlpFormat",
-			given: func() *result {
+			name: "ErrEmptyInput",
+			given: func() ([]byte, []byte) {
+				return []byte{},[]byte{}
+			},
+			expect: result{"", []int64{}, "", gerror.ErrEmptyInput},
+		},
+		{
+			name: "ErrEmptyABI",
+			given: func() ([]byte, []byte) {
 				input, err := rlp.EncodeToBytes("result")
 				assert.NoError(t, err)
-				funcName, params, returnType, err := ParseCallExtraDataByABI(lifeVm, input, abi)
-				return &result{
-					funcName:   funcName,
-					params:     params,
-					returnType: returnType,
-					err:        err,
-				}
+				return input,[]byte{}
+			},
+			expect: result{"", []int64{}, "", gerror.ErrEmptyABI},
+		},
+		{
+			name: "ErrInvalidRlpFormat",
+			given: func() ([]byte, []byte) {
+				input, err := rlp.EncodeToBytes("result")
+				assert.NoError(t, err)
+				return input,abi
 			},
 			expect: result{"", []int64{}, "", gerror.ErrInvalidRlpFormat},
 		},
 		{
+			name: "ErrInsufficientParams",
+			given: func() ([]byte, []byte) {
+				input, err := rlp.EncodeToBytes([]interface{}{})
+				assert.NoError(t, err)
+				return input,abi
+			},
+			expect: result{callFuncName, []int64{131072}, "string", gerror.ErrInsufficientParams},
+		},
+		{
 			name: "ParseCallExtraDataByABIRight",
-			given: func() *result {
+			given: func() ([]byte, []byte) {
 				input, err := rlp.EncodeToBytes([]interface{}{callFuncName, "winner"})
 				assert.NoError(t, err)
-				funcName, params, returnType, err := ParseCallExtraDataByABI(lifeVm, input, abi)
-				return &result{
-					funcName:   funcName,
-					params:     params,
-					returnType: returnType,
-					err:        err,
-				}
+				return input,abi
 			},
-			expect: result{callFuncName, []int64{131072}, "string", gerror.ErrInvalidRlpFormat},
+			expect: result{callFuncName, []int64{131072}, "string", nil},
 		},
 	}
 
 	for _, tc := range testCases {
-		res := tc.given()
-		if res.err != nil {
-			assert.Equal(t, tc.expect.err.Error(), res.err.Error())
+
+		input,abi := tc.given()
+		funcName, params, returnType, err := ParseCallExtraDataByABI(lifeVm, input, abi)
+		if err != nil {
+			assert.Equal(t, tc.expect.err.Error(), err.Error())
 		} else {
-			assert.NoError(t, res.err)
-			assert.Equal(t, tc.expect.returnType, res.returnType)
-			assert.Equal(t, tc.expect.params, res.params)
-			assert.Equal(t, tc.expect.funcName, res.funcName)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expect.returnType, returnType)
+			assert.Equal(t, tc.expect.params, params)
+			assert.Equal(t, tc.expect.funcName, funcName)
 		}
 	}
 }
@@ -230,53 +252,76 @@ func Test_ParseInitFunctionByABI(t *testing.T) {
 
 	testCases := []struct {
 		name   string
-		given  func() *result
+		given  func() (*exec.VirtualMachine, []byte, []byte)
 		expect result
 	}{
 		{
+			name: "ErrEmptyABI",
+			given: func() (*exec.VirtualMachine, []byte, []byte){
+				input, err := rlp.EncodeToBytes("result")
+				assert.NoError(t, err)
+				code, _ := vminfo.GetTestData(eventContractName)
+				lifeVm, err := exec.NewVirtualMachine(code, base.DEFAULT_VM_CONFIG, nil, nil)
+				assert.NoError(t, err)
+				return lifeVm, input, []byte{}
+			},
+			expect: result{[]int64{}, "", gerror.ErrEmptyABI},
+		},
+		{
+			name: "ErrInvalidReturnType",
+			given: func() (*exec.VirtualMachine, []byte, []byte){
+				input, err := rlp.EncodeToBytes([]interface{}{})
+				assert.NoError(t, err)
+				code, abi := vminfo.GetTestData(eventContractName)
+
+				wasmAbi := new(utils.WasmAbi)
+				err = wasmAbi.FromJson(abi)
+				assert.NoError(t, err)
+				wasmAbi.AbiArr[0].Outputs = append(wasmAbi.AbiArr[0].Outputs, utils.OutputsParam{Name:"return", Type:"string"} )
+				abi, err = json.Marshal(wasmAbi.AbiArr)
+				assert.NoError(t, err)
+
+				lifeVm, err := exec.NewVirtualMachine(code, base.DEFAULT_VM_CONFIG, nil, nil)
+				assert.NoError(t, err)
+				return lifeVm, input, abi
+			},
+			expect: result{[]int64(nil), "", gerror.ErrInvalidReturnType},
+		},
+		{
 			name: "ErrInvalidRlpFormat",
-			given: func() *result {
+			given: func() (*exec.VirtualMachine, []byte, []byte){
 				input, err := rlp.EncodeToBytes("result")
 				assert.NoError(t, err)
 				code, abi := vminfo.GetTestData(eventContractName)
 				lifeVm, err := exec.NewVirtualMachine(code, base.DEFAULT_VM_CONFIG, nil, nil)
 				assert.NoError(t, err)
-				params, returnType, err := ParseInitFunctionByABI(lifeVm, input, abi)
-				return &result{
-					params:     params,
-					returnType: returnType,
-					err:        err,
-				}
+				return lifeVm, input, abi
 			},
 			expect: result{[]int64{}, "", gerror.ErrInvalidRlpFormat},
 		},
 		{
 			name: "ParseInitFunctionByABIRight",
-			given: func() *result {
+			given: func() (*exec.VirtualMachine, []byte, []byte) {
 				code, abi := vminfo.GetTestData("token-payable")
 				lifeVm, err := exec.NewVirtualMachine(code, base.DEFAULT_VM_CONFIG, nil, nil)
 				assert.NoError(t, err)
 				input, err := rlp.EncodeToBytes([]interface{}{"dipc", "dipc", utils.Uint64ToBytes(1000)})
 				assert.NoError(t, err)
-				params, returnType, err := ParseInitFunctionByABI(lifeVm, input, abi)
-				return &result{
-					params:     params,
-					returnType: returnType,
-					err:        err,
-				}
+				return lifeVm,input,abi
 			},
 			expect: result{[]int64{131072, 131080, 1000}, "void", nil},
 		},
 	}
 
 	for _, tc := range testCases {
-		res := tc.given()
-		if res.err != nil {
-			assert.Equal(t, tc.expect.err.Error(), res.err.Error())
+		lifeVm, input, abi := tc.given()
+		params, returnType, err := ParseInitFunctionByABI(lifeVm, input, abi)
+		if err != nil {
+			assert.Equal(t, tc.expect.err.Error(), err.Error())
 		} else {
-			assert.NoError(t, res.err)
-			assert.Equal(t, tc.expect.returnType, res.returnType)
-			assert.Equal(t, tc.expect.params, res.params)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expect.returnType, returnType)
+			assert.Equal(t, tc.expect.params, params)
 		}
 	}
 }

@@ -467,33 +467,33 @@ func TestSoftWallet_RestoreWallet(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	accountStatus := accountsbase.NewMockAddressInfoReader(ctrl)
+	accountStatus := NewMockAddressInfoReader(ctrl)
 	mnemonic := "chicken coconut winner february brown topple pond bird endless salt filter journey mass ramp milk tuition card seat worth school length rain slice ozone"
 	walletName := "RemainRewardWallet4"
 
 
 	testCases := []struct{
 		name string
-		given func() (*accountsbase.MockAddressInfoReader, string, string)
+		given func() (*MockAddressInfoReader, string, string)
 		expect error
 	}{
 		{
 			name:"ErrWalletPathError",
-			given: func() (*accountsbase.MockAddressInfoReader, string,string){
+			given: func() (*MockAddressInfoReader, string,string){
 				return accountStatus,"/tmp", password
 			},
 			expect:gerror.ErrWalletPathError,
 		},
 		{
 			name:"ErrPasswordOrPassPhraseIllegal",
-			given: func() (*accountsbase.MockAddressInfoReader, string,string) {
+			given: func() (*MockAddressInfoReader, string,string) {
 				return accountStatus, path, ""
 			},
 			expect:gerror.ErrPasswordOrPassPhraseIllegal,
 		},
 		{
 			name:"RestoreWalletRight",
-			given: func() (*accountsbase.MockAddressInfoReader, string,string) {
+			given: func() (*MockAddressInfoReader, string,string) {
 				path := util.HomeDir() + "/testSoftWallet/RemainRewardWallet4"
 				password = "12345678"
 				accountStatus.EXPECT().GetTransactionNonce(common.HexToAddress("0x00001ac2a396f7100C4B2838A171B68d654B9B56B0c1")).Return(uint64(0), nil).AnyTimes()
@@ -569,7 +569,7 @@ func TestSoftWallet_GetWalletIdentifier(t *testing.T) {
 
 func TestSoftWallet_PaddingAddressNonce(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	accountStatus := accountsbase.NewMockAddressInfoReader(ctrl)
+	accountStatus := NewMockAddressInfoReader(ctrl)
 	testWallet, err := GetTestWallet()
 	assert.NoError(t, err)
 

@@ -33,10 +33,10 @@ import (
 	"time"
 )
 
-func getWalletAndWalletManager(t *testing.T) (*gomock.Controller, *accountsbase.MockWallet, *WalletManager) {
+func getWalletAndWalletManager(t *testing.T) (*gomock.Controller, *MockWallet, *WalletManager) {
 	ctrl := gomock.NewController(t)
-	infoReader := accountsbase.NewMockAddressInfoReader(ctrl)
-	wallet := accountsbase.NewMockWallet(ctrl)
+	infoReader := NewMockAddressInfoReader(ctrl)
+	wallet := NewMockWallet(ctrl)
 	wallet.EXPECT().GetWalletIdentifier().Return(accountsbase.WalletIdentifier{WalletType:accountsbase.SoftWallet}, nil).AnyTimes()
 	wallet.EXPECT().Close().Return(nil).AnyTimes()
 	walletManager,err := NewWalletManager(infoReader, wallet)
@@ -144,20 +144,20 @@ func TestWalletManager_add(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func () *accountsbase.MockWallet
+		given func () *MockWallet
 		expect int
 	}{
 		{
 			name:"theSameWallet",
-			given: func() *accountsbase.MockWallet {
+			given: func() *MockWallet {
 				return wallet
 			},
 			expect:len(walletManager.Wallets),
 		},
 		{
 			name:"diffWallet",
-			given: func() *accountsbase.MockWallet {
-				wallet := accountsbase.NewMockWallet(ctrl)
+			given: func() *MockWallet {
+				wallet := NewMockWallet(ctrl)
 				wallet.EXPECT().GetWalletIdentifier().Return(accountsbase.WalletIdentifier{WalletType:accountsbase.SoftWallet, Path:util.HomeDir()}, nil).AnyTimes()
 				return wallet
 			},
@@ -179,13 +179,13 @@ func TestWalletManager_remove(t *testing.T) {
 
 	testCases := []struct{
 		name string
-		given func () *accountsbase.MockWallet
+		given func () *MockWallet
 		expect int
 	}{
 		{
 			name:"diffWallet",
-			given: func() *accountsbase.MockWallet {
-				wallet := accountsbase.NewMockWallet(ctrl)
+			given: func() *MockWallet {
+				wallet := NewMockWallet(ctrl)
 				wallet.EXPECT().GetWalletIdentifier().Return(accountsbase.WalletIdentifier{WalletType:accountsbase.SoftWallet, Path:util.HomeDir()}, nil).AnyTimes()
 				return wallet
 			},
@@ -193,7 +193,7 @@ func TestWalletManager_remove(t *testing.T) {
 		},
 		{
 			name:"theSameWallet",
-			given: func() *accountsbase.MockWallet {
+			given: func() *MockWallet {
 				return wallet
 			},
 			expect:len(walletManager.Wallets) -1 ,
@@ -239,7 +239,7 @@ func TestWalletManager_FindWalletFromIdentifier(t *testing.T) {
 		{
 			name:"diffWallet",
 			given: func() accountsbase.WalletIdentifier {
-				wallet := accountsbase.NewMockWallet(ctrl)
+				wallet := NewMockWallet(ctrl)
 				wallet.EXPECT().GetWalletIdentifier().Return(accountsbase.WalletIdentifier{WalletType:accountsbase.SoftWallet, Path:util.HomeDir()}, nil).AnyTimes()
 				return accountsbase.WalletIdentifier{WalletType:accountsbase.SoftWallet, Path:util.HomeDir()}
 			},

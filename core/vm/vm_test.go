@@ -19,13 +19,16 @@ package vm
 import (
 	"errors"
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/dipperin/dipperin-core/common/gerror"
 	"github.com/dipperin/dipperin-core/core/chainconfig"
 	"github.com/dipperin/dipperin-core/core/model"
-	common2 "github.com/dipperin/dipperin-core/core/vm/base"
+	"github.com/dipperin/dipperin-core/core/vm/base"
+	"github.com/dipperin/dipperin-core/core/vm/resolver"
 	"github.com/dipperin/dipperin-core/core/vm/base/utils"
 	"github.com/dipperin/dipperin-core/tests/factory/vminfo"
 	"github.com/dipperin/dipperin-core/third_party/crypto"
 	"github.com/dipperin/dipperin-core/third_party/crypto/cs-crypto"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/vntchain/go-vnt/rlp"
 	"math/big"
@@ -34,7 +37,7 @@ import (
 )
 
 var (
-	context common2.Context
+	context base.Context
 )
 
 
@@ -54,7 +57,7 @@ func Test_NewVMContext(t *testing.T) {
 	header.EXPECT().CoinBaseAddress().Return(model.AliceAddr).AnyTimes()
 	header.EXPECT().GetTimeStamp().Return(big.NewInt(time.Now().UnixNano())).AnyTimes()
 
-	context = common2.NewVMContext(tx, header, getTestHashFunc())
+	context = base.NewVMContext(tx, header, getTestHashFunc())
 	assert.Equal(t, tx.GetGasLimit(), context.GetGasLimit())
 	assert.Equal(t, header.GetNumber(), context.GetBlockNumber().Uint64())
 	assert.Equal(t, tx.GetGasPrice(), context.GetGasPrice())
@@ -185,11 +188,825 @@ func Test_Run(t *testing.T) {
 		<-ch*/
 }
 
+func TestVM_TransferValue(t *testing.T) {
+	ctrl := gomock.NewController(t)
+
+	db := base.NewMockStateDB(ctrl)
+
+	ref := base.AccountRef(model.AliceAddr)
+
+	testCases := []struct {
+		name   string
+		given  func() (*VM, resolver.ContractRef, common.Address, *big.Int)
+		expect error
+	}{
+		{
+			name: "ErrInsufficientBalance",
+			given: func() (*VM, resolver.ContractRef, common.Address, *big.Int) {
+				fakeCanTransfer := func(db base.StateDB, addr common.Address, amount *big.Int) bool {
+					return false
+				}
+
+				vm := NewVM(base.Context{
+					Origin:      model.AliceAddr,
+					BlockNumber: big.NewInt(1),
+					CanTransfer: fakeCanTransfer,
+					Transfer:    base.Transfer,
+					GetHash:     getTestHashFunc(),
+				}, db, base.DEFAULT_VM_CONFIG)
+
+
+				return vm, ref, common.Address{}, big.NewInt(0)
+			},
+			expect:  gerror.ErrInsufficientBalance,
+		},
+		{
+			name: "TransferValueRight",
+			given: func() (*VM, resolver.ContractRef, common.Address, *big.Int) {
+				tempAddr := common.HexToAddress("0x0012910")
+
+				vm := NewVM(base.Context{
+					Origin:      tempAddr,
+					BlockNumber: big.NewInt(1),
+					CanTransfer: base.CanTransfer,
+					Transfer:    base.Transfer,
+					GetHash:     getTestHashFunc(),
+				}, db, base.DEFAULT_VM_CONFIG)
+
+				db.EXPECT().Exist(tempAddr).Return(false)
+				db.EXPECT().CreateAccount(tempAddr).Return(nil)
+				db.EXPECT().SubBalance(tempAddr, big.NewInt(10)).Return(nil).AnyTimes()
+				db.EXPECT().AddBalance(tempAddr, big.NewInt(10)).Return(nil).AnyTimes()
+				db.EXPECT().GetBalance(tempAddr).Return(big.NewInt(100))
+				db.EXPECT().Exist(model.AliceAddr).Return(true)
+
+				return vm, base.AccountRef(tempAddr), tempAddr, big.NewInt(10)
+			},
+			expect: nil,
+		},
+	}
+
+	for _, tc := range testCases{
+		t.Log(tc.name)
+		vm, caller, to, value := tc.given()
+		err := vm.TransferValue(caller, to, value)
+		if err != nil {
+			assert.Equal(t, tc.expect, err)
+		}
+
+	}
+}
+
+
+func TestVM_Call(t *testing.T) {
+	ctrl := gomock.NewController(t)
+
+	db := base.NewMockStateDB(ctrl)
+
+	ref := base.AccountRef(model.AliceAddr)
+	gasLimit := model.TestGasLimit * 100
+	value := big.NewInt(0)
+	code, abi := vminfo.GetTestData("event")
+	rlpParams := []interface{}{
+		code, abi,
+	}
+	data, err := rlp.EncodeToBytes(rlpParams)
+	assert.NoError(t, err)
+
+	// vm.Create
+	contractAddr := cs_crypto.CreateContractAddress(ref.Address(), uint64(0))
+	log := model.Log{
+		//Address:common.HexToAddress("0x0014B5Df12F50295469Fe33951403b8f4E63231Ef488"),
+		Address:     model.ContractAddr,
+		TopicName:   "topic",
+		Topics:      []common.Hash{common.BytesToHash(crypto.Keccak256([]byte("topic")))},
+		Data:        []byte("ƅparam"),
+		BlockNumber: 0,
+		TxHash:      common.Hash{},
+		TxIndex:     0,
+		BlockHash:   common.Hash{},
+		Index:       0,
+		Removed:     false,
+	}
+
+	log2 := log
+	log2.Address = contractAddr
+	t.Log("log", log.Address)
+	t.Log("log2", log2.Address)
+
+	db.EXPECT().GetNonce(ref.Address()).Return(uint64(0), nil).AnyTimes()
+	db.EXPECT().GetBalance(ref.Address()).Return(new(big.Int).Mul(value, big.NewInt(10))).AnyTimes()
+	db.EXPECT().AddNonce(ref.Address(), uint64(1)).Return().AnyTimes()
+	db.EXPECT().GetCodeHash(contractAddr).Return(common.Hash{}).AnyTimes()
+	db.EXPECT().GetAbiHash(contractAddr).Return(common.Hash{}).AnyTimes()
+	db.EXPECT().GetNonce(contractAddr).Return(uint64(0), nil).AnyTimes()
+	db.EXPECT().Snapshot().Return(1).AnyTimes()
+	db.EXPECT().CreateAccount(contractAddr).Return(nil).AnyTimes()
+	db.EXPECT().SubBalance(ref.Address(), value).Return(nil).AnyTimes()
+	db.EXPECT().AddBalance(contractAddr, value).Return(nil).AnyTimes()
+	db.EXPECT().SetCode(contractAddr, code).AnyTimes()
+	db.EXPECT().SetAbi(contractAddr, abi).AnyTimes()
+	db.EXPECT().Exist(contractAddr).Return(true).AnyTimes()
+	db.EXPECT().GetCode(contractAddr).Return(code).AnyTimes()
+	db.EXPECT().GetAbi(contractAddr).Return(abi).AnyTimes()
+	db.EXPECT().AddLog(&log2).AnyTimes()
+
+	type result struct {
+		resp interface{}
+		leftGas uint64
+		err error
+	}
+
+	testCases := []struct {
+		name   string
+		given  func() (*VM,  common.Address, []byte, *big.Int)
+		expect func() result
+	}{
+		{
+			name: "CallTooDepth",
+			given: func() (*VM, common.Address, []byte, *big.Int) {
+				vm := NewVM(base.Context{
+					Origin:      model.AliceAddr,
+					BlockNumber: big.NewInt(1),
+					CanTransfer: base.CanTransfer,
+					Transfer:    base.Transfer,
+					GetHash:     getTestHashFunc(),
+				}, db, base.DEFAULT_VM_CONFIG)
+
+				_, addr, _, err := vm.Create(ref, data, gasLimit, value)
+				assert.NoError(t, err)
+
+				input := []interface{}{
+					"returnString",
+					"param",
+				}
+				vm.vmConfig.NoRecursion = true
+				vm.depth = 1
+				inputData, err := rlp.EncodeToBytes(input)
+				assert.NoError(t, err)
+
+				return vm, addr, inputData, big.NewInt(0)
+			},
+			expect: func() result {
+				return result{
+					err:nil,
+					leftGas:gasLimit,
+					resp:[]byte(nil),
+				}
+			},
+		},
+		{
+			name: "ErrDepth",
+			given: func() (*VM, common.Address, []byte, *big.Int) {
+				vm := NewVM(base.Context{
+					Origin:      model.AliceAddr,
+					BlockNumber: big.NewInt(1),
+					CanTransfer: base.CanTransfer,
+					Transfer:    base.Transfer,
+					GetHash:     getTestHashFunc(),
+				}, db, base.DEFAULT_VM_CONFIG)
+
+				_, addr, _, err := vm.Create(ref, data, gasLimit, value)
+				assert.NoError(t, err)
+
+				input := []interface{}{
+					"returnString",
+					"param",
+				}
+				vm.depth = int(model.CallCreateDepth + 1)
+				inputData, err := rlp.EncodeToBytes(input)
+				assert.NoError(t, err)
+
+				return vm, addr, inputData, big.NewInt(0)
+			},
+			expect: func() result {
+				return result{
+					err:gerror.ErrDepth,
+					leftGas:gasLimit,
+					resp:[]byte(nil),
+				}
+			},
+		},
+		{
+			name: "ErrCallContractAddrIsWrong",
+			given: func() (*VM, common.Address, []byte, *big.Int) {
+				vm := NewVM(base.Context{
+					Origin:      model.AliceAddr,
+					BlockNumber: big.NewInt(1),
+					CanTransfer: base.CanTransfer,
+					Transfer:    base.Transfer,
+					GetHash:     getTestHashFunc(),
+				}, db, base.DEFAULT_VM_CONFIG)
+
+
+				input := []interface{}{
+					"returnString",
+					"param",
+				}
+				errAddr := common.HexToAddress("0x0012999")
+				db.EXPECT().Exist(errAddr).Return(false)
+				db.EXPECT().CreateAccount(errAddr).Return(nil)
+				db.EXPECT().SubBalance(errAddr, big.NewInt(0)).Return(nil).AnyTimes()
+				db.EXPECT().AddBalance(errAddr, big.NewInt(0)).Return(nil).AnyTimes()
+				db.EXPECT().GetCodeHash(errAddr).Return(common.Hash{}).AnyTimes()
+				db.EXPECT().GetAbiHash(errAddr).Return(common.Hash{}).AnyTimes()
+				db.EXPECT().GetCode(errAddr).Return(code).AnyTimes()
+				db.EXPECT().GetAbi(errAddr).Return(abi).AnyTimes()
+				db.EXPECT().RevertToSnapshot(1)
+				inputData, err := rlp.EncodeToBytes(input)
+				assert.NoError(t, err)
+
+				return vm, errAddr, inputData, big.NewInt(0)
+			},
+			expect: func() result {
+				return result{
+					err:gerror.ErrCallContractAddrIsWrong,
+					leftGas:gasLimit,
+					resp:[]byte(nil),
+				}
+			},
+		},
+		{
+			name: "ErrInsufficientBalance",
+			given: func() (*VM, common.Address, []byte, *big.Int) {
+				fakeCanTransfer := func(db base.StateDB, addr common.Address, amount *big.Int)bool {
+					return false
+				}
+				vm := NewVM(base.Context{
+					Origin:      model.AliceAddr,
+					BlockNumber: big.NewInt(1),
+					CanTransfer: base.CanTransfer,
+					Transfer:    base.Transfer,
+					GetHash:     getTestHashFunc(),
+				}, db, base.DEFAULT_VM_CONFIG)
+
+				_, addr, _, err := vm.Create(ref, data, gasLimit, value)
+				assert.NoError(t, err)
+
+				input := []interface{}{
+					"returnString",
+					"param",
+				}
+				vm.CanTransfer = fakeCanTransfer
+				inputData, err := rlp.EncodeToBytes(input)
+				assert.NoError(t, err)
+
+				return vm, addr, inputData, big.NewInt(0)
+			},
+			expect: func() result {
+				return result{
+					err:gerror.ErrInsufficientBalance,
+					leftGas:gasLimit,
+					resp:[]byte(nil),
+				}
+			},
+		},
+		{
+			name: "TestContractCall",
+			given: func() (*VM, common.Address, []byte, *big.Int) {
+				vm := NewVM(base.Context{
+					Origin:      model.AliceAddr,
+					BlockNumber: big.NewInt(1),
+					CanTransfer: base.CanTransfer,
+					Transfer:    base.Transfer,
+					GetHash:     getTestHashFunc(),
+				}, db, base.DEFAULT_VM_CONFIG)
+
+				_, addr, _, err := vm.Create(ref, data, gasLimit, value)
+				assert.NoError(t, err)
+
+				input := []interface{}{
+					"returnString",
+					"param",
+				}
+
+				inputData, err := rlp.EncodeToBytes(input)
+				assert.NoError(t, err)
+
+				return vm, addr, inputData, big.NewInt(0)
+			},
+			expect: func() result{
+				resp, err := utils.StringConverter("param", "string")
+				assert.NoError(t, err)
+				return result{
+					resp:resp,
+					err:nil,
+
+				}
+
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		vmTemp , addr, inputData, value := tc.given()
+		t.Log(tc.name)
+
+		resp, _, err := vmTemp.Call(ref, addr, inputData, gasLimit, value)
+		result := tc.expect()
+		if result.err != nil {
+			assert.Equal(t, result.err, err)
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, result.resp, resp[:len(result.resp.([]byte))])
+		}
+	}
+
+}
+
+
+func TestVM_Create(t *testing.T) {
+	ctrl := gomock.NewController(t)
+
+	db := base.NewMockStateDB(ctrl)
+
+	ref := base.AccountRef(model.AliceAddr)
+	gasLimit := model.TestGasLimit * 100
+	value := big.NewInt(0)
+	code, abi := vminfo.GetTestData("event")
+	rlpParams := []interface{}{
+		code, abi,
+	}
+	data, err := rlp.EncodeToBytes(rlpParams)
+	assert.NoError(t, err)
+
+	// vm.Create
+	contractAddr := cs_crypto.CreateContractAddress(ref.Address(), uint64(0))
+
+	baseNonce := uint64(0)
+	db.EXPECT().GetNonce(ref.Address()).Return(uint64(0), nil).AnyTimes()
+	db.EXPECT().GetBalance(ref.Address()).Return(new(big.Int).Mul(value, big.NewInt(10))).AnyTimes()
+	db.EXPECT().AddNonce(ref.Address(), uint64(1)).Return().AnyTimes()
+	db.EXPECT().GetCodeHash(contractAddr).Return(common.Hash{}).AnyTimes()
+	db.EXPECT().GetAbiHash(contractAddr).Return(common.Hash{}).AnyTimes()
+	db.EXPECT().GetNonce(contractAddr).Return(uint64(0), nil).AnyTimes()
+	db.EXPECT().Snapshot().Return(1).AnyTimes()
+	db.EXPECT().CreateAccount(contractAddr).Return(nil).AnyTimes()
+	db.EXPECT().SubBalance(ref.Address(), value).Return(nil).AnyTimes()
+	db.EXPECT().AddBalance(contractAddr, value).Return(nil).AnyTimes()
+	db.EXPECT().SetCode(contractAddr, code).AnyTimes()
+	db.EXPECT().SetAbi(contractAddr, abi).AnyTimes()
+	db.EXPECT().Exist(contractAddr).Return(true).AnyTimes()
+	db.EXPECT().GetCode(contractAddr).Return(code).AnyTimes()
+	db.EXPECT().GetAbi(contractAddr).Return(abi).AnyTimes()
+
+
+	type result struct {
+		resp interface{}
+		leftGas uint64
+		err error
+	}
+
+	testCases := []struct {
+		name   string
+		given  func() (*VM, resolver.ContractRef, []byte,uint64,*big.Int)
+		expect func() result
+	}{
+		{
+			name: "CallTooDepth",
+			given: func() (*VM, resolver.ContractRef, []byte,uint64,*big.Int) {
+				vm := NewVM(base.Context{
+					Origin:      model.AliceAddr,
+					BlockNumber: big.NewInt(1),
+					CanTransfer: base.CanTransfer,
+					Transfer:    base.Transfer,
+					GetHash:     getTestHashFunc(),
+				}, db, base.DEFAULT_VM_CONFIG)
+
+				//db.EXPECT().GetNonce(ref.Address()).Return(baseNonce, nil).AnyTimes()
+
+				vm.vmConfig.NoRecursion = true
+				vm.depth = 1
+
+
+				return vm,ref,data,gasLimit,value
+			},
+			expect: func() result {
+				return result{
+					err:nil,
+					leftGas:gasLimit,
+					resp:[]byte(nil),
+				}
+			},
+		},
+		{
+			name: "ErrDepth",
+			given: func() (*VM, resolver.ContractRef, []byte,uint64,*big.Int) {
+				vm := NewVM(base.Context{
+					Origin:      model.AliceAddr,
+					BlockNumber: big.NewInt(1),
+					CanTransfer: base.CanTransfer,
+					Transfer:    base.Transfer,
+					GetHash:     getTestHashFunc(),
+				}, db, base.DEFAULT_VM_CONFIG)
+
+				vm.depth = int(model.CallCreateDepth + 1)
+
+				return vm,ref,data,gasLimit,value
+			},
+			expect: func() result {
+				return result{
+					err:gerror.ErrDepth,
+					leftGas:gasLimit,
+					resp:[]byte(nil),
+				}
+			},
+		},
+		{
+			name: "ErrInsufficientBalance",
+			given: func() (*VM, resolver.ContractRef, []byte,uint64,*big.Int)  {
+				fakeCanTransfer := func(db base.StateDB, addr common.Address, amount *big.Int)bool {
+					return false
+				}
+				vm := NewVM(base.Context{
+					Origin:      model.AliceAddr,
+					BlockNumber: big.NewInt(1),
+					CanTransfer: fakeCanTransfer,
+					Transfer:    base.Transfer,
+					GetHash:     getTestHashFunc(),
+				}, db, base.DEFAULT_VM_CONFIG)
+
+				return vm,ref,data,gasLimit,value
+			},
+			expect: func() result {
+				return result{
+					err:gerror.ErrInsufficientBalance,
+					leftGas:gasLimit,
+					resp:[]byte(nil),
+				}
+			},
+		},
+		{
+			name: "ErrContractAddressCollision",
+			given: func() (*VM, resolver.ContractRef, []byte,uint64,*big.Int) {
+				vm := NewVM(base.Context{
+					Origin:      model.AliceAddr,
+					BlockNumber: big.NewInt(1),
+					CanTransfer: base.CanTransfer,
+					Transfer:    base.Transfer,
+					GetHash:     getTestHashFunc(),
+				}, db, base.DEFAULT_VM_CONFIG)
+
+				errAddr := common.HexToAddress("0x0012999")
+				contractAddr = cs_crypto.CreateContractAddress(errAddr, baseNonce)
+				db.EXPECT().GetCodeHash(contractAddr).Return(common.HexToHash("0x1234")).AnyTimes()
+				db.EXPECT().GetNonce(contractAddr).Return(uint64(3), nil).AnyTimes()
+				db.EXPECT().GetNonce(errAddr).Return(baseNonce, nil).AnyTimes()
+				db.EXPECT().GetBalance(contractAddr).Return(new(big.Int).Mul(value, big.NewInt(10))).AnyTimes()
+				db.EXPECT().GetBalance(errAddr).Return(new(big.Int).Mul(value, big.NewInt(10))).AnyTimes()
+				db.EXPECT().AddNonce(errAddr, uint64(1))
+
+				return vm, base.AccountRef(errAddr) ,data,gasLimit,value
+			},
+			expect: func() result {
+				return result{
+					err:gerror.ErrContractAddressCollision,
+					leftGas:gasLimit,
+					resp:[]byte(nil),
+				}
+			},
+		},
+		{
+			name: "ErrContractAddressCreate",
+			given: func() (*VM, resolver.ContractRef, []byte,uint64,*big.Int) {
+				vm := NewVM(base.Context{
+					Origin:      model.AliceAddr,
+					BlockNumber: big.NewInt(1),
+					CanTransfer: base.CanTransfer,
+					Transfer:    base.Transfer,
+					GetHash:     getTestHashFunc(),
+				}, db, base.DEFAULT_VM_CONFIG)
+
+				errAddr := common.HexToAddress("0x0012985")
+				contractAddr = cs_crypto.CreateContractAddress(errAddr, baseNonce)
+				db.EXPECT().GetNonce(errAddr).Return(baseNonce, nil).AnyTimes()
+				db.EXPECT().GetBalance(errAddr).Return(new(big.Int).Mul(value, big.NewInt(10))).AnyTimes()
+				db.EXPECT().AddNonce(errAddr, uint64(1))
+				db.EXPECT().GetCodeHash(contractAddr).Return(common.Hash{})
+				db.EXPECT().GetNonce(contractAddr).Return(baseNonce, nil).AnyTimes()
+				db.EXPECT().GetBalance(contractAddr).Return(new(big.Int).Mul(value, big.NewInt(10))).AnyTimes()
+				db.EXPECT().CreateAccount(contractAddr).Return(gerror.ErrContractAddressCreate)
+
+				return vm, base.AccountRef(errAddr) ,data,gasLimit,value
+			},
+			expect: func() result {
+				return result{
+					err:gerror.ErrContractAddressCreate,
+					leftGas:gasLimit,
+					resp:[]byte(nil),
+				}
+			},
+		},
+		{
+			name: "TestContractCreate",
+			given: func() (*VM, resolver.ContractRef, []byte,uint64,*big.Int) {
+				vm := NewVM(base.Context{
+					Origin:      model.AliceAddr,
+					BlockNumber: big.NewInt(1),
+					CanTransfer: base.CanTransfer,
+					Transfer:    base.Transfer,
+					GetHash:     getTestHashFunc(),
+				}, db, base.DEFAULT_VM_CONFIG)
+				return vm,ref,data,gasLimit,value
+			},
+			expect: func() result {
+				return result{
+					resp:code,
+					err:nil,
+				}
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		vmTemp , refTemp,data,gasLimit,value := tc.given()
+		t.Log(tc.name)
+
+		resp, _, _, err := vmTemp.Create(refTemp, data, gasLimit, value)
+		result := tc.expect()
+		if result.err != nil {
+			assert.Equal(t, result.err, err)
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, result.resp, resp[:len(result.resp.([]byte))])
+		}
+	}
+
+}
+
+
+func TestVM_DelegateCall(t *testing.T) {
+	ctrl := gomock.NewController(t)
+
+	db := base.NewMockStateDB(ctrl)
+
+	ref := base.AccountRef(model.AliceAddr)
+	gasLimit := model.TestGasLimit * 100
+	value := big.NewInt(0)
+	code, abi := vminfo.GetTestData("event")
+	rlpParams := []interface{}{
+		code, abi,
+	}
+	data, err := rlp.EncodeToBytes(rlpParams)
+	assert.NoError(t, err)
+
+	// vm.Create
+	contractAddr := cs_crypto.CreateContractAddress(ref.Address(), uint64(0))
+	log := model.Log{
+		//Address:common.HexToAddress("0x0014B5Df12F50295469Fe33951403b8f4E63231Ef488"),
+		Address:     model.ContractAddr,
+		TopicName:   "topic",
+		Topics:      []common.Hash{common.BytesToHash(crypto.Keccak256([]byte("topic")))},
+		Data:        []byte("ƅparam"),
+		BlockNumber: 0,
+		TxHash:      common.Hash{},
+		TxIndex:     0,
+		BlockHash:   common.Hash{},
+		Index:       0,
+		Removed:     false,
+	}
+
+	log2 := log
+	log2.Address = contractAddr
+	t.Log("log", log.Address)
+	t.Log("log2", log2.Address)
+
+	db.EXPECT().GetNonce(ref.Address()).Return(uint64(0), nil).AnyTimes()
+	db.EXPECT().GetBalance(ref.Address()).Return(new(big.Int).Mul(value, big.NewInt(10))).AnyTimes()
+	db.EXPECT().AddNonce(ref.Address(), uint64(1)).Return().AnyTimes()
+	db.EXPECT().GetCodeHash(contractAddr).Return(common.Hash{}).AnyTimes()
+	db.EXPECT().GetAbiHash(contractAddr).Return(common.Hash{}).AnyTimes()
+	db.EXPECT().GetNonce(contractAddr).Return(uint64(0), nil).AnyTimes()
+	db.EXPECT().Snapshot().Return(1).AnyTimes()
+	db.EXPECT().CreateAccount(contractAddr).Return(nil).AnyTimes()
+	db.EXPECT().SubBalance(ref.Address(), value).Return(nil).AnyTimes()
+	db.EXPECT().AddBalance(contractAddr, value).Return(nil).AnyTimes()
+	db.EXPECT().SetCode(contractAddr, code).AnyTimes()
+	db.EXPECT().SetAbi(contractAddr, abi).AnyTimes()
+	db.EXPECT().Exist(contractAddr).Return(true).AnyTimes()
+	//db.EXPECT().Exist(common.Address{}).Return(true)
+	db.EXPECT().GetCode(contractAddr).Return(code).AnyTimes()
+	db.EXPECT().GetAbi(contractAddr).Return(abi).AnyTimes()
+	db.EXPECT().AddLog(&log2).AnyTimes()
+	db.EXPECT().AddLog(&log).AnyTimes()
+
+	type result struct {
+		resp interface{}
+		leftGas uint64
+		err error
+	}
+
+	testCases := []struct {
+		name   string
+		given  func() (resolver.ContractRef, *VM,  common.Address, []byte, uint64)
+		expect func() result
+	}{
+		{
+			name: "CallTooDepth",
+			given: func() (resolver.ContractRef, *VM,  common.Address, []byte, uint64) {
+				vm := NewVM(base.Context{
+					Origin:      model.AliceAddr,
+					BlockNumber: big.NewInt(1),
+					CanTransfer: base.CanTransfer,
+					Transfer:    base.Transfer,
+					GetHash:     getTestHashFunc(),
+				}, db, base.DEFAULT_VM_CONFIG)
+
+				_, addr, _, err := vm.Create(ref, data, gasLimit, value)
+				assert.NoError(t, err)
+
+				input := []interface{}{
+					"returnString",
+					"param",
+				}
+				vm.vmConfig.NoRecursion = true
+				vm.depth = 1
+				inputData, err := rlp.EncodeToBytes(input)
+				assert.NoError(t, err)
+
+				parentContract := getContract(code, abi, inputData)
+				parentContract.value = big.NewInt(0)
+				return parentContract, vm, addr, inputData, gasLimit
+			},
+			expect: func() result {
+				return result{
+					err:nil,
+					leftGas:gasLimit,
+					resp:[]byte(nil),
+				}
+			},
+		},
+		{
+			name: "ErrDepth",
+			given: func() (resolver.ContractRef, *VM,  common.Address, []byte, uint64) {
+				vm := NewVM(base.Context{
+					Origin:      model.AliceAddr,
+					BlockNumber: big.NewInt(1),
+					CanTransfer: base.CanTransfer,
+					Transfer:    base.Transfer,
+					GetHash:     getTestHashFunc(),
+				}, db, base.DEFAULT_VM_CONFIG)
+
+				_, addr, _, err := vm.Create(ref, data, gasLimit, value)
+				assert.NoError(t, err)
+
+				input := []interface{}{
+					"returnString",
+					"param",
+				}
+				vm.depth = int(model.CallCreateDepth + 1)
+				inputData, err := rlp.EncodeToBytes(input)
+				assert.NoError(t, err)
+
+				parentContract := getContract(code, abi, inputData)
+				parentContract.value = big.NewInt(0)
+
+				return parentContract, vm, addr, inputData, gasLimit
+			},
+			expect: func() result {
+				return result{
+					err:gerror.ErrDepth,
+					leftGas:gasLimit,
+					resp:[]byte(nil),
+				}
+			},
+		},
+		//{
+		//	name: "ErrCallContractAddrIsWrong",
+		//	given: func() (*VM, common.Address, []byte, *big.Int) {
+		//		vm := NewVM(base.Context{
+		//			Origin:      model.AliceAddr,
+		//			BlockNumber: big.NewInt(1),
+		//			CanTransfer: base.CanTransfer,
+		//			Transfer:    base.Transfer,
+		//			GetHash:     getTestHashFunc(),
+		//		}, db, base.DEFAULT_VM_CONFIG)
+		//
+		//
+		//		input := []interface{}{
+		//			"returnString",
+		//			"param",
+		//		}
+		//		errAddr := common.HexToAddress("0x0012999")
+		//		db.EXPECT().Exist(errAddr).Return(false)
+		//		db.EXPECT().CreateAccount(errAddr).Return(nil)
+		//		db.EXPECT().SubBalance(errAddr, big.NewInt(0)).Return(nil).AnyTimes()
+		//		db.EXPECT().AddBalance(errAddr, big.NewInt(0)).Return(nil).AnyTimes()
+		//		db.EXPECT().GetCodeHash(errAddr).Return(common.Hash{}).AnyTimes()
+		//		db.EXPECT().GetAbiHash(errAddr).Return(common.Hash{}).AnyTimes()
+		//		db.EXPECT().GetCode(errAddr).Return(code).AnyTimes()
+		//		db.EXPECT().GetAbi(errAddr).Return(abi).AnyTimes()
+		//		db.EXPECT().RevertToSnapshot(1)
+		//		inputData, err := rlp.EncodeToBytes(input)
+		//		assert.NoError(t, err)
+		//
+		//		return vm, errAddr, inputData, big.NewInt(0)
+		//	},
+		//	expect: func() result {
+		//		return result{
+		//			err:gerror.ErrCallContractAddrIsWrong,
+		//			leftGas:gasLimit,
+		//			resp:[]byte(nil),
+		//		}
+		//	},
+		//},
+		//{
+		//	name: "ErrInsufficientBalance",
+		//	given: func() (*VM, common.Address, []byte, *big.Int) {
+		//		fakeCanTransfer := func(db base.StateDB, addr common.Address, amount *big.Int)bool {
+		//			return false
+		//		}
+		//		vm := NewVM(base.Context{
+		//			Origin:      model.AliceAddr,
+		//			BlockNumber: big.NewInt(1),
+		//			CanTransfer: base.CanTransfer,
+		//			Transfer:    base.Transfer,
+		//			GetHash:     getTestHashFunc(),
+		//		}, db, base.DEFAULT_VM_CONFIG)
+		//
+		//		_, addr, _, err := vm.Create(ref, data, gasLimit, value)
+		//		assert.NoError(t, err)
+		//
+		//		input := []interface{}{
+		//			"returnString",
+		//			"param",
+		//		}
+		//		vm.CanTransfer = fakeCanTransfer
+		//		inputData, err := rlp.EncodeToBytes(input)
+		//		assert.NoError(t, err)
+		//
+		//		return vm, addr, inputData, big.NewInt(0)
+		//	},
+		//	expect: func() result {
+		//		return result{
+		//			err:gerror.ErrInsufficientBalance,
+		//			leftGas:gasLimit,
+		//			resp:[]byte(nil),
+		//		}
+		//	},
+		//},
+		//{
+		{
+			name: "TestContractDelegateCall",
+
+		given: func()  (resolver.ContractRef, *VM,  common.Address, []byte, uint64) {
+			vm := NewVM(base.Context{
+				Origin:      model.AliceAddr,
+				BlockNumber: big.NewInt(1),
+				CanTransfer: base.CanTransfer,
+				Transfer:    base.Transfer,
+				GetHash:     getTestHashFunc(),
+			}, db, base.DEFAULT_VM_CONFIG)
+
+			_, addr, gasLimit, err := vm.Create(ref, data, gasLimit, value)
+			assert.NoError(t, err)
+
+			input := []interface{}{
+				"returnString",
+				"param",
+			}
+
+			inputData, err := rlp.EncodeToBytes(input)
+			assert.NoError(t, err)
+
+			parentContract := getContract(code, abi, inputData)
+			parentContract.value = big.NewInt(0)
+			return parentContract, vm, addr, inputData, gasLimit
+		},
+		expect: func() result{
+			resp, err := utils.StringConverter("param", "string")
+			assert.NoError(t, err)
+			return result{
+				resp:resp,
+				err:nil,
+
+			}
+		},
+		},
+	}
+
+	for _, tc := range testCases {
+		parentContract, vmTemp, addr, inputData, gasLimit := tc.given()
+		t.Log(tc.name)
+		resp, _, err := vmTemp.DelegateCall(parentContract, addr, inputData, gasLimit)
+
+		result := tc.expect()
+		if result.err != nil {
+			assert.Equal(t, result.err, err)
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, result.resp, resp[:len(result.resp.([]byte))])
+		}
+	}
+
+}
+/*
+
 func TestVM_CreateAndCall(t *testing.T) {
 	ctrl, db, vm := GetBaseVmInfo(t)
 	defer ctrl.Finish()
 
-	ref := common2.AccountRef(model.AliceAddr)
+	ref := base.AccountRef(model.AliceAddr)
 	gasLimit := model.TestGasLimit * 100
 	value := big.NewInt(0)
 	code, abi := vminfo.GetTestData("event")
@@ -309,7 +1126,7 @@ func TestVM_CreateAndCall(t *testing.T) {
 
 }
 
-/*
+
 func TestVM_CreateAndCallWithdraw(t *testing.T) {
 	vm := getTestVm()
 	aliceRef := AccountRef(aliceAddr)

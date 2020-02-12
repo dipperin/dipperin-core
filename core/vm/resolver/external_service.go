@@ -57,7 +57,7 @@ type ContractService interface {
 	GetGas() uint64
 }
 
-//go:generate mockgen -destination=./statedb_service_mock.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver StateDBService
+//go:generate mockgen -destination=./statedb_service_mock_test.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver StateDBService
 type StateDBService interface {
 	GetBalance(addr common.Address) *big.Int
 	AddLog(addedLog *model2.Log)
@@ -72,17 +72,15 @@ type resolverNeedExternalService struct {
 	StateDBService
 }
 
-func (service *resolverNeedExternalService) Transfer(toAddr common.Address, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
-	//todo gas used
-	gas := uint64(0)
+func (service *resolverNeedExternalService) Transfer(toAddr common.Address, value *big.Int) ( err error) {
 	/*gas := self.evm.callGasTemp
 	if value.Sign() != 0 {
 		gas += params.CallStipend
 	}*/
-	log.DLogger.Info("Service#Transfer", zap.Any("from", service.Self().Address()), zap.Any("to", toAddr), zap.Any("value", value), zap.Any("gasLimit", gas))
+	log.DLogger.Info("Service#Transfer", zap.Any("from", service.Self().Address()), zap.Any("to", toAddr), zap.Any("value", value))
 	err = service.TransferValue(service.Self(), toAddr, value)
 	//ret, returnGas, err := service.Call(service.Self(), toAddr, nil, gas, value)
-	return []byte{}, gas, err
+	return err
 }
 
 func (service *resolverNeedExternalService) ResolverCall(addr, param []byte) ([]byte, error) {

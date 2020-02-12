@@ -185,7 +185,26 @@ func Test_envCoinbase(t *testing.T)  {
 }
 
 func Test_envBalance(t *testing.T)  {
+	ctrl, stateDB, _,_, solver, vm := GetBaseVmRelatedInfo(t)
+	defer ctrl.Finish()
 
+	vm.CurrentFrame++
+
+	addrStart := int64(0)
+	addrLen := int64(len(model.AliceAddr.Bytes()))
+	balanceStart := int64(len(model.AliceAddr.Bytes()))
+
+	frame := exec.Frame{
+		Locals:[]int64{addrStart, addrLen, balanceStart},
+	}
+	copy(vm.Memory.Memory[addrStart:addrLen], model.AliceAddr.Bytes())
+	vm.CallStack[0] = frame
+	value := new(big.Int).Exp(big.NewInt(10),big.NewInt(19),big.NewInt(0))
+	stateDB.EXPECT().GetBalance(model.AliceAddr).Return(new(big.Int).Exp(big.NewInt(10),big.NewInt(19),big.NewInt(0)))
+
+	solver.(*Resolver).envBalance(vm)
+
+	assert.Equal(t, vm.Memory.Memory[int(balanceStart)+32-len(value.Bytes()):int(balanceStart)+32], value.Bytes())
 }
 
 func Test_envOrigin(t *testing.T)  {
@@ -227,6 +246,21 @@ func Test_envCaller(t *testing.T)  {
 }
 
 func Test_envCallValue(t *testing.T)  {
+	ctrl, _, _,contractService, solver, vm := GetBaseVmRelatedInfo(t)
+	defer ctrl.Finish()
+
+	vm.CurrentFrame++
+	dataStart := int64(0)
+	frame := exec.Frame{
+		Locals:[]int64{dataStart},
+	}
+	vm.CallStack[0] = frame
+	value := new(big.Int).Exp(big.NewInt(10),big.NewInt(19),big.NewInt(0))
+	contractService.(*MockContractService).EXPECT().CallValue().Return(new(big.Int).Exp(big.NewInt(10),big.NewInt(19),big.NewInt(0)))
+
+	solver.(*Resolver).envCallValue(vm)
+
+	assert.Equal(t, vm.Memory.Memory[int(dataStart)+32-len(value.Bytes()):32], value.Bytes())
 
 }
 
@@ -328,6 +362,32 @@ func Test_envGetCallerNonce(t *testing.T)  {
 
 	result := solver.(*Resolver).envGetCallerNonce(vm)
 	assert.Equal(t, int64(expectNonce), result)
+}
+
+func Test_envCallTransfer( t *testing.T)  {
+	ctrl, _, vmService,contractService, solver, vm := GetBaseVmRelatedInfo(t)
+	defer ctrl.Finish()
+
+	vm.CurrentFrame++
+	value := new(big.Int).Exp(big.NewInt(10),big.NewInt(19),big.NewInt(0))
+	addrStart := int64(0)
+	addrLen := int64(len(model.AliceAddr.Bytes()))
+	balanceStart := int64(len(model.AliceAddr.Bytes()))
+	copy(vm.Memory.Memory[addrStart:addrLen], model.AliceAddr.Bytes())
+	copy(vm.Memory.Memory[int(balanceStart)+32-len(value.Bytes()):int(balanceStart)+32], value.Bytes())
+	frame := exec.Frame{
+		Locals:[]int64{addrStart, addrLen, balanceStart},
+	}
+	copy(vm.Memory.Memory[addrStart:addrLen], model.AliceAddr.Bytes())
+	vm.CallStack[0] = frame
+
+
+	vmService.(*MockVmContextService).EXPECT().TransferValue(base.AccountRef(common.Address{}), model.AliceAddr,value).Return(nil)
+	contractService.(*MockContractService).EXPECT().Self().Return(base.AccountRef(common.Address{})).AnyTimes()
+
+	solver.(*Resolver).envCallTransfer(vm)
+
+	assert.Equal(t, vm.Memory.Memory[int(balanceStart)+32-len(value.Bytes()):int(balanceStart)+32], value.Bytes())
 }
 
 func Test_envGetSignerAddress(t *testing.T)  {

@@ -140,18 +140,18 @@ func TestWalletInfo_GenerateKeyFromSeedAndPath(t *testing.T) {
 
 func TestWalletInfo_paddingUsedAccount(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	accountStatus := accountsbase.NewMockAddressInfoReader(ctrl)
+	accountStatus := NewMockAddressInfoReader(ctrl)
 
 	errSeed := []byte{0x01, 0x02, 0x01}
 
 	testCases := []struct{
 		name string
-		given func() (*WalletInfo, *accountsbase.MockAddressInfoReader)
+		given func() (*WalletInfo, *MockAddressInfoReader)
 		expect error
 	}{
 		{
 			name:"ErrInvalidSeedLen",
-			given: func() (*WalletInfo, *accountsbase.MockAddressInfoReader) {
+			given: func() (*WalletInfo, *MockAddressInfoReader) {
 				testWalletInfo := NewHdWalletInfo()
 				testWalletInfo.Seed = errSeed
 				return testWalletInfo,accountStatus
@@ -160,7 +160,7 @@ func TestWalletInfo_paddingUsedAccount(t *testing.T) {
 		},
 		{
 			name:"paddingUsedAccountRight",
-			given: func() (*WalletInfo, *accountsbase.MockAddressInfoReader) {
+			given: func() (*WalletInfo, *MockAddressInfoReader) {
 				testWalletInfo := NewHdWalletInfo()
 				testWalletInfo.Seed = testSeed
 				accountStatus.EXPECT().GetTransactionNonce(common.HexToAddress("0x00003e406C9dE46907A53A0C39b683747874fb6e9EDC")).Return(uint64(0), nil).AnyTimes()
@@ -232,19 +232,19 @@ func TestWalletInfo_getSkFromAddress(t *testing.T) {
 // todo
 func TestWalletInfo_PaddingAddressNonce(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	accountStatus := accountsbase.NewMockAddressInfoReader(ctrl)
+	accountStatus := NewMockAddressInfoReader(ctrl)
 
 	testWalletInfo := NewHdWalletInfo()
 	testWalletInfo.Accounts = append(testWalletInfo.Accounts, accountsbase.Account{Address: testAddress})
 
 	testCases := []struct{
 		name string
-		given func() *accountsbase.MockAddressInfoReader
+		given func() *MockAddressInfoReader
 		expect error
 	}{
 		{
 			name :"PaddingAddressNonce",
-			given: func()  *accountsbase.MockAddressInfoReader {
+			given: func()  *MockAddressInfoReader {
 				accountStatus.EXPECT().GetTransactionNonce(testAddress).Return(uint64(10), nil)
 				return accountStatus
 			},
@@ -252,7 +252,7 @@ func TestWalletInfo_PaddingAddressNonce(t *testing.T) {
 		},
 		{
 			name :"PaddingAddressNonce two",
-			given: func()  *accountsbase.MockAddressInfoReader {
+			given: func()  *MockAddressInfoReader {
 				accountStatus.EXPECT().GetTransactionNonce(testAddress).Return(uint64(10),errors.New("error"))
 				return accountStatus
 			},
