@@ -22,7 +22,6 @@ import (
 	"github.com/dipperin/dipperin-core/common/log"
 	"github.com/dipperin/dipperin-core/core/model"
 	"go.uber.org/zap"
-	"fmt"
 )
 
 type poolEventNotifier interface {
@@ -120,12 +119,10 @@ func (p *BlockPool) loop() {
 		case b := <-p.newBlockChan:
 			p.doAddBlock(b)
 		case c := <-p.getterChan:
-			fmt.Println("gggggg")
 			p.doGetBlock(c)
 		case h := <-p.rmBlockChan:
 			p.doRemoveBlock(h)
 		case <-p.stopChan:
-			fmt.Println("wwwww")
 			return
 		}
 	}
@@ -265,10 +262,8 @@ func (p *BlockPool) doGetBlock(getter *blockPoolGetter) {
 	if getter.blockHash.IsEqual(common.Hash{}) {
 		if len(p.blocks) == 0 {
 			result = nil
-			fmt.Println("yyyyyy11111111")
 		} else {
 			result = p.blocks[0]
-			fmt.Println("yyyyyy22222222")
 		}
 		// get match hash block
 	} else {

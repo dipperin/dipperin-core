@@ -877,34 +877,19 @@ func TestBlockPool_GetProposalBlock(t *testing.T) {
 					rmBlockChan:   make(chan common.Hash),
 					stopChan:      make(chan struct{}),
 				}
-				//var n = newBlockWithResultErr{block: nil, resultChan: make(chan error)}
-				//go func(*BlockPool, newBlockWithResultErr) {
-				//	rsp.height = 1
-				//	b := NewMockAbstractBlock(ctrl)
-				//	b.EXPECT().Number().Return(uint64(2)).AnyTimes()
-				//	b.EXPECT().Hash().Return(common.Hash{}).AnyTimes()
-				//	n.block = b
-				//	rsp.doAddBlock(n)
-				//}(rsp, n)
-				//time.Sleep(time.Second)
-				//err := <-n.resultChan
-				//close(n.resultChan)
-				//t.Log("err:", err)
-				//if err != nil {
-				//	return err.Error() == "invalid height block"
-				//}
-
+				var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
+				b := NewMockAbstractBlock(ctrl)
+				b.EXPECT().Hash().Return(common.HexToHash(hashTmp)).AnyTimes()
+				rsp.blocks = append(rsp.blocks, b)
 				go rsp.loop()
 				var ab model.AbstractBlock
 				go func(model.AbstractBlock) {
 					ab = rsp.GetProposalBlock()
 				}(ab)
 
-
-
 				time.Sleep(2 * time.Second)
 				rsp.stopChan <- struct{}{}
-				return ab == nil
+				return ab != nil
 			},
 			expect: true,
 		},
