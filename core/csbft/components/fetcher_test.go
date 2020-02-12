@@ -579,14 +579,62 @@ func TestCsBftFetcher_onFetchResp(t *testing.T) {
 }
 
 func TestCsBftFetcher_onResult(t *testing.T) {
+	//var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
+	//r := FetchBlockReqMsg{
+	//	MsgId:      0,
+	//	From:       common.HexToAddress(hashTmp),
+	//	BlockHash:  common.HexToHash(hashTmp),
+	//	ResultChan: make(chan model.AbstractBlock),
+	//}
+	//assert.NotPanics(t, func() {
+	//	r.onResult(nil)
+	//})
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 	var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
-	r := FetchBlockReqMsg{
-		MsgId:      0,
-		From:       common.HexToAddress(hashTmp),
-		BlockHash:  common.HexToHash(hashTmp),
-		ResultChan: make(chan model.AbstractBlock),
+	testCases := []struct {
+		name   string
+		given  func() bool
+		expect bool
+	}{
+		{
+			name: "onResult case 1",
+			given: func() bool {
+				r := &FetchBlockReqMsg{
+					MsgId:      0,
+					From:       common.HexToAddress(hashTmp),
+					BlockHash:  common.HexToHash(hashTmp),
+					ResultChan: make(chan model.AbstractBlock),
+				}
+				b :=NewMockAbstractBlock(ctrl)
+				return assert.NotPanics(t, func() {
+					r.onResult(b)
+				})
+			},
+			expect: true,
+		},
+		{
+			name: "onResult case 2",
+			given: func() bool {
+				r := &FetchBlockReqMsg{
+					MsgId:      0,
+					From:       common.HexToAddress(hashTmp),
+					BlockHash:  common.HexToHash(hashTmp),
+					ResultChan: make(chan model.AbstractBlock),
+				}
+				return assert.NotPanics(t, func() {
+					r.onResult(nil)
+				})
+			},
+			expect: true,
+		},
 	}
-	assert.NotPanics(t, func() {
-		r.onResult(nil)
-	})
+	for i, tc := range testCases {
+		sign := tc.given()
+		if testCases[i].expect == sign {
+			t.Log("success")
+		} else {
+			t.Logf("expect:%v,actual:%v", testCases[i].expect, sign)
+		}
+	}
 }
