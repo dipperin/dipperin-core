@@ -211,34 +211,11 @@ func TestTimeoutTicker_timeoutRoutine(t *testing.T) {
 					tockChan: make(chan TimeoutInfo, tickTockBufferSize),
 				}
 
-				//var tmp = TimeoutInfo{Duration: 5 * time.Second, Height: 1, Round: 1, Step: model.RoundStepPreCommit}
-
 				go tt.timeoutRoutine()
-
-				//go tt.ScheduleTimeout(tmp)
-
-
-				//var tmp = TimeoutInfo{Duration: 5*time.Second, Height: 1, Round: 1, Step: model.RoundStepPreCommit}
-				//tt.ScheduleTimeout(tmp)
 				return true
 			},
 			expect: true,
 		},
-		//{
-		//	name: "TimeoutTicker stopTimer false",
-		//	given: func() bool {
-		//		tt := &timeoutTicker{
-		//			timer:    time.NewTimer(0),
-		//			tickChan: make(chan TimeoutInfo, tickTockBufferSize),
-		//			tockChan: make(chan TimeoutInfo, tickTockBufferSize),
-		//		}
-		//		go tt.timeoutRoutine()
-		//		tt.timer = time.NewTimer(time.Second)
-		//		time.Sleep(500 * time.Millisecond)
-		//		return true
-		//	},
-		//	expect: true,
-		//},
 	}
 
 	for i, tc := range testCases {
