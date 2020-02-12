@@ -655,14 +655,176 @@ func TestBlockPool_GetBlockByHash(t *testing.T) {
 }
 
 func TestBlockPool_doAddBlock(t *testing.T) {
-	rsp := NewBlockPool(0, nil)
-	assert.NotEmpty(t, rsp)
-	resultChan := make(chan error)
-	var block model.AbstractBlock
-	b := newBlockWithResultErr{block: block, resultChan: resultChan}
-	assert.Panics(t, func() {
-		rsp.doAddBlock(b)
-	})
+	//doAddBlock
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	testCases := []struct {
+		name   string
+		given  func() bool
+		expect bool
+	}{
+		{
+			name: "doAddBlock error exists",
+			given: func() bool {
+				rsp := &BlockPool{
+					height:            0,
+					blocks:            []model.AbstractBlock{},
+					poolEventNotifier: myTestNotifier{},
+					Blockpoolconfig:   nil,
+
+					newHeightChan: make(chan uint64, 5),
+					newBlockChan:  make(chan newBlockWithResultErr, 5),
+					getterChan:    make(chan *blockPoolGetter, 5),
+					rmBlockChan:   make(chan common.Hash),
+					stopChan:      make(chan struct{}),
+				}
+				var n = newBlockWithResultErr{block: nil, resultChan: make(chan error)}
+				go func(*BlockPool, newBlockWithResultErr) {
+					rsp.height = 1
+					b := NewMockAbstractBlock(ctrl)
+					b.EXPECT().Number().Return(uint64(2)).AnyTimes()
+					b.EXPECT().Hash().Return(common.Hash{}).AnyTimes()
+					n.block = b
+					rsp.doAddBlock(n)
+				}(rsp, n)
+				time.Sleep(time.Second)
+				err := <-n.resultChan
+				close(n.resultChan)
+				t.Log("err:", err)
+				if err != nil {
+					return err.Error() == "invalid height block"
+				}
+				return false
+			},
+			expect: true,
+		},
+		{
+			name: "doAddBlock error exists",
+			given: func() bool {
+				rsp := &BlockPool{
+					height:            0,
+					blocks:            []model.AbstractBlock{},
+					poolEventNotifier: myTestNotifier{},
+					Blockpoolconfig:   nil,
+
+					newHeightChan: make(chan uint64, 5),
+					newBlockChan:  make(chan newBlockWithResultErr, 5),
+					getterChan:    make(chan *blockPoolGetter, 5),
+					rmBlockChan:   make(chan common.Hash),
+					stopChan:      make(chan struct{}),
+				}
+				var n = newBlockWithResultErr{block: nil, resultChan: make(chan error)}
+				var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
+				go func(*BlockPool, newBlockWithResultErr) {
+					rsp.height = 1
+					b := NewMockAbstractBlock(ctrl)
+					b.EXPECT().Number().Return(uint64(1)).AnyTimes()
+					b.EXPECT().Hash().Return(common.HexToHash(hashTmp)).AnyTimes()
+					rsp.blocks = append(rsp.blocks, b)
+					n.block = b
+					rsp.doAddBlock(n)
+				}(rsp, n)
+				time.Sleep(time.Second)
+				err := <-n.resultChan
+				close(n.resultChan)
+				t.Log("err:", err)
+				if err != nil {
+					return err.Error() == "dul block"
+				}
+				return false
+			},
+			expect: true,
+		},
+		{
+			name: "doAddBlock no error exists",
+			given: func() bool {
+				rsp := &BlockPool{
+					height:            0,
+					blocks:            []model.AbstractBlock{},
+					poolEventNotifier: myTestNotifier{},
+					Blockpoolconfig:   nil,
+
+					newHeightChan: make(chan uint64, 5),
+					newBlockChan:  make(chan newBlockWithResultErr, 5),
+					getterChan:    make(chan *blockPoolGetter, 5),
+					rmBlockChan:   make(chan common.Hash),
+					stopChan:      make(chan struct{}),
+				}
+				var n = newBlockWithResultErr{block: nil, resultChan: make(chan error)}
+				var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
+				go func(*BlockPool, newBlockWithResultErr) {
+					rsp.height = 1
+					b := NewMockAbstractBlock(ctrl)
+					b.EXPECT().Number().Return(uint64(1)).AnyTimes()
+					b.EXPECT().Hash().Return(common.HexToHash(hashTmp)).AnyTimes()
+					//rsp.blocks = append(rsp.blocks, b)
+					n.block = b
+					rsp.doAddBlock(n)
+				}(rsp, n)
+				time.Sleep(time.Second)
+				err := <-n.resultChan
+				close(n.resultChan)
+				t.Log("err:", err)
+				if err == nil {
+					return true
+				}
+				return false
+			},
+			expect: true,
+		},
+		{
+			name: "doAddBlock no error exists",
+			given: func() bool {
+				rsp := &BlockPool{
+					height:            0,
+					blocks:            []model.AbstractBlock{},
+					poolEventNotifier: myTestNotifier{},
+					Blockpoolconfig:   nil,
+
+					newHeightChan: make(chan uint64, 5),
+					newBlockChan:  make(chan newBlockWithResultErr, 5),
+					getterChan:    make(chan *blockPoolGetter, 5),
+					rmBlockChan:   make(chan common.Hash),
+					stopChan:      make(chan struct{}),
+				}
+				var n = newBlockWithResultErr{block: nil, resultChan: make(chan error)}
+				var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
+				var hashTmp1 = `0xd508r3a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
+				go func(*BlockPool, newBlockWithResultErr) {
+					rsp.height = 1
+					b := NewMockAbstractBlock(ctrl)
+					b.EXPECT().Number().Return(uint64(1)).AnyTimes()
+					b.EXPECT().Hash().Return(common.HexToHash(hashTmp)).AnyTimes()
+
+					b1 := NewMockAbstractBlock(ctrl)
+					b1.EXPECT().Number().Return(uint64(1)).AnyTimes()
+					b1.EXPECT().Hash().Return(common.HexToHash(hashTmp1)).AnyTimes()
+					rsp.blocks = append(rsp.blocks, b1)
+					rsp.poolEventNotifier = myTestNotifier{}
+					n.block = b
+					rsp.doAddBlock(n)
+				}(rsp, n)
+				time.Sleep(time.Second)
+				err := <-n.resultChan
+				close(n.resultChan)
+				t.Log("err:", err)
+				if err == nil {
+					return true
+				}
+				return false
+			},
+			expect: true,
+		},
+	}
+
+	for i, tc := range testCases {
+		sign := tc.given()
+		if testCases[i].expect == sign {
+			t.Log("success")
+		} else {
+			t.Logf("expect:%v,actual:%v", testCases[i].expect, sign)
+		}
+	}
 }
 
 func TestBlockPool_GetProposalBlock(t *testing.T) {

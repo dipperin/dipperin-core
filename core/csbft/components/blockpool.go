@@ -223,6 +223,7 @@ func (p *BlockPool) doAddBlock(nb newBlockWithResultErr) {
 		p.poolEventNotifier.BlockPoolNotEmpty()
 	}
 }
+
 func (p *BlockPool) GetProposalBlock() model.AbstractBlock {
 	log.DLogger.Info("[GetProposalBlock] start~~~~~~~~~~~~~~~")
 	defer log.DLogger.Info("[GetProposalBlock] end~~~~~~~~~~~~~~~")
