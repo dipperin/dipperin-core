@@ -256,13 +256,6 @@ func TestCsBftFetcher_OnReset(t *testing.T) {
 }
 
 func TestCsBftFetcher_loop(t *testing.T) {
-	//rsp := NewFetcher(nil)
-	//assert.NotEmpty(t, rsp)
-	//assert.NotPanics(t, func() {
-	//	go func(rsp *CsBftFetcher) {
-	//		rsp.loop()
-	//	}(rsp)
-	//})
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	testCases := []struct {
@@ -317,10 +310,45 @@ func TestCsBftFetcher_loop(t *testing.T) {
 }
 
 func TestCsBftFetcher_IsFetching(t *testing.T) {
-	rsp := NewFetcher(nil)
-	assert.NotEmpty(t, rsp)
-	var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
-	assert.Equal(t, false, rsp.IsFetching(common.HexToHash(hashTmp)))
+	//rsp := NewFetcher(nil)
+	//assert.NotEmpty(t, rsp)
+	//var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
+	//assert.Equal(t, false, rsp.IsFetching(common.HexToHash(hashTmp)))
+	testCases := []struct {
+		name   string
+		given  func() bool
+		expect bool
+	}{
+		{
+			name: "IsFetching case 1",
+			given: func() bool {
+				rsp := NewFetcher(myFetcherConn{})
+				assert.NotEmpty(t, rsp)
+				return rsp.IsFetching(common.Hash{})
+			},
+			expect: false,
+		},
+		{
+			name: "IsFetching case 2",
+			given: func() bool {
+				fc := NewFetcher(myFetcherConn{})
+				assert.NotEmpty(t, fc)
+				fc.Start()
+				var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
+				return fc.IsFetching(common.HexToHash(hashTmp))
+			},
+			expect: true,
+		},
+	}
+
+	for i, tc := range testCases {
+		sign := tc.given()
+		if testCases[i].expect == sign {
+			t.Log("success")
+		} else {
+			t.Logf("expect:%v,actual:%v", testCases[i].expect, sign)
+		}
+	}
 }
 
 func TestCsBftFetcher_isFetching(t *testing.T) {
