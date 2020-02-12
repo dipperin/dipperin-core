@@ -828,15 +828,95 @@ func TestBlockPool_doAddBlock(t *testing.T) {
 }
 
 func TestBlockPool_GetProposalBlock(t *testing.T) {
-	pool := NewBlockPool(0, nil)
-	assert.NotEmpty(t, pool)
-	var rsp model.AbstractBlock
-	go func(block *model.AbstractBlock) {
-		rspT := pool.GetProposalBlock()
-		block = &rspT
-	}(&rsp)
-	time.Sleep(500 * time.Millisecond)
-	assert.Empty(t, rsp)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	testCases := []struct {
+		name   string
+		given  func() bool
+		expect bool
+	}{
+		{
+			name: "GetProposalBlock BlockPool blocks is empty",
+			given: func() bool {
+				rsp := &BlockPool{
+					height:            0,
+					blocks:            []model.AbstractBlock{},
+					poolEventNotifier: myTestNotifier{},
+					Blockpoolconfig:   nil,
+
+					newHeightChan: make(chan uint64, 5),
+					newBlockChan:  make(chan newBlockWithResultErr, 5),
+					getterChan:    make(chan *blockPoolGetter, 5),
+					rmBlockChan:   make(chan common.Hash),
+					stopChan:      make(chan struct{}),
+				}
+				go rsp.loop()
+				var ab model.AbstractBlock
+				go func(model.AbstractBlock) {
+					ab = rsp.GetProposalBlock()
+				}(ab)
+
+				time.Sleep(2 * time.Second)
+				rsp.stopChan <- struct{}{}
+				return ab == nil
+			},
+			expect: true,
+		},
+		{
+			name: "GetProposalBlock BlockPool blocks is not empty",
+			given: func() bool {
+				rsp := &BlockPool{
+					height:            0,
+					blocks:            []model.AbstractBlock{},
+					poolEventNotifier: myTestNotifier{},
+					Blockpoolconfig:   nil,
+
+					newHeightChan: make(chan uint64, 5),
+					newBlockChan:  make(chan newBlockWithResultErr, 5),
+					getterChan:    make(chan *blockPoolGetter, 5),
+					rmBlockChan:   make(chan common.Hash),
+					stopChan:      make(chan struct{}),
+				}
+				//var n = newBlockWithResultErr{block: nil, resultChan: make(chan error)}
+				//go func(*BlockPool, newBlockWithResultErr) {
+				//	rsp.height = 1
+				//	b := NewMockAbstractBlock(ctrl)
+				//	b.EXPECT().Number().Return(uint64(2)).AnyTimes()
+				//	b.EXPECT().Hash().Return(common.Hash{}).AnyTimes()
+				//	n.block = b
+				//	rsp.doAddBlock(n)
+				//}(rsp, n)
+				//time.Sleep(time.Second)
+				//err := <-n.resultChan
+				//close(n.resultChan)
+				//t.Log("err:", err)
+				//if err != nil {
+				//	return err.Error() == "invalid height block"
+				//}
+
+				go rsp.loop()
+				var ab model.AbstractBlock
+				go func(model.AbstractBlock) {
+					ab = rsp.GetProposalBlock()
+				}(ab)
+
+
+
+				time.Sleep(2 * time.Second)
+				rsp.stopChan <- struct{}{}
+				return ab == nil
+			},
+			expect: true,
+		},
+	}
+	for i, tc := range testCases {
+		sign := tc.given()
+		if testCases[i].expect == sign {
+			t.Log("success")
+		} else {
+			t.Logf("expect:%v,actual:%v", testCases[i].expect, sign)
+		}
+	}
 }
 
 func TestBlockPool_getBlock(t *testing.T) {
