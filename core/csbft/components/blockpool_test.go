@@ -498,11 +498,43 @@ func TestBlockPool_NewHeight(t *testing.T) {
 }
 
 func TestBlockPool_doNewHeight(t *testing.T) {
-	rsp := NewBlockPool(0, nil)
-	assert.NotEmpty(t, rsp)
-	rsp.doNewHeight(0)
-	assert.Equal(t, 0, len(rsp.blocks))
-	assert.Equal(t, uint64(0), rsp.height)
+	testCases := []struct {
+		name   string
+		given  func() bool
+		expect bool
+	}{
+		{
+			name: "doNewHeight true",
+			given: func() bool {
+				rsp := NewBlockPool(0, nil)
+				assert.NotEmpty(t, rsp)
+				rsp.height = 2
+				rsp.doNewHeight(5)
+				return rsp.height == 5
+			},
+			expect: true,
+		},
+		{
+			name: "doNewHeight false",
+			given: func() bool {
+				rsp := NewBlockPool(0, nil)
+				assert.NotEmpty(t, rsp)
+				rsp.height = 2
+				rsp.doNewHeight(1)
+				return rsp.height == 1
+			},
+			expect: false,
+		},
+	}
+
+	for i, tc := range testCases {
+		sign := tc.given()
+		if testCases[i].expect == sign {
+			t.Log("success")
+		} else {
+			t.Logf("expect:%v,actual:%v", testCases[i].expect, sign)
+		}
+	}
 }
 
 func TestBlockPool_AddBlock(t *testing.T) {
