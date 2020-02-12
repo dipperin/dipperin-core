@@ -29,23 +29,35 @@ import (
 	"time"
 )
 
-//const (
-//	fetchTimeout  = 5 * time.Second
-//	hashLimit     = 256
-//	maxQueueDist  = 32
-//	arriveTimeout = 500 * time.Millisecond
-//	gatherSlack   = 100 * time.Millisecond
-//	blockLimit    = 64
-//)
-//
+var (
+	fetchTimeout = 5 * time.Second
+)
+
+const (
+	hashLimit     = 256
+	maxQueueDist  = 32
+	arriveTimeout = 500 * time.Millisecond
+	gatherSlack   = 100 * time.Millisecond
+	blockLimit    = 64
+)
+
+type inject struct {
+	peerID  string
+	catchup *catchup
+}
+
 type vrFunc func(hash common.Hash) error
 
-//
-//type chainHeightFunc func() model.AbstractBlock
-//
-//type getBlockByHashFunc func(common.Hash) model.AbstractBlock
-//
-//type saveBlockFunc func(block model.AbstractBlock, seenCommits []model.AbstractVerification) error
+type chainHeightFunc func() model.AbstractBlock
+
+type getBlockByHashFunc func(common.Hash) model.AbstractBlock
+
+type saveBlockFunc func(block model.AbstractBlock, seenCommits []model.AbstractVerification) error
+
+type dlTask struct {
+	peerID      string
+	catchupList []*catchupRlp
+}
 
 type blockBroadcasterFunc func(b *model2.VerifyResult)
 

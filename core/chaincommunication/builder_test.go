@@ -17,9 +17,12 @@
 package chaincommunication
 
 import (
+	"github.com/dipperin/dipperin-core/common"
 	chain_config "github.com/dipperin/dipperin-core/core/chainconfig"
+	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"math/big"
 	"testing"
 )
 
@@ -75,4 +78,126 @@ func TestMakeCsProtocolManager(t *testing.T) {
 
 	assert.NotNil(t, csPm)
 	assert.NotNil(t, bd)
+}
+
+func TestNewBroadcastDelegate(t *testing.T) {
+	// create mock controller
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// txpool
+	mockTxPool := NewMockTxPool(ctrl)
+
+	// node conf
+	mockNodeConf := NewMockNodeConf(ctrl)
+
+	// peer manager
+	mockPeerManager := NewMockPeerManager(ctrl)
+
+	// chain
+	mockChain := NewMockChain(ctrl)
+
+	// pbft node
+	mockPbftNode := NewMockPbftNode(ctrl)
+
+	bd := NewBroadcastDelegate(mockTxPool, mockNodeConf, mockPeerManager, mockChain, mockPbftNode)
+
+	assert.NotNil(t, bd)
+}
+
+func TestBroadcastDelegate_BroadcastMinedBlock(t *testing.T) {
+	// create mock controller
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// txpool
+	mockTxPool := NewMockTxPool(ctrl)
+
+	// node conf
+	mockNodeConf := NewMockNodeConf(ctrl)
+
+	// peer manager
+	mockPeerManager := NewMockPeerManager(ctrl)
+
+	// chain
+	mockChain := NewMockChain(ctrl)
+
+	// pbft node
+	mockPbftNode := NewMockPbftNode(ctrl)
+
+	bd := NewBroadcastDelegate(mockTxPool, mockNodeConf, mockPeerManager, mockChain, mockPbftNode)
+
+	assert.NotNil(t, bd)
+
+	mockPeerManager.EXPECT().GetPeers().Return(nil)
+
+	bd.BroadcastMinedBlock(model.NewBlock(model.NewHeader(11, 10, common.HexToHash("ss"), common.HexToHash("fdfs"), common.StringToDiff("0x22"), big.NewInt(111), common.StringToAddress("fdsfds"), common.EncodeNonce(33)), nil, nil))
+}
+
+func TestBroadcastDelegate_BroadcastTx(t *testing.T) {
+	// create mock controller
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// txpool
+	mockTxPool := NewMockTxPool(ctrl)
+
+	// node conf
+	mockNodeConf := NewMockNodeConf(ctrl)
+
+	// peer manager
+	mockPeerManager := NewMockPeerManager(ctrl)
+
+	// chain
+	mockChain := NewMockChain(ctrl)
+
+	// pbft node
+	mockPbftNode := NewMockPbftNode(ctrl)
+
+	bd := NewBroadcastDelegate(mockTxPool, mockNodeConf, mockPeerManager, mockChain, mockPbftNode)
+
+	assert.NotNil(t, bd)
+
+	mockPeerManager.EXPECT().GetPeers().Return(nil)
+
+	gasPrice := big.NewInt(1)
+	gasLimit := 2 * model.TxGas
+
+	tx := model.NewTransaction(11, common.StringToAddress("dsad"), big.NewInt(11),
+		gasPrice, gasLimit, nil)
+
+	bd.BroadcastTx([]model.AbstractTransaction{tx})
+
+}
+
+func TestBroadcastDelegate_BroadcastEiBlock(t *testing.T) {
+	// create mock controller
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// txpool
+	mockTxPool := NewMockTxPool(ctrl)
+
+	// node conf
+	mockNodeConf := NewMockNodeConf(ctrl)
+
+	// peer manager
+	mockPeerManager := NewMockPeerManager(ctrl)
+
+	// chain
+	mockChain := NewMockChain(ctrl)
+	mockChain.EXPECT().GetSeenCommit(gomock.Any()).Return([]model.AbstractVerification{model.NewVoteMsg(11, 1, common.HexToHash("asdd"), model.AliveVerifierVoteMessage)})
+
+	// pbft node
+	mockPbftNode := NewMockPbftNode(ctrl)
+
+	bd := NewBroadcastDelegate(mockTxPool, mockNodeConf, mockPeerManager, mockChain, mockPbftNode)
+
+	assert.NotNil(t, bd)
+
+	mockPeerManager.EXPECT().GetPeers().Return(nil)
+
+	block := model.NewBlock(model.NewHeader(11, 10, common.HexToHash("ss"), common.HexToHash("fdfs"), common.StringToDiff("0x22"), big.NewInt(111), common.StringToAddress("fdsfds"), common.EncodeNonce(33)), nil, nil)
+
+	bd.BroadcastEiBlock(block)
 }
