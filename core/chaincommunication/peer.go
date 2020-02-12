@@ -43,6 +43,7 @@ func newPeer(version int, p2pPeer P2PPeer, rw p2p.MsgReadWriter) PmAbstractPeer 
 	}
 }
 
+//go:generate mockgen -destination=./p2p_peer_mock_test.go -package=chaincommunication github.com/dipperin/dipperin-core/core/chaincommunication P2PPeer
 // interface are awesome
 type P2PPeer interface {
 	Disconnect(reason p2p.DiscReason)

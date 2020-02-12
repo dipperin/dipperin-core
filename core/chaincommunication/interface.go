@@ -197,8 +197,4 @@ type ChainDownloader interface {
 	//SetEiFetcher(f *EiBlockFetcher)
 }
 
-//go:generate mockgen -destination=./transaction_mock_test.go -package=chaincommunication github.com/dipperin/dipperin-core/core/model AbstractTransaction
-
-//go:generate mockgen -destination=./msgReadWriter_mock_test.go -package=chaincommunication github.com/dipperin/dipperin-core/third-party/p2p MsgReadWriter
-
-//go:generate mockgen -destination=./p2pPeer_mock_test.go -package=chaincommunication github.com/dipperin/dipperin-core/core/chaincommunication P2PPeer
+//go:generate mockgen -destination=./msg_read_writer_mock_test.go -package=chaincommunication github.com/dipperin/dipperin-core/third_party/p2p MsgReadWriter
