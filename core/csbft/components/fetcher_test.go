@@ -579,16 +579,6 @@ func TestCsBftFetcher_onFetchResp(t *testing.T) {
 }
 
 func TestCsBftFetcher_onResult(t *testing.T) {
-	//var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
-	//r := FetchBlockReqMsg{
-	//	MsgId:      0,
-	//	From:       common.HexToAddress(hashTmp),
-	//	BlockHash:  common.HexToHash(hashTmp),
-	//	ResultChan: make(chan model.AbstractBlock),
-	//}
-	//assert.NotPanics(t, func() {
-	//	r.onResult(nil)
-	//})
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	var hashTmp = `0xd50866a60b4f7e4123400e0563efb987dc800d1a72af5cc1ae9ee68760bb18889`
