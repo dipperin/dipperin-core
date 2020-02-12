@@ -20,6 +20,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 )
 
+//go:generate mockgen -destination=./worker_mock_test.go -package=mineworker github.com/dipperin/dipperin-core/core/mine/mineworker Worker
 // external operation to the miner
 type Worker interface {
 	// start mining and register to master

@@ -42,6 +42,9 @@ type Context struct {
 	GetHash GetHashFunc
 }
 
+
+
+
 func (context *Context) GetTxHash() common.Hash {
 	return context.TxHash
 }

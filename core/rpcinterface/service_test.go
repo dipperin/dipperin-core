@@ -53,3 +53,43 @@ func TestService_Start(t *testing.T) {
 		s.Stop()
 	}
 }
+
+type MockAPI struct{}
+
+func (api *MockAPI) GetNum() uint64 {
+	return 1
+}
+
+type priMockAPI struct{}
+
+func (api *priMockAPI) GetNum() uint64 {
+	return 1
+}
+
+func TestService(t *testing.T) {
+	s := &Service{}
+	s.AddApis([]rpc.API{
+		{Namespace: "test", Version: "0.0.1", Service: &priMockAPI{}, Public: true},
+	})
+	assert.Error(t, s.Start())
+
+	s.apis = []rpc.API{
+		{Namespace: "test", Version: "0.0.1", Service: &MockAPI{}, Public: true},
+	}
+	assert.NoError(t, s.Start())
+
+	s.httpEndpoint = ":123"
+	//assert.Error(t, s.Start())
+
+	_ = s.Start()
+
+	s.httpEndpoint = ""
+	s.wsEndpoint = ":123"
+	assert.Error(t, s.Start())
+
+	s.httpEndpoint = ":15214"
+	s.wsEndpoint = ":15213"
+	assert.NoError(t, s.Start())
+	time.Sleep(time.Millisecond)
+	s.Stop()
+}

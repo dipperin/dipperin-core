@@ -41,13 +41,14 @@ func TestResolverNeedExternalService_Transfer(t *testing.T) {
 	transferValue := big.NewInt(100)
 
 	contract.EXPECT().Self().Return(base.AccountRef(model.AliceAddr)).AnyTimes()
-	vmValue.EXPECT().Call(base.AccountRef(model.AliceAddr),model.AliceAddr,nil, uint64(0), transferValue)
+	//vmValue.EXPECT().Call(base.AccountRef(model.AliceAddr),model.AliceAddr,nil, uint64(0), transferValue)
+	vmValue.EXPECT().TransferValue(base.AccountRef(model.AliceAddr),model.AliceAddr, transferValue).Return(nil)
 
 
 	resp, gasLeft, err := service.Transfer(model.AliceAddr, transferValue)
 
 	assert.NoError(t, err)
-	assert.Equal(t, []byte(nil), resp)
+	assert.Equal(t, []byte{}, resp)
 	assert.Equal(t, uint64(0), gasLeft)
 }
 

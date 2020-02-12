@@ -2,6 +2,7 @@ package mineworker
 
 import (
 	"github.com/dipperin/dipperin-core/common"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -41,7 +42,14 @@ func Test_worker_Stop(t *testing.T) {
 }
 
 func Test_worker_register(t *testing.T) {
-
+	ctrl := gomock.NewController(t)
+	masterServer := NewMockMasterServer(ctrl)
+	connector := newLocalConnector("workerid", masterServer)
+	assert.NotNil(t, connector)
+	worker := newWorker(common.HexToAddress("123"), 2, connector)
+	assert.NotNil(t, worker)
+	err := worker.register()
+	assert.NoError(t, err)
 }
 
 func Test_worker_unRegister(t *testing.T) {

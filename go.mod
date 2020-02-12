@@ -14,7 +14,7 @@ require (
 	github.com/fjl/memsize v0.0.0-20180929194037-2a09253e352a
 	github.com/go-interpreter/wagon v0.0.0
 	github.com/go-stack/stack v1.8.0 // indirect
-	github.com/golang/mock v1.3.1
+	github.com/golang/mock v1.4.0
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db
 	github.com/hashicorp/golang-lru v0.5.0
 	github.com/huin/goupnp v1.0.0
@@ -50,6 +50,7 @@ require (
 	golang.org/x/sys v0.0.0-20190606165138-5da285871e9c
 	google.golang.org/appengine v1.6.1 // indirect
 	gopkg.in/alecthomas/kingpin.v3-unstable v3.0.0-20180810215634-df19058c872c // indirect
+	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127
 	gopkg.in/karalabe/cookiejar.v2 v2.0.0-20150724131613-8dcd6a7f4951
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce

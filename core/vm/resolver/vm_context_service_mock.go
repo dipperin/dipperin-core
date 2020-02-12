@@ -177,3 +177,17 @@ func (mr *MockVmContextServiceMockRecorder) GetTxHash() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTxHash", reflect.TypeOf((*MockVmContextService)(nil).GetTxHash))
 }
+
+// TransferValue mocks base method
+func (m *MockVmContextService) TransferValue(arg0 ContractRef, arg1 common.Address, arg2 *big.Int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TransferValue", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// TransferValue indicates an expected call of TransferValue
+func (mr *MockVmContextServiceMockRecorder) TransferValue(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransferValue", reflect.TypeOf((*MockVmContextService)(nil).TransferValue), arg0, arg1, arg2)
+}

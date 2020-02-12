@@ -27,6 +27,6 @@ type AbstractChainWriterFactory interface {
 	SetChain(chain middleware.ChainInterface)
 }
 
-//go:generate mockgen -destination=./chain_interface_mock_test.go -package=chain_writer github.com/dipperin/dipperin-core/core/cs-chain/chain-writer/middleware ChainInterface
+//go:generate mockgen -destination=./chain_interface_mock_test.go -package=chainwriter github.com/dipperin/dipperin-core/core/cschain/chainwriter/middleware ChainInterface
 
-//go:generate mockgen -destination=./block_mock_test.go -package=chain_writer github.com/dipperin/dipperin-core/core/model AbstractBlock
+//go:generate mockgen -destination=./block_mock_test.go -package=chainwriter github.com/dipperin/dipperin-core/core/model AbstractBlock

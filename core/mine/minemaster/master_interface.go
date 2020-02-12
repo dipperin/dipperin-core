@@ -78,6 +78,8 @@ type WorkerForMaster interface {
 	//Nickname() string
 }
 
+//go:generate mockgen -destination=./master_server_mock_test.go -package=minemaster github.com/dipperin/dipperin-core/core/mine/minemaster MasterServer
+//go:generate mockgen -destination=../mineworker/master_server_mock_test.go -package=mineworker github.com/dipperin/dipperin-core/core/mine/minemaster MasterServer
 type MasterServer interface {
 	RegisterWorker(worker WorkerForMaster)
 	UnRegisterWorker(workerId WorkerId)

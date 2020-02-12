@@ -66,6 +66,24 @@ func (vm *VM) Cancel() {
 	atomic.StoreInt32(&vm.abort, 1)
 }
 
+func (vm *VM) TransferValue(caller resolver.ContractRef, toAddr common.Address, value *big.Int) error  {
+	// Fail if we're trying to transfer more than the available balanceMap
+	if !vm.Context.CanTransfer(vm.state, caller.Address(), value) {
+		return gerror.ErrInsufficientBalance
+	}
+
+	if !vm.state.Exist(toAddr) {
+		vm.state.CreateAccount(toAddr)
+	}
+	if value != big.NewInt(0){
+		err := vm.Transfer(vm.state, caller.Address(), toAddr, value)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byte, gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
 	if vm.vmConfig.NoRecursion && vm.depth > 0 {
 		return nil, gas, nil
@@ -126,7 +144,7 @@ func (vm *VM) Call(caller resolver.ContractRef, addr common.Address, input []byt
 		}()
 	}*/
 	if to.Address().GetAddressType() == common.AddressTypeContractCall {
-		ret, err = run(vm, contract, false)
+		 ret, err = run(vm, contract, false)
 	}
 
 	// When an error was returned by the EVM or when setting the creation code

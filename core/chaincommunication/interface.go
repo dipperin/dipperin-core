@@ -28,6 +28,8 @@ import (
 )
 
 //go:generate mockgen -destination=./peer_mock_test.go -package=chaincommunication github.com/dipperin/dipperin-core/core/chaincommunication PmAbstractPeer
+//go:generate mockgen -destination=../mine/mineworker/peer_mock_test.go -package=mineworker github.com/dipperin/dipperin-core/core/chaincommunication PmAbstractPeer
+//go:generate mockgen -destination=../rpcinterface/peer_mock_test.go -package=rpcinterface github.com/dipperin/dipperin-core/core/chaincommunication PmAbstractPeer
 // is responsible for sending and receiving messages
 type PmAbstractPeer interface {
 	// add node name
@@ -151,6 +153,7 @@ type Chain interface {
 }
 
 //go:generate mockgen -destination=./pbft_signer_mock_test.go -package=chaincommunication github.com/dipperin/dipperin-core/core/chaincommunication PbftSigner
+//go:generate mockgen -destination=../mine/minemaster/pbft_signer_mock_test.go -package=minemaster github.com/dipperin/dipperin-core/core/chaincommunication PbftSigner
 type PbftSigner interface {
 	GetAddress() common.Address
 	SetBaseAddress(address common.Address)
@@ -176,6 +179,7 @@ type PeerManager interface {
 	RemovePeer(id string)
 }
 
+//go:generate mockgen -destination=../rpcinterface/protocol_manager_mock_test.go -package=rpcinterface github.com/dipperin/dipperin-core/core/chaincommunication AbstractPbftProtocolManager
 type AbstractPbftProtocolManager interface {
 	PeerManager
 	GetCurrentConnectPeers() map[string]common.Address

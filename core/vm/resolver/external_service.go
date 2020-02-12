@@ -45,6 +45,7 @@ type VmContextService interface {
 	//GetCallGasTemp() uint64
 	DelegateCall(caller ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error)
 	GetTxHash() common.Hash
+	TransferValue(caller ContractRef,  toAddr common.Address, value *big.Int) error
 }
 
 //go:generate mockgen -destination=./contract_service_mock.go -package=resolver github.com/dipperin/dipperin-core/core/vm/resolver ContractService
@@ -79,8 +80,9 @@ func (service *resolverNeedExternalService) Transfer(toAddr common.Address, valu
 		gas += params.CallStipend
 	}*/
 	log.DLogger.Info("Service#Transfer", zap.Any("from", service.Self().Address()), zap.Any("to", toAddr), zap.Any("value", value), zap.Any("gasLimit", gas))
-	ret, returnGas, err := service.Call(service.Self(), toAddr, nil, gas, value)
-	return ret, returnGas, err
+	err = service.TransferValue(service.Self(), toAddr, value)
+	//ret, returnGas, err := service.Call(service.Self(), toAddr, nil, gas, value)
+	return []byte{}, gas, err
 }
 
 func (service *resolverNeedExternalService) ResolverCall(addr, param []byte) ([]byte, error) {
