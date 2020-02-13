@@ -37,6 +37,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"github.com/dipperin/dipperin-core/tests/factory/vminfo"
 )
 
 var (
@@ -62,10 +63,10 @@ func createKey() (*ecdsa.PrivateKey, *ecdsa.PrivateKey) {
 	return key1, key2
 }
 
-func createContractTx(code, abi string, nonce, gasLimit uint64) *model.Transaction {
+func createContractTx(codeAbi string, nonce, gasLimit uint64) *model.Transaction {
 	key, _ := createKey()
 	fs := model.NewSigner(big.NewInt(1))
-	data := getContractCode(code, abi)
+	data := getContractCode(codeAbi)
 	to := common.HexToAddress(common.AddressContractCreate)
 	tx := model.NewTransaction(nonce, to, big.NewInt(2000000), testGasPrice, gasLimit, data)
 	tx.SignTx(key, fs)
@@ -168,18 +169,8 @@ func getTestHashFunc() func(num uint64) common.Hash {
 	}
 }
 
-func getContractCode(code, abi string) []byte {
-	fileCode, err := ioutil.ReadFile(code)
-	if err != nil {
-		log.Error("Read code failed", "err", err)
-		return nil
-	}
-
-	fileABI, err := ioutil.ReadFile(abi)
-	if err != nil {
-		log.Error("Read abi failed", "err", err)
-		return nil
-	}
+func getContractCode(codeAbi string) []byte {
+	fileCode,fileABI:=vminfo.GetTestData(codeAbi)
 
 	var input [][]byte
 	input = make([][]byte, 0)
@@ -190,7 +181,7 @@ func getContractCode(code, abi string) []byte {
 	// params
 
 	buffer := new(bytes.Buffer)
-	if err = rlp.Encode(buffer, input); err != nil {
+	if err := rlp.Encode(buffer, input); err != nil {
 		log.Error("RLP encode failed", "err", err)
 		return nil
 	}
@@ -628,4 +619,35 @@ func (tx fakeTransactionOpt) EstimateFee() *big.Int {
 
 func fakeGetBlockHash(number uint64) common.Hash {
 	return common.Hash{}
+}
+
+
+func FakeContract(t *testing.T) *model.Transaction {
+	//codePath := model.GetWASMPath("map-string", model.CoreVmTestData)
+	//abiPath := model.GetAbiPath("map-string", model.CoreVmTestData)
+	//fileCode, err := ioutil.ReadFile(codePath)
+	//assert.NoError(t, err)
+	//
+	//fileABI, err := ioutil.ReadFile(abiPath)
+	//assert.NoError(t, err)
+	fileCode,fileABI:=vminfo.GetTestData("event")
+	var input [][]byte
+	input = make([][]byte, 0)
+	// code
+	input = append(input, fileCode)
+	// abi
+	input = append(input, fileABI)
+
+	buffer := new(bytes.Buffer)
+	err := rlp.Encode(buffer, input)
+
+	assert.NoError(t, err)
+
+	fs := model.NewSigner(big.NewInt(1))
+	to := common.HexToAddress("0x00120000000000000000000000000000000000000000")
+	tx := model.NewTransaction(uint64(11), to, big.NewInt(0), big.NewInt(1), uint64(20000000), buffer.Bytes())
+	key, _ := createKey()
+
+	tx.SignTx(key, fs)
+	return tx
 }

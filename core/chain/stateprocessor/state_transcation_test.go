@@ -28,10 +28,9 @@ import (
 )
 
 func TestApplyMessage_Error(t *testing.T) {
-	WASMPath := model.GetWASMPath("event", model.CoreVmTestData)
-	AbiPath := model.GetAbiPath("event", model.CoreVmTestData)
+	codeAbi:="event"
 	gasLimit := model.TestGasLimit
-	tx := createContractTx(WASMPath, AbiPath, 0, gasLimit)
+	tx := createContractTx(codeAbi, 0, gasLimit)
 	msg, err := tx.AsMessage(true)
 	assert.NoError(t, err)
 
@@ -74,7 +73,7 @@ func TestApplyMessage_Error(t *testing.T) {
 		{
 			name:"ErrNonceTooHigh",
 			given: func() error {
-				tx = createContractTx(WASMPath, AbiPath, 2, gasLimit)
+				tx = createContractTx(codeAbi, 2, gasLimit)
 				msg, err = tx.AsMessage(true)
 				assert.NoError(t, err)
 				_, _, _, _, err = ApplyMessage(testVm, &msg, &gasPool)
@@ -85,7 +84,7 @@ func TestApplyMessage_Error(t *testing.T) {
 		{
 			name:"ErrInsufficientBalanceForGas",
 			given: func() error {
-				tx = createContractTx(WASMPath, AbiPath, 1, gasLimit)
+				tx = createContractTx(codeAbi , 1, gasLimit)
 				msg, err = tx.AsMessage(true)
 				assert.NoError(t, err)
 				_, _, _, _, err = ApplyMessage(testVm, &msg, &gasPool)
@@ -120,7 +119,7 @@ func TestApplyMessage_Error(t *testing.T) {
 				testVm = getTestVm(db, root)
 				gasLimit = model.TestGasLimit * 50
 				gasPool = gasLimit * 10
-				tx = createContractTx(WASMPath, AbiPath, 1, gasLimit)
+				tx = createContractTx(codeAbi, 1, gasLimit)
 				msg, err = tx.AsMessage(true)
 				assert.NoError(t, err)
 				_, _, _, _, err := ApplyMessage(testVm, &msg, &gasPool)
@@ -155,9 +154,8 @@ func TestApplyMessage_Error(t *testing.T) {
 }
 
 func BenchmarkApplyMessage_Create(b *testing.B) {
-	WASMPath := model.GetWASMPath("event", model.CoreVmTestData)
-	AbiPath := model.GetAbiPath("event", model.CoreVmTestData)
-	tx := createContractTx(WASMPath, AbiPath, 0, testGasLimit)
+	codeAbi:="event"
+	tx := createContractTx(codeAbi, 0, testGasLimit)
 	msg, err := tx.AsMessage(true)
 	assert.NoError(b, err)
 	for i := 0; i < b.N; i++ {
@@ -172,11 +170,10 @@ func BenchmarkApplyMessage_Create(b *testing.B) {
 }
 
 func BenchmarkApplyMessage_Call(b *testing.B) {
-	WASMPath := model.GetWASMPath("event", model.CoreVmTestData)
-	AbiPath := model.GetAbiPath("event", model.CoreVmTestData)
+	codeAbi:="event"
 
 	// create tx
-	tx1 := createContractTx(WASMPath, AbiPath, 0, testGasLimit)
+	tx1 := createContractTx(codeAbi, 0, testGasLimit)
 	msg1, err := tx1.AsMessage(true)
 	assert.NoError(b, err)
 

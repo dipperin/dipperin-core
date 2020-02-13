@@ -114,7 +114,7 @@ func TestEnqueueTx(t *testing.T) {
 				expect2 := pool.Get(tx1.CalTxId())
 				assert.Equal(t, expect2.CalTxId(), tx1.CalTxId())
 				expect2Get := pool.Get(tx2.CalTxId())
-				return expect2Get == nil
+				return expect2Get==nil
 			},
 			expect:result{true},
 		},
@@ -299,8 +299,6 @@ func TestPromoteTx(t *testing.T) {
 
 	ok = pool.promoteTx(aliceAddr, alicetx2.CalTxId(), alicetx2)
 	assert.Equal(t, ok, false)
-	tx2Get := pool.Get(alicetx1.CalTxId())
-	assert.Equal(t, tx2Get.CalTxId(), alicetx1.CalTxId())
 
 	ok = pool.promoteTx(aliceAddr, alicetx3.CalTxId(), alicetx3)
 	assert.Equal(t, ok, true)

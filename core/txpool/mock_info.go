@@ -34,7 +34,7 @@ var path = "./transaction.out"
 
 type transactions []model.AbstractTransaction
 
-var testTxFee = consts.GetMinimumTxFee(200)
+var testTxFee = GetMinimumTxFee(200)
 var threshold = new(big.Int).Div(new(big.Int).Mul(testTxFee, big.NewInt(100+int64(DefaultTxPoolConfig.FeeBump))), big.NewInt(100))
 var testRoot = "0x54bbe8ffddc42dd501ab37438c2496d1d3be51d9c562531d56b48ea3bea66708"
 var testTxPoolConfig TxPoolConfig
@@ -373,4 +373,8 @@ func rlpHashNew(hw hash.Hash, data []byte) (h common.Hash, err error) {
 	hw.Write(data)
 	hw.Sum(h[:0])
 	return
+}
+
+func GetMinimumTxFee(txSize common.StorageSize) *big.Int {
+	return big.NewInt(0).Mul(big.NewInt(int64(txSize)), big.NewInt(100))
 }

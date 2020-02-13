@@ -77,9 +77,8 @@ func TestAccountStateDB_ProcessContract_Error(t *testing.T) {
 				db, root := CreateTestStateDB()
 				tdb := NewStateStorageWithCache(db)
 				processor, _ := NewAccountStateDB(root, tdb)
-				WASMPath := model.GetWASMPath("event", model.CoreVmTestData)
-				abiPath := model.GetAbiPath("event", model.CoreVmTestData)
-				tx := createContractTx(WASMPath, abiPath, 0, testGasLimit)
+				codeAbi:="event"
+				tx := createContractTx(codeAbi, 0, testGasLimit)
 				block := CreateBlock(1, common.Hash{}, []*model.Transaction{tx}, uint64(100))
 				tmpGasLimit := block.GasLimit()
 				gasUsed := block.GasUsed()

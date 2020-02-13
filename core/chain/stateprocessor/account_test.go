@@ -6,9 +6,7 @@ import (
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/core/model"
 	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"math/big"
 	"testing"
 )
@@ -134,30 +132,4 @@ func TestContractCreate(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func FakeContract(t *testing.T) *model.Transaction {
-	codePath := model.GetWASMPath("map-string", model.CoreVmTestData)
-	abiPath := model.GetAbiPath("map-string", model.CoreVmTestData)
-	fileCode, err := ioutil.ReadFile(codePath)
-	assert.NoError(t, err)
-
-	fileABI, err := ioutil.ReadFile(abiPath)
-	assert.NoError(t, err)
-	var input [][]byte
-	input = make([][]byte, 0)
-	// code
-	input = append(input, fileCode)
-	// abi
-	input = append(input, fileABI)
-
-	buffer := new(bytes.Buffer)
-	err = rlp.Encode(buffer, input)
-
-	fs := model.NewSigner(big.NewInt(1))
-	to := common.HexToAddress("0x00120000000000000000000000000000000000000000")
-	tx := model.NewTransaction(uint64(11), to, big.NewInt(0), big.NewInt(1), uint64(20000000), buffer.Bytes())
-	key, _ := createKey()
-
-	tx.SignTx(key, fs)
-	return tx
-}
 
