@@ -16,14 +16,6 @@
 
 package chaincommunication
 
-import (
-	"errors"
-	"github.com/dipperin/dipperin-core/common"
-	"github.com/dipperin/dipperin-core/core/bloom"
-	"github.com/dipperin/dipperin-core/core/model"
-	"github.com/hashicorp/golang-lru"
-)
-
 const (
 	maxKnownBlocks     = 1024
 	maxQueuedBlock     = 4
@@ -31,53 +23,53 @@ const (
 	minBroadcastPeers  = 4
 )
 
-var (
-	BroadcastTimeoutErr = errors.New("eiBlockTransport not broadcast more than 5 min, discard this transport")
-)
+//var (
+//	BroadcastTimeoutErr = errors.New("eiBlockTransport not broadcast more than 5 min, discard this transport")
+//)
 
 type getPeerFunc func() PmAbstractPeer
 
-// ei step 1 broadcast data
-type eiBroadcastMsg struct {
-	// block height
-	Height uint64
-	// block hash
-	BlockHash common.Hash
-	//tx bloom in the block
-	TxBloom *iblt.Bloom
-}
-
-// ei step 2 send Estimator
-type eiEstimatorReq struct {
-	BlockHash common.Hash
-	Estimator *iblt.HybridEstimator
-}
-
-type bloomBlockDataRLP struct {
-	Header          *model.Header
-	BloomRLP        []byte
-	PreVerification []*model.VoteMsg
-	CurVerification []*model.VoteMsg
-	Interlinks      []common.Hash
-}
-
-type eiBlockTransport struct {
-	// here is to determine if it is for wait verify
-	wvTs bool
-
-	peerID   string
-	peerName string
-	//knownBlocks            mapset.Set
-	knownBlocks            *lru.Cache
-	queuedEiBroadcastMsg   chan *eiBroadcastMsg
-	queuedWvEiBroadcastMsg chan *eiBroadcastMsg
-
-	queuedEstimatorMsg   chan *eiEstimatorReq
-	queuedWvEstimatorMsg chan *eiEstimatorReq
-
-	queuedEiBlockBloomMsg   chan *model.BloomBlockData
-	queuedWvEiBlockBloomMsg chan *model.BloomBlockData
-}
+//// ei step 1 broadcast data
+//type eiBroadcastMsg struct {
+//	// block height
+//	Height uint64
+//	// block hash
+//	BlockHash common.Hash
+//	//tx bloom in the block
+//	TxBloom *iblt.Bloom
+//}
+//
+//// ei step 2 send Estimator
+//type eiEstimatorReq struct {
+//	BlockHash common.Hash
+//	Estimator *iblt.HybridEstimator
+//}
+//
+//type bloomBlockDataRLP struct {
+//	Header          *model.Header
+//	BloomRLP        []byte
+//	PreVerification []*model.VoteMsg
+//	CurVerification []*model.VoteMsg
+//	Interlinks      []common.Hash
+//}
+//
+//type eiBlockTransport struct {
+//	// here is to determine if it is for wait verify
+//	wvTs bool
+//
+//	peerID   string
+//	peerName string
+//	//knownBlocks            mapset.Set
+//	knownBlocks            *lru.Cache
+//	queuedEiBroadcastMsg   chan *eiBroadcastMsg
+//	queuedWvEiBroadcastMsg chan *eiBroadcastMsg
+//
+//	queuedEstimatorMsg   chan *eiEstimatorReq
+//	queuedWvEstimatorMsg chan *eiEstimatorReq
+//
+//	queuedEiBlockBloomMsg   chan *model.BloomBlockData
+//	queuedWvEiBlockBloomMsg chan *model.BloomBlockData
+//}
 
 //
 //func newEiBlockTransport(wvTs bool, id, name string) *eiBlockTransport {

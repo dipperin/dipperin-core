@@ -14,4 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-package rpcinterface
+package chaincommunication
+
+import (
+	"errors"
+	"github.com/stretchr/testify/assert"
+	"io"
+	"testing"
+)
+
+func TestInPmBrokenError(t *testing.T) {
+	assert.Equal(t, InPmBrokenError(io.EOF), true)
+	assert.Equal(t, InPmBrokenError(errors.New("test")), false)
+}
