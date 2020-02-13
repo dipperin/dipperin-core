@@ -46,7 +46,6 @@ func testState(ctrl *gomock.Controller) (my myStr) {
 	verification.EXPECT().GetRound().Return(uint64(2333)).AnyTimes()
 	chain.EXPECT().IsChangePoint(gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 	chain.EXPECT().GetNextVerifiers().Return([]common.Address{}).AnyTimes()
-	NewStateHandler(config, DefaultConfig, bp)
 	my.state = NewStateHandler(config, DefaultConfig, bp)
 	my.fetcher = fetcher
 	my.signer = signer
