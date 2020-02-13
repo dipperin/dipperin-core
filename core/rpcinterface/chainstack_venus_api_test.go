@@ -29,7 +29,7 @@ import (
 	"github.com/dipperin/dipperin-core/core/dipperin/service"
 	"github.com/dipperin/dipperin-core/core/economymodel"
 	"github.com/dipperin/dipperin-core/core/model"
-	test_util "github.com/dipperin/dipperin-core/tests/util"
+	test_util "github.com/dipperin/dipperin-core/tests/factory/vminfo"
 	"github.com/dipperin/dipperin-core/third_party/p2p/enode"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -568,13 +568,13 @@ func TestDipperinVenusApi(t *testing.T) {
 	data, err := rlp.EncodeToBytes([]interface{}{code, abi})
 	assert.NoError(t, err)
 	_, err = api.CallContract(common.Address{}, common.Address{}, data, uint64(0))
-	assert.Equal(t, accountsbase.ErrNotFindWallet, err)
+	assert.Equal(t, g_error.ErrNotFindWallet, err)
 	_, err = api.CallContract(common.Address{}, common.Address{}, data, uint64(1))
-	assert.Equal(t, accountsbase.ErrNotFindWallet, err)
+	assert.Equal(t, g_error.ErrNotFindWallet, err)
 	_, err = api.EstimateGas(common.Address{}, common.Address{}, nil, nil, gasLimit, nil, &nonce)
 	assert.Equal(t, g_error.ErrEmptyTxData, err)
 	_, err = api.EstimateGas(common.Address{}, common.Address{}, nil, nil, gasLimit, data, &nonce)
-	assert.Equal(t, accountsbase.ErrNotFindWallet, err)
+	assert.Equal(t, g_error.ErrNotFindWallet, err)
 }
 
 func NewEmptyAccountDB() (*stateprocessor.AccountStateDB, stateprocessor.StateStorage) {
