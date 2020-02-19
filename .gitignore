@@ -1,0 +1,41 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.a
+*.o
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+.idea
+.vscode
+.DS_Store
+
+test-summary
+
+generated.*
+tmp
+tmp/workspace
+
+main
+Dipperin-core
+CSWallet
+
+transaction.rlp
+transaction.rlp.new
+
+.scannerwork
+bt_test_k
+t_log
+state_machine
+
+core/vm/resolver/builtins/build
+
+dipperin-darwin-10.6-amd64
+dipperin-linux-amd64
