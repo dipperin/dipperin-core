@@ -54,6 +54,7 @@ const (
 	AddressTypeEarlyReward    = 0x0011
 	AddressTypeContractCreate = 0x0012
 	AddressTypeContractCall   = 0x0014
+	AddressTypeCourt          = 0x0015
 )
 
 func (txType TxType) String() string {
@@ -76,6 +77,8 @@ func (txType TxType) String() string {
 		return "contract creation"
 	case AddressTypeContractCall:
 		return "contract call"
+	case AddressTypeCourt:
+		return "court transaction"
 	default:
 		return fmt.Sprintf("unkonw tx:%v", int(txType))
 	}
@@ -268,6 +271,8 @@ func (addr Address) GetAddressTypeStr() string {
 		return "ContractCreation"
 	case AddressTypeContractCall:
 		return "ContractCall"
+	case AddressTypeCourt:
+		return "Court"
 	}
 	return "UnKnown"
 }

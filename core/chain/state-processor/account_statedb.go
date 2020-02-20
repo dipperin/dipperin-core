@@ -17,6 +17,9 @@
 package state_processor
 
 import (
+	"bytes"
+	"encoding/binary"
+	"errors"
 	"fmt"
 	"github.com/dipperin/dipperin-core/common"
 	"github.com/dipperin/dipperin-core/common/g-error"
@@ -34,6 +37,11 @@ import (
 	"sort"
 	"strings"
 	"sync"
+)
+
+var (
+	errInvalidRlpFormat   = errors.New("account_statedb: invalid rlp format")
+	errInsufficientParams = errors.New("account_statedb: invalid input params")
 )
 
 type revision struct {
@@ -54,7 +62,9 @@ type AccountStateDB struct {
 	finalisedContractRoot map[common.Address]common.Hash
 	alreadyFinalised      bool
 	smartContractData     map[common.Address]map[string][]byte
-	logs                  map[common.Hash][]*model2.Log
+
+	logs      map[common.Hash][]*model2.Log
+	courtHash map[common.Address]map[uint]common.Hash
 
 	stateChangeList *StateChangeList
 	validRevisions  []revision
@@ -184,6 +194,7 @@ func NewAccountStateDB(preStateRoot common.Hash, db StateStorage) (*AccountState
 		stateChangeList:       newStateChangeList(),
 		logs:                  map[common.Hash][]*model2.Log{},
 		alreadyFinalised:      false,
+		courtHash:             make(map[common.Address]map[uint]common.Hash),
 	}
 	return stateDB, nil
 }
@@ -204,6 +215,7 @@ func (state *AccountStateDB) Copy() *AccountStateDB {
 		contractTrieCache:     NewStateStorageWithCache(state.storage.DiskDB()),
 		contractData:          map[common.Address]reflect.Value{},
 		finalisedContractRoot: map[common.Address]common.Hash{},
+		courtHash:             make(map[common.Address]map[uint]common.Hash),
 		//todo: if there is a question because not copy early contract in here
 	}
 	return statedb
@@ -1274,6 +1286,8 @@ func (state *AccountStateDB) ProcessTxNew(conf *TxProcessConfig) (err error) {
 		err = state.processEvidenceTx(conf.Tx)
 	case common.AddressTypeEarlyReward:
 		err = state.processEarlyTokenTx(conf.Tx, conf.Header.GetNumber())
+	case common.AddressTypeCourt:
+		err = state.processCourtTx(conf.Tx)
 	default:
 		err = g_error.ErrUnknownTxType
 	}
@@ -1338,21 +1352,43 @@ func (state *AccountStateDB) processBasicTx(conf *TxProcessConfig) (err error) {
 	return
 }
 
-func (state *AccountStateDB) processNormalTx(tx model.AbstractTransaction) (err error) {
+func (state *AccountStateDB) processCourtTx(tx model.AbstractTransaction) (err error) {
+	//Check
 	sender, _ := tx.Sender(nil)
 	receiver := *(tx.To())
-	if empty := state.IsEmptyAccount(receiver); empty {
-		state.NewAccountState(receiver)
+	if receiver.GetAddressType() != common.AddressTypeCourt {
+		return g_error.ErrTxTypeNotMatch
 	}
-	err = state.SubBalance(sender, tx.Amount())
-	if err != nil {
+
+	// rlp decode
+	ptr := new(interface{})
+	rlp.Decode(bytes.NewReader(tx.ExtraData()), &ptr)
+	rlpList := reflect.ValueOf(ptr).Elem().Interface()
+	if _, ok := rlpList.([]interface{}); !ok {
+		err = errInvalidRlpFormat
 		return
 	}
-	err = state.AddBalance(receiver, tx.Amount())
-	if err != nil {
+
+	iRlpList := rlpList.([]interface{})
+	if len(iRlpList) != 2 {
+		err = errInsufficientParams
 		return
 	}
-	return
+
+	var (
+		caseId   uint
+		caseHash common.Hash
+	)
+	if v, ok := iRlpList[0].([]byte); ok {
+		caseId = uint(binary.BigEndian.Uint32(v))
+	}
+
+	if v, ok := iRlpList[1].([]byte); ok {
+		caseHash = common.BytesToHash(v)
+	}
+
+	err = state.SetCourtHash(sender, caseId, caseHash)
+	return err
 }
 
 func (state *AccountStateDB) processCrossTx(tx model.AbstractTransaction) (err error) {
@@ -1387,10 +1423,64 @@ func (state *AccountStateDB) processEarlyTokenTx(tx model.AbstractTransaction, b
 	return
 }
 
+func (state *AccountStateDB) processNormalTx(tx model.AbstractTransaction) (err error) {
+	sender, _ := tx.Sender(nil)
+	receiver := *(tx.To())
+	if empty := state.IsEmptyAccount(receiver); empty {
+		state.NewAccountState(receiver)
+	}
+	err = state.SubBalance(sender, tx.Amount())
+	if err != nil {
+		return
+	}
+	err = state.AddBalance(receiver, tx.Amount())
+	if err != nil {
+		return
+	}
+	return
+}
+
 func (state *AccountStateDB) clearChangeList() {
 	state.stateChangeList = newStateChangeList()
 	state.validRevisions = state.validRevisions[:0]
 	state.nextRevisionId = 0
+}
+
+func (state *AccountStateDB) SetCourtHash(addr common.Address, key uint, value common.Hash) (err error) {
+	if state.IsEmptyAccount(addr) {
+		return g_error.ErrAccountNotExist
+	}
+
+	log.Debug("SetCourtHash", "addr", addr.String(), "id", key, "hash", value)
+	var preValue common.Hash
+	if state.courtHash[addr] == nil {
+		state.courtHash[addr] = make(map[uint]common.Hash)
+	}
+	preValue = state.courtHash[addr][key]
+	if !value.IsEmpty() {
+		state.courtHash[addr][key] = value
+	} else {
+		delete(state.courtHash[addr], key)
+		if len(state.courtHash[addr]) == 0 {
+			delete(state.courtHash, addr)
+		}
+	}
+
+	log.Debug("SetCourtHash result", "id", key, "hash", state.courtHash[addr][key])
+	state.stateChangeList.append(courtChange{Account: &addr, Key: key, Prev: preValue, Current: value, ChangeType: CourtChange})
+	return
+}
+
+func (state *AccountStateDB) GetCourtHash(addr common.Address, key uint) (data common.Hash) {
+	if state.courtHash[addr] != nil {
+		log.Debug("AccountStateDB#GetCourtHash", "addr", addr)
+		if !state.courtHash[addr][key].IsEmpty() {
+			log.Debug("GetCourtHash called", "id", key, "hash", state.courtHash[addr][key])
+			return state.courtHash[addr][key]
+		}
+	}
+	log.Debug("GetCourtHash called failed")
+	return
 }
 
 //fixme

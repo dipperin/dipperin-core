@@ -73,9 +73,8 @@ func NewCalNewWorkDiff(preSpanBlock, lastNormalBlock AbstractBlock, currentBlock
 		return common.HexToDiff("0x1fffffff")
 	}
 
-
 	// test for show
-	if currentBlockNumber >= 850893{
+	if currentBlockNumber >= 850893 {
 		return chain_config.ShowDifficulty
 	}
 

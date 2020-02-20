@@ -130,6 +130,10 @@ func (scl *StateChangeList) DecodeRLP(s *rlp.Stream) (err error) {
 			var change dataChange
 			rlp.DecodeBytes(state.StateChange, &change)
 			scl.append(change)
+		case CourtChange:
+			var change courtChange
+			rlp.DecodeBytes(state.StateChange, &change)
+			scl.append(change)
 		case LogsChange:
 			var change logsChange
 			rlp.DecodeBytes(state.StateChange, &change)
@@ -280,6 +284,7 @@ const (
 	AbiChange
 	CodeChange
 	DataChange
+	CourtChange
 	ContractChange
 	LogsChange
 	DeleteAccountChange
@@ -372,6 +377,13 @@ type (
 		Key        string
 		Prev       []byte
 		Current    []byte
+		ChangeType uint64
+	}
+	courtChange struct {
+		Account    *common.Address
+		Key        uint
+		Prev       common.Hash
+		Current    common.Hash
 		ChangeType uint64
 	}
 	contractChange struct {
@@ -742,6 +754,29 @@ func (sc dataChange) digest(change StateChange) StateChange {
 	if change.getType() == DataChange {
 		c := change.(dataChange)
 		return dataChange{Account: sc.Account, Key: c.Key, Prev: c.Prev, Current: sc.Current, ChangeType: DataChange}
+	}
+	return nil
+}
+
+func (sc courtChange) revert(s *AccountStateDB) {
+	s.SetCourtHash(*sc.Account, sc.Key, sc.Prev)
+}
+
+func (sc courtChange) recover(s *AccountStateDB) {
+	s.SetCourtHash(*sc.Account, sc.Key, sc.Current)
+}
+
+func (sc courtChange) dirtied() *common.Address {
+	return sc.Account
+}
+
+func (sc courtChange) getType() int {
+	return int(sc.ChangeType)
+}
+func (sc courtChange) digest(change StateChange) StateChange {
+	if change.getType() == CourtChange {
+		c := change.(courtChange)
+		return courtChange{Account: sc.Account, Key: c.Key, Prev: c.Prev, Current: sc.Current, ChangeType: DataChange}
 	}
 	return nil
 }
