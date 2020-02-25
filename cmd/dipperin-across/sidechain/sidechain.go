@@ -71,8 +71,8 @@ func GetSPVProof(cluster *node_cluster.NodeCluster, from, to string, amount *big
 
 // 部署侧链智能合约，参数（交易人、chainID）
 func InitSidechainContract(cluster *node_cluster.NodeCluster, from, to string, amount *big.Int, chainID uint64) (common.Address, error) {
-	WASMPath := g_testData.GetWASMPath("sidechain", g_testData.DIPCTestContract)
-	AbiPath := g_testData.GetAbiPath("sidechain", g_testData.DIPCTestContract)
+	WASMPath := g_testData.GetWASMPath("sidechain", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("sidechain", g_testData.CoreVmTestData)
 	addr := cluster.NodeConfigure[to].Address
 	param := fmt.Sprintf("%s,%v", addr, chainID)
 	data, err := g_testData.GetCreateExtraData(WASMPath, AbiPath, param)

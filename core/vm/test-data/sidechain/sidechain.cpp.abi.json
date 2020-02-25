@@ -1,0 +1,44 @@
+[
+    {
+        "name": "init",
+        "inputs": [
+            {
+                "name": "addr",
+                "type": "string"
+            },
+            {
+                "name": "chainid",
+                "type": "uint64"
+            }
+        ],
+        "outputs": [],
+        "constant": "false",
+        "payable": "true",
+        "type": "function"
+    },
+    {
+        "name": "transfer",
+        "inputs": [
+            {
+                "name": "proof",
+                "type": "string"
+            },
+            {
+                "name": "oracleAddr",
+                "type": "string"
+            }
+        ],
+        "outputs": [],
+        "constant": "false",
+        "payable": "false",
+        "type": "function"
+    },
+    {
+        "name": "withdraw",
+        "inputs": [],
+        "outputs": [],
+        "constant": "false",
+        "payable": "false",
+        "type": "function"
+    }
+]

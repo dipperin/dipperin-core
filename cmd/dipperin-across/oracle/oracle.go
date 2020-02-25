@@ -38,8 +38,8 @@ func SubscribeChainBlock(clusterA, clusterB *node_cluster.NodeCluster, nodeName 
 
 // 部署预研机智能合约
 func InitOracleContract(cluster *node_cluster.NodeCluster, nodeName string) (common.Address, error) {
-	WASMPath := g_testData.GetWASMPath("oracle", g_testData.DIPCTestContract)
-	AbiPath := g_testData.GetAbiPath("oracle", g_testData.DIPCTestContract)
+	WASMPath := g_testData.GetWASMPath("oracle", g_testData.CoreVmTestData)
+	AbiPath := g_testData.GetAbiPath("oracle", g_testData.CoreVmTestData)
 	data, err := g_testData.GetCreateExtraData(WASMPath, AbiPath, "")
 	if err != nil {
 		return common.Address{}, err

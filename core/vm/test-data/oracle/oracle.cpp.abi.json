@@ -1,0 +1,45 @@
+[
+    {
+        "name": "init",
+        "inputs": [],
+        "outputs": [],
+        "constant": "false",
+        "payable": "false",
+        "type": "function"
+    },
+    {
+        "name": "setHeader",
+        "inputs": [
+            {
+                "name": "key",
+                "type": "uint64"
+            },
+            {
+                "name": "value",
+                "type": "string"
+            }
+        ],
+        "outputs": [],
+        "constant": "false",
+        "payable": "false",
+        "type": "function"
+    },
+    {
+        "name": "getHeader",
+        "inputs": [
+            {
+                "name": "key",
+                "type": "uint64"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "constant": "true",
+        "payable": "false",
+        "type": "function"
+    }
+]
