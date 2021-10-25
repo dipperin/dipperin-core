@@ -3,12 +3,9 @@
     src="logo.png" 
     width="240" height="78" border="0" alt="GJSON">
 <br>
-<a href="https://travis-ci.org/tidwall/gjson"><img src="https://img.shields.io/travis/tidwall/gjson.svg?style=flat-square" alt="Build Status"></a>
 <a href="https://godoc.org/github.com/tidwall/gjson"><img src="https://img.shields.io/badge/api-reference-blue.svg?style=flat-square" alt="GoDoc"></a>
 <a href="http://tidwall.com/gjson-play"><img src="https://img.shields.io/badge/%F0%9F%8F%90-playground-9900cc.svg?style=flat-square" alt="GJSON Playground"></a>
 </p>
-
-
 
 <p align="center">get json values quickly</a></p>
 
@@ -55,6 +52,9 @@ Prichard
 
 ## Path Syntax
 
+Below is a quick overview of the path syntax, for more complete information please
+check out [GJSON Syntax](SYNTAX.md).
+
 A path is a series of keys separated by a dot.
 A key may contain special wildcard characters '\*' and '?'.
 To access an array value use the index as the key.
@@ -68,9 +68,9 @@ The dot and wildcard characters can be escaped with '\\'.
   "children": ["Sara","Alex","Jack"],
   "fav.movie": "Deer Hunter",
   "friends": [
-    {"first": "Dale", "last": "Murphy", "age": 44},
-    {"first": "Roger", "last": "Craig", "age": 68},
-    {"first": "Jane", "last": "Murphy", "age": 47}
+    {"first": "Dale", "last": "Murphy", "age": 44, "nets": ["ig", "fb", "tw"]},
+    {"first": "Roger", "last": "Craig", "age": 68, "nets": ["fb", "tw"]},
+    {"first": "Jane", "last": "Murphy", "age": 47, "nets": ["ig", "tw"]}
   ]
 }
 ```
@@ -87,46 +87,24 @@ The dot and wildcard characters can be escaped with '\\'.
 "friends.1.last"     >> "Craig"
 ```
 
-You can also query an array for the first match by using `#[...]`, or find all matches with `#[...]#`. 
-Queries support the `==`, `!=`, `<`, `<=`, `>`, `>=` comparison operators and the simple pattern matching `%` (like) and `!%` (not like) operators.
+You can also query an array for the first match by using `#(...)`, or find all 
+matches with `#(...)#`. Queries support the `==`, `!=`, `<`, `<=`, `>`, `>=` 
+comparison operators and the simple pattern matching `%` (like) and `!%` 
+(not like) operators.
 
 ```
-friends.#[last=="Murphy"].first    >> "Dale"
-friends.#[last=="Murphy"]#.first   >> ["Dale","Jane"]
-friends.#[age>45]#.last            >> ["Craig","Murphy"]
-friends.#[first%"D*"].last         >> "Murphy"
-friends.#[first!%"D*"].last        >> "Craig"
+friends.#(last=="Murphy").first    >> "Dale"
+friends.#(last=="Murphy")#.first   >> ["Dale","Jane"]
+friends.#(age>45)#.last            >> ["Craig","Murphy"]
+friends.#(first%"D*").last         >> "Murphy"
+friends.#(first!%"D*").last        >> "Craig"
+friends.#(nets.#(=="fb"))#.first   >> ["Dale","Roger"]
 ```
 
-## JSON Lines
-
-There's support for [JSON Lines](http://jsonlines.org/) using the `..` prefix, which treats a multilined document as an array. 
-
-For example:
-
-```
-{"name": "Gilbert", "age": 61}
-{"name": "Alexa", "age": 34}
-{"name": "May", "age": 57}
-{"name": "Deloise", "age": 44}
-```
-
-```
-..#                   >> 4
-..1                   >> {"name": "Alexa", "age": 34}
-..3                   >> {"name": "Deloise", "age": 44}
-..#.name              >> ["Gilbert","Alexa","May","Deloise"]
-..#[name="May"].age   >> 57
-```
-
-The `ForEachLines` function will iterate through JSON lines.
-
-```go
-gjson.ForEachLine(json, func(line gjson.Result) bool{
-    println(line.String())
-    return true
-})
-```
+*Please note that prior to v1.3.0, queries used the `#[...]` brackets. This was
+changed in v1.3.0 as to avoid confusion with the new
+[multipath](SYNTAX.md#multipaths) syntax. For backwards compatibility, 
+`#[...]` will continue to work until the next major release.*
 
 ## Result Type
 
@@ -145,11 +123,12 @@ nil, for JSON null
 To directly access the value:
 
 ```go
-result.Type    // can be String, Number, True, False, Null, or JSON
-result.Str     // holds the string
-result.Num     // holds the float64 number
-result.Raw     // holds the raw json
-result.Index   // index of raw value in original json, zero means index unknown
+result.Type           // can be String, Number, True, False, Null, or JSON
+result.Str            // holds the string
+result.Num            // holds the float64 number
+result.Raw            // holds the raw json
+result.Index          // index of raw value in original json, zero means index unknown
+result.Indexes        // indexes of all the elements that match on a path containing the '#' query character.
 ```
 
 There are a variety of handy functions that work on a result:
@@ -172,10 +151,6 @@ result.Less(token Result, caseSensitive bool) bool
 
 The `result.Value()` function returns an `interface{}` which requires type assertion and is one of the following Go types:
 
-The `result.Array()` function returns back an array of values.
-If the result represents a non-existent value, then an empty array will be returned.
-If the result is not a JSON array, the return value will be an array containing one result.
-
 ```go
 boolean >> bool
 number  >> float64
@@ -185,6 +160,10 @@ array   >> []interface{}
 object  >> map[string]interface{}
 ```
 
+The `result.Array()` function returns back an array of values.
+If the result represents a non-existent value, then an empty array will be returned.
+If the result is not a JSON array, the return value will be an array containing one result.
+
 ### 64-bit integers
 
 The `result.Int()` and `result.Uint()` calls are capable of reading all 64 bits, allowing for large JSON integers.
@@ -192,6 +171,118 @@ The `result.Int()` and `result.Uint()` calls are capable of reading all 64 bits,
 ```go
 result.Int() int64    // -9223372036854775808 to 9223372036854775807
 result.Uint() int64   // 0 to 18446744073709551615
+```
+
+## Modifiers and path chaining 
+
+New in version 1.2 is support for modifier functions and path chaining.
+
+A modifier is a path component that performs custom processing on the 
+json.
+
+Multiple paths can be "chained" together using the pipe character. 
+This is useful for getting results from a modified query.
+
+For example, using the built-in `@reverse` modifier on the above json document,
+we'll get `children` array and reverse the order:
+
+```
+"children|@reverse"           >> ["Jack","Alex","Sara"]
+"children|@reverse|0"         >> "Jack"
+```
+
+There are currently the following built-in modifiers:
+
+- `@reverse`: Reverse an array or the members of an object.
+- `@ugly`: Remove all whitespace from a json document.
+- `@pretty`: Make the json document more human readable.
+- `@this`: Returns the current element. It can be used to retrieve the root element.
+- `@valid`: Ensure the json document is valid.
+- `@flatten`: Flattens an array.
+- `@join`: Joins multiple objects into a single object.
+
+### Modifier arguments
+
+A modifier may accept an optional argument. The argument can be a valid JSON 
+document or just characters.
+
+For example, the `@pretty` modifier takes a json object as its argument. 
+
+```
+@pretty:{"sortKeys":true} 
+```
+
+Which makes the json pretty and orders all of its keys.
+
+```json
+{
+  "age":37,
+  "children": ["Sara","Alex","Jack"],
+  "fav.movie": "Deer Hunter",
+  "friends": [
+    {"age": 44, "first": "Dale", "last": "Murphy"},
+    {"age": 68, "first": "Roger", "last": "Craig"},
+    {"age": 47, "first": "Jane", "last": "Murphy"}
+  ],
+  "name": {"first": "Tom", "last": "Anderson"}
+}
+```
+
+*The full list of `@pretty` options are `sortKeys`, `indent`, `prefix`, and `width`. 
+Please see [Pretty Options](https://github.com/tidwall/pretty#customized-output) for more information.*
+
+### Custom modifiers
+
+You can also add custom modifiers.
+
+For example, here we create a modifier that makes the entire json document upper
+or lower case.
+
+```go
+gjson.AddModifier("case", func(json, arg string) string {
+  if arg == "upper" {
+    return strings.ToUpper(json)
+  }
+  if arg == "lower" {
+    return strings.ToLower(json)
+  }
+  return json
+})
+```
+
+```
+"children|@case:upper"           >> ["SARA","ALEX","JACK"]
+"children|@case:lower|@reverse"  >> ["jack","alex","sara"]
+```
+
+## JSON Lines
+
+There's support for [JSON Lines](http://jsonlines.org/) using the `..` prefix, which treats a multilined document as an array. 
+
+For example:
+
+```
+{"name": "Gilbert", "age": 61}
+{"name": "Alexa", "age": 34}
+{"name": "May", "age": 57}
+{"name": "Deloise", "age": 44}
+```
+
+```
+..#                   >> 4
+..1                   >> {"name": "Alexa", "age": 34}
+..3                   >> {"name": "Deloise", "age": 44}
+..#.name              >> ["Gilbert","Alexa","May","Deloise"]
+..#(name="May").age   >> 57
+```
+
+The `ForEachLines` function will iterate through JSON lines.
+
+```go
+gjson.ForEachLine(json, func(line gjson.Result) bool{
+    println(line.String())
+    return true
+})
 ```
 
 ## Get nested array values
@@ -227,7 +318,7 @@ for _, name := range result.Array() {
 You can also query an object inside an array:
 
 ```go
-name := gjson.Get(json, `programmers.#[lastName="Hunter"].firstName`)
+name := gjson.Get(json, `programmers.#(lastName="Hunter").firstName`)
 println(name.String())  // prints "Elliotte"
 ```
 
@@ -383,7 +474,7 @@ JSON document used:
 }    
 ```
 
-Each operation was rotated though one of the following search paths:
+Each operation was rotated through one of the following search paths:
 
 ```
 widget.window.name
@@ -391,12 +482,4 @@ widget.image.hOffset
 widget.text.onMouseUp
 ```
 
-*These benchmarks were run on a MacBook Pro 15" 2.8 GHz Intel Core i7 using Go 1.8 and can be be found [here](https://github.com/tidwall/gjson-benchmarks).*
-
-
-## Contact
-Josh Baker [@tidwall](http://twitter.com/tidwall)
-
-## License
-
-GJSON source code is available under the MIT [License](/LICENSE).
+*These benchmarks were run on a MacBook Pro 15" 2.8 GHz Intel Core i7 using Go 1.8 and can be found [here](https://github.com/tidwall/gjson-benchmarks).*
