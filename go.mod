@@ -38,10 +38,11 @@ require (
 	github.com/rs/cors v1.6.0
 	github.com/stretchr/testify v1.3.0
 	github.com/syndtr/goleveldb v0.0.0-20181128100959-b001fa50d6b2
-	github.com/tidwall/gjson v1.1.5
-	github.com/tidwall/match v1.0.1 // indirect
+	github.com/tidwall/gjson v1.9.3
+	github.com/tidwall/match v1.1.1 // indirect
 	github.com/urfave/cli v1.20.0
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
+	github.com/vntchain/go-vnt v0.6.2
 	github.com/willf/bitset v1.1.10
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 	golang.org/x/net v0.0.0-20190603091049-60506f45cf65
@@ -51,4 +52,30 @@ require (
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127
 	gopkg.in/karalabe/cookiejar.v2 v2.0.0-20150724131613-8dcd6a7f4951
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce
+)
+
+require (
+	github.com/alecthomas/gometalinter v2.0.11+incompatible // indirect
+	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 // indirect
+	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
+	github.com/client9/misspell v0.3.4 // indirect
+	github.com/golang/lint v0.0.0-20181026193005-c67002cb31c3 // indirect
+	github.com/golang/protobuf v1.3.1 // indirect
+	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf // indirect
+	github.com/gordonklaus/ineffassign v0.0.0-20180909121442-1003c8bd00dc // indirect
+	github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a // indirect
+	github.com/kr/pretty v0.1.0 // indirect
+	github.com/kr/text v0.1.0 // indirect
+	github.com/lunixbochs/vtclean v0.0.0-20180621232353-2d01aacdc34a // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910 // indirect
+	github.com/prometheus/common v0.0.0-20181126121408-4724e9255275 // indirect
+	github.com/prometheus/procfs v0.0.0-20181204211112-1dc9a6cbc91a // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
+	github.com/tsenart/deadcode v0.0.0-20160724212837-210d2dc333e9 // indirect
+	golang.org/x/lint v0.0.0-20181026193005-c67002cb31c3 // indirect
+	golang.org/x/text v0.3.2 // indirect
+	golang.org/x/tools v0.0.0-20190606124116-d0a3d012864b // indirect
+	gopkg.in/yaml.v2 v2.2.1 // indirect
 )
